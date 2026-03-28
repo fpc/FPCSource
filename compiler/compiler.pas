@@ -593,6 +593,7 @@ var
   ExceptionMask : TFPUExceptionMask;
   totaltime : real;
   m : tppumodule;
+  pmessage: pmessagestaterecord;
 
 begin
   current_compiler:=Self;
@@ -613,7 +614,9 @@ begin
 
        { apply global messages/verbosity }
        flushpendingswitchesstate;
-       verbose.FreeLocalVerbosity(globals.current_settings.pmessage);
+       pmessage:=globals.current_settings.pmessage;
+       verbose.FreeLocalVerbosity(pmessage);
+       globals.current_settings.pmessage:=pmessage;
 
        { show some info }
        verbose.Message1(general_t_compilername,FixFileName(system.paramstr(0)));

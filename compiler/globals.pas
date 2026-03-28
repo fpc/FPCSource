@@ -834,8 +834,8 @@ Const
         LinkLibraryOrder   : TLinkStrMap;
 
 
-        init_settings,
-        current_settings   : tsettings;
+        init_settings      : tsettings;
+        current_settings   : TMutableSettings;
 
         pendingstate       : tpendingstate;
       { Memory sizes }
@@ -1014,6 +1014,8 @@ implementation
 
     constructor TMutableSettings.CreateFromRecord(const rec: tsettings);
       begin
+        { FreeAndNil, because this constructor can also be used like a method }
+        FreeAndNil(FAlignment);
         FAlignment:=TMutableAlignmentInfo.CreateFromRecord(rec.alignment);
         globalswitches:=rec.globalswitches;
         targetswitches:=rec.targetswitches;
@@ -1869,10 +1871,13 @@ implementation
        FreeAndNil(namespacelist);
        FreeAndNil(premodule_namespacelist);
        current_namespacelist:=Nil;
+       FreeAndNil(current_settings);
      end;
 
    procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
      begin
+        current_settings:=TMutableSettings.Create;
+
         get_exepath;
 
         { reset globals }

@@ -248,7 +248,8 @@ interface
           procedure tokenwriteset(var b;size : longint);
           procedure tokenwriteenum(var b;size : longint);
           function  tokenreadsizeint : asizeint;
-          procedure tokenwritesettings(var asettings : tsettings; var size : asizeint);
+          procedure tokenwritesettings(var asettings : tsettings; out size : asizeint);
+          procedure tokenwritesettings(asettings : treadonlysettings; out size : asizeint);
           { longword/longint are 32 bits on all targets }
           { word/smallint are 16-bits on all targets }
           function  tokenreadlongword : longword;
@@ -263,6 +264,7 @@ interface
           function  tokenreadenum(size : longint) : longword;
 
           procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
+          procedure tokenreadsettings(asettings : TMutableSettings; expected_size : asizeint);
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -418,18 +420,18 @@ implementation
                 { can't have both ansistring and unicodestring as default }
                 if switch=m_default_ansistring then
                   begin
-                    exclude(compiler.globals.current_settings.modeswitches,m_default_unicodestring);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_default_unicodestring];
                     if changeinit then
-                      exclude(compiler.globals.init_settings.modeswitches,m_default_unicodestring);
+                      compiler.globals.init_settings.modeswitches:=compiler.globals.init_settings.modeswitches-[m_default_unicodestring];
                   end
                 else if switch=m_default_unicodestring then
                   begin
-                    exclude(compiler.globals.current_settings.modeswitches,m_default_ansistring);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_default_ansistring];
                     if changeinit then
-                      exclude(compiler.globals.init_settings.modeswitches,m_default_ansistring);
+                      compiler.globals.init_settings.modeswitches:=compiler.globals.init_settings.modeswitches-[m_default_ansistring];
                   end;
                 { enable $h+ }
-                include(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
+                compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_refcountedstrings];
                 if changeinit then
                   include(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
                 if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
@@ -440,7 +442,7 @@ implementation
               end
             else
               begin
-                exclude(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
+                compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_refcountedstrings];
                 if changeinit then
                   exclude(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
                 undef_system_macro('FPC_UNICODESTRINGS');
@@ -453,13 +455,13 @@ implementation
           begin
             if (m_default_inline in compiler.globals.current_settings.modeswitches) then
              begin
-               include(compiler.globals.current_settings.localswitches,cs_do_inline);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_do_inline];
                if changeinit then
                  include(compiler.globals.init_settings.localswitches,cs_do_inline);
              end
             else
              begin
-               exclude(compiler.globals.current_settings.localswitches,cs_do_inline);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_do_inline];
                if changeinit then
                  exclude(compiler.globals.init_settings.localswitches,cs_do_inline);
              end;
@@ -492,8 +494,8 @@ implementation
                     compiler.verbose.Message2(scan_w_unavailable_system_codepage,IntToStr(compiler.globals.current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     compiler.globals.current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
-                exclude(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
-                include(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
+                compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_explicit_codepage];
+                compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_system_codepage];
                 if changeinit then
                   begin
                     compiler.globals.init_settings.sourcecodepage:=compiler.globals.current_settings.sourcecodepage;
@@ -520,7 +522,7 @@ implementation
                   settings, by design. The only thing we have to ensure is that
                   disabling m_systemcodepage if it wasn't on in the first place
                   doesn't overwrite the sourcecodepage }
-                exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
+                compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_system_codepage];
                 if not(cs_explicit_codepage in compiler.globals.current_settings.moduleswitches) then
                   compiler.globals.current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
@@ -536,7 +538,7 @@ implementation
         { enable cs_force_far_calls when m_nested_procvars is enabled }
         if switch=m_nested_procvars then
           begin
-            include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
+            compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_force_far_calls];
             if changeinit then
               include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
           end;
@@ -615,8 +617,7 @@ implementation
              as well as extended pascal }
            if ([m_mac,m_iso,m_extpas] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(compiler.globals.current_settings.localswitches,cs_bitpacking);
-               include(compiler.globals.current_settings.localswitches,cs_check_all_case_coverage);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_bitpacking,cs_check_all_case_coverage];
                if changeinit then
                  begin
                    include(compiler.globals.init_settings.localswitches,cs_bitpacking);
@@ -627,7 +628,7 @@ implementation
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
            if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(compiler.globals.current_settings.moduleswitches,cs_support_goto);
+               compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_support_goto];
                if changeinit then
                  include(compiler.globals.init_settings.moduleswitches,cs_support_goto);
              end;
@@ -635,13 +636,13 @@ implementation
            { support pointer math by default in fpc/objfpc modes }
            if ([m_fpc,m_objfpc] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(compiler.globals.current_settings.localswitches,cs_pointermath);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_pointermath];
                if changeinit then
                  include(compiler.globals.init_settings.localswitches,cs_pointermath);
              end
            else
              begin
-               exclude(compiler.globals.current_settings.localswitches,cs_pointermath);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_pointermath];
                if changeinit then
                  exclude(compiler.globals.init_settings.localswitches,cs_pointermath);
              end;
@@ -688,12 +689,12 @@ implementation
            { Exception support explicitly turned on (mainly for macpas, to }
            { compensate for lack of interprocedural goto support)          }
            if (cs_support_exceptions in compiler.globals.current_settings.globalswitches) then
-             include(compiler.globals.current_settings.modeswitches,m_except);
+             compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_except];
 
            { Default strict string var checking in TP/Delphi modes }
            if ([m_delphi,m_tp7] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(compiler.globals.current_settings.localswitches,cs_strict_var_strings);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_strict_var_strings];
                if changeinit then
                  include(compiler.globals.init_settings.localswitches,cs_strict_var_strings);
              end;
@@ -701,8 +702,7 @@ implementation
            { in delphi mode, excess precision and open strings are by default on }
            if ([m_delphi] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(compiler.globals.current_settings.localswitches,cs_excessprecision);
-               include(compiler.globals.current_settings.localswitches,cs_openstring);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_excessprecision,cs_openstring];
                if changeinit then
                  begin
                    include(compiler.globals.init_settings.localswitches,cs_excessprecision);
@@ -714,13 +714,13 @@ implementation
            { Do not force far calls in the TP mode by default, force it in other modes }
            if (m_tp7 in compiler.globals.current_settings.modeswitches) then
              begin
-               exclude(compiler.globals.current_settings.localswitches,cs_force_far_calls);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_force_far_calls];
                if changeinit then
                  exclude(compiler.globals.init_settings.localswitches,cs_force_far_calls);
              end
            else
              begin
-               include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
+               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_force_far_calls];
                if changeinit then
                  include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
              end;
@@ -815,22 +815,22 @@ implementation
               Result:=true;
               if doinclude then
                 begin
-                  include(compiler.globals.current_settings.modeswitches,i);
+                  compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[i];
                   { Objective-C 2.0 support implies 1.0 support }
                   if (i=m_objectivec2) then
-                    include(compiler.globals.current_settings.modeswitches,m_objectivec1);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_objectivec1];
                   if (i in [m_objectivec1,m_objectivec2]) then
-                    include(compiler.globals.current_settings.modeswitches,m_class);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_class];
                 end
               else
                 begin
-                  exclude(compiler.globals.current_settings.modeswitches,i);
+                  compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[i];
                   { Objective-C 2.0 support implies 1.0 support }
                   if (i=m_objectivec2) then
-                    exclude(compiler.globals.current_settings.modeswitches,m_objectivec1);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_objectivec1];
                   if (i in [m_objectivec1,m_objectivec2]) and
                      ([m_delphi,m_objfpc]*compiler.globals.current_settings.modeswitches=[]) then
-                    exclude(compiler.globals.current_settings.modeswitches,m_class);
+                    compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_class];
                 end;
 
               { set other switches depending on changed mode switch }
@@ -3638,7 +3638,16 @@ type
          end;
      end;
 
-    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : asizeint);
+    procedure tscannerfile.tokenreadsettings(asettings: TMutableSettings; expected_size: asizeint);
+      var
+        s: tsettings;
+      begin
+        s:=asettings.ToRecord;
+        tokenreadsettings(s,expected_size);
+        asettings.CreateFromRecord(s);
+      end;
+
+    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; out size : asizeint);
 
     {    This procedure
        needs to be changed whenever
@@ -3723,6 +3732,15 @@ type
      end;
 
 
+    procedure tscannerfile.tokenwritesettings(asettings: treadonlysettings; out size: asizeint);
+      var
+        s:tsettings;
+      begin
+        s:=asettings.ToRecord;
+        tokenwritesettings(s,size);
+      end;
+
+
     procedure tscannerfile.recordtoken;
      var
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -3749,9 +3767,8 @@ type
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            copy_size:=sizeof(compiler.globals.current_settings)-sizeof(pointer);
             tokenwritesettings(compiler.globals.current_settings,copy_size);
-            last_settings:=compiler.globals.current_settings;
+            last_settings:=compiler.globals.current_settings.ToRecord;
           end;
 
         if compiler.globals.current_settings.pmessage<>last_message then
@@ -3873,7 +3890,7 @@ type
 
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
-          cstringpattern,patternw,compiler.globals.current_settings,replaytokenbuf,change_endian_for_replay,
+          cstringpattern,patternw,compiler.globals.current_settings.ToRecord,replaytokenbuf,change_endian_for_replay,
           compiler.globals.pendingstate,status.verbosity,replaystack);
 {$ifdef check_inputpointer_limits}
         if assigned(hidden_inputpointer) then
@@ -3920,7 +3937,7 @@ type
         wlen,mesgnb,copy_size : asizeint;
         specialtoken : tspecialgenerictoken;
         i : byte;
-        pmsg,prevmsg : pmessagestaterecord;
+        pmsg,prevmsg , pmessage: pmessagestaterecord;
         msgset : thashset;
         msgfound : boolean;
       begin
@@ -3938,7 +3955,7 @@ type
             replaytokenbuf:=replaystack.tokenbuf;
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
-            compiler.globals.current_settings:=replaystack.settings;
+            compiler.globals.current_settings.CreateFromRecord(replaystack.settings);
             compiler.globals.pendingstate:=replaystack.pending;
             if assigned(compiler.globals.pendingstate.nextmessagerecord) then
               compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
@@ -4032,7 +4049,9 @@ type
                     ST_LOADMESSAGES:
                       begin
                         { free current and pending messages }
-                        compiler.verbose.FreeLocalVerbosity(compiler.globals.current_settings.pmessage);
+                        pmessage:=compiler.globals.current_settings.pmessage;
+                        compiler.verbose.FreeLocalVerbosity(pmessage);
+                        compiler.globals.current_settings.pmessage:=pmessage;
                         compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
                         { the message settings are stored from newest to oldest
                           change for the whole stack, so we only want to apply
@@ -4186,8 +4205,8 @@ type
 {$endif CHECK_INPUTPOINTER_LIMITS}
                        compiler.verbose.Message(scan_c_switching_to_utf8);
                        compiler.globals.current_settings.sourcecodepage:=CP_UTF8;
-                       exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
-                       include(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
+                       compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_system_codepage];
+                       compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_explicit_codepage];
                      end;
 
                    line_no:=1;

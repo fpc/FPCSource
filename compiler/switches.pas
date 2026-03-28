@@ -157,6 +157,7 @@ var
 
 var
   switchTablePtr: ^SwitchRecTable;
+  targetswitches: ttargetswitches;
 
 begin
   switch:=upcase(switch);
@@ -212,14 +213,14 @@ begin
 {$endif cpufpemu}
                 begin
                   if state='+' then
-                    include(compiler.globals.current_settings.moduleswitches,tmoduleswitch(setsw))
+                    compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[tmoduleswitch(setsw)]
                   else
                     begin
                       { Turning off debuginfo when lineinfo is requested
                         is not possible }
                       if not((cs_use_lineinfo in compiler.globals.current_settings.globalswitches) and
                              (tmoduleswitch(setsw)=cs_debuginfo)) then
-                        exclude(compiler.globals.current_settings.moduleswitches,tmoduleswitch(setsw));
+                        compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[tmoduleswitch(setsw)];
                     end;
                 end;
             end
@@ -231,9 +232,9 @@ begin
            if current_module.in_global and (current_module=main_module) then
             begin
               if state='+' then
-               include(compiler.globals.current_settings.globalswitches,tglobalswitch(setsw))
+               compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[tglobalswitch(setsw)]
               else
-               exclude(compiler.globals.current_settings.globalswitches,tglobalswitch(setsw));
+               compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches-[tglobalswitch(setsw)];
             end
            else
             compiler.verbose.Message(scan_w_switch_is_global);
@@ -253,7 +254,11 @@ begin
              compiler.verbose.Message1(scan_w_unsupported_switch,'$'+switch);
          end;
        targetsw:
-         UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,compiler.globals.current_settings.targetswitches,current_module.in_global);
+         begin
+           targetswitches:=compiler.globals.current_settings.targetswitches;
+           UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,targetswitches,current_module.in_global);
+           compiler.globals.current_settings.targetswitches:=targetswitches;
+         end;
      end;
    end;
 end;
@@ -450,7 +455,7 @@ procedure flushpendingswitchesstate;
       end;
     if psf_alignment_changed in compiler.globals.pendingstate.flags then
       begin
-        compiler.globals.current_settings.alignment:=compiler.globals.pendingstate.nextalignment;
+        compiler.globals.current_settings.alignment.CreateFromRecord(compiler.globals.pendingstate.nextalignment);
         exclude(compiler.globals.pendingstate.flags,psf_alignment_changed);
       end;
     if psf_packenum_changed in compiler.globals.pendingstate.flags then

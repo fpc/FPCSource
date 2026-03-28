@@ -104,9 +104,9 @@ unit scandir;
         if (sw<>cs_modulenone) and (state in ['-','+']) then
          begin
            if state='-' then
-            exclude(compiler.globals.current_settings.moduleswitches,sw)
+            compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[sw]
            else
-            include(compiler.globals.current_settings.moduleswitches,sw);
+            compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[sw];
          end;
       end;
 
@@ -607,10 +607,14 @@ unit scandir;
     procedure dir_fputype;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        fputype: tfputype;
       begin
         current_scanner.skipspace;
         undef_system_macro('FPU'+fputypestr[compiler.globals.current_settings.fputype]);
-        if not(SetFPUType(upper(current_scanner.readcomment),compiler.globals.current_settings.fputype)) then
+        fputype:=compiler.globals.current_settings.fputype;
+        if SetFPUType(upper(current_scanner.readcomment),fputype) then
+          compiler.globals.current_settings.fputype:=fputype
+        else
           compiler.verbose.comment(V_Error,'Illegal FPU type');
         def_system_macro('FPU'+fputypestr[compiler.globals.current_settings.fputype]);
      end;
@@ -1305,6 +1309,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs : string;
+        optimizerswitches: toptimizerswitches;
       begin
         current_scanner.skipspace;
         { Support also the ON and OFF as switch }
@@ -1317,10 +1322,14 @@ unit scandir;
           recordpendingoptimizerswitches(compiler.globals.init_settings.optimizerswitches)
         else
           begin
-            if not UpdateOptimizerStr(hs,compiler.globals.current_settings.optimizerswitches) then
-              compiler.verbose.Message1(scan_e_illegal_optimization_specifier,hs)
+            optimizerswitches:=compiler.globals.current_settings.optimizerswitches;
+            if UpdateOptimizerStr(hs,optimizerswitches) then
+              begin
+                compiler.globals.current_settings.optimizerswitches:=optimizerswitches;
+                recordpendingoptimizerswitches(compiler.globals.current_settings.optimizerswitches)
+              end
             else
-              recordpendingoptimizerswitches(compiler.globals.current_settings.optimizerswitches)
+              compiler.verbose.Message1(scan_e_illegal_optimization_specifier,hs);
           end;
       end;
 
@@ -1360,9 +1369,13 @@ unit scandir;
     procedure dir_minfpconstprec;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        minfpconstprec: tfloattype;
       begin
         current_scanner.skipspace;
-        if not SetMinFPConstPrec(current_scanner.readid,compiler.globals.current_settings.minfpconstprec) then
+        minfpconstprec:=compiler.globals.current_settings.minfpconstprec;
+        if SetMinFPConstPrec(current_scanner.readid,minfpconstprec) then
+          compiler.globals.current_settings.minfpconstprec:=minfpconstprec
+        else
           compiler.verbose.Message1(scan_e_illegal_minfpconstprec, current_scanner.pattern);
       end;
 
@@ -1500,7 +1513,7 @@ unit scandir;
       if psf_alignment_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.pendingstate.nextalignment
       else
-        switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.current_settings.alignment;
+        switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.current_settings.alignment.ToRecord;
 
       if psf_verbosity_full_switched in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].verbosity:=compiler.globals.pendingstate.nextverbosityfullswitch
@@ -1808,7 +1821,7 @@ unit scandir;
             not (af_outputbinary in compiler.target._asm.flags) then
         begin
           compiler.verbose.Message(option_dwarf_smart_linking);
-          Exclude(compiler.globals.current_settings.moduleswitches,cs_create_smart);
+          compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_create_smart];
         end;
         { Also create a smartlinked version, on an assembler that
           does not support smartlink sections like nasm?
@@ -1821,7 +1834,7 @@ unit scandir;
          begin
            tcompiler(compiler).DoneLinker;
            compiler.verbose.Message(option_smart_link_requires_external_linker);
-           include(compiler.globals.current_settings.globalswitches,cs_link_extern);
+           compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_extern];
            tcompiler(compiler).InitLinker;
          end
       end;
@@ -1869,6 +1882,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         name, value: string;
+        targetswitches: ttargetswitches;
       begin
         { note: *not* recorded in the tokenstream, so not replayed for generics }
         current_scanner.skipspace;
@@ -1878,15 +1892,23 @@ unit scandir;
             current_scanner.readchar;
             current_scanner.readid;
             value:=current_scanner.orgpattern;
-            UpdateTargetSwitchStr(name+'='+value,compiler.globals.current_settings.targetswitches,current_module.in_global);
+            targetswitches:=compiler.globals.current_settings.targetswitches;
+            UpdateTargetSwitchStr(name+'='+value,targetswitches,current_module.in_global);
+            compiler.globals.current_settings.targetswitches:=targetswitches;
           end
         else if current_scanner.c='-' then
           begin
             current_scanner.readchar;
-            UpdateTargetSwitchStr(name+'-',compiler.globals.current_settings.targetswitches,current_module.in_global);
+            targetswitches:=compiler.globals.current_settings.targetswitches;
+            UpdateTargetSwitchStr(name+'-',targetswitches,current_module.in_global);
+            compiler.globals.current_settings.targetswitches:=targetswitches;
           end
         else
-          UpdateTargetSwitchStr(name,compiler.globals.current_settings.targetswitches,current_module.in_global);
+          begin
+            targetswitches:=compiler.globals.current_settings.targetswitches;
+            UpdateTargetSwitchStr(name,targetswitches,current_module.in_global);
+            compiler.globals.current_settings.targetswitches:=targetswitches;
+          end;
       end;
 
     procedure dir_typedaddress;
@@ -2308,9 +2330,9 @@ unit scandir;
             else
               compiler.globals.current_settings.sourcecodepage:=codepagebyname(s);
             { we're not using the system code page now }
-            exclude(compiler.globals.current_settings.modeswitches,m_systemcodepage);
-            exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
-            include(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
+            compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_systemcodepage];
+            compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_system_codepage];
+            compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_explicit_codepage];
           end;
       end;
 

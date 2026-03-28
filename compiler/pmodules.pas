@@ -438,7 +438,7 @@ implementation
         if not (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
           if ([m_objfpc,m_delphi] * compiler.globals.current_settings.modeswitches)<>[] then
             if is_systemunit_unicode then
-              Include(compiler.globals.current_settings.modeswitches,m_default_unicodestring);
+              compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_default_unicodestring];
 
         { default the extended RTTI options to that of TObject }
         if assigned(class_tobject) then
@@ -1481,7 +1481,7 @@ type
             ) then
            compiler.verbose.Message2(unit_e_illegal_unit_name,curr.realmodulename^,s1^);
          if (curr.modulename^='SYSTEM') then
-           include(compiler.globals.current_settings.moduleswitches,cs_compilesystem);
+           compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_compilesystem];
          dispose(s2);
          dispose(s1);
 
@@ -1526,11 +1526,11 @@ type
 
          { maybe turn off m_objpas if we are compiling objpas }
          if (curr.modulename^='OBJPAS') then
-           exclude(compiler.globals.current_settings.modeswitches,m_objpas);
+           compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_objpas];
 
          { maybe turn off m_mac if we are compiling macpas }
          if (curr.modulename^='MACPAS') then
-           exclude(compiler.globals.current_settings.modeswitches,m_mac);
+           compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches-[m_mac];
 
          parser.pbase.parse_only:=true;
 
@@ -2008,14 +2008,14 @@ type
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in compiler.globals.current_settings.globalswitches) then
            begin
-              include(compiler.globals.current_settings.globalswitches,cs_link_strip);
+              compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_strip];
               { Warning stabs info does not work with reloc section !! }
               if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
-                  exclude(compiler.globals.current_settings.moduleswitches,cs_debuginfo);
+                  compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_debuginfo];
                 end;
            end;
          { get correct output names }
@@ -2043,7 +2043,7 @@ type
          pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in compiler.target.info.flags then
-           include(compiler.globals.current_settings.moduleswitches,cs_create_pic);
+           compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_create_pic];
 
          { setup things using the switches, do this before the semicolon, because after the semicolon has been
            read, all following directives are parsed as well }
@@ -2883,7 +2883,7 @@ type
 
         if tf_library_needs_pic in compiler.target.info.flags then
          begin
-           include(compiler.globals.current_settings.moduleswitches,cs_create_pic);
+           compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_create_pic];
            { also set create_pic for all unit compilation }
            include(compiler.globals.init_settings.moduleswitches,cs_create_pic);
          end;
@@ -2996,14 +2996,14 @@ type
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in compiler.globals.current_settings.globalswitches) then
            begin
-              include(compiler.globals.current_settings.globalswitches,cs_link_strip);
+              compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_strip];
               { Warning stabs info does not work with reloc section !! }
               if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
-                  exclude(compiler.globals.current_settings.moduleswitches,cs_debuginfo);
+                  compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches-[cs_debuginfo];
                 end;
            end;
          { get correct output names }

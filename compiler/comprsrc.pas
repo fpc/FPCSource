@@ -439,14 +439,14 @@ begin
   if CStreamError<>0 then
     begin
       compiler.verbose.Message1(exec_e_cant_open_resource_file, src.FileName);
-      Include(compiler.globals.current_settings.globalswitches, cs_link_nolink);
+      compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
       exit;
     end;
   dst:=CFileStreamClass.Create(current_module.outputpath+outf,fmCreate);
   if CStreamError<>0 then
     begin
       compiler.verbose.Message1(exec_e_cant_write_resource_file, dst.FileName);
-      Include(compiler.globals.current_settings.globalswitches, cs_link_nolink);
+      compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
       exit;
     end;
   dst.CopyFrom(src,src.Size);
@@ -484,7 +484,7 @@ begin
       if not FileExists(s, True) then
         begin
           compiler.verbose.Message1(exec_e_cant_open_resource_file, s);
-          Include(compiler.globals.current_settings.globalswitches, cs_link_nolink);
+          compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
           exit;
         end;
       resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s,compiler));

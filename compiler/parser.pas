@@ -109,6 +109,7 @@ implementation
 
     var
        hp,hp2 :  tmodule;
+       pmessage: pmessagestaterecord;
 
     begin
        if (module.is_initial) and
@@ -165,7 +166,9 @@ implementation
 {           if olddata.old_current_module<>current_module then
         set_current_module(olddata.old_current_module);}
 
-      compiler.verbose.FreeLocalVerbosity(compiler.globals.current_settings.pmessage);
+      pmessage:=compiler.globals.current_settings.pmessage;
+      compiler.verbose.FreeLocalVerbosity(pmessage);
+      compiler.globals.current_settings.pmessage:=pmessage;
 
     end;
 
@@ -532,7 +535,7 @@ implementation
          compiler.globals.current_settings.pmessage:=nil;
 
          { Load current state from the init values }
-         compiler.globals.current_settings:=compiler.globals.init_settings;
+         compiler.globals.current_settings.CreateFromRecord(compiler.globals.init_settings);
 
          set_current_module(module);
          if not (module.state in [ms_compile]) then

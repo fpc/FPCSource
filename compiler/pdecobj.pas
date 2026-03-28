@@ -1474,12 +1474,12 @@ implementation
                                 { the value of final fields cannot be changed
                                   once they've been assigned a value }
                                 typedconstswritable:=cs_typed_const_writable in compiler.globals.current_settings.localswitches;
-                                exclude(compiler.globals.current_settings.localswitches,cs_typed_const_writable);
+                                compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_typed_const_writable];
                               end;
                             parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
-                              include(compiler.globals.current_settings.localswitches,cs_typed_const_writable);
+                              compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_typed_const_writable];
                           end
                         else
                           internalerror(2010011103);

@@ -1933,7 +1933,7 @@ implementation
                      ) then
                     begin
                        oldlocalswitches:=compiler.globals.current_settings.localswitches;
-                       include(compiler.globals.current_settings.localswitches,cs_allow_enum_calc);
+                       compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_allow_enum_calc];
                        p:=parser.pexpr.comp_expr([ef_accept_equal]);
                        compiler.globals.current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then

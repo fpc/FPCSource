@@ -33,6 +33,7 @@ interface
       compilerbase;
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
+    function UpdateAlignmentStr(s:string;a:TMutableAlignmentInfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
@@ -113,6 +114,19 @@ implementation
         Result:=Result and UpdateAlignment(a,b);
       end;
 
+    function UpdateAlignmentStr(s: string; a: TMutableAlignmentInfo): boolean;
+      var
+        tmpa: talignmentinfo;
+      begin
+        tmpa:=a.ToRecord;
+        if UpdateAlignmentStr(s,tmpa) then
+          begin
+            a.CreateFromRecord(tmpa);
+            result:=true;
+          end
+        else
+          result:=false;
+      end;
 
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
       var

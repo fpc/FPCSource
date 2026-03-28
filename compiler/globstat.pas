@@ -198,7 +198,7 @@ var
       { save akt... state }
       { handle the postponed case first }
       oldcurrent_filepos:=compiler.globals.current_filepos;
-      old_settings:=compiler.globals.current_settings;
+      old_settings:=compiler.globals.current_settings.ToRecord;
       old_verbosity:=status.verbosity;
 
       old_asmdata:=current_asmdata;
@@ -279,7 +279,7 @@ var
         reload_symtable_stack(compiler.macrosymtablestack,stsk_macro);
       current_procinfo:=oldcurrent_procinfo;
       compiler.globals.current_filepos:=oldcurrent_filepos;
-      compiler.globals.current_settings:=old_settings;
+      compiler.globals.current_settings.CreateFromRecord(old_settings);
       status.verbosity:=old_verbosity;
 
       { restore message settings which were recorded prior to unit switch }
