@@ -91,6 +91,8 @@ interface
          Frecordalignmax,
          FmaxCrecordalign : longint;
        public
+         function Equals(Obj: TObject): boolean; override;
+
          function ToRecord: talignmentinfo;
 
          property procalign: longint read Fprocalign;
@@ -705,6 +707,33 @@ implementation
       cutils{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
 
 { TReadOnlyAlignmentInfo }
+
+function TReadOnlyAlignmentInfo.Equals(Obj: TObject): boolean;
+  var
+    ai: TReadOnlyAlignmentInfo;
+  begin
+    if Obj is TReadOnlyAlignmentInfo then
+      begin
+        ai:=TReadOnlyAlignmentInfo(Obj);
+        Result:=(procalign=ai.procalign) and
+                (loopalign=loopalign) and
+                (jumpalign=jumpalign) and
+                (jumpalignskipmax=jumpalignskipmax) and
+                (coalescealign=coalescealign) and
+                (coalescealignskipmax=coalescealignskipmax) and
+                (constalignmin=constalignmin) and
+                (constalignmax=constalignmax) and
+                (varalignmin=varalignmin) and
+                (varalignmax=varalignmax) and
+                (localalignmin=localalignmin) and
+                (localalignmax=localalignmax) and
+                (recordalignmin=recordalignmin) and
+                (recordalignmax=recordalignmax) and
+                (maxCrecordalign=maxCrecordalign);
+      end
+    else
+      Result:=inherited Equals(Obj);
+  end;
 
 function TReadOnlyAlignmentInfo.ToRecord: talignmentinfo;
   begin
