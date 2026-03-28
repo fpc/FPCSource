@@ -168,7 +168,7 @@ interface
           recordtokenbuf : tdynamicarray;
 
           { last settings we stored }
-          last_settings : tsettings;
+          last_settings : TMutableSettings;
           last_message : pmessagestaterecord;
           { last filepos we stored }
           last_filepos,
@@ -3155,6 +3155,7 @@ type
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
+        last_settings:=TMutableSettings.Create;
         inputfile:=do_openinputfile(fn);
         if is_macro then
           inputfile.is_macro:=true;
@@ -3224,6 +3225,7 @@ type
         ignoredirectives.free;
         ignoredirectives := nil;
         donewidestring(patternw);
+        FreeAndNil(last_settings);
       end;
 
 
@@ -3760,15 +3762,14 @@ type
         { settings changed? }
         { last field pmessage is handled separately below in
           ST_LOADMESSAGES }
-        if CompareByte(compiler.globals.current_settings,last_settings,
-             sizeof(compiler.globals.current_settings)-sizeof(pointer))<>0 then
+        if not compiler.globals.current_settings.Equals(last_settings) then
           begin
             { use a special token to record it }
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
             tokenwritesettings(compiler.globals.current_settings,copy_size);
-            last_settings:=compiler.globals.current_settings.ToRecord;
+            last_settings.Assign(compiler.globals.current_settings);
           end;
 
         if compiler.globals.current_settings.pmessage<>last_message then

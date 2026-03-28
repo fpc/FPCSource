@@ -339,6 +339,8 @@ Const
          constructor Create;
          constructor CreateFromRecord(const rec: tsettings);
 
+         procedure Assign(Source: TReadOnlySettings);
+
          property alignment: TMutableAlignmentInfo read GetMutableAlignment;
          property globalswitches: tglobalswitches read Fglobalswitches write Fglobalswitches;
          property targetswitches: ttargetswitches read Ftargetswitches write Ftargetswitches;
@@ -1117,6 +1119,14 @@ implementation
 {$if defined(LLVM) or defined(GENERIC_CPU)}
         llvmversion:=rec.llvmversion;
 {$endif defined(LLVM) or defined(GENERIC_CPU)}
+      end;
+
+    procedure TMutableSettings.Assign(Source: TReadOnlySettings);
+      var
+        r: TSettings;
+      begin
+        r:=Source.ToRecord;
+        CreateFromRecord(r);
       end;
 
 {****************************************************************************
