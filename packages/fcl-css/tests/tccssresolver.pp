@@ -373,10 +373,10 @@ type
     FHeight: integer;
     FStyle: TCSSString;
     FWidth: integer;
-    function HasMediaBoolean(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID): boolean;
-    function IsMediaPlain(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+    function HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
+    function IsMediaPlain(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
       const aValue: TCSSResCompValue): boolean;
-    function MediaCompare(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+    function MediaCompare(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
       const aValue: TCSSResCompValue; out Cmp: integer): boolean;
     procedure OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEntry);
   protected
@@ -518,6 +518,7 @@ type
     procedure TestRes_Media_NameColonValue; // test plain (name:value)
     procedure TestRes_Media_Range_NameGtValue;
     procedure TestRes_Media_Range_ValueLtName;
+    procedure TestRes_Media_Range_NameGtName;
     procedure TestRes_Media_Range_ValueLtNameLtValue;
     procedure TestRes_Media_Range_ValueGtNameGtValue;
     procedure TestRes_Media_Ratio;
@@ -702,8 +703,7 @@ begin
   if Entry=nil then ;
 end;
 
-function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID
-  ): boolean;
+function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
 begin
   Result:=false;
   case KW of
@@ -717,7 +717,7 @@ begin
   if aResolver=nil then ;
 end;
 
-function TDemoDocument.IsMediaPlain(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+function TDemoDocument.IsMediaPlain(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
   const aValue: TCSSResCompValue): boolean;
 var
   Cmp: integer;
@@ -740,7 +740,7 @@ begin
   end;
 end;
 
-function TDemoDocument.MediaCompare(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+function TDemoDocument.MediaCompare(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
   const aValue: TCSSResCompValue; out Cmp: integer): boolean;
 // compare length
 var
@@ -3597,6 +3597,24 @@ begin
   AssertEquals('Div1.Height','11px',Div1.Height);
 end;
 
+procedure TTestCSSResolver.TestRes_Media_Range_NameGtName;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (width > height) { div{ width: 10px; } }',
+  '@media (height = width) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
 procedure TTestCSSResolver.TestRes_Media_Range_ValueLtNameLtValue;
 var
   Div1: TDemoDiv;
@@ -3749,9 +3767,9 @@ begin
   '']);
   ApplyStyle;
   // 4/3 < 3/2 -> match
- // AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
   // 4/3 > 3/2 -> no match
- // AssertEquals('Div1.Height','',Div1.Height);
+  AssertEquals('Div1.Height','',Div1.Height);
 end;
 
 initialization

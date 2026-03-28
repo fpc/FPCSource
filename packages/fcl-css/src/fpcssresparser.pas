@@ -556,10 +556,10 @@ type
     function Fits(const ResValue: TCSSResCompValue): boolean; overload;
   end;
 
-  TCSSHasMediaBoolEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID): boolean of object;
-  TCSSIsMediaPlainEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+  TCSSHasMediaBoolEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean of object;
+  TCSSIsMediaPlainEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
     const aValue: TCSSResCompValue): boolean of object;
-  TCSSMediaCompareEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+  TCSSMediaCompareEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
     const aValue: TCSSResCompValue;
     out Cmp: integer // 0=equal, 1=KW is bigger, -1 aValue is bigger
     ): boolean of object; // false = comparing apples with oranges
