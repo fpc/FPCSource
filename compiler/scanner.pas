@@ -600,7 +600,7 @@ implementation
 
 {$ifdef jvm}
           { enable final fields by default for the JVM targets }
-          include(compiler.globals.current_settings.modeswitches,m_final_fields);
+          compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_final_fields];
 {$endif jvm}
 
         if b and changeInit then
