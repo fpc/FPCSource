@@ -71,6 +71,69 @@ interface
          maxCrecordalign : longint;
        end;
 
+       { TReadOnlyAlignmentInfo }
+
+       TReadOnlyAlignmentInfo = class
+       protected
+         Fprocalign,
+         Floopalign,
+         Fjumpalign,
+         Fjumpalignskipmax,
+         Fcoalescealign,
+         Fcoalescealignskipmax,
+         Fconstalignmin,
+         Fconstalignmax,
+         Fvaralignmin,
+         Fvaralignmax,
+         Flocalalignmin,
+         Flocalalignmax,
+         Frecordalignmin,
+         Frecordalignmax,
+         FmaxCrecordalign : longint;
+       public
+         function ToRecord: talignmentinfo;
+
+         property procalign: longint read Fprocalign;
+         property loopalign: longint read Floopalign;
+         property jumpalign: longint read Fjumpalign;
+         property jumpalignskipmax: longint read Fjumpalignskipmax;
+         property coalescealign: longint read Fcoalescealign;
+         property coalescealignskipmax: longint read Fcoalescealignskipmax;
+         property constalignmin: longint read Fconstalignmin;
+         property constalignmax: longint read Fconstalignmax;
+         property varalignmin: longint read Fvaralignmin;
+         property varalignmax: longint read Fvaralignmax;
+         property localalignmin: longint read Flocalalignmin;
+         property localalignmax: longint read Flocalalignmax;
+         property recordalignmin: longint read Frecordalignmin;
+         property recordalignmax: longint read Frecordalignmax;
+         property maxCrecordalign: longint read FmaxCrecordalign;
+       end;
+
+       { TMutableAlignmentInfo }
+
+       TMutableAlignmentInfo = class(TReadOnlyAlignmentInfo)
+       public
+         constructor Create;
+         constructor CreateFromRecord(const rec: talignmentinfo);
+
+         property procalign: longint read Fprocalign write Fprocalign;
+         property loopalign: longint read Floopalign write Floopalign;
+         property jumpalign: longint read Fjumpalign write Fjumpalign;
+         property jumpalignskipmax: longint read Fjumpalignskipmax write Fjumpalignskipmax;
+         property coalescealign: longint read Fcoalescealign write Fcoalescealign;
+         property coalescealignskipmax: longint read Fcoalescealignskipmax write Fcoalescealignskipmax;
+         property constalignmin: longint read Fconstalignmin write Fconstalignmin;
+         property constalignmax: longint read Fconstalignmax write Fconstalignmax;
+         property varalignmin: longint read Fvaralignmin write Fvaralignmin;
+         property varalignmax: longint read Fvaralignmax write Fvaralignmax;
+         property localalignmin: longint read Flocalalignmin write Flocalalignmin;
+         property localalignmax: longint read Flocalalignmax write Flocalalignmax;
+         property recordalignmin: longint read Frecordalignmin write Frecordalignmin;
+         property recordalignmax: longint read Frecordalignmax write Frecordalignmax;
+         property maxCrecordalign: longint read FmaxCrecordalign write FmaxCrecordalign;
+       end;
+
        tasmflags = (af_none
          ,af_outputbinary
          ,af_needar
@@ -640,6 +703,53 @@ implementation
 
     uses
       cutils{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
+
+{ TReadOnlyAlignmentInfo }
+
+function TReadOnlyAlignmentInfo.ToRecord: talignmentinfo;
+  begin
+    result.procalign:=procalign;
+    result.loopalign:=loopalign;
+    result.jumpalign:=jumpalign;
+    result.jumpalignskipmax:=jumpalignskipmax;
+    result.coalescealign:=coalescealign;
+    result.coalescealignskipmax:=coalescealignskipmax;
+    result.constalignmin:=constalignmin;
+    result.constalignmax:=constalignmax;
+    result.varalignmin:=varalignmin;
+    result.varalignmax:=varalignmax;
+    result.localalignmin:=localalignmin;
+    result.localalignmax:=localalignmax;
+    result.recordalignmin:=recordalignmin;
+    result.recordalignmax:=recordalignmax;
+    result.maxCrecordalign:=maxCrecordalign;
+  end;
+
+{ TMutableAlignmentInfo }
+
+constructor TMutableAlignmentInfo.Create;
+  begin
+    inherited;
+  end;
+
+constructor TMutableAlignmentInfo.CreateFromRecord(const rec: talignmentinfo);
+  begin
+    procalign:=rec.procalign;
+    loopalign:=rec.loopalign;
+    jumpalign:=rec.jumpalign;
+    jumpalignskipmax:=rec.jumpalignskipmax;
+    coalescealign:=rec.coalescealign;
+    coalescealignskipmax:=rec.coalescealignskipmax;
+    constalignmin:=rec.constalignmin;
+    constalignmax:=rec.constalignmax;
+    varalignmin:=rec.varalignmin;
+    varalignmax:=rec.varalignmax;
+    localalignmin:=rec.localalignmin;
+    localalignmax:=rec.localalignmax;
+    recordalignmin:=rec.recordalignmin;
+    recordalignmax:=rec.recordalignmax;
+    maxCrecordalign:=rec.maxCrecordalign;
+  end;
 
 {****************************************************************************
            OS runtime version detection utility routine
