@@ -716,20 +716,20 @@ function TReadOnlyAlignmentInfo.Equals(Obj: TObject): boolean;
       begin
         ai:=TReadOnlyAlignmentInfo(Obj);
         Result:=(procalign=ai.procalign) and
-                (loopalign=loopalign) and
-                (jumpalign=jumpalign) and
-                (jumpalignskipmax=jumpalignskipmax) and
-                (coalescealign=coalescealign) and
-                (coalescealignskipmax=coalescealignskipmax) and
-                (constalignmin=constalignmin) and
-                (constalignmax=constalignmax) and
-                (varalignmin=varalignmin) and
-                (varalignmax=varalignmax) and
-                (localalignmin=localalignmin) and
-                (localalignmax=localalignmax) and
-                (recordalignmin=recordalignmin) and
-                (recordalignmax=recordalignmax) and
-                (maxCrecordalign=maxCrecordalign);
+                (loopalign=ai.loopalign) and
+                (jumpalign=ai.jumpalign) and
+                (jumpalignskipmax=ai.jumpalignskipmax) and
+                (coalescealign=ai.coalescealign) and
+                (coalescealignskipmax=ai.coalescealignskipmax) and
+                (constalignmin=ai.constalignmin) and
+                (constalignmax=ai.constalignmax) and
+                (varalignmin=ai.varalignmin) and
+                (varalignmax=ai.varalignmax) and
+                (localalignmin=ai.localalignmin) and
+                (localalignmax=ai.localalignmax) and
+                (recordalignmin=ai.recordalignmin) and
+                (recordalignmax=ai.recordalignmax) and
+                (maxCrecordalign=ai.maxCrecordalign);
       end
     else
       Result:=inherited Equals(Obj);
