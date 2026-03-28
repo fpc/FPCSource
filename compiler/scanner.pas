@@ -245,10 +245,10 @@ interface
           procedure tokenwritebyte(val : byte);
           procedure tokenwriteword(val : word);
           procedure tokenwriteshortint(val : shortint);
-          procedure tokenwriteset(var b;size : longint);
-          procedure tokenwriteenum(var b;size : longint);
+          procedure tokenwriteset(const b;size : longint);
+          procedure tokenwriteenum(const b;size : longint);
           function  tokenreadsizeint : asizeint;
-          procedure tokenwritesettings(var asettings : tsettings; out size : asizeint);
+          procedure tokenwritesettings(const asettings : tsettings; out size : asizeint);
           procedure tokenwritesettings(asettings : treadonlysettings; out size : asizeint);
           { longword/longint are 32 bits on all targets }
           { word/smallint are 16-bits on all targets }
@@ -3540,12 +3540,12 @@ type
          Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
 
-   procedure tscannerfile.tokenwriteenum(var b;size : longint);
+   procedure tscannerfile.tokenwriteenum(const b;size : longint);
    begin
      recordtokenbuf.write(b,size);
    end;
 
-   procedure tscannerfile.tokenwriteset(var b;size : longint);
+   procedure tscannerfile.tokenwriteset(const b;size : longint);
    begin
      recordtokenbuf.write(b,size);
    end;
@@ -3647,7 +3647,7 @@ type
         asettings.CreateFromRecord(s);
       end;
 
-    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; out size : asizeint);
+    procedure tscannerfile.tokenwritesettings(const asettings : tsettings; out size : asizeint);
 
     {    This procedure
        needs to be changed whenever
