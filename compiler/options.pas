@@ -1495,10 +1495,10 @@ begin
    begin
      c:=upcase(s[i]);
      case c of
-      'C' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_copydata);
-      'J' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_jmp_main);
-      'S' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_start);
-      'Z' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_zeroreg_sp);
+      'C' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_discard_copydata];
+      'J' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_discard_jmp_main];
+      'S' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_discard_start];
+      'Z' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_discard_zeroreg_sp];
      else
       exit(false);
      end;
