@@ -540,7 +540,7 @@ implementation
           begin
             compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_force_far_calls];
             if changeinit then
-              include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_force_far_calls];
           end;
 {$endif i8086}
       end;
@@ -710,13 +710,13 @@ implementation
              begin
                compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_force_far_calls];
                if changeinit then
-                 exclude(compiler.globals.init_settings.localswitches,cs_force_far_calls);
+                 compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_force_far_calls];
              end
            else
              begin
                compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_force_far_calls];
                if changeinit then
-                 include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
+                 compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_force_far_calls];
              end;
 {$endif i8086}
 

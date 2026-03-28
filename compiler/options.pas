@@ -4072,9 +4072,9 @@ begin
        'h':
          begin
            if UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.moduleswitches,cs_huge_code)
-            else
-             include(compiler.globals.init_settings.moduleswitches,cs_huge_code);
+             compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_huge_code]
+           else
+             compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_huge_code];
          end;
 {$endif defined(i8086)}
        'I':
