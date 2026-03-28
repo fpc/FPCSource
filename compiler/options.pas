@@ -2249,7 +2249,7 @@ begin
    { always enable vlink as default linker for the Sinclair QL, Atari, and Human 68k }
    if (compiler.target.info.system in [system_m68k_sinclairql,system_m68k_atari,system_m68k_human68k]) and
       not LinkerSetExplicitly then
-     include(compiler.globals.init_settings.globalswitches,cs_link_vlink);
+     compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_vlink];
 {$endif m68k}
 end;
 
@@ -5817,7 +5817,7 @@ begin
           begin
             { enable HW FPU for UNIX by default, but only for
               original 68k, not Coldfire }
-            exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_fp_emulation];
             compiler.globals.init_settings.fputype:=fpu_68881;
           end;
       end;
@@ -5835,7 +5835,7 @@ begin
         if not (option.FPUSetExplicitly) then
           begin
             { No FPU for PalmOS by default }
-            exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_fp_emulation];
             compiler.globals.init_settings.fputype:=fpu_none;
           end;
       end;
