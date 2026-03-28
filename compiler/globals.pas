@@ -281,6 +281,8 @@ Const
          Fllvmversion: tllvmversion;
 {$endif defined(LLVM) or defined(GENERIC_CPU)}
        public
+         function Equals(Obj: TObject): boolean; override;
+
          function ToRecord: tsettings;
 
          property alignment: TReadOnlyAlignmentInfo read FAlignment;
@@ -951,6 +953,62 @@ implementation
       compiler;
 
     { TReadOnlySettings }
+
+    function TReadOnlySettings.Equals(Obj: TObject): boolean;
+      var
+        s: TReadOnlySettings;
+      begin
+        if Obj is TReadOnlySettings then
+          begin
+            s:=TReadOnlySettings(Obj);
+            Result:=alignment.Equals(s.alignment) and
+                    (globalswitches=s.globalswitches) and
+                    (targetswitches=s.targetswitches) and
+                    (moduleswitches=s.moduleswitches) and
+                    (localswitches=s.localswitches) and
+                    (modeswitches=s.modeswitches) and
+                    (optimizerswitches=s.optimizerswitches) and
+                    (genwpoptimizerswitches=s.genwpoptimizerswitches) and
+                    (dowpoptimizerswitches=s.dowpoptimizerswitches) and
+                    (debugswitches=s.debugswitches) and
+                    (setalloc=s.setalloc) and
+                    (packenum=s.packenum) and
+                    (packrecords=s.packrecords) and
+                    (maxfpuregisters=s.maxfpuregisters) and
+                    (verbosity=s.verbosity) and
+                    (cputype=s.cputype) and
+                    (optimizecputype=s.optimizecputype) and
+                    (asmcputype=s.asmcputype) and
+                    (fputype=s.fputype) and
+                    (asmmode=s.asmmode) and
+                    (interfacetype=s.interfacetype) and
+                    (defproccall=s.defproccall) and
+                    (sourcecodepage=s.sourcecodepage) and
+                    (minfpconstprec=s.minfpconstprec) and
+                    (disabledircache=s.disabledircache) and
+                    (tlsmodel=s.tlsmodel) and
+                    (controllertype=s.controllertype) and
+                    (pmessage=s.pmessage) and
+                    (lineendingtype=s.lineendingtype) and
+                    (whitespacetrimcount=s.whitespacetrimcount) and
+                    (whitespacetrimauto=s.whitespacetrimauto)
+
+{$if defined(i8086) or defined(generic_cpu)}
+                and (x86memorymodel=s.x86memorymodel)
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+                and (instructionset=s.instructionset)
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+                and (llvmversion=s.llvmversion)
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+            ;
+          end
+        else
+          Result:=inherited Equals(Obj);
+      end;
 
     function TReadOnlySettings.ToRecord: tsettings;
       begin
