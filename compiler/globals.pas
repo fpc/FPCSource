@@ -233,6 +233,156 @@ Const
 {$endif defined(LLVM) or defined(GENERIC_CPU)}
        end;
 
+       { TReadOnlySettings }
+
+       TReadOnlySettings = class
+       protected
+         FAlignment: TReadOnlyAlignmentInfo;
+         Fglobalswitches: tglobalswitches;
+         Ftargetswitches: ttargetswitches;
+         Fmoduleswitches: tmoduleswitches;
+         Flocalswitches: tlocalswitches;
+         Fmodeswitches: tmodeswitches;
+         Foptimizerswitches: toptimizerswitches;
+         Fgenwpoptimizerswitches: twpoptimizerswitches;
+         Fdowpoptimizerswitches: twpoptimizerswitches;
+         Fdebugswitches: tdebugswitches;
+         Fsetalloc: shortint;
+         Fpackenum: shortint;
+         Fpackrecords: shortint;
+         Fmaxfpuregisters: shortint;
+         Fverbosity: longint;
+         Fcputype: tcputype;
+         Foptimizecputype: tcputype;
+         Fasmcputype: tcputype;
+         Ffputype: tfputype;
+         Fasmmode: tasmmode;
+         Finterfacetype: tinterfacetypes;
+         Fdefproccall: tproccalloption;
+         Fsourcecodepage: tstringencoding;
+         Fminfpconstprec: tfloattype;
+         Fdisabledircache: boolean;
+         Ftlsmodel: ttlsmodel;
+         Fcontrollertype: tcontrollertype;
+         Fpmessage: pmessagestaterecord;
+         Flineendingtype: tlineendingtype;
+         Fwhitespacetrimcount: word;
+         Fwhitespacetrimauto: boolean;
+
+{$if defined(i8086) or defined(generic_cpu)}
+         Fx86memorymodel: tx86memorymodel;
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+         Finstructionset: tinstructionset;
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+         Fllvmversion: tllvmversion;
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+       public
+         function ToRecord: tsettings;
+
+         property alignment: TReadOnlyAlignmentInfo read FAlignment;
+         property globalswitches: tglobalswitches read Fglobalswitches;
+         property targetswitches: ttargetswitches read Ftargetswitches;
+         property moduleswitches: tmoduleswitches read Fmoduleswitches;
+         property localswitches: tlocalswitches read Flocalswitches;
+         property modeswitches: tmodeswitches read Fmodeswitches;
+         property optimizerswitches: toptimizerswitches read Foptimizerswitches;
+         property genwpoptimizerswitches: twpoptimizerswitches read Fgenwpoptimizerswitches;
+         property dowpoptimizerswitches: twpoptimizerswitches read Fdowpoptimizerswitches;
+         property debugswitches: tdebugswitches read Fdebugswitches;
+         property setalloc: shortint read Fsetalloc;
+         property packenum: shortint read Fpackenum;
+         property packrecords: shortint read Fpackrecords;
+         property maxfpuregisters: shortint read Fmaxfpuregisters;
+         property verbosity: longint read Fverbosity;
+         property cputype: tcputype read Fcputype;
+         property optimizecputype: tcputype read Foptimizecputype;
+         property asmcputype: tcputype read Fasmcputype;
+         property fputype: tfputype read Ffputype;
+         property asmmode: tasmmode read Fasmmode;
+         property interfacetype: tinterfacetypes read Finterfacetype;
+         property defproccall: tproccalloption read Fdefproccall;
+         property sourcecodepage: tstringencoding read Fsourcecodepage;
+         property minfpconstprec: tfloattype read Fminfpconstprec;
+         property disabledircache: boolean read Fdisabledircache;
+         property tlsmodel: ttlsmodel read Ftlsmodel;
+         property controllertype: tcontrollertype read Fcontrollertype;
+         property pmessage: pmessagestaterecord read Fpmessage;
+         property lineendingtype: tlineendingtype read Flineendingtype;
+         property whitespacetrimcount: word read Fwhitespacetrimcount;
+         property whitespacetrimauto: boolean read Fwhitespacetrimauto;
+
+{$if defined(i8086) or defined(generic_cpu)}
+         property x86memorymodel: tx86memorymodel read Fx86memorymodel;
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+         property instructionset: tinstructionset read Finstructionset;
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+         property llvmversion: tllvmversion read Fllvmversion;
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+       end;
+
+       { TMutableSettings }
+
+       TMutableSettings = class(TReadOnlySettings)
+       private
+         function GetMutableAlignment: TMutableAlignmentInfo;
+       public
+         constructor Create;
+         constructor CreateFromRecord(const rec: tsettings);
+
+         property alignment: TMutableAlignmentInfo read GetMutableAlignment;
+         property globalswitches: tglobalswitches read Fglobalswitches write Fglobalswitches;
+         property targetswitches: ttargetswitches read Ftargetswitches write Ftargetswitches;
+         property moduleswitches: tmoduleswitches read Fmoduleswitches write Fmoduleswitches;
+         property localswitches: tlocalswitches read Flocalswitches write Flocalswitches;
+         property modeswitches: tmodeswitches read Fmodeswitches write Fmodeswitches;
+         property optimizerswitches: toptimizerswitches read Foptimizerswitches write Foptimizerswitches;
+         property genwpoptimizerswitches: twpoptimizerswitches read Fgenwpoptimizerswitches write Fgenwpoptimizerswitches;
+         property dowpoptimizerswitches: twpoptimizerswitches read Fdowpoptimizerswitches write Fdowpoptimizerswitches;
+         property debugswitches: tdebugswitches read Fdebugswitches write Fdebugswitches;
+         property setalloc: shortint read Fsetalloc write Fsetalloc;
+         property packenum: shortint read Fpackenum write Fpackenum;
+         property packrecords: shortint read Fpackrecords write Fpackrecords;
+         property maxfpuregisters: shortint read Fmaxfpuregisters write Fmaxfpuregisters;
+         property verbosity: longint read Fverbosity write Fverbosity;
+         property cputype: tcputype read Fcputype write Fcputype;
+         property optimizecputype: tcputype read Foptimizecputype write Foptimizecputype;
+         property asmcputype: tcputype read Fasmcputype write Fasmcputype;
+         property fputype: tfputype read Ffputype write Ffputype;
+         property asmmode: tasmmode read Fasmmode write Fasmmode;
+         property interfacetype: tinterfacetypes read Finterfacetype write Finterfacetype;
+         property defproccall: tproccalloption read Fdefproccall write Fdefproccall;
+         property sourcecodepage: tstringencoding read Fsourcecodepage write Fsourcecodepage;
+         property minfpconstprec: tfloattype read Fminfpconstprec write Fminfpconstprec;
+         property disabledircache: boolean read Fdisabledircache write Fdisabledircache;
+         property tlsmodel: ttlsmodel read Ftlsmodel write Ftlsmodel;
+         property controllertype: tcontrollertype read Fcontrollertype write Fcontrollertype;
+         property pmessage: pmessagestaterecord read Fpmessage write Fpmessage;
+         property lineendingtype: tlineendingtype read Flineendingtype write Flineendingtype;
+         property whitespacetrimcount: word read Fwhitespacetrimcount write Fwhitespacetrimcount;
+         property whitespacetrimauto: boolean read Fwhitespacetrimauto write Fwhitespacetrimauto;
+
+{$if defined(i8086) or defined(generic_cpu)}
+         property x86memorymodel: tx86memorymodel read Fx86memorymodel write Fx86memorymodel;
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+         property instructionset: tinstructionset read Finstructionset write Finstructionset;
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+         property llvmversion: tllvmversion read Fllvmversion write Fllvmversion;
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+       end;
+
+
     const
       LinkMapWeightDefault = 1000;
 {$ifdef CPU_BC_HAS_SIZE_LIMIT}
@@ -799,6 +949,115 @@ implementation
       windirs,
 {$endif}
       compiler;
+
+    { TReadOnlySettings }
+
+    function TReadOnlySettings.ToRecord: tsettings;
+      begin
+        FillChar(result,sizeof(result),0);
+        result.alignment:=alignment.ToRecord;
+        result.globalswitches:=globalswitches;
+        result.targetswitches:=targetswitches;
+        result.moduleswitches:=moduleswitches;
+        result.localswitches:=localswitches;
+        result.modeswitches:=modeswitches;
+        result.optimizerswitches:=optimizerswitches;
+        result.genwpoptimizerswitches:=genwpoptimizerswitches;
+        result.dowpoptimizerswitches:=dowpoptimizerswitches;
+        result.debugswitches:=debugswitches;
+        result.setalloc:=setalloc;
+        result.packenum:=packenum;
+        result.packrecords:=packrecords;
+        result.maxfpuregisters:=maxfpuregisters;
+        result.verbosity:=verbosity;
+        result.cputype:=cputype;
+        result.optimizecputype:=optimizecputype;
+        result.asmcputype:=asmcputype;
+        result.fputype:=fputype;
+        result.asmmode:=asmmode;
+        result.interfacetype:=interfacetype;
+        result.defproccall:=defproccall;
+        result.sourcecodepage:=sourcecodepage;
+        result.minfpconstprec:=minfpconstprec;
+        result.disabledircache:=disabledircache;
+        result.tlsmodel:=tlsmodel;
+        result.controllertype:=controllertype;
+        result.pmessage:=pmessage;
+        result.lineendingtype:=lineendingtype;
+        result.whitespacetrimcount:=whitespacetrimcount;
+        result.whitespacetrimauto:=whitespacetrimauto;
+
+{$if defined(i8086) or defined(generic_cpu)}
+        result.x86memorymodel:=x86memorymodel;
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+        result.instructionset:=instructionset;
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+        result.llvmversion:=llvmversion;
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+      end;
+
+    { TMutableSettings }
+
+    function TMutableSettings.GetMutableAlignment: TMutableAlignmentInfo;
+      begin
+        result:=TMutableAlignmentInfo(FAlignment);
+      end;
+
+    constructor TMutableSettings.Create;
+      begin
+        inherited;
+      end;
+
+    constructor TMutableSettings.CreateFromRecord(const rec: tsettings);
+      begin
+        FAlignment:=TMutableAlignmentInfo.CreateFromRecord(rec.alignment);
+        globalswitches:=rec.globalswitches;
+        targetswitches:=rec.targetswitches;
+        moduleswitches:=rec.moduleswitches;
+        localswitches:=rec.localswitches;
+        modeswitches:=rec.modeswitches;
+        optimizerswitches:=rec.optimizerswitches;
+        genwpoptimizerswitches:=rec.genwpoptimizerswitches;
+        dowpoptimizerswitches:=rec.dowpoptimizerswitches;
+        debugswitches:=rec.debugswitches;
+        setalloc:=rec.setalloc;
+        packenum:=rec.packenum;
+        packrecords:=rec.packrecords;
+        maxfpuregisters:=rec.maxfpuregisters;
+        verbosity:=rec.verbosity;
+        cputype:=rec.cputype;
+        optimizecputype:=rec.optimizecputype;
+        asmcputype:=rec.asmcputype;
+        fputype:=rec.fputype;
+        asmmode:=rec.asmmode;
+        interfacetype:=rec.interfacetype;
+        defproccall:=rec.defproccall;
+        sourcecodepage:=rec.sourcecodepage;
+        minfpconstprec:=rec.minfpconstprec;
+        disabledircache:=rec.disabledircache;
+        tlsmodel:=rec.tlsmodel;
+        controllertype:=rec.controllertype;
+        pmessage:=rec.pmessage;
+        lineendingtype:=rec.lineendingtype;
+        whitespacetrimcount:=rec.whitespacetrimcount;
+        whitespacetrimauto:=rec.whitespacetrimauto;
+
+{$if defined(i8086) or defined(generic_cpu)}
+        x86memorymodel:=rec.x86memorymodel;
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+        instructionset:=rec.instructionset;
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+        llvmversion:=rec.llvmversion;
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
+      end;
 
 {****************************************************************************
                                  TLinkStrMap
