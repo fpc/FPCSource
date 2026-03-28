@@ -5485,7 +5485,7 @@ begin
     begin
       compiler.globals.init_settings.fputype:=embedded_controllers[compiler.globals.init_settings.controllertype].fputype;
       if (compiler.globals.init_settings.fputype=fpu_soft) then
-        include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+        compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_fp_emulation];
     end;
   if not(option.CPUSetExplicitly) and (compiler.target.info.system=system_xtensa_linux) then
     compiler.globals.init_settings.cputype:=cpu_lx6;
