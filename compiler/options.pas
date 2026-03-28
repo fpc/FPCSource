@@ -2566,9 +2566,9 @@ begin
        'e' :
           begin
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation)
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_fp_emulation]
             Else
-              include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_fp_emulation];
           end;
 {$endif cpufpemu}
        'E' :
@@ -5447,7 +5447,7 @@ begin
      or (compiler.globals.init_settings.fputype=fpu_soft)
   then
     begin
-      include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_fp_emulation];
       { cs_fp_emulation and fpu_soft are equal on arm and m68k }
       compiler.globals.init_settings.fputype:=fpu_soft;
     end;
