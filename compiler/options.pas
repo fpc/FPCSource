@@ -5796,7 +5796,7 @@ begin
           compiler.globals.init_settings.optimizecputype:=cpu_mips1;
         if not option.FPUSetExplicitly then
           begin
-            include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_fp_emulation];
             compiler.globals.init_settings.fputype:=fpu_soft;
           end;
       end;
