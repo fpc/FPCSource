@@ -5848,7 +5848,7 @@ begin
   if compiler.globals.init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_native_exnref_exceptions,ts_wasm_native_legacy_exceptions,ts_wasm_bf_exceptions]=[] then
     begin
       def_system_macro(TargetSwitchStr[ts_wasm_bf_exceptions].define);
-      include(compiler.globals.init_settings.targetswitches,ts_wasm_bf_exceptions);
+      compiler.globals.init_settings.targetswitches:=compiler.globals.init_settings.targetswitches+[ts_wasm_bf_exceptions];
     end;
 {$endif wasm}
 
