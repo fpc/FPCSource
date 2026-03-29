@@ -794,6 +794,7 @@ Const
         Fdebugstop: boolean;
 {$EndIf EXTDEBUG}
         Fapptype: tapptype;
+        Ffeatures: tfeatures;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -939,6 +940,8 @@ Const
         { Application type (platform specific)
           see globtype.pas for description }
         property apptype: tapptype read Fapptype;
+
+        property features: tfeatures read Ffeatures;
       end;
 
       { TCompilerGlobals }
@@ -960,8 +963,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        features : tfeatures;
 
         { prefix added to automatically generated setters/getters. If empty,
           no getters/setters will be automatically generated except if required
@@ -1101,6 +1102,7 @@ Const
         property debugstop: boolean read Fdebugstop write Fdebugstop;
 {$EndIf EXTDEBUG}
         property apptype: tapptype read Fapptype write Fapptype;
+        property features: tfeatures read Ffeatures write Ffeatures;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -1918,7 +1920,7 @@ implementation
         for i:=low(tfeature) to high(tfeature) do
           if s=featurestr[i] then
             begin
-              include(features,i);
+              include(Ffeatures,i);
               exit;
             end;
         { Also support -Sfnoheap to exclude heap }
@@ -1926,7 +1928,7 @@ implementation
           for i:=low(tfeature) to high(tfeature) do
             if s='NO'+featurestr[i] then
               begin
-                exclude(features,i);
+                exclude(Ffeatures,i);
                 exit;
               end;
         result:=false;
