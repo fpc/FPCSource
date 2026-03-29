@@ -715,6 +715,7 @@ Const
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         Fasmextraopt: string;
         Fparalinkoptions: TCmdStr;
+        Fparadynamiclinker: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -741,6 +742,7 @@ Const
 
         { things specified with parameters }
         property paralinkoptions: TCmdStr read Fparalinkoptions;
+        property paradynamiclinker: string read Fparadynamiclinker;
       end;
 
       { TCompilerGlobals }
@@ -753,7 +755,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        paradynamiclinker : string;
 {$ifdef PREPROCWRITE}
         parapreprocess    : boolean;
 {$endif PREPROCWRITE}
@@ -938,6 +939,7 @@ Const
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         property asmextraopt: string read Fasmextraopt write Fasmextraopt;
         property paralinkoptions: TCmdStr read Fparalinkoptions write Fparalinkoptions;
+        property paradynamiclinker: string read Fparadynamiclinker write Fparadynamiclinker;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
