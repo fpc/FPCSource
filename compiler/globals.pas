@@ -795,6 +795,7 @@ Const
 {$EndIf EXTDEBUG}
         Fapptype: tapptype;
         Ffeatures: tfeatures;
+        Fprop_auto_getter_prefix: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -942,6 +943,12 @@ Const
         property apptype: tapptype read Fapptype;
 
         property features: tfeatures read Ffeatures;
+
+        { prefix added to automatically generated setters/getters. If empty,
+          no getters/setters will be automatically generated except if required
+          for visibility reasons (but in that case the names will be mangled so
+          they are unique) }
+        property prop_auto_getter_prefix: string read Fprop_auto_getter_prefix;
       end;
 
       { TCompilerGlobals }
@@ -963,12 +970,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        { prefix added to automatically generated setters/getters. If empty,
-          no getters/setters will be automatically generated except if required
-          for visibility reasons (but in that case the names will be mangled so
-          they are unique) }
-        prop_auto_getter_prefix,
         prop_auto_setter_prefix : string;
 
         // TODO: Inside_asm_statement should probably be moved inside the scanner or parser
@@ -1103,6 +1104,7 @@ Const
 {$EndIf EXTDEBUG}
         property apptype: tapptype read Fapptype write Fapptype;
         property features: tfeatures read Ffeatures write Ffeatures;
+        property prop_auto_getter_prefix: string read Fprop_auto_getter_prefix write Fprop_auto_getter_prefix;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
