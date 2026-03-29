@@ -787,6 +787,7 @@ Const
         FLinkLibraryOrder: TLinkStrMap;
         Finit_settings: TReadOnlySettings;
         Fcurrent_settings: TReadOnlySettings;
+        Fheapsize: int64;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -919,6 +920,9 @@ Const
 
         property init_settings: TReadOnlySettings read Finit_settings;
         property current_settings: TReadOnlySettings read Fcurrent_settings;
+
+        { Memory sizes }
+        property heapsize: int64 read Fheapsize;
       end;
 
       { TCompilerGlobals }
@@ -938,10 +942,7 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-
         pendingstate       : tpendingstate;
-      { Memory sizes }
-        heapsize,
         maxheapsize : int64;
         stacksize   : longint;
 
@@ -1086,6 +1087,7 @@ Const
         // TODO: mutable and read only property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
         property init_settings: TMutableSettings read GetInitSettings;
         property current_settings: TMutableSettings read GetCurrentSettings;
+        property heapsize: int64 read Fheapsize write Fheapsize;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

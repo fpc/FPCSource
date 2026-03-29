@@ -2506,6 +2506,7 @@ var
   fputype: tfputype;
   minfpconstprec: tfloattype;
   targetswitches: ttargetswitches;
+  tmpheapsize: Int64;
   {$ifdef llvm}
   disable: boolean;
   {$endif}
@@ -2614,25 +2615,29 @@ begin
             l:=pos(',',copy(more,j+1));
             if l=0 then
               l:=length(more)-j+1;
-            val(copy(more,j+1,l-1),compiler.globals.heapsize,code);
+            val(copy(more,j+1,l-1),tmpheapsize,code);
             if (code<>0)
 {$ifdef AVR}
-            or (compiler.globals.heapsize<32)
+            or (tmpheapsize<32)
 {$else AVR}
-            or (compiler.globals.heapsize<1024)
+            or (tmpheapsize<1024)
 {$endif AVR}
             then
               IllegalPara(opt)
-            else if l<=length(more)-j then
+            else
               begin
-                val(copy(more,j+l+1),compiler.globals.maxheapsize,code);
-                if code<>0 then
-                  IllegalPara(opt)
-                else if (compiler.globals.maxheapsize<compiler.globals.heapsize) then
-                  begin
-                    compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
-                    compiler.globals.maxheapsize:=compiler.globals.heapsize;
-                  end;
+                compiler.globals.heapsize:=tmpheapsize;
+                if l<=length(more)-j then
+                begin
+                  val(copy(more,j+l+1),compiler.globals.maxheapsize,code);
+                  if code<>0 then
+                    IllegalPara(opt)
+                  else if (compiler.globals.maxheapsize<compiler.globals.heapsize) then
+                    begin
+                      compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
+                      compiler.globals.maxheapsize:=compiler.globals.heapsize;
+                    end;
+                end;
               end;
             break;
          end;
