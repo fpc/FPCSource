@@ -722,6 +722,7 @@ Const
         Futilsdirectory: TPathStr;
         Futilsprefix: TCmdStr;
         Fllvmutilssuffix: TCmdStr;
+        Fcshared: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -762,6 +763,8 @@ Const
 
         { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
         property llvmutilssuffix: TCmdStr read Fllvmutilssuffix;
+
+        property cshared: boolean read Fcshared;        { pass --shared to ld to link C libs shared}
       end;
 
       { TCompilerGlobals }
@@ -774,8 +777,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        cshared        : boolean;        { pass --shared to ld to link C libs shared}
         Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
         rlinkpath      : TCmdStr;        { rpath-link linkdir override}
         sysrootpath    : TCmdStr;        { target system root to search dyn linker }
@@ -952,6 +953,7 @@ Const
         property utilsdirectory: TPathStr read Futilsdirectory write Futilsdirectory;
         property utilsprefix: TCmdStr read Futilsprefix write Futilsprefix;
         property llvmutilssuffix: TCmdStr read Fllvmutilssuffix write Fllvmutilssuffix;
+        property cshared: boolean read Fcshared write Fcshared;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
