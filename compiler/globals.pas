@@ -746,6 +746,8 @@ Const
         Fautoloadunits: string;
         Fusewindowapi: boolean;
         Fdescription: string;
+        FSetPEFlagsSetExplicity: boolean;
+        FSetPEOptFlagsSetExplicity: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -824,6 +826,8 @@ Const
         { linking }
         property usewindowapi: boolean read Fusewindowapi;
         property description: string read Fdescription;
+        property SetPEFlagsSetExplicity: boolean read FSetPEFlagsSetExplicity;
+        property SetPEOptFlagsSetExplicity: boolean read FSetPEOptFlagsSetExplicity;
       end;
 
       { TCompilerGlobals }
@@ -836,8 +840,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        SetPEFlagsSetExplicity,
-        SetPEOptFlagsSetExplicity,
         SetPEOSVersionSetExplicitely,
         SetPESubSysVersionSetExplicitely,
         SetPEUserVersionSetExplicitely,
@@ -1000,6 +1002,8 @@ Const
         property autoloadunits: string read Fautoloadunits write Fautoloadunits;
         property usewindowapi: boolean read Fusewindowapi write Fusewindowapi;
         property description: string read Fdescription write Fdescription;
+        property SetPEFlagsSetExplicity: boolean read FSetPEFlagsSetExplicity write FSetPEFlagsSetExplicity;
+        property SetPEOptFlagsSetExplicity: boolean read FSetPEOptFlagsSetExplicity write FSetPEOptFlagsSetExplicity;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
