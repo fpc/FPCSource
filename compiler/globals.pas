@@ -757,6 +757,7 @@ Const
         FDescriptionSetExplicity: boolean;
         Fdllversion: string;
         Fdllmajor: word;
+        Fdllminor: word;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -846,6 +847,7 @@ Const
         property DescriptionSetExplicity: boolean read FDescriptionSetExplicity;
         property dllversion: string read Fdllversion;
         property dllmajor: word read Fdllmajor;
+        property dllminor: word read Fdllminor;
       end;
 
       { TCompilerGlobals }
@@ -858,7 +860,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        dllminor,
         dllrevision   : word;  { revision only for netware }
         { win pe  }
         peosversionminor,
@@ -1022,6 +1023,7 @@ Const
         property DescriptionSetExplicity: boolean read FDescriptionSetExplicity write FDescriptionSetExplicity;
         property dllversion: string read Fdllversion write Fdllversion;
         property dllmajor: word read Fdllmajor write Fdllmajor;
+        property dllminor: word read Fdllminor write Fdllminor;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
