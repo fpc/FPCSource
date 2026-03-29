@@ -742,6 +742,7 @@ Const
         Fnamespacelist: TCmdStrList;
         Fpremodule_namespacelist: TCmdStrList;
         Fcurrent_namespacelist: TCmdStrList;
+        Fpackagelist: TFPHashList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -813,6 +814,8 @@ Const
         // Scanner checks first current_namespacelist, then local_namespacelist
         property premodule_namespacelist: TCmdStrList read Fpremodule_namespacelist;  // always set: used as long as current_namespacelist is not correctly set.
         property current_namespacelist: TCmdStrList read Fcurrent_namespacelist;  // Set when parsing module to the current module's namespace.
+        { contains tpackageentry entries }
+        property packagelist: TFPHashList read Fpackagelist;
       end;
 
       { TCompilerGlobals }
@@ -825,8 +828,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { contains tpackageentry entries }
-        packagelist : TFPHashList;
         autoloadunits      : string;
 
         { linking }
@@ -992,6 +993,7 @@ Const
         // TODO: mutable and read only property namespacelist : TCmdStrList read Fnamespacelist;
         // TODO: mutable and read only property premodule_namespacelist: TCmdStrList read Fpremodule_namespacelist;
         property current_namespacelist: TCmdStrList read Fcurrent_namespacelist write Fcurrent_namespacelist;
+        property packagelist: TFPHashList read Fpackagelist write Fpackagelist;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
