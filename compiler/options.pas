@@ -1377,7 +1377,7 @@ function TOption.ParseVersionStr(out ver: longint;
       begin
         compvarvalue:=compvarvalue+'00';
       end;
-    val(compvarvalue,compiler.globals.idf_version,i);
+    val(compvarvalue,ver,i);
     if i=0 then
       begin
         set_system_compvar(compvarname,compvarvalue);
@@ -3943,6 +3943,9 @@ var
   j,code : integer;
   s : string;
   controllertype: tcontrollertype;
+{$if defined(XTENSA) or defined(RISCV32)}
+  tmp_idf_version: longint;
+{$endif XTENSA or RISCV32}
 
 begin
   j:=1;
@@ -4175,8 +4178,9 @@ begin
              end
 {$if defined(XTENSA) or defined(RISCV32)}
            else if (compiler.target.info.system in [system_xtensa_freertos,system_riscv32_freertos]) and
-              ParseVersionStr(compiler.globals.idf_version,'IDF_VERSION',copy(More,2)) then
+              ParseVersionStr(tmp_idf_version,'IDF_VERSION',copy(More,2)) then
              begin
+               compiler.globals.idf_version:=tmp_idf_version;
                break;
              end
 {$endif XTENSA or RISCV32}

@@ -711,6 +711,7 @@ Const
         Fwpofeedbackoutput: TPathStr;
 {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         Fidfpath: TPathStr;
+        Fidf_version: longint;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       public
         { specified inputfile }
@@ -730,6 +731,8 @@ Const
 {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         { specified with -Ff }
         property idfpath: TPathStr read Fidfpath;
+        { specified with }
+        property idf_version: longint read Fidf_version;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       end;
 
@@ -743,10 +746,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
-        { specified with }
-        idf_version       : longint;
-{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         { external assembler extra option }
         asmextraopt       : string;
 
@@ -933,6 +932,7 @@ Const
         property wpofeedbackoutput: TPathStr read Fwpofeedbackoutput write Fwpofeedbackoutput;
 {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         property idfpath: TPathStr read Fidfpath write Fidfpath;
+        property idf_version: longint read Fidf_version write Fidf_version;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       end;
 
