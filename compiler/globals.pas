@@ -735,6 +735,7 @@ Const
         Funicodepath: TPathStr;
         Flibrarysearchpath: TSearchPathList;
         Funitsearchpath: TSearchPathList;
+        Fobjectsearchpath: TSearchPathList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -795,6 +796,7 @@ Const
         { path for searching units, different paths can be separated by ; }
         property librarysearchpath: TSearchPathList read Flibrarysearchpath;
         property unitsearchpath: TSearchPathList read Funitsearchpath;
+        property objectsearchpath: TSearchPathList read Fobjectsearchpath;
       end;
 
       { TCompilerGlobals }
@@ -807,7 +809,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        objectsearchpath,
         includesearchpath,
         frameworksearchpath  : TSearchPathList;
         packagesearchpath     : TSearchPathList;
@@ -978,6 +979,7 @@ Const
         property unicodepath: TPathStr read Funicodepath write Funicodepath;
         // TODO: mutable and read only property librarysearchpath: TSearchPathList read Flibrarysearchpath;
         // TODO: mutable and read only property unitsearchpath: TSearchPathList read Funitsearchpath;
+        // TODO: mutable and read only property objectsearchpath: TSearchPathList read Fobjectsearchpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2008,7 +2010,7 @@ implementation
        calldoneprocs;
        FreeAndNil(Flibrarysearchpath);
        FreeAndNil(Funitsearchpath);
-       FreeAndNil(objectsearchpath);
+       FreeAndNil(Fobjectsearchpath);
        FreeAndNil(includesearchpath);
        FreeAndNil(frameworksearchpath);
        FreeAndNil(LinkLibraryAliases);
@@ -2060,7 +2062,7 @@ implementation
         Flibrarysearchpath:=TSearchPathList.Create;
         Funitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
-        objectsearchpath:=TSearchPathList.Create;
+        Fobjectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;
