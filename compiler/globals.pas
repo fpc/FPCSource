@@ -783,6 +783,7 @@ Const
         Fblock_type: tblock_type;
         Fexceptblockcounter: integer;
         Fcurrent_exceptblock: integer;
+        FLinkLibraryAliases: TLinkStrMap;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -908,6 +909,8 @@ Const
         property exceptblockcounter: integer read Fexceptblockcounter;  { each except block gets a unique number check gotos      }
         // TODO: current_exceptblock should probably be moved somewhere else (parser?)
         property current_exceptblock: integer read Fcurrent_exceptblock;  { the exceptblock number of the current block (0 if none) }
+
+        property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
       end;
 
       { TCompilerGlobals }
@@ -925,7 +928,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-        LinkLibraryAliases : TLinkStrMap;
         LinkLibraryOrder   : TLinkStrMap;
 
 
@@ -1075,6 +1077,7 @@ Const
         property block_type: tblock_type read Fblock_type write Fblock_type;
         property exceptblockcounter: integer read Fexceptblockcounter write Fexceptblockcounter;
         property current_exceptblock: integer read Fcurrent_exceptblock write Fcurrent_exceptblock;
+        // TODO: mutable and read only property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2108,7 +2111,7 @@ implementation
        FreeAndNil(Fobjectsearchpath);
        FreeAndNil(Fincludesearchpath);
        FreeAndNil(Fframeworksearchpath);
-       FreeAndNil(LinkLibraryAliases);
+       FreeAndNil(FLinkLibraryAliases);
        FreeAndNil(LinkLibraryOrder);
        FreeAndNil(Fpackagesearchpath);
        FreeAndNil(Fnamespacelist);
@@ -2199,7 +2202,7 @@ implementation
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 
-        LinkLibraryAliases :=TLinkStrMap.Create;
+        FLinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
