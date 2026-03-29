@@ -772,6 +772,7 @@ Const
         Fimagebase: puint;
         FUseDeffileForExports: boolean;
         FUseDeffileForExportsSetExplicitly: boolean;
+        FGenerateImportSection: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -877,6 +878,7 @@ Const
         property imagebase: puint read Fimagebase;
         property UseDeffileForExports: boolean read FUseDeffileForExports;
         property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly;
+        property GenerateImportSection: boolean read FGenerateImportSection;
       end;
 
       { TCompilerGlobals }
@@ -889,7 +891,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        GenerateImportSection,
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
 
@@ -1052,6 +1053,7 @@ Const
         property imagebase: puint read Fimagebase write Fimagebase;
         property UseDeffileForExports: boolean read FUseDeffileForExports write FUseDeffileForExports;
         property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly write FUseDeffileForExportsSetExplicitly;
+        property GenerateImportSection: boolean read FGenerateImportSection write FGenerateImportSection;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
