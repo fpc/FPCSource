@@ -768,6 +768,7 @@ Const
         Fpeoptflags: longint;
         Fpeflags: longint;
         Fminstacksize: puint;
+        Fmaxstacksize: puint;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -869,6 +870,7 @@ Const
         property peoptflags: longint read Fpeoptflags;
         property peflags: longint read Fpeflags;
         property minstacksize: puint read Fminstacksize;
+        property maxstacksize: puint read Fmaxstacksize;
       end;
 
       { TCompilerGlobals }
@@ -881,7 +883,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        maxstacksize,
         imagebase     : puint;
         UseDeffileForExports    : boolean;
         UseDeffileForExportsSetExplicitly : boolean;
@@ -1044,6 +1045,7 @@ Const
         property peoptflags: longint read Fpeoptflags write Fpeoptflags;
         property peflags: longint read Fpeflags write Fpeflags;
         property minstacksize: puint read Fminstacksize write Fminstacksize;
+        property maxstacksize: puint read Fmaxstacksize write Fmaxstacksize;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
