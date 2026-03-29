@@ -728,6 +728,7 @@ Const
         Fsysrootpath: TCmdStr;
         Fdo_build: boolean;
         Fdo_release: boolean;
+        Fdo_make: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -777,6 +778,7 @@ Const
         { some flags for global compiler switches }
         property do_build: boolean read Fdo_build;
         property do_release: boolean read Fdo_release;
+        property do_make: boolean read Fdo_make;
       end;
 
       { TCompilerGlobals }
@@ -789,7 +791,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        do_make       : boolean;
 
         timestr,
         datestr : string;
@@ -964,6 +965,7 @@ Const
         property sysrootpath: TCmdStr read Fsysrootpath write Fsysrootpath;
         property do_build: boolean read Fdo_build write Fdo_build;
         property do_release: boolean read Fdo_release write Fdo_release;
+        property do_make: boolean read Fdo_make write Fdo_make;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
