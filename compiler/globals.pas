@@ -778,6 +778,7 @@ Const
         FRelocSectionSetExplicitly: boolean;
         Fnwscreenname: string;
         Fnwthreadname: string;
+        Fnwcopyright: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -891,6 +892,7 @@ Const
 
         property nwscreenname: string read Fnwscreenname;
         property nwthreadname: string read Fnwthreadname;
+        property nwcopyright: string read Fnwcopyright;
       end;
 
       { TCompilerGlobals }
@@ -908,7 +910,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-        nwcopyright  : string;
 
         // TODO: exception_raised should probably be moved somewhere else (possible candidates: TVerbose, TParser, TCompiler)
         exception_raised : boolean;           { true if there is an exception reported }
@@ -1065,6 +1066,7 @@ Const
         property RelocSectionSetExplicitly: boolean read FRelocSectionSetExplicitly write FRelocSectionSetExplicitly;
         property nwscreenname: string read Fnwscreenname write Fnwscreenname;
         property nwthreadname: string read Fnwthreadname write Fnwthreadname;
+        property nwcopyright: string read Fnwcopyright write Fnwcopyright;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
