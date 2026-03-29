@@ -800,6 +800,9 @@ Const
         FInside_asm_statement: boolean;
         Fglobal_unit_count: word;
         Fparser_current_file: string;
+{$if defined(m68k) or defined(arm)}
+        Fpalmos_applicationname: string;
+{$endif defined(m68k) or defined(arm)}
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -962,6 +965,11 @@ Const
 
         { for error info in pp.pas }
         property parser_current_file: string read Fparser_current_file;
+
+{$if defined(m68k) or defined(arm)}
+        { PalmOS resources }
+        property palmos_applicationname: string read Fpalmos_applicationname;
+{$endif defined(m68k) or defined(arm)}
       end;
 
       { TCompilerGlobals }
@@ -983,10 +991,7 @@ Const
 
         pendingstate       : tpendingstate;
 
-
 {$if defined(m68k) or defined(arm)}
-        { PalmOS resources }
-        palmos_applicationname : string;
         palmos_applicationid : string[4];
 {$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
@@ -1113,6 +1118,9 @@ Const
         property Inside_asm_statement: boolean read FInside_asm_statement write FInside_asm_statement;
         property global_unit_count: word read Fglobal_unit_count write Fglobal_unit_count;
         property parser_current_file: string read Fparser_current_file write Fparser_current_file;
+{$if defined(m68k) or defined(arm)}
+        property palmos_applicationname: string read Fpalmos_applicationname write Fpalmos_applicationname;
+{$endif defined(m68k) or defined(arm)}
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
