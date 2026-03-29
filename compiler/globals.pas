@@ -709,6 +709,9 @@ Const
         Foutputunitdir: TPathStr;
         Fwpofeedbackinput: TPathStr;
         Fwpofeedbackoutput: TPathStr;
+{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        Fidfpath: TPathStr;
+{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -724,6 +727,10 @@ Const
         { specified with -FW and -Fw }
         property wpofeedbackinput: TPathStr read Fwpofeedbackinput;
         property wpofeedbackoutput: TPathStr read Fwpofeedbackoutput;
+{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        { specified with -Ff }
+        property idfpath: TPathStr read Fidfpath;
+{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       end;
 
       { TCompilerGlobals }
@@ -737,8 +744,6 @@ Const
         procedure DoneGlobals;
       public
 {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
-        { specified with -Ff }
-        idfpath           : TPathStr;
         { specified with }
         idf_version       : longint;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
@@ -926,6 +931,9 @@ Const
         property outputunitdir: TPathStr read Foutputunitdir write Foutputunitdir;
         property wpofeedbackinput: TPathStr read Fwpofeedbackinput write Fwpofeedbackinput;
         property wpofeedbackoutput: TPathStr read Fwpofeedbackoutput write Fwpofeedbackoutput;
+{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        property idfpath: TPathStr read Fidfpath write Fidfpath;
+{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
