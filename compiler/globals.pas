@@ -798,6 +798,7 @@ Const
         Fprop_auto_getter_prefix: string;
         Fprop_auto_setter_prefix: string;
         FInside_asm_statement: boolean;
+        Fglobal_unit_count: word;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -955,6 +956,8 @@ Const
 
         // TODO: Inside_asm_statement should probably be moved inside the scanner or parser
         property Inside_asm_statement: boolean read FInside_asm_statement;
+
+        property global_unit_count: word read Fglobal_unit_count;
       end;
 
       { TCompilerGlobals }
@@ -976,8 +979,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        global_unit_count : word;
 
         { for error info in pp.pas }
         parser_current_file : string;
@@ -1109,6 +1110,7 @@ Const
         property prop_auto_getter_prefix: string read Fprop_auto_getter_prefix write Fprop_auto_getter_prefix;
         property prop_auto_setter_prefix: string read Fprop_auto_setter_prefix write Fprop_auto_setter_prefix;
         property Inside_asm_statement: boolean read FInside_asm_statement write FInside_asm_statement;
+        property global_unit_count: word read Fglobal_unit_count write Fglobal_unit_count;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

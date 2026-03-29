@@ -687,7 +687,7 @@ uses
         { status }
         state:=ms_registered;
         { unit index }
-        inc(compiler.globals.global_unit_count);
+        compiler.globals.global_unit_count:=compiler.globals.global_unit_count+1;
         moduleid:=compiler.globals.global_unit_count;
         { sources }
         sourcefiles:=TInputFileManager.Create;
