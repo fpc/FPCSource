@@ -713,6 +713,7 @@ Const
         Fidfpath: TPathStr;
         Fidf_version: longint;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        Fasmextraopt: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -734,6 +735,8 @@ Const
         { specified with }
         property idf_version: longint read Fidf_version;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        { external assembler extra option }
+        property asmextraopt: string read Fasmextraopt;
       end;
 
       { TCompilerGlobals }
@@ -746,8 +749,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { external assembler extra option }
-        asmextraopt       : string;
 
         { things specified with parameters }
         paralinkoptions   : TCmdStr;
@@ -934,6 +935,7 @@ Const
         property idfpath: TPathStr read Fidfpath write Fidfpath;
         property idf_version: longint read Fidf_version write Fidf_version;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        property asmextraopt: string read Fasmextraopt write Fasmextraopt;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
