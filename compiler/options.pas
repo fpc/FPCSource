@@ -4390,8 +4390,9 @@ begin
          begin
            if (compiler.target.info.system in suppported_targets_x_smallr) then
              begin
-               compiler.globals.rlinkpath:=Copy(more,2);
-               compiler.DefaultReplacements(compiler.globals.rlinkpath);
+               tmpS:=Copy(more,2);
+               compiler.DefaultReplacements(tmpS);
+               compiler.globals.rlinkpath:=tmpS;
              end
            else
              IgnoredPara('-Xr');
