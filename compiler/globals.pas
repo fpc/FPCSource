@@ -776,6 +776,7 @@ Const
         FGenerateImportSectionSetExplicitly: boolean;
         FRelocSection: boolean;
         FRelocSectionSetExplicitly: boolean;
+        Fnwscreenname: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -886,6 +887,8 @@ Const
         property RelocSection: boolean read FRelocSection;
 
         property RelocSectionSetExplicitly: boolean read FRelocSectionSetExplicitly;
+
+        property nwscreenname: string read Fnwscreenname;
       end;
 
       { TCompilerGlobals }
@@ -903,7 +906,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-        nwscreenname : string;
         nwthreadname : string;
         nwcopyright  : string;
 
@@ -1060,6 +1062,7 @@ Const
         property GenerateImportSectionSetExplicitly: boolean read FGenerateImportSectionSetExplicitly write FGenerateImportSectionSetExplicitly;
         property RelocSection: boolean read FRelocSection write FRelocSection;
         property RelocSectionSetExplicitly: boolean read FRelocSectionSetExplicitly write FRelocSectionSetExplicitly;
+        property nwscreenname: string read Fnwscreenname write Fnwscreenname;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
