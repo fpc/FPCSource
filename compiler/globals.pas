@@ -771,6 +771,7 @@ Const
         Fmaxstacksize: puint;
         Fimagebase: puint;
         FUseDeffileForExports: boolean;
+        FUseDeffileForExportsSetExplicitly: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -875,6 +876,7 @@ Const
         property maxstacksize: puint read Fmaxstacksize;
         property imagebase: puint read Fimagebase;
         property UseDeffileForExports: boolean read FUseDeffileForExports;
+        property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly;
       end;
 
       { TCompilerGlobals }
@@ -887,7 +889,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        UseDeffileForExportsSetExplicitly : boolean;
         GenerateImportSection,
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
@@ -1050,6 +1051,7 @@ Const
         property maxstacksize: puint read Fmaxstacksize write Fmaxstacksize;
         property imagebase: puint read Fimagebase write Fimagebase;
         property UseDeffileForExports: boolean read FUseDeffileForExports write FUseDeffileForExports;
+        property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly write FUseDeffileForExportsSetExplicitly;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
