@@ -780,6 +780,7 @@ Const
         Fnwthreadname: string;
         Fnwcopyright: string;
         Fexception_raised: boolean;
+        Fblock_type: tblock_type;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -897,6 +898,9 @@ Const
 
         // TODO: exception_raised should probably be moved somewhere else (possible candidates: TVerbose, TParser, TCompiler)
         property exception_raised: boolean read Fexception_raised;  { true if there is an exception reported }
+
+        // TODO: block_type should probably be moved to the scanner or parser
+        property block_type: tblock_type read Fblock_type;  { type of currently parsed block }
       end;
 
       { TCompilerGlobals }
@@ -914,9 +918,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-
-        // TODO: block_type should probably be moved to the scanner or parser
-        block_type : tblock_type;         { type of currently parsed block }
 
         // TODO: exceptblockcounter should probably be moved somewhere else
         exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
@@ -1069,6 +1070,7 @@ Const
         property nwthreadname: string read Fnwthreadname write Fnwthreadname;
         property nwcopyright: string read Fnwcopyright write Fnwcopyright;
         property exception_raised: boolean read Fexception_raised write Fexception_raised;
+        property block_type: tblock_type read Fblock_type write Fblock_type;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
