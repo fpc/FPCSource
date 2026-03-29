@@ -733,6 +733,7 @@ Const
         Fdatestr: string;
         Fexepath: TPathStr;
         Funicodepath: TPathStr;
+        Flibrarysearchpath: TSearchPathList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -790,6 +791,8 @@ Const
         property exepath: TPathStr read Fexepath;
         { Path to unicode charmap/collation binaries }
         property unicodepath: TPathStr read Funicodepath;
+        { path for searching units, different paths can be separated by ; }
+        property librarysearchpath: TSearchPathList read Flibrarysearchpath;
       end;
 
       { TCompilerGlobals }
@@ -802,8 +805,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { path for searching units, different paths can be separated by ; }
-        librarysearchpath,
         unitsearchpath,
         objectsearchpath,
         includesearchpath,
@@ -974,6 +975,7 @@ Const
         property datestr: string read Fdatestr write Fdatestr;
         property exepath: TPathStr read Fexepath write Fexepath;
         property unicodepath: TPathStr read Funicodepath write Funicodepath;
+        // TODO: mutable and read only property librarysearchpath: TSearchPathList read Flibrarysearchpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2002,7 +2004,7 @@ implementation
    procedure TCompilerGlobals.DoneGlobals;
      begin
        calldoneprocs;
-       FreeAndNil(librarysearchpath);
+       FreeAndNil(Flibrarysearchpath);
        FreeAndNil(unitsearchpath);
        FreeAndNil(objectsearchpath);
        FreeAndNil(includesearchpath);
@@ -2053,7 +2055,7 @@ implementation
 
         { Search Paths }
         unicodepath:='';
-        librarysearchpath:=TSearchPathList.Create;
+        Flibrarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
