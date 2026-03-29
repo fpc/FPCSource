@@ -716,6 +716,9 @@ Const
         Fasmextraopt: string;
         Fparalinkoptions: TCmdStr;
         Fparadynamiclinker: string;
+{$ifdef PREPROCWRITE}
+        Fparapreprocess: boolean;
+{$endif PREPROCWRITE}
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -743,6 +746,9 @@ Const
         { things specified with parameters }
         property paralinkoptions: TCmdStr read Fparalinkoptions;
         property paradynamiclinker: string read Fparadynamiclinker;
+{$ifdef PREPROCWRITE}
+        property parapreprocess: boolean read Fparapreprocess;
+{$endif PREPROCWRITE}
       end;
 
       { TCompilerGlobals }
@@ -755,9 +761,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-{$ifdef PREPROCWRITE}
-        parapreprocess    : boolean;
-{$endif PREPROCWRITE}
 
         {  typical cross compiling params}
 
@@ -940,6 +943,9 @@ Const
         property asmextraopt: string read Fasmextraopt write Fasmextraopt;
         property paralinkoptions: TCmdStr read Fparalinkoptions write Fparalinkoptions;
         property paradynamiclinker: string read Fparadynamiclinker write Fparadynamiclinker;
+{$ifdef PREPROCWRITE}
+        property parapreprocess: boolean read Fparapreprocess write Fparapreprocess;
+{$endif PREPROCWRITE}
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
