@@ -2506,7 +2506,8 @@ var
   fputype: tfputype;
   minfpconstprec: tfloattype;
   targetswitches: ttargetswitches;
-  tmpheapsize: Int64;
+  tmpheapsize,
+  tmpmaxheapsize: Int64;
   {$ifdef llvm}
   disable: boolean;
   {$endif}
@@ -2629,14 +2630,16 @@ begin
                 compiler.globals.heapsize:=tmpheapsize;
                 if l<=length(more)-j then
                 begin
-                  val(copy(more,j+l+1),compiler.globals.maxheapsize,code);
+                  val(copy(more,j+l+1),tmpmaxheapsize,code);
                   if code<>0 then
                     IllegalPara(opt)
-                  else if (compiler.globals.maxheapsize<compiler.globals.heapsize) then
+                  else if (tmpmaxheapsize<compiler.globals.heapsize) then
                     begin
                       compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
                       compiler.globals.maxheapsize:=compiler.globals.heapsize;
-                    end;
+                    end
+                  else
+                    compiler.globals.maxheapsize:=tmpmaxheapsize;
                 end;
               end;
             break;
