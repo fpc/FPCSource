@@ -799,6 +799,7 @@ Const
         Fprop_auto_setter_prefix: string;
         FInside_asm_statement: boolean;
         Fglobal_unit_count: word;
+        Fparser_current_file: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -958,6 +959,9 @@ Const
         property Inside_asm_statement: boolean read FInside_asm_statement;
 
         property global_unit_count: word read Fglobal_unit_count;
+
+        { for error info in pp.pas }
+        property parser_current_file: string read Fparser_current_file;
       end;
 
       { TCompilerGlobals }
@@ -979,9 +983,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        { for error info in pp.pas }
-        parser_current_file : string;
 
 {$if defined(m68k) or defined(arm)}
         { PalmOS resources }
@@ -1111,6 +1112,7 @@ Const
         property prop_auto_setter_prefix: string read Fprop_auto_setter_prefix write Fprop_auto_setter_prefix;
         property Inside_asm_statement: boolean read FInside_asm_statement write FInside_asm_statement;
         property global_unit_count: word read Fglobal_unit_count write Fglobal_unit_count;
+        property parser_current_file: string read Fparser_current_file write Fparser_current_file;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
