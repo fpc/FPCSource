@@ -750,6 +750,7 @@ Const
         FSetPEOptFlagsSetExplicity: boolean;
         FSetPEOSVersionSetExplicitely: boolean;
         FSetPESubSysVersionSetExplicitely: boolean;
+        FSetPEUserVersionSetExplicitely: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -832,6 +833,7 @@ Const
         property SetPEOptFlagsSetExplicity: boolean read FSetPEOptFlagsSetExplicity;
         property SetPEOSVersionSetExplicitely: boolean read FSetPEOSVersionSetExplicitely;
         property SetPESubSysVersionSetExplicitely: boolean read FSetPESubSysVersionSetExplicitely;
+        property SetPEUserVersionSetExplicitely: boolean read FSetPEUserVersionSetExplicitely;
       end;
 
       { TCompilerGlobals }
@@ -844,7 +846,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        SetPEUserVersionSetExplicitely,
         ImageBaseSetExplicity,
         MinStackSizeSetExplicity,
         MaxStackSizeSetExplicity,
@@ -1008,6 +1009,7 @@ Const
         property SetPEOptFlagsSetExplicity: boolean read FSetPEOptFlagsSetExplicity write FSetPEOptFlagsSetExplicity;
         property SetPEOSVersionSetExplicitely: boolean read FSetPEOSVersionSetExplicitely write FSetPEOSVersionSetExplicitely;
         property SetPESubSysVersionSetExplicitely: boolean read FSetPESubSysVersionSetExplicitely write FSetPESubSysVersionSetExplicitely;
+        property SetPEUserVersionSetExplicitely: boolean read FSetPEUserVersionSetExplicitely write FSetPEUserVersionSetExplicitely;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
