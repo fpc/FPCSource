@@ -3035,6 +3035,8 @@ type
 
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited create;
       { open outputfile }
@@ -4677,7 +4679,7 @@ type
              exit;
            end;
 {$ifdef PREPROCWRITE}
-         if parapreprocess then
+         if compiler.globals.parapreprocess then
           begin
             if not (m_mac in compiler.globals.current_settings.modeswitches) then
               t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
@@ -6360,7 +6362,7 @@ type
             ' ',#9..#13 :
               begin
 {$ifdef PREPROCWRITE}
-                if parapreprocess then
+                if compiler.globals.parapreprocess then
                  begin
                    if c=#10 then
                     preprocfile.eolfound:=true

@@ -3446,7 +3446,7 @@ procedure TOption.Interpret_M_l(opt, more: TCmdStr);
 
 begin
 {$ifdef PREPROCWRITE}
-  parapreprocess:=not UnSetBool(more,0,opt,true);
+  compiler.globals.parapreprocess:=not UnSetBool(more,0,opt,true);
 {$endif PREPROCWRITE}
 end;
 

@@ -422,8 +422,8 @@ implementation
       begin
          preprocfile:=tpreprocfile.create('pre_'+filename);
        { initialize a module }
-         set_current_module(tppumodule.create(nil,'',filename,false));
-         macrosymtablestack:=TSymtablestack.create;
+         set_current_module(tppumodule.create(nil,'',filename,false,compiler));
+         tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
 
 
          set_current_scanner(tscannerfile.Create(filename));
@@ -431,9 +431,9 @@ implementation
          current_module.scanner:=current_scanner;
 
          { init macros before anything in the file is parsed.}
-         current_module.localmacrosymtable:= tmacrosymtable.create(false);
-         macrosymtablestack.push(initialmacrosymtable);
-         macrosymtablestack.push(current_module.localmacrosymtable);
+         current_module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
+         compiler.macrosymtablestack.push(compiler.initialmacrosymtable);
+         compiler.macrosymtablestack.push(current_module.localmacrosymtable);
 
          { read the first token }
          // current_scanner.readtoken(false);

@@ -631,8 +631,8 @@ begin
 
        { Compile the program }
   {$ifdef PREPROCWRITE}
-       if parapreprocess then
-        parser.preprocess(inputfilepath+inputfilename)
+       if globals.parapreprocess then
+        parser.preprocess(globals.inputfilepath+globals.inputfilename)
        else
   {$endif PREPROCWRITE}
          begin
