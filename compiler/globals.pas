@@ -1959,6 +1959,8 @@ implementation
        current_namespacelist:=Nil;
        FreeAndNil(current_settings);
        FreeAndNil(init_settings);
+       stringdispose(Foutputprefix);
+       stringdispose(Foutputsuffix);
      end;
 
    procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
