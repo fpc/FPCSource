@@ -732,6 +732,7 @@ Const
         Ftimestr: string;
         Fdatestr: string;
         Fexepath: TPathStr;
+        Funicodepath: TPathStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -787,6 +788,8 @@ Const
         property datestr: string read Fdatestr;
         { Path to ppc }
         property exepath: TPathStr read Fexepath;
+        { Path to unicode charmap/collation binaries }
+        property unicodepath: TPathStr read Funicodepath;
       end;
 
       { TCompilerGlobals }
@@ -799,8 +802,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { Path to unicode charmap/collation binaries }
-        unicodepath   : TPathStr;
         { path for searching units, different paths can be separated by ; }
         librarysearchpath,
         unitsearchpath,
@@ -972,6 +973,7 @@ Const
         property timestr: string read Ftimestr write Ftimestr;
         property datestr: string read Fdatestr write Fdatestr;
         property exepath: TPathStr read Fexepath write Fexepath;
+        property unicodepath: TPathStr read Funicodepath write Funicodepath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
