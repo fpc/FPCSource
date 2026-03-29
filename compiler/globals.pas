@@ -701,9 +701,11 @@ Const
       TReadOnlyCompilerGlobals = class
       protected
         Finputfilepath: string;
+        Finputfilename: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
+        property inputfilename: string read Finputfilename;
       end;
 
       { TCompilerGlobals }
@@ -716,7 +718,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        inputfilename     : string;
         { specified outputfile with -o parameter }
         outputfilename    : string;
         outputprefix      : pshortstring;
@@ -910,6 +911,7 @@ Const
         function HandleFeature(const s : string) : boolean;
 
         property inputfilepath: string read Finputfilepath write Finputfilepath;
+        property inputfilename: string read Finputfilename write Finputfilename;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
