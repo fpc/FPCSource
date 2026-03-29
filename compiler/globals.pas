@@ -743,6 +743,7 @@ Const
         Fpremodule_namespacelist: TCmdStrList;
         Fcurrent_namespacelist: TCmdStrList;
         Fpackagelist: TFPHashList;
+        Fautoloadunits: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -816,6 +817,7 @@ Const
         property current_namespacelist: TCmdStrList read Fcurrent_namespacelist;  // Set when parsing module to the current module's namespace.
         { contains tpackageentry entries }
         property packagelist: TFPHashList read Fpackagelist;
+        property autoloadunits: string read Fautoloadunits;
       end;
 
       { TCompilerGlobals }
@@ -828,7 +830,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        autoloadunits      : string;
 
         { linking }
         usewindowapi  : boolean;
@@ -994,6 +995,7 @@ Const
         // TODO: mutable and read only property premodule_namespacelist: TCmdStrList read Fpremodule_namespacelist;
         property current_namespacelist: TCmdStrList read Fcurrent_namespacelist write Fcurrent_namespacelist;
         property packagelist: TFPHashList read Fpackagelist write Fpackagelist;
+        property autoloadunits: string read Fautoloadunits write Fautoloadunits;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
