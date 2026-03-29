@@ -955,7 +955,7 @@ Const
         property utilsprefix: TCmdStr read Futilsprefix write Futilsprefix;
         property llvmutilssuffix: TCmdStr read Fllvmutilssuffix write Fllvmutilssuffix;
         property cshared: boolean read Fcshared write Fcshared;
-        property Dontlinkstdlibpath: Boolean read FDontlinkstdlibpath write FDontlinkstdlibpath;     { Don't add std paths to linkpath}
+        property Dontlinkstdlibpath: Boolean read FDontlinkstdlibpath write FDontlinkstdlibpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
