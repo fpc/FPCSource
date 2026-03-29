@@ -796,6 +796,7 @@ Const
         Fapptype: tapptype;
         Ffeatures: tfeatures;
         Fprop_auto_getter_prefix: string;
+        Fprop_auto_setter_prefix: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -949,6 +950,7 @@ Const
           for visibility reasons (but in that case the names will be mangled so
           they are unique) }
         property prop_auto_getter_prefix: string read Fprop_auto_getter_prefix;
+        property prop_auto_setter_prefix: string read Fprop_auto_setter_prefix;
       end;
 
       { TCompilerGlobals }
@@ -970,7 +972,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-        prop_auto_setter_prefix : string;
 
         // TODO: Inside_asm_statement should probably be moved inside the scanner or parser
         Inside_asm_statement : boolean;
@@ -1105,6 +1106,7 @@ Const
         property apptype: tapptype read Fapptype write Fapptype;
         property features: tfeatures read Ffeatures write Ffeatures;
         property prop_auto_getter_prefix: string read Fprop_auto_getter_prefix write Fprop_auto_getter_prefix;
+        property prop_auto_setter_prefix: string read Fprop_auto_setter_prefix write Fprop_auto_setter_prefix;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
