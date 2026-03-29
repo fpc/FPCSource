@@ -754,6 +754,7 @@ Const
         FImageBaseSetExplicity: boolean;
         FMinStackSizeSetExplicity: boolean;
         FMaxStackSizeSetExplicity: boolean;
+        FDescriptionSetExplicity: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -840,6 +841,7 @@ Const
         property ImageBaseSetExplicity: boolean read FImageBaseSetExplicity;
         property MinStackSizeSetExplicity: boolean read FMinStackSizeSetExplicity;
         property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity;
+        property DescriptionSetExplicity: boolean read FDescriptionSetExplicity;
       end;
 
       { TCompilerGlobals }
@@ -852,7 +854,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        DescriptionSetExplicity : boolean;
         dllversion    : string;
         dllmajor,
         dllminor,
@@ -1016,6 +1017,7 @@ Const
         property ImageBaseSetExplicity: boolean read FImageBaseSetExplicity write FImageBaseSetExplicity;
         property MinStackSizeSetExplicity: boolean read FMinStackSizeSetExplicity write FMinStackSizeSetExplicity;
         property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity write FMaxStackSizeSetExplicity;
+        property DescriptionSetExplicity: boolean read FDescriptionSetExplicity write FDescriptionSetExplicity;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
