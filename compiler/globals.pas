@@ -790,6 +790,9 @@ Const
         Fheapsize: int64;
         Fmaxheapsize: int64;
         Fstacksize: longint;
+{$Ifdef EXTDEBUG}
+        Fdebugstop: boolean;
+{$EndIf EXTDEBUG}
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -927,6 +930,11 @@ Const
         property heapsize: int64 read Fheapsize;
         property maxheapsize: int64 read Fmaxheapsize;
         property stacksize: longint read Fstacksize;
+
+{$Ifdef EXTDEBUG}
+      { parameter switches }
+        property debugstop: boolean read Fdebugstop;
+{$EndIf EXTDEBUG}
       end;
 
       { TCompilerGlobals }
@@ -948,10 +956,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-{$Ifdef EXTDEBUG}
-      { parameter switches }
-        debugstop : boolean;
-{$EndIf EXTDEBUG}
         { Application type (platform specific)
           see globtype.pas for description }
         apptype : tapptype;
@@ -1092,6 +1096,9 @@ Const
         property heapsize: int64 read Fheapsize write Fheapsize;
         property maxheapsize: int64 read Fmaxheapsize write Fmaxheapsize;
         property stacksize: longint read Fstacksize write Fstacksize;
+{$Ifdef EXTDEBUG}
+        property debugstop: boolean read Fdebugstop write Fdebugstop;
+{$EndIf EXTDEBUG}
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
