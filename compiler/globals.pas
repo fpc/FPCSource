@@ -721,6 +721,7 @@ Const
 {$endif PREPROCWRITE}
         Futilsdirectory: TPathStr;
         Futilsprefix: TCmdStr;
+        Fllvmutilssuffix: TCmdStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -758,6 +759,9 @@ Const
         property utilsdirectory: TPathStr read Futilsdirectory;
         { targetname specific prefix used by these utils (options -XP<path>) }
         property utilsprefix: TCmdStr read Futilsprefix;
+
+        { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
+        property llvmutilssuffix: TCmdStr read Fllvmutilssuffix;
       end;
 
       { TCompilerGlobals }
@@ -770,9 +774,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
-        llvmutilssuffix     : TCmdStr;
 
         cshared        : boolean;        { pass --shared to ld to link C libs shared}
         Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
@@ -950,6 +951,7 @@ Const
 {$endif PREPROCWRITE}
         property utilsdirectory: TPathStr read Futilsdirectory write Futilsdirectory;
         property utilsprefix: TCmdStr read Futilsprefix write Futilsprefix;
+        property llvmutilssuffix: TCmdStr read Fllvmutilssuffix write Fllvmutilssuffix;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
