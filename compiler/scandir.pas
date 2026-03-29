@@ -1785,13 +1785,17 @@ unit scandir;
       var
         dummystr : string;
         dummyrev : word;
+        isset: boolean;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
           compiler.verbose.Message(scan_w_setpeosversion_not_support);
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(compiler.globals.peosversionmajor,compiler.globals.peosversionminor,dummyrev,dummystr,false,compiler.globals.SetPEOSVersionSetExplicitely);
+          begin
+            do_version(compiler.globals.peosversionmajor,compiler.globals.peosversionminor,dummyrev,dummystr,false,isset);
+            compiler.globals.SetPEOSVersionSetExplicitely:=isset;
+          end;
       end;
 
     procedure dir_setpesubsysversion;
