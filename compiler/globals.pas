@@ -696,9 +696,14 @@ Const
 
       TInitDoneProc = procedure(ACompilerGlobals: TCompilerGlobals);
 
+      { TReadOnlyCompilerGlobals }
+
+      TReadOnlyCompilerGlobals = class
+      end;
+
       { TCompilerGlobals }
 
-      TCompilerGlobals = class
+      TCompilerGlobals = class(TReadOnlyCompilerGlobals)
       private
         procedure get_exepath;
         procedure callinitprocs;
