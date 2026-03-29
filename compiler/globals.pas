@@ -782,6 +782,7 @@ Const
         Fexception_raised: boolean;
         Fblock_type: tblock_type;
         Fexceptblockcounter: integer;
+        Fcurrent_exceptblock: integer;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -905,6 +906,8 @@ Const
 
         // TODO: exceptblockcounter should probably be moved somewhere else
         property exceptblockcounter: integer read Fexceptblockcounter;  { each except block gets a unique number check gotos      }
+        // TODO: current_exceptblock should probably be moved somewhere else (parser?)
+        property current_exceptblock: integer read Fcurrent_exceptblock;  { the exceptblock number of the current block (0 if none) }
       end;
 
       { TCompilerGlobals }
@@ -922,8 +925,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-        // TODO: current_exceptblock should probably be moved somewhere else (parser?)
-        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
         LinkLibraryAliases : TLinkStrMap;
         LinkLibraryOrder   : TLinkStrMap;
 
@@ -1073,6 +1074,7 @@ Const
         property exception_raised: boolean read Fexception_raised write Fexception_raised;
         property block_type: tblock_type read Fblock_type write Fblock_type;
         property exceptblockcounter: integer read Fexceptblockcounter write Fexceptblockcounter;
+        property current_exceptblock: integer read Fcurrent_exceptblock write Fcurrent_exceptblock;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
