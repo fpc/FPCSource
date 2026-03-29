@@ -752,6 +752,8 @@ Const
         FSetPESubSysVersionSetExplicitely: boolean;
         FSetPEUserVersionSetExplicitely: boolean;
         FImageBaseSetExplicity: boolean;
+        FMinStackSizeSetExplicity: boolean;
+        FMaxStackSizeSetExplicity: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -836,6 +838,8 @@ Const
         property SetPESubSysVersionSetExplicitely: boolean read FSetPESubSysVersionSetExplicitely;
         property SetPEUserVersionSetExplicitely: boolean read FSetPEUserVersionSetExplicitely;
         property ImageBaseSetExplicity: boolean read FImageBaseSetExplicity;
+        property MinStackSizeSetExplicity: boolean read FMinStackSizeSetExplicity;
+        property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity;
       end;
 
       { TCompilerGlobals }
@@ -848,8 +852,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        MinStackSizeSetExplicity,
-        MaxStackSizeSetExplicity,
         DescriptionSetExplicity : boolean;
         dllversion    : string;
         dllmajor,
@@ -1012,6 +1014,8 @@ Const
         property SetPESubSysVersionSetExplicitely: boolean read FSetPESubSysVersionSetExplicitely write FSetPESubSysVersionSetExplicitely;
         property SetPEUserVersionSetExplicitely: boolean read FSetPEUserVersionSetExplicitely write FSetPEUserVersionSetExplicitely;
         property ImageBaseSetExplicity: boolean read FImageBaseSetExplicity write FImageBaseSetExplicity;
+        property MinStackSizeSetExplicity: boolean read FMinStackSizeSetExplicity write FMinStackSizeSetExplicity;
+        property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity write FMaxStackSizeSetExplicity;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
