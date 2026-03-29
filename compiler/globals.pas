@@ -738,6 +738,7 @@ Const
         Fobjectsearchpath: TSearchPathList;
         Fincludesearchpath: TSearchPathList;
         Fframeworksearchpath: TSearchPathList;
+        Fpackagesearchpath: TSearchPathList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -801,6 +802,7 @@ Const
         property objectsearchpath: TSearchPathList read Fobjectsearchpath;
         property includesearchpath: TSearchPathList read Fincludesearchpath;
         property frameworksearchpath: TSearchPathList read Fframeworksearchpath;
+        property packagesearchpath: TSearchPathList read Fpackagesearchpath;
       end;
 
       { TCompilerGlobals }
@@ -813,7 +815,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        packagesearchpath     : TSearchPathList;
 
         { list of default namespaces }
         namespacelist : TCmdStrList;
@@ -984,6 +985,7 @@ Const
         // TODO: mutable and read only property objectsearchpath: TSearchPathList read Fobjectsearchpath;
         // TODO: mutable and read only property includesearchpath: TSearchPathList read Fincludesearchpath;
         // TODO: mutable and read only property frameworksearchpath: TSearchPathList read Fframeworksearchpath;
+        // TODO: mutable and read only property packagesearchpath: TSearchPathList read Fpackagesearchpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2019,7 +2021,7 @@ implementation
        FreeAndNil(Fframeworksearchpath);
        FreeAndNil(LinkLibraryAliases);
        FreeAndNil(LinkLibraryOrder);
-       FreeAndNil(packagesearchpath);
+       FreeAndNil(Fpackagesearchpath);
        FreeAndNil(namespacelist);
        FreeAndNil(premodule_namespacelist);
        current_namespacelist:=Nil;
@@ -2068,7 +2070,7 @@ implementation
         Fincludesearchpath:=TSearchPathList.Create;
         Fobjectsearchpath:=TSearchPathList.Create;
         Fframeworksearchpath:=TSearchPathList.Create;
-        packagesearchpath:=TSearchPathList.Create;
+        Fpackagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;
         premodule_namespacelist:=TCmdStrList.Create;
         current_namespacelist:=Nil;
