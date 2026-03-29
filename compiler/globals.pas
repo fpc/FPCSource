@@ -745,6 +745,7 @@ Const
         Fpackagelist: TFPHashList;
         Fautoloadunits: string;
         Fusewindowapi: boolean;
+        Fdescription: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -822,6 +823,7 @@ Const
 
         { linking }
         property usewindowapi: boolean read Fusewindowapi;
+        property description: string read Fdescription;
       end;
 
       { TCompilerGlobals }
@@ -834,7 +836,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        description   : string;
         SetPEFlagsSetExplicity,
         SetPEOptFlagsSetExplicity,
         SetPEOSVersionSetExplicitely,
@@ -998,6 +999,7 @@ Const
         property packagelist: TFPHashList read Fpackagelist write Fpackagelist;
         property autoloadunits: string read Fautoloadunits write Fautoloadunits;
         property usewindowapi: boolean read Fusewindowapi write Fusewindowapi;
+        property description: string read Fdescription write Fdescription;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
