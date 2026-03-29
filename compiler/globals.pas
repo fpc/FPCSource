@@ -725,6 +725,7 @@ Const
         Fcshared: boolean;
         FDontlinkstdlibpath: Boolean;
         Frlinkpath: TCmdStr;
+        Fsysrootpath: TCmdStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -769,6 +770,7 @@ Const
         property cshared: boolean read Fcshared;        { pass --shared to ld to link C libs shared}
         property Dontlinkstdlibpath: Boolean read FDontlinkstdlibpath;     { Don't add std paths to linkpath}
         property rlinkpath: TCmdStr read Frlinkpath;        { rpath-link linkdir override}
+        property sysrootpath: TCmdStr read Fsysrootpath;        { target system root to search dyn linker }
       end;
 
       { TCompilerGlobals }
@@ -781,7 +783,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        sysrootpath    : TCmdStr;        { target system root to search dyn linker }
 
         { some flags for global compiler switches }
         do_build,
@@ -958,6 +959,7 @@ Const
         property cshared: boolean read Fcshared write Fcshared;
         property Dontlinkstdlibpath: Boolean read FDontlinkstdlibpath write FDontlinkstdlibpath;
         property rlinkpath: TCmdStr read Frlinkpath write Frlinkpath;
+        property sysrootpath: TCmdStr read Fsysrootpath write Fsysrootpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

@@ -4400,8 +4400,9 @@ begin
          end;
        'R' :
          begin
-           compiler.globals.sysrootpath:=copy(more,2);
-           compiler.defaultreplacements(compiler.globals.sysrootpath);
+           tmpS:=copy(more,2);
+           compiler.defaultreplacements(tmpS);
+           compiler.globals.sysrootpath:=tmpS;
            more:='';
          end;
        's' :
