@@ -775,6 +775,7 @@ Const
         FGenerateImportSection: boolean;
         FGenerateImportSectionSetExplicitly: boolean;
         FRelocSection: boolean;
+        FRelocSectionSetExplicitly: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -882,7 +883,9 @@ Const
         property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly;
         property GenerateImportSection: boolean read FGenerateImportSection;
         property GenerateImportSectionSetExplicitly: boolean read FGenerateImportSectionSetExplicitly;
-        property RelocSection: boolean read FRelocSection write FRelocSection;
+        property RelocSection: boolean read FRelocSection;
+
+        property RelocSectionSetExplicitly: boolean read FRelocSectionSetExplicitly;
       end;
 
       { TCompilerGlobals }
@@ -895,8 +898,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        RelocSectionSetExplicitly : boolean;
 
         // TODO: current_tokenpros and current_filepos should probably be moved to the scanner or the parser
         current_tokenpos,                  { position of the last token }
@@ -1057,6 +1058,8 @@ Const
         property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly write FUseDeffileForExportsSetExplicitly;
         property GenerateImportSection: boolean read FGenerateImportSection write FGenerateImportSection;
         property GenerateImportSectionSetExplicitly: boolean read FGenerateImportSectionSetExplicitly write FGenerateImportSectionSetExplicitly;
+        property RelocSection: boolean read FRelocSection write FRelocSection;
+        property RelocSectionSetExplicitly: boolean read FRelocSectionSetExplicitly write FRelocSectionSetExplicitly;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
