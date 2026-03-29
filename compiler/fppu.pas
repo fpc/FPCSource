@@ -2249,7 +2249,7 @@ var
       if do_reload and not interface_compiled then
         exit(true);
 
-      if ppu_waitingfor_crc and (scc_tree_crc_wait<>nil) and (scc_tree_crc_wait<>self) then
+      if ppu_waitingfor_crc and (scc_tree_crc_wait<>nil) then
         exit; { the final load step needs all used units and their used units }
 
       pu:=tused_unit(used_units.first);

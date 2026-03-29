@@ -481,7 +481,7 @@ procedure ttask_handler.search_finished_scc(m: tmodule{$IFDEF DEBUG_PPU_CYCLES};
   returns an unfinished scc root, which sub sccs are all finished }
 var
   uu: tused_unit;
-  um: tmodule;
+  um, alt_scc_tree_crc_wait: tmodule;
 begin
   if m.cycle_search_stamp=tmodule.cycle_stamp then
     exit;
@@ -490,6 +490,9 @@ begin
   {$IFDEF DEBUG_PPU_CYCLES}
   writeln(Indent,'ttask_handler.search_finished_scc ',m.modulename^,' ',m.statestr);
   {$ENDIF}
+
+  if m.scc_finished then
+    Internalerror(2026032903);
 
   m.scc_tree_unfinished:=m.do_reload or (m.state<>ms_processed);
   m.other_scc_unfinished:=false;
@@ -506,6 +509,7 @@ begin
       if not um.scc_finished then
         begin
           search_finished_scc(um{$IFDEF DEBUG_PPU_CYCLES},Indent+'  '{$ENDIF});
+          { Note: if um is in m' scc, um's values might be incomplete }
           if um.scc_tree_unfinished then
             begin
               m.scc_tree_unfinished:=true;
@@ -514,34 +518,66 @@ begin
                 m.other_scc_unfinished:=true;
             end
           else if um.other_scc_unfinished then
-            Internalerror(2026022201);
+            Internalerror(2026022201); { this finished and other unfinished }
           if (um.scc_tree_crc_wait<>nil)
               and ((m.scc_tree_crc_wait=nil)
-                or (m.scc_root<>um.scc_tree_crc_wait.scc_root)) then
-            m.scc_tree_crc_wait:=um.scc_tree_crc_wait;
+                  or (m.scc_tree_crc_wait=m)
+                  or (m.scc_root<>um.scc_tree_crc_wait.scc_root)) then
+                m.scc_tree_crc_wait:=um.scc_tree_crc_wait;
         end;
       uu:=tused_unit(uu.Next);
     end;
 
   if m.scc_root=m then
     begin
-      um:=m;
-      while assigned(um) do
+      { backtrack from scc root -> the scc was completely searched }
+      if (not m.scc_tree_unfinished) then
         begin
-          if (not m.scc_tree_unfinished) then
+          { scc finished }
+          um:=m;
+          while assigned(um) do
             begin
-              { scc finished }
               {$IFDEF DEBUG_CTASK}
               writeln('CTASK finished scc: ',um.modulename^,' ',um.statestr);
               {$ENDIF}
               um.scc_finished:=true;
               um.scc_lowindex:=0;
               um.scc_index:=0;
+              if um.scc_tree_crc_wait<>nil then
+                Internalerror(2026032901);
+              um:=um.scc_next;
             end;
-          if um.scc_tree_crc_wait=nil then
-            um.scc_tree_crc_wait:=m.scc_tree_crc_wait;
-          um:=um.scc_next;
-        end;
+        end
+      else if m.scc_tree_crc_wait<>nil then
+        begin
+          { scc has at least one module without finished crc }
+
+          { scc_tree_crc_wait should point to an unfinished used unit.
+            In a scc it might point to itself. Check for another unfinished unit. }
+          alt_scc_tree_crc_wait:=nil;
+          um:=m;
+          while assigned(um) do
+            begin
+              if um.scc_tree_crc_wait=nil then
+                um.scc_tree_crc_wait:=m.scc_tree_crc_wait
+              else if um.scc_tree_crc_wait<>m.scc_tree_crc_wait then
+                alt_scc_tree_crc_wait:=um.scc_tree_crc_wait;
+              um:=um.scc_next;
+            end;
+          while assigned(um) do
+            begin
+              if um.scc_tree_crc_wait=um then
+                begin
+                  if um=alt_scc_tree_crc_wait then
+                    um.scc_tree_crc_wait:=m.scc_tree_crc_wait
+                  else
+                    um.scc_tree_crc_wait:=alt_scc_tree_crc_wait; { if um is the only unfinished module, this sets it to nil }
+                end;
+              um:=um.scc_next;
+            end;
+        end
+      else
+        ; { all modules of the scc have their crc, now the ppus can be be written }
     end;
 
   {$IFDEF DEBUG_PPU_CYCLES}

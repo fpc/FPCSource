@@ -2584,6 +2584,7 @@ type
            status.skip_error:=true;
          end;
 
+        curr.crc_final:=true;
         curr.state:=ms_compiled;
 
       end;

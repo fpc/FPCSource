@@ -233,7 +233,7 @@ interface
         dependent_units      : tlinkedlist;
 
         { circular unit groups = strongly connected components }
-        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are finished
+        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are ms_procesed
                                  Note that in a cycle ms_processed can be reached while scc_finished is still false }
         scc_root: tmodule;     { valid if not scc_finished: all modules of a scc poins to their root module }
         scc_next: tmodule;     { next module in same scc }
@@ -249,7 +249,7 @@ interface
         cycle_search_stamp: dword;
         scc_tree_unfinished: boolean; { only valid for scc roots }
         other_scc_unfinished: boolean; { only valid for scc roots }
-        scc_tree_crc_wait: tmodule;
+        scc_tree_crc_wait: tmodule; { an unfinished used unit, can be indirectly used, not self }
 
         task: TObject;         { ctask ttask }
 
