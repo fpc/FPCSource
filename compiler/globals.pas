@@ -756,6 +756,7 @@ Const
         FMaxStackSizeSetExplicity: boolean;
         FDescriptionSetExplicity: boolean;
         Fdllversion: string;
+        Fdllmajor: word;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -844,6 +845,7 @@ Const
         property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity;
         property DescriptionSetExplicity: boolean read FDescriptionSetExplicity;
         property dllversion: string read Fdllversion;
+        property dllmajor: word read Fdllmajor;
       end;
 
       { TCompilerGlobals }
@@ -856,7 +858,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        dllmajor,
         dllminor,
         dllrevision   : word;  { revision only for netware }
         { win pe  }
@@ -1020,6 +1021,7 @@ Const
         property MaxStackSizeSetExplicity: boolean read FMaxStackSizeSetExplicity write FMaxStackSizeSetExplicity;
         property DescriptionSetExplicity: boolean read FDescriptionSetExplicity write FDescriptionSetExplicity;
         property dllversion: string read Fdllversion write Fdllversion;
+        property dllmajor: word read Fdllmajor write Fdllmajor;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
