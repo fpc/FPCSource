@@ -785,6 +785,7 @@ Const
         Fcurrent_exceptblock: integer;
         FLinkLibraryAliases: TLinkStrMap;
         FLinkLibraryOrder: TLinkStrMap;
+        Finit_settings: TReadOnlySettings;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -913,12 +914,16 @@ Const
 
         property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
         property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
+
+
+        property init_settings: TReadOnlySettings read Finit_settings;
       end;
 
       { TCompilerGlobals }
 
       TCompilerGlobals = class(TReadOnlyCompilerGlobals)
       private
+        function GetInitSettings: TMutableSettings;
         procedure get_exepath;
         procedure callinitprocs;
         procedure calldoneprocs;
@@ -930,9 +935,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-
-
-        init_settings,
         current_settings   : TMutableSettings;
 
         pendingstate       : tpendingstate;
@@ -1080,6 +1082,7 @@ Const
         property current_exceptblock: integer read Fcurrent_exceptblock write Fcurrent_exceptblock;
         // TODO: mutable and read only property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
         // TODO: mutable and read only property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
+        property init_settings: TMutableSettings read GetInitSettings;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2023,6 +2026,11 @@ implementation
   {$define need_path_search}
 {$endif macos}
 
+   function TCompilerGlobals.GetInitSettings: TMutableSettings;
+     begin
+       result:=TMutableSettings(Finit_settings);
+     end;
+
    procedure TCompilerGlobals.get_exepath;
      var
        localExepath : TCmdStr;
@@ -2120,14 +2128,14 @@ implementation
        FreeAndNil(Fpremodule_namespacelist);
        current_namespacelist:=Nil;
        FreeAndNil(current_settings);
-       FreeAndNil(init_settings);
+       FreeAndNil(Finit_settings);
        stringdispose(Foutputprefix);
        stringdispose(Foutputsuffix);
      end;
 
    procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
      begin
-        init_settings:=TMutableSettings.Create;
+        Finit_settings:=TMutableSettings.Create;
         current_settings:=TMutableSettings.Create;
 
         get_exepath;
