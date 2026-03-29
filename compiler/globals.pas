@@ -730,6 +730,7 @@ Const
         Fdo_release: boolean;
         Fdo_make: boolean;
         Ftimestr: string;
+        Fdatestr: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -782,6 +783,7 @@ Const
         property do_make: boolean read Fdo_make;
 
         property timestr: string read Ftimestr;
+        property datestr: string read Fdatestr;
       end;
 
       { TCompilerGlobals }
@@ -794,7 +796,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        datestr : string;
         { Path to ppc }
         exepath       : TPathStr;
         { Path to unicode charmap/collation binaries }
@@ -968,6 +969,7 @@ Const
         property do_release: boolean read Fdo_release write Fdo_release;
         property do_make: boolean read Fdo_make write Fdo_make;
         property timestr: string read Ftimestr write Ftimestr;
+        property datestr: string read Fdatestr write Fdatestr;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
