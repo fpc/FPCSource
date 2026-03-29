@@ -714,6 +714,7 @@ Const
         Fidf_version: longint;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         Fasmextraopt: string;
+        Fparalinkoptions: TCmdStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -737,6 +738,9 @@ Const
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         { external assembler extra option }
         property asmextraopt: string read Fasmextraopt;
+
+        { things specified with parameters }
+        property paralinkoptions: TCmdStr read Fparalinkoptions;
       end;
 
       { TCompilerGlobals }
@@ -749,9 +753,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        { things specified with parameters }
-        paralinkoptions   : TCmdStr;
         paradynamiclinker : string;
 {$ifdef PREPROCWRITE}
         parapreprocess    : boolean;
@@ -936,6 +937,7 @@ Const
         property idf_version: longint read Fidf_version write Fidf_version;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         property asmextraopt: string read Fasmextraopt write Fasmextraopt;
+        property paralinkoptions: TCmdStr read Fparalinkoptions write Fparalinkoptions;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
