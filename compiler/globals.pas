@@ -789,6 +789,7 @@ Const
         Fcurrent_settings: TReadOnlySettings;
         Fheapsize: int64;
         Fmaxheapsize: int64;
+        Fstacksize: longint;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -925,6 +926,7 @@ Const
         { Memory sizes }
         property heapsize: int64 read Fheapsize;
         property maxheapsize: int64 read Fmaxheapsize;
+        property stacksize: longint read Fstacksize;
       end;
 
       { TCompilerGlobals }
@@ -945,7 +947,6 @@ Const
         current_filepos : tfileposinfo;    { current position }
 
         pendingstate       : tpendingstate;
-        stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
       { parameter switches }
@@ -1090,6 +1091,7 @@ Const
         property current_settings: TMutableSettings read GetCurrentSettings;
         property heapsize: int64 read Fheapsize write Fheapsize;
         property maxheapsize: int64 read Fmaxheapsize write Fmaxheapsize;
+        property stacksize: longint read Fstacksize write Fstacksize;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

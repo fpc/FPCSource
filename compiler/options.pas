@@ -2508,6 +2508,7 @@ var
   targetswitches: ttargetswitches;
   tmpheapsize,
   tmpmaxheapsize: Int64;
+  tmpstacksize: LongInt;
   {$ifdef llvm}
   disable: boolean;
   {$endif}
@@ -2886,15 +2887,17 @@ begin
            compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_range,cs_check_object];
        's' :
          begin
-            val(copy(more,j+1),compiler.globals.stacksize,code);
+            val(copy(more,j+1),tmpstacksize,code);
             if (code<>0)
 {$ifdef cpu16bitaddr}
-               or (compiler.globals.stacksize>=65521)
+               or (tmpstacksize>=65521)
 {$else cpu16bitaddr}
-               or (compiler.globals.stacksize>=67107840)
+               or (tmpstacksize>=67107840)
 {$endif cpu16bitaddr}
-               or (compiler.globals.stacksize<1024) then
-             IllegalPara(opt);
+               or (tmpstacksize<1024) then
+             IllegalPara(opt)
+            else
+             compiler.globals.stacksize:=tmpstacksize;
             break;
          end;
        't' :
