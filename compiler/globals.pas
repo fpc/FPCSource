@@ -734,6 +734,7 @@ Const
         Fexepath: TPathStr;
         Funicodepath: TPathStr;
         Flibrarysearchpath: TSearchPathList;
+        Funitsearchpath: TSearchPathList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -793,6 +794,7 @@ Const
         property unicodepath: TPathStr read Funicodepath;
         { path for searching units, different paths can be separated by ; }
         property librarysearchpath: TSearchPathList read Flibrarysearchpath;
+        property unitsearchpath: TSearchPathList read Funitsearchpath;
       end;
 
       { TCompilerGlobals }
@@ -805,7 +807,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        unitsearchpath,
         objectsearchpath,
         includesearchpath,
         frameworksearchpath  : TSearchPathList;
@@ -976,6 +977,7 @@ Const
         property exepath: TPathStr read Fexepath write Fexepath;
         property unicodepath: TPathStr read Funicodepath write Funicodepath;
         // TODO: mutable and read only property librarysearchpath: TSearchPathList read Flibrarysearchpath;
+        // TODO: mutable and read only property unitsearchpath: TSearchPathList read Funitsearchpath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2005,7 +2007,7 @@ implementation
      begin
        calldoneprocs;
        FreeAndNil(Flibrarysearchpath);
-       FreeAndNil(unitsearchpath);
+       FreeAndNil(Funitsearchpath);
        FreeAndNil(objectsearchpath);
        FreeAndNil(includesearchpath);
        FreeAndNil(frameworksearchpath);
@@ -2056,7 +2058,7 @@ implementation
         { Search Paths }
         unicodepath:='';
         Flibrarysearchpath:=TSearchPathList.Create;
-        unitsearchpath:=TSearchPathList.Create;
+        Funitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
