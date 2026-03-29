@@ -494,6 +494,10 @@ begin
   m.scc_tree_unfinished:=m.do_reload or (m.state<>ms_processed);
   m.other_scc_unfinished:=false;
   m.scc_tree_crc_wait:=nil;
+  if m.do_reload
+      or not m.crc_final { pas crc not ready }
+      or not m.interface_compiled { ppu impl section not yet complete } then
+    m.scc_tree_crc_wait:=m;
 
   uu:=tused_unit(m.used_units.First);
   while assigned(uu) do
@@ -511,15 +515,13 @@ begin
             end
           else if um.other_scc_unfinished then
             Internalerror(2026022201);
-          if m.scc_tree_crc_wait=nil then
+          if (um.scc_tree_crc_wait<>nil)
+              and ((m.scc_tree_crc_wait=nil)
+                or (m.scc_root<>um.scc_tree_crc_wait.scc_root)) then
             m.scc_tree_crc_wait:=um.scc_tree_crc_wait;
         end;
       uu:=tused_unit(uu.Next);
     end;
-
-  if (m.scc_tree_crc_wait=nil)
-      and (m.do_reload or not m.crc_final or not m.interface_compiled) then
-    m.scc_tree_crc_wait:=m;
 
   if m.scc_root=m then
     begin
