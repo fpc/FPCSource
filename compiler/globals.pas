@@ -729,6 +729,7 @@ Const
         Fdo_build: boolean;
         Fdo_release: boolean;
         Fdo_make: boolean;
+        Ftimestr: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -779,6 +780,8 @@ Const
         property do_build: boolean read Fdo_build;
         property do_release: boolean read Fdo_release;
         property do_make: boolean read Fdo_make;
+
+        property timestr: string read Ftimestr;
       end;
 
       { TCompilerGlobals }
@@ -791,8 +794,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        timestr,
         datestr : string;
         { Path to ppc }
         exepath       : TPathStr;
@@ -966,6 +967,7 @@ Const
         property do_build: boolean read Fdo_build write Fdo_build;
         property do_release: boolean read Fdo_release write Fdo_release;
         property do_make: boolean read Fdo_make write Fdo_make;
+        property timestr: string read Ftimestr write Ftimestr;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
