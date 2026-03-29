@@ -740,6 +740,7 @@ Const
         Fframeworksearchpath: TSearchPathList;
         Fpackagesearchpath: TSearchPathList;
         Fnamespacelist: TCmdStrList;
+        Fpremodule_namespacelist: TCmdStrList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -807,6 +808,9 @@ Const
 
         { list of default namespaces }
         property namespacelist : TCmdStrList read Fnamespacelist;
+        // During scanning/parsing, a module may not yet be available.
+        // Scanner checks first current_namespacelist, then local_namespacelist
+        property premodule_namespacelist: TCmdStrList read Fpremodule_namespacelist;  // always set: used as long as current_namespacelist is not correctly set.
       end;
 
       { TCompilerGlobals }
@@ -819,9 +823,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        // During scanning/parsing, a module may not yet be available.
-        // Scanner checks first current_namespacelist, then local_namespacelist
-        premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
         current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
         { contains tpackageentry entries }
         packagelist : TFPHashList;
@@ -988,6 +989,7 @@ Const
         // TODO: mutable and read only property frameworksearchpath: TSearchPathList read Fframeworksearchpath;
         // TODO: mutable and read only property packagesearchpath: TSearchPathList read Fpackagesearchpath;
         // TODO: mutable and read only property namespacelist : TCmdStrList read Fnamespacelist;
+        // TODO: mutable and read only property premodule_namespacelist: TCmdStrList read Fpremodule_namespacelist;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2025,7 +2027,7 @@ implementation
        FreeAndNil(LinkLibraryOrder);
        FreeAndNil(Fpackagesearchpath);
        FreeAndNil(Fnamespacelist);
-       FreeAndNil(premodule_namespacelist);
+       FreeAndNil(Fpremodule_namespacelist);
        current_namespacelist:=Nil;
        FreeAndNil(current_settings);
        FreeAndNil(init_settings);
@@ -2074,7 +2076,7 @@ implementation
         Fframeworksearchpath:=TSearchPathList.Create;
         Fpackagesearchpath:=TSearchPathList.Create;
         Fnamespacelist:=TCmdStrList.Create;
-        premodule_namespacelist:=TCmdStrList.Create;
+        Fpremodule_namespacelist:=TCmdStrList.Create;
         current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
