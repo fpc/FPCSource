@@ -73,6 +73,8 @@ interface
           function  openppufile:boolean;
           function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
+          function dependent_module_has_our_crc: boolean;
+          function dependent_module_crc_mismatch: boolean;
           procedure writeppu;
           function loadppu(from_module : tmodule) : boolean;
           function get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
@@ -2024,7 +2026,61 @@ var
          discardppu;
       end;
 
-      function tppumodule.load_usedunits: boolean;
+    function tppumodule.dependent_module_has_our_crc: boolean;
+      { returns true, if any dependent module has crc for this module }
+      var
+        pu: tdependent_unit;
+        m: fmodule.tmodule;
+      begin
+        pu:=tdependent_unit(dependent_units.First);
+        while Assigned(pu) do
+          begin
+            m:=pu.u;
+            if m.fromppu or (m.state in [ms_compiled,ms_processed]) then
+              exit(true);
+            pu:=tdependent_unit(pu.Next);
+          end;
+        Result:=false;
+      end;
+
+    function tppumodule.dependent_module_crc_mismatch: boolean;
+      { called after an interface crc or crc was computed.
+        Checks if any dependent module needs a recompile.
+        The compile goes back to the ctask scheduler which recompiles. }
+      var
+        pu: tdependent_unit;
+        m: tmodule;
+        uu: tused_unit;
+        check_crc: boolean;
+      begin
+        pu:=tdependent_unit(dependent_units.First);
+        while Assigned(pu) do
+          begin
+            m:=pu.u;
+            check_crc:=m.fromppu or (m.state in [ms_compiled,ms_processed]);
+            if m.interface_compiled or check_crc then
+              begin
+                uu:=tused_unit(m.used_units.First);
+                while assigned(uu) do
+                  begin
+                    if uu.u=self then
+                      begin
+                        if (uu.interface_checksum<>interface_crc)
+                            or (uu.indirect_checksum<>indirect_crc)
+                            or (crc_final and check_crc and (uu.checksum<>crc) ) then
+                          begin
+                            exit(true);
+                          end;
+                      end;
+                    uu:=tused_unit(uu.Next);
+                  end;
+              end;
+            pu:=tdependent_unit(pu.Next);
+          end;
+        Result:=false;
+      end;
+
+    function tppumodule.load_usedunits: boolean;
       { self is a ppu (or in a package) }
       begin
         Result:=true;
@@ -2163,7 +2219,7 @@ var
                      ((pu.u.interface_crc<>pu.interface_checksum) or
                       (pu.u.indirect_crc<>pu.indirect_checksum)))
                 or (CRCValid and
-                  {$IFNDEF EnableUrCRC}
+                  {$IFNDEF DisableUrCRC}
                   (not (mf_release in moduleflags)) and
                   {$ENDIF}
                   (pu.u.crc<>pu.checksum)
@@ -2260,7 +2316,7 @@ var
           if pu.u.do_reload
               or not pu.u.interface_compiled
               or (ppu_waitingfor_crc and not pu.u.crc_final
-                 {$IFNDEF EnableUrCRC}and not (mf_release in moduleflags){$ENDIF} ) then
+                 {$IFNDEF DisableUrCRC}and not (mf_release in moduleflags){$ENDIF} ) then
           begin
             firstwaiting:=pu.u;
             exit;
@@ -2274,7 +2330,7 @@ var
     function tppumodule.is_reload_needed(pu: tdependent_unit): boolean;
       begin
         if pu.u.state=ms_load then
-          Result:=tppumodule(pu.u).ppu_waitingfor_crc
+          Result:=pu.u.ppu_waitingfor_crc
                 or (pu.in_interface and pu.u.interface_compiled)
         else
           Result:=inherited is_reload_needed(pu);
@@ -2506,7 +2562,7 @@ var
           check_impl_uses:=state in [ms_compiling_waitfinish..ms_compiled,ms_processed];
 
         { if the crc(s) of used unit are known }
-        check_crc:={$IFNDEF EnableUrCRC}not (mf_release in moduleflags) and{$ENDIF}
+        check_crc:={$IFNDEF DisableUrCRC}not (mf_release in moduleflags) and{$ENDIF}
                    (fromppu or (state in [ms_load,ms_compiled,ms_processed]));
       end;
 
