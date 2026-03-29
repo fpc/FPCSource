@@ -761,6 +761,8 @@ Const
         Fdllrevision: word;
         Fpeosversionminor: word;
         Fpeosversionmajor: word;
+        Fpesubsysversionminor: word;
+        Fpesubsysversionmajor: word;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -855,6 +857,8 @@ Const
         { win pe  }
         property peosversionminor: word read Fpeosversionminor;
         property peosversionmajor: word read Fpeosversionmajor;
+        property pesubsysversionminor: word read Fpesubsysversionminor;
+        property pesubsysversionmajor: word read Fpesubsysversionmajor;
       end;
 
       { TCompilerGlobals }
@@ -867,8 +871,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        pesubsysversionminor,
-        pesubsysversionmajor,
         peuserversionminor,
         peuserversionmajor : word;
         peoptflags,
@@ -1030,6 +1032,8 @@ Const
         property dllrevision: word read Fdllrevision write Fdllrevision;
         property peosversionminor: word read Fpeosversionminor write Fpeosversionminor;
         property peosversionmajor: word read Fpeosversionmajor write Fpeosversionmajor;
+        property pesubsysversionminor: word read Fpesubsysversionminor write Fpesubsysversionminor;
+        property pesubsysversionmajor: word read Fpesubsysversionmajor write Fpesubsysversionmajor;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

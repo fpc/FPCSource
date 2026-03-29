@@ -1809,7 +1809,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         dummystr : string;
-        dummyrev : word;
+        dummyrev, vmajor, vminor: word;
         isset: boolean;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
@@ -1818,7 +1818,9 @@ unit scandir;
           compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
-            do_version(compiler.globals.pesubsysversionmajor,compiler.globals.pesubsysversionminor,dummyrev,dummystr,false,isset);
+            do_version(vmajor,vminor,dummyrev,dummystr,false,isset);
+            compiler.globals.pesubsysversionmajor:=vmajor;
+            compiler.globals.pesubsysversionminor:=vminor;
             compiler.globals.SetPESubSysVersionSetExplicitely:=isset;
           end;
       end;
