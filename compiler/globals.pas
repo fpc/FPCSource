@@ -719,6 +719,7 @@ Const
 {$ifdef PREPROCWRITE}
         Fparapreprocess: boolean;
 {$endif PREPROCWRITE}
+        Futilsdirectory: TPathStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -749,6 +750,11 @@ Const
 {$ifdef PREPROCWRITE}
         property parapreprocess: boolean read Fparapreprocess;
 {$endif PREPROCWRITE}
+
+        {  typical cross compiling params}
+
+        { directory where the utils can be found (options -FD) }
+        property utilsdirectory: TPathStr read Futilsdirectory;
       end;
 
       { TCompilerGlobals }
@@ -761,11 +767,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        {  typical cross compiling params}
-
-        { directory where the utils can be found (options -FD) }
-        utilsdirectory : TPathStr;
         { targetname specific prefix used by these utils (options -XP<path>) }
         utilsprefix    : TCmdStr;
 
@@ -946,6 +947,7 @@ Const
 {$ifdef PREPROCWRITE}
         property parapreprocess: boolean read Fparapreprocess write Fparapreprocess;
 {$endif PREPROCWRITE}
+        property utilsdirectory: TPathStr read Futilsdirectory write Futilsdirectory;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
