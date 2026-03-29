@@ -699,6 +699,10 @@ Const
       { TReadOnlyCompilerGlobals }
 
       TReadOnlyCompilerGlobals = class
+{$if defined(m68k) or defined(arm)}
+      protected type
+        Tpalmos_applicationid = string[4];
+{$endif defined(m68k) or defined(arm)}
       protected
         Finputfilepath: string;
         Finputfilename: string;
@@ -802,6 +806,7 @@ Const
         Fparser_current_file: string;
 {$if defined(m68k) or defined(arm)}
         Fpalmos_applicationname: string;
+        Fpalmos_applicationid: Tpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
       public
         { specified inputfile }
@@ -969,6 +974,7 @@ Const
 {$if defined(m68k) or defined(arm)}
         { PalmOS resources }
         property palmos_applicationname: string read Fpalmos_applicationname;
+        property palmos_applicationid: Tpalmos_applicationid read Fpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
       end;
 
@@ -991,9 +997,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-{$if defined(m68k) or defined(arm)}
-        palmos_applicationid : string[4];
-{$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
         { Atari Specific }
         ataritos_exe_flags: dword;
@@ -1120,6 +1123,7 @@ Const
         property parser_current_file: string read Fparser_current_file write Fparser_current_file;
 {$if defined(m68k) or defined(arm)}
         property palmos_applicationname: string read Fpalmos_applicationname write Fpalmos_applicationname;
+        property palmos_applicationid: Tpalmos_applicationid read Fpalmos_applicationid write Fpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
       end;
 
