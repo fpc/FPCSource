@@ -720,6 +720,7 @@ Const
         Fparapreprocess: boolean;
 {$endif PREPROCWRITE}
         Futilsdirectory: TPathStr;
+        Futilsprefix: TCmdStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -755,6 +756,8 @@ Const
 
         { directory where the utils can be found (options -FD) }
         property utilsdirectory: TPathStr read Futilsdirectory;
+        { targetname specific prefix used by these utils (options -XP<path>) }
+        property utilsprefix: TCmdStr read Futilsprefix;
       end;
 
       { TCompilerGlobals }
@@ -767,8 +770,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { targetname specific prefix used by these utils (options -XP<path>) }
-        utilsprefix    : TCmdStr;
 
         { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
         llvmutilssuffix     : TCmdStr;
@@ -948,6 +949,7 @@ Const
         property parapreprocess: boolean read Fparapreprocess write Fparapreprocess;
 {$endif PREPROCWRITE}
         property utilsdirectory: TPathStr read Futilsdirectory write Futilsdirectory;
+        property utilsprefix: TCmdStr read Futilsprefix write Futilsprefix;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

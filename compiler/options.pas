@@ -4294,7 +4294,8 @@ procedure TOption.Interpret_X_U(opt, more: TCmdStr);
 
 var
   j : integer;
-  s : string;
+  s: string;
+  tmpS: ansistring;
 
 begin
   j:=1;
@@ -4446,8 +4447,9 @@ begin
          end;
        'P' :
          begin
-           compiler.globals.utilsprefix:=Copy(more,2);
-           compiler.DefaultReplacements(compiler.globals.utilsprefix);
+           tmpS:=Copy(more,2);
+           compiler.DefaultReplacements(tmpS);
+           compiler.globals.utilsprefix:=tmpS;
            More:='';
          end;
        'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
