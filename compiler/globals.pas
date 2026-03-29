@@ -793,6 +793,7 @@ Const
 {$Ifdef EXTDEBUG}
         Fdebugstop: boolean;
 {$EndIf EXTDEBUG}
+        Fapptype: tapptype;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -935,6 +936,9 @@ Const
       { parameter switches }
         property debugstop: boolean read Fdebugstop;
 {$EndIf EXTDEBUG}
+        { Application type (platform specific)
+          see globtype.pas for description }
+        property apptype: tapptype read Fapptype;
       end;
 
       { TCompilerGlobals }
@@ -956,9 +960,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-        { Application type (platform specific)
-          see globtype.pas for description }
-        apptype : tapptype;
 
         features : tfeatures;
 
@@ -1099,6 +1100,7 @@ Const
 {$Ifdef EXTDEBUG}
         property debugstop: boolean read Fdebugstop write Fdebugstop;
 {$EndIf EXTDEBUG}
+        property apptype: tapptype read Fapptype write Fapptype;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
