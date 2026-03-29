@@ -766,6 +766,7 @@ Const
         Fpeuserversionminor: word;
         Fpeuserversionmajor: word;
         Fpeoptflags: longint;
+        Fpeflags: longint;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -865,6 +866,7 @@ Const
         property peuserversionminor: word read Fpeuserversionminor;
         property peuserversionmajor: word read Fpeuserversionmajor;
         property peoptflags: longint read Fpeoptflags;
+        property peflags: longint read Fpeflags;
       end;
 
       { TCompilerGlobals }
@@ -877,7 +879,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        peflags : longint;
         minstacksize,
         maxstacksize,
         imagebase     : puint;
@@ -1040,6 +1041,7 @@ Const
         property peuserversionminor: word read Fpeuserversionminor write Fpeuserversionminor;
         property peuserversionmajor: word read Fpeuserversionmajor write Fpeuserversionmajor;
         property peoptflags: longint read Fpeoptflags write Fpeoptflags;
+        property peflags: longint read Fpeflags write Fpeflags;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
