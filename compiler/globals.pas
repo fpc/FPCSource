@@ -706,6 +706,7 @@ Const
         Foutputprefix: pshortstring;
         Foutputsuffix: pshortstring;
         Foutputexedir: TPathStr;
+        Foutputunitdir: TPathStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -717,6 +718,7 @@ Const
 
         { specified with -FE or -FU }
         property outputexedir: TPathStr read Foutputexedir;
+        property outputunitdir: TPathStr read Foutputunitdir;
       end;
 
       { TCompilerGlobals }
@@ -729,7 +731,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        outputunitdir     : TPathStr;
         { specified with -FW and -Fw }
         wpofeedbackinput,
         wpofeedbackoutput : TPathStr;
@@ -920,6 +921,7 @@ Const
         property outputprefix: pshortstring read Foutputprefix write Foutputprefix;
         property outputsuffix: pshortstring read Foutputsuffix write Foutputsuffix;
         property outputexedir: TPathStr read Foutputexedir write Foutputexedir;
+        property outputunitdir: TPathStr read Foutputunitdir write Foutputunitdir;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
