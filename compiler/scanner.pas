@@ -984,12 +984,14 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
+        tmps: PShortString;
       begin
         current_scanner.skipspace;
         if current_scanner.c <> '''' then
           compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
-        stringdispose(compiler.globals.outputprefix);
+        tmps:=compiler.globals.outputprefix;
+        stringdispose(tmps);
         compiler.globals.outputprefix := stringdup(s);
         with current_module do
          setfilename(paramfn, paramallowoutput);

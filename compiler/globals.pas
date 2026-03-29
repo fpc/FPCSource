@@ -703,12 +703,14 @@ Const
         Finputfilepath: string;
         Finputfilename: string;
         Foutputfilename: string;
+        Foutputprefix: pshortstring;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
         property inputfilename: string read Finputfilename;
         { specified outputfile with -o parameter }
         property outputfilename: string read Foutputfilename;
+        property outputprefix: pshortstring read Foutputprefix;
       end;
 
       { TCompilerGlobals }
@@ -721,7 +723,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        outputprefix      : pshortstring;
         outputsuffix      : pshortstring;
 
         { specified with -FE or -FU }
@@ -914,6 +915,7 @@ Const
         property inputfilepath: string read Finputfilepath write Finputfilepath;
         property inputfilename: string read Finputfilename write Finputfilename;
         property outputfilename: string read Foutputfilename write Foutputfilename;
+        property outputprefix: pshortstring read Foutputprefix write Foutputprefix;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
