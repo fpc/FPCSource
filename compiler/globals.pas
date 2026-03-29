@@ -774,6 +774,7 @@ Const
         FUseDeffileForExportsSetExplicitly: boolean;
         FGenerateImportSection: boolean;
         FGenerateImportSectionSetExplicitly: boolean;
+        FRelocSection: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -881,6 +882,7 @@ Const
         property UseDeffileForExportsSetExplicitly: boolean read FUseDeffileForExportsSetExplicitly;
         property GenerateImportSection: boolean read FGenerateImportSection;
         property GenerateImportSectionSetExplicitly: boolean read FGenerateImportSectionSetExplicitly;
+        property RelocSection: boolean read FRelocSection write FRelocSection;
       end;
 
       { TCompilerGlobals }
@@ -893,7 +895,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        RelocSection : boolean;
 
         RelocSectionSetExplicitly : boolean;
 
