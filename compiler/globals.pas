@@ -808,6 +808,9 @@ Const
         Fpalmos_applicationname: string;
         Fpalmos_applicationid: Tpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+        Fataritos_exe_flags: dword;
+{$endif defined(m68k)}
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -976,6 +979,10 @@ Const
         property palmos_applicationname: string read Fpalmos_applicationname;
         property palmos_applicationid: Tpalmos_applicationid read Fpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+        { Atari Specific }
+        property ataritos_exe_flags: dword read Fataritos_exe_flags;
+{$endif defined(m68k)}
       end;
 
       { TCompilerGlobals }
@@ -998,8 +1005,6 @@ Const
         pendingstate       : tpendingstate;
 
 {$if defined(m68k)}
-        { Atari Specific }
-        ataritos_exe_flags: dword;
         ataritos_exe_format: string;
 
         { Sinclair QL specific }
@@ -1125,6 +1130,9 @@ Const
         property palmos_applicationname: string read Fpalmos_applicationname write Fpalmos_applicationname;
         property palmos_applicationid: Tpalmos_applicationid read Fpalmos_applicationid write Fpalmos_applicationid;
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+        property ataritos_exe_flags: dword read Fataritos_exe_flags write Fataritos_exe_flags;
+{$endif defined(m68k)}
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

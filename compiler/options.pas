@@ -3958,6 +3958,9 @@ var
 {$if defined(XTENSA) or defined(RISCV32)}
   tmp_idf_version: longint;
 {$endif XTENSA or RISCV32}
+{$if defined(m68k)}
+  tmp_ataritos_exe_flags: DWord;
+{$endif defined(m68k)}
 
 begin
   j:=1;
@@ -4054,8 +4057,10 @@ begin
              begin
                if (length(More)>j) then
                  begin
-                   val(Copy(More,j+1),compiler.globals.ataritos_exe_flags,code);
-                   if code<>0 then
+                   val(Copy(More,j+1),tmp_ataritos_exe_flags,code);
+                   if code=0 then
+                     compiler.globals.ataritos_exe_flags:=tmp_ataritos_exe_flags
+                   else
                      IllegalPara(opt);
                  end
                else
