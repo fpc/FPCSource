@@ -699,6 +699,11 @@ Const
       { TReadOnlyCompilerGlobals }
 
       TReadOnlyCompilerGlobals = class
+      protected
+        Finputfilepath: string;
+      public
+        { specified inputfile }
+        property inputfilepath: string read Finputfilepath;
       end;
 
       { TCompilerGlobals }
@@ -711,8 +716,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        { specified inputfile }
-        inputfilepath     : string;
         inputfilename     : string;
         { specified outputfile with -o parameter }
         outputfilename    : string;
@@ -905,6 +908,8 @@ Const
         destructor Destroy; override;
 
         function HandleFeature(const s : string) : boolean;
+
+        property inputfilepath: string read Finputfilepath write Finputfilepath;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
