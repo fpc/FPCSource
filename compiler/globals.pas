@@ -739,6 +739,7 @@ Const
         Fincludesearchpath: TSearchPathList;
         Fframeworksearchpath: TSearchPathList;
         Fpackagesearchpath: TSearchPathList;
+        Fnamespacelist: TCmdStrList;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -803,6 +804,9 @@ Const
         property includesearchpath: TSearchPathList read Fincludesearchpath;
         property frameworksearchpath: TSearchPathList read Fframeworksearchpath;
         property packagesearchpath: TSearchPathList read Fpackagesearchpath;
+
+        { list of default namespaces }
+        property namespacelist : TCmdStrList read Fnamespacelist;
       end;
 
       { TCompilerGlobals }
@@ -815,9 +819,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-
-        { list of default namespaces }
-        namespacelist : TCmdStrList;
         // During scanning/parsing, a module may not yet be available.
         // Scanner checks first current_namespacelist, then local_namespacelist
         premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
@@ -986,6 +987,7 @@ Const
         // TODO: mutable and read only property includesearchpath: TSearchPathList read Fincludesearchpath;
         // TODO: mutable and read only property frameworksearchpath: TSearchPathList read Fframeworksearchpath;
         // TODO: mutable and read only property packagesearchpath: TSearchPathList read Fpackagesearchpath;
+        // TODO: mutable and read only property namespacelist : TCmdStrList read Fnamespacelist;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2022,7 +2024,7 @@ implementation
        FreeAndNil(LinkLibraryAliases);
        FreeAndNil(LinkLibraryOrder);
        FreeAndNil(Fpackagesearchpath);
-       FreeAndNil(namespacelist);
+       FreeAndNil(Fnamespacelist);
        FreeAndNil(premodule_namespacelist);
        current_namespacelist:=Nil;
        FreeAndNil(current_settings);
@@ -2071,7 +2073,7 @@ implementation
         Fobjectsearchpath:=TSearchPathList.Create;
         Fframeworksearchpath:=TSearchPathList.Create;
         Fpackagesearchpath:=TSearchPathList.Create;
-        namespacelist:=TCmdStrList.Create;
+        Fnamespacelist:=TCmdStrList.Create;
         premodule_namespacelist:=TCmdStrList.Create;
         current_namespacelist:=Nil;
         { Def file }
