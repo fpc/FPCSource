@@ -784,6 +784,7 @@ Const
         Fexceptblockcounter: integer;
         Fcurrent_exceptblock: integer;
         FLinkLibraryAliases: TLinkStrMap;
+        FLinkLibraryOrder: TLinkStrMap;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -911,6 +912,7 @@ Const
         property current_exceptblock: integer read Fcurrent_exceptblock;  { the exceptblock number of the current block (0 if none) }
 
         property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
+        property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
       end;
 
       { TCompilerGlobals }
@@ -928,7 +930,6 @@ Const
         current_tokenpos,                  { position of the last token }
         current_filepos : tfileposinfo;    { current position }
 
-        LinkLibraryOrder   : TLinkStrMap;
 
 
         init_settings,
@@ -1078,6 +1079,7 @@ Const
         property exceptblockcounter: integer read Fexceptblockcounter write Fexceptblockcounter;
         property current_exceptblock: integer read Fcurrent_exceptblock write Fcurrent_exceptblock;
         // TODO: mutable and read only property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
+        // TODO: mutable and read only property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2112,7 +2114,7 @@ implementation
        FreeAndNil(Fincludesearchpath);
        FreeAndNil(Fframeworksearchpath);
        FreeAndNil(FLinkLibraryAliases);
-       FreeAndNil(LinkLibraryOrder);
+       FreeAndNil(FLinkLibraryOrder);
        FreeAndNil(Fpackagesearchpath);
        FreeAndNil(Fnamespacelist);
        FreeAndNil(Fpremodule_namespacelist);
@@ -2203,7 +2205,7 @@ implementation
           init_settings.optimizecputype:=init_settings.cputype;
 
         FLinkLibraryAliases :=TLinkStrMap.Create;
-        LinkLibraryOrder   :=TLinkStrMap.Create;
+        FLinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
