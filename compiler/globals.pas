@@ -769,6 +769,7 @@ Const
         Fpeflags: longint;
         Fminstacksize: puint;
         Fmaxstacksize: puint;
+        Fimagebase: puint;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -871,6 +872,7 @@ Const
         property peflags: longint read Fpeflags;
         property minstacksize: puint read Fminstacksize;
         property maxstacksize: puint read Fmaxstacksize;
+        property imagebase: puint read Fimagebase;
       end;
 
       { TCompilerGlobals }
@@ -883,7 +885,6 @@ Const
         procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
-        imagebase     : puint;
         UseDeffileForExports    : boolean;
         UseDeffileForExportsSetExplicitly : boolean;
         GenerateImportSection,
@@ -1046,6 +1047,7 @@ Const
         property peflags: longint read Fpeflags write Fpeflags;
         property minstacksize: puint read Fminstacksize write Fminstacksize;
         property maxstacksize: puint read Fmaxstacksize write Fmaxstacksize;
+        property imagebase: puint read Fimagebase write Fimagebase;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;

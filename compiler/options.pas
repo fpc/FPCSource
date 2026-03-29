@@ -3943,6 +3943,7 @@ var
   j,code : integer;
   s : string;
   controllertype: tcontrollertype;
+  tmpimagebase: PUint;
 {$if defined(XTENSA) or defined(RISCV32)}
   tmp_idf_version: longint;
 {$endif XTENSA or RISCV32}
@@ -3986,8 +3987,10 @@ begin
                  non relocatable DLL at a specific base address PM }
                if (length(More)>j) then
                  begin
-                   val('$'+Copy(More,j+1),compiler.globals.imagebase,code);
-                   if code<>0 then
+                   val('$'+Copy(More,j+1),tmpimagebase,code);
+                   if code=0 then
+                     compiler.globals.imagebase:=tmpimagebase
+                   else
                      IllegalPara(opt);
                    compiler.globals.ImageBaseSetExplicity:=true;
                  end
