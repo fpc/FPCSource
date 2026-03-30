@@ -836,6 +836,7 @@ Const
 {$ifdef ARM}
         function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
+        function floating_point_range_check_error : boolean;
 
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
@@ -1193,7 +1194,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-    function floating_point_range_check_error : boolean;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -2073,11 +2073,9 @@ implementation
 {$endif ARM}
 
 
-    function floating_point_range_check_error : boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.floating_point_range_check_error : boolean;
       begin
-        result:=cs_ieee_errors in compiler.globals.current_settings.localswitches;
+        result:=cs_ieee_errors in current_settings.localswitches;
       end;
 
 {****************************************************************************

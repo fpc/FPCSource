@@ -2154,7 +2154,7 @@ implementation
       function handle_ln_const(r : bestreal) : tnode;
         begin
           if r<=0.0 then
-            if floating_point_range_check_error then
+            if compiler.globals.floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(0,pbestrealtype^);
                  compiler.verbose.CGMessage(type_e_wrong_math_argument)
@@ -2174,7 +2174,7 @@ implementation
       function handle_sqrt_const(r : bestreal) : tnode;
         begin
           if r<0.0 then
-            if floating_point_range_check_error then
+            if compiler.globals.floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(0,pbestrealtype^);
                  compiler.verbose.CGMessage(type_e_wrong_math_argument)
@@ -2798,7 +2798,7 @@ implementation
                     begin
                       result:=compiler.crealconstnode(exp(getconstrealvalue),pbestrealtype^);
                       if (trealconstnode(result).value_real=MathInf.Value) and
-                         floating_point_range_check_error then
+                         compiler.globals.floating_point_range_check_error then
                         begin
                           result:=compiler.crealconstnode(0,pbestrealtype^);
                           compiler.verbose.CGMessage(parser_e_range_check_error);

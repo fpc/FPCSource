@@ -505,7 +505,7 @@ implementation
         resultdef:=typedef;
 
         { range checking? }
-        if floating_point_range_check_error or
+        if compiler.globals.floating_point_range_check_error or
            (tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
           begin
             { use compiler.verbose.CGMessage so that the resultdef will get set to errordef

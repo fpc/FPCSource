@@ -757,7 +757,7 @@ const
             ((rt = realconstn) and
              (trealconstnode(right).value_real = 0.0))) then
           begin
-            if floating_point_range_check_error then
+            if compiler.globals.floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(1,pbestrealtype^);
                  compiler.verbose.Message(parser_e_division_by_zero);
