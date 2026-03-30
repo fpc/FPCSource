@@ -703,6 +703,10 @@ Const
       protected type
         Tpalmos_applicationid = string[4];
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+      protected type
+        Tsinclairql_metadata_format = string[4];
+{$endif defined(m68k)}
       protected
         Finputfilepath: string;
         Finputfilename: string;
@@ -811,6 +815,7 @@ Const
 {$if defined(m68k)}
         Fataritos_exe_flags: dword;
         Fataritos_exe_format: string;
+        Fsinclairql_metadata_format: Tsinclairql_metadata_format;
 {$endif defined(m68k)}
       public
         { specified inputfile }
@@ -984,6 +989,9 @@ Const
         { Atari Specific }
         property ataritos_exe_flags: dword read Fataritos_exe_flags;
         property ataritos_exe_format: string read Fataritos_exe_format;
+
+        { Sinclair QL specific }
+        property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format;
 {$endif defined(m68k)}
       end;
 
@@ -1007,9 +1015,6 @@ Const
         pendingstate       : tpendingstate;
 
 {$if defined(m68k)}
-
-        { Sinclair QL specific }
-        sinclairql_metadata_format: string[4];
         sinclairql_vlink_experimental: boolean;
 {$endif defined(m68k)}
 
@@ -1134,6 +1139,7 @@ Const
 {$if defined(m68k)}
         property ataritos_exe_flags: dword read Fataritos_exe_flags write Fataritos_exe_flags;
         property ataritos_exe_format: string read Fataritos_exe_format write Fataritos_exe_format;
+        property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format write Fsinclairql_metadata_format;
 {$endif defined(m68k)}
       end;
 
