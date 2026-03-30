@@ -818,6 +818,8 @@ Const
         Fsinclairql_metadata_format: Tsinclairql_metadata_format;
         Fsinclairql_vlink_experimental: boolean;
 {$endif defined(m68k)}
+        Fmainaliasname: string;
+        FLTOExt: TCmdStr;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -995,6 +997,10 @@ Const
         property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format;
         property sinclairql_vlink_experimental: boolean read Fsinclairql_vlink_experimental;
 {$endif defined(m68k)}
+
+        property mainaliasname: string read Fmainaliasname;
+
+        property LTOExt: TCmdStr read FLTOExt;
       end;
 
       { TCompilerGlobals }
@@ -1016,10 +1022,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        mainaliasname : string;
-
-        LTOExt: TCmdStr;
 
         { resources (comprsrc unit) }
         ResCompiler : String;
@@ -1141,6 +1143,8 @@ Const
         property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format write Fsinclairql_metadata_format;
         property sinclairql_vlink_experimental: boolean read Fsinclairql_vlink_experimental write Fsinclairql_vlink_experimental;
 {$endif defined(m68k)}
+        property mainaliasname: string read Fmainaliasname write Fmainaliasname;
+        property LTOExt: TCmdStr read FLTOExt write FLTOExt;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
