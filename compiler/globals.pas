@@ -828,6 +828,7 @@ Const
         {# Routine to get the required alignment for size of data, which will
            be placed in bss segment, according to the current alignment requirements }
         function var_align(want_align: longint): shortint;
+        function var_align_size(siz: asizeuint): shortint;
 
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
@@ -1185,7 +1186,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-    function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(want_align: longint): shortint;
@@ -2040,12 +2040,10 @@ implementation
       end;
 
 
-    function var_align_size(siz: asizeuint): shortint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.var_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
-        var_align_size := compiler.globals.var_align(siz);
+        var_align_size := var_align(siz);
       end;
 
 

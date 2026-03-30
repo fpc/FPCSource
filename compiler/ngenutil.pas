@@ -993,7 +993,7 @@ implementation
       else
         explicitalign:=0;
       if (wantedalign=0) then
-        varalign:=var_align_size(l)
+        varalign:=compiler.globals.var_align_size(l)
       else
         begin
           varalign:=compiler.globals.var_align(wantedalign);
