@@ -822,6 +822,7 @@ Const
         FLTOExt: TCmdStr;
         FResCompiler: string;
         FRCCompiler: string;
+        FRCForceFPCRes: boolean;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -1007,6 +1008,7 @@ Const
         { resources (comprsrc unit) }
         property ResCompiler: string read FResCompiler;
         property RCCompiler: string read FRCCompiler;
+        property RCForceFPCRes: boolean read FRCForceFPCRes;
       end;
 
       { TCompilerGlobals }
@@ -1027,8 +1029,6 @@ Const
         current_filepos : tfileposinfo;    { current position }
 
         pendingstate       : tpendingstate;
-
-        RCForceFPCRes : Boolean;
 
         constructor Create(ATarget: TCompilerTarget);
         destructor Destroy; override;
@@ -1149,6 +1149,7 @@ Const
         property LTOExt: TCmdStr read FLTOExt write FLTOExt;
         property ResCompiler: string read FResCompiler write FResCompiler;
         property RCCompiler: string read FRCCompiler write FRCCompiler;
+        property RCForceFPCRes: boolean read FRCForceFPCRes write FRCForceFPCRes;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
