@@ -821,6 +821,7 @@ Const
         Fmainaliasname: string;
         FLTOExt: TCmdStr;
         FResCompiler: string;
+        FRCCompiler: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -1005,6 +1006,7 @@ Const
 
         { resources (comprsrc unit) }
         property ResCompiler: string read FResCompiler;
+        property RCCompiler: string read FRCCompiler;
       end;
 
       { TCompilerGlobals }
@@ -1026,7 +1028,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-        RCCompiler  : String;
         RCForceFPCRes : Boolean;
 
         constructor Create(ATarget: TCompilerTarget);
@@ -1147,6 +1148,7 @@ Const
         property mainaliasname: string read Fmainaliasname write Fmainaliasname;
         property LTOExt: TCmdStr read FLTOExt write FLTOExt;
         property ResCompiler: string read FResCompiler write FResCompiler;
+        property RCCompiler: string read FRCCompiler write FRCCompiler;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
