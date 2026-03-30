@@ -1035,6 +1035,7 @@ Const
         constructor Create(ATarget: TCompilerTarget);
         destructor Destroy; override;
 
+        function create_smartlink_sections:boolean;inline;
         function create_smartlink_library:boolean;inline;
         function create_smartlink:boolean;inline;
 
@@ -2326,6 +2327,11 @@ implementation
      begin
        DoneGlobals;
        inherited Destroy;
+     end;
+
+   function TCompilerGlobals.create_smartlink_sections: boolean; inline;
+     begin
+       result:=target.create_smartlink_sections;
      end;
 
    function TCompilerGlobals.create_smartlink_library: boolean; inline;
