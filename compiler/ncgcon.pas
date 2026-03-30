@@ -115,7 +115,7 @@ implementation
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
-        hiloswapped:=is_double_hilo_swapped;
+        hiloswapped:=compiler.globals.is_double_hilo_swapped;
 {$endif ARM}
         { const already used ? }
         if not assigned(lab_real) then

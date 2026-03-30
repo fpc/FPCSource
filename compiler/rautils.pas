@@ -1935,6 +1935,8 @@ end;
 
 
   Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   {***********************************************************************}
   { PROCEDURE ConcatRealConstant(value: bestreal; real_typ : tfloattype); }
   {  Description: This routine adds the value constant to the current     }
@@ -1951,7 +1953,7 @@ end;
           s32real : p.concat(tai_realconst.create_s32real(value));
           s64real :
 {$ifdef ARM}
-           if is_double_hilo_swapped then
+           if compiler.globals.is_double_hilo_swapped then
              p.concat(tai_realconst.create_s64real_hiloswapped(value))
            else
 {$endif ARM}

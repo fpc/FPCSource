@@ -833,6 +833,9 @@ Const
            be placed in data/const segment, according to the current alignment requirements }
         function const_align(want_align: longint): shortint;
         function const_align_size(siz: asizeuint): shortint;
+{$ifdef ARM}
+        function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
+{$endif ARM}
 
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
@@ -1190,9 +1193,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-{$ifdef ARM}
-    function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
-{$endif ARM}
     function floating_point_range_check_error : boolean;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
@@ -2061,12 +2061,10 @@ implementation
 
 
 {$ifdef ARM}
-    function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
-        result := (compiler.globals.current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
-          not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches);
+        result := (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+          not(cs_fp_emulation in current_settings.moduleswitches);
 {$ifdef FPC_DOUBLE_HILO_SWAPPED}
         { inverse result if compiler was compiled with swapped hilo already }
         result := not result;
