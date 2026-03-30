@@ -496,7 +496,7 @@ begin
   if m.scc_finished then
     Internalerror(2026032903);
 
-  m.scc_tree_unfinished:=m.do_reload or (m.state<>ms_processed);
+  m.scc_tree_unfinished:=m.state<>ms_processed;
   m.other_scc_unfinished:=false;
   m.scc_tree_crc_wait:=nil;
   if m.do_reload
@@ -533,6 +533,16 @@ begin
   if m.scc_root=m then
     begin
       { backtrack from scc root -> the scc was completely searched }
+
+      { copy scc_tree_unfinished and other_scc_unfinished to all scc nodes }
+      um:=m.scc_next;
+      while assigned(um) do
+        begin
+          um.scc_tree_unfinished:=m.scc_tree_unfinished;
+          um.other_scc_unfinished:=m.other_scc_unfinished;
+          um:=um.scc_next;
+        end;
+
       if (not m.scc_tree_unfinished) then
         begin
           { scc finished }
@@ -599,9 +609,8 @@ begin
     exit(nil);
   m.cycle_search_stamp:=tmodule.cycle_stamp;
 
-  if (m=m.scc_root)                  { m is a scc root }
-      and not m.other_scc_unfinished { scc has no unfinished sub scc }
-      and m.scc_tree_unfinished      { scc has at least one unfinished module }
+  if not m.other_scc_unfinished { scc has no unfinished sub scc }
+      and m.scc_tree_unfinished { scc has at least one unfinished module }
       then
     exit(m);
 

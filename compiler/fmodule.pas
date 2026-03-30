@@ -247,8 +247,8 @@ interface
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
-        scc_tree_unfinished: boolean; { only valid for scc roots }
-        other_scc_unfinished: boolean; { only valid for scc roots }
+        scc_tree_unfinished: boolean; { the scc or a sub scc has at least one module not ms_processed }
+        other_scc_unfinished: boolean; { a sub scc has a module not ms_processed }
         scc_tree_crc_wait: tmodule; { an unfinished used unit, can be indirectly used, not self }
 
         task: TObject;         { ctask ttask }
