@@ -1819,7 +1819,7 @@ Begin
 {$ifndef LLVM}
 	    { LLVM compiler requires that the static label RawThunkEnd
              in packages/rtl-objpas/src/rtti.pp unit is set to nonlocal }
-            if (srsymtable.symtabletype=globalsymtable) or create_smartlink_library then
+            if (srsymtable.symtabletype=globalsymtable) or compiler.globals.create_smartlink_library then
 {$endif LLVM}
               Tlabelsym(sym).nonlocal:=true;
             if emit then

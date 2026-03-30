@@ -2860,7 +2860,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-               create_smartlink_library then
+               compiler.globals.create_smartlink_library then
               include(result.procoptions,po_global);
             result.forwarddef:=false;
           end;

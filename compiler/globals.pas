@@ -1035,6 +1035,8 @@ Const
         constructor Create(ATarget: TCompilerTarget);
         destructor Destroy; override;
 
+        function create_smartlink_library:boolean;inline;
+
         function HandleFeature(const s : string) : boolean;
 
         property inputfilepath: string read Finputfilepath write Finputfilepath;
@@ -2323,6 +2325,13 @@ implementation
      begin
        DoneGlobals;
        inherited Destroy;
+     end;
+
+   function TCompilerGlobals.create_smartlink_library: boolean; inline;
+     begin
+       result:=(cs_Create_smart in current_settings.moduleswitches) and
+               (tf_smartlink_library in target.info.flags) and
+               not target.create_smartlink_sections;
      end;
 
 initialization

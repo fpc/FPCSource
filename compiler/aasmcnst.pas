@@ -929,7 +929,7 @@ implementation
          to be global) }
        if compiler.target.info.system in systems_darwin then
          current_asmdata.getstaticdatalabel(result)
-       else if create_smartlink_library then
+       else if compiler.globals.create_smartlink_library then
          current_asmdata.getglobaldatalabel(result)
        else
          current_asmdata.getlocaldatalabel(result);
@@ -938,7 +938,7 @@ implementation
 
    function ttai_typedconstbuilder.get_internal_data_section_internal_label: tasmlabel;
      begin
-       if create_smartlink_library then
+       if compiler.globals.create_smartlink_library then
          { all labels need to be global in case they're in another object }
          current_asmdata.getglobaldatalabel(result)
        else
@@ -1324,7 +1324,7 @@ implementation
              in the same object file) }
            if create_smartlink then
              begin
-               if not create_smartlink_library or
+               if not compiler.globals.create_smartlink_library or
                   (length(finternal_data_section_info)=0) then
                  include(options,tcalo_make_dead_strippable);
                { on Darwin, dead code/data stripping happens based on non-

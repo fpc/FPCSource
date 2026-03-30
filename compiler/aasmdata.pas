@@ -705,7 +705,7 @@ implementation
            { the next condition was
              (cs_create_smart in compiler.globals.current_settings.moduleswitches) and
              but if we create_smartlink_sections, this is useless }
-           (create_smartlink_library) and
+           (compiler.globals.create_smartlink_library) and
            (alt = alt_dbgline) then
           l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt],alt)
         else
@@ -750,7 +750,7 @@ implementation
 
     procedure TAsmData.getdatalabel(out l : TAsmLabel);
       begin
-        if create_smartlink_library then
+        if compiler.globals.create_smartlink_library then
           getglobaldatalabel(l)
         else
           getlocaldatalabel(l);

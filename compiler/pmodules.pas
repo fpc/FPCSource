@@ -183,11 +183,11 @@ implementation
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
-        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in compiler.target.info.flags) then
+        if not(compiler.globals.create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in compiler.target.info.flags) then
           GenerateAsm(false);
 
         { Also create a smartlinked version ? }
-        if create_smartlink_library then
+        if compiler.globals.create_smartlink_library then
          begin
            GenerateAsm(true);
            if (af_needar in compiler.target._asm.flags) then
@@ -205,7 +205,7 @@ implementation
         curr.linkunitofiles.add(curr.objfilename,link_static);
         curr.headerflags:=curr.headerflags or uf_static_linked;
 
-        if create_smartlink_library then
+        if compiler.globals.create_smartlink_library then
           begin
             curr.linkunitstaticlibs.add(curr.staticlibfilename ,link_smart);
             curr.headerflags:=curr.headerflags or uf_smart_linked;
@@ -221,7 +221,7 @@ implementation
     procedure TModulesParser.create_dwarf_frame;
       begin
         { Dwarf conflicts with smartlinking in separate .a files }
-        if create_smartlink_library then
+        if compiler.globals.create_smartlink_library then
           exit;
         { Call frame information }
         { MWE: we write our own info, so dwarf asm support is not really needed }

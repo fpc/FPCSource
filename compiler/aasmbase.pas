@@ -249,7 +249,6 @@ interface
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
-    function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
     function ApplyAsmSymbolRestrictions(const s: ansistring; target: TCompilerTarget): ansistring;
@@ -270,16 +269,6 @@ implementation
 
     uses
       verbose,fpchash,compiler;
-
-
-    function create_smartlink_library:boolean;inline;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        result:=(cs_Create_smart in compiler.globals.current_settings.moduleswitches) and
-                (tf_smartlink_library in compiler.target.info.flags) and
-                not compiler.target.create_smartlink_sections;
-      end;
 
 
     function create_smartlink:boolean;inline;

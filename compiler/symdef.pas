@@ -7691,7 +7691,7 @@ implementation
             all non-nested procedures to AB_GLOBAL
             otherwise you get undefined symbol error at linking
             for msdos  target with -CX option for instance }
-          (create_smartlink_library and not is_nested_pd(self)) or
+          (compiler.globals.create_smartlink_library and not is_nested_pd(self)) or
           (po_global in procoptions);
     end;
 

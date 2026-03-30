@@ -455,7 +455,7 @@ Implementation
                            { if not create_smartlink_library, then smart linking happens using the
                              regular object files
                            }
-                           if create_smartlink_library then
+                           if compiler.globals.create_smartlink_library then
                              compiler.verbose.Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
                            mask:=mask or link_static;
                          end
