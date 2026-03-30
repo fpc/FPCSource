@@ -816,6 +816,7 @@ Const
         Fataritos_exe_flags: dword;
         Fataritos_exe_format: string;
         Fsinclairql_metadata_format: Tsinclairql_metadata_format;
+        Fsinclairql_vlink_experimental: boolean;
 {$endif defined(m68k)}
       public
         { specified inputfile }
@@ -992,6 +993,7 @@ Const
 
         { Sinclair QL specific }
         property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format;
+        property sinclairql_vlink_experimental: boolean read Fsinclairql_vlink_experimental;
 {$endif defined(m68k)}
       end;
 
@@ -1014,9 +1016,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-{$if defined(m68k)}
-        sinclairql_vlink_experimental: boolean;
-{$endif defined(m68k)}
 
         mainaliasname : string;
 
@@ -1140,6 +1139,7 @@ Const
         property ataritos_exe_flags: dword read Fataritos_exe_flags write Fataritos_exe_flags;
         property ataritos_exe_format: string read Fataritos_exe_format write Fataritos_exe_format;
         property sinclairql_metadata_format: Tsinclairql_metadata_format read Fsinclairql_metadata_format write Fsinclairql_metadata_format;
+        property sinclairql_vlink_experimental: boolean read Fsinclairql_vlink_experimental write Fsinclairql_vlink_experimental;
 {$endif defined(m68k)}
       end;
 
