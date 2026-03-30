@@ -402,7 +402,7 @@ begin
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
-    if create_smartlink_sections then
+    if compiler.target.create_smartlink_sections then
       GCSectionsStr:='--gc-sections ';
 
   ExeName:=current_module.exefilename;

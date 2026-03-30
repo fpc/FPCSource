@@ -1441,7 +1441,7 @@ implementation
 {$endif AARCH64}
         if compiler.globals.RelocSection then
           RelocStr:='--base-file base.$$$';
-        if create_smartlink_sections then
+        if compiler.target.create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
         if compiler.target.info.system in systems_wince then
           AppTypeStr:='--subsystem wince'
@@ -1551,7 +1551,7 @@ implementation
 {$endif AARCH64}
         if compiler.globals.RelocSection then
          RelocStr:='--base-file base.$$$';
-        if create_smartlink_sections then
+        if compiler.target.create_smartlink_sections then
          GCSectionsStr:='--gc-sections';
         if compiler.globals.apptype=app_gui then
           begin

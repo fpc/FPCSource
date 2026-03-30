@@ -3047,7 +3047,7 @@ implementation
 {$ifdef i8086}
       if section_belongs_to_dgroup(atype) then
         result:='DGROUP'
-      else if create_smartlink_sections and (aname<>'') then
+      else if compiler.target.create_smartlink_sections and (aname<>'') then
         begin
           case omf_segclass(atype) of
             'CODE':

@@ -214,7 +214,7 @@ implementation
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
         result:=not(compiler.target.info.system in systems_darwin) and
-           create_smartlink_sections and
+           compiler.target.create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
            (atype<>sec_note) and
@@ -535,7 +535,7 @@ implementation
          system_m68k_human68k: { see above... (KB) }
            begin
              { ... but vasm is GAS compatible on amiga/atari, and supports named sections }
-             if create_smartlink_sections then
+             if compiler.target.create_smartlink_sections then
                begin
                  writer.AsmWrite('.section ');
                  usesectionflags:=true;
@@ -2055,7 +2055,7 @@ implementation
         if (tasmsymbol(asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
           WriteWeakSymbolRef(tasmsymbol(asmdata.asmsymboldict[i]));
 
-      if create_smartlink_sections and
+      if compiler.target.create_smartlink_sections and
          (compiler.target.info.system in systems_darwin) then
         writer.AsmWriteLn(#9'.subsections_via_symbols');
 

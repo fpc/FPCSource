@@ -278,7 +278,7 @@ begin
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all';
       if compiler.globals.sinclairql_vlink_experimental then
         QLFlagsStr:='-b sinclairql -q -'+lower(compiler.globals.sinclairql_metadata_format)+' -stack='+tostr(compiler.globals.StackSize)

@@ -249,7 +249,6 @@ interface
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
-    function create_smartlink_sections:boolean;inline;
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
@@ -273,22 +272,13 @@ implementation
       verbose,fpchash,compiler;
 
 
-    function create_smartlink_sections:boolean;inline;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        result:=(af_smartlink_sections in compiler.target._asm.flags) and
-                (tf_smartlink_sections in compiler.target.info.flags);
-      end;
-
-
     function create_smartlink_library:boolean;inline;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(cs_Create_smart in compiler.globals.current_settings.moduleswitches) and
                 (tf_smartlink_library in compiler.target.info.flags) and
-                not create_smartlink_sections;
+                not compiler.target.create_smartlink_sections;
       end;
 
 

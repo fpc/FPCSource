@@ -881,7 +881,7 @@ begin
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
-     create_smartlink_sections then
+     compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in compiler.globals.current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
@@ -994,7 +994,7 @@ begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
-     create_smartlink_sections then
+     compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
   else
     GCSectionsStr:='';

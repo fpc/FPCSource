@@ -367,7 +367,7 @@ begin
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -mtype';
     end;
 
@@ -408,7 +408,7 @@ begin
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc -sd';
     end;
 

@@ -644,7 +644,7 @@ interface
           writer.AsmWrite(CodeSectionName(aname))
         else
           writer.AsmWrite(secnames[atype]);
-        if create_smartlink_sections and
+        if compiler.target.create_smartlink_sections and
            (atype<>sec_bss) and
            (aname<>'') then
           begin

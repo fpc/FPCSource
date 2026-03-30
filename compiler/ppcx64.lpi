@@ -73,7 +73,12 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-dx86_64"/>
+      <CustomOptions Value="-dx86_64
+-pg"/>
+      <OtherDefines Count="2">
+        <Define0 Value="x86_64"/>
+        <Define1 Value="PREPROCWRITE"/>
+      </OtherDefines>
     </Other>
   </CompilerOptions>
 </CONFIG>

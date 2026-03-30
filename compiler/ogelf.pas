@@ -600,7 +600,7 @@ implementation
                   secname:='.tbss';
               end;
 
-            if create_smartlink_sections and (aname<>'') then
+            if compiler.target.create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
                   secorder_begin :

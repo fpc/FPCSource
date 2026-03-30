@@ -198,12 +198,12 @@ begin
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc';
     end
   else
     if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
-       create_smartlink_sections then
+       compiler.target.create_smartlink_sections then
       GCSectionsStr:='--gc-sections';
 
   ExeName:=current_module.exefilename;

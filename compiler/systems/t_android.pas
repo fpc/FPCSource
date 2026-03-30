@@ -404,7 +404,7 @@ begin
     opts:=opts + ' -s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -Map '+maybequoted(ChangeFileExt(outname,'.map'));
-  if create_smartlink_sections then
+  if compiler.target.create_smartlink_sections then
     opts:=opts + ' --gc-sections';
   if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -static'

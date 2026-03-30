@@ -569,7 +569,7 @@ begin
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if create_smartlink_sections then
+  if compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in compiler.globals.current_settings.globalswitches) then
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then

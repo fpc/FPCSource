@@ -652,6 +652,7 @@ interface
         constructor Create;
 
         function use_dotted_functions: boolean;
+        function create_smartlink_sections:boolean;inline;
 
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;
@@ -822,6 +823,12 @@ function TCompilerTarget.use_dotted_functions: boolean;
     result:=
       (info.system in systems_dotted_function_names) and
       (info.abi<>abi_powerpc_elfv2);
+  end;
+
+function TCompilerTarget.create_smartlink_sections: boolean;
+  begin
+    result:=(af_smartlink_sections in _asm.flags) and
+            (tf_smartlink_sections in info.flags);
   end;
 
 {****************************************************************************

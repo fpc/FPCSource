@@ -1639,7 +1639,7 @@ const pemagic : array[0..3] of byte = (
                not (compiler.target.info.system in systems_all_windows) then
               atype:=sec_data;
             secname:=coffsecnames[atype];
-            if create_smartlink_sections and
+            if compiler.target.create_smartlink_sections and
                (aname<>'') then
               begin
                 case aorder of

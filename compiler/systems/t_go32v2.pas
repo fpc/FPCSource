@@ -214,7 +214,7 @@ begin
   LinkRes.Add('--script='+maybequoted(bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(current_module.exefilename,'.map'))));
-  if create_smartlink_sections then
+  if compiler.target.create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
     LinkRes.Add(Info.ExtraOptions);

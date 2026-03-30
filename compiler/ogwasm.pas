@@ -939,7 +939,7 @@ implementation
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
         result:=not(compiler.target.info.system in systems_darwin) and
-           create_smartlink_sections and
+           compiler.target.create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
            { on embedded systems every byte counts, so smartlink bss too }

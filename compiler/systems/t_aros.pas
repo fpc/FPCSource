@@ -224,7 +224,7 @@ begin
   GCSectionsStr:='';
 
   EntryStr:='-e _start';
-  if create_smartlink_sections then
+  if compiler.target.create_smartlink_sections then
     GCSectionsStr:='--gc-sections';
 
   { Call linker }

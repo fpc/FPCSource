@@ -2261,7 +2261,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
       mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
     if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
-       create_smartlink_sections then
+       compiler.target.create_smartlink_sections then
      GCSectionsStr:='--gc-sections'
     else
       GCSectionsStr:='';

@@ -228,14 +228,14 @@ begin
         StripStr:='-s -P __abox__';
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
         MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc -sd';
     end
   else
     begin
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
         MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
-      if create_smartlink_sections then
+      if compiler.target.create_smartlink_sections then
         GCSectionsStr:='--gc-sections -e _start';
     end;
 
