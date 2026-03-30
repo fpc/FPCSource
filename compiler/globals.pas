@@ -832,6 +832,7 @@ Const
         {# Routine to get the required alignment for size of data, which will
            be placed in data/const segment, according to the current alignment requirements }
         function const_align(want_align: longint): shortint;
+        function const_align_size(siz: asizeuint): shortint;
 
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
@@ -1189,7 +1190,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-    function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -2053,12 +2053,10 @@ implementation
       end;
 
 
-    function const_align_size(siz: asizeuint): shortint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.const_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
-        const_align_size := compiler.globals.const_align(siz);
+        const_align_size := const_align(siz);
       end;
 
 
