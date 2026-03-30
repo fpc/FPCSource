@@ -996,7 +996,7 @@ implementation
         varalign:=var_align_size(l)
       else
         begin
-          varalign:=var_align(wantedalign);
+          varalign:=compiler.globals.var_align(wantedalign);
           if (explicitalign>varalign) then
             begin
               compiler.verbose.Message1(scanner_w_alignment_larger_than_max,sym.name);

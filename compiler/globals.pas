@@ -825,6 +825,10 @@ Const
         FRCCompiler: string;
         FRCForceFPCRes: boolean;
       public
+        {# Routine to get the required alignment for size of data, which will
+           be placed in bss segment, according to the current alignment requirements }
+        function var_align(want_align: longint): shortint;
+
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -1181,7 +1185,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-    function var_align(want_align: longint): shortint;
     function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
@@ -2031,11 +2034,9 @@ implementation
       end;
 
 
-    function var_align(want_align: longint): shortint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.var_align(want_align: longint): shortint;
       begin
-        var_align := used_align(want_align,compiler.globals.current_settings.alignment.varalignmin,compiler.globals.current_settings.alignment.varalignmax);
+        var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
@@ -2044,7 +2045,7 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         siz := size_2_align(siz);
-        var_align_size := var_align(siz);
+        var_align_size := compiler.globals.var_align(siz);
       end;
 
 
