@@ -820,6 +820,7 @@ Const
 {$endif defined(m68k)}
         Fmainaliasname: string;
         FLTOExt: TCmdStr;
+        FResCompiler: string;
       public
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
@@ -1001,6 +1002,9 @@ Const
         property mainaliasname: string read Fmainaliasname;
 
         property LTOExt: TCmdStr read FLTOExt;
+
+        { resources (comprsrc unit) }
+        property ResCompiler: string read FResCompiler;
       end;
 
       { TCompilerGlobals }
@@ -1022,9 +1026,6 @@ Const
 
         pendingstate       : tpendingstate;
 
-
-        { resources (comprsrc unit) }
-        ResCompiler : String;
         RCCompiler  : String;
         RCForceFPCRes : Boolean;
 
@@ -1145,6 +1146,7 @@ Const
 {$endif defined(m68k)}
         property mainaliasname: string read Fmainaliasname write Fmainaliasname;
         property LTOExt: TCmdStr read FLTOExt write FLTOExt;
+        property ResCompiler: string read FResCompiler write FResCompiler;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
