@@ -1475,7 +1475,7 @@ procedure TOption.LLVMEnableSanitizers(sanitizers: TCmdStr);
     repeat
        case sanitizer of
          'address':
-           include(compiler.globals.init_settings.moduleswitches,cs_sanitize_address);
+           compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_sanitize_address];
          else
            IllegalPara(sanitizer);
        end;
@@ -2680,20 +2680,20 @@ begin
                           begin
                             if not disable then
                               begin
-                                include(compiler.globals.init_settings.moduleswitches,cs_lto);
+                                compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_lto];
                                 compiler.globals.LTOExt:='.bc';
                               end
                             else
-                              exclude(compiler.globals.init_settings.moduleswitches,cs_lto);
+                              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_lto];
                           end;
                         'ltonosystem':
                           begin
                             if not disable then
                               begin
-                                include(compiler.globals.init_settings.globalswitches,cs_lto_nosystem);
+                                compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_lto_nosystem];
                               end
                             else
-                              exclude(compiler.globals.init_settings.globalswitches,cs_lto_nosystem);
+                              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_lto_nosystem];
                           end;
                        else if More.StartsWith('sanitize=') then
                          begin
