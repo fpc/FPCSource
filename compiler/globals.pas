@@ -47,8 +47,7 @@ interface
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
-      globtype,version,systems,
-      compilerbase;
+      globtype,version,systems;
 
     const
        delphimodeswitches =
@@ -1205,13 +1204,13 @@ Const
 
 implementation
 
-    uses
 {$if defined(macos)}
-      macutils,
+    uses
+      macutils;
 {$elseif defined(mswindows)}
-      windirs,
+    uses
+      windirs;
 {$endif}
-      compiler;
 
     { TReadOnlySettings }
 
