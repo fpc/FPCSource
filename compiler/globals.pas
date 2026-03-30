@@ -810,6 +810,7 @@ Const
 {$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
         Fataritos_exe_flags: dword;
+        Fataritos_exe_format: string;
 {$endif defined(m68k)}
       public
         { specified inputfile }
@@ -982,6 +983,7 @@ Const
 {$if defined(m68k)}
         { Atari Specific }
         property ataritos_exe_flags: dword read Fataritos_exe_flags;
+        property ataritos_exe_format: string read Fataritos_exe_format;
 {$endif defined(m68k)}
       end;
 
@@ -1005,7 +1007,6 @@ Const
         pendingstate       : tpendingstate;
 
 {$if defined(m68k)}
-        ataritos_exe_format: string;
 
         { Sinclair QL specific }
         sinclairql_metadata_format: string[4];
@@ -1132,6 +1133,7 @@ Const
 {$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
         property ataritos_exe_flags: dword read Fataritos_exe_flags write Fataritos_exe_flags;
+        property ataritos_exe_format: string read Fataritos_exe_format write Fataritos_exe_format;
 {$endif defined(m68k)}
       end;
 
