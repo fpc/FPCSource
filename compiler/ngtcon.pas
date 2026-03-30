@@ -881,7 +881,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 varalign:=size_2_align(tstringconstnode(node).len)
               else
                 varalign:=1;
-              varalign:=const_align(varalign);
+              varalign:=compiler.globals.const_align(varalign);
               { represent the string data as an array }
               if node.nodetype=stringconstn then
                 begin
@@ -945,7 +945,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
                      { concat add the string data to the fdatalist }
-                     ftcb.finish_internal_data_builder(datatcb,ll,datadef,const_align(sizeof(pint)));
+                     ftcb.finish_internal_data_builder(datatcb,ll,datadef,compiler.globals.const_align(sizeof(pint)));
                      { we now emit the address of the first element of the array
                        containing the string data }
                      ftcb.queue_init(def);

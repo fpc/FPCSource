@@ -173,7 +173,7 @@ implementation
         dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
-        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size),[]);
+        reference_reset_symbol(href,lab_str,0,compiler.globals.const_align(strpointerdef.size),[]);
         current_asmdata.CurrAsmList.concat(
           taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef,compiler),href,
           s32inttype,field.llvmfieldnr,true));

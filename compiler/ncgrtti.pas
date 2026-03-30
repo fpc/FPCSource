@@ -482,7 +482,7 @@ implementation
             datadef:=loctcb.end_anonymous_record;
 
             current_asmdata.asmlists[al_typedconsts].concatList(
-              loctcb.get_final_asmlist(loclab,datadef,sec_rodata_norel,loclab.name,const_align(sizeof(pint)))
+              loctcb.get_final_asmlist(loclab,datadef,sec_rodata_norel,loclab.name,compiler.globals.const_align(sizeof(pint)))
             );
 
             loctcb.free;
@@ -1234,7 +1234,7 @@ implementation
                     { write TPropInfo record }
                     tbldef:=write_propinfo_data(tbltcb,tpropertysym(sym));
                     current_asmdata.asmlists[al_rtti].concatlist(
-                      tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,const_align(sizeof(pint)))
+                      tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,compiler.globals.const_align(sizeof(pint)))
                     );
                     tbltcb.free;
                     tbltcb := nil;
@@ -2247,7 +2247,7 @@ implementation
             argdef:=argtcb.end_anonymous_record;
 
             current_asmdata.asmlists[al_rtti].concatlist(
-              argtcb.get_final_asmlist(arglab,argdef,sec_rodata,arglab.name,const_align(sizeof(pint)))
+              argtcb.get_final_asmlist(arglab,argdef,sec_rodata,arglab.name,compiler.globals.const_align(sizeof(pint)))
             );
 
             argtcb.free;
@@ -2309,7 +2309,7 @@ implementation
       tbldef:=tbltcb.end_anonymous_record;
 
       current_asmdata.asmlists[al_rtti].concatlist(
-        tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,const_align(sizeof(pint)))
+        tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,compiler.globals.const_align(sizeof(pint)))
       );
 
       tbltcb.free;

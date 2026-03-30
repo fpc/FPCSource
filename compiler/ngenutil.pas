@@ -1290,7 +1290,7 @@ implementation
         unitinits.get_final_asmlist(
           current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
-          sec_data,'INITFINAL',const_align(sizeof(pint))
+          sec_data,'INITFINAL',compiler.globals.const_align(sizeof(pint))
         )
       );
 
@@ -1371,7 +1371,7 @@ implementation
       sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
-          sym,tabledef,sec_data,'FPC_THREADVARTABLES',const_align(sizeof(pint))
+          sym,tabledef,sec_data,'FPC_THREADVARTABLES',compiler.globals.const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1433,7 +1433,7 @@ implementation
            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
-             tcb.get_final_asmlist(sym,tabledef,sec_data,s,const_align(sizeof(pint))));
+             tcb.get_final_asmlist(sym,tabledef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
            include(current_module.moduleflags,mf_threadvars);
            current_module.add_public_asmsym(sym);
          end;
@@ -1487,7 +1487,7 @@ implementation
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
-          sec_data,tablename,const_align(sizeof(pint))
+          sec_data,tablename,compiler.globals.const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1530,7 +1530,7 @@ implementation
       current_asmdata.asmlists[al_globals].concatList(
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
-          rawdatadef,sec_data,s,const_align(sizeof(pint))));
+          rawdatadef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
       tcb.free;
       tcb := nil;
       include(current_module.moduleflags,unitflag);
@@ -1600,7 +1600,7 @@ implementation
       current_asmdata.AsmLists[al_globals].concatList(
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA,tabledef),
-          tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',const_align(sizeof(pint))
+          tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',compiler.globals.const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1630,7 +1630,7 @@ implementation
               voidpointertype,
               sec_rodata,
               'FPC_RESLOCATION',
-              const_align(sizeof(puint))
+              compiler.globals.const_align(sizeof(puint))
             )
           );
 
@@ -1664,7 +1664,7 @@ implementation
       tcb.maybe_end_aggregate(def);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA,def);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,def,sec_fpc,'version',const_align(32))
+        tcb.get_final_asmlist(sym,def,sec_fpc,'version',compiler.globals.const_align(32))
       );
       tcb.free;
 
@@ -1676,7 +1676,7 @@ implementation
           tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.stacksize),ptruinttype);
           sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
-            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',const_align(sizeof(pint)))
+            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',compiler.globals.const_align(sizeof(pint)))
           );
           tcb.free;
           tcb := nil;
@@ -1720,7 +1720,7 @@ implementation
       tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.heapsize),ptruinttype);
       sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',const_align(sizeof(pint)))
+        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
       tcb := nil;
@@ -1741,7 +1741,7 @@ implementation
       tcb.emit_ord_const(byte(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches),u8inttype);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
+        tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
       tcb := nil;
@@ -1763,7 +1763,7 @@ implementation
           current_asmdata.asmlists[al_objc_data].concatList(
             tcb.get_final_asmlist(
               current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
-              u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',const_align(sizeof(pint))
+              u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',compiler.globals.const_align(sizeof(pint))
             )
           );
           tcb.free;

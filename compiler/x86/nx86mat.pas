@@ -188,7 +188,7 @@ interface
                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
                 current_asmdata.getdatalabel(l1);
-                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(16));
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(16));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                 case def_cgsize(resultdef) of
                   OS_F32:

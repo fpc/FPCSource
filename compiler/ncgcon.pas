@@ -111,7 +111,7 @@ implementation
 {$endif ARM}
 
       begin
-        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),const_align(resultdef.alignment),[]);
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),compiler.globals.const_align(resultdef.alignment),[]);
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
@@ -138,7 +138,7 @@ implementation
                   entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.alignment));
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,compiler.globals.const_align(resultdef.alignment));
                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     aitrealconst_s32bit :
@@ -339,7 +339,7 @@ implementation
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,compiler.globals.const_align(sizeof(pint)))
                           );
                         end;
                       cst_conststring:
@@ -356,7 +356,7 @@ implementation
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,compiler.globals.const_align(sizeof(pint)))
                           );
                         end;
                       else
@@ -376,7 +376,7 @@ implementation
            end
          else
            begin
-             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(strpointerdef.size), []);
+             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), compiler.globals.const_align(strpointerdef.size), []);
              location.reference.symbol:=lab_str;
            end;
       end;
@@ -388,7 +388,7 @@ implementation
       begin
         reference_reset_symbol(href, lab_str,
           ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring, compiler.target),
-          const_align(strpointerdef.size),[]);
+          compiler.globals.const_align(strpointerdef.size),[]);
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
 
@@ -419,7 +419,7 @@ implementation
             tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
         tcb.maybe_end_aggregate(resultdef);
         current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
-          result,resultdef,sec_rodata_norel,result.name,const_align(8)));
+          result,resultdef,sec_rodata_norel,result.name,compiler.globals.const_align(8)));
         tcb.free;
         tcb := nil;
       end;
@@ -429,7 +429,7 @@ implementation
       var
          entry       : PHashSetItem;
       begin
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8),[]);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,compiler.globals.const_align(8),[]);
         { const already used ? }
         if not assigned(lab_set) then
           begin
@@ -500,7 +500,7 @@ implementation
          entry       : PHashSetItem;
          datatcb     : ttai_typedconstbuilder;
       begin
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16),[]);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,compiler.globals.const_align(16),[]);
         lastlabel:=nil;
         { const already used ? }
         if not assigned(lab_set) then
@@ -515,7 +515,7 @@ implementation
                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                  datatcb.emit_guid_const(value);
                  current_asmdata.asmlists[al_typedconsts].concatList(
-                   datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,const_align(16)));
+                   datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,compiler.globals.const_align(16)));
                  datatcb.free;
                  datatcb := nil;
                  lab_set:=lastlabel;

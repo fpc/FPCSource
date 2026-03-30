@@ -197,7 +197,7 @@ implementation
 
                         current_asmdata.getglobaldatalabel(l1);
                         current_asmdata.getjumplabel(l2);
-                        reference_reset_symbol(href,l1,0,const_align(8),[]);
+                        reference_reset_symbol(href,l1,0,compiler.globals.const_align(8),[]);
 
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         current_asmdata.CurrAsmList.concat(Taicpu.op_reg_const(A_CMP,left.location.register,0));
@@ -205,7 +205,7 @@ implementation
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                         hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-                        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
+                        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
                         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                         { I got this constant from a test program (FK) }
                         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));

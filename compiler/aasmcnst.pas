@@ -975,7 +975,7 @@ implementation
    procedure ttai_typedconstbuilder.finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
      begin
        if tcalo_apply_constalign in options then
-         alignment:=const_align(alignment);
+         alignment:=compiler.globals.const_align(alignment);
        { have we finished all aggregates? }
        if (getcurragginfo<>nil) and
           { in case of syntax errors, the aggregate may not have been finished }
@@ -1733,7 +1733,7 @@ implementation
        datatcb.emit_tai(ts,datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(voidpointertype.alignment));
+       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,compiler.globals.const_align(voidpointertype.alignment));
      end;
 
 
@@ -1788,7 +1788,7 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(voidpointertype.alignment));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,compiler.globals.const_align(voidpointertype.alignment));
      end;
 
 
@@ -1953,7 +1953,7 @@ implementation
            strtcb.maybe_end_aggregate(datadef);
 
            current_asmdata.asmlists[al_typedconsts].concatList(
-             strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,const_align(sizeof(pint)))
+             strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,compiler.globals.const_align(sizeof(pint)))
            );
            strtcb.free;
            strtcb := nil;

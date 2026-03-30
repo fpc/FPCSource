@@ -829,6 +829,9 @@ Const
            be placed in bss segment, according to the current alignment requirements }
         function var_align(want_align: longint): shortint;
         function var_align_size(siz: asizeuint): shortint;
+        {# Routine to get the required alignment for size of data, which will
+           be placed in data/const segment, according to the current alignment requirements }
+        function const_align(want_align: longint): shortint;
 
         property Target: TCompilerTarget read FTarget;
         { specified inputfile }
@@ -1186,9 +1189,6 @@ Const
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function size_2_align(len : asizeuint) : longint;
-    {# Routine to get the required alignment for size of data, which will
-       be placed in data/const segment, according to the current alignment requirements }
-    function const_align(want_align: longint): shortint;
     function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
@@ -2047,18 +2047,18 @@ implementation
       end;
 
 
-    function const_align(want_align: longint): shortint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TReadOnlyCompilerGlobals.const_align(want_align: longint): shortint;
       begin
-        const_align := used_align(want_align,compiler.globals.current_settings.alignment.constalignmin,compiler.globals.current_settings.alignment.constalignmax);
+        const_align := used_align(want_align,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
       end;
 
 
     function const_align_size(siz: asizeuint): shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         siz := size_2_align(siz);
-        const_align_size := const_align(siz);
+        const_align_size := compiler.globals.const_align(siz);
       end;
 
 

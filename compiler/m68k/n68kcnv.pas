@@ -162,7 +162,7 @@ implementation
             if compiler.globals.current_settings.fputype in [fpu_coldfire] then
               begin
                 current_asmdata.getglobaldatalabel(l);
-                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(sizeof(pint)));
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,compiler.globals.const_align(sizeof(pint)));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($59800000));
                 reference_reset_symbol(ref,l,0,4,[]);
