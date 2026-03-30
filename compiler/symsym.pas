@@ -2227,7 +2227,7 @@ implementation
       begin
         result:=
           (owner.symtabletype=globalsymtable) or
-          (create_smartlink and
+          (compiler.globals.create_smartlink and
            not(tf_smartlink_sections in compiler.target.info.flags)) or
           current_module.islibrary or
           (assigned(current_procinfo) and

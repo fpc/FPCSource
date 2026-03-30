@@ -1036,6 +1036,7 @@ Const
         destructor Destroy; override;
 
         function create_smartlink_library:boolean;inline;
+        function create_smartlink:boolean;inline;
 
         function HandleFeature(const s : string) : boolean;
 
@@ -2332,6 +2333,18 @@ implementation
        result:=(cs_Create_smart in current_settings.moduleswitches) and
                (tf_smartlink_library in target.info.flags) and
                not target.create_smartlink_sections;
+     end;
+
+   function TCompilerGlobals.create_smartlink: boolean; inline;
+     begin
+       result:=(
+                (af_smartlink_sections in target._asm.flags) and
+                (tf_smartlink_sections in target.info.flags)
+               ) or
+               (
+                (cs_Create_smart in current_settings.moduleswitches) and
+                (tf_smartlink_library in target.info.flags)
+               );
      end;
 
 initialization

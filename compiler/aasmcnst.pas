@@ -1322,7 +1322,7 @@ implementation
              then we only have to create a new object file for the first
              internal data section of any kind (all the rest will simply be put
              in the same object file) }
-           if create_smartlink then
+           if compiler.globals.create_smartlink then
              begin
                if not compiler.globals.create_smartlink_library or
                   (length(finternal_data_section_info)=0) then

@@ -207,7 +207,7 @@ implementation
       Internalerror(200109191);
 
     make_global := False;
-    if (not current_module.is_unit) or create_smartlink or
+    if (not current_module.is_unit) or compiler.globals.create_smartlink or
       (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
       make_global := True;
 
