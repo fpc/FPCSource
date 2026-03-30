@@ -825,7 +825,7 @@ function TCompilerTarget.use_dotted_functions: boolean;
       (info.abi<>abi_powerpc_elfv2);
   end;
 
-function TCompilerTarget.create_smartlink_sections: boolean;
+function TCompilerTarget.create_smartlink_sections: boolean; inline;
   begin
     result:=(af_smartlink_sections in _asm.flags) and
             (tf_smartlink_sections in info.flags);
