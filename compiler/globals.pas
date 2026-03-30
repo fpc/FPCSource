@@ -708,6 +708,7 @@ Const
         Tsinclairql_metadata_format = string[4];
 {$endif defined(m68k)}
       protected
+        FTarget: TCompilerTarget;
         Finputfilepath: string;
         Finputfilename: string;
         Foutputfilename: string;
@@ -824,6 +825,7 @@ Const
         FRCCompiler: string;
         FRCForceFPCRes: boolean;
       public
+        property Target: TCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
         property inputfilename: string read Finputfilename;
@@ -2207,6 +2209,7 @@ implementation
 
    procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
      begin
+        FTarget:=ATarget;
         Finit_settings:=TMutableSettings.Create;
         Fcurrent_settings:=TMutableSettings.Create;
 
