@@ -58,6 +58,8 @@ interface
 
     type
       TDebugInfoStabs=class(TDebugInfo)
+      private
+        function GetSymName(Sym : TSymEntry) : string;
       protected
         dbgtype: tdbg;
         stabsdir: TStabType;
@@ -189,9 +191,7 @@ implementation
       GetParaOffsetStr:=tostr(reference.offset);
     end;
 
-    function GetSymName(Sym : TSymEntry) : string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TDebugInfoStabs.GetSymName(Sym : TSymEntry) : string;
     begin
       if Not (cs_stabs_preservecase in compiler.globals.current_settings.globalswitches) then
         result := Sym.Name
@@ -200,7 +200,7 @@ implementation
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
       if compiler.target._asm.dollarsign<>'$' then
-        result:=ApplyAsmSymbolRestrictions(result,compiler.target);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
