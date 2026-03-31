@@ -192,6 +192,7 @@ type
 
   twpofilewriter = class(tobject,twposectionwriterintf)
    private
+    FVerbose: TVerbose;
     { array of class *instances* that wish to be written out to the
       whole program optimization feedback file
     }
@@ -200,8 +201,9 @@ type
     ffilename: tcmdstr;
     foutputfile: text;
 
+    property Verbose: TVerbose read FVerbose;
    public
-    constructor create(const fn: tcmdstr);
+    constructor create(const fn: tcmdstr; AVerbose: TVerbose);
     destructor destroy; override;
 
     procedure writefile;
@@ -607,8 +609,9 @@ implementation
 
   { twpofilewriter }
 
-  constructor twpofilewriter.create(const fn: tcmdstr);
+  constructor twpofilewriter.create(const fn: tcmdstr; AVerbose: TVerbose);
     begin
+      FVerbose:=AVerbose;
       assign(foutputfile,fn);
       ffilename:=fn;
       fsectioncontents:=tfpobjectlist.create(true);
@@ -623,8 +626,6 @@ implementation
 
   procedure twpofilewriter.writefile;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       i: longint;
     begin
       {$push}{$i-}
@@ -632,7 +633,7 @@ implementation
       {$pop}
       if (ioresult <> 0) then
         begin
-          compiler.verbose.CGMessage1(wpo_cant_create_feedback_file,ffilename);
+          verbose.CGMessage1(wpo_cant_create_feedback_file,ffilename);
           exit;
         end;
       for i:=0 to fsectioncontents.count-1 do
@@ -677,7 +678,7 @@ implementation
 
   procedure twpoinfomanagerbase.setwpooutputfile(const fn: tcmdstr);
     begin
-      fwriter:=twpofilewriter.create(fn);
+      fwriter:=twpofilewriter.create(fn,compiler.verbose);
     end;
 
   procedure twpoinfomanagerbase.parseandcheckwpoinfo;
