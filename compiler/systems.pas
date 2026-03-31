@@ -644,6 +644,9 @@ interface
         FMacOSXVersionMin: tversion;
         FiPhoneOSVersionMin: tversion;
       public
+        function use_dotted_functions: boolean;
+        function create_smartlink_sections:boolean;inline;
+
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
         property _asm : tasminfo read Fasm;
@@ -668,9 +671,6 @@ interface
         procedure InitSystems;
       public
         constructor Create;
-
-        function use_dotted_functions: boolean;
-        function create_smartlink_sections:boolean;inline;
 
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;
@@ -830,14 +830,14 @@ End;
 {$endif}
 
 
-function TCompilerTarget.use_dotted_functions: boolean;
+function TReadOnlyCompilerTarget.use_dotted_functions: boolean;
   begin
     result:=
       (info.system in systems_dotted_function_names) and
       (info.abi<>abi_powerpc_elfv2);
   end;
 
-function TCompilerTarget.create_smartlink_sections: boolean; inline;
+function TReadOnlyCompilerTarget.create_smartlink_sections: boolean; inline;
   begin
     result:=(af_smartlink_sections in _asm.flags) and
             (tf_smartlink_sections in info.flags);
