@@ -1700,9 +1700,9 @@ implementation
         { skip to headerpos and skip pe magic }
         seek(f,peheaderpos+4);
         blockread(f,peheader,sizeof(tcoffheader));
-	maybeswap(peheader);
+	maybeswap(compiler.target.info.endian,peheader);
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
-	maybeswap(peoptheader);
+	maybeswap(compiler.target.info.endian,peoptheader);
         { write info }
         compiler.verbose.Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
         compiler.verbose.Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
@@ -1745,20 +1745,20 @@ implementation
         peheader.time:=0;
         { write header back, skip pe magic }
         seek(f,peheaderpos+4);
-	maybeswap(peheader);
+	maybeswap(compiler.target.info.endian,peheader);
         blockwrite(f,peheader,sizeof(tcoffheader));
         if ioresult<>0 then
           compiler.verbose.Message1(execinfo_f_cant_process_executable,fn);
-	maybeswap(peoptheader);
+	maybeswap(compiler.target.info.endian,peoptheader);
         blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
         if ioresult<>0 then
           compiler.verbose.Message1(execinfo_f_cant_process_executable,fn);
         { skip to headerpos and skip pe magic }
         seek(f,peheaderpos+4);
         blockread(f,peheader,sizeof(tcoffheader));
-	maybeswap(peheader);
+	maybeswap(compiler.target.info.endian,peheader);
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
-	maybeswap(peoptheader);
+	maybeswap(compiler.target.info.endian,peoptheader);
         { write the value after the change }
         compiler.verbose.Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
         compiler.verbose.Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
@@ -1769,7 +1769,7 @@ implementation
         for l:=1 to peheader.nsects do
          begin
            blockread(f,coffsec,sizeof(tcoffsechdr));
-	   maybeswap(coffsec);
+	   maybeswap(compiler.target.info.endian,coffsec);
            if coffsec.datapos>0 then
             begin
               if secroot=nil then

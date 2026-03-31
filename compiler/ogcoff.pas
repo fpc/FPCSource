@@ -295,9 +295,9 @@ interface
        COFF_BIG_OBJ_VERSION = 2;
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
-    procedure MaybeSwap(var v : tcoffsechdr);
-    procedure MaybeSwap(var v : tcoffheader);
-    procedure MaybeSwap(var v : tcoffpeoptheader);
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffsechdr);
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffheader);
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpeoptheader);
 
 implementation
 
@@ -593,11 +593,9 @@ implementation
          vaddr : longword;
          size  : longword;
        end; }
-   procedure MaybeSwap(var v : tcoffpedatadir);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpedatadir);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.vaddr:=SwapEndian(v.vaddr);
             v.size:=SwapEndian(v.size);
@@ -613,11 +611,9 @@ implementation
          opthdr : word;
          flag   : word;
        end; *)
-   procedure MaybeSwap(var v : tcoffheader);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffheader);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.mach:=SwapEndian(v.mach);
             v.nsects:=SwapEndian(v.nsects);
@@ -641,11 +637,9 @@ implementation
          PointerToSymbolTable : longword;
          NumberOfSymbols : longword;
        end; *)
-   procedure MaybeSwap(var v : tcoffbigobjheader);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffbigobjheader);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.Sig1:=SwapEndian(v.Sig1);
             v.Sig2:=SwapEndian(v.Sig2);
@@ -695,13 +689,11 @@ implementation
          NumberOfRvaAndSizes : longword;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
        end; *)
-    procedure MaybeSwap(var v : tcoffpeoptheader);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpeoptheader);
       var
         i : longint;
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.Magic:=SwapEndian(v.Magic);
             v.tsize:=SwapEndian(v.tsize);
@@ -734,7 +726,7 @@ implementation
             v.LoaderFlags:=SwapEndian(v.LoaderFlags);
             v.NumberOfRvaAndSizes:=SwapEndian(v.NumberOfRvaAndSizes);
 	    for i:=0 to PE_DATADIR_ENTRIES-1 do
-              MaybeSwap(v.DataDirectory[i]);
+              MaybeSwap(target_endian,v.DataDirectory[i]);
           end;
       end;
 
@@ -751,11 +743,9 @@ implementation
          lineno2  : word;
          flags    : longword;
        end; *)
-    procedure MaybeSwap(var v : tcoffsechdr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffsechdr);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.vsize:=SwapEndian(v.vsize);
             v.rvaofs:=SwapEndian(v.rvaofs);
@@ -779,11 +769,9 @@ implementation
          text_start : longint;
          data_start : longint;
        end; *)
-    procedure MaybeSwap(var v : coffdjoptheader);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : coffdjoptheader);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.magic:=SwapEndian(v.magic);
             v.vstamp:=SwapEndian(v.vstamp);
@@ -805,11 +793,9 @@ implementation
          select  : byte;
          empty   : array[0..2] of char;
        end; *)
-    procedure MaybeSwap(var v : coffsectionrec);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : coffsectionrec);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.len:=SwapEndian(v.len);
             v.nrelocs:=SwapEndian(v.nrelocs);
@@ -824,11 +810,9 @@ implementation
          sym      : longword;
          reloctype : word;
        end; *)
-    procedure MaybeSwap(var v : coffreloc);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : coffreloc);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.address:=SwapEndian(v.address);
             v.sym:=SwapEndian(v.sym);
@@ -840,11 +824,9 @@ implementation
          Zeroes : longword;
          Offset : longword;
        end;*)
-    procedure MaybeSwap(var v : strtableoffset);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : strtableoffset);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.Zeroes:=SwapEndian(v.Zeroes);
             v.Offset:=SwapEndian(v.Offset);
@@ -860,11 +842,9 @@ implementation
          typ     : byte;
          aux     : byte;
        end; *)
-    procedure MaybeSwap(var v : coffsymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : coffsymbol);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             if v.name[0]=#0 then
               v.strpos:=SwapEndian(v.strpos);
@@ -887,14 +867,12 @@ implementation
          NumberOfAuxSymbols : byte;
        end; *)
 
-    procedure MaybeSwap(var v : coffbigobjsymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : coffbigobjsymbol);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             if (true) then
-              MaybeSwap(v.Name.Offset);
+              MaybeSwap(target_endian,v.Name.Offset);
             v.Value:=SwapEndian(v.Value);
             v.SectionNumber:=SwapEndian(v.SectionNumber);
             v._Type:=SwapEndian(v._Type);
@@ -909,11 +887,9 @@ implementation
          flags : dword;
        end;
      *)
-    procedure MaybeSwap(var v : tlsdirectory);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : tlsdirectory);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.data_start:=SwapEndian(v.data_start);
             v.data_end:=SwapEndian(v.data_end);
@@ -938,11 +914,9 @@ implementation
          AddrOrds   : cardinal;
        end;
      *)
-    procedure MaybeSwap(var v : TPECoffExpDir);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwap(target_endian:systems.tendian;var v : TPECoffExpDir);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.flag:=SwapEndian(v.flag);
             v.stamp:=SwapEndian(v.stamp);
@@ -1861,7 +1835,7 @@ const pemagic : array[0..3] of byte = (
             bosym.StorageClass:=typ;
             bosym.NumberOfAuxSymbols:=aux;
             inc(symidx);
-	    MaybeSwap(bosym);
+	    MaybeSwap(compiler.target.info.endian,bosym);
             FCoffSyms.write(bosym,sizeof(bosym));
           end
         else
@@ -1878,7 +1852,7 @@ const pemagic : array[0..3] of byte = (
             sym.typ:=typ;
             sym.aux:=aux;
             inc(symidx);
-	    MaybeSwap(sym);
+	    MaybeSwap(compiler.target.info.endian,sym);
             FCoffSyms.write(sym,sizeof(sym));
           end;
       end;
@@ -1908,7 +1882,7 @@ const pemagic : array[0..3] of byte = (
             else
               secrec.nrelocs:=65535;
             inc(symidx);
-	    MaybeSwap(secrec);
+	    MaybeSwap(compiler.target.info.endian,secrec);
             FCoffSyms.write(secrec,sizeof(secrec));
             { aux recs have the same size as symbols, so we need to add two
               Byte of padding in case of a Big Obj Coff }
@@ -1930,7 +1904,7 @@ const pemagic : array[0..3] of byte = (
             rel.address:=TObjSection(p).ObjRelocations.Count+1;
             rel.sym:=0;
             rel.reloctype:=0;
-	    MaybeSwap(rel);
+	    MaybeSwap(compiler.target.info.endian,rel);
             FWriter.Write(rel,sizeof(rel));
           end;
         for i:=0 to TObjSection(p).ObjRelocations.Count-1 do
@@ -2042,7 +2016,7 @@ const pemagic : array[0..3] of byte = (
               else
                 internalerror(200905071);
             end;
-	    MaybeSwap(rel);
+	    MaybeSwap(compiler.target.info.endian,rel);
             FWriter.write(rel,sizeof(rel));
           end;
       end;
@@ -2174,7 +2148,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               sechdr.flags:=djencodesechdrflags(secoptions);
-            MaybeSwap(sechdr);
+            MaybeSwap(compiler.target.info.endian,sechdr);
             FWriter.write(sechdr,sizeof(sechdr));
           end;
       end;
@@ -2224,7 +2198,7 @@ const pemagic : array[0..3] of byte = (
                boheader.NumberOfSymbols:=longword(symidx);
                boheader.PointerToSymbolTable:=sympos;
                Move(COFF_BIG_OBJ_MAGIC,boheader.UUID,length(boheader.UUID));
-	       MaybeSwap(boheader);
+	       MaybeSwap(compiler.target.info.endian,boheader);
                FWriter.write(boheader,sizeof(boheader));
              end
            else
@@ -2245,7 +2219,7 @@ const pemagic : array[0..3] of byte = (
                  end
                else
                  header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
-	       MaybeSwap(header);
+	       MaybeSwap(compiler.target.info.endian,header);
                FWriter.write(header,sizeof(header));
              end;
            { Section headers }
@@ -2342,7 +2316,7 @@ const pemagic : array[0..3] of byte = (
             { If number of relocations exceeds 65535, it is stored in address field
               of the first record, and includes this first fake relocation. }
             FReader.read(rel,sizeof(rel));
-	    MaybeSwap(rel);
+	    MaybeSwap(compiler.target.info.endian,rel);
             s.coffrelocs:=rel.address-1;
             if s.coffrelocs<=65535 then
               InternalError(2013012503);
@@ -2350,7 +2324,7 @@ const pemagic : array[0..3] of byte = (
         for i:=1 to s.coffrelocs do
          begin
            FReader.read(rel,sizeof(rel));
-	   MaybeSwap(rel);
+	   MaybeSwap(compiler.target.info.endian,rel);
            case rel.reloctype of
 {$ifdef arm}
              IMAGE_REL_ARM_ABSOLUTE:
@@ -2496,7 +2470,7 @@ const pemagic : array[0..3] of byte = (
               if bigobj then
                 begin
                   FCoffSyms.Read(bosym,sizeof(bosym));
-		  MaybeSwap(bosym);
+		  MaybeSwap(compiler.target.info.endian,bosym);
                   if bosym.Name.Offset.Zeroes<>0 then
                     begin
                       { Added for sake of global data analysis }
@@ -2517,7 +2491,7 @@ const pemagic : array[0..3] of byte = (
               else
                 begin
                   FCoffSyms.Read(sym,sizeof(sym));
-		  MaybeSwap(sym);
+		  MaybeSwap(compiler.target.info.endian,sym);
                   if plongint(@sym.name)^<>0 then
                     begin
                       { Added for sake of global data analysis }
@@ -2623,7 +2597,7 @@ const pemagic : array[0..3] of byte = (
                       psecrec:=pcoffsectionrec(@auxrec);
                     end;
                   secrec:=psecrec^;
-                  MaybeSwap(secrec);
+                  MaybeSwap(compiler.target.info.endian,secrec);
 
                   case secrec.select of
                     IMAGE_COMDAT_SELECT_NODUPLICATES:
@@ -2736,7 +2710,7 @@ const pemagic : array[0..3] of byte = (
                InputError('Can''t read COFF Header');
                exit;
              end;
-           MaybeSwap(header);
+           MaybeSwap(compiler.target.info.endian,header);
            if (header.mach=0) and (header.nsects=$ffff) then
              begin
                { either a library or big obj COFF }
@@ -2746,7 +2720,7 @@ const pemagic : array[0..3] of byte = (
                    InputError('Can''t read Big Obj COFF Header');
                    exit;
                  end;
-               MaybeSwap(boheader);
+               MaybeSwap(compiler.target.info.endian,boheader);
                if CompareByte(boheader.UUID,COFF_BIG_OBJ_MAGIC,length(boheader.uuid))<>0 then
                  begin
                    { ToDo: this should be treated as a library }
@@ -2830,7 +2804,7 @@ const pemagic : array[0..3] of byte = (
                   InputError('Error reading COFF Section Headers');
                   exit;
                 end;
-               MaybeSwap(sechdr);
+               MaybeSwap(compiler.target.info.endian,sechdr);
                move(sechdr.name,secnamebuf,8);
                secnamebuf[8]:=#0;
                secname:=strpas(secnamebuf);
@@ -2957,7 +2931,7 @@ const pemagic : array[0..3] of byte = (
         sym.section:=section;
         sym.typ:=typ;
         sym.aux:=aux;
-	MaybeSwap(sym);
+	MaybeSwap(compiler.target.info.endian,sym);
         FWriter.write(sym,sizeof(sym));
       end;
 
@@ -3057,7 +3031,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               sechdr.flags:=djencodesechdrflags(SecOptions);
-            MaybeSwap(sechdr);
+            MaybeSwap(compiler.target.info.endian,sechdr);
             FWriter.write(sechdr,sizeof(sechdr));
           end;
       end;
@@ -3289,7 +3263,7 @@ const pemagic : array[0..3] of byte = (
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
-        MaybeSwap(header);
+        MaybeSwap(compiler.target.info.endian,header);
         FWriter.write(header,sizeof(header));
         { Optional COFF Header }
         if win32 then
@@ -3385,7 +3359,7 @@ const pemagic : array[0..3] of byte = (
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             UpdateDataDir('.pdata',PE_DATADIR_PDATA);
             UpdateDataDir('.reloc',PE_DATADIR_RELOC);
-	    MaybeSwap(peoptheader);
+	    MaybeSwap(compiler.target.info.endian,peoptheader);
             FWriter.write(peoptheader,sizeof(peoptheader));
           end
         else
@@ -3399,7 +3373,7 @@ const pemagic : array[0..3] of byte = (
             djoptheader.text_start:=TextExeSec.mempos;
             djoptheader.data_start:=DataExeSec.mempos;
             djoptheader.entry:=EntrySym.Address;
-	    MaybeSwap(djoptheader);
+	    MaybeSwap(compiler.target.info.endian,djoptheader);
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
 
@@ -3930,7 +3904,7 @@ const pemagic : array[0..3] of byte = (
             exit;
           end;
 	header_ok:=DLLReader.Read(Header,sizeof(TCoffHeader));
-	MaybeSwap(Header);
+	MaybeSwap(compiler.target.info.endian,Header);
         if not header_ok or
            (Header.mach<>COFF_MAGIC) or
            (Header.opthdr<>sizeof(tcoffpeoptheader)) then
@@ -3940,7 +3914,7 @@ const pemagic : array[0..3] of byte = (
           end;
         { Read optheader }
         DLLreader.Read(peheader,sizeof(tcoffpeoptheader));
-	MaybeSwap(peheader);
+	MaybeSwap(compiler.target.info.endian,peheader);
         { Section headers }
         found:=false;
         for i:=1 to header.nsects do
@@ -3950,7 +3924,7 @@ const pemagic : array[0..3] of byte = (
                 compiler.verbose.Comment(V_Error,'Error reading coff file '+DLLName);
                 exit;
               end;
-            MaybeSwap(sechdr);
+            MaybeSwap(compiler.target.info.endian,sechdr);
             if (sechdr.rvaofs<=peheader.DataDirectory[PE_DATADIR_EDATA].vaddr) and
                (peheader.DataDirectory[PE_DATADIR_EDATA].vaddr<sechdr.rvaofs+sechdr.vsize) then
               begin
@@ -3966,7 +3940,7 @@ const pemagic : array[0..3] of byte = (
         { Process edata }
         DLLReader.Seek(sechdr.datapos+peheader.DataDirectory[PE_DATADIR_EDATA].vaddr-sechdr.rvaofs);
         DLLReader.Read(expdir,sizeof(expdir));
-	MaybeSwap(expdir);
+	MaybeSwap(compiler.target.info.endian,expdir);
         for i:=0 to expdir.NumNames-1 do
           begin
             DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
