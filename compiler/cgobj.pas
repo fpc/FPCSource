@@ -536,13 +536,13 @@ unit cgobj;
        private
         FCompiler: TCompilerBase;
         function GetCG: tcg; inline;
-        function GetTarget: TCompilerTarget; inline;
+        function GetTarget: TReadOnlyCompilerTarget; inline;
         function GetTG: ttgobj; inline;
        protected
         property Compiler: TCompilerBase read FCompiler;
         property cg: tcg read GetCG;
         property tg: ttgobj read GetTG;
-        property Target: TCompilerTarget read GetTarget;
+        property Target: TReadOnlyCompilerTarget read GetTarget;
        public
         constructor create(ACompiler: TCompilerBase);
 
@@ -3193,7 +3193,7 @@ implementation
       end;
 
 
-    function tcg64.GetTarget: TCompilerTarget; inline;
+    function tcg64.GetTarget: TReadOnlyCompilerTarget; inline;
       begin
         result:=compiler.target;
       end;
