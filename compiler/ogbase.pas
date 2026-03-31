@@ -443,7 +443,7 @@ interface
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
        class function sectiontype2options(atype:TAsmSectiontype;target:TReadOnlyCompilerTarget):TObjSectionOptions;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
-       class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
+       class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;target:TReadOnlyCompilerTarget;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(atype:TAsmSectionType;secflags:TSectionFlags;aprogbits:TSectionProgbits;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(const aname:string;aalign:longint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
@@ -1607,15 +1607,13 @@ implementation
       end;
 
 
-    class procedure TObjData.sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    class procedure TObjData.sectiontype2progbitsandflags(atype:TAsmSectiontype;target:TReadOnlyCompilerTarget;out progbits:TSectionProgbits;out flags:TSectionFlags);
       var
         options : TObjSectionOptions;
       begin
         { this is essentially the inverse of the createsection overload that takes
           both progbits and flags as parameters }
-        options:=sectiontype2options(atype,_compiler.target);
+        options:=sectiontype2options(atype,target);
         flags:=[];
         progbits:=SPB_None;
         if oso_load in options then

@@ -1352,13 +1352,15 @@ implementation
  ****************************************************************************}
 
     constructor tai_section.Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:longint;Asecorder:TasmSectionorder=secorder_default);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create;
         typ:=ait_section;
         sectype:=asectype;
         secalign:=Aalign;
         secorder:=Asecorder;
-        TObjData.sectiontype2progbitsandflags(sectype,secprogbits,secflags);
+        TObjData.sectiontype2progbitsandflags(sectype,compiler.target,secprogbits,secflags);
         name:=stringdup(Aname);
         sec:=nil;
         // .noinit section should be marked with the nobits flag
