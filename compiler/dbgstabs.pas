@@ -78,6 +78,7 @@ interface
         global_stab_number : word;
         vardatadef: trecorddef;
         tagtypeprefix: ansistring;
+        function GetSymTableName(SymTable : TSymTable) : string;
         function use_tag_prefix(def : tdef) : boolean;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
@@ -133,8 +134,6 @@ interface
         constructor Create(acompiler: TCompilerBase);override;
       end;
 
-
-    function GetSymTableName(SymTable : TSymTable) : string;
 
     const
       tagtypes = [
@@ -203,16 +202,14 @@ implementation
         result:=ApplyAsmSymbolRestrictions(result);
     end;
 
-    function GetSymTableName(SymTable : TSymTable) : string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TDebugInfoStabs.GetSymTableName(SymTable : TSymTable) : string;
     begin
       if Not (cs_stabs_preservecase in compiler.globals.current_settings.globalswitches) then
         result := SymTable.Name^
       else
         result := SymTable.RealName^;
       if compiler.target._asm.dollarsign<>'$' then
-        result:=ApplyAsmSymbolRestrictions(result,compiler.target);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     const
