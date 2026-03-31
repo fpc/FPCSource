@@ -642,6 +642,7 @@ interface
         Ffull_string: string;
         Fsubtarget: string;
         FMacOSXVersionMin: tversion;
+        FiPhoneOSVersionMin: tversion;
       public
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
@@ -656,6 +657,7 @@ interface
         { selected subtarget }
         property subtarget: string read Fsubtarget;
         property MacOSXVersionMin: tversion read FMacOSXVersionMin;
+        property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin;
       end;
 
       { TCompilerTarget }
@@ -665,8 +667,6 @@ interface
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
-        iPhoneOSVersionMin: tversion;
-
         constructor Create;
 
         function use_dotted_functions: boolean;
@@ -686,6 +686,7 @@ interface
         procedure set_target_llvmdatalayout(const s: ansistring);
         property subtarget: string read Fsubtarget write Fsubtarget;
         property MacOSXVersionMin: tversion read FMacOSXVersionMin write FMacOSXVersionMin;
+        property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin write FiPhoneOSVersionMin;
       end;
 
     var

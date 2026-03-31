@@ -1390,7 +1390,7 @@ end;
 procedure TOption.MaybeSetDefaultMacVersionMacro;
 var
   envstr: ansistring;
-  tmpMacOSXVersionMin: tversion;
+  tmpMacOSXVersionMin, tmpiPhoneOSVersionMin: tversion;
 begin
   if not(compiler.target.info.system in systems_darwin) then
     exit;
@@ -1401,11 +1401,12 @@ begin
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
-        if not ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',envstr,false) then
+        if not ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',envstr,false) then
           compiler.verbose.Message1(option_invalid_macosx_deployment_target,envstr)
         else
           begin
             compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+            compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
 {$ifdef llvm}
              { We only support libunwind as part of libsystem, which happened in Mac OS X 10.6 }
             if compiler.target.MacOSXVersionMin.relationto(10,6,0)<0 then
@@ -1418,11 +1419,12 @@ begin
     begin
       envstr:=GetEnvironmentVariable('IPHONEOS_DEPLOYMENT_TARGET');
       if envstr<>'' then
-        if not ParseMacVersionMin(compiler.target.iPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',envstr,true) then
+        if not ParseMacVersionMin(tmpiPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',envstr,true) then
           compiler.verbose.Message1(option_invalid_iphoneos_deployment_target,envstr)
         else
           begin
             compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+            compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
             exit;
           end;
     end;
@@ -1430,48 +1432,55 @@ begin
   case compiler.target.info.system of
     system_powerpc_darwin:
       begin
-        if not ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.3.0',false) then
+        if not ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.3.0',false) then
           internalerror(2022090910);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_powerpc64_darwin:
       begin
-        if not ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.4.0',false) then
+        if not ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.4.0',false) then
           internalerror(2022090911);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_i386_darwin,
     system_x86_64_darwin:
       begin
-        if not ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.8.0',false) then
+        if not ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.8.0',false) then
           internalerror(2022090912);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_arm_ios,
     system_i386_iphonesim:
       begin
-        if not ParseMacVersionMin(compiler.target.iPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
+        if not ParseMacVersionMin(tmpiPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
           internalerror(2022090913);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_aarch64_ios,
     system_x86_64_iphonesim:
       begin
-        if not ParseMacVersionMin(compiler.target.iPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
+        if not ParseMacVersionMin(tmpiPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
           internalerror(2022090914);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_aarch64_iphonesim:
       begin
-        if not ParseMacVersionMin(compiler.target.iPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','14.0.0',false) then
+        if not ParseMacVersionMin(tmpiPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','14.0.0',false) then
           internalerror(2023032201);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end;
     system_aarch64_darwin:
       begin
-        if not ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','11.0.0',false) then
+        if not ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','11.0.0',false) then
           internalerror(2022090915);
         compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+        compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
       end
     else
       internalerror(2012031001);
@@ -3967,7 +3976,7 @@ var
   s : string;
   controllertype: tcontrollertype;
   tmpimagebase: PUint;
-  tmpMacOSXVersionMin: tversion;
+  tmpMacOSXVersionMin, tmpiPhoneOSVersionMin: tversion;
 {$if defined(XTENSA) or defined(RISCV32)}
   tmp_idf_version: longint;
 {$endif XTENSA or RISCV32}
@@ -4158,9 +4167,10 @@ begin
        'M':
          begin
            if (compiler.target.info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim])) and
-              ParseMacVersionMin(tmpMacOSXVersionMin,compiler.target.iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2),false) then
+              ParseMacVersionMin(tmpMacOSXVersionMin,tmpiPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2),false) then
              begin
                compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+               compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
                break;
              end
            else
@@ -4205,9 +4215,10 @@ begin
        'P':
          begin
            if (compiler.target.info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) and
-              ParseMacVersionMin(compiler.target.iPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2),true) then
+              ParseMacVersionMin(tmpiPhoneOSVersionMin,tmpMacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2),true) then
              begin
                compiler.target.MacOSXVersionMin:=tmpMacOSXVersionMin;
+               compiler.target.iPhoneOSVersionMin:=tmpiPhoneOSVersionMin;
                break;
              end
 {$if defined(XTENSA) or defined(RISCV32)}
