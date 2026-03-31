@@ -640,6 +640,7 @@ interface
         Fcpu_string: string;
         Fos_string: string; { for rtl/<X>/,fcl/<X>/, etc. }
         Ffull_string: string;
+        Fsubtarget: string;
       public
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
@@ -650,6 +651,9 @@ interface
         property cpu_string: string read Fcpu_string;
         property os_string: string read Fos_string;
         property full_string: string read Ffull_string;
+
+        { selected subtarget }
+        property subtarget: string read Fsubtarget;
       end;
 
       { TCompilerTarget }
@@ -659,9 +663,6 @@ interface
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
-        { selected subtarget }
-        subtarget         : string;
-
         MacOSXVersionMin,
         iPhoneOSVersionMin: tversion;
 
@@ -682,6 +683,7 @@ interface
         procedure set_target_exeext(const s:string);
         procedure set_target_asmext(const s:string);
         procedure set_target_llvmdatalayout(const s: ansistring);
+        property subtarget: string read Fsubtarget write Fsubtarget;
       end;
 
     var
