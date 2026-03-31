@@ -34,6 +34,7 @@ type
 
   TStatementsParser = class
   private
+    Fexceptblockcounter: integer;
     function GetParaManager: TParaManager; inline;
   private
     FCompiler: TCompilerBase;
@@ -64,6 +65,8 @@ type
 
     { reads an assembler block }
     function assembler_block : tnode;
+
+    property exceptblockcounter: integer read Fexceptblockcounter write Fexceptblockcounter;
   end;
 
 implementation
@@ -905,7 +908,7 @@ implementation
               if (compiler.globals.block_type<>bt_except) then
                 compiler.verbose.Message(parser_e_no_reraise_possible);
            end;
-         if (po_noreturn in current_procinfo.procdef.procoptions) and (compiler.globals.exceptblockcounter=0) then
+         if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
            compiler.verbose.Message(parser_e_raise_with_noreturn_not_allowed);
          p:=compiler.craisenode(pobj,paddr,pframe);
          raise_statement:=p;
@@ -949,9 +952,9 @@ implementation
          parser.pbase.consume(_TRY);
          filepostry:=compiler.globals.current_filepos;
          first:=nil;
-         compiler.globals.exceptblockcounter:=compiler.globals.exceptblockcounter+1;
+         exceptblockcounter:=exceptblockcounter+1;
          oldcurrent_exceptblock := compiler.globals.current_exceptblock;
-         compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
+         compiler.globals.current_exceptblock := exceptblockcounter;
          old_block_type := compiler.globals.block_type;
          compiler.globals.block_type := bt_body;
 
@@ -975,8 +978,8 @@ implementation
 
          if parser.pbase.try_to_consume(_FINALLY) then
            begin
-              compiler.globals.exceptblockcounter:=compiler.globals.exceptblockcounter+1;
-              compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
+              exceptblockcounter:=exceptblockcounter+1;
+              compiler.globals.current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=compiler.ctryfinallynode(p_try_block,p_finally_block);
               try_statement.fileinfo:=filepostry;
@@ -985,8 +988,8 @@ implementation
            begin
               parser.pbase.consume(_EXCEPT);
               compiler.globals.block_type:=bt_except;
-              compiler.globals.exceptblockcounter:=compiler.globals.exceptblockcounter+1;
-              compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
+              exceptblockcounter:=exceptblockcounter+1;
+              compiler.globals.current_exceptblock := exceptblockcounter;
               ot:=generrordef;
               p_specific:=nil;
               if (current_scanner.idtoken=_ON) then

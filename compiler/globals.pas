@@ -789,7 +789,6 @@ Const
         Fnwcopyright: string;
         Fexception_raised: boolean;
         Fblock_type: tblock_type;
-        Fexceptblockcounter: integer;
         Fcurrent_exceptblock: integer;
         FLinkLibraryAliases: TLinkStrMap;
         FLinkLibraryOrder: TLinkStrMap;
@@ -958,8 +957,6 @@ Const
         // TODO: block_type should probably be moved to the scanner or parser
         property block_type: tblock_type read Fblock_type;  { type of currently parsed block }
 
-        // TODO: exceptblockcounter should probably be moved somewhere else
-        property exceptblockcounter: integer read Fexceptblockcounter;  { each except block gets a unique number check gotos      }
         // TODO: current_exceptblock should probably be moved somewhere else (parser?)
         property current_exceptblock: integer read Fcurrent_exceptblock;  { the exceptblock number of the current block (0 if none) }
 
@@ -1134,7 +1131,6 @@ Const
         property nwcopyright: string read Fnwcopyright write Fnwcopyright;
         property exception_raised: boolean read Fexception_raised write Fexception_raised;
         property block_type: tblock_type read Fblock_type write Fblock_type;
-        property exceptblockcounter: integer read Fexceptblockcounter write Fexceptblockcounter;
         property current_exceptblock: integer read Fcurrent_exceptblock write Fcurrent_exceptblock;
         // TODO: mutable and read only property LinkLibraryAliases: TLinkStrMap read FLinkLibraryAliases;
         // TODO: mutable and read only property LinkLibraryOrder: TLinkStrMap read FLinkLibraryOrder;
