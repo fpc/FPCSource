@@ -190,7 +190,7 @@ interface
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
-          constructor create(p : tlabelsym;acompiler:TCompilerBase);virtual;
+          constructor create(p : tlabelsym;aexceptblock:integer;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -2177,7 +2177,7 @@ implementation
           end;
 
         if assigned(entrylabel) then
-          addstatement(ifstatements,compiler.cgotonode(tlabelnode(entrylabel).labsym));
+          addstatement(ifstatements,compiler.cgotonode(tlabelnode(entrylabel).labsym,compiler.globals.current_exceptblock));
 
         if not(do_loopvar_at_end) then
           iterate_counter(loopstatements,not(lnf_backward in loopflags));
@@ -2393,7 +2393,7 @@ implementation
                              TGOTONODE
 *****************************************************************************}
 
-    constructor tgotonode.create(p : tlabelsym;acompiler:TCompilerBase);
+    constructor tgotonode.create(p : tlabelsym;aexceptblock:integer;acompiler:TCompilerBase);
       begin
         inherited create(goton,acompiler);
         exceptionblock:=compiler.globals.current_exceptblock;

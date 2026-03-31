@@ -1455,7 +1455,7 @@ implementation
                              if is_nested_pd(current_procinfo.procdef) then
                                current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
                            end;
-                         code:=compiler.cgotonode(tlabelsym(srsym));
+                         code:=compiler.cgotonode(tlabelsym(srsym),compiler.globals.current_exceptblock);
                          tgotonode(code).labelsym:=tlabelsym(srsym);
                          { set flag that this label is used }
                          tlabelsym(srsym).used:=true;

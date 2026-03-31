@@ -366,7 +366,7 @@ type
     function cifnode_internal(l,r,_t1 : tnode):tifnode; inline;
     function cfornode(l,r,_t1,_t2 : tnode;back : boolean):tfornode; inline;
     function cexitnode(l:tnode):texitnode; inline;
-    function cgotonode(p : tlabelsym):tgotonode; inline;
+    function cgotonode(p : tlabelsym;aexceptblock:integer):tgotonode; inline;
     function clabelnode(l:tnode;alabsym:tlabelsym):tlabelnode; inline;
     function craisenode(l,taddr,tframe:tnode):traisenode; inline;
     function ctryexceptnode(l,r,_t1 : tnode):ttryexceptnode; inline;
@@ -1389,9 +1389,9 @@ begin
   result:=nflw.cexitnode.create(l,self);
 end;
 
-function TCompilerHelper.cgotonode(p: tlabelsym): tgotonode; inline;
+function TCompilerHelper.cgotonode(p: tlabelsym;aexceptblock:integer): tgotonode; inline;
 begin
-  result:=nflw.cgotonode.create(p,self);
+  result:=nflw.cgotonode.create(p,aexceptblock,self);
 end;
 
 function TCompilerHelper.clabelnode(l: tnode; alabsym: tlabelsym): tlabelnode; inline;

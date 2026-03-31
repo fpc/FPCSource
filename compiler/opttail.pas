@@ -230,7 +230,7 @@ type
                     addstatement(nodes,copynodes);
 
                     { create goto }
-                    addstatement(nodes,compiler.cgotonode(labelnode.labsym));
+                    addstatement(nodes,compiler.cgotonode(labelnode.labsym,compiler.globals.current_exceptblock));
 
                     if assigned(usedcallnode.callcleanupblock) then
                       begin

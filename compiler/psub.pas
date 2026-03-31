@@ -477,7 +477,7 @@ implementation
                 compiler.ccallnode_intern('fpc_setjmp',
                   compiler.ccallparanode(compiler.cloadnode(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner),nil)),
                 compiler.cordconstnode(1,search_system_proc('fpc_setjmp').returndef,true))
-              ,compiler.cgotonode(tlabelsym(p)),nil)
+              ,compiler.cgotonode(tlabelsym(p),compiler.globals.current_exceptblock),nil)
             );
           end;
       end;
