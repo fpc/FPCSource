@@ -28,14 +28,14 @@ interface
 uses
   globtype, systems, compilerbase;
 
-function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
   globals, cpuinfo, compiler;
 
-function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   var
     compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin

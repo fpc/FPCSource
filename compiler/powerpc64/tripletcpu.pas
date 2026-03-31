@@ -28,11 +28,11 @@ interface
 uses
   globtype,systems;
 
-function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
-function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   begin
     if target.info.endian=endian_little then
       result:='powerpc64le'

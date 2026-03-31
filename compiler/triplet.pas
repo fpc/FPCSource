@@ -28,7 +28,7 @@ interface
 uses
   globtype,systems,compilerbase;
 
-function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
@@ -36,7 +36,7 @@ uses
   globals,
   cpuinfo,tripletcpu,compiler;
 
-  function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+  function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
     begin
       { architecture }
       result:=tripletcpustr(target,tripletstyle);
