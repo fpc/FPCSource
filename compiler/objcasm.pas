@@ -32,14 +32,14 @@ unit objcasm;
 { Workaround for mantis #29906: bug in PPC jump table generation if a jump
   table is created for a case-statement that handles at least the lowest
   and highest possible value of the case expression type }
-  function objc_section_name(sec: TObjCAsmSectionType; target: TCompilerTarget): string;
+  function objc_section_name(sec: TObjCAsmSectionType; target: TReadOnlyCompilerTarget): string;
 
 implementation
 
   uses
     verbose;
 
-  function objc_section_name(sec: TObjCAsmSectionType; target: TCompilerTarget): string;
+  function objc_section_name(sec: TObjCAsmSectionType; target: TReadOnlyCompilerTarget): string;
     begin
       result:='';
       if target.info.system in systems_darwin then
