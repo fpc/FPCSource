@@ -29,6 +29,8 @@ uses
   globtype,
   cclasses,
   compilerbase,
+  verbose,
+  globals,
   symtype;
 
 type
@@ -220,6 +222,9 @@ type
   { ************************************************************************* }
 
   { class to read a file with wpo information }
+
+  { twpofilereader }
+
   twpofilereader = class(tobject,twposectionreaderintf)
    private
     ffilename: tcmdstr;
@@ -232,6 +237,10 @@ type
     fdest: twpoinfomanagerbase;
 
     function getnextnoncommentline(out s: string): boolean;
+    function GetVerbose: TVerbose; inline;
+    function GetGlobals: TReadOnlyCompilerGlobals; inline;
+    property Verbose: TVerbose read GetVerbose;
+    property Globals: TReadOnlyCompilerGlobals read GetGlobals;
    public
 
      constructor create(const fn: tcmdstr; dest: twpoinfomanagerbase);
@@ -348,13 +357,11 @@ type
 implementation
 
   uses
-    globals,
     cutils,
     sysutils,
     symconst,symdef,
     procinfo,
-    compiler,
-    verbose;
+    compiler;
 
 
   { tcreatedwpoinfobase }
@@ -449,6 +456,16 @@ implementation
 
   { twpofilereader }
 
+  function twpofilereader.GetVerbose: TVerbose; inline;
+    begin
+      result:=fdest.compiler.verbose;
+    end;
+
+  function twpofilereader.GetGlobals: TReadOnlyCompilerGlobals; inline;
+    begin
+      result:=fdest.compiler.globals;
+    end;
+
   function twpofilereader.getnextnoncommentline(out s: string):
     boolean;
     begin
@@ -474,20 +491,17 @@ implementation
     end;
 
   constructor twpofilereader.create(const fn: tcmdstr; dest: twpoinfomanagerbase);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
+      fdest:=dest;
       if not FileExists(fn) or
          { FileExists also returns true for directories }
          DirectoryExists(fn) then
         begin
-          compiler.verbose.CGMessage1(wpo_cant_find_file,fn);
+          verbose.CGMessage1(wpo_cant_find_file,fn);
           exit;
         end;
       assign(finputfile,fn);
       ffilename:=fn;
-
-      fdest:=dest;
     end;
 
   destructor twpofilereader.destroy;
@@ -497,15 +511,13 @@ implementation
 
   procedure twpofilereader.processfile;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       sectionhandler: twpocomponentbaseclass;
       i: longint;
       wpotype: twpotype;
       s,
       sectionname: string;
     begin
-      compiler.verbose.CGMessage1(wpo_begin_processing,ffilename);
+      verbose.CGMessage1(wpo_begin_processing,ffilename);
       reset(finputfile);
       flinenr:=0;
       while getnextnoncommentline(s) do
@@ -515,7 +527,7 @@ implementation
           { format: "% sectionname" }
           if (s[1]<>'%') then
             begin
-              compiler.verbose.CGMessage2(wpo_expected_section,tostr(flinenr),s);
+              verbose.CGMessage2(wpo_expected_section,tostr(flinenr),s);
               break;
             end;
           i:=2;
@@ -529,14 +541,14 @@ implementation
           if assigned(sectionhandler) then
             begin
               wpotype:=sectionhandler.getwpotype;
-              compiler.verbose.CGMessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
+              verbose.CGMessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
               { do we need this information? }
-              if ((sectionhandler.performswpoforswitches * compiler.globals.init_settings.dowpoptimizerswitches) <> []) then
+              if ((sectionhandler.performswpoforswitches * globals.init_settings.dowpoptimizerswitches) <> []) then
                 begin
                   { did some other section already generate this type of information? }
                   if assigned(fdest.wpoinfouse[wpotype]) then
                     begin
-                      compiler.verbose.CGMessage2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
+                      verbose.CGMessage2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
                       FreeAndNil(fdest.wpoinfouse[wpotype]);
                     end;
                   { process the section }
@@ -545,7 +557,7 @@ implementation
                 end
               else
                 begin
-                  compiler.verbose.CGMessage1(wpo_skipping_unnecessary_section,sectionname);
+                  verbose.CGMessage1(wpo_skipping_unnecessary_section,sectionname);
                   { skip the current section }
                   while sectiongetnextline(s) do
                     ;
@@ -553,14 +565,14 @@ implementation
             end
           else
             begin
-              compiler.verbose.CGMessage1(wpo_no_section_handler,sectionname);
+              verbose.CGMessage1(wpo_no_section_handler,sectionname);
               { skip the current section }
               while sectiongetnextline(s) do
                 ;
             end;
         end;
       close(finputfile);
-      compiler.verbose.CGMessage1(wpo_end_processing,ffilename);
+      verbose.CGMessage1(wpo_end_processing,ffilename);
     end;
 
   function twpofilereader.sectiongetnextline(out s: string): boolean;
