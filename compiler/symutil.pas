@@ -34,7 +34,7 @@ interface
 
     function get_first_proc_str(Options: TProcOptions): ShortString;
 
-    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TCompilerTarget);
+    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TReadOnlyCompilerTarget);
 
     function is_normal_fieldvarsym(sym: tsym): boolean; inline;
 
@@ -123,7 +123,7 @@ implementation
       end;
 
 
-    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TCompilerTarget);
+    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TReadOnlyCompilerTarget);
       var
         ts: ttypesym;
       begin
