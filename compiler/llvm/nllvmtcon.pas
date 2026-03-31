@@ -116,12 +116,12 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
-      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean; override;
+      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean; override;
 
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
-      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint; override;
-      class function get_dynarray_symofs(target: TCompilerTarget): pint; override;
+      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TReadOnlyCompilerTarget): pint; override;
+      class function get_dynarray_symofs(target: TReadOnlyCompilerTarget): pint; override;
 
       property appendingdef: boolean write fappendingdef;
     end;
@@ -875,7 +875,7 @@ implementation
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean;
+  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean;
     begin
       result:=inherited;
       if result then
@@ -907,14 +907,14 @@ implementation
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint;
+  class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TReadOnlyCompilerTarget): pint;
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_string_header_size(typ,winlikewidestring);
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_dynarray_symofs(target: TCompilerTarget): pint;
+  class function tllvmtai_typedconstbuilder.get_dynarray_symofs(target: TReadOnlyCompilerTarget): pint;
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_dynarray_header_size;

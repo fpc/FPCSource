@@ -343,13 +343,13 @@ type
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
      class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
     public
-     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean; virtual;
+     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean; virtual;
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
      class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      { returns true if smartlinking of the dead stripable vectorized lists is supported }
-     class function is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean; virtual;
+     class function is_smartlink_vectorized_dead_strip(target: TReadOnlyCompilerTarget): boolean; virtual;
 
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): TSymStr;
      class function get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint; acompiler: TCompilerBase): trecorddef;
@@ -475,13 +475,13 @@ type
        constant labels. On most platforms, this is 0 (with the header at a
        negative offset), but on some platforms such negative offsets are not
        supported this is equal to the header size }
-     class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint; virtual;
+     class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TReadOnlyCompilerTarget): pint; virtual;
 
      { returns the offset of the array data relative to dynamic array constant
        labels. On most platforms, this is 0 (with the header at a negative
        offset), but on some platforms such negative offsets are not supported
        and thus this is equal to the header size }
-     class function get_dynarray_symofs(target: TCompilerTarget):pint;virtual;
+     class function get_dynarray_symofs(target: TReadOnlyCompilerTarget):pint;virtual;
 
      { set the fieldvarsym whose data we will emit next; needed
        in case of variant records, so we know which part of the variant gets
@@ -1197,7 +1197,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint;
+   class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TReadOnlyCompilerTarget): pint;
      begin
        { darwin's linker does not support negative offsets }
        if not(target.info.system in systems_darwin+systems_wasm) and
@@ -1209,7 +1209,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_dynarray_symofs(target: TCompilerTarget):pint;
+   class function ttai_typedconstbuilder.get_dynarray_symofs(target: TReadOnlyCompilerTarget):pint;
      begin
        { darwin's linker does not support negative offsets }
        if not (target.info.system in systems_darwin) and
@@ -1605,7 +1605,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean;
      begin
        result:=false;
      end;
@@ -1623,7 +1623,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean;
+   class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip(target: TReadOnlyCompilerTarget): boolean;
      begin
        result:=(tf_smartlink_sections in target.info.flags) and
                (not(target.info.system in systems_darwin) or
