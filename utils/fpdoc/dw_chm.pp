@@ -492,13 +492,13 @@ begin
     //  classes
     for j := 0 to AModule.InterfaceSection.Classes.Count-1 do
     begin
-      ParentElement := TPasClassType(AModule.InterfaceSection.Classes[j]);
+      ParentElement := TPasMembersType(AModule.InterfaceSection.Classes[j]);
       ParentItem := Index.Items.NewItem;
       ParentItem.Text := ParentELement.Name;
       ParentItem.addLocal(FixHTMLpath(Allocator.GetFilename(ParentElement, 0)));
-      for k := 0 to TPasClassType(ParentElement).Members.Count-1 do
+      for k := 0 to TPasMembersType(ParentElement).Members.Count-1 do
       begin
-        TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
+        TmpElement := TPasElement(TPasMembersType(ParentElement).Members.Items[k]);
         if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
           continue;
         if Engine.HideProtected and(TmpElement.Visibility = visProtected) then
