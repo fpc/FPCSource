@@ -441,7 +441,7 @@ interface
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
-       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
+       class function sectiontype2options(atype:TAsmSectiontype;target:TReadOnlyCompilerTarget):TObjSectionOptions;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
        class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
@@ -1476,9 +1476,7 @@ implementation
       end;
 
 
-    class function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    class function TObjData.sectiontype2options(atype:TAsmSectiontype;target:TReadOnlyCompilerTarget):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write],
@@ -1563,18 +1561,18 @@ implementation
           {note} [oso_Data,oso_note]
         );
       begin
-        if _compiler.target._asm.id in asms_int_coff then
+        if target._asm.id in asms_int_coff then
           begin
             if (aType in [sec_rodata,sec_rodata_norel]) then
               begin
-                if (_compiler.target.info.system in systems_all_windows) then
+                if (target.info.system in systems_all_windows) then
                   aType:=sec_rodata_norel
                 else
                   aType:=sec_data;
               end;
           end;
         result:=secoptions[atype];
-        if (_compiler.target.info.system in systems_wasm) and (atype=sec_bss) then
+        if (target.info.system in systems_wasm) and (atype=sec_bss) then
           Result:=Result+[oso_data,oso_sparse_data];
 {$ifdef OMFOBJSUPPORT}
         { in the huge memory model, BSS data is actually written in the regular
@@ -1611,11 +1609,13 @@ implementation
 
     class procedure TObjData.sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);
       var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         options : TObjSectionOptions;
       begin
         { this is essentially the inverse of the createsection overload that takes
           both progbits and flags as parameters }
-        options:=sectiontype2options(atype);
+        options:=sectiontype2options(atype,_compiler.target);
         flags:=[];
         progbits:=SPB_None;
         if oso_load in options then
@@ -1635,7 +1635,7 @@ implementation
 
     function TObjData.createsection(atype:TAsmSectionType;const aname:string;aorder:TAsmSectionOrder):TObjSection;
       begin
-        result:=createsection(sectionname(atype,aname,aorder),sectiontype2align(atype),sectiontype2options(atype));
+        result:=createsection(sectionname(atype,aname,aorder),sectiontype2align(atype),sectiontype2options(atype,compiler.target));
       end;
 
 
