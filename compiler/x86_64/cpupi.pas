@@ -49,7 +49,7 @@ interface
          destructor destroy;override;
        end;
 
-    function x86_64_use_ms_abi(proccall: tproccalloption; target: TCompilerTarget): boolean;
+    function x86_64_use_ms_abi(proccall: tproccalloption; target: TReadOnlyCompilerTarget): boolean;
 
 implementation
 
@@ -171,7 +171,7 @@ implementation
       end;
 
 
-    function x86_64_use_ms_abi(proccall: tproccalloption; target: TCompilerTarget): boolean;
+    function x86_64_use_ms_abi(proccall: tproccalloption; target: TReadOnlyCompilerTarget): boolean;
       begin
         result:=
           ((target.info.system=system_x86_64_win64) and

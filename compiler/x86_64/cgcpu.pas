@@ -52,7 +52,7 @@ unit cgcpu;
         { This is a class function and not a regular method, because it is
           sometimes called, during the time that the code generator is not
           constructed (i.e. compiler.cg=nil) }
-        class function use_ms_abi(target: TCompilerTarget): boolean;
+        class function use_ms_abi(target: TReadOnlyCompilerTarget): boolean;
       private
         function use_push: boolean;
         function saved_xmm_reg_size: longint;
@@ -548,7 +548,7 @@ unit cgcpu;
       end;
 
 
-    class function tcgx86_64.use_ms_abi(target: TCompilerTarget): boolean;
+    class function tcgx86_64.use_ms_abi(target: TReadOnlyCompilerTarget): boolean;
       begin
         if assigned(current_procinfo) then
           use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption,target)
