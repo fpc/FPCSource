@@ -184,12 +184,12 @@ implementation
 
         { create the .s file and assemble it }
         if not(compiler.globals.create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in compiler.target.info.flags) then
-          GenerateAsm(false);
+          GenerateAsm(compiler,false);
 
         { Also create a smartlinked version ? }
         if compiler.globals.create_smartlink_library then
          begin
-           GenerateAsm(true);
+           GenerateAsm(compiler,true);
            if (af_needar in compiler.target._asm.flags) then
              compiler.Linker.MakeStaticLibrary;
          end;

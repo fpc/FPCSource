@@ -252,7 +252,7 @@ interface
 
     TAssemblerClass = class of TAssembler;
 
-    Procedure GenerateAsm(smart:boolean);
+    Procedure GenerateAsm(compiler: TCompilerBase;smart:boolean);
 
     { get an instance of an external GNU-style assembler that is compatible
       with the current target, reusing an existing writer. Used by the LLVM
@@ -2942,9 +2942,7 @@ Implementation
                      Generate Assembler Files Main Procedure
 *****************************************************************************}
 
-    Procedure GenerateAsm(smart:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    Procedure GenerateAsm(compiler: TCompilerBase;smart:boolean);
       var
         a : TAssembler;
       begin
