@@ -845,11 +845,9 @@ implementation
         tis_size: LongWord;
       end;
 
-    procedure MayBeSwapTISTrailer(var h: TTISTrailer);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MayBeSwapTISTrailer(target_endian:systems.tendian;var h: TTISTrailer);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               tis_vendor:=swapendian(tis_vendor);
@@ -3500,7 +3498,7 @@ implementation
             tis_type:=TIS_TRAILER_TYPE_TIS_DWARF;
             tis_size:=(elf_end_pos-elf_start_pos)+sizeof(tis_trailer);
           end;
-        MayBeSwapTISTrailer(tis_trailer);
+        MayBeSwapTISTrailer(compiler.target.info.endian,tis_trailer);
         Writer.write(tis_trailer,sizeof(tis_trailer));
 
         Result:=True;
