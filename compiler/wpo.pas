@@ -45,7 +45,7 @@ implementation
   procedure InitWpo(compiler: TCompilerBase);
     begin
       { always create so we don't have to litter the source with if-tests }
-      tcompiler(compiler).wpoinfomanager:=twpoinfomanager.create;
+      tcompiler(compiler).wpoinfomanager:=twpoinfomanager.create(compiler);
 
       { register the classes we can/should potentially use }
       compiler.wpoinfomanager.registerwpocomponentclass(tprogdevirtinfo);

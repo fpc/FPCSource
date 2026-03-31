@@ -283,6 +283,7 @@ type
 
   twpoinfomanagerbase = class
    private
+    FCompiler: TCompilerBase;
     { array of classrefs of handler classes for the various kinds of whole
       program optimizations that we support
     }
@@ -290,6 +291,8 @@ type
 
     freader: twpofilereader;
     fwriter: twpofilewriter;
+   protected
+    property Compiler: TCompilerBase read FCompiler;
    public
     { instances of the various optimizers/information collectors (for
       information used during this compilation)
@@ -338,7 +341,7 @@ type
 
     function symbol_live_in_currentproc(fordef: tdef): boolean;
 
-    constructor create; reintroduce;
+    constructor create(acompiler: TCompilerBase); reintroduce;
     destructor destroy; override;
   end;
 
@@ -667,8 +670,6 @@ implementation
 
   procedure twpoinfomanagerbase.parseandcheckwpoinfo;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       i: longint;
     begin
       { error if we don't have to optimize yet have an input feedback file }
@@ -771,8 +772,6 @@ implementation
 
   procedure twpoinfomanagerbase.extractwpoinfofromprogram;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       i: longint;
       info: twpocomponentbase;
     begin
@@ -794,9 +793,10 @@ implementation
       fwriter:=nil;
     end;
 
-  constructor twpoinfomanagerbase.create;
+  constructor twpoinfomanagerbase.create(acompiler: TCompilerBase);
     begin
       inherited create;
+      FCompiler:=ACompiler;
       fwpocomponents:=tfphashlist.create;
     end;
 

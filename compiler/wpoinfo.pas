@@ -273,8 +273,6 @@ implementation
   { devirtualisation }
 
   function twpoinfomanager.can_be_devirtualized(objdef, procdef: tdef; out name: TSymStr): boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
          not(cs_wpo_devirtualize_calls in compiler.globals.current_settings.dowpoptimizerswitches) then
@@ -287,8 +285,6 @@ implementation
 
 
   function twpoinfomanager.optimized_name_for_vmt(objdef, procdef: tdef; out name: TSymStr): boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
          not(cs_wpo_optimize_vmts in compiler.globals.current_settings.dowpoptimizerswitches) then
@@ -303,8 +299,6 @@ implementation
   { symbol liveness }
 
   function twpoinfomanager.symbol_live(const name: shortstring): boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if not assigned(wpoinfouse[wpo_live_symbol_information]) or
          not(cs_wpo_symbol_liveness in compiler.globals.current_settings.dowpoptimizerswitches) then
