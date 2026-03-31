@@ -707,7 +707,7 @@ Const
         Tsinclairql_metadata_format = string[4];
 {$endif defined(m68k)}
       protected
-        FTarget: TCompilerTarget;
+        FTarget: TReadOnlyCompilerTarget;
         Finputfilepath: string;
         Finputfilename: string;
         Foutputfilename: string;
@@ -836,7 +836,7 @@ Const
 {$endif ARM}
         function floating_point_range_check_error : boolean;
 
-        property Target: TCompilerTarget read FTarget;
+        property Target: TReadOnlyCompilerTarget read FTarget;
         { specified inputfile }
         property inputfilepath: string read Finputfilepath;
         property inputfilename: string read Finputfilename;
@@ -1028,6 +1028,7 @@ Const
       private
         function GetCurrentSettings: TMutableSettings;
         function GetInitSettings: TMutableSettings;
+        function GetTarget: TCompilerTarget;
         procedure get_exepath;
         procedure callinitprocs;
         procedure calldoneprocs;
@@ -1050,6 +1051,7 @@ Const
 
         function HandleFeature(const s : string) : boolean;
 
+        property Target: TCompilerTarget read GetTarget;
         property inputfilepath: string read Finputfilepath write Finputfilepath;
         property inputfilename: string read Finputfilename write Finputfilename;
         property outputfilename: string read Foutputfilename write Foutputfilename;
@@ -2096,6 +2098,11 @@ implementation
      begin
        result:=TMutableSettings(Finit_settings);
      end;
+
+  function TCompilerGlobals.GetTarget: TCompilerTarget;
+    begin
+      result:=TCompilerTarget(FTarget);
+    end;
 
    procedure TCompilerGlobals.get_exepath;
      var
