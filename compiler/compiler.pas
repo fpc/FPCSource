@@ -490,7 +490,7 @@ begin
      FreeAndNil(FExportLib);
      DoneLinker;
      DoneAsm;
-     DoneWpo;
+     DoneWpo(Self);
    end;
 { Free memory for the others }
   CompilerInited:=false;
@@ -565,7 +565,7 @@ begin
   FExportLib:=CreateExport(Self);
   InitLinker;
   InitAsm;
-  InitWpo;
+  InitWpo(Self);
 
   FTaskHandler:=InitTaskHandler(self);
   CompilerInitedAfterArgs:=true;

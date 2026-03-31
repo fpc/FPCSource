@@ -31,8 +31,8 @@ uses
   optvirt,optdead,compilerbase;
 
 
-  procedure InitWpo;
-  procedure DoneWpo;
+  procedure InitWpo(compiler: TCompilerBase);
+  procedure DoneWpo(compiler: TCompilerBase);
 
 implementation
 
@@ -42,9 +42,7 @@ implementation
     wpobase, wpoinfo;
 
   { called after command line parameters have been parsed }
-  procedure InitWpo;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure InitWpo(compiler: TCompilerBase);
     begin
       { always create so we don't have to litter the source with if-tests }
       tcompiler(compiler).wpoinfomanager:=twpoinfomanager.create;
@@ -68,9 +66,7 @@ implementation
     end;
 
 
-  procedure DoneWpo;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure DoneWpo(compiler: TCompilerBase);
     begin
       tcompiler(compiler).wpoinfomanager.free;
       tcompiler(compiler).wpoinfomanager:=nil;
