@@ -2334,7 +2334,10 @@ var
         exit(true);
 
       if ppu_waitingfor_crc and (scc_tree_crc_wait<>nil) then
-        exit; { the final load step needs all used units and their used units }
+        begin
+          firstwaiting:=scc_tree_crc_wait;
+          exit; { the final load step needs all used units and their used units }
+        end;
 
       pu:=tused_unit(used_units.first);
       while assigned(pu) do

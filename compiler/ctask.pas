@@ -859,16 +859,26 @@ end;
 
 procedure ttask_handler.recompile_scc(scc_root: tmodule);
 var
-  m, next: tmodule;
+  m, next, firstwaiting: tmodule;
   changed: Boolean;
 begin
+  {$IFDEF DEBUG_PPU_CYCLES}
+  writeln('ttask_handler.recompile_scc root=',scc_root.modulename^,' ',scc_root.statestr,' size=',get_scc_count(scc_root));
+  m:=scc_root;
+  while assigned(m) do
+  begin
+    cancontinue(m,firstwaiting);
+    writeln('PPUALGO ttask_handler.recompile_scc module: ',m.modulename^,' ',m.statestr,' firstwaiting=',firstwaiting.modulename^,' ',firstwaiting.statestr);
+    m:=m.scc_next;
+  end;
+  {$ENDIF}
   repeat
     changed:=false;
     m:=scc_root;
     while assigned(m) do
       begin
         next:=m.scc_next;
-        if m.do_reload or m.fromppu then
+        if m.do_reload then
           begin
             {$IFDEF DEBUG_CTASK}
             writeln('PPUALGO ttask_handler.recompile_scc breaking cycle, recompiling ',m.modulename^,' ',m.statestr,' ...');
@@ -877,6 +887,19 @@ begin
             recompile_module(m);
           end;
         m:=next;
+      end;
+
+    if not changed then
+      begin
+        m:=scc_root;
+        while assigned(m) and not cancontinue(m,firstwaiting) do
+          m:=m.scc_next;
+        if m=nil then
+          begin
+            write_scc;
+            writeln('ttask_handler.recompile_scc no more do_reloads and still can not continue');
+            Internalerror(2026033114);
+          end;
       end;
   until not changed;
 end;
@@ -1213,7 +1236,7 @@ begin
     while assigned(m) do
       begin
         {$IFDEF DEBUG_PPU_CYCLES}
-        writeln('ttask_handler.processqueue check scc module: ',m.modulename^,' ',m.statestr);
+        //writeln('ttask_handler.processqueue check scc module: ',m.modulename^,' ',m.statestr);
         {$ENDIF}
         if (m.state<ms_processed) and cancontinue(m,firstwaiting) then
           begin
