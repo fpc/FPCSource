@@ -214,9 +214,9 @@ implementation
 
          { open assembler response }
          if cs_link_on_target in compiler.globals.current_settings.globalswitches then
-           GenerateAsmRes(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,'_ppas'))
+           GenerateAsmRes(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,'_ppas'),compiler)
          else
-           GenerateAsmRes(compiler.globals.outputexedir+'ppas');
+           GenerateAsmRes(compiler.globals.outputexedir+'ppas',compiler);
 
          { open deffile }
          DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext));
