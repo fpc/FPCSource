@@ -58,9 +58,9 @@ type
   TDefaultSyscallConvention = class
   private
     default_syscall_convention: tprocoption;
-    target: TCompilerTarget;
+    target: TReadOnlyCompilerTarget;
   public
-    constructor Create(ATarget: TCompilerTarget);
+    constructor Create(ATarget: TReadOnlyCompilerTarget);
     function get_default_syscall: tprocoption;
     procedure set_default_syscall(sc: tprocoption);
   end;
@@ -98,7 +98,7 @@ const
 
 { TDefaultSyscallConvention }
 
-constructor TDefaultSyscallConvention.Create(ATarget: TCompilerTarget);
+constructor TDefaultSyscallConvention.Create(ATarget: TReadOnlyCompilerTarget);
 begin
   target:=ATarget;
   default_syscall_convention:=po_none;
