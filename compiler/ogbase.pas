@@ -1069,6 +1069,8 @@ implementation
     constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
         inherited Create(AList,Aname);
+        FTarget:=Atarget;
+        FVerbose:=Averbose;
         { Data }
         Size:=0;
         Datapos:=0;
