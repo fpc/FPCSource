@@ -145,6 +145,7 @@ interface
       private
         FImportLibraryList : TFPHashObjectList;
       public
+        loadedfrommodule: tmodule;
         is_reset,                 { has reset been called ? }
         do_recompile,         { reset needed, done by ctask }
         do_reload,                { force reloading of the unit }
@@ -309,7 +310,7 @@ interface
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritance of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+        constructor create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
         procedure reset(for_recompile: boolean);virtual;
         function statestr: string; virtual;
@@ -600,13 +601,14 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+    constructor tmodule.create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       var
         n:string;
         fn:TPathStr;
         old_mod_cnt, i: SizeInt;
         new_mod_cnt: Integer;
       begin
+        loadedfrommodule:=LoadedFrom;
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
         else

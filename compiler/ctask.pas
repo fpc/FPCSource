@@ -909,7 +909,6 @@ function ttask_handler.check_compiled_uses(dst: tmodule): tmodule;
   begin
     visited:=nil;
     SetLength(visited,length(all_modules));
-    FillByte(visited[1],SizeOf(Boolean)*length(visited),0);
     Result:=search(compiled_module);
   end;
 
@@ -1546,7 +1545,6 @@ var
 begin
   Visited:=nil;
   SetLength(Visited,length(all_modules));
-  FillByte(Visited[0],length(Visited)*SizeOf(boolean),0);
 
   check(main_module);
 end;

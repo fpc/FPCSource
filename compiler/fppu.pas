@@ -52,7 +52,6 @@ interface
           sourcefn   : TPathStr; { Source specified with "uses .. in '..'" }
           comments   : TCmdStrList;
           nsprefix   : TCmdStr; { Namespace prefix the unit was found with }
-          loadedfrommodule: tmodule;
 {$ifdef Test_Double_checksum}
           interface_read_crc_index,
           interface_write_crc_index,
@@ -174,7 +173,6 @@ var
     constructor tppumodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       begin
         inherited create(LoadedFrom,amodulename,afilename,_is_unit);
-        loadedfrommodule:=LoadedFrom;
         ppufile:=nil;
         sourcefn:=afilename;
         unitimportsymsderefs:=tfplist.create;
