@@ -641,6 +641,7 @@ interface
         Fos_string: string; { for rtl/<X>/,fcl/<X>/, etc. }
         Ffull_string: string;
         Fsubtarget: string;
+        FMacOSXVersionMin: tversion;
       public
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
@@ -654,6 +655,7 @@ interface
 
         { selected subtarget }
         property subtarget: string read Fsubtarget;
+        property MacOSXVersionMin: tversion read FMacOSXVersionMin;
       end;
 
       { TCompilerTarget }
@@ -663,7 +665,6 @@ interface
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
-        MacOSXVersionMin,
         iPhoneOSVersionMin: tversion;
 
         constructor Create;
@@ -684,6 +685,7 @@ interface
         procedure set_target_asmext(const s:string);
         procedure set_target_llvmdatalayout(const s: ansistring);
         property subtarget: string read Fsubtarget write Fsubtarget;
+        property MacOSXVersionMin: tversion read FMacOSXVersionMin write FMacOSXVersionMin;
       end;
 
     var
