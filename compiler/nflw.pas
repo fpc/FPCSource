@@ -2396,7 +2396,7 @@ implementation
     constructor tgotonode.create(p : tlabelsym;aexceptblock:integer;acompiler:TCompilerBase);
       begin
         inherited create(goton,acompiler);
-        exceptionblock:=compiler.globals.current_exceptblock;
+        exceptionblock:=aexceptblock;
         labelnode:=nil;
         labelsym:=p;
       end;
