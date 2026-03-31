@@ -294,7 +294,7 @@ interface
        COFF_BIG_OBJ_MAGIC: array[0..15] of byte = ($C7, $A1, $BA, $D1, $EE, $BA, $A9, $4B, $AF, $20, $FA, $F6, $6A, $A4, $DC, $B8);
        COFF_BIG_OBJ_VERSION = 2;
 
-    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
+    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc;target:TReadOnlyCompilerTarget;verbose:TVerbose):boolean;
     procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffsechdr);
     procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffheader);
     procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpeoptheader);
@@ -3854,9 +3854,7 @@ const pemagic : array[0..3] of byte = (
       Wow64RevertWow64FsRedirection : function (OldValue : pointer) : boolean;stdcall;
 {$endif win32}
 
-    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc;target:TReadOnlyCompilerTarget;verbose:TVerbose):boolean;
       var
         DLLReader : TObjectReader;
         DosHeader : array[0..$7f] of byte;
@@ -3878,21 +3876,21 @@ const pemagic : array[0..3] of byte = (
         result:=false;
         fillchar(sechdr,sizeof(sechdr),0);
 {$ifdef win32}
-        if (compiler.target.info.system=system_x86_64_win64) and
+        if (target.info.system=system_x86_64_win64) and
           assigned(Wow64DisableWow64FsRedirection) then
           Wow64DisableWow64FsRedirection(p);
 {$endif win32}
-        DLLReader:=TObjectReader.Create(compiler.verbose);
+        DLLReader:=TObjectReader.Create(verbose);
         DLLReader.OpenFile(dllname);
 {$ifdef win32}
-        if (compiler.target.info.system=system_x86_64_win64) and
+        if (target.info.system=system_x86_64_win64) and
           assigned(Wow64RevertWow64FsRedirection) then
           Wow64RevertWow64FsRedirection(p);
 {$endif win32}
         if not DLLReader.Read(DosHeader,sizeof(DosHeader)) or
            (DosHeader[0]<>$4d) or (DosHeader[1]<>$5a) then
           begin
-            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
+            verbose.Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
             exit;
           end;
         newheaderofs:=cardinal(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
@@ -3900,31 +3898,31 @@ const pemagic : array[0..3] of byte = (
         if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
            (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
           begin
-            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
+            verbose.Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
             exit;
           end;
 	header_ok:=DLLReader.Read(Header,sizeof(TCoffHeader));
-	MaybeSwap(compiler.target.info.endian,Header);
+	MaybeSwap(target.info.endian,Header);
         if not header_ok or
            (Header.mach<>COFF_MAGIC) or
            (Header.opthdr<>sizeof(tcoffpeoptheader)) then
           begin
-            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
+            verbose.Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
             exit;
           end;
         { Read optheader }
         DLLreader.Read(peheader,sizeof(tcoffpeoptheader));
-	MaybeSwap(compiler.target.info.endian,peheader);
+	MaybeSwap(target.info.endian,peheader);
         { Section headers }
         found:=false;
         for i:=1 to header.nsects do
           begin
             if not DLLreader.read(sechdr,sizeof(sechdr)) then
               begin
-                compiler.verbose.Comment(V_Error,'Error reading coff file '+DLLName);
+                verbose.Comment(V_Error,'Error reading coff file '+DLLName);
                 exit;
               end;
-            MaybeSwap(compiler.target.info.endian,sechdr);
+            MaybeSwap(target.info.endian,sechdr);
             if (sechdr.rvaofs<=peheader.DataDirectory[PE_DATADIR_EDATA].vaddr) and
                (peheader.DataDirectory[PE_DATADIR_EDATA].vaddr<sechdr.rvaofs+sechdr.vsize) then
               begin
@@ -3934,13 +3932,13 @@ const pemagic : array[0..3] of byte = (
           end;
         if not found then
           begin
-            compiler.verbose.Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
+            verbose.Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
             exit;
           end;
         { Process edata }
         DLLReader.Seek(sechdr.datapos+peheader.DataDirectory[PE_DATADIR_EDATA].vaddr-sechdr.rvaofs);
         DLLReader.Read(expdir,sizeof(expdir));
-	MaybeSwap(compiler.target.info.endian,expdir);
+	MaybeSwap(target.info.endian,expdir);
         for i:=0 to expdir.NumNames-1 do
           begin
             DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
@@ -3949,7 +3947,7 @@ const pemagic : array[0..3] of byte = (
             if {(NameOfs<0) or}
                (NameOfs>sechdr.vsize) then
               begin
-                compiler.verbose.Comment(V_Error,'DLL does contains invalid exports');
+                verbose.Comment(V_Error,'DLL does contains invalid exports');
                 break;
               end;
             { Read Function name from DLL, prepend _ and terminate with #0 }

@@ -1860,7 +1860,7 @@ implementation
         if not FindDll(hs,dllname) then
           exit;
         importfound:=false;
-        ReadDLLImports(dllname,@CheckDLLFunc);
+        ReadDLLImports(dllname,@CheckDLLFunc,compiler.target,compiler.verbose);
         if importfound then
           current_module.dllscannerinputlist.Pack;
         result:=importfound;
