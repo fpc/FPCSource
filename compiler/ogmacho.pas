@@ -63,7 +63,7 @@ type
         machoSec  : TMachoSectionType;
         function GetRelocCount: Integer;
         function FileSize: Integer;
-        constructor create(AList:TFPHashObjectList; const Aname:string; Aalign:longint; Aoptions:TObjSectionOptions);override;
+        constructor create(AList:TFPHashObjectList; const Aname:string; Aalign:longint; Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
       end;
 
     { TmachoObjData }
@@ -1206,12 +1206,12 @@ uses
 
 
   constructor TmachoObjSection.create(AList: TFPHashObjectList;
-    const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
+    const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
     begin
       if Aname = '__TEXT __textcoal_nt' then
         Aalign:=4;
 
-      inherited create(AList, Aname, Aalign, Aoptions);
+      inherited;
       GetSegmentSectionName(aName, nmsegment, nmsection);
       if (aname='.stabs') or
          (aname='.stabsstr') then

@@ -344,7 +344,7 @@ implementation
       nullstub.typ:=AT_FUNCTION;
 
       gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
-        SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint));
+        SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
       gotobjsec.SecOptions:=[oso_keep];
       { gotpltobjsec is what's pointed to by DT_PLTGOT }
       { TODO: this is not correct; under some circumstances ld can generate PLTs for MIPS,
@@ -367,7 +367,7 @@ implementation
   procedure TElfExeOutputMIPS.CreatePLT;
     begin
       pltobjsec:=TElfObjSection.create_ext(internalObjData,'.plt',
-        SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16);
+        SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,compiler.target,compiler.verbose);
       pltobjsec.SecOptions:=[oso_keep];
     end;
 
@@ -676,7 +676,7 @@ implementation
         begin
           inc(stubcount);
           newsec:=TElfObjSection.create_ext(internalObjData,'.text.stub.'+tostr(stubcount),
-            SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,0,textsec.SecAlign);
+            SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,0,textsec.SecAlign,compiler.target,compiler.verbose);
           if (newsec.SecAlign>8) then
             newsec.WriteZeros(newsec.SecAlign-8);
           pic_stub_syms.add(objsym.ExeSymbol);

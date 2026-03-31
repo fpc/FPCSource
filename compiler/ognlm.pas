@@ -28,7 +28,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,
+       cclasses,globtype,verbose,
        { target }
        systems,
        aasmbase,assemble,link,
@@ -315,7 +315,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
        end;
 
 implementation
@@ -325,7 +325,7 @@ implementation
        Windows,
 {$endif win32}
        SysUtils,
-       cutils,verbose,globals,
+       cutils,globals,
        fmodule,aasmdata,
        ogmap,export,owar,
        compiler;
@@ -1457,9 +1457,9 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                TNLMoffObjSection
 ****************************************************************************}
 
-    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
+    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
-        inherited create(alist,aname,aalign,aoptions);
+        inherited;
       end;
 
 

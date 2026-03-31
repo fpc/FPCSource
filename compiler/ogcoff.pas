@@ -122,7 +122,7 @@ interface
          coffrelocs,
          coffrelocpos : aword;
        public
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
          procedure writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
@@ -1337,9 +1337,9 @@ const pemagic : array[0..3] of byte = (
                                TCoffObjSection
 ****************************************************************************}
 
-    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
+    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
-        inherited create(AList,aname,aalign,aoptions);
+        inherited;
       end;
 
 

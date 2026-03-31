@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,compilerbase,
+       cclasses,globtype,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -53,9 +53,9 @@ interface
           shlink,
           shinfo,
           shentsize : longint;
-          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
-          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint);
-          constructor create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
+          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
+          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
+          constructor create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
           procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
@@ -67,7 +67,7 @@ interface
          fstrsec: TObjSection;
          symidx: longint;
          tlsbase: aword;
-         constructor create(aObjData:TObjData;aKind:TElfSymtabKind);reintroduce;
+         constructor create(aObjData:TObjData;aKind:TElfSymtabKind;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);reintroduce;
          procedure writeSymbol(objsym:TObjSymbol;nameidx:longword=0);
          procedure writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
        end;
@@ -342,7 +342,7 @@ implementation
 
       uses
         SysUtils,
-        verbose,compiler,
+        compiler,
         export,expunix,
         cutils,globals,fmodule,owar;
 
@@ -435,9 +435,9 @@ implementation
                                TElfObjSection
 ****************************************************************************}
 
-    constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);
+    constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
-        inherited create(AList,Aname,Aalign,aoptions);
+        inherited;
         index:=0;
         shstridx:=0;
         encodesechdrflags(aoptions,shtype,shflags);
@@ -448,12 +448,12 @@ implementation
       end;
 
 
-    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint);
+    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       var
         aoptions : TObjSectionOptions;
       begin
         decodesechdrflags(Ashtype,Ashflags,aoptions);
-        inherited create(aobjdata.ObjSectionList,Aname,Aalign,aoptions);
+        inherited create(aobjdata.ObjSectionList,Aname,Aalign,aoptions,Atarget,Averbose);
         objdata:=aobjdata;
         index:=0;
         shstridx:=0;
@@ -467,14 +467,16 @@ implementation
       relsec_prefix:array[boolean] of string[5] = ('.rel','.rela');
       relsec_shtype:array[boolean] of longword = (SHT_REL,SHT_RELA);
 
-    constructor TElfObjSection.create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
+    constructor TElfObjSection.create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
         create_ext(aobjdata,
           relsec_prefix[ElfTarget.relocs_use_addend]+aname,
           relsec_shtype[ElfTarget.relocs_use_addend],
           SHF_ALLOC*ord(allocflag),
           sizeof(pint),
-          (2+ord(ElfTarget.relocs_use_addend))*sizeof(pint));
+          (2+ord(ElfTarget.relocs_use_addend))*sizeof(pint),
+          Atarget,
+          Averbose);
       end;
 
 
@@ -762,13 +764,13 @@ implementation
       symsecattrs: array[boolean] of longword  = (0,SHF_ALLOC);
 
 
-    constructor TElfSymtab.create(aObjData:TObjData;aKind:TElfSymtabKind);
+    constructor TElfSymtab.create(aObjData:TObjData;aKind:TElfSymtabKind;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       var
         dyn:boolean;
       begin
         dyn:=(aKind=esk_dyn);
-        create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],sizeof(pint),sizeof(TElfSymbol));
-        fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],1,0);
+        create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],sizeof(pint),sizeof(TElfSymbol),Atarget,Averbose);
+        fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],1,0,Atarget,Averbose);
         fstrsec.writezeros(1);
         writezeros(sizeof(TElfSymbol));
         symidx:=1;
@@ -777,8 +779,6 @@ implementation
       end;
 
     procedure TElfSymtab.writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         elfsym:TElfSymbol;
       begin
@@ -789,13 +789,11 @@ implementation
         elfsym.st_shndx:=ashndx;
         inc(symidx);
         inc(shinfo);
-        MaybeSwapElfSymbol(compiler.target.info.endian,elfsym);
+        MaybeSwapElfSymbol(target.info.endian,elfsym);
         write(elfsym,sizeof(elfsym));
       end;
 
     procedure TElfSymtab.writeSymbol(objsym:TObjSymbol;nameidx:longword);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         elfsym:TElfSymbol;
       begin
@@ -883,7 +881,7 @@ implementation
               end;
           end;
         inc(symidx);
-        MaybeSwapElfSymbol(compiler.target.info.endian,elfsym);
+        MaybeSwapElfSymbol(target.info.endian,elfsym);
         write(elfsym,sizeof(TElfSymbol));
       end;
 
@@ -907,7 +905,7 @@ implementation
         relocsect : TElfObjSection;
       begin
         { create the reloc section }
-        relocsect:=TElfObjSection.create_reloc(data,s.name,false);
+        relocsect:=TElfObjSection.create_reloc(data,s.name,false,compiler.target,compiler.verbose);
         relocsect.shlink:=symtabsect.index;
         relocsect.shinfo:=s.index;
         { add the relocations }
@@ -1069,13 +1067,13 @@ implementation
         with data do
          begin
            { default sections }
-           symtabsect:=TElfSymtab.create(data,esk_obj);
-           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
+           symtabsect:=TElfSymtab.create(data,esk_obj,compiler.target,compiler.verbose);
+           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0,compiler.target,compiler.verbose);
            { "no executable stack" marker }
            { TODO: used by OpenBSD/NetBSD as well? }
            if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
               not(cs_executable_stack in compiler.globals.current_settings.moduleswitches) then
-             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
+             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0,compiler.target,compiler.verbose);
            { symbol for filename }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
            symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
@@ -1342,7 +1340,7 @@ implementation
         secname:=string(PChar(@shstrtab[shdr.sh_name]));
 
         result:=TElfObjSection.create_ext(objdata,secname,
-          shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize);
+          shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize,compiler.target,compiler.verbose);
 
         result.index:=index;
         result.DataPos:=shdr.sh_offset;
@@ -2141,10 +2139,10 @@ implementation
     procedure TElfExeOutput.CreateGOTSection;
       begin
         gotpltobjsec:=TElfObjSection.create_ext(internalObjData,'.got.plt',
-          SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint));
+          SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
 
         gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
-            SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint));
+            SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
         gotobjsec.SecOptions:=[oso_keep];
 
         { GOT symbol and reserved .got.plt entries }
@@ -2473,7 +2471,7 @@ implementation
           end;
 
         { Create .shstrtab section, which is needed in both exe and .dbg files }
-        shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0);
+        shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0,compiler.target,compiler.verbose);
         shstrtabsect.SecOptions:=[oso_debug_copy];
         AttachSection(shstrtabsect);
 
@@ -2481,7 +2479,7 @@ implementation
         if (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) or
           not(cs_link_strip in compiler.globals.current_settings.globalswitches) then
           begin
-            symtab:=TElfSymtab.Create(internalObjData,esk_exe);
+            symtab:=TElfSymtab.Create(internalObjData,esk_exe,compiler.target,compiler.verbose);
             symtab.SecOptions:=[oso_debug];
             symtab.fstrsec.SecOptions:=[oso_debug];
             AttachSection(symtab);
@@ -2819,32 +2817,32 @@ implementation
           end;
 
         hashobjsec:=TElfObjSection.create_ext(internalObjData,'.hash',
-          SHT_HASH,SHF_ALLOC,sizeof(pint),4);
+          SHT_HASH,SHF_ALLOC,sizeof(pint),4,compiler.target,compiler.verbose);
         hashobjsec.secoptions:=[oso_keep];
 
-        dynsymtable:=TElfSymtab.create(internalObjData,esk_dyn);
+        dynsymtable:=TElfSymtab.create(internalObjData,esk_dyn,compiler.target,compiler.verbose);
 
         dynamicsec:=TElfObjSection.create_ext(internalObjData,'.dynamic',
-          SHT_DYNAMIC,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(TElfDyn));
+          SHT_DYNAMIC,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(TElfDyn),compiler.target,compiler.verbose);
         dynamicsec.SecOptions:=[oso_keep];
 
-        dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true);
+        dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true,compiler.target,compiler.verbose);
         dynrelocsec.SecOptions:=[oso_keep];
 
         dynbssobjsec:=TElfObjSection.create_ext(internalObjData,'.dynbss',
-          SHT_NOBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint){16??},0);
+          SHT_NOBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint){16??},0,compiler.target,compiler.verbose);
         dynbssobjsec.SecOptions:=[oso_keep];
 
         dynreloclist:=TFPObjectList.Create(true);
 
         symversec:=TElfObjSection.create_ext(internalObjData,'.gnu.version',
-          SHT_GNU_VERSYM,SHF_ALLOC,sizeof(word),sizeof(word));
+          SHT_GNU_VERSYM,SHF_ALLOC,sizeof(word),sizeof(word),compiler.target,compiler.verbose);
         symversec.SecOptions:=[oso_keep];
         verdefsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_d',
-          SHT_GNU_VERDEF,SHF_ALLOC,sizeof(pint),0);
+          SHT_GNU_VERDEF,SHF_ALLOC,sizeof(pint),0,compiler.target,compiler.verbose);
         verdefsec.SecOptions:=[oso_keep];
         verneedsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_r',
-          SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0);
+          SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0,compiler.target,compiler.verbose);
         verneedsec.SecOptions:=[oso_keep];
         dyncopysyms:=TFPObjectList.Create(False);
       end;
@@ -3191,13 +3189,13 @@ implementation
         reloc: TObjRelocation;
       begin
         pltobjsec:=TElfObjSection.create_ext(internalObjData,'.plt',
-          SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16);
+          SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,compiler.target,compiler.verbose);
         pltobjsec.SecOptions:=[oso_keep,oso_plt];
 
-        pltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.plt',true);
+        pltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.plt',true,compiler.target,compiler.verbose);
         pltrelocsec.SecOptions:=[oso_keep];
 
-        ipltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.iplt',true);
+        ipltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.iplt',true,compiler.target,compiler.verbose);
         ipltrelocsec.SecOptions:=[oso_keep];
 
         { reference .dynamic from .got.plt, this isn't necessary if linking statically }

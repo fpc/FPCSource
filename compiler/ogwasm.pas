@@ -27,7 +27,7 @@ interface
 
     uses
       { common }
-      sysutils,cclasses,globtype,
+      sysutils,cclasses,globtype,verbose,
       { target }
       systems,cpubase,compilerbase,
       { assembler }
@@ -136,7 +136,7 @@ interface
         FileSectionOfs: qword;
         MainFuncSymbol: TWasmObjSymbol;
         CustomSectionIdx: Integer;
-        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
         function IsCode: Boolean;
         function IsData: Boolean;
         function IsDebug: Boolean;
@@ -353,7 +353,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,version,globals,fmodule,ogmap,compiler;
+      cutils,version,globals,fmodule,ogmap,compiler;
 
     const
       StackPointerSymStr='__stack_pointer';
@@ -844,9 +844,9 @@ implementation
                               TWasmObjSection
 ****************************************************************************}
 
-    constructor TWasmObjSection.create(AList: TFPHashObjectList; const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
+    constructor TWasmObjSection.create(AList: TFPHashObjectList; const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
-        inherited create(AList, Aname, Aalign, Aoptions);
+        inherited;
         SegIdx:=-1;
         SegSymIdx:=-1;
         CustomSectionIdx:=-1;

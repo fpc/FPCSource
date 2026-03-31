@@ -29,6 +29,7 @@ interface
       { common }
       cutils,
       cclasses,
+      verbose,
       compilerbase,
       { targets }
       systems,globtype,
@@ -316,6 +317,8 @@ interface
 
      TObjSection = class(TFPHashObject)
      private
+       FTarget: TReadOnlyCompilerTarget;
+       FVerbose: TVerbose;
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
        FCachedFullName : pshortstring;
@@ -324,6 +327,8 @@ interface
        procedure SectionTooLargeError;
      protected
        function GetAltName: string; virtual;
+       property Target: TreadOnlyCompilerTarget read FTarget;
+       property Verbose: TVerbose read FVerbose;
      public
        ObjData    : TObjData;
        index      : longword;  { index of section in section headers }
@@ -343,7 +348,7 @@ interface
        ExeSection  : TExeSection;
        USed        : Boolean;
        VTRefList : TFPObjectList;
-       constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
+       constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);virtual;
        destructor  destroy;override;
        function  ToString:ansistring;override;
        function  write(const d;l:TObjSectionOfs):TObjSectionOfs;
@@ -808,7 +813,7 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,compiler,
+      globals,compiler,
 {$ifdef OMFOBJSUPPORT}
       omfbase,
 {$endif OMFOBJSUPPORT}
@@ -1061,7 +1066,7 @@ implementation
                               TObjSection
 ****************************************************************************}
 
-    constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);
+    constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
         inherited Create(AList,Aname);
         { Data }
@@ -1120,13 +1125,11 @@ implementation
 
 
     procedure TObjSection.SectionTooLargeError;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if oso_executable in SecOptions then
-          compiler.verbose.Message(asmw_f_code_segment_too_large)
+          verbose.Message(asmw_f_code_segment_too_large)
         else
-          compiler.verbose.Message(asmw_f_data_segment_too_large);
+          verbose.Message(asmw_f_data_segment_too_large);
       end;
 
 
@@ -1666,7 +1669,7 @@ implementation
           result:=nil;
         if not assigned(result) then
           begin
-            result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions);
+            result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions,compiler.target,compiler.verbose);
             result.ObjData:=self;
           end;
         FCurrObjSec:=result;

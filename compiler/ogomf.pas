@@ -30,7 +30,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,compilerbase,
+       cclasses,globtype,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -85,7 +85,7 @@ interface
       protected
         function GetAltName: string; override;
       public
-        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);override;
         destructor destroy;override;
         function MemPosStr(AImageBase: qword): string;override;
         property ClassName: string read FClassName;
@@ -803,7 +803,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,verbose,globals,fpchash,
+       cutils,globals,fpchash,
        fmodule,aasmtai,aasmdata,
        ogmap,owomflib,elfbase,
        version,
@@ -1020,9 +1020,9 @@ implementation
       end;
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
-          const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
+          const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions;Atarget:TReadOnlyCompilerTarget;Averbose:TVerbose);
       begin
-        inherited create(AList, Aname, Aalign, Aoptions);
+        inherited;
         FCombination:=scPublic;
         FUse:=suUse16;
         FLinNumEntries:=TOmfSubRecord_LINNUM_MsLink_LineNumberList.Create;
@@ -1173,7 +1173,7 @@ implementation
         result:=TObjSection(ObjSectionList.Find(secname));
         if not assigned(result) then
           begin
-            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write]);
+            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write],compiler.target,compiler.verbose);
             result.ObjData:=self;
             TOmfObjSection(Result).FClassName:='FAR_DATA';
           end;
