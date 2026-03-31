@@ -208,7 +208,7 @@ interface
           { when copying trees, this points to the newly created copy of a label }
           copiedto : tlabelnode;
           labsym : tlabelsym;
-          constructor create(l:tnode;alabsym:tlabelsym;acompiler:TCompilerBase);virtual;
+          constructor create(l:tnode;alabsym:tlabelsym;aexceptblock:integer;acompiler:TCompilerBase);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -2558,10 +2558,10 @@ implementation
                              TLABELNODE
 *****************************************************************************}
 
-    constructor tlabelnode.create(l:tnode;alabsym:tlabelsym;acompiler:TCompilerBase);
+    constructor tlabelnode.create(l:tnode;alabsym:tlabelsym;aexceptblock:integer;acompiler:TCompilerBase);
       begin
         inherited create(labeln,acompiler);
-        exceptionblock:=compiler.globals.current_exceptblock;
+        exceptionblock:=aexceptblock;
         labsym:=alabsym;
         { Register labelnode in labelsym }
         labsym.code:=self;
@@ -2721,7 +2721,7 @@ implementation
             else
               begin
                 third:=compiler.cinlinenode(in_get_frame,false,nil);
-                current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
+                current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'),compiler.globals.current_exceptblock);
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);
                 right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));

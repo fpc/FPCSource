@@ -367,7 +367,7 @@ type
     function cfornode(l,r,_t1,_t2 : tnode;back : boolean):tfornode; inline;
     function cexitnode(l:tnode):texitnode; inline;
     function cgotonode(p : tlabelsym;aexceptblock:integer):tgotonode; inline;
-    function clabelnode(l:tnode;alabsym:tlabelsym):tlabelnode; inline;
+    function clabelnode(l:tnode;alabsym:tlabelsym;aexceptblock:integer):tlabelnode; inline;
     function craisenode(l,taddr,tframe:tnode):traisenode; inline;
     function ctryexceptnode(l,r,_t1 : tnode):ttryexceptnode; inline;
     function ctryfinallynode(l,r:tnode):ttryfinallynode; inline;
@@ -1394,9 +1394,9 @@ begin
   result:=nflw.cgotonode.create(p,aexceptblock,self);
 end;
 
-function TCompilerHelper.clabelnode(l: tnode; alabsym: tlabelsym): tlabelnode; inline;
+function TCompilerHelper.clabelnode(l: tnode; alabsym: tlabelsym;aexceptblock:integer): tlabelnode; inline;
 begin
-  result:=nflw.clabelnode.create(l,alabsym,self);
+  result:=nflw.clabelnode.create(l,alabsym,aexceptblock,self);
 end;
 
 function TCompilerHelper.craisenode(l, taddr, tframe: tnode): traisenode; inline;

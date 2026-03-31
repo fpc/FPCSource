@@ -1557,7 +1557,7 @@ implementation
                      end;
 
                    tlabelsym(srsym).defined:=true;
-                   p:=compiler.clabelnode(nil,tlabelsym(srsym));
+                   p:=compiler.clabelnode(nil,tlabelsym(srsym),compiler.globals.current_exceptblock);
                    tlabelsym(srsym).code:=p;
                  end
                 else

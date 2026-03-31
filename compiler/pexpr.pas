@@ -3359,7 +3359,7 @@ implementation
                         compiler.verbose.Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                     end;
                   tlabelsym(srsym).defined:=true;
-                  result:=compiler.clabelnode(nil,tlabelsym(srsym));
+                  result:=compiler.clabelnode(nil,tlabelsym(srsym),compiler.globals.current_exceptblock);
                   tlabelsym(srsym).code:=result;
                 end;
             end;

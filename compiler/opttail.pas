@@ -300,7 +300,7 @@ type
 {$endif fix_opttail}
 
         labelsym:=clabelsym.create('$opttail');
-        labelnode:=compiler.clabelnode(compiler.cnothingnode,labelsym);
+        labelnode:=compiler.clabelnode(compiler.cnothingnode,labelsym,compiler.globals.current_exceptblock);
         if find_and_replace_tailcalls(n) then
           begin
 {$ifdef debug_opttail}
