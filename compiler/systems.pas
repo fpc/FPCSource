@@ -627,10 +627,10 @@ interface
 
     type
 
-      { TCompilerTarget }
+      { TReadOnlyCompilerTarget }
 
-      TCompilerTarget = class
-      private
+      TReadOnlyCompilerTarget = class
+      protected
         Fcpu  : tsystemcpu;
         Finfo : tsysteminfo;
         Fasm  : tasminfo;
@@ -640,6 +640,22 @@ interface
         Fcpu_string: string;
         Fos_string: string; { for rtl/<X>/,fcl/<X>/, etc. }
         Ffull_string: string;
+      public
+        property cpu: tsystemcpu read Fcpu;
+        property info : tsysteminfo read Finfo;
+        property _asm : tasminfo read Fasm;
+        property ar: tarinfo read Far;
+        property res: tresinfo read Fres;
+        property dbg: tdbginfo read Fdbg;
+        property cpu_string: string read Fcpu_string;
+        property os_string: string read Fos_string;
+        property full_string: string read Ffull_string;
+      end;
+
+      { TCompilerTarget }
+
+      TCompilerTarget = class(TReadOnlyCompilerTarget)
+      private
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -666,15 +682,6 @@ interface
         procedure set_target_exeext(const s:string);
         procedure set_target_asmext(const s:string);
         procedure set_target_llvmdatalayout(const s: ansistring);
-        property cpu: tsystemcpu read Fcpu;
-        property info : tsysteminfo read Finfo;
-        property _asm : tasminfo read Fasm;
-        property ar: tarinfo read Far;
-        property res: tresinfo read Fres;
-        property dbg: tdbginfo read Fdbg;
-        property cpu_string: string read Fcpu_string;
-        property os_string: string read Fos_string;
-        property full_string: string read Ffull_string;
       end;
 
     var
