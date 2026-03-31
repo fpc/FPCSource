@@ -127,7 +127,7 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqrt_real := nil;
-             if needs_check_for_fpu_exceptions then
+             if compiler.globals.needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
          else
@@ -153,7 +153,7 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqr_real := nil;
-             if needs_check_for_fpu_exceptions then
+             if compiler.globals.needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
          else
@@ -171,7 +171,7 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_round_real := nil;
-             if needs_check_for_fpu_exceptions then
+             if compiler.globals.needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
          else
@@ -189,7 +189,7 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_trunc_real := nil;
-             if needs_check_for_fpu_exceptions then
+             if compiler.globals.needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
          else
@@ -199,7 +199,7 @@ implementation
 
      function trvinlinenode.first_fma: tnode;
        begin
-         if needs_check_for_fpu_exceptions then
+         if compiler.globals.needs_check_for_fpu_exceptions then
            Include(current_procinfo.flags,pi_do_call);
          Result:=nil;
        end;
@@ -211,7 +211,7 @@ implementation
           begin
             expectloc:=LOC_FPUREGISTER;
             Result:=nil;
-            if needs_check_for_fpu_exceptions then
+            if compiler.globals.needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
           end
         else

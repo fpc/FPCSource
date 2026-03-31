@@ -1782,7 +1782,7 @@ unit cgcpu;
         l: TAsmLabel;
       begin
         if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) and
-          needs_check_for_fpu_exceptions and
+          compiler.globals.needs_check_for_fpu_exceptions and
           (force or current_procinfo.FPUExceptionCheckNeeded) then
           begin
             r:=getintregister(list,OS_INT);

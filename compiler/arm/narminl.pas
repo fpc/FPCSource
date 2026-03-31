@@ -187,7 +187,7 @@ implementation
                 internalerror(2009112401);
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
-              needs_check_for_fpu_exceptions then
+              compiler.globals.needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_abs_real:=nil;
           end;
@@ -218,7 +218,7 @@ implementation
                 internalerror(2009112402);
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
-              needs_check_for_fpu_exceptions then
+              compiler.globals.needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_sqr_real:=nil;
           end;
@@ -249,7 +249,7 @@ implementation
                 internalerror(2009112403);
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
-              needs_check_for_fpu_exceptions then
+              compiler.globals.needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_sqrt_real := nil;
           end;
@@ -263,7 +263,7 @@ implementation
              expectloc:=LOC_MMREGISTER;
              Result:=nil;
              if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
-               needs_check_for_fpu_exceptions then
+               compiler.globals.needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
          else

@@ -359,7 +359,7 @@ interface
             else
               expectloc:=LOC_FPUREGISTER;
 
-            if needs_check_for_fpu_exceptions then
+            if compiler.globals.needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
           end
         else
