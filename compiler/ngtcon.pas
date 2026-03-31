@@ -215,7 +215,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             loadvmtaddrn:
               begin
                 { update wpo info }
-                if wpoinfomanager.symbol_live_in_currentproc(n.resultdef) then
+                if compiler.wpoinfomanager.symbol_live_in_currentproc(n.resultdef) then
                   tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
             else

@@ -2485,7 +2485,7 @@ type
               compiler.linker.MakeExecutable;
 
             { collect all necessary information for whole-program optimization }
-            wpoinfomanager.extractwpoinfofromprogram;
+            compiler.wpoinfomanager.extractwpoinfofromprogram;
 
       end;
 

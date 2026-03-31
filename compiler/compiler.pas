@@ -157,7 +157,7 @@ uses
 {$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
-  ,hlcgobj,cgobj,tgobj
+  ,hlcgobj,cgobj,tgobj,wpobase
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr,syscinfo
   ,opt,optloop
   ,aasmdata
@@ -203,6 +203,7 @@ type
 {$endif cpu64bitalu}
     Fparamanager : tparamanager;
     Ftg: ttgobj;
+    Fwpoinfomanager: twpoinfomanagerbase;
     FDefaultSyscallConvention: TDefaultSyscallConvention;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -262,6 +263,7 @@ type
 {$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
     property tg: ttgobj read Ftg write Ftg;
+    property wpoinfomanager: twpoinfomanagerbase read Fwpoinfomanager write Fwpoinfomanager;
     property DefaultSyscallConvention: TDefaultSyscallConvention read FDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -306,6 +308,7 @@ type
     function GetTG: ttgobj; inline;
     function GetTime: TCompilerTime; inline;
     function GetVerbose: TVerbose; inline;
+    function GetWpoInfoManager: twpoinfomanagerbase; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
   public
     { node constructor helpers }
@@ -442,6 +445,7 @@ type
 {$endif cpu64bitalu}
     property paramanager: tparamanager read GetParaManager;
     property tg: ttgobj read GetTG;
+    property wpoinfomanager: twpoinfomanagerbase read GetWpoInfoManager;
     property DefaultSyscallConvention: TDefaultSyscallConvention read GetDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -1095,6 +1099,11 @@ end;
 function TCompilerHelper.GetVerbose: TVerbose; inline;
 begin
   Result := TCompiler(Self).Verbose;
+end;
+
+function TCompilerHelper.GetWpoInfoManager: twpoinfomanagerbase; inline;
+begin
+  Result := TCompiler(Self).wpoinfomanager;
 end;
 
 procedure TCompilerHelper.Setaktassignmentnode(AValue: tassignmentnode); inline;

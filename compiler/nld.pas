@@ -470,7 +470,7 @@ implementation
                  type }
                if fprocdef.wpo_may_create_instance(left) then
                  begin
-                   if wpoinfomanager.symbol_live_in_currentproc(tdef(symtable.defowner)) then
+                   if compiler.wpoinfomanager.symbol_live_in_currentproc(tdef(symtable.defowner)) then
                      begin
                        if assigned(left) then
                          tobjectdef(left.resultdef).register_created_object_type

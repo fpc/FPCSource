@@ -1042,7 +1042,7 @@ implementation
                if current_module.globalsymtable<>systemunit then
                  current_module.add_extern_asmsym(procname,AB_EXTERNAL,AT_FUNCTION);
              end
-           else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
+           else if not compiler.wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              begin
                procname:=vmtpd.mangledname;
                if current_module.moduleid<>vmtpd.owner.moduleid then

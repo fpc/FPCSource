@@ -2757,7 +2757,7 @@ implementation
                 { Only a typenode can be passed when it is called with <class of xx>.create }
                 if (methodpointer.nodetype=typen) then
                   begin
-                    if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
+                    if compiler.wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                       { we know the exact class type being created }
                       tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
                   end
@@ -2767,12 +2767,12 @@ implementation
                     if (methodpointer.nodetype=loadvmtaddrn) and
                        (tloadvmtaddrnode(methodpointer).left.nodetype=typen) then
                       begin
-                        if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
+                        if compiler.wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                           tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
                       end
                     else
                       begin
-                        if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
+                        if compiler.wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                           begin
                             { special case: if the classref comes from x.classtype (with classtype,
                               being tobject.classtype) then the created instance is x or a descendant
@@ -2814,7 +2814,7 @@ implementation
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
               begin
-                if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
+                if compiler.wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                   methodpointer.resultdef.register_created_object_type;
               end
             else
@@ -2826,7 +2826,7 @@ implementation
                   if (procdefinition.proctypeoption=potype_constructor) then
                     begin
                       if (methodpointer.nodetype<>typen) and
-                         wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
+                         compiler.wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                         methodpointer.resultdef.register_created_object_type;
                     end
                 end;

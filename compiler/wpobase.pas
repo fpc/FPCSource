@@ -342,10 +342,6 @@ type
     destructor destroy; override;
   end;
 
-
-  var
-    wpoinfomanager: twpoinfomanagerbase;
-
 implementation
 
   uses

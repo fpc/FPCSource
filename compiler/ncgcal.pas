@@ -1078,7 +1078,7 @@ implementation
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
                 (not assigned(current_procinfo) or
-                 wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                 compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifdef vtentry}
              if not is_interface(tprocdef(procdefinition)._class) then
@@ -1096,7 +1096,7 @@ implementation
                 not is_objectpascal_helper(tprocdef(procdefinition).struct) and
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
-                not wpoinfomanager.can_be_devirtualized(methodpointer.resultdef,procdefinition,name_to_call) then
+                not compiler.wpoinfomanager.can_be_devirtualized(methodpointer.resultdef,procdefinition,name_to_call) then
                begin
                  { virtual methods require an index }
                  if tprocdef(procdefinition).extnumber=$ffff then
@@ -1107,7 +1107,7 @@ implementation
 
                  { register call for WPO }
                  if (not assigned(current_procinfo) or
-                     wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                     compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 
                  if not(vmt_entry.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then

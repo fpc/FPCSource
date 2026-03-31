@@ -47,20 +47,20 @@ implementation
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { always create so we don't have to litter the source with if-tests }
-      wpoinfomanager:=twpoinfomanager.create;
+      tcompiler(compiler).wpoinfomanager:=twpoinfomanager.create;
 
       { register the classes we can/should potentially use }
-      wpoinfomanager.registerwpocomponentclass(tprogdevirtinfo);
-      wpoinfomanager.registerwpocomponentclass(twpodeadcodeinfofromexternallinker);
+      compiler.wpoinfomanager.registerwpocomponentclass(tprogdevirtinfo);
+      compiler.wpoinfomanager.registerwpocomponentclass(twpodeadcodeinfofromexternallinker);
 
       { assign input/output feedback files }
       if (compiler.globals.wpofeedbackinput<>'') then
-        wpoinfomanager.setwpoinputfile(compiler.globals.wpofeedbackinput);
+        compiler.wpoinfomanager.setwpoinputfile(compiler.globals.wpofeedbackinput);
       if (compiler.globals.wpofeedbackoutput<>'') then
-        wpoinfomanager.setwpooutputfile(compiler.globals.wpofeedbackoutput);
+        compiler.wpoinfomanager.setwpooutputfile(compiler.globals.wpofeedbackoutput);
 
       { parse input }
-      wpoinfomanager.parseandcheckwpoinfo;
+      compiler.wpoinfomanager.parseandcheckwpoinfo;
 
       { abort if error }
       if (compiler.verbose.codegenerror) then
@@ -72,8 +72,8 @@ implementation
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      wpoinfomanager.free;
-      wpoinfomanager:=nil;
+      tcompiler(compiler).wpoinfomanager.free;
+      tcompiler(compiler).wpoinfomanager:=nil;
       compiler.globals.wpofeedbackinput:='';
       compiler.globals.wpofeedbackoutput:='';
     end;

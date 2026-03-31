@@ -620,7 +620,7 @@ implementation
                         not is_objectpascal_helper(procdef.struct) then
                        begin
                          if (not assigned(current_procinfo) or
-                             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                             compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                            tobjectdef(procdef.struct).register_vmt_call(procdef.extnumber);
             {$ifdef vtentry}
                          if not is_interface(procdef.struct) then

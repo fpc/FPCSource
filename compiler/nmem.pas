@@ -305,7 +305,7 @@ implementation
                  not is_objcclassref(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
-                wpoinfomanager.symbol_live_in_currentproc(left.resultdef) then
+                compiler.wpoinfomanager.symbol_live_in_currentproc(left.resultdef) then
              begin
                { keep track of which classes might be instantiated via a classrefdef }
                if (left.resultdef.typ=classrefdef) then
