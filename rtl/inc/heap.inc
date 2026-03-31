@@ -382,13 +382,7 @@ type
       emptyArenas: pFixedArena; { Empty fixed arenas to be reused instead of slower AllocVar. Singly linked list, “prev”s are garbage. }
       nEmptyArenas: SizeUint; { # of items in emptyArenas. }
       freeOS1: pVarOSChunk; { Just one cached empty OS chunk so that borderline (free + alloc) × N scenarios don’t lead to N OS allocations. }
-    {$ifdef FPC_HAS_FEATURE_THREADING}
-      toFree: pFreeChunk; { Free requests from other threads, atomic. }
-    {$endif}
-
       used, maxUsed {$ifdef HAS_SYSOSFREE}, allocated, maxAllocated {$endif}: SizeUint; { “maxUsed” and “maxAllocated” include gs.hugeUsed; “used” and “allocated” don’t. }
-
-      varOS: pVarOSChunk;
 
       { Fixed arenas with at least 1 free chunk (including unformatted space), but not completely empty.
         Fixed arenas that become completely empty are moved to emptyArenas, completely full are... not present in any list. }
@@ -398,7 +392,18 @@ type
         (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
       allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
 
+      varOS: pVarOSChunk;
       varFree: VarFreeMap;
+
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      toFree: pFreeChunk; { Free requests from other threads, atomic. }
+      { Note it’s better to physically place toFree on a separate or cold cache line to avoid false sharing.
+        Presently, it physically resides between the last bins of varFree
+        (not exactly and not always the coldest places, but the sheer size of varFree is what separates toFree from the hot, strictly thread-local fields above)
+        and ThreadState.prev... and/or potentially touches the next threadvar ;(.
+        Ideally 64-byte padding can be added before and after toFree (assuming 64-byte cache lines), but this means using extra 128 bytes.
+        Or even more ideally, “toFree: record ... end align 64” could be used, but threadvar alignment is presently broken anyway. }
+    {$endif FPC_HAS_FEATURE_THREADING}
 
     {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
       prev, next: pThreadState; { For gs.threads. }
