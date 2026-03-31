@@ -663,7 +663,7 @@ interface
         FMangledName : string;
         FCachedExeSymbol: TExeSymbol;
       public
-        constructor create(AList:TFPHashObjectList;const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
+        constructor create(AList:TFPHashObjectList;const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean;target:TReadOnlyCompilerTarget);
         property OrdNr: longint read FOrdNr;
         property MangledName: string read FMangledName;
         property IsVar: boolean read FIsVar;
@@ -2376,9 +2376,7 @@ implementation
 ****************************************************************************}
 
     constructor TImportSymbol.create(AList:TFPHashObjectList;
-            const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+            const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean;target:TReadOnlyCompilerTarget);
       begin
         inherited Create(AList, AName);
         FOrdNr:=AOrdNr;
@@ -2386,7 +2384,7 @@ implementation
         FMangledName:=AMangledName;
         { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
         { This allows to import VC++ mangled names from DLLs. }
-        if compiler.target.info.system in systems_all_windows then
+        if target.info.system in systems_all_windows then
           begin
             Replace(FMangledName,'?','__q$$');
 {$ifdef arm}

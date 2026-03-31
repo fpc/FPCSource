@@ -1714,7 +1714,7 @@ implementation
               { negative ordinal number indicates import by name with ordinal number as hint }
               OrdNr:=-OrdNr;
             ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,
-              symname,symmangledname,OrdNr,isvar);
+              symname,symmangledname,OrdNr,isvar,compiler.target);
           end;
       end;
 

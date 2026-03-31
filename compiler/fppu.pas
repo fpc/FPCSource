@@ -1475,7 +1475,7 @@ var
                 extsymordnr:=ppufile.getlongint;
                 extsymisvar:=(ppufile.getbyte<>0);
                 TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,
-                  extsymmangledname,extsymordnr,extsymisvar);
+                  extsymmangledname,extsymordnr,extsymisvar,compiler.target);
               end;
           end;
       end;

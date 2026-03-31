@@ -1271,7 +1271,7 @@ implementation
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,compiler.target);
       end;
 
     procedure TOmfObjData.AddExportSymbol(aExportByOrdinal, aResidentName,
@@ -4483,7 +4483,7 @@ cleanup:
           ImportLibrary:=TImportLibrary.Create(FImports,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,compiler.target);
       end;
 
     procedure TNewExeOutput.AddImportLibrariesExtractedFromObjectModules;
