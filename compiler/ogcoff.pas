@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,compilerbase,
+       cclasses,globtype,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -306,7 +306,7 @@ implementation
        Windows,
 {$endif win32}
        SysUtils,
-       cutils,verbose,globals,compiler,
+       cutils,globals,compiler,
        cpubase,cpuinfo,
        fmodule,
        ogmap,
