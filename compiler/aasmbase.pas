@@ -249,7 +249,7 @@ interface
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
-    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TCompilerTarget): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TReadOnlyCompilerTarget): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -269,7 +269,7 @@ implementation
       verbose,fpchash,compiler;
 
 
-    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TCompilerTarget): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TReadOnlyCompilerTarget): ansistring;
       var
         i : longint;
         rchar, ochar: char;
