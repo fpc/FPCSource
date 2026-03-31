@@ -554,7 +554,7 @@ begin
      not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
@@ -668,7 +668,7 @@ begin
      not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;

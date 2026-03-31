@@ -295,7 +295,7 @@ begin
      not(tf_no_backquote_support in source_info.flags) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
       linkscript.AddLinkCommand(binstr,CmdStr,'');
 //      if (extdbgbinstr<>'') then
 //        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
@@ -389,7 +389,7 @@ begin
 
   libfn:=maybequoted(current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
-  linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
+  linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
   linkscript.AddLinkCommand(binstr,CmdStr,'');
   { delete the target static library containing the dynamic object file in
     case it already existed }

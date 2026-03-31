@@ -110,7 +110,7 @@ var
 
 Function ScriptFixFileName(const s:TCmdStr):TCmdStr;
 Procedure GenerateAsmRes(const st : TCmdStr);
-Function GenerateScript(const st : TCmdStr): TAsmScript;
+Function GenerateScript(const st : TCmdStr; compiler: TCompilerBase): TAsmScript;
 
 
 implementation
@@ -474,13 +474,13 @@ end;
 
 
 Procedure GenerateAsmRes(const st : TCmdStr);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  AsmRes:=GenerateScript(st);
+  AsmRes:=GenerateScript(st,compiler);
 end;
 
-function GenerateScript(const st: TCmdStr): TAsmScript;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function GenerateScript(const st: TCmdStr; compiler: TCompilerBase): TAsmScript;
   var
     scripttyp : tscripttype;
   begin
