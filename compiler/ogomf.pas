@@ -170,7 +170,7 @@ interface
       protected
         function writeData(Data:TObjData):boolean;override;
       public
-        constructor create(AWriter:TObjectWriter;acompiler:tcompilerbase);override;
+        constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor Destroy;override;
         procedure WriteDllImport(const dllname,afuncname,mangledname:string;ordnr:longint;isvar:boolean);
       end;
@@ -1603,7 +1603,7 @@ implementation
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
         Header:=TOmfRecord_THEADR.Create;
-        if cs_debuginfo in compiler.globals.current_settings.moduleswitches then
+        if cs_debuginfo in globals.current_settings.moduleswitches then
           Header.ModuleName:=TOmfObjData(Data).MainSource
         else
           Header.ModuleName:=Data.Name;
@@ -1616,15 +1616,15 @@ implementation
         Translator_COMENT:=TOmfRecord_COMENT.Create;
         Translator_COMENT.CommentClass:=CC_Translator;
         Translator_COMENT.CommentString:='FPC '+full_version_string+
-        ' ['+date_string+'] for '+compiler.target.cpu_string+' - '+compiler.target.info.shortname;
+        ' ['+date_string+'] for '+target.cpu_string+' - '+target.info.shortname;
         Translator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
         Translator_COMENT := nil;
 
-        if (compiler.target.dbg.id=dbg_codeview) or
-           ((ds_dwarf_omf_linnum in compiler.globals.current_settings.debugswitches) and
-            (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
+        if (target.dbg.id=dbg_codeview) or
+           ((ds_dwarf_omf_linnum in globals.current_settings.debugswitches) and
+            (target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
           begin
             DebugFormat_COMENT:=TOmfRecord_COMENT.Create;
             DebugFormat_COMENT.CommentClass:=CC_NewOmfExtension;
@@ -1706,7 +1706,7 @@ implementation
         result:=true;
       end;
 
-    constructor TOmfObjOutput.create(AWriter:TObjectWriter;acompiler:tcompilerbase);
+    constructor TOmfObjOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         cobjdata:=TOmfObjData;

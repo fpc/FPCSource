@@ -100,7 +100,7 @@ interface
        protected
          function writedata(data:TObjData):boolean;override;
        public
-         constructor Create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
+         constructor Create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TElfAssembler = class(tinternalassembler)
@@ -889,7 +889,7 @@ implementation
                             TElfObjectOutput
 ****************************************************************************}
 
-    constructor TElfObjectOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
+    constructor TElfObjectOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjData:=TElfObjData;
@@ -905,7 +905,7 @@ implementation
         relocsect : TElfObjSection;
       begin
         { create the reloc section }
-        relocsect:=TElfObjSection.create_reloc(data,s.name,false,compiler.target,compiler.verbose);
+        relocsect:=TElfObjSection.create_reloc(data,s.name,false,target,verbose);
         relocsect.shlink:=symtabsect.index;
         relocsect.shinfo:=s.index;
         { add the relocations }
@@ -939,7 +939,7 @@ implementation
 
             { write reloc }
             { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
-            MaybeSwapElfReloc(compiler.target.info.endian,rel);
+            MaybeSwapElfReloc(target.info.endian,rel);
             relocsect.write(rel,relocsect.shentsize);
           end;
       end;
@@ -990,7 +990,7 @@ implementation
     procedure TElfObjectOutput.createshstrtab(data: TObjData);
       var
         i,prefixlen:longint;
-        objsec,target:TElfObjSection;
+        objsec,_target:TElfObjSection;
       begin
         shstrtabsect.writezeros(1);
         prefixlen:=length('.rel')+ord(ElfTarget.relocs_use_addend);
@@ -1001,11 +1001,11 @@ implementation
               this is allowed by ELF specs and saves good half of .shstrtab space. }
             if objsec.shtype=relsec_shtype[ElfTarget.relocs_use_addend] then
               begin
-                target:=TElfObjSection(data.ObjSectionList[objsec.shinfo-1]);
-                if (target.ObjRelocations.Count=0) or
-                   (target.shstridx<prefixlen) then
+                _target:=TElfObjSection(data.ObjSectionList[objsec.shinfo-1]);
+                if (_target.ObjRelocations.Count=0) or
+                   (_target.shstridx<prefixlen) then
                   InternalError(2012101204);
-                objsec.shstridx:=target.shstridx-prefixlen;
+                objsec.shstridx:=_target.shstridx-prefixlen;
               end
             else
               begin
@@ -1031,7 +1031,7 @@ implementation
         sechdr.sh_info:=s.shinfo;
         sechdr.sh_addralign:=s.secalign;
         sechdr.sh_entsize:=s.shentsize;
-        MaybeSwapSecHeader(compiler.target.info.endian,sechdr);
+        MaybeSwapSecHeader(target.info.endian,sechdr);
         writer.write(sechdr,sizeof(sechdr));
       end;
 
@@ -1067,13 +1067,13 @@ implementation
         with data do
          begin
            { default sections }
-           symtabsect:=TElfSymtab.create(data,esk_obj,compiler.target,compiler.verbose);
-           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0,compiler.target,compiler.verbose);
+           symtabsect:=TElfSymtab.create(data,esk_obj,target,verbose);
+           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0,target,verbose);
            { "no executable stack" marker }
            { TODO: used by OpenBSD/NetBSD as well? }
-           if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
-              not(cs_executable_stack in compiler.globals.current_settings.moduleswitches) then
-             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0,compiler.target,compiler.verbose);
+           if (target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
+              not(cs_executable_stack in globals.current_settings.moduleswitches) then
+             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0,target,verbose);
            { symbol for filename }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
            symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
@@ -1106,17 +1106,17 @@ implementation
            header.e_ident[EI_MAG2]:=ELFMAG2;
            header.e_ident[EI_MAG3]:=ELFMAG3;
            header.e_ident[EI_CLASS]:=ELFCLASS;
-           if compiler.target.info.endian=endian_big then
+           if target.info.endian=endian_big then
              header.e_ident[EI_DATA]:=ELFDATA2MSB
            else
              header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
            header.e_ident[EI_VERSION]:=1;
-           if compiler.target.info.system in systems_openbsd then
+           if target.info.system in systems_openbsd then
              header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
-           else if compiler.target.info.system in systems_freebsd then
+           else if target.info.system in systems_freebsd then
              header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD
-           else if compiler.target.info.system in systems_dragonfly then
+           else if target.info.system in systems_dragonfly then
              header.e_ident[EI_OSABI]:=ELFOSABI_NONE;
            header.e_type:=ET_REL;
            header.e_machine:=ElfTarget.machine_code;
@@ -1129,7 +1129,7 @@ implementation
            header.e_shentsize:=sizeof(telfsechdr);
            if assigned(ElfTarget.encodeflags) then
              header.e_flags:=ElfTarget.encodeflags();
-           MaybeSwapHeader(compiler.target.info.endian,header);
+           MaybeSwapHeader(target.info.endian,header);
            writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }

@@ -311,7 +311,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter; acompiler: TCompilerBase);override;
+         constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
       TNLMCoffObjSection = class(TCoffObjSection)
@@ -1463,12 +1463,12 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       end;
 
 
-    constructor TNLMCoffObjOutput.create(AWriter:TObjectWriter; acompiler: TCompilerBase);
+    constructor TNLMCoffObjOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         // ??????
         // if win32=false, .stabs and .stabstr will be written without oso_debug
         // Without oso_debug the sections will be removed by the linker
-        inherited createcoff(AWriter,{win32}true,acompiler);
+        inherited createcoff(AWriter,{win32}true,AGlobals,ATarget,AVerbose);
         cobjdata:=TNLMCoffObjData;
       end;
 

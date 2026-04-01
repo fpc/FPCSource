@@ -139,7 +139,7 @@ type
 
         function writedata(data:TObjData):boolean;override;
       public
-        constructor Create(AWriter:TObjectWriter;acompiler: TCompilerBase);override;
+        constructor Create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
       end;
 
     { TMachoAssembler }
@@ -1157,7 +1157,7 @@ uses
     end;
 
 
-  constructor TMachoObjectOutput.Create(AWriter: TObjectWriter;acompiler: TCompilerBase);
+  constructor TMachoObjectOutput.Create(AWriter: TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
     begin
       inherited;
       CObjData:=TMachoObjData;

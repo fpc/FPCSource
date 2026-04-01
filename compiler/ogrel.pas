@@ -28,7 +28,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,compilerbase,
+       cclasses,globtype,globals,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -87,7 +87,7 @@ interface
       protected
         function writeData(Data:TObjData):boolean;override;
       public
-        constructor create(AWriter:TObjectWriter;acompiler: TCompilerBase);override;
+        constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
       end;
 
       { TRelAssembler }
@@ -142,7 +142,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,verbose,globals,
+       cutils,
        fmodule,aasmtai,aasmdata,
        ogmap,owar,
        version,
@@ -565,7 +565,7 @@ implementation
         result:=true;
       end;
 
-    constructor TRelObjOutput.create(AWriter: TObjectWriter;acompiler: TCompilerBase);
+    constructor TRelObjOutput.create(AWriter: TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         cobjdata:=TRelObjData;

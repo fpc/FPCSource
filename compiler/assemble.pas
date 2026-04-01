@@ -2717,7 +2717,7 @@ Implementation
         ObjWriter : TObjectWriter;
       begin
         ObjWriter:=TObjectwriter.create(compiler.verbose);
-        ObjOutput:=CObjOutput.Create(ObjWriter,compiler);
+        ObjOutput:=CObjOutput.Create(ObjWriter,compiler.Globals,compiler.target,compiler.verbose);
         ObjData:=ObjOutput.newObjData(ObjFileName);
 
         { Pass 0 }
@@ -2809,7 +2809,7 @@ Implementation
           ObjWriter:=TObjectwriter.create(compiler.verbose);
 
         NextSmartName(cut_normal);
-        ObjOutput:=CObjOutput.Create(ObjWriter,compiler);
+        ObjOutput:=CObjOutput.Create(ObjWriter,compiler.globals,compiler.target,compiler.verbose);
         startsectype:=sec_none;
         startsecname:='';
         startsecorder:=secorder_default;

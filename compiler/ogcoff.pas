@@ -163,16 +163,16 @@ interface
        protected
          function writedata(data:TObjData):boolean;override;
        public
-         constructor createcoff(AWriter:TObjectWriter;awin32:boolean;ACompiler: TCompilerBase);
+         constructor createcoff(AWriter:TObjectWriter;awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
          destructor destroy;override;
        end;
 
        TDJCoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
+         constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TPECoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
+         constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TCoffObjInput = class(tObjInput)
@@ -1790,9 +1790,9 @@ const pemagic : array[0..3] of byte = (
                                 TCoffObjOutput
 ****************************************************************************}
 
-    constructor TCoffObjOutput.createcoff(AWriter:TObjectWriter;awin32:boolean;ACompiler: TCompilerBase);
+    constructor TCoffObjOutput.createcoff(AWriter:TObjectWriter;awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited create(AWriter,ACompiler);
+        inherited create(AWriter,AGlobals,ATarget,AVerbose);
         win32:=awin32;
       end;
 
@@ -1835,7 +1835,7 @@ const pemagic : array[0..3] of byte = (
             bosym.StorageClass:=typ;
             bosym.NumberOfAuxSymbols:=aux;
             inc(symidx);
-	    MaybeSwap(compiler.target.info.endian,bosym);
+	    MaybeSwap(target.info.endian,bosym);
             FCoffSyms.write(bosym,sizeof(bosym));
           end
         else
@@ -1852,7 +1852,7 @@ const pemagic : array[0..3] of byte = (
             sym.typ:=typ;
             sym.aux:=aux;
             inc(symidx);
-	    MaybeSwap(compiler.target.info.endian,sym);
+	    MaybeSwap(target.info.endian,sym);
             FCoffSyms.write(sym,sizeof(sym));
           end;
       end;
@@ -1882,7 +1882,7 @@ const pemagic : array[0..3] of byte = (
             else
               secrec.nrelocs:=65535;
             inc(symidx);
-	    MaybeSwap(compiler.target.info.endian,secrec);
+	    MaybeSwap(target.info.endian,secrec);
             FCoffSyms.write(secrec,sizeof(secrec));
             { aux recs have the same size as symbols, so we need to add two
               Byte of padding in case of a Big Obj Coff }
@@ -1904,7 +1904,7 @@ const pemagic : array[0..3] of byte = (
             rel.address:=TObjSection(p).ObjRelocations.Count+1;
             rel.sym:=0;
             rel.reloctype:=0;
-	    MaybeSwap(compiler.target.info.endian,rel);
+	    MaybeSwap(target.info.endian,rel);
             FWriter.Write(rel,sizeof(rel));
           end;
         for i:=0 to TObjSection(p).ObjRelocations.Count-1 do
@@ -2016,7 +2016,7 @@ const pemagic : array[0..3] of byte = (
               else
                 internalerror(200905071);
             end;
-	    MaybeSwap(compiler.target.info.endian,rel);
+	    MaybeSwap(target.info.endian,rel);
             FWriter.write(rel,sizeof(rel));
           end;
       end;
@@ -2093,7 +2093,7 @@ const pemagic : array[0..3] of byte = (
             if win32 then
               inc(datapos,sizeof(coffreloc))
             else
-              compiler.verbose.Message1(asmw_f_too_many_relocations,p.fullname);
+              verbose.Message1(asmw_f_too_many_relocations,p.fullname);
           end;
       end;
 
@@ -2148,7 +2148,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               sechdr.flags:=djencodesechdrflags(secoptions);
-            MaybeSwap(compiler.target.info.endian,sechdr);
+            MaybeSwap(target.info.endian,sechdr);
             FWriter.write(sechdr,sizeof(sechdr));
           end;
       end;
@@ -2198,7 +2198,7 @@ const pemagic : array[0..3] of byte = (
                boheader.NumberOfSymbols:=longword(symidx);
                boheader.PointerToSymbolTable:=sympos;
                Move(COFF_BIG_OBJ_MAGIC,boheader.UUID,length(boheader.UUID));
-	       MaybeSwap(compiler.target.info.endian,boheader);
+	       MaybeSwap(target.info.endian,boheader);
                FWriter.write(boheader,sizeof(boheader));
              end
            else
@@ -2219,7 +2219,7 @@ const pemagic : array[0..3] of byte = (
                  end
                else
                  header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
-	       MaybeSwap(compiler.target.info.endian,header);
+	       MaybeSwap(target.info.endian,header);
                FWriter.write(header,sizeof(header));
              end;
            { Section headers }
@@ -2234,7 +2234,7 @@ const pemagic : array[0..3] of byte = (
            FWriter.writearray(FCoffSyms);
            { Strings }
            i:=FCoffStrs.size+4;
-           if source_info.endian<>compiler.target.info.endian then
+           if source_info.endian<>target.info.endian then
              i:=SwapEndian(i);
            FWriter.write(i,4);
            FWriter.writearray(FCoffStrs);
@@ -2246,16 +2246,16 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
+    constructor TDJCoffObjOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(AWriter,false,ACompiler);
+        inherited createcoff(AWriter,false,AGlobals,ATarget,AVerbose);
         cobjdata:=TDJCoffObjData;
       end;
 
 
-    constructor TPECoffObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
+    constructor TPECoffObjOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(AWriter,true,ACompiler);
+        inherited createcoff(AWriter,true,AGlobals,ATarget,AVerbose);
         cobjdata:=TPECoffObjData;
       end;
 

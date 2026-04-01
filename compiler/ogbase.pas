@@ -518,7 +518,9 @@ interface
 
      TObjOutput = class
       private
-        FCompiler: TCompilerBase;
+        FGlobals: TReadOnlyCompilerGlobals;
+        FTarget: TReadOnlyCompilerTarget;
+        FVerbose: TVerbose;
         FCObjData : TObjDataClass;
       protected
         { writer }
@@ -527,9 +529,11 @@ interface
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure WriteSectionContent(Data:TObjData);
         function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
-        property Compiler: TCompilerBase read FCompiler;
+        property Globals: TReadOnlyCompilerGlobals read FGlobals;
+        property Target: TReadOnlyCompilerTarget read FTarget;
+        property Verbose: TVerbose read FVerbose;
       public
-        constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);virtual;
+        constructor create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  startObjectfile(const fn:string):boolean;
@@ -2080,9 +2084,11 @@ implementation
                                 TObjOutput
 ****************************************************************************}
 
-    constructor TObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
+    constructor TObjOutput.create(AWriter:TObjectWriter;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        FCompiler:=ACompiler;
+        FGlobals:=AGlobals;
+        FTarget:=ATarget;
+        FVerbose:=AVerbose;
         FWriter:=AWriter;
         CObjData:=TObjData;
       end;
@@ -2096,9 +2102,9 @@ implementation
 
     function TObjOutput.newObjData(const n:string):TObjData;
       begin
-        result:=CObjData.create(n,compiler.globals,compiler.target,compiler.verbose);
-        if (cs_use_lineinfo in compiler.globals.current_settings.globalswitches) or
-           (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
+        result:=CObjData.create(n,globals,target,verbose);
+        if (cs_use_lineinfo in globals.current_settings.globalswitches) or
+           (cs_debuginfo in globals.current_settings.moduleswitches) then
           result.CreateDebugSections;
       end;
 
@@ -2109,14 +2115,14 @@ implementation
         { start the writer already, so the .a generation can initialize
           the position of the current objectfile }
         if not FWriter.createfile(fn) then
-         compiler.verbose.Comment(V_Fatal,'Can''t create object '+fn);
+         verbose.Comment(V_Fatal,'Can''t create object '+fn);
         result:=true;
       end;
 
 
     function TObjOutput.writeobjectfile(Data:TObjData):boolean;
       begin
-        if compiler.verbose.errorcount=0 then
+        if verbose.errorcount=0 then
          result:=writeData(Data)
         else
          result:=true;
@@ -2155,7 +2161,7 @@ implementation
 
     function TObjOutput.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
       begin
-        result:=aasmbase.ApplyAsmSymbolRestrictions(s,compiler.target);
+        result:=aasmbase.ApplyAsmSymbolRestrictions(s,target);
       end;
 
 {****************************************************************************
