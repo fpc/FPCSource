@@ -75,6 +75,7 @@ interface
 {$endif WASM}
        private
         setcount: longint;
+        function is_smart_section(atype: TAsmSectiontype): boolean;
         procedure WriteCFI(hp: tai_cfi_base);
         function NextSetLabel: string;
        protected
@@ -206,9 +207,7 @@ implementation
         result := asminfo^.labelprefix+'$set$'+tostr(setcount);
       end;
 
-    function is_smart_section(atype:TAsmSectiontype):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TGNUAssembler.is_smart_section(atype:TAsmSectiontype):boolean;
       begin
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
