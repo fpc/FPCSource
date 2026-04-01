@@ -328,9 +328,10 @@ interface
        public
          constructor Create(ACompiler: TCompilerBase);
          destructor Destroy; override;
+
+         procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
        end;
 
-    procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
     procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
 
     function current_scanner : tscannerfile;  { current scanner in use }
@@ -7110,7 +7111,7 @@ exit_label:
                                    Helpers
 *****************************************************************************}
 
-    procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
+    procedure TScanner.AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
         if dm in [directive_all, directive_turbo] then
           tdirectiveitem.create(turbo_scannerdirectives,s,p);
