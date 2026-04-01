@@ -27,7 +27,7 @@ unit scandir;
 
     uses
       globtype,compilerbase,
-      systems;
+      systems,scanner;
 
     const
       switchesstatestackmax = 20;
@@ -194,7 +194,7 @@ unit scandir;
         procedure dir_z4;
         procedure dir_zerobasesstrings;
       public
-        procedure InitScannerDirectives;
+        procedure InitScannerDirectives(AScanner: TScanner);
       end;
 
   implementation
@@ -204,7 +204,7 @@ unit scandir;
       cutils,cfileutl,
       globals,widestr,cpuinfo,tokens,compiler,
       verbose,comphook,ppu,
-      scanner,switches,
+      switches,
       fmodule,
       defutil,
       dirparse,link,
@@ -2526,11 +2526,9 @@ unit scandir;
                          Initialize Directives
 ****************************************************************************}
 
-    procedure TScanDir.InitScannerDirectives;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanDir.InitScannerDirectives(AScanner: TScanner);
       begin
-        with compiler.Scanner do
+        with AScanner do
           begin
             AddDirective('A1',directive_all, @dir_a1);
             AddDirective('A2',directive_all, @dir_a2);

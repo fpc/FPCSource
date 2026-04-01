@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,constexp,version,tokens,scandir,compilerbase,
+       globtype,globals,constexp,version,tokens,compilerbase,
        symtype,symdef,symsym,
        verbose,comphook,
        finput,
@@ -320,7 +320,7 @@ interface
        TScanner = class
        private
          FCompiler: TCompilerBase;
-         FScanDir: TScanDir;
+         FScanDir: TObject;  { actually TScanDir; we use TObject to avoid circular unit references }
 
          { dictionaries with the supported directives }
          turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
@@ -373,7 +373,7 @@ implementation
       SysUtils,
       cutils,cfileutl,
       systems,
-      switches,
+      scandir,switches,
       symbase,symtable,symconst,defutil,defcmp,node,compiler,
       { This is needed for tcputype }
       cpuinfo,
@@ -7169,7 +7169,7 @@ exit_label:
         AddConditional('ENDC',directive_mac, @dir_endif);
 
         FScanDir:=TScanDir.Create;
-        FScanDir.InitScannerDirectives;
+        TScanDir(FScanDir).InitScannerDirectives(Self);
       end;
 
 
