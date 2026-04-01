@@ -29,7 +29,7 @@ implementation
 
   uses
     globtype,sysutils,cutils,cclasses,
-    verbose, elfbase,
+    globals,verbose, elfbase,
     systems,aasmbase,ogbase,ogelf,assemble,
     compilerbase,compiler;
 
@@ -65,7 +65,7 @@ implementation
       procedure DoRelocationFixup(objsec:TObjSection);override;
       procedure Do_Mempos;override;
     public
-      constructor Create(acompiler: TCompilerBase);override;
+      constructor Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
       destructor Destroy;override;
       procedure FixupRelocations;override;
     end;
@@ -317,7 +317,7 @@ implementation
                                  TElfExeOutputMIPS
 *****************************************************************************}
 
-  constructor TElfExeOutputMIPS.Create(acompiler: TCompilerBase);
+  constructor TElfExeOutputMIPS.Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
     begin
       inherited;
       local_got_relocs:=TFPObjectList.Create(False);
@@ -344,7 +344,7 @@ implementation
       nullstub.typ:=AT_FUNCTION;
 
       gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
-        SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
+        SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint),target,verbose);
       gotobjsec.SecOptions:=[oso_keep];
       { gotpltobjsec is what's pointed to by DT_PLTGOT }
       { TODO: this is not correct; under some circumstances ld can generate PLTs for MIPS,
@@ -367,7 +367,7 @@ implementation
   procedure TElfExeOutputMIPS.CreatePLT;
     begin
       pltobjsec:=TElfObjSection.create_ext(internalObjData,'.plt',
-        SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,compiler.target,compiler.verbose);
+        SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,target,verbose);
       pltobjsec.SecOptions:=[oso_keep];
     end;
 
@@ -570,7 +570,7 @@ implementation
               objsym:=CObjSymbol.Create(local_got_slots,hexstr(addr,8));
               objsym.offset:=(got_local_area_start+tmp+1)*sizeof(pint);
               objsym.bind:=AB_LOCAL;
-              if (source_info.endian=compiler.target.info.endian) then
+              if (source_info.endian=target.info.endian) then
                 got_content[tmp]:=addr
               else
                 got_content[tmp]:=swapendian(addr);
@@ -626,7 +626,7 @@ implementation
       { On MIPS, GOT does not need dynamic relocations }
       if gotoff=gotobjsec.Data.size+sizeof(pint) then
         begin
-          if source_info.endian<>compiler.target.info.endian then
+          if source_info.endian<>target.info.endian then
             relocval:=swapendian(relocval);
           gotobjsec.write(relocval,sizeof(pint));
         end;
@@ -676,7 +676,7 @@ implementation
         begin
           inc(stubcount);
           newsec:=TElfObjSection.create_ext(internalObjData,'.text.stub.'+tostr(stubcount),
-            SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,0,textsec.SecAlign,compiler.target,compiler.verbose);
+            SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,0,textsec.SecAlign,target,verbose);
           if (newsec.SecAlign>8) then
             newsec.WriteZeros(newsec.SecAlign-8);
           pic_stub_syms.add(objsym.ExeSymbol);
@@ -763,7 +763,7 @@ implementation
               with 'null' stub so we don't waste time on subsequent relocs to it. }
             targetsec.data.seek(exesym.ObjSymbol.offset);
             targetsec.data.read(tmp,3*sizeof(longword));
-            if (source_info.endian<>compiler.target.info.endian) then
+            if (source_info.endian<>target.info.endian) then
               for i:=0 to 2 do
                 tmp[i]:=swapendian(tmp[i]);
             if ((tmp[0] and $FFFF0000)<>$3C1C0000) or
@@ -815,7 +815,7 @@ implementation
                   end;
                 if not found then
                   InternalError(2013030102);
-                if (source_info.endian<>compiler.target.info.endian) then
+                if (source_info.endian<>target.info.endian) then
                   begin
                     hipart:=swapendian(hipart);
                     lopart:=swapendian(lopart);
@@ -884,7 +884,7 @@ implementation
             begin
               data.Seek(objreloc.dataoffset);
               data.Read(address,4);
-              if source_info.endian<>compiler.target.info.endian then
+              if source_info.endian<>target.info.endian then
                 address:=swapendian(address);
             end;
           if assigned(objreloc.symbol) then
@@ -994,7 +994,7 @@ implementation
 
                     tmp:=(hr^.addend and $FFFF0000) or (tmp and $FFFF);
                     data.seek(hr^.objrel.dataoffset);
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       tmp:=swapendian(tmp);
                     data.Write(tmp,4);
                     dispose(hr);
@@ -1081,7 +1081,7 @@ implementation
           address:=0;  { Relocation in debug section points to unused section, which is eliminated by linker }
 
         data.Seek(objreloc.dataoffset);
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           address:=swapendian(address);
         data.Write(address,4);
       end;
