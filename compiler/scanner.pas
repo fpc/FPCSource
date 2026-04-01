@@ -330,9 +330,8 @@ interface
          destructor Destroy; override;
 
          procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
+         procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
        end;
-
-    procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
 
     function current_scanner : tscannerfile;  { current scanner in use }
     procedure set_current_scanner(avalue : tscannerfile);  { current scanner in use }
@@ -7119,7 +7118,7 @@ exit_label:
           tdirectiveitem.create(mac_scannerdirectives,s,p);
       end;
 
-    procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
+    procedure TScanner.AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
         if dm in [directive_all, directive_turbo] then
           tdirectiveitem.createcond(turbo_scannerdirectives,s,p);
