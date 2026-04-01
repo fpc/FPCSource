@@ -49,7 +49,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,switches,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,wpo
+  assemble,link,dbgbase,import,export,tokens,wpo,scanner
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }
@@ -179,6 +179,7 @@ type
     FVerbose: TVerbose;
     FTaskHandler: TTask_handler;
     FParser: TParser;
+    FScanner: TScanner;
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
@@ -237,6 +238,7 @@ type
     property Verbose: TVerbose read FVerbose;
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
+    property Scanner: TScanner read FScanner write FScanner;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
@@ -302,6 +304,7 @@ type
     function GetPkgUtil: TPackageUtils; inline;
     function GetProcDefUtil: TProcDefUtils; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
+    function GetScanner: TScanner; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetSysSymList: tsyssymlist; inline;
     function GetTarget: TCompilerTarget; inline;
@@ -424,6 +427,7 @@ type
     property Time: TCompilerTime read GetTime;
     property Globals: TCompilerGlobals read GetGlobals;
     property Parser: TParser read GetParser;
+    property Scanner: TScanner read GetScanner;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
@@ -1069,6 +1073,11 @@ end;
 function TCompilerHelper.GetRTTIWriter: TRTTIWriter; inline;
 begin
   Result := TCompiler(Self).RTTIWriter;
+end;
+
+function TCompilerHelper.GetScanner: TScanner; inline;
+begin
+  Result := TCompiler(Self).Scanner;
 end;
 
 function TCompilerHelper.Getsymtablestack: TSymtablestack;

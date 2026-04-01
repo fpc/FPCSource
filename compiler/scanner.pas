@@ -317,6 +317,9 @@ interface
     type
         tdirectivemode = (directive_all, directive_turbo, directive_mac);
 
+       TScanner = class
+       end;
+
     procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
     procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
 
