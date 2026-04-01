@@ -1610,10 +1610,10 @@ const pemagic : array[0..3] of byte = (
           begin
             { non-PECOFF targets lack rodata support }
             if (atype in [sec_rodata,sec_rodata_norel]) and
-               not (compiler.target.info.system in systems_all_windows) then
+               not (target.info.system in systems_all_windows) then
               atype:=sec_data;
             secname:=coffsecnames[atype];
-            if compiler.target.create_smartlink_sections and
+            if target.create_smartlink_sections and
                (aname<>'') then
               begin
                 case aorder of
@@ -1634,7 +1634,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjData.CreateDebugSections;
       begin
-        if compiler.target.dbg.id=dbg_stabs then
+        if target.dbg.id=dbg_stabs then
           begin
             stabssec:=createsection(sec_stab);
             stabstrsec:=createsection(sec_stabstr);
@@ -1738,7 +1738,7 @@ const pemagic : array[0..3] of byte = (
             if reloctype=RELOC_RVA then
               internalerror(200603033);
           end;
-        if compiler.target.info.endian<>source_info.endian then
+        if target.info.endian<>source_info.endian then
           begin
             ba.q:=0;
             if (len<=sizeof(data)) then

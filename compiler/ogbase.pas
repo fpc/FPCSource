@@ -30,6 +30,7 @@ interface
       cutils,
       cclasses,
       verbose,
+      globals,
       compilerbase,
       { targets }
       systems,globtype,
@@ -413,6 +414,8 @@ interface
      TRelocDataInt = aint;
 {$endif}
 
+     { TObjData }
+
      TObjData = class(TLinkedListItem)
      private
        FCompiler: TCompilerBase;
@@ -429,6 +432,9 @@ interface
        FStabStrObjSec : TObjSection;
        FGroupsList : TFPHashObjectList;
        FCPUType : tcputype;
+       function GetGlobals: TReadOnlyCompilerGlobals;
+       function GetTarget: TReadOnlyCompilerTarget;
+       function GetVerbose: TVerbose; inline;
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
@@ -503,7 +509,10 @@ interface
          Instructions, not supported by the given CPU should produce an error.
          A value of 'cpu_none' means no restrictions (all instructions should be accepted) }
        property CPUType : tcputype read FCPUType write FCPUType;
-       property Compiler: TCompilerBase read FCompiler;
+       //property Compiler: TCompilerBase read FCompiler;
+       property Globals: TReadOnlyCompilerGlobals read GetGlobals;
+       property Target: TReadOnlyCompilerTarget read GetTarget;
+       property Verbose: TVerbose read GetVerbose;
      end;
      TObjDataClass = class of TObjData;
 
@@ -813,7 +822,7 @@ implementation
 
     uses
       SysUtils,
-      globals,compiler,
+      compiler,
 {$ifdef OMFOBJSUPPORT}
       omfbase,
 {$endif OMFOBJSUPPORT}
@@ -1638,7 +1647,7 @@ implementation
 
     function TObjData.createsection(atype:TAsmSectionType;const aname:string;aorder:TAsmSectionOrder):TObjSection;
       begin
-        result:=createsection(sectionname(atype,aname,aorder),sectiontype2align(atype),sectiontype2options(atype,compiler.target));
+        result:=createsection(sectionname(atype,aname,aorder),sectiontype2align(atype),sectiontype2options(atype,target));
       end;
 
 
@@ -1671,14 +1680,14 @@ implementation
           result:=nil;
         if not assigned(result) then
           begin
-            result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions,compiler.target,compiler.verbose);
+            result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions,target,verbose);
             result.ObjData:=self;
           end;
         FCurrObjSec:=result;
       end;
 
 
-    function TObjData.CreateSectionGroup(const aname:string):TObjSectionGroup;
+    function TObjData.createsectiongroup(const aname: string): TObjSectionGroup;
       begin
         if FGroupsList=nil then
           FGroupsList:=TFPHashObjectList.Create(true);
@@ -1691,7 +1700,7 @@ implementation
       end;
 
 
-    function TObjData.Findsection(const aname:string):TObjSection;
+    function TObjData.findsection(const aname: string): TObjSection;
       begin
         result:=TObjSection(FObjSectionList.Find(aname));
       end;
@@ -1993,9 +2002,27 @@ implementation
       end;
 
 
+    function TObjData.GetVerbose: TVerbose; inline;
+      begin
+        result:=FCompiler.Verbose;
+      end;
+
+
+    function TObjData.GetTarget: TReadOnlyCompilerTarget;
+      begin
+        result:=FCompiler.Target;
+      end;
+
+
+    function TObjData.GetGlobals: TReadOnlyCompilerGlobals;
+      begin
+        result:=FCompiler.Globals;
+      end;
+
+
     procedure TObjData.beforealloc;
       begin
-        FCPUType:=compiler.globals.current_settings.cputype;
+        FCPUType:=globals.current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
           begin
@@ -2007,7 +2034,7 @@ implementation
 
     procedure TObjData.beforewrite;
       begin
-        FCPUType:=compiler.globals.current_settings.cputype;
+        FCPUType:=globals.current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
@@ -2045,7 +2072,7 @@ implementation
             hstab.ndesc:=(StabsSec.Size div sizeof(TObjStabEntry))-1;
 {$pop}
             hstab.nvalue:=StabStrSec.Size;
-            MaybeSwapStab(compiler.target.info.endian,hstab);
+            MaybeSwapStab(target.info.endian,hstab);
             StabsSec.Data.seek(0);
             StabsSec.Data.write(hstab,sizeof(hstab));
           end;

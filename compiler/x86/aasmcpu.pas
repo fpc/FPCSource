@@ -2338,9 +2338,8 @@ implementation
 
     function taicpu.Pass1(objdata:TObjData):longint;
       var
-        compiler: TCompilerBase;
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        compiler:=objdata.compiler;
         Pass1:=0;
         { Save the old offset and set the new offset }
         InsOffset:=ObjData.CurrObjSec.Size;
@@ -2396,9 +2395,8 @@ implementation
 
     procedure taicpu.Pass2(objdata:TObjData);
       var
-        compiler: TCompilerBase;
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        compiler:=objdata.compiler;
         { error in pass1 ? }
         if insentry=nil then
          exit;
@@ -3602,7 +3600,7 @@ implementation
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          objdata.compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
+          objdata.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b66,1);
       end;
@@ -3614,13 +3612,15 @@ implementation
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          objdata.compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
+          objdata.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b67,1);
       end;
 
 
         procedure taicpu.gencode(objdata: TObjData);
+          var
+            compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
        * the actual codes (C syntax, i.e. octal):
        * \0            - terminates the code. (Unless it's a literal of course.)
@@ -3704,7 +3704,6 @@ implementation
       }
 
       var
-        compiler: TCompilerBase;
 {$ifdef i8086}
         currval : longint;
 {$else i8086}
@@ -3907,7 +3906,6 @@ implementation
         EVEXmmm : byte;
 
       begin
-        compiler:=objdata.compiler;
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
           internalerror(200130121);

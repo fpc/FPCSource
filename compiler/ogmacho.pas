@@ -169,7 +169,7 @@ uses
   procedure TmachoObjData.CreateDebugSections;
     begin
       inherited CreateDebugSections;
-      if compiler.target.dbg.id=dbg_stabs then
+      if target.dbg.id=dbg_stabs then
         begin
           stabssec:=createsection(sec_stab);
           stabstrsec:=createsection(sec_stabstr);

@@ -596,13 +596,13 @@ implementation
 
             if atype=sec_threadvar then
               begin
-                if (compiler.target.info.system in (systems_windows+systems_wince)) then
+                if (target.info.system in (systems_windows+systems_wince)) then
                   secname:='.tls'
-                else if (compiler.target.info.system in systems_linux) then
+                else if (target.info.system in systems_linux) then
                   secname:='.tbss';
               end;
 
-            if compiler.target.create_smartlink_sections and (aname<>'') then
+            if target.create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
                   secorder_begin :
@@ -622,7 +622,7 @@ implementation
 
     procedure TElfObjData.CreateDebugSections;
       begin
-        if compiler.target.dbg.id=dbg_stabs then
+        if target.dbg.id=dbg_stabs then
           begin
             stabssec:=createsection(sec_stab);
             stabstrsec:=createsection(sec_stabstr);
@@ -703,7 +703,7 @@ implementation
                 data:=0;
               end;
           end;
-        if compiler.target.info.endian<>source_info.endian then
+        if target.info.endian<>source_info.endian then
           begin
             ba.q:=0;
             if (len<=sizeof(data)) then

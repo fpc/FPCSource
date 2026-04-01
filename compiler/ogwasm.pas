@@ -938,12 +938,12 @@ implementation
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
-        result:=not(compiler.target.info.system in systems_darwin) and
-           compiler.target.create_smartlink_sections and
+        result:=not(target.info.system in systems_darwin) and
+           target.create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
            { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (compiler.target.info.system in (systems_embedded+systems_freertos)));
+           ((atype<>sec_bss) or (target.info.system in (systems_embedded+systems_freertos)));
       end;
 
     function TWasmObjData.sectionname_gas(atype: TAsmSectiontype;
@@ -1038,12 +1038,12 @@ implementation
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
-          (compiler.target.info.system in [system_i386_go32v2,system_m68k_palmos]) then
+          (target.info.system in [system_i386_go32v2,system_m68k_palmos]) then
           secname:='.data';
 
         { Windows correctly handles reallocations in readonly sections }
         if (atype=sec_rodata) and
-          (compiler.target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
+          (target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
         { section type user gives the user full control on the section name }
@@ -1090,7 +1090,7 @@ implementation
         const aname: string; aorder: TAsmSectionOrder): string;
       begin
         if (atype=sec_fpc) or
-           ((atype=sec_threadvar) and not (ts_wasm_threads in compiler.globals.current_settings.targetswitches)) then
+           ((atype=sec_threadvar) and not (ts_wasm_threads in globals.current_settings.targetswitches)) then
           atype:=sec_data;
         Result:=sectionname_gas(atype, aname, aorder);
       end;
@@ -1106,7 +1106,7 @@ implementation
           internalerror(200403072);
         { workaround crash, when generating debug info for threadvars, when multithreading is turned off.
           todo: ensure the debug info for threadvars is actually correct, once we've got WebAssembly debug info working in general }
-        if (Reloctype=RELOC_DTPOFF) and not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if (Reloctype=RELOC_DTPOFF) and not (ts_wasm_threads in globals.current_settings.targetswitches) then
           Reloctype:=RELOC_ABSOLUTE;
         objreloc:=nil;
         case Reloctype of

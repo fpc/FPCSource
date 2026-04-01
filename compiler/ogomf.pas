@@ -1112,7 +1112,7 @@ implementation
               secname:=current_module.modulename^ + '_DATA'
             else
               secname:=omf_secnames[atype];
-            if compiler.target.create_smartlink_sections and (aname<>'') then
+            if target.create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
                   secorder_begin :
@@ -1173,7 +1173,7 @@ implementation
         result:=TObjSection(ObjSectionList.Find(secname));
         if not assigned(result) then
           begin
-            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write],compiler.target,compiler.verbose);
+            result:=CObjSection.create(ObjSectionList,secname,2,[oso_Data,oso_load,oso_write],target,verbose);
             result.ObjData:=self;
             TOmfObjSection(Result).FClassName:='FAR_DATA';
           end;
@@ -1271,7 +1271,7 @@ implementation
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,compiler.target);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,target);
       end;
 
     procedure TOmfObjData.AddExportSymbol(aExportByOrdinal, aResidentName,
