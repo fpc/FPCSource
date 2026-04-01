@@ -210,7 +210,7 @@ begin
     if NoCaseTag = '</BODY>' then FInBody := False;
   end
   else begin
-    if NoCaseTag      = '<TITLE>' then FInTitle := True
+    if copy(NoCaseTag,1,6) = '<TITLE' then FInTitle := True
     else if NoCaseTag = '</TITLE>' then FInTitle := False
     else if copy(NoCaseTag,1,5) = '<BODY' then FInBody := True
     else
