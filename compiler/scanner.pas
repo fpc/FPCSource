@@ -320,6 +320,11 @@ interface
        TScanner = class
        private
          FCompiler: TCompilerBase;
+
+         { dictionaries with the supported directives }
+         turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
+         mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
+
          property Compiler: TCompilerBase read FCompiler;
 
          procedure InitScanner;
@@ -359,9 +364,6 @@ implementation
       procinfo;
 
     var
-      { dictionaries with the supported directives }
-      turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
-      mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
       {
         By default the current_scanner is current_module.scanner.
         set_current_scanner sets the _temp_scanner variable.
@@ -4618,9 +4620,9 @@ type
              repeat
                current_scanner.skipuntildirective;
                if not (m_mac in compiler.globals.current_settings.modeswitches) then
-                 p:=tdirectiveitem(turbo_scannerdirectives.Find(current_scanner.readid))
+                 p:=tdirectiveitem(compiler.scanner.turbo_scannerdirectives.Find(current_scanner.readid))
                else
-                 p:=tdirectiveitem(mac_scannerdirectives.Find(current_scanner.readid));
+                 p:=tdirectiveitem(compiler.scanner.mac_scannerdirectives.Find(current_scanner.readid));
              until assigned(p) and (p.is_conditional);
              current_scanner.gettokenpos;
            end;
@@ -4696,9 +4698,9 @@ type
          if hs<>'' then
           begin
             if not (m_mac in compiler.globals.current_settings.modeswitches) then
-              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+              t:=tdirectiveitem(compiler.scanner.turbo_scannerdirectives.Find(hs))
             else
-              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+              t:=tdirectiveitem(compiler.scanner.mac_scannerdirectives.Find(hs));
 
             if assigned(t) then
              begin
