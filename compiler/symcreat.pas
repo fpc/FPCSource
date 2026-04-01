@@ -162,7 +162,7 @@ implementation
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
       old_block_type:=compiler.globals.block_type;
-      sstate.new_scanner:=tscannerfile.Create('_Macro_.'+tempname,true);
+      sstate.new_scanner:=tscannerfile.Create(compiler,'_Macro_.'+tempname,true);
       set_current_scanner(sstate.new_scanner);
       compiler.globals.block_type:=old_block_type;
       { required for e.g. FpcDeepCopy record method (uses "out" parameter; field

@@ -112,6 +112,7 @@ interface
        { tscannerfile }
        tscannerfile = class
        private
+         FCompiler: TCompilerBase;
          procedure do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
          procedure cachenexttokenpos;
          procedure postprocessmultiline(len, quote_pos, quote_count: integer);
@@ -121,6 +122,7 @@ interface
          procedure restoretokenpos;
          procedure writetoken(t: ttoken);
          function readtoken : ttoken;
+         property Compiler: TCompilerBase read FCompiler;
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
@@ -201,7 +203,7 @@ interface
 
           current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 
-          constructor Create(const fn:string; is_macro: boolean = false);
+          constructor Create(acompiler: TCompilerBase; const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
         { File buffer things }
           function  openinputfile:boolean;
@@ -3151,10 +3153,9 @@ type
                                 TSCANNERFILE
  ****************************************************************************}
 
-    constructor tscannerfile.Create(const fn: string; is_macro: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor tscannerfile.Create(acompiler: TCompilerBase; const fn: string; is_macro: boolean);
       begin
+        FCompiler:=ACompiler;
         last_settings:=TMutableSettings.Create;
         inputfile:=do_openinputfile(fn);
         if is_macro then
@@ -3190,8 +3191,6 @@ type
 
 
     procedure tscannerfile.firstfile;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
       { load block }
         if not openinputfile then
@@ -3322,8 +3321,6 @@ type
 
 
     procedure tscannerfile.restoreinputfile;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef check_inputpointer_limits}
         hidden_inputbuffer:=PAnsiChar(inputfile.buf);
@@ -3554,8 +3551,6 @@ type
 
 
     procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     {    This procedure
        needs to be changed whenever
@@ -3744,8 +3739,6 @@ type
 
 
     procedure tscannerfile.recordtoken;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         t : ttoken;
         s : tspecialgenerictoken;
@@ -3883,8 +3876,6 @@ type
 
 
     procedure tscannerfile.startreplaytokens(buf:tdynamicarray; change_endian:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(buf) then
           internalerror(200511175);
@@ -3932,8 +3923,6 @@ type
 
 
     procedure tscannerfile.replaytoken;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         wlen,mesgnb,copy_size : asizeint;
         specialtoken : tspecialgenerictoken;
@@ -4129,8 +4118,6 @@ type
 
     procedure tscannerfile.reload;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         wasmacro: Boolean;
       begin
         with inputfile do
@@ -4322,8 +4309,6 @@ type
 
 
     procedure tscannerfile.gettokenpos;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { load the values of tokenpos and lasttokenpos }
       begin
         do_gettokenpos(lasttokenpos,compiler.globals.current_tokenpos);
@@ -4338,8 +4323,6 @@ type
 
 
     procedure tscannerfile.setnexttoken;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         token:=nexttoken;
         nexttoken:=NOTOKEN;
@@ -4351,8 +4334,6 @@ type
 
 
     procedure tscannerfile.savetokenpos;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         oldlasttokenpos:=lasttokenpos;
         oldcurrent_filepos:=compiler.globals.current_filepos;
@@ -4361,8 +4342,6 @@ type
 
 
     procedure tscannerfile.restoretokenpos;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         lasttokenpos:=oldlasttokenpos;
         compiler.globals.current_filepos:=oldcurrent_filepos;
@@ -4371,8 +4350,6 @@ type
 
 
     procedure tscannerfile.inc_comment_level;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          if (m_nested_comment in compiler.globals.current_settings.modeswitches) then
            inc(comment_level)
@@ -4389,8 +4366,6 @@ type
 
 
     procedure tscannerfile.dec_comment_level;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          if (m_nested_comment in compiler.globals.current_settings.modeswitches) then
            dec(comment_level)
@@ -4400,8 +4375,6 @@ type
 
 
     procedure tscannerfile.linebreak;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          cur : char;
       begin
@@ -4458,8 +4431,6 @@ type
 
     procedure tscannerfile.illegal_char(ch:char);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         if ch in [#32..#255] then
@@ -4471,8 +4442,6 @@ type
 
 
     procedure tscannerfile.end_of_file;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         checkpreprocstack;
         if in_multiline_string then
@@ -4486,8 +4455,6 @@ type
   -------------------------------------------}
 
     procedure tscannerfile.checkpreprocstack;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
       { check for missing ifdefs }
         while assigned(preprocstack) do
@@ -4501,8 +4468,6 @@ type
 
 
     procedure tscannerfile.poppreprocstack;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : tpreprocstack;
       begin
@@ -4519,8 +4484,6 @@ type
 
 
     procedure tscannerfile.ifpreprocstack(atyp:preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         condition: Boolean;
         valuedescr: String;
@@ -4543,8 +4506,6 @@ type
       end;
 
     procedure tscannerfile.elsepreprocstack;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if assigned(preprocstack) and
            (preprocstack.typ<>pp_else) then
@@ -4568,8 +4529,6 @@ type
       end;
 
     procedure tscannerfile.elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         valuedescr: String;
       begin
@@ -4633,8 +4592,6 @@ type
       end;
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         savetokenpos;
         repeat
@@ -4663,8 +4620,6 @@ type
 
 
     procedure tscannerfile.handledirectives;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          t  : tdirectiveitem;
          hs : string;
@@ -4779,8 +4734,6 @@ type
 
     procedure tscannerfile.readstring;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i : longint;
         err : boolean;
       begin
@@ -4857,8 +4810,6 @@ type
 
 
     procedure tscannerfile.readnumber;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         base,
         i  : longint;
@@ -5033,8 +4984,6 @@ type
 
     function tscannerfile.readquotedstring:string;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i : longint;
         msgwritten : boolean;
       begin
@@ -5099,8 +5048,6 @@ type
 
 
     function tscannerfile.readlongcomment(include_special_char: boolean):RawByteString;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
 
@@ -5182,8 +5129,6 @@ type
 
     function tscannerfile.readlongquotedstring:RawByteString;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i : longint;
         msgwritten : boolean;
 
@@ -5224,8 +5169,6 @@ type
 
     function tscannerfile.readstate:char;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         state : char;
       begin
         state:=' ';
@@ -5248,8 +5191,6 @@ type
 
 
     function tscannerfile.readoptionalstate(fallback:char):char;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         state : char;
       begin
@@ -5281,8 +5222,6 @@ type
 
 
     function tscannerfile.readstatedefault:char;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         state : char;
       begin
@@ -5333,8 +5272,6 @@ type
 
 
     procedure tscannerfile.skipuntildirective;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         found : longint;
         next_char_loaded : boolean;
@@ -5487,8 +5424,6 @@ type
 ****************************************************************************}
 
     procedure tscannerfile.skipcomment(read_first_char:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_commentstyle:=comment_tp;
         if read_first_char then
@@ -5532,8 +5467,6 @@ type
 
 
     procedure tscannerfile.skipdelphicomment;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_commentstyle:=comment_delphi;
         inc_comment_level;
@@ -5550,8 +5483,6 @@ type
 
 
     procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         found : longint;
       begin
@@ -5639,8 +5570,6 @@ type
 
     procedure tscannerfile.postprocessutf8multiline(len,quote_pos,quote_count : integer);
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       malformed : boolean;
       start, i,stripcol,col,newlen : integer;
       crlf : boolean;
@@ -5717,8 +5646,6 @@ type
     end;
 
     procedure tscannerfile.postprocessmultiline(len,quote_pos,quote_count : integer);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var
       malformed : boolean;
@@ -5797,8 +5724,6 @@ type
 
 
     function tscannerfile.readstringconstant : boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     type
        tQuoteStyle = (qsNone,qsBacktick,qsMultiQuote);
@@ -6314,8 +6239,6 @@ type
 ****************************************************************************}
 
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         low,high,mid : longint;
         mac     : tmacro;
@@ -6863,8 +6786,6 @@ exit_label:
 
 
     function tscannerfile.readpreproc:ttoken;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         low,high,mid: longint;
         optoken: ttoken;

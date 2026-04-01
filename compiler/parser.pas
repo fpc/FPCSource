@@ -545,7 +545,7 @@ implementation
          current_asmdata:=TAsmData(module.asmdata);
 
          { startup scanner and load the first file }
-         sc:=tscannerfile.Create(module.mainsource);
+         sc:=tscannerfile.Create(compiler,module.mainsource);
          sc.firstfile;
          module.scanner:=sc;
          module.mainscanner:=sc;
