@@ -1543,14 +1543,13 @@ type
 
   function HeapInc.ThreadState.AllocHuge(size: SizeUint): pointer;
 {$ifdef HAS_SYSOSFREE}
-  var
-    userSize: SizeUint;
   begin
-    userSize := size;
-    size := (size + (HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
     result := nil;
-    if size >= userSize then { No overflow. }
+    if size < SizeUint(-(HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1)) then { Won’t overflow. }
+    begin
+      size := (size + (HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
       result := SysOSAlloc(size);
+    end;
     if not Assigned(result) then
       exit(AllocFailed);
     pHugeChunk(result)^.size := size;
@@ -1581,14 +1580,13 @@ type
   function HeapInc.ThreadState.TryResizeHuge(p: pointer; size: SizeUint): pointer;
 {$ifdef HAS_SYSOSFREE}
   var
-    userSize, oldSize: SizeUint;
+    oldSize: SizeUint;
   begin
-    userSize := size;
-    size := (size + (HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
-    if (size < userSize) or { Overflow. }
-      (userSize < (SysOSAllocQuant - (HugeChunkDataOffset + CommonHeaderSize)) div 4 * 3) { Limit on shrinking huge chunks. }
+    if (size >= SizeUint(-(HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1))) or { Will overflow. }
+      (size < (SysOSAllocQuant - (HugeChunkDataOffset + CommonHeaderSize)) div 4 * 3) { Limit on shrinking huge chunks. }
     then
       exit(nil);
+    size := (size + (HugeChunkDataOffset + CommonHeaderSize + SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
     oldSize := pHugeChunk(p - (HugeChunkDataOffset + CommonHeaderSize))^.size;
     if size = oldSize then
       exit(p);
@@ -1807,13 +1805,12 @@ type
   var
     fv: pFreeVarHugeChunk absolute result;
     curFv, altFv, tailFv: pFreeVarHugeChunk;
-    curSize, vSize, userSize: SizeUint;
+    curSize, vSize: SizeUint;
     flags: uint32;
   begin
-    userSize := size;
+    if size >= SizeUint(-(HeaderSize + Quant - 1)) then { Will overflow. }
+      exit(AllocFailed);
     size := (size + (HeaderSize + Quant - 1)) and SizeUint(-Quant);
-    if size < userSize then
-      exit(AllocFailed); { Overflow. }
     minSize := (minSize + (HeaderSize + Quant - 1)) and SizeUint(-Quant);
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1945,13 +1942,10 @@ type
   end;
 
   function HeapInc.VarHugeManager.TryResize(p: pointer; size: SizeUint): pointer;
-  var
-    userSize: SizeUint;
   begin
-    userSize := size;
+    if size >= SizeUint(-(HeaderSize + Quant - 1)) then { Will overflow. }
+      exit(AllocFailed);
     size := (size + (HeaderSize + Quant - 1)) and SizeUint(-Quant);
-    if size < userSize then
-      exit(AllocFailed); { Overflow. }
     if size = pVarHugeHeader(p)[-1].size then { Unlike TryResizeVar that can reallocate aggressively, this is going to be a no-op, so check early and exit without blocking. }
       exit(p);
 
@@ -2061,14 +2055,14 @@ type
   { Assigned(sbrkProcd) is also expectResultInFreelist. }
   function HeapInc.VarHugeManager.AllocMore(size: SizeUint; sbrkProcd: pBoolean = nil): pFreeVarHugeChunk;
   var
-    userSize: SizeUint;
     lastCh: pointer;
   begin
-    userSize := size;
-    size := (size + SysOSAllocQuant - 1) and SizeUint(-SysOSAllocQuant);
     result := nil;
-    if size >= userSize then
+    if size < SizeUint(-(SysOSAllocQuant - 1)) then { Won’t overflow. }
+    begin
+      size := (size + (SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
       result := SysOSAlloc(size);
+    end;
     if not Assigned(result) then
     begin
     {$ifdef FPC_HAS_FEATURE_THREADING}
