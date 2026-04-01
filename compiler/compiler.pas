@@ -49,7 +49,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,switches,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,wpo,scanner,scandir
+  assemble,link,dbgbase,import,export,tokens,wpo,scanner
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }
@@ -180,7 +180,6 @@ type
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FScanner: TScanner;
-    FScanDir: TScanDir;
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
@@ -240,7 +239,6 @@ type
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
     property Scanner: TScanner read FScanner write FScanner;
-    property ScanDir: TScanDir read FScanDir write FScanDir;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;

@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,constexp,version,tokens,compilerbase,
+       globtype,globals,constexp,version,tokens,scandir,compilerbase,
        symtype,symdef,symsym,
        verbose,comphook,
        finput,
@@ -320,6 +320,7 @@ interface
        TScanner = class
        private
          FCompiler: TCompilerBase;
+         FScanDir: TScanDir;
 
          { dictionaries with the supported directives }
          turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
@@ -7166,11 +7167,15 @@ exit_label:
         AddConditional('ELSEC',directive_mac, @dir_else);
         AddConditional('ELIFC',directive_mac, @dir_elseif);
         AddConditional('ENDC',directive_mac, @dir_endif);
+
+        FScanDir:=TScanDir.Create;
+        FScanDir.InitScannerDirectives;
       end;
 
 
     procedure TScanner.DoneScanner;
       begin
+        FreeAndNil(FScanDir);
         turbo_scannerdirectives.Free;
         turbo_scannerdirectives := nil;
         mac_scannerdirectives.Free;
