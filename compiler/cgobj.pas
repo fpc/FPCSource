@@ -508,10 +508,12 @@ unit cgobj;
        private
         FCompiler: TCompilerBase;
         function GetCG: tcg; inline;
+        function GetTarget: TReadOnlyCompilerTarget; inline;
         procedure splitparaloc128(const cgpara: tcgpara; var cgparalo, cgparahi: tcgpara);
        protected
         property Compiler: TCompilerBase read FCompiler;
         property cg: tcg read GetCG;
+        property Target: TReadOnlyCompilerTarget read GetTarget;
        public
         constructor create(ACompiler: TCompilerBase);
 
@@ -3414,7 +3416,7 @@ implementation
             { Order for multiple locations is always
                 paraloc^ -> high
                 paraloc^.next -> low }
-            if (compiler.target.info.endian=ENDIAN_BIG) then
+            if (target.info.endian=ENDIAN_BIG) then
               begin
                 { paraloc^ -> high
                   paraloc^.next -> low }
@@ -3437,7 +3439,7 @@ implementation
             move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
             move(cgpara.location^,paralochi^,sizeof(paralochi^));
             { for big endian low is at +8, for little endian high }
-            if compiler.target.info.endian = endian_big then
+            if target.info.endian = endian_big then
               begin
                 inc(cgparalo.location^.reference.offset,8);
                 cgparalo.alignment:=newalignment(cgparalo.alignment,8);
@@ -3460,6 +3462,12 @@ implementation
         Result:=compiler.cg;
       end;
 
+
+    function tcg128.GetTarget: TReadOnlyCompilerTarget; inline;
+      begin
+        Result:=Compiler.Target;
+      end;
+
     constructor tcg128.create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
@@ -3480,7 +3488,7 @@ implementation
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if compiler.target.info.endian = endian_big then
+        if target.info.endian = endian_big then
           begin
             tmpreg:=reg.reglo;
             reg.reglo:=reg.reghi;
@@ -3499,7 +3507,7 @@ implementation
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if compiler.target.info.endian = endian_big then
+        if target.info.endian = endian_big then
           begin
             tmpreg := reg.reglo;
             reg.reglo := reg.reghi;
@@ -3615,7 +3623,7 @@ implementation
         splitparaloc128(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;
-        if compiler.target.info.endian=endian_big then
+        if target.info.endian=endian_big then
           inc(tmpreflo.offset,8)
         else
           inc(tmprefhi.offset,8);
