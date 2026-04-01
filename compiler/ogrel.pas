@@ -113,7 +113,7 @@ interface
         function PeekChar(out c: char): boolean;
         function ReadLine(out s: string): boolean;
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         function ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
       end;
@@ -686,7 +686,7 @@ implementation
         result:=true;
       end;
 
-    constructor TRelObjInput.create(acompiler: TCompilerBase);
+    constructor TRelObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         cobjdata:=TRelObjData;
@@ -954,7 +954,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        Data:=CObjData.Create(InputFileName,compiler.globals,compiler.target,compiler.verbose);
+        Data:=CObjData.Create(InputFileName,globals,target,verbose);
         ExpectedAreas:=-1;
         ExpectedSymbols:=-1;
         result:=false;
@@ -1218,7 +1218,7 @@ implementation
         instance: TRelObjInput;
       begin
         result:=false;
-        instance:=TRelObjInput.Create(_compiler);
+        instance:=TRelObjInput.Create(_compiler.Globals,_compiler.Target,_compiler.Verbose);
         instance.FReader:=AReader;
         with instance do
           while not AtEoF do

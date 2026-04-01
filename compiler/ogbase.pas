@@ -545,7 +545,9 @@ interface
 
       TObjInput = class
       private
-        FCompiler: TCompilerBase;
+        FGlobals: TReadOnlyCompilerGlobals;
+        FTarget: TReadOnlyCompilerTarget;
+        FVerbose: TVerbose;
         FCObjData : TObjDataClass;
       protected
         { reader }
@@ -553,9 +555,11 @@ interface
         InputFileName : string;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure ReadSectionContent(Data:TObjData);
-        property Compiler: TCompilerBase read FCompiler;
+        property Globals: TReadOnlyCompilerGlobals read FGlobals;
+        property Target: TReadOnlyCompilerTarget read FTarget;
+        property Verbose: TVerbose read FVerbose;
       public
-        constructor create(ACompiler: TCompilerBase);virtual;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);virtual;
         function  ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;virtual;abstract;
         class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
@@ -3256,7 +3260,7 @@ implementation
                                     {exesym.ObjSymbol.ObjSection.FullName+}
                                     '('+exesym.Name+')');
                                 end;
-                              objinput:=lib.ObjInputClass.Create(compiler);
+                              objinput:=lib.ObjInputClass.Create(compiler.globals,compiler.target,compiler.verbose);
                               objinput.ReadObjData(lib.ArReader,objdata);
                               objinput.free;
                               objinput := nil;
@@ -4174,15 +4178,17 @@ implementation
                                 TObjInput
 ****************************************************************************}
 
-    constructor TObjInput.create(ACompiler: TCompilerBase);
+    constructor TObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        FCompiler:=ACompiler;
+        FGlobals:=AGlobals;
+        FTarget:=ATarget;
+        FVerbose:=AVerbose;
       end;
 
 
     procedure TObjInput.inputerror(const s : string);
       begin
-        compiler.verbose.Comment(V_Error,s+' while reading '+InputFileName);
+        verbose.Comment(V_Error,s+' while reading '+InputFileName);
       end;
 
 
@@ -4202,8 +4208,8 @@ implementation
             sec:=TObjSection(Data.ObjSectionList[i]);
             { Skip debug sections }
             if (oso_debug in sec.SecOptions) and
-               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
+               (cs_link_strip in globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in globals.current_settings.globalswitches) then
               continue;
 
             if assigned(sec.Data) then

@@ -193,17 +193,17 @@ interface
          procedure read_symbols(objdata:TObjData);
          procedure ObjSections_read_relocs(p:TObject;arg:pointer);
        public
-         constructor createcoff(awin32:boolean;ACompiler: TCompilerBase);
+         constructor createcoff(awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
          destructor destroy;override;
          function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
        end;
 
        TDJCoffObjInput = class(TCoffObjInput)
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TPECoffObjInput = class(TCoffObjInput)
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TCoffexeoutput = class(texeoutput)
@@ -2264,9 +2264,9 @@ const pemagic : array[0..3] of byte = (
                                 TCoffObjInput
 ****************************************************************************}
 
-    constructor TCoffObjInput.createcoff(awin32:boolean;ACompiler: TCompilerBase);
+    constructor TCoffObjInput.createcoff(awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited create(ACompiler);
+        inherited create(AGlobals,ATarget,AVerbose);
         win32:=awin32;
         bigobj:=false;
         FSymTbl:=nil;
@@ -2316,7 +2316,7 @@ const pemagic : array[0..3] of byte = (
             { If number of relocations exceeds 65535, it is stored in address field
               of the first record, and includes this first fake relocation. }
             FReader.read(rel,sizeof(rel));
-	    MaybeSwap(compiler.target.info.endian,rel);
+	    MaybeSwap(target.info.endian,rel);
             s.coffrelocs:=rel.address-1;
             if s.coffrelocs<=65535 then
               InternalError(2013012503);
@@ -2324,7 +2324,7 @@ const pemagic : array[0..3] of byte = (
         for i:=1 to s.coffrelocs do
          begin
            FReader.read(rel,sizeof(rel));
-	   MaybeSwap(compiler.target.info.endian,rel);
+	   MaybeSwap(target.info.endian,rel);
            case rel.reloctype of
 {$ifdef arm}
              IMAGE_REL_ARM_ABSOLUTE:
@@ -2450,7 +2450,7 @@ const pemagic : array[0..3] of byte = (
         { keeps string manipulations out of main routine }
         procedure UnsupportedSymbolType;
           begin
-            compiler.verbose.Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(symcls)+' at index '+tostr(symidx)+' while reading '+InputFileName);
+            verbose.Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(symcls)+' at index '+tostr(symidx)+' while reading '+InputFileName);
           end;
 
       begin
@@ -2470,7 +2470,7 @@ const pemagic : array[0..3] of byte = (
               if bigobj then
                 begin
                   FCoffSyms.Read(bosym,sizeof(bosym));
-		  MaybeSwap(compiler.target.info.endian,bosym);
+		  MaybeSwap(target.info.endian,bosym);
                   if bosym.Name.Offset.Zeroes<>0 then
                     begin
                       { Added for sake of global data analysis }
@@ -2491,7 +2491,7 @@ const pemagic : array[0..3] of byte = (
               else
                 begin
                   FCoffSyms.Read(sym,sizeof(sym));
-		  MaybeSwap(compiler.target.info.endian,sym);
+		  MaybeSwap(target.info.endian,sym);
                   if plongint(@sym.name)^<>0 then
                     begin
                       { Added for sake of global data analysis }
@@ -2597,7 +2597,7 @@ const pemagic : array[0..3] of byte = (
                       psecrec:=pcoffsectionrec(@auxrec);
                     end;
                   secrec:=psecrec^;
-                  MaybeSwap(compiler.target.info.endian,secrec);
+                  MaybeSwap(target.info.endian,secrec);
 
                   case secrec.select of
                     IMAGE_COMDAT_SELECT_NODUPLICATES:
@@ -2618,17 +2618,17 @@ const pemagic : array[0..3] of byte = (
                         including an associative section, but with a comdat selection
                         of 0; it seems that other linkers just ignore those... }
                       if secrec.select<>0 then
-                        compiler.verbose.Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
+                        verbose.Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
                     end;
                   end;
 
                   if comdatsel in [oscs_associative] then
                     { only temporary }
-                    compiler.verbose.Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                    verbose.Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
-                    compiler.verbose.Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
+                    verbose.Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
-                    compiler.verbose.Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
+                    verbose.Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
                   else
                     begin
                       objsym.objsection.ComdatSelection:=comdatsel;
@@ -2637,7 +2637,7 @@ const pemagic : array[0..3] of byte = (
                         begin
                           objsym.objsection.AssociativeSection:=GetSection(secrec.assoc-1);
                           if not assigned(objsym.objsection.AssociativeSection) then
-                            compiler.verbose.Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
+                            verbose.Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
                         end;
                     end;
 
@@ -2665,8 +2665,8 @@ const pemagic : array[0..3] of byte = (
           begin
             { Skip debug sections }
             if (oso_debug in secoptions)  and
-               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
+               (cs_link_strip in globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in globals.current_settings.globalswitches) then
               exit;
 
             if coffrelocs>0 then
@@ -2698,7 +2698,7 @@ const pemagic : array[0..3] of byte = (
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.Target,compiler.verbose);
+        objdata:=CObjData.Create(InputFileName,globals,Target,verbose);
         result:=false;
         boheader:=default(tcoffbigobjheader);
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
@@ -2710,7 +2710,7 @@ const pemagic : array[0..3] of byte = (
                InputError('Can''t read COFF Header');
                exit;
              end;
-           MaybeSwap(compiler.target.info.endian,header);
+           MaybeSwap(target.info.endian,header);
            if (header.mach=0) and (header.nsects=$ffff) then
              begin
                { either a library or big obj COFF }
@@ -2720,7 +2720,7 @@ const pemagic : array[0..3] of byte = (
                    InputError('Can''t read Big Obj COFF Header');
                    exit;
                  end;
-               MaybeSwap(compiler.target.info.endian,boheader);
+               MaybeSwap(target.info.endian,boheader);
                if CompareByte(boheader.UUID,COFF_BIG_OBJ_MAGIC,length(boheader.uuid))<>0 then
                  begin
                    { ToDo: this should be treated as a library }
@@ -2804,7 +2804,7 @@ const pemagic : array[0..3] of byte = (
                   InputError('Error reading COFF Section Headers');
                   exit;
                 end;
-               MaybeSwap(compiler.target.info.endian,sechdr);
+               MaybeSwap(target.info.endian,sechdr);
                move(sechdr.name,secnamebuf,8);
                secnamebuf[8]:=#0;
                secname:=strpas(secnamebuf);
@@ -2843,7 +2843,7 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Pos('.edata',secname)=1) or
                       (Pos('.rsrc',secname)=1) or
-                      ((compiler.target.info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
+                      ((target.info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
                       (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
                    if (Pos('.idata',secname)=1) then
@@ -2882,16 +2882,16 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffObjInput.create(ACompiler: TCompilerBase);
+    constructor TDJCoffObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(false,ACompiler);
+        inherited createcoff(false,AGlobals,ATarget,AVerbose);
         cobjdata:=TDJCoffObjData;
       end;
 
 
-    constructor TPECoffObjInput.create(ACompiler: TCompilerBase);
+    constructor TPECoffObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(true,ACompiler);
+        inherited createcoff(true,AGlobals,ATarget,AVerbose);
         cobjdata:=TPECoffObjData;
       end;
 

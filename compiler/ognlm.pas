@@ -299,7 +299,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
     type
 
       TNLMCoffObjInput = class(TCoffObjInput)
-         constructor create(acompiler: TCompilerBase);override;
+         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TNLMCoffassembler = class(tinternalassembler)
@@ -1483,9 +1483,9 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         CInternalAr:=tarobjectwriter;
       end;
 
-    constructor TNLMCoffObjInput.create(acompiler: TCompilerBase);
+    constructor TNLMCoffObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(true,acompiler);
+        inherited createcoff(true,AGlobals,ATarget,AVerbose);
         cobjdata:=TNLMCoffObjData;
       end;
 

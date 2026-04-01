@@ -245,7 +245,7 @@ interface
       private
         FFuncTypes: array of TWasmFuncType;
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor Destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
         function ReadObjData(AReader:TObjectreader;out ObjData:TObjData):boolean;override;
@@ -2499,7 +2499,7 @@ implementation
                                TWasmObjInput
 ****************************************************************************}
 
-    constructor TWasmObjInput.create(acompiler: TCompilerBase);
+    constructor TWasmObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         cobjdata:=TWasmObjData;
@@ -2904,11 +2904,11 @@ implementation
                       end;
                     if (RelocType in [R_WASM_GLOBAL_INDEX_LEB,R_WASM_GLOBAL_INDEX_I32]) and
                        not ((SymbolTable[RelocIndex].SymKind=SYMTAB_GLOBAL) or
-                            ((ts_wasm_threads in compiler.globals.current_settings.targetswitches) and
+                            ((ts_wasm_threads in globals.current_settings.targetswitches) and
                              (SymbolTable[RelocIndex].SymKind=SYMTAB_DATA) and
                              ((SymbolTable[RelocIndex].SymFlags and WASM_SYM_TLS)<>0))) then
                       begin
-                        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+                        if ts_wasm_threads in globals.current_settings.targetswitches then
                           InputError('Relocation must point to a SYMTAB_GLOBAL symbol or a SYMTAB_DATA symbol with the WASM_SYM_TLS flag set')
                         else
                           InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
@@ -4378,7 +4378,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.Target,compiler.verbose);
+        objdata:=CObjData.Create(InputFileName,globals,Target,verbose);
         result:=false;
         CodeSegments:=nil;
         DataSegments:=nil;
@@ -4440,7 +4440,7 @@ implementation
                   InputError('Code section ' + tostr(i) + ' does not have a main symbol defined in the symbol table');
                   exit;
                 end;
-              if SegIsExported or not (cs_link_smart in compiler.globals.current_settings.globalswitches) then
+              if SegIsExported or not (cs_link_smart in globals.current_settings.globalswitches) then
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load,oso_keep],false)
               else
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load],false);
@@ -4452,7 +4452,7 @@ implementation
           with DataSegments[i] do
             if Active then
               begin
-                if not (cs_link_smart in compiler.globals.current_settings.globalswitches) then
+                if not (cs_link_smart in globals.current_settings.globalswitches) then
                   CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write,oso_keep],false)
                 else
                   CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write],false);

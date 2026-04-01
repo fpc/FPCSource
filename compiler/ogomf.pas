@@ -210,7 +210,7 @@ interface
         { Specifies whether symbol names (in EXTDEF and PUBDEF records) are case sensitive. }
         property CaseSensitiveSymbols: Boolean read FCaseSensitiveSymbols write FCaseSensitiveSymbols;
       public
-        constructor create(acompiler:tcompilerbase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
         function ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
@@ -2617,7 +2617,7 @@ implementation
         Result:=True;
       end;
 
-    constructor TOmfObjInput.create(acompiler:tcompilerbase);
+    constructor TOmfObjInput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         cobjdata:=TOmfObjData;
@@ -2665,7 +2665,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.target,compiler.verbose);
+        objdata:=CObjData.Create(InputFileName,globals,target,verbose);
         result:=false;
         { the TOmfObjData constructor creates a group 'DGROUP', which is to be
           used by the code generator, when writing files. When reading object

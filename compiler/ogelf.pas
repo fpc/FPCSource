@@ -145,7 +145,7 @@ interface
          procedure LoadSymbols(objdata:TObjData;count,locals:longword);
          procedure LoadDynamic(const shdr:TElfsechdr;objdata:TObjData);
        public
-         constructor Create(ACompiler: TCompilerBase);override;
+         constructor Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          destructor Destroy;override;
          function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
@@ -1161,7 +1161,7 @@ implementation
                                TELFObjectInput
 ****************************************************************************}
 
-    constructor TElfObjInput.Create(ACompiler: TCompilerBase);
+    constructor TElfObjInput.Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjData:=TElfObjData;
@@ -1199,7 +1199,7 @@ implementation
         for i:=0 to secrec.relocs-1 do
           begin
             FReader.Read(rel,secrec.relentsize);
-            MaybeSwapElfReloc(compiler.target.info.endian,rel);
+            MaybeSwapElfReloc(target.info.endian,rel);
             reltyp:=rel.info and $FF;
 {$ifdef cpu64bitaddr}
             relsym:=rel.info shr 32;
@@ -1242,7 +1242,7 @@ implementation
         for i:=1 to count-1 do
           begin
             FReader.Read(sym,sizeof(TElfSymbol));
-            MaybeSwapElfSymbol(compiler.target.info.endian,sym);
+            MaybeSwapElfSymbol(target.info.endian,sym);
             if sym.st_name>=strtablen then
               InternalError(2012060205);
 
@@ -1340,7 +1340,7 @@ implementation
         secname:=string(PChar(@shstrtab[shdr.sh_name]));
 
         result:=TElfObjSection.create_ext(objdata,secname,
-          shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize,compiler.target,compiler.verbose);
+          shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize,target,verbose);
 
         result.index:=index;
         result.DataPos:=shdr.sh_offset;
@@ -1432,7 +1432,7 @@ implementation
 
                 FReader.Seek(symtaboffset+shdr.sh_info*sizeof(TElfSymbol));
                 FReader.Read(sym,sizeof(TElfSymbol));
-                MaybeSwapElfSymbol(compiler.target.info.endian,sym);
+                MaybeSwapElfSymbol(target.info.endian,sym);
                 if sym.st_name>=strtablen then
                   InternalError(2012110705);
                 if (sym.st_shndx=index) and (sym.st_info=((STB_LOCAL shl 4) or STT_SECTION)) then
@@ -1490,12 +1490,12 @@ implementation
             InputError('Wrong ELF file class (32/64 bit mismatch)');
             exit;
           end;
-        if (header.e_ident[EI_DATA]<>1+ord(compiler.target.info.endian=endian_big)) then
+        if (header.e_ident[EI_DATA]<>1+ord(target.info.endian=endian_big)) then
           begin
             InputError('ELF endianness does not match target');
             exit;
           end;
-        MaybeSwapHeader(compiler.target.info.endian,header);
+        MaybeSwapHeader(target.info.endian,header);
         if (header.e_version<>1) then
           begin
             InputError('Unknown ELF data version');
@@ -1521,12 +1521,12 @@ implementation
 
         if dynobj then
           begin
-            objdata:=TElfDynamicObjData.Create(InputFilename,compiler.globals,compiler.target,compiler.verbose);
+            objdata:=TElfDynamicObjData.Create(InputFilename,globals,target,verbose);
             verdefs:=TElfDynamicObjData(objdata).versiondefs;
             CObjSymbol:=TVersionedObjSymbol;
           end
         else
-          objdata:=CObjData.Create(InputFilename,compiler.globals,compiler.target,compiler.verbose);
+          objdata:=CObjData.Create(InputFilename,globals,target,verbose);
 
         TElfObjData(objdata).ident:=header.e_ident;
         TElfObjData(objdata).flags:=header.e_flags;
@@ -1546,7 +1546,7 @@ implementation
         for i:=0 to (shdr.sh_size div shdr.sh_entsize)-1 do
           begin
             FReader.Read(dt,sizeof(TElfDyn));
-            MaybeSwapElfDyn(compiler.target.info.endian,dt);
+            MaybeSwapElfDyn(target.info.endian,dt);
             case dt.d_tag of
               DT_NULL:
                 break;
@@ -1589,9 +1589,9 @@ implementation
             InputError('Can''t read ELF section headers');
             exit;
           end;
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           for i:=0 to nsects-1 do
-            MaybeSwapSecHeader(compiler.target.info.endian,shdrs[i]);
+            MaybeSwapSecHeader(target.info.endian,shdrs[i]);
 
         { First, load the .shstrtab section }
         if shstrndx>=nsects then
@@ -1671,7 +1671,7 @@ implementation
                       SetLength(symversions,shdrs[i].sh_size);
                       FReader.seek(shdrs[i].sh_offset);
                       FReader.read(symversions[0],shdrs[i].sh_size);
-                      if source_info.endian<>compiler.target.info.endian then
+                      if source_info.endian<>target.info.endian then
                         for j:=0 to syms-1 do
                           symversions[j]:=SwapEndian(symversions[j]);
                     end;
@@ -1689,7 +1689,7 @@ implementation
                         begin
                           FReader.seek(vdoffset);
                           FReader.Read(vd,sizeof(TElfverdef));
-                          MaybeSwapElfverdef(compiler.target.info.endian,vd);
+                          MaybeSwapElfverdef(target.info.endian,vd);
                           if vd.vd_version<>VER_DEF_CURRENT then
                             InternalError(2012120502);
                           FReader.seek(vdoffset+vd.vd_aux);
@@ -1698,7 +1698,7 @@ implementation
                             subsequent one(s) point to parent(s). For our purposes, version hierarchy
                             looks irrelevant. }
                           FReader.Read(vda,sizeof(TElfverdaux));
-                          MaybeSwapElfverdaux(compiler.target.info.endian,vda);
+                          MaybeSwapElfverdaux(target.info.endian,vda);
                           if vda.vda_name>=strtablen then
                             InternalError(2012120503);
                           if (vd.vd_flags and VER_FLG_BASE)<>0 then
@@ -1754,8 +1754,8 @@ implementation
             objsec:=TObjSection(objdata.ObjsectionList[i]);
             { skip debug sections }
             if (oso_debug in objsec.SecOptions) and
-               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
+               (cs_link_strip in globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in globals.current_settings.globalswitches) then
               continue;
 
             if FSecTbl[objsec.index].relocpos>0 then
@@ -1771,7 +1771,7 @@ implementation
                 FReader.Seek(shdrs[i+1].sh_offset);
                 { first dword is flags }
                 FReader.Read(tmp,sizeof(longword));
-                if source_info.endian<>compiler.target.info.endian then
+                if source_info.endian<>target.info.endian then
                   tmp:=SwapEndian(tmp);
                 if (tmp and GRP_COMDAT)<>0 then
                   grp.IsComdat:=true;
@@ -1781,7 +1781,7 @@ implementation
                 for j:=0 to count-1 do
                   begin
                     FReader.Read(tmp,sizeof(longword));
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       tmp:=SwapEndian(tmp);
                     if (tmp>=nsects) then
                       InternalError(2012110805);
