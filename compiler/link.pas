@@ -2100,7 +2100,7 @@ Implementation
         compiler.verbose.Message1(exec_i_linking,outputname);
         compiler.verbose.FlushOutput;
 
-        exeoutput:=CExeOutput.Create(compiler);
+        exeoutput:=CExeOutput.Create(compiler.globals,compiler.target,compiler.verbose);
 
 { TODO: Load custom linker script}
         DefaultLinkScript;

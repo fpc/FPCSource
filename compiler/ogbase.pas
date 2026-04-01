@@ -694,7 +694,9 @@ interface
 
       TExeOutput = class
       private
-        FCompiler: TCompilerBase;
+        FGlobals: TReadOnlyCompilerGlobals;
+        FTarget: TReadOnlyCompilerTarget;
+        FVerbose: TVerbose;
         { ExeSectionList }
         FCObjSymbol       : TObjSymbolClass;
         FCObjData         : TObjDataClass;
@@ -740,13 +742,15 @@ interface
         function MemAlign(exesec: TExeSection): longword;
         function DataAlign(exesec: TExeSection): longword;
         procedure ReplaceExeSectionList(newlist: TFPList);
-        property Compiler: TCompilerBase read FCompiler;
+        property Globals: TReadOnlyCompilerGlobals read FGlobals;
+        property Target: TReadOnlyCompilerTarget read FTarget;
+        property Verbose: TVerbose read FVerbose;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
         IsSharedLibrary : boolean;
         ExecStack    : boolean;
-        constructor create(ACompiler: TCompilerBase);virtual;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);virtual;
         destructor  destroy;override;
         function  FindExeSection(const aname:string):TExeSection;
         procedure AddObjData(ObjData:TObjData);
@@ -2423,11 +2427,13 @@ implementation
                                 TExeOutput
 ****************************************************************************}
 
-    constructor TExeOutput.create(ACompiler: TCompilerBase);
+    constructor TExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        FCompiler:=ACompiler;
+        FGlobals:=AGlobals;
+        FTarget:=ATarget;
+        FVerbose:=AVerbose;
         { init writer }
-        FWriter:=TObjectwriter.create(compiler.verbose);
+        FWriter:=TObjectwriter.create(verbose);
         FExeWriteMode:=ewm_exefull;
         { object files }
         FObjDataList:=TFPObjectList.Create(true);
@@ -2509,7 +2515,7 @@ implementation
         if FWriter.createfile(fn) then
          begin
            { Only write the .o if there are no errors }
-           if compiler.verbose.errorcount=0 then
+           if verbose.errorcount=0 then
              result:=writedata
            else
              result:=true;
@@ -2517,7 +2523,7 @@ implementation
            FWriter.closefile;
          end
         else
-         compiler.verbose.Comment(V_Fatal,'Can''t create executable '+fn);
+         verbose.Comment(V_Fatal,'Can''t create executable '+fn);
       end;
 
 
@@ -2535,7 +2541,7 @@ implementation
     procedure TExeOutput.AddObjData(ObjData:TObjData);
       begin
         if ObjData.classtype<>FCObjData then
-          compiler.verbose.Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
+          verbose.Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
         ObjDataList.Add(ObjData);
         ExecStack:=ExecStack or ObjData.ExecStack;
       end;
@@ -2546,7 +2552,7 @@ implementation
         ObjDataList.Clear;
         { Globals defined in the linker script }
         if not assigned(internalObjData) then
-          internalObjData:=CObjData.create('*Internal*',compiler.globals,compiler.target,compiler.verbose);
+          internalObjData:=CObjData.create('*Internal*',globals,target,verbose);
         AddObjData(internalObjData);
         { Common Data section }
         commonObjSection:=internalObjData.createsection(sec_bss,'');
@@ -2574,7 +2580,7 @@ implementation
       begin
         val(avalue,FImageBase,code);
         if code<>0 then
-          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
+          verbose.Comment(V_Error,'Invalid number '+avalue);
         { Create __image_base__ symbol, create the symbol
           in a section with adress 0 and at offset 0 }
         objsec:=internalObjData.createsection('*__image_base__',0,[]);
@@ -2712,7 +2718,7 @@ implementation
       begin
         val(avalue,alignval,code);
         if code<>0 then
-          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
+          verbose.Comment(V_Error,'Invalid number '+avalue);
         if alignval<=0 then
           exit;
         { Create an empty section with the required aligning }
@@ -2731,7 +2737,7 @@ implementation
       begin
         val(avalue,len,code);
         if code<>0 then
-          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
+          verbose.Comment(V_Error,'Invalid number '+avalue);
         if len<=0 then
           exit;
         if len>sizeof(zeros) then
@@ -2787,12 +2793,12 @@ implementation
               else
                 val(oneval,anumval,code);
               if code<>0 then
-                compiler.verbose.Comment(V_Error,'Invalid number '+avalue)
+                verbose.Comment(V_Error,'Invalid number '+avalue)
               else
                 begin
                   if (indexpos<MAXVAL) then
                     begin
-                      if source_info.endian<>compiler.target.info.endian then
+                      if source_info.endian<>target.info.endian then
                         swapendian(anumval);
                       { No range checking here }
 
@@ -2807,18 +2813,18 @@ implementation
                       inc(indexpos);
                     end
                   else
-                    compiler.verbose.Comment(V_Error,'Buffer overrun in Order_values');
+                    verbose.Comment(V_Error,'Buffer overrun in Order_values');
                 end;
             end;
         until allvals='';
         if indexpos=0 then
           begin
-            compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
+            verbose.Comment(V_Error,'Invalid number '+avalue);
             exit;
           end;
         if indexpos=MAXVAL then
           begin
-            compiler.verbose.Comment(V_Error,'Too many values '+avalue);
+            verbose.Comment(V_Error,'Too many values '+avalue);
             internalerror(2006022505);
           end;
         len:=bytesize*indexpos;
@@ -3012,7 +3018,7 @@ implementation
               UnresolvedExeSymbols[i]:=nil;
           end;
         UnresolvedExeSymbols.Pack;
-        compiler.verbose.Comment(V_Debug,'Number of unresolved externals '+s+' '+tostr(UnresolvedExeSymbols.Count));
+        verbose.Comment(V_Debug,'Number of unresolved externals '+s+' '+tostr(UnresolvedExeSymbols.Count));
       end;
 
 
@@ -3045,7 +3051,7 @@ implementation
                 VTENTRY and VTINHERIT symbols }
               if objsym.bind=AB_LOCAL then
                 begin
-                  if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
+                  if cs_link_opt_vtable in globals.current_settings.globalswitches then
                     begin
                       hs:=objsym.name;
                       if (hs[1]='V') then
@@ -3109,24 +3115,24 @@ implementation
                                 oscs_none:
                                   makeexternal:=false;
                                 oscs_any:
-                                  compiler.verbose.Message1(link_d_comdat_discard_any,objsym.name);
+                                  verbose.Message1(link_d_comdat_discard_any,objsym.name);
                                 oscs_same_size:
                                   if exesym.ObjSymbol.size<>objsym.size then
-                                    compiler.verbose.Message1(link_e_comdat_size_differs,objsym.name)
+                                    verbose.Message1(link_e_comdat_size_differs,objsym.name)
                                   else
-                                    compiler.verbose.Message1(link_d_comdat_discard_size,objsym.name);
+                                    verbose.Message1(link_d_comdat_discard_size,objsym.name);
                                 oscs_exact_match:
                                   if (exesym.ObjSymbol.size<>objsym.size) and not exesym.ObjSymbol.objsection.Data.equal(objsym.objsection.Data) then
-                                    compiler.verbose.Message1(link_e_comdat_content_differs,objsym.name)
+                                    verbose.Message1(link_e_comdat_content_differs,objsym.name)
                                   else
-                                    compiler.verbose.Message1(link_d_comdat_discard_content,objsym.name);
+                                    verbose.Message1(link_d_comdat_discard_content,objsym.name);
                                 oscs_associative:
                                   { this is handled in a different way }
                                   makeexternal:=false;
                                 oscs_largest:
                                   if objsym.size>exesym.ObjSymbol.size then
                                     begin
-                                      compiler.verbose.Message1(link_d_comdat_replace_size,objsym.name);
+                                      verbose.Message1(link_d_comdat_replace_size,objsym.name);
                                       { we swap the symbols and turn the smaller one to an external
                                         symbol }
                                       tmpsym:=exesym.objsymbol;
@@ -3147,7 +3153,7 @@ implementation
                                 end;
                             end
                           else
-                            compiler.verbose.Message1(link_e_comdat_selection_differs,objsym.name);
+                            verbose.Message1(link_e_comdat_selection_differs,objsym.name);
                         end;
                     end;
                 end;
@@ -3163,7 +3169,7 @@ implementation
                         exesym.State:=symstate_defined;
                       end
                     else
-                      compiler.verbose.Message1(link_e_duplicate_symbol,objsym.name);
+                      verbose.Message1(link_e_duplicate_symbol,objsym.name);
 
                     { hidden symbols must become local symbols in the executable }
                     if objsym.bind=AB_PRIVATE_EXTERN then
@@ -3260,7 +3266,7 @@ implementation
                                     {exesym.ObjSymbol.ObjSection.FullName+}
                                     '('+exesym.Name+')');
                                 end;
-                              objinput:=lib.ObjInputClass.Create(compiler.globals,compiler.target,compiler.verbose);
+                              objinput:=lib.ObjInputClass.Create(globals,target,verbose);
                               objinput.ReadObjData(lib.ArReader,objdata);
                               objinput.free;
                               objinput := nil;
@@ -3343,7 +3349,7 @@ implementation
             if objsym.exesymbol.State=symstate_defined then
               begin
                 if objsym.exesymbol.ObjSymbol.size<>objsym.size then
-                  compiler.verbose.Comment(V_Debug,'Size of common symbol '+objsym.name+' is different, expected '+tostr(objsym.size)+' got '+tostr(objsym.exesymbol.ObjSymbol.size));
+                  verbose.Comment(V_Debug,'Size of common symbol '+objsym.name+' is different, expected '+tostr(objsym.size)+' got '+tostr(objsym.exesymbol.ObjSymbol.size));
               end
             else
               begin
@@ -3385,11 +3391,11 @@ implementation
                   end;
               end
             else
-              compiler.verbose.Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+              verbose.Comment(V_Error,'Entrypoint '+EntryName+' not defined');
           end;
 
         { Generate VTable tree }
-        if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
+        if cs_link_opt_vtable in globals.current_settings.globalswitches then
           BuildVTableTree(VTInheritList,VTEntryList);
         VTInheritList.Free;
         VTInheritList := nil;
@@ -3417,7 +3423,7 @@ implementation
         move(dbgname[1],debuglink[len],length(dbgname));
         inc(len,length(dbgname)+1);
         len:=align(len,4);
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           SwapEndian(dbgcrc);
         move(dbgcrc,debuglink[len],sizeof(cardinal));
         inc(len,4);
@@ -3556,9 +3562,9 @@ implementation
               if (exesym.State=symstate_undefined) then
                 begin
                   if assigned(exesym.ObjSymbol) and assigned(exesym.ObjSymbol.ObjData) then
-                    compiler.verbose.Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
+                    verbose.Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
                   else
-                    compiler.verbose.Message1(link_e_undefined_symbol,exesym.name);
+                    verbose.Message1(link_e_undefined_symbol,exesym.name);
                 end;
             end;
 
@@ -3661,7 +3667,7 @@ implementation
                     hstabreloc:=nil;
                     skipstab:=false;
                     currstabsec.Data.read(hstab,sizeof(TObjStabEntry));
-                    MaybeSwapStab(compiler.target.info.endian,hstab);
+                    MaybeSwapStab(target.info.endian,hstab);
                     { Only include first hdrsym stab }
                     if hstab.ntype=0 then
                       skipstab:=true;
@@ -3742,7 +3748,7 @@ implementation
                             mergedstabsec.ObjRelocations.Add(hstabreloc);
                           end;
                         { Write updated stab }
-                        MaybeSwapStab(compiler.target.info.endian,hstab);
+                        MaybeSwapStab(target.info.endian,hstab);
                         mergedstabsec.write(hstab,sizeof(hstab));
                         inc(mergestabcnt);
                       end;
@@ -3767,7 +3773,7 @@ implementation
             hstab.nother:=0;
             hstab.ndesc:=word(mergestabcnt-1);
             hstab.nvalue:=mergedstabstrsec.Size;
-            MaybeSwapStab(compiler.target.info.endian,hstab);
+            MaybeSwapStab(target.info.endian,hstab);
             mergedstabsec.Data.seek(0);
             mergedstabsec.Data.write(hstab,sizeof(hstab));
           end;
@@ -3794,8 +3800,8 @@ implementation
                 (
                  (exesec.ObjSectionlist.count=0) or
                  (
-                  (cs_link_strip in compiler.globals.current_settings.globalswitches) and
-                  not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) and
+                  (cs_link_strip in globals.current_settings.globalswitches) and
+                  not(cs_link_separate_dbg_file in globals.current_settings.globalswitches) and
                   (oso_debug in exesec.SecOptions)
                  )
                 );
@@ -3812,7 +3818,7 @@ implementation
               end;
             if doremove then
               begin
-                compiler.verbose.Comment(V_Debug,'Disabling empty section '+exesec.name);
+                verbose.Comment(V_Debug,'Disabling empty section '+exesec.name);
                 exesec.Disabled:=true;
               end;
           end;
@@ -3965,7 +3971,7 @@ implementation
                 DoReloc(TObjRelocation(objsec.ObjRelocations[i]));
 
               { Process Virtual Entry calls }
-              if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
+              if cs_link_opt_vtable in globals.current_settings.globalswitches then
                 begin
                   for i:=0 to objsec.VTRefList.count-1 do
                     begin
@@ -4111,7 +4117,7 @@ implementation
     procedure TExeOutput.SetCurrMemPos(const AValue: qword);
       begin
         if AValue>MaxMemPos then
-          compiler.verbose.Message1(link_f_executable_too_big, compiler.target.os_string);
+          verbose.Message1(link_f_executable_too_big, target.os_string);
         FCurrMemPos:=AValue;
       end;
 

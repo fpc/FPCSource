@@ -311,7 +311,7 @@ interface
          procedure WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword=0);
          procedure Do_Mempos;virtual;
        public
-         constructor Create(ACompiler: TCompilerBase);override;
+         constructor Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          destructor Destroy;override;
          procedure Load_Start;override;
          procedure Load_DynamicObject(ObjData:TObjData;asneeded:boolean);override;
@@ -1819,7 +1819,7 @@ implementation
                                   TElfExeOutput
 *****************************************************************************}
 
-    constructor TElfExeOutput.Create(ACompiler: TCompilerBase);
+    constructor TElfExeOutput.Create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjData:=TElfObjData;
@@ -1883,17 +1883,17 @@ implementation
         header.e_ident[EI_MAG2]:=ELFMAG2;
         header.e_ident[EI_MAG3]:=ELFMAG3;
         header.e_ident[EI_CLASS]:=ELFCLASS;
-        if compiler.target.info.endian=endian_big then
+        if target.info.endian=endian_big then
           header.e_ident[EI_DATA]:=ELFDATA2MSB
         else
           header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
         header.e_ident[EI_VERSION]:=1;
-        if compiler.target.info.system in systems_openbsd then
+        if target.info.system in systems_openbsd then
           header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
-        else if compiler.target.info.system in systems_freebsd then
+        else if target.info.system in systems_freebsd then
           header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD
-        else if compiler.target.info.system in systems_dragonfly then
+        else if target.info.system in systems_dragonfly then
           header.e_ident[EI_OSABI]:=ELFOSABI_NONE;
         if IsSharedLibrary then
           header.e_type:=ET_DYN
@@ -1914,7 +1914,7 @@ implementation
           header.e_entry:=EntrySym.Address;
         header.e_shentsize:=sizeof(telfsechdr);
         header.e_phentsize:=sizeof(telfproghdr);
-        MaybeSwapHeader(compiler.target.info.endian,header);
+        MaybeSwapHeader(target.info.endian,header);
         FWriter.Write(header,sizeof(header));
       end;
 
@@ -1940,7 +1940,7 @@ implementation
         shdr.sh_info:=exesec.shinfo;
         shdr.sh_addralign:=exesec.SecAlign;
         shdr.sh_entsize:=exesec.shentsize;
-        MaybeSwapSecHeader(compiler.target.info.endian,shdr);
+        MaybeSwapSecHeader(target.info.endian,shdr);
         FWriter.Write(shdr,sizeof(shdr));
       end;
 
@@ -1960,7 +1960,7 @@ implementation
         phdr.p_vaddr:=seg.MemPos;
         phdr.p_paddr:=seg.MemPos;
 
-        MaybeSwapHeader(compiler.target.info.endian,phdr);
+        MaybeSwapHeader(target.info.endian,phdr);
         FWriter.Write(phdr,sizeof(phdr));
       end;
 
@@ -2066,7 +2066,7 @@ implementation
     procedure TElfExeOutput.make_dynamic_if_undefweak(exesym:TExeSymbol);
       begin
         if (exesym.dynindex=0) and (exesym.state=symstate_undefweak) and
-          not (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
+          not (cs_link_staticflag in globals.current_settings.globalswitches) then
           exesym.dynindex:=dynsymlist.add(exesym)+1;
       end;
 
@@ -2139,10 +2139,10 @@ implementation
     procedure TElfExeOutput.CreateGOTSection;
       begin
         gotpltobjsec:=TElfObjSection.create_ext(internalObjData,'.got.plt',
-          SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
+          SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),target,verbose);
 
         gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
-            SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),compiler.target,compiler.verbose);
+            SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint),target,verbose);
         gotobjsec.SecOptions:=[oso_keep];
 
         { GOT symbol and reserved .got.plt entries }
@@ -2167,7 +2167,7 @@ implementation
         objsym: TObjSymbol;
         needed: boolean;
       begin
-        compiler.verbose.Comment(v_debug,'Dynamic object: '+objdata.name);
+        verbose.Comment(v_debug,'Dynamic object: '+objdata.name);
         needed:=false;
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
@@ -2203,7 +2203,7 @@ implementation
         dynamiclink:=IsSharedLibrary or (dynsymlist.count>0) or
           (
             (UnresolvedExeSymbols.Count>0) and
-            not (cs_link_staticflag in compiler.globals.current_settings.globalswitches)
+            not (cs_link_staticflag in globals.current_settings.globalswitches)
           );
         if dynamiclink then
           InitDynlink;
@@ -2254,7 +2254,7 @@ implementation
         set_oso_keep('.dtors',dummy);
         set_oso_keep('.preinit_array',preinitarraysec);
         if assigned(preinitarraysec) and IsSharedLibrary then
-          compiler.verbose.Comment(v_error,'.preinit_array section is not allowed in shared libraries');
+          verbose.Comment(v_error,'.preinit_array section is not allowed in shared libraries');
         set_oso_keep('.init_array',initarraysec);
         set_oso_keep('.fini_array',finiarraysec);
         set_oso_keep('.eh_frame',dummy);
@@ -2328,12 +2328,12 @@ implementation
                   inspos:=6   { text }
                 else
                   begin
-                    compiler.verbose.Comment(v_debug,'Orphan section '+objsec.fullname+' has attributes that are not handled!');
+                    verbose.Comment(v_debug,'Orphan section '+objsec.fullname+' has attributes that are not handled!');
                     continue;
                   end;
                 if (inserts[inspos]=nil) then
                   begin
-                    compiler.verbose.Comment(v_debug,'Orphan section '+objsec.fullname+': nowhere to insert, ignored');
+                    verbose.Comment(v_debug,'Orphan section '+objsec.fullname+': nowhere to insert, ignored');
                     continue;
                   end;
                 idx:=allsections.IndexOf(inserts[inspos]);
@@ -2381,7 +2381,7 @@ implementation
         { Drop unresolved symbols that aren't referenced, assign dynamic
           indices to remaining ones, but not if linking with -Xt.
           TODO: behavior of .so with -Xt ? }
-        if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
+        if (cs_link_staticflag in globals.current_settings.globalswitches) then
           UnresolvedExeSymbols.Clear
         else
         for i:=0 to UnresolvedExeSymbols.Count-1 do
@@ -2434,7 +2434,7 @@ implementation
               (exesym.state<>symstate_undefweak) then
               begin
                 if exesym.ObjSymbol.size=0 then
-                  compiler.verbose.Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
+                  verbose.Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
                 internalobjdata.setSection(dynbssobjsec);
                 internalobjdata.allocalign(size_2_align(exesym.ObjSymbol.size));
                 objsym:=internalobjdata.SymbolDefine(exesym.name,AB_GLOBAL,AT_DATA);
@@ -2471,15 +2471,15 @@ implementation
           end;
 
         { Create .shstrtab section, which is needed in both exe and .dbg files }
-        shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0,compiler.target,compiler.verbose);
+        shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0,target,verbose);
         shstrtabsect.SecOptions:=[oso_debug_copy];
         AttachSection(shstrtabsect);
 
         { Create the static symtable (.symtab and .strtab) }
-        if (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) or
-          not(cs_link_strip in compiler.globals.current_settings.globalswitches) then
+        if (cs_link_separate_dbg_file in globals.current_settings.globalswitches) or
+          not(cs_link_strip in globals.current_settings.globalswitches) then
           begin
-            symtab:=TElfSymtab.Create(internalObjData,esk_exe,compiler.target,compiler.verbose);
+            symtab:=TElfSymtab.Create(internalObjData,esk_exe,target,verbose);
             symtab.SecOptions:=[oso_debug];
             symtab.fstrsec.SecOptions:=[oso_debug];
             AttachSection(symtab);
@@ -2730,7 +2730,7 @@ implementation
         if (ExeWriteMode=ewm_dbgonly) or
           (
             (ExeWriteMode=ewm_exefull) and
-             not(cs_link_strip in compiler.globals.current_settings.globalswitches)
+             not(cs_link_strip in globals.current_settings.globalswitches)
           ) then
           WriteStaticSymtable;
 
@@ -2817,32 +2817,32 @@ implementation
           end;
 
         hashobjsec:=TElfObjSection.create_ext(internalObjData,'.hash',
-          SHT_HASH,SHF_ALLOC,sizeof(pint),4,compiler.target,compiler.verbose);
+          SHT_HASH,SHF_ALLOC,sizeof(pint),4,target,verbose);
         hashobjsec.secoptions:=[oso_keep];
 
-        dynsymtable:=TElfSymtab.create(internalObjData,esk_dyn,compiler.target,compiler.verbose);
+        dynsymtable:=TElfSymtab.create(internalObjData,esk_dyn,target,verbose);
 
         dynamicsec:=TElfObjSection.create_ext(internalObjData,'.dynamic',
-          SHT_DYNAMIC,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(TElfDyn),compiler.target,compiler.verbose);
+          SHT_DYNAMIC,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(TElfDyn),target,verbose);
         dynamicsec.SecOptions:=[oso_keep];
 
-        dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true,compiler.target,compiler.verbose);
+        dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true,target,verbose);
         dynrelocsec.SecOptions:=[oso_keep];
 
         dynbssobjsec:=TElfObjSection.create_ext(internalObjData,'.dynbss',
-          SHT_NOBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint){16??},0,compiler.target,compiler.verbose);
+          SHT_NOBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint){16??},0,target,verbose);
         dynbssobjsec.SecOptions:=[oso_keep];
 
         dynreloclist:=TFPObjectList.Create(true);
 
         symversec:=TElfObjSection.create_ext(internalObjData,'.gnu.version',
-          SHT_GNU_VERSYM,SHF_ALLOC,sizeof(word),sizeof(word),compiler.target,compiler.verbose);
+          SHT_GNU_VERSYM,SHF_ALLOC,sizeof(word),sizeof(word),target,verbose);
         symversec.SecOptions:=[oso_keep];
         verdefsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_d',
-          SHT_GNU_VERDEF,SHF_ALLOC,sizeof(pint),0,compiler.target,compiler.verbose);
+          SHT_GNU_VERDEF,SHF_ALLOC,sizeof(pint),0,target,verbose);
         verdefsec.SecOptions:=[oso_keep];
         verneedsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_r',
-          SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0,compiler.target,compiler.verbose);
+          SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0,target,verbose);
         verneedsec.SecOptions:=[oso_keep];
         dyncopysyms:=TFPObjectList.Create(False);
       end;
@@ -2904,7 +2904,7 @@ implementation
               j:=2+nbuckets+hashdata[j];
             hashdata[j]:=i+1;
           end;
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           for i:=0 to nchains+nbuckets+1 do
             hashdata[i]:=swapendian(hashdata[i]);
         hashobjsec.write(hashdata^,(2+nchains+nbuckets)*sizeof(longint));
@@ -2977,7 +2977,7 @@ implementation
             vn.vn_file:=dynobj.soname_strofs;
             vn.vn_aux:=sizeof(TElfverneed);
             vn.vn_next:=ord(idx<verneedcount)*(sizeof(TElfverneed)+vn.vn_cnt*sizeof(TElfvernaux));
-            MaybeSwapElfverneed(compiler.target.info.endian,vn);
+            MaybeSwapElfverneed(target.info.endian,vn);
             verneedsec.write(vn,sizeof(TElfverneed));
 
             auxidx:=0;
@@ -2992,7 +2992,7 @@ implementation
                 vna.vna_other:=ver.index;
                 vna.vna_name:=dynsymtable.fstrsec.writestr(ver.name);
                 vna.vna_next:=ord(auxidx<dynobj.vernaux_count)*sizeof(TElfvernaux);
-                MaybeSwapElfvernaux(compiler.target.info.endian,vna);
+                MaybeSwapElfvernaux(target.info.endian,vna);
                 verneedsec.write(vna,sizeof(TElfvernaux));
               end;
           end;
@@ -3001,7 +3001,7 @@ implementation
         { If there are no needed versions, .gnu.version section is not needed }
         if verneedcount>0 then
           begin
-            if source_info.endian<>compiler.target.info.endian then
+            if source_info.endian<>target.info.endian then
               for i:=0 to dynsymlist.count+1 do
                 symversions[i]:=swapendian(symversions[i]);
             symversec.write(symversions[0],(dynsymlist.count+1)*sizeof(word));
@@ -3019,7 +3019,7 @@ implementation
 {$push}{$r-}
         rel.addend:=addend;
 {$pop}
-        MaybeSwapElfReloc(compiler.target.info.endian,rel);
+        MaybeSwapElfReloc(target.info.endian,rel);
         dynrelocsec.write(rel,dynrelocsec.shentsize);
       end;
 
@@ -3030,7 +3030,7 @@ implementation
       begin
         d.d_tag:=aTag;
         d.d_val:=aValue;
-        MaybeSwapElfDyn(compiler.target.info.endian,d);
+        MaybeSwapElfDyn(target.info.endian,d);
         dynamicsec.write(d,sizeof(TElfDyn));
       end;
 
@@ -3040,7 +3040,7 @@ implementation
         d: TElfDyn;
       begin
         d.d_tag:=aTag;
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           d.d_tag:=swapendian(d.d_tag);
         dynamicsec.write(d.d_tag,sizeof(d.d_tag));
         { TODO: ignores endianness! }
@@ -3085,9 +3085,9 @@ implementation
 
         { TODO: we need a dedicated parameter to pass runpath, instead of this hack
           (-Xr is a different thing, it passes "-rpath-link"). }
-        if (compiler.globals.ParaLinkOptions<>'') then
+        if (globals.ParaLinkOptions<>'') then
           begin
-            hs:=compiler.globals.ParaLinkOptions;
+            hs:=globals.ParaLinkOptions;
             while (hs<>'') do
               begin
                 if (GetToken(hs,' ')='-rpath') then
@@ -3189,13 +3189,13 @@ implementation
         reloc: TObjRelocation;
       begin
         pltobjsec:=TElfObjSection.create_ext(internalObjData,'.plt',
-          SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,compiler.target,compiler.verbose);
+          SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,4,16,target,verbose);
         pltobjsec.SecOptions:=[oso_keep,oso_plt];
 
-        pltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.plt',true,compiler.target,compiler.verbose);
+        pltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.plt',true,target,verbose);
         pltrelocsec.SecOptions:=[oso_keep];
 
-        ipltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.iplt',true,compiler.target,compiler.verbose);
+        ipltrelocsec:=TElfObjSection.create_reloc(internalObjData,'.iplt',true,target,verbose);
         ipltrelocsec.SecOptions:=[oso_keep];
 
         { reference .dynamic from .got.plt, this isn't necessary if linking statically }
@@ -3240,6 +3240,8 @@ implementation
 
     procedure TElfExeOutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         exportlist: TCmdStrList;
         sym: TExeSymbol;
       begin
@@ -3264,14 +3266,14 @@ implementation
     procedure TElfExeOutput.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
       begin
         { TODO: include objsec properties into message }
-        compiler.verbose.Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
+        verbose.Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
       end;
 
 
     procedure TElfExeOutput.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
       begin
         { TODO: include objsec properties into message }
-        compiler.verbose.Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
+        verbose.Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
       end;
 
 

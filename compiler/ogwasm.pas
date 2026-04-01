@@ -336,7 +336,7 @@ interface
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy;override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         procedure AfterUnusedSectionRemoval;override;
@@ -4956,7 +4956,7 @@ implementation
             dpos, pad: QWord;
           begin
             AddToDataNameMap(Length(FDataNameMap),exesec.Name);
-            if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+            if ts_wasm_threads in globals.current_settings.targetswitches then
               WriteByte(FWasmSections[wsiData],1)  { mode passive }
             else
               begin
@@ -5269,7 +5269,7 @@ implementation
         cust_sec: TWasmCustomSectionType;
       begin
         result:=false;
-        FMaxMemoryPages:=align(compiler.globals.maxheapsize,WasmPageSize) div WasmPageSize;
+        FMaxMemoryPages:=align(globals.maxheapsize,WasmPageSize) div WasmPageSize;
 
         { each custom sections starts with its name }
         for cust_sec in TWasmCustomSectionType do
@@ -5281,7 +5281,7 @@ implementation
         GenerateCode_InitTls;
         GenerateCode_InitSharedMemory;
 
-        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+        if ts_wasm_threads in globals.current_settings.targetswitches then
           begin
             SetLength(FImportedMemories,1);
             with FImportedMemories[0] do
@@ -5324,7 +5324,7 @@ implementation
 
         WriteExportSection;
 
-        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+        if ts_wasm_threads in globals.current_settings.targetswitches then
           WriteUleb(FWasmSections[wsiStart],FInitSharedMemoryFunctionSym.LinkingData.ExeFunctionIndex);
 
         WriteNameSection;
@@ -5335,12 +5335,12 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiTable);
-        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if not (ts_wasm_threads in globals.current_settings.targetswitches) then
           WriteWasmSection(wsiMemory);
         WriteWasmSectionIfNotEmpty(wsiTag);
         WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiExport);
-        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+        if ts_wasm_threads in globals.current_settings.targetswitches then
           WriteWasmSection(wsiStart);
         WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
@@ -5506,7 +5506,7 @@ implementation
                             WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                           end;
                       end
-                    else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and
+                    else if (ts_wasm_threads in globals.current_settings.targetswitches) and
                             (objsym.typ=AT_TLS) then
                       begin
                         { Nothing to do here. A second RELOC_GLOBAL_INDEX_LEB
@@ -5560,7 +5560,7 @@ implementation
           end;
       end;
 
-    constructor TWasmExeOutput.create(acompiler: TCompilerBase);
+    constructor TWasmExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
@@ -5671,7 +5671,7 @@ implementation
           Data lives in a separate address space, so start addressing back from 0
           (the LLVM leaves the first 1024 bytes in the data segment empty, so we
           start at 1024). }
-        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
+        if ts_wasm_threads in globals.current_settings.targetswitches then
           firstdatasec:='.tbss'
         else
           firstdatasec:='.rodata';
@@ -5725,7 +5725,7 @@ implementation
             FStackPointerSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_base') then
+        else if (ts_wasm_threads in globals.current_settings.targetswitches) and (aname='__tls_base') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsBaseSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5737,7 +5737,7 @@ implementation
             FTlsBaseSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsBaseSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_size') then
+        else if (ts_wasm_threads in globals.current_settings.targetswitches) and (aname='__tls_size') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsSizeSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5749,7 +5749,7 @@ implementation
             FTlsSizeSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_align') then
+        else if (ts_wasm_threads in globals.current_settings.targetswitches) and (aname='__tls_align') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsAlignSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5761,14 +5761,14 @@ implementation
             FTlsAlignSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsAlignSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__wasm_init_tls') then
+        else if (ts_wasm_threads in globals.current_settings.targetswitches) and (aname='__wasm_init_tls') then
           begin
             internalObjData.createsection('*'+aname,0,[]);
             FInitTlsFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
             TWasmObjSection(FInitTlsFunctionSym.ObjSection).MainFuncSymbol:=FInitTlsFunctionSym;
             FInitTlsFunctionSym.LinkingData.FuncType:=TWasmFuncType.Create([wbt_i32],[]);
           end
-        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__fpc_wasm_init_shared_memory') then
+        else if (ts_wasm_threads in globals.current_settings.targetswitches) and (aname='__fpc_wasm_init_shared_memory') then
           begin
             internalObjData.createsection('*'+aname,0,[]);
             FInitSharedMemoryFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
@@ -5968,10 +5968,10 @@ implementation
         StackStart, InitialStackPtrAddr: QWord;
       begin
         BssSec:=FindExeSection('.bss');
-        InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+compiler.globals.stacksize+15) and (not 15);
+        InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+globals.stacksize+15) and (not 15);
         FMinMemoryPages := Max(
           QWord(Align(QWord(InitialStackPtrAddr),QWord(WasmPageSize)) div WasmPageSize),
-          QWord(Align(QWord(compiler.globals.heapsize),QWord(WasmPageSize)) div WasmPageSize));
+          QWord(Align(QWord(globals.heapsize),QWord(WasmPageSize)) div WasmPageSize));
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
       end;
 
@@ -5979,7 +5979,7 @@ implementation
       var
         TBssSec: TExeSection;
       begin
-        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if not (ts_wasm_threads in globals.current_settings.targetswitches) then
           exit;
         TBssSec:=FindExeSection('.tbss');
         FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=Int32(TBssSec.Size);
@@ -5994,7 +5994,7 @@ implementation
         objsec: TWasmObjSection;
         objsym: TWasmObjSymbol;
       begin
-        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if not (ts_wasm_threads in globals.current_settings.targetswitches) then
           exit;
         exesec:=FindExeSection('.wasm_globals');
         if not assigned(exesec) then
@@ -6020,7 +6020,7 @@ implementation
         globalobjsym: TWasmObjSymbol;
         OffsetInTls: QWord;
       begin
-        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if not (ts_wasm_threads in globals.current_settings.targetswitches) then
           exit;
 
         globalexesec:=FindExeSection('.wasm_globals');
@@ -6074,7 +6074,7 @@ implementation
         DataSecIdx: Integer;
         ExeSec: TExeSection;
       begin
-        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
+        if not (ts_wasm_threads in globals.current_settings.targetswitches) then
           exit;
         Sec:=FInitSharedMemoryFunctionSym.objsection;
         Sec.SecOptions:=Sec.SecOptions+[oso_Data];

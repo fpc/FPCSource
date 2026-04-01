@@ -224,14 +224,14 @@ interface
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
          procedure DoRelocationFixup(objsec:TObjSection);override;
        public
-         constructor createcoff(awin32:boolean;ACompiler: TCompilerBase);
+         constructor createcoff(awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
          procedure MemPos_Header;override;
          procedure DataPos_Header;override;
          procedure DataPos_Symbols;override;
        end;
 
        TDJCoffexeoutput = class(TCoffexeoutput)
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          procedure MemPos_Header;override;
        end;
 
@@ -247,7 +247,7 @@ interface
          FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          procedure MarkTargetSpecificSections(WorkList:TFPObjectList);override;
          procedure AfterUnusedSectionRemoval;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
@@ -1578,7 +1578,7 @@ const pemagic : array[0..3] of byte = (
                   s:=objreloc.symbol.Name
                 else
                   s:=objreloc.objsection.Name;
-                compiler.verbose.Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
+                verbose.Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
               end;
 {$endif cpu64bitaddr}
           end;
@@ -2900,14 +2900,14 @@ const pemagic : array[0..3] of byte = (
                               TCoffexeoutput
 ****************************************************************************}
 
-    constructor TCoffexeoutput.createcoff(awin32:boolean;ACompiler: TCompilerBase);
+    constructor TCoffexeoutput.createcoff(awin32:boolean;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited create(ACompiler);
+        inherited create(AGlobals,ATarget,AVerbose);
         win32:=awin32;
-        if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
+        if target.info.system in [system_x86_64_win64,system_aarch64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
-          if compiler.target.info.system in systems_wince then
+          if target.info.system in systems_wince then
             MaxMemPos:=$1FFFFFF
           else
             MaxMemPos:=$7FFFFFFF;
@@ -2931,7 +2931,7 @@ const pemagic : array[0..3] of byte = (
         sym.section:=section;
         sym.typ:=typ;
         sym.aux:=aux;
-	MaybeSwap(compiler.target.info.endian,sym);
+	MaybeSwap(target.info.endian,sym);
         FWriter.write(sym,sizeof(sym));
       end;
 
@@ -3019,8 +3019,8 @@ const pemagic : array[0..3] of byte = (
             sechdr.relocpos:=0;
             if win32 then
               begin
-                if (compiler.target.info.system in systems_nativent) and
-                   (compiler.globals.apptype = app_native) then
+                if (target.info.system in systems_nativent) and
+                   (globals.apptype = app_native) then
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
                 else
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign);
@@ -3031,7 +3031,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               sechdr.flags:=djencodesechdrflags(SecOptions);
-            MaybeSwap(compiler.target.info.endian,sechdr);
+            MaybeSwap(target.info.endian,sechdr);
             FWriter.write(sechdr,sizeof(sechdr));
           end;
       end;
@@ -3183,7 +3183,7 @@ const pemagic : array[0..3] of byte = (
             asm symbol into PE_DATADIR_TLS with the correct
             size of this table (different for win32/win64 }
           tlsexesymbol:=texesymbol(ExeSymbolList.Find(
-            compiler.target.info.Cprefix+'_tls_used'));
+            target.info.Cprefix+'_tls_used'));
           if assigned(tlsexesymbol) then
             begin
               tlssymbol:=tlsexesymbol.ObjSymbol;
@@ -3218,9 +3218,9 @@ const pemagic : array[0..3] of byte = (
         hassymbols:=(ExeWriteMode=ewm_dbgonly) or
                     (
                      (ExeWriteMode=ewm_exefull) and
-                     not(cs_link_strip in compiler.globals.current_settings.globalswitches)
+                     not(cs_link_strip in globals.current_settings.globalswitches)
                     );
-        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches));
+        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in globals.current_settings.globalswitches));
         { Stub }
         if win32 then
           begin
@@ -3244,7 +3244,7 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
+            if target.info.system in [system_x86_64_win64,system_aarch64_win64] then
               header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
             else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
@@ -3258,12 +3258,12 @@ const pemagic : array[0..3] of byte = (
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
             if not hassymbols then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
-            if compiler.globals.SetPEFlagsSetExplicity then
-              header.flag:=header.flag or compiler.globals.peflags;
+            if globals.SetPEFlagsSetExplicity then
+              header.flag:=header.flag or globals.peflags;
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
-        MaybeSwap(compiler.target.info.endian,header);
+        MaybeSwap(target.info.endian,header);
         FWriter.write(header,sizeof(header));
         { Optional COFF Header }
         if win32 then
@@ -3284,34 +3284,34 @@ const pemagic : array[0..3] of byte = (
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
             peoptheader.FileAlignment:=SectionDataAlign;
-            if compiler.globals.SetPEOSVersionSetExplicitely then
+            if globals.SetPEOSVersionSetExplicitely then
               begin
-                peoptheader.MajorOperatingSystemVersion:=compiler.globals.peosversionmajor;
-                peoptheader.MinorOperatingSystemVersion:=compiler.globals.peosversionminor;
+                peoptheader.MajorOperatingSystemVersion:=globals.peosversionmajor;
+                peoptheader.MinorOperatingSystemVersion:=globals.peosversionminor;
               end
             else
               begin
                 peoptheader.MajorOperatingSystemVersion:=4;
                 peoptheader.MinorOperatingSystemVersion:=0;
               end;
-            if compiler.globals.SetPEUserVersionSetExplicitely then
+            if globals.SetPEUserVersionSetExplicitely then
               begin
-                peoptheader.MajorImageVersion:=compiler.globals.peuserversionmajor;
-                peoptheader.MinorImageVersion:=compiler.globals.peuserversionminor;
+                peoptheader.MajorImageVersion:=globals.peuserversionmajor;
+                peoptheader.MinorImageVersion:=globals.peuserversionminor;
               end
             else
               begin
-                peoptheader.MajorImageVersion:=compiler.globals.dllmajor;
-                peoptheader.MinorImageVersion:=compiler.globals.dllminor;
+                peoptheader.MajorImageVersion:=globals.dllmajor;
+                peoptheader.MinorImageVersion:=globals.dllminor;
               end;
-            if compiler.globals.SetPESubSysVersionSetExplicitely then
+            if globals.SetPESubSysVersionSetExplicitely then
               begin
-                peoptheader.MajorSubsystemVersion:=compiler.globals.pesubsysversionmajor;
-                peoptheader.MinorSubsystemVersion:=compiler.globals.pesubsysversionminor;
+                peoptheader.MajorSubsystemVersion:=globals.pesubsysversionmajor;
+                peoptheader.MinorSubsystemVersion:=globals.pesubsysversionminor;
               end
             else
               begin
-                if compiler.target.info.system in systems_wince then
+                if target.info.system in systems_wince then
                   peoptheader.MajorSubsystemVersion:=3
                 else
                   peoptheader.MajorSubsystemVersion:=4;
@@ -3321,35 +3321,35 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if (compiler.target.info.system in systems_nativent) and (not IsSharedLibrary or (compiler.globals.apptype = app_native)) then
+            if (target.info.system in systems_nativent) and (not IsSharedLibrary or (globals.apptype = app_native)) then
               { Although I did not really test this, it seems that Subsystem is
                 not checked in DLLs except for maybe drivers}
               peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
             else
-              if compiler.target.info.system in systems_wince then
+              if target.info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
-                if compiler.globals.apptype=app_gui then
+                if globals.apptype=app_gui then
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
 
-            if compiler.target.info.system in [system_aarch64_win64] then
+            if target.info.system in [system_aarch64_win64] then
               peoptheader.DllCharacteristics:=PE_DLLCHARACTERISTICS_DYNAMIC_BASE or
                                               PE_DLLCHARACTERISTICS_NX_COMPAT or
                                               PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
             else
               peoptheader.DllCharacteristics:=0;
 
-            if compiler.globals.SetPEOptFlagsSetExplicity then
-              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or compiler.globals.peoptflags;
+            if globals.SetPEOptFlagsSetExplicity then
+              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or globals.peoptflags;
 
-            peoptheader.SizeOfStackReserve:=compiler.globals.stacksize;
+            peoptheader.SizeOfStackReserve:=globals.stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
-            if compiler.globals.MinStackSizeSetExplicity then
-              peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;
-            if compiler.globals.MaxStackSizeSetExplicity then
-              peoptheader.SizeOfStackReserve:=compiler.globals.maxstacksize;
+            if globals.MinStackSizeSetExplicity then
+              peoptheader.SizeOfStackCommit:=globals.minstacksize;
+            if globals.MaxStackSizeSetExplicity then
+              peoptheader.SizeOfStackReserve:=globals.maxstacksize;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
@@ -3359,7 +3359,7 @@ const pemagic : array[0..3] of byte = (
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             UpdateDataDir('.pdata',PE_DATADIR_PDATA);
             UpdateDataDir('.reloc',PE_DATADIR_RELOC);
-	    MaybeSwap(compiler.target.info.endian,peoptheader);
+	    MaybeSwap(target.info.endian,peoptheader);
             FWriter.write(peoptheader,sizeof(peoptheader));
           end
         else
@@ -3373,14 +3373,14 @@ const pemagic : array[0..3] of byte = (
             djoptheader.text_start:=TextExeSec.mempos;
             djoptheader.data_start:=DataExeSec.mempos;
             djoptheader.entry:=EntrySym.Address;
-	    MaybeSwap(compiler.target.info.endian,djoptheader);
+	    MaybeSwap(target.info.endian,djoptheader);
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
 
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }
-        if compiler.target.info.system in systems_wince then
+        if target.info.system in systems_wince then
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
@@ -3403,7 +3403,7 @@ const pemagic : array[0..3] of byte = (
           begin
             { Strings }
             i:=FCoffStrs.size+4;
-            if source_info.endian<>compiler.target.info.endian then
+            if source_info.endian<>target.info.endian then
               i:=SwapEndian(i);
             FWriter.write(i,4);
             FWriter.writearray(FCoffStrs);
@@ -3433,9 +3433,9 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffexeoutput.create(ACompiler: TCompilerBase);
+    constructor TDJCoffexeoutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(false,ACompiler);
+        inherited createcoff(false,AGlobals,ATarget,AVerbose);
         datapos_offset:=sizeof(go32v2stub);
         CExeSection:=TExeSection;
         CObjData:=TDJCoffObjData;
@@ -3448,9 +3448,9 @@ const pemagic : array[0..3] of byte = (
         CurrMemPos:=$1000;
       end;
 
-    constructor TPECoffexeoutput.create(ACompiler: TCompilerBase);
+    constructor TPECoffexeoutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(true,ACompiler);
+        inherited createcoff(true,AGlobals,ATarget,AVerbose);
         CExeSection:=TExeSection;
         CObjData:=TPECoffObjData;
       end;
@@ -3463,7 +3463,7 @@ const pemagic : array[0..3] of byte = (
         objreloc:TObjRelocation;
         i,j:longint;
       begin
-        if not (compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64]) then
+        if not (target.info.system in [system_x86_64_win64,system_aarch64_win64]) then
           exit;
         exesec:=FindExeSection('.pdata');
         if exesec=nil then
@@ -3493,7 +3493,7 @@ const pemagic : array[0..3] of byte = (
                         .eh_frame sections. }
                     break;
                   end;
-                if compiler.target.info.system=system_aarch64_win64 then
+                if target.info.system=system_aarch64_win64 then
                   inc(j,2)
                 else
                   inc(j,3);
@@ -3527,11 +3527,11 @@ const pemagic : array[0..3] of byte = (
         begin
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
-          if compiler.target.info.system in systems_peoptplus then
+          if target.info.system in systems_peoptplus then
             idata4objsection.writezeros(sizeof(longint));
           { idata5 }
           idata5objsection.writezeros(sizeof(longint));
-          if compiler.target.info.system in systems_peoptplus then
+          if target.info.system in systems_peoptplus then
             idata5objsection.writezeros(sizeof(longint));
         end;
 
@@ -3565,27 +3565,27 @@ const pemagic : array[0..3] of byte = (
             if AOrdNr <= 0 then
               begin
                 objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
-                if compiler.target.info.system in systems_peoptplus then
+                if target.info.system in systems_peoptplus then
                   objsec.writezeros(sizeof(longint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=AOrdNr;
-                if compiler.target.info.system in systems_peoptplus then
+                if target.info.system in systems_peoptplus then
                   begin
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                     ordint:=$80000000;
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                   end
                 else
                   begin
                     ordint:=ordint or $80000000;
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                   end;
@@ -3630,7 +3630,7 @@ const pemagic : array[0..3] of byte = (
             begin
               { index hint, function name, null terminator and align }
               word_ordint:=abs(AOrdNr);
-              if source_info.endian<>compiler.target.info.endian then
+              if source_info.endian<>target.info.endian then
                       word_ordint:=SwapEndian(word_ordint);
               idata6objsection.write(word_ordint,2);
               idata6objsection.writestr(afuncname);
@@ -3726,7 +3726,7 @@ const pemagic : array[0..3] of byte = (
         p:=internalObjData.CurrObjSec.Data.Pos;
         internalObjData.CurrObjSec.Data.seek(hdrpos+4);
         len:=p-hdrpos;
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target.info.endian then
           len:=SwapEndian(len);
         internalObjData.CurrObjSec.Data.write(len,4);
         internalObjData.CurrObjSec.Data.seek(p);
@@ -3741,7 +3741,7 @@ const pemagic : array[0..3] of byte = (
         offset : longword;
         w: word;
       begin
-        if not compiler.globals.RelocSection or FRelocsGenerated then
+        if not globals.RelocSection or FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -3772,7 +3772,7 @@ const pemagic : array[0..3] of byte = (
                         FinishBlock;
                         pgaddr:=(offset div 4096)*4096;
                         hdrpos:=internalObjData.CurrObjSec.Data.Pos;
-                        if source_info.endian<>compiler.target.info.endian then
+                        if source_info.endian<>target.info.endian then
                           pgaddr:=SwapEndian(pgaddr);
                         internalObjData.writebytes(pgaddr,4);
                         { Reserving space for block size. The size will be written later in FinishBlock }
@@ -3785,7 +3785,7 @@ const pemagic : array[0..3] of byte = (
 {$endif cpu64bitaddr}
                       w:=IMAGE_REL_BASED_HIGHLOW;
                     w:=(w shl 12) or (offset-pgaddr);
-                    if source_info.endian<>compiler.target.info.endian then
+                    if source_info.endian<>target.info.endian then
                       w:=SwapEndian(w);
                     internalObjData.writebytes(w,2);
                   end;
@@ -3800,7 +3800,7 @@ const pemagic : array[0..3] of byte = (
       var
         exesec : TExeSection;
       begin
-        if compiler.globals.RelocSection then
+        if globals.RelocSection then
           begin
             exesec:=FindExeSection('.reloc');
             if exesec=nil then

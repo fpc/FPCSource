@@ -128,14 +128,14 @@ interface
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
       end;
 
       { TZXSpectrumIntelHexExeOutput }
 
       TZXSpectrumIntelHexExeOutput = class(TIntelHexExeOutput)
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
       end;
 
 implementation
@@ -1302,16 +1302,16 @@ implementation
       var
         i: Integer;
         objreloc: TRelRelocation;
-        target,w: Word;
+        _target,w: Word;
         b: Byte;
       begin
         for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
             objreloc:=TRelRelocation(objsec.ObjRelocations[i]);
             if assigned(objreloc.symbol) then
-              target:=objreloc.symbol.address+ImageBase
+              _target:=objreloc.symbol.address+ImageBase
             else if assigned(objreloc.objsection) then
-              target:=objreloc.objsection.MemPos+ImageBase
+              _target:=objreloc.objsection.MemPos+ImageBase
             else
               internalerror(2020060302);
             case objreloc.typ of
@@ -1320,7 +1320,7 @@ implementation
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.read(w,2);
                   w:=LEtoN(w);
-                  Inc(w,target);
+                  Inc(w,_target);
                   w:=LEtoN(w);
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.write(w,2);
@@ -1330,7 +1330,7 @@ implementation
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.read(b,1);
                   w:=b or (objreloc.HiByte shl 8);
-                  Inc(w,target);
+                  Inc(w,_target);
                   b:=Byte(w shr 8);
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.write(b,1);
@@ -1340,7 +1340,7 @@ implementation
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.read(b,1);
                   w:=b or (objreloc.HiByte shl 8);
-                  Inc(w,target);
+                  Inc(w,_target);
                   b:=Byte(w);
                   objsec.Data.seek(objreloc.DataOffset);
                   objsec.Data.write(b,1);
@@ -1351,7 +1351,7 @@ implementation
           end;
       end;
 
-    constructor TIntelHexExeOutput.create(acompiler: TCompilerBase);
+    constructor TIntelHexExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjData:=TRelObjData;
@@ -1362,7 +1362,7 @@ implementation
                          TZXSpectrumIntelHexExeOutput
 *****************************************************************************}
 
-    constructor TZXSpectrumIntelHexExeOutput.create(acompiler: TCompilerBase);
+    constructor TZXSpectrumIntelHexExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         { The ZX Spectrum RTL switches to interrupt mode 2, and install an
