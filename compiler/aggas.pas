@@ -773,8 +773,6 @@ implementation
 
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
-          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        var
           i: longint;
           alignment64 : int64;
 {$ifdef m68k}
