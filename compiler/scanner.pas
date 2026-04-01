@@ -68,7 +68,7 @@ interface
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
-       tdirectiveproc=procedure;
+       tdirectiveproc=procedure of object;
 
        tdirectiveitem = class(TFPHashObject)
        public
@@ -325,6 +325,23 @@ interface
          turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
          mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
 
+         procedure dir_define;
+         procedure dir_definec;
+         procedure dir_define_impl(macstyle: boolean);
+         procedure dir_else;
+         procedure dir_elseif;
+         procedure dir_endif;
+         procedure dir_extension;
+         procedure dir_if;
+         procedure dir_ifdef;
+         procedure dir_ifend;
+         procedure dir_ifndef;
+         procedure dir_ifopt;
+         procedure dir_include;
+         procedure dir_libprefix;
+         procedure dir_libsuffix;
+         procedure dir_setc;
+         procedure dir_undef;
          property Compiler: TCompilerBase read FCompiler;
 
          procedure InitScanner;
@@ -899,14 +916,12 @@ implementation
                            Conditional Directives
 *****************************************************************************}
 
-    procedure dir_else;
+    procedure TScanner.dir_else;
       begin
         current_scanner.elsepreprocstack;
       end;
 
-    procedure dir_endif;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_endif;
       begin
         if (cs_legacyifend in compiler.globals.current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_ifdef) and (current_scanner.preprocstack.typ<>pp_ifndef) and
@@ -915,9 +930,7 @@ implementation
         current_scanner.poppreprocstack;
       end;
 
-    procedure dir_ifend;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_ifend;
       begin
         if (cs_legacyifend in compiler.globals.current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_elseif) and (current_scanner.preprocstack.typ<>pp_if) and
@@ -940,7 +953,7 @@ implementation
         isdef:=defined_macro(hs);
       end;
 
-    procedure dir_ifdef;
+    procedure TScanner.dir_ifdef;
       begin
         current_scanner.ifpreprocstack(pp_ifdef,@isdef,scan_c_ifdef_found);
       end;
@@ -959,7 +972,7 @@ implementation
         isnotdef:=not defined_macro(hs);
       end;
 
-    procedure dir_ifndef;
+    procedure TScanner.dir_ifndef;
       begin
         current_scanner.ifpreprocstack(pp_ifndef,@isnotdef,scan_c_ifndef_found);
       end;
@@ -987,15 +1000,13 @@ implementation
           end;
       end;
 
-    procedure dir_ifopt;
+    procedure TScanner.dir_ifopt;
       begin
         flushpendingswitchesstate;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
-    procedure dir_libprefix;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_libprefix;
       var
         s : string;
         tmps: PShortString;
@@ -1011,9 +1022,7 @@ implementation
          setfilename(paramfn, paramallowoutput);
       end;
 
-    procedure dir_libsuffix;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_libsuffix;
       var
         s : string;
         tmps: PShortString;
@@ -1029,9 +1038,7 @@ implementation
           setfilename(paramfn, paramallowoutput);
       end;
 
-    procedure dir_extension;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_extension;
       var
         s : string;
       begin
@@ -2661,19 +2668,17 @@ type
         hs := nil;
       end;
 
-    procedure dir_if;
+    procedure TScanner.dir_if;
       begin
         current_scanner.ifpreprocstack(pp_if,@boolean_compile_time_expr, scan_c_if_found);
       end;
 
-    procedure dir_elseif;
+    procedure TScanner.dir_elseif;
       begin
         current_scanner.elseifpreprocstack(@boolean_compile_time_expr);
       end;
 
-    procedure dir_define_impl(macstyle: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_define_impl(macstyle: boolean);
       var
         hs  : string;
         bracketcount : longint;
@@ -2771,19 +2776,17 @@ type
           end;
       end;
 
-    procedure dir_define;
+    procedure TScanner.dir_define;
       begin
         dir_define_impl(false);
       end;
 
-    procedure dir_definec;
+    procedure TScanner.dir_definec;
       begin
         dir_define_impl(true);
       end;
 
-    procedure dir_setc;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_setc;
       var
         hs  : string;
         mac : tmacro;
@@ -2852,9 +2855,7 @@ type
       end;
 
 
-    procedure dir_undef;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_undef;
       var
         hs  : string;
         mac : tmacro;
@@ -2882,9 +2883,7 @@ type
       end;
 
 
-    procedure dir_include;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanner.dir_include;
       var
         foundfile : TCmdStr;
         path,

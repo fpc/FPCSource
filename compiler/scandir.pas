@@ -52,7 +52,150 @@ unit scandir;
       switchesstatestack:tswitchesstatestack;
       switchesstatestackpos: Integer;
 
-    procedure InitScannerDirectives;
+    type
+
+      { TScanDir }
+
+      TScanDir = class
+      private
+        procedure dir_align;
+        procedure dir_a1;
+        procedure dir_a2;
+        procedure dir_a4;
+        procedure dir_a8;
+        procedure dir_asmcpu;
+        procedure dir_asmmode;
+{$if defined(m68k) or defined(arm)}
+        procedure dir_appid;
+        procedure dir_appname;
+{$endif defined(m68k) or defined(arm)}
+        procedure dir_apptype;
+        procedure dir_bitpacking;
+        procedure dir_calling;
+        procedure dir_checklowaddrloads;
+        procedure dir_checkpointer;
+        procedure dir_codealign;
+        procedure dir_codepage;
+        procedure dir_coperators;
+        procedure dir_endregion;
+        procedure dir_excessprecision;
+        procedure dir_checkcasecoverage;
+        procedure dir_checkfpuexceptions;
+        procedure dir_externalsym;
+        procedure dir_hppemit;
+        procedure dir_hugecode;
+        procedure dir_hugepointerarithmeticnormalization;
+        procedure dir_hugepointercomparisonnormalization;
+        procedure dir_hugepointernormalization;
+        procedure dir_nodefine;
+        procedure dir_objectchecks;
+        procedure dir_ieeeerrors;
+        procedure dir_assertions;
+        procedure dir_booleval;
+        procedure dir_debuginfo;
+        procedure dir_definitioninfo;
+        procedure dir_denypackageunit;
+        procedure dir_description;
+        procedure dir_referenceinfo;
+        procedure dir_region;
+        procedure dir_resource;
+        procedure dir_rtti;
+        procedure dir_safefpuexceptions;
+        procedure dir_saturation;
+        procedure dir_scopedenums;
+        procedure dir_screenname;
+        procedure dir_setpeflags;
+        procedure dir_setpeoptflags;
+        procedure dir_setpeosversion;
+        procedure dir_setpesubsysversion;
+        procedure dir_setpeuserversion;
+        procedure dir_smartlink;
+        procedure dir_stackframes;
+        procedure dir_stop;
+        procedure dir_stringchecks;
+        procedure dir_syscall;
+        procedure dir_targetswitch;
+        procedure dir_threadname;
+        procedure dir_copyright;
+        procedure dir_error;
+        procedure dir_extendedsyntax;
+        procedure dir_forcefarcalls;
+        procedure dir_fatal;
+        procedure dir_floatingpointemulation;
+        procedure dir_stackchecking;
+        procedure dir_fputype;
+        procedure dir_frameworkpath;
+        procedure dir_goto;
+        procedure dir_hint;
+        procedure dir_hints;
+        procedure dir_imagebase;
+        procedure dir_implicitexceptions;
+        procedure dir_importeddata;
+        procedure dir_includepath;
+        procedure dir_info;
+        procedure dir_inline;
+        procedure dir_interfaces;
+        procedure dir_iochecks;
+        procedure dir_libexport;
+        procedure dir_librarypath;
+        procedure dir_link;
+        procedure dir_linkframework;
+        procedure dir_linklib;
+        procedure dir_localsymbols;
+        procedure dir_longstrings;
+        procedure dir_macro;
+        procedure dir_pascalmainname;
+        procedure dir_maxfpuregisters;
+        procedure dir_maxstacksize;
+        procedure dir_memory;
+        procedure dir_message;
+        procedure dir_minstacksize;
+        procedure dir_mode;
+        procedure dir_multilinestringlineending;
+        procedure dir_textblock;
+        procedure dir_multilinestringtrimleft;
+        procedure dir_modeswitch;
+        procedure dir_namespaces;
+        procedure dir_namespace;
+        procedure dir_legacyifend;
+        procedure dir_mmx;
+        procedure dir_note;
+        procedure dir_notes;
+        procedure dir_objectpath;
+        procedure dir_openstrings;
+        procedure dir_optimization;
+        procedure dir_overflowchecks;
+        procedure dir_packenum;
+        procedure dir_minfpconstprec;
+        procedure dir_packrecords;
+        procedure dir_packset;
+        procedure dir_pic;
+        procedure dir_pop;
+        procedure dir_pointermath;
+        procedure dir_profile;
+        procedure dir_push;
+        procedure dir_rangechecks;
+        procedure dir_typedaddress;
+        procedure dir_typeinfo;
+        procedure dir_unitpath;
+        procedure dir_varparacopyoutcheck;
+        procedure dir_varpropsetter;
+        procedure dir_varstringchecks;
+        procedure dir_version;
+        procedure dir_wait;
+        procedure dir_warn;
+        procedure dir_warning;
+        procedure dir_warnings;
+        procedure dir_weakpackageunit;
+        procedure dir_writeableconst;
+        procedure dir_yd;
+        procedure dir_z1;
+        procedure dir_z2;
+        procedure dir_z4;
+        procedure dir_zerobasesstrings;
+      public
+        procedure InitScannerDirectives;
+      end;
 
   implementation
 
@@ -226,7 +369,7 @@ unit scandir;
                               Directive Callbacks
 *****************************************************************************}
 
-    procedure dir_align;
+    procedure TScanDir.dir_align;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -270,35 +413,35 @@ unit scandir;
          end;
       end;
 
-    procedure dir_a1;
+    procedure TScanDir.dir_a1;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=1;
       end;
 
-    procedure dir_a2;
+    procedure TScanDir.dir_a2;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=2;
       end;
 
-    procedure dir_a4;
+    procedure TScanDir.dir_a4;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=4;
       end;
 
-    procedure dir_a8;
+    procedure TScanDir.dir_a8;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=8;
       end;
 
-    procedure dir_asmcpu;
+    procedure TScanDir.dir_asmcpu;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -329,7 +472,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_asmmode;
+    procedure TScanDir.dir_asmmode;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -350,7 +493,7 @@ unit scandir;
       end;
 
 {$if defined(m68k) or defined(arm)}
-    procedure dir_appid;
+    procedure TScanDir.dir_appid;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -362,7 +505,7 @@ unit scandir;
         compiler.globals.palmos_applicationid:=current_scanner.readcomment;
       end;
 
-    procedure dir_appname;
+    procedure TScanDir.dir_appname;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -375,7 +518,7 @@ unit scandir;
       end;
 {$endif defined(m68k) or defined(arm)}
 
-    procedure dir_apptype;
+    procedure TScanDir.dir_apptype;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -426,7 +569,7 @@ unit scandir;
       end;
 
 
-    procedure dir_calling;
+    procedure TScanDir.dir_calling;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -441,13 +584,13 @@ unit scandir;
       end;
 
 
-    procedure dir_checklowaddrloads;
+    procedure TScanDir.dir_checklowaddrloads;
       begin
         do_localswitchdefault(cs_check_low_addr_load);
       end;
 
 
-    procedure dir_checkpointer;
+    procedure TScanDir.dir_checkpointer;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -460,63 +603,63 @@ unit scandir;
       end;
 
 
-    procedure dir_excessprecision;
+    procedure TScanDir.dir_excessprecision;
       begin
         do_localswitch(cs_excessprecision);
       end;
 
 
-    procedure dir_checkcasecoverage;
+    procedure TScanDir.dir_checkcasecoverage;
       begin
         do_localswitch(cs_check_all_case_coverage);
       end;
 
 
-    procedure dir_checkfpuexceptions;
+    procedure TScanDir.dir_checkfpuexceptions;
       begin
         do_localswitch(cs_check_fpu_exceptions);
       end;
 
 
-    procedure dir_objectchecks;
+    procedure TScanDir.dir_objectchecks;
       begin
         do_localswitch(cs_check_object);
       end;
 
 
-    procedure dir_ieeeerrors;
+    procedure TScanDir.dir_ieeeerrors;
       begin
         do_localswitch(cs_ieee_errors);
       end;
 
 
-    procedure dir_assertions;
+    procedure TScanDir.dir_assertions;
       begin
         do_delphiswitch('C');
       end;
 
 
-    procedure dir_booleval;
+    procedure TScanDir.dir_booleval;
       begin
         do_delphiswitch('B');
       end;
 
-    procedure dir_debuginfo;
+    procedure TScanDir.dir_debuginfo;
       begin
         do_delphiswitch('D');
       end;
 
-    procedure dir_definitioninfo;
+    procedure TScanDir.dir_definitioninfo;
       begin
         do_delphiswitch('Y');
       end;
 
-    procedure dir_denypackageunit;
+    procedure TScanDir.dir_denypackageunit;
       begin
         do_moduleflagswitch(mf_package_deny,true);
       end;
 
-    procedure dir_description;
+    procedure TScanDir.dir_description;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -530,7 +673,7 @@ unit scandir;
         compiler.globals.DescriptionSetExplicity:=true;
       end;
 
-    procedure dir_screenname; {ad}
+    procedure TScanDir.dir_screenname; {ad}
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -541,7 +684,7 @@ unit scandir;
         compiler.globals.nwscreenname:=current_scanner.readcomment;
       end;
 
-      procedure dir_threadname; {ad}
+      procedure TScanDir.dir_threadname; {ad}
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -552,7 +695,7 @@ unit scandir;
         compiler.globals.nwthreadname:=current_scanner.readcomment;
       end;
 
-      procedure dir_copyright; {ad}
+      procedure TScanDir.dir_copyright; {ad}
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -563,17 +706,17 @@ unit scandir;
         compiler.globals.nwcopyright:=current_scanner.readcomment;
       end;
 
-    procedure dir_error;
+    procedure TScanDir.dir_error;
       begin
         do_message(scan_e_user_defined);
       end;
 
-    procedure dir_extendedsyntax;
+    procedure TScanDir.dir_extendedsyntax;
       begin
         do_delphiswitch('X');
       end;
 
-    procedure dir_forcefarcalls;
+    procedure TScanDir.dir_forcefarcalls;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -589,22 +732,22 @@ unit scandir;
         do_localswitch(cs_force_far_calls);
       end;
 
-    procedure dir_fatal;
+    procedure TScanDir.dir_fatal;
       begin
         do_message(scan_f_user_defined);
       end;
 
-    procedure dir_floatingpointemulation;
+    procedure TScanDir.dir_floatingpointemulation;
       begin
         do_delphiswitch('E');
       end;
 
-    procedure dir_stackchecking;
+    procedure TScanDir.dir_stackchecking;
       begin
         do_delphiswitch('S');
       end;
 
-    procedure dir_fputype;
+    procedure TScanDir.dir_fputype;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         fputype: tfputype;
@@ -619,7 +762,7 @@ unit scandir;
         def_system_macro('FPU'+fputypestr[compiler.globals.current_settings.fputype]);
      end;
 
-    procedure dir_frameworkpath;
+    procedure TScanDir.dir_frameworkpath;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -638,22 +781,22 @@ unit scandir;
           end;
       end;
 
-    procedure dir_goto;
+    procedure TScanDir.dir_goto;
       begin
         do_moduleswitch(cs_support_goto);
       end;
 
-    procedure dir_hint;
+    procedure TScanDir.dir_hint;
       begin
         do_message(scan_h_user_defined);
       end;
 
-    procedure dir_hints;
+    procedure TScanDir.dir_hints;
       begin
         do_setverbose('H');
       end;
 
-    procedure dir_imagebase;
+    procedure TScanDir.dir_imagebase;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -664,17 +807,17 @@ unit scandir;
         compiler.globals.ImageBaseSetExplicity:=true
       end;
 
-    procedure dir_implicitexceptions;
+    procedure TScanDir.dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
       end;
 
-    procedure dir_importeddata;
+    procedure TScanDir.dir_importeddata;
       begin
         do_delphiswitch('G');
       end;
 
-    procedure dir_includepath;
+    procedure TScanDir.dir_includepath;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -691,17 +834,17 @@ unit scandir;
           end;
       end;
 
-    procedure dir_info;
+    procedure TScanDir.dir_info;
       begin
         do_message(scan_i_user_defined);
       end;
 
-    procedure dir_inline;
+    procedure TScanDir.dir_inline;
       begin
         do_localswitch(cs_do_inline);
       end;
 
-    procedure dir_interfaces;
+    procedure TScanDir.dir_interfaces;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -723,17 +866,17 @@ unit scandir;
           compiler.verbose.Message(scan_e_invalid_interface_type);
       end;
 
-    procedure dir_iochecks;
+    procedure TScanDir.dir_iochecks;
       begin
         do_delphiswitch('I');
       end;
 
-    procedure dir_libexport;
+    procedure TScanDir.dir_libexport;
       begin
         {not implemented}
       end;
 
-    procedure dir_librarypath;
+    procedure TScanDir.dir_librarypath;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -750,7 +893,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_link;
+    procedure TScanDir.dir_link;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -770,7 +913,7 @@ unit scandir;
         current_module.linkotherofiles.add(s,link_always);
       end;
 
-    procedure dir_linkframework;
+    procedure TScanDir.dir_linkframework;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -791,7 +934,7 @@ unit scandir;
           compiler.verbose.Message(scan_w_frameworks_darwin_only);
       end;
 
-    procedure dir_linklib;
+    procedure TScanDir.dir_linklib;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
@@ -863,22 +1006,22 @@ unit scandir;
          current_module.linkOtherSharedLibs.add(libname,link_always);
       end;
 
-    procedure dir_localsymbols;
+    procedure TScanDir.dir_localsymbols;
       begin
         do_delphiswitch('L');
       end;
 
-    procedure dir_longstrings;
+    procedure TScanDir.dir_longstrings;
       begin
         do_delphiswitch('H');
       end;
 
-    procedure dir_macro;
+    procedure TScanDir.dir_macro;
       begin
         do_moduleswitch(cs_support_macro);
       end;
 
-    procedure dir_pascalmainname;
+    procedure TScanDir.dir_pascalmainname;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -900,7 +1043,7 @@ unit scandir;
           current_module.mainname:=stringdup(compiler.globals.mainaliasname);
       end;
 
-    procedure dir_maxfpuregisters;
+    procedure TScanDir.dir_maxfpuregisters;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -928,7 +1071,7 @@ unit scandir;
            end;
       end;
 
-    procedure dir_maxstacksize;
+    procedure TScanDir.dir_maxstacksize;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -939,7 +1082,7 @@ unit scandir;
         compiler.globals.MaxStackSizeSetExplicity:=true;
       end;
 
-    procedure dir_memory;
+    procedure TScanDir.dir_memory;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1007,7 +1150,7 @@ unit scandir;
       end;
 
 
-    procedure dir_message;
+    procedure TScanDir.dir_message;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1058,7 +1201,7 @@ unit scandir;
       end;
 
 
-    procedure dir_minstacksize;
+    procedure TScanDir.dir_minstacksize;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1070,7 +1213,7 @@ unit scandir;
       end;
 
 
-    procedure dir_mode;
+    procedure TScanDir.dir_mode;
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
@@ -1090,7 +1233,7 @@ unit scandir;
       current_module.mode_switch_allowed:= false;
     end;
 
-    procedure dir_multilinestringlineending;
+    procedure TScanDir.dir_multilinestringlineending;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1114,7 +1257,7 @@ unit scandir;
           compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
 
-    procedure dir_textblock;
+    procedure TScanDir.dir_textblock;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1136,7 +1279,7 @@ unit scandir;
           compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
 
-    procedure dir_multilinestringtrimleft;
+    procedure TScanDir.dir_multilinestringtrimleft;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1178,7 +1321,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_modeswitch;
+    procedure TScanDir.dir_modeswitch;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1201,7 +1344,7 @@ unit scandir;
       end;
 
 
-    procedure dir_namespaces;
+    procedure TScanDir.dir_namespaces;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
@@ -1236,7 +1379,7 @@ unit scandir;
         end;
     end;
 
-    procedure dir_namespace;
+    procedure TScanDir.dir_namespace;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1262,27 +1405,27 @@ unit scandir;
           end;
       end;
 
-    procedure dir_legacyifend;
+    procedure TScanDir.dir_legacyifend;
       begin
         do_localswitch(cs_legacyifend);
       end;
 
-    procedure dir_mmx;
+    procedure TScanDir.dir_mmx;
       begin
         do_localswitch(cs_mmx);
       end;
 
-    procedure dir_note;
+    procedure TScanDir.dir_note;
       begin
         do_message(scan_n_user_defined);
       end;
 
-    procedure dir_notes;
+    procedure TScanDir.dir_notes;
       begin
         do_setverbose('N');
       end;
 
-    procedure dir_objectpath;
+    procedure TScanDir.dir_objectpath;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1299,12 +1442,12 @@ unit scandir;
           end;
       end;
 
-    procedure dir_openstrings;
+    procedure TScanDir.dir_openstrings;
       begin
         do_delphiswitch('P');
       end;
 
-    procedure dir_optimization;
+    procedure TScanDir.dir_optimization;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1333,12 +1476,12 @@ unit scandir;
           end;
       end;
 
-    procedure dir_overflowchecks;
+    procedure TScanDir.dir_overflowchecks;
       begin
         do_delphiswitch('Q');
       end;
 
-    procedure dir_packenum;
+    procedure TScanDir.dir_packenum;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1366,7 +1509,7 @@ unit scandir;
       end;
 
 
-    procedure dir_minfpconstprec;
+    procedure TScanDir.dir_minfpconstprec;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         minfpconstprec: tfloattype;
@@ -1380,7 +1523,7 @@ unit scandir;
       end;
 
 
-    procedure dir_packrecords;
+    procedure TScanDir.dir_packrecords;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1415,7 +1558,7 @@ unit scandir;
       end;
 
 
-    procedure dir_packset;
+    procedure TScanDir.dir_packset;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1443,7 +1586,7 @@ unit scandir;
       end;
 
 
-    procedure dir_pic;
+    procedure TScanDir.dir_pic;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1454,7 +1597,7 @@ unit scandir;
           do_moduleswitch(cs_create_pic);
       end;
 
-    procedure dir_pop;
+    procedure TScanDir.dir_pop;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
@@ -1483,12 +1626,12 @@ unit scandir;
         end;
     end;
 
-    procedure dir_pointermath;
+    procedure TScanDir.dir_pointermath;
       begin
         do_localswitch(cs_pointermath);
       end;
 
-    procedure dir_profile;
+    procedure TScanDir.dir_profile;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1500,7 +1643,7 @@ unit scandir;
           undef_system_macro('FPC_PROFILE');
       end;
 
-    procedure dir_push;
+    procedure TScanDir.dir_push;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
@@ -1554,17 +1697,17 @@ unit scandir;
       Inc(switchesstatestackpos);
     end;
 
-    procedure dir_rangechecks;
+    procedure TScanDir.dir_rangechecks;
       begin
         do_delphiswitch('R');
       end;
 
-    procedure dir_referenceinfo;
+    procedure TScanDir.dir_referenceinfo;
       begin
         do_delphiswitch('Y');
       end;
 
-    procedure dir_resource;
+    procedure TScanDir.dir_resource;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1603,7 +1746,7 @@ unit scandir;
           compiler.verbose.Message(scan_e_resourcefiles_not_supported);
       end;
 
-    procedure dir_rtti;
+    procedure TScanDir.dir_rtti;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
@@ -1692,17 +1835,17 @@ unit scandir;
         current_module.rtti_directive:=dir;
       end;
 
-    procedure dir_saturation;
+    procedure TScanDir.dir_saturation;
       begin
         do_localswitch(cs_mmx_saturation);
       end;
 
-    procedure dir_safefpuexceptions;
+    procedure TScanDir.dir_safefpuexceptions;
       begin
         do_localswitch(cs_fpu_fwait);
       end;
 
-    procedure dir_scopedenums;
+    procedure TScanDir.dir_scopedenums;
       begin
         do_localswitch(cs_scopedenums);
       end;
@@ -1730,7 +1873,7 @@ unit scandir;
           compiler.verbose.Message1(sym_e_id_not_found,ident);
       end;
 
-    procedure dir_setpeflags;
+    procedure TScanDir.dir_setpeflags;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1747,7 +1890,7 @@ unit scandir;
         compiler.globals.SetPEFlagsSetExplicity:=true;
       end;
 
-    procedure dir_setpeoptflags;
+    procedure TScanDir.dir_setpeoptflags;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1764,7 +1907,7 @@ unit scandir;
         compiler.globals.SetPEOptFlagsSetExplicity:=true;
       end;
 
-    procedure dir_setpeuserversion;
+    procedure TScanDir.dir_setpeuserversion;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1785,7 +1928,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_setpeosversion;
+    procedure TScanDir.dir_setpeosversion;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1806,7 +1949,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_setpesubsysversion;
+    procedure TScanDir.dir_setpesubsysversion;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1827,7 +1970,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_smartlink;
+    procedure TScanDir.dir_smartlink;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1857,23 +2000,23 @@ unit scandir;
          end
       end;
 
-    procedure dir_stackframes;
+    procedure TScanDir.dir_stackframes;
       begin
         do_delphiswitch('W');
       end;
 
-    procedure dir_stop;
+    procedure TScanDir.dir_stop;
       begin
         do_message(scan_f_user_defined);
       end;
 
-    procedure dir_stringchecks;
+    procedure TScanDir.dir_stringchecks;
       begin
         // Delphi adds checks that ansistring and unicodestring are correct in
         // different places. Skip it for now.
       end;
 
-    procedure dir_syscall;
+    procedure TScanDir.dir_syscall;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1895,7 +2038,7 @@ unit scandir;
         compiler.verbose.Message(scan_w_syscall_convention_invalid);
       end;
 
-    procedure dir_targetswitch;
+    procedure TScanDir.dir_targetswitch;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1929,17 +2072,17 @@ unit scandir;
           end;
       end;
 
-    procedure dir_typedaddress;
+    procedure TScanDir.dir_typedaddress;
       begin
         do_delphiswitch('T');
       end;
 
-    procedure dir_typeinfo;
+    procedure TScanDir.dir_typeinfo;
       begin
         do_delphiswitch('M');
       end;
 
-    procedure dir_unitpath;
+    procedure TScanDir.dir_unitpath;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -1959,7 +2102,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_varparacopyoutcheck;
+    procedure TScanDir.dir_varparacopyoutcheck;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1971,17 +2114,17 @@ unit scandir;
         do_localswitch(cs_check_var_copyout);
       end;
 
-    procedure dir_varpropsetter;
+    procedure TScanDir.dir_varpropsetter;
       begin
         do_localswitch(cs_varpropsetter);
       end;
 
-    procedure dir_varstringchecks;
+    procedure TScanDir.dir_varstringchecks;
       begin
         do_delphiswitch('V');
       end;
 
-    procedure dir_version;
+    procedure TScanDir.dir_version;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2051,7 +2194,7 @@ unit scandir;
           end;
       end;
 
-    procedure dir_wait;
+    procedure TScanDir.dir_wait;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2071,7 +2214,7 @@ unit scandir;
       $warn <identifier> off
       $warn <identifier> error
     }
-    procedure dir_warn;
+    procedure TScanDir.dir_warn;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2183,67 +2326,67 @@ unit scandir;
           end;
       end;
 
-    procedure dir_warning;
+    procedure TScanDir.dir_warning;
       begin
         do_message(scan_w_user_defined);
       end;
 
-    procedure dir_warnings;
+    procedure TScanDir.dir_warnings;
       begin
         do_setverbose('W');
       end;
 
-    procedure dir_weakpackageunit;
+    procedure TScanDir.dir_weakpackageunit;
       begin
         { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
           Delphis have $WEAPACKAGEUNIT ON... :/ }
         do_moduleflagswitch(mf_package_weak, true);
       end;
 
-    procedure dir_writeableconst;
+    procedure TScanDir.dir_writeableconst;
       begin
         do_delphiswitch('J');
       end;
 
-    procedure dir_yd;
+    procedure TScanDir.dir_yd;
       begin
         HandleSwitch('Y','+');
       end;
 
-    procedure dir_z1;
+    procedure TScanDir.dir_z1;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=1;
       end;
 
-    procedure dir_z2;
+    procedure TScanDir.dir_z2;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=2;
       end;
 
-    procedure dir_z4;
+    procedure TScanDir.dir_z4;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=4;
       end;
 
-    procedure dir_externalsym;
+    procedure TScanDir.dir_externalsym;
       begin
       end;
 
-    procedure dir_nodefine;
+    procedure TScanDir.dir_nodefine;
       begin
       end;
 
-    procedure dir_hppemit;
+    procedure TScanDir.dir_hppemit;
       begin
       end;
 
-    procedure dir_hugecode;
+    procedure TScanDir.dir_hugecode;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -2259,7 +2402,7 @@ unit scandir;
         do_moduleswitch(cs_huge_code);
       end;
 
-    procedure dir_hugepointernormalization;
+    procedure TScanDir.dir_hugepointernormalization;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2293,7 +2436,7 @@ unit scandir;
         end;
       end;
 
-    procedure dir_hugepointerarithmeticnormalization;
+    procedure TScanDir.dir_hugepointerarithmeticnormalization;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -2305,7 +2448,7 @@ unit scandir;
         do_localswitch(cs_hugeptr_arithmetic_normalization);
       end;
 
-    procedure dir_hugepointercomparisonnormalization;
+    procedure TScanDir.dir_hugepointercomparisonnormalization;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -2317,7 +2460,7 @@ unit scandir;
         do_localswitch(cs_hugeptr_comparison_normalization);
       end;
 
-    procedure dir_codealign;
+    procedure TScanDir.dir_codealign;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2329,7 +2472,7 @@ unit scandir;
           compiler.verbose.Message(scanner_e_illegal_alignment_directive);
       end;
 
-    procedure dir_codepage;
+    procedure TScanDir.dir_codepage;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -2354,26 +2497,26 @@ unit scandir;
           end;
       end;
 
-    procedure dir_coperators;
+    procedure TScanDir.dir_coperators;
       begin
         do_moduleswitch(cs_support_c_operators);
       end;
 
 
-    procedure dir_bitpacking;
+    procedure TScanDir.dir_bitpacking;
       begin
         do_localswitch(cs_bitpacking);
       end;
 
-    procedure dir_region;
+    procedure TScanDir.dir_region;
       begin
       end;
 
-    procedure dir_endregion;
+    procedure TScanDir.dir_endregion;
       begin
       end;
 
-    procedure dir_zerobasesstrings;
+    procedure TScanDir.dir_zerobasesstrings;
       begin
         do_localswitch(cs_zerobasedstrings);
       end;
@@ -2383,7 +2526,7 @@ unit scandir;
                          Initialize Directives
 ****************************************************************************}
 
-    procedure InitScannerDirectives;
+    procedure TScanDir.InitScannerDirectives;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin

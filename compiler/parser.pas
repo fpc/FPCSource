@@ -195,7 +195,8 @@ implementation
 
          { initialize scanner }
          tcompiler(compiler).Scanner:=TScanner.Create(compiler);
-         InitScannerDirectives;
+         tcompiler(compiler).ScanDir:=TScanDir.Create;
+         tcompiler(compiler).ScanDir.InitScannerDirectives;
 
          { scanner }
          set_current_scanner(nil);
