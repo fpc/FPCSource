@@ -49,6 +49,7 @@ interface
         function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
         function GetTG: ttgobj; inline;
+        function checknodeinlining(_procdef: tprocdef): boolean;
         procedure swap_tempflags;
         function store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
         procedure CreateInlineInfo;
@@ -223,13 +224,11 @@ implementation
       end;
 
 
-    function checknodeinlining(procdef: tprocdef): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function tcgprocinfo.checknodeinlining(_procdef: tprocdef): boolean;
 
       procedure _no_inline(const reason: TMsgStr);
         begin
-          include(procdef.implprocoptions,pio_inline_not_possible);
+          include(_procdef.implprocoptions,pio_inline_not_possible);
           compiler.verbose.Message1(parser_n_not_supported_for_inline,reason);
           compiler.verbose.Message(parser_h_inlining_disabled);
         end;
@@ -273,7 +272,7 @@ implementation
             _no_inline('inherited');
             exit;
           end;
-        if pio_nested_access in procdef.implprocoptions then
+        if pio_nested_access in _procdef.implprocoptions then
          begin
            _no_inline('access to local from nested scope');
            exit;
@@ -296,9 +295,9 @@ implementation
             exit;
           end;
 
-        for i:=0 to procdef.paras.count-1 do
+        for i:=0 to _procdef.paras.count-1 do
           begin
-            currpara:=tparavarsym(procdef.paras[i]);
+            currpara:=tparavarsym(_procdef.paras[i]);
             case currpara.vardef.typ of
               arraydef :
                 begin
