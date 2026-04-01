@@ -2041,7 +2041,7 @@ end;
       begin
         tcompiler(compiler).cg:=TCGMIPS.Create(compiler);
 {$ifdef mips64}
-        tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
+        tcompiler(compiler).cg128:=tcg128.create(compiler);
 {$else mips64}
         tcompiler(compiler).cg64:=TCg64MPSel.Create(compiler);
 {$endif mips64}

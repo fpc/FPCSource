@@ -1884,7 +1884,7 @@ end;
 procedure create_codegen(compiler: TCompilerBase);
 begin
   tcompiler(compiler).cg := tcgppc.create(compiler);
-  tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
+  tcompiler(compiler).cg128:=tcg128.create(compiler);
 end;
 
 end.

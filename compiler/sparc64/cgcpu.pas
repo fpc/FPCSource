@@ -203,7 +203,7 @@ interface
           TCgSparc64(compiler.cg).use_unlimited_pic_mode:=true
         else
           TCgSparc64(compiler.cg).use_unlimited_pic_mode:=false;
-        tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
+        tcompiler(compiler).cg128:=tcg128.create(compiler);
       end;
 
 end.

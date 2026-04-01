@@ -2706,7 +2706,7 @@ implementation
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgaarch64.Create(compiler);
-        tcompiler(compiler).cg128:=tcg128.Create(compiler.cg);
+        tcompiler(compiler).cg128:=tcg128.Create(compiler);
       end;
 
 end.

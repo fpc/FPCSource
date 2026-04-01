@@ -501,13 +501,18 @@ unit cgobj;
     {  This class implements an abstract code generator class
        for 128 Bit operations, it applies currently only to 64 Bit CPUs and supports only simple operations
     }
+
+    { tcg128 }
+
     tcg128 = class
        private
-        FCG: tcg;
+        FCompiler: TCompilerBase;
+        function GetCG: tcg; inline;
        protected
-        property cg: tcg read Fcg;
+        property Compiler: TCompilerBase read FCompiler;
+        property cg: tcg read GetCG;
        public
-        constructor create(acg: tcg);
+        constructor create(ACompiler: TCompilerBase);
 
         procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
         procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
@@ -3451,10 +3456,14 @@ implementation
         paralochi^.next:=nil;
       end;
 
-
-    constructor tcg128.create(acg: tcg);
+    function tcg128.GetCG: tcg; inline;
       begin
-        FCG:=acg;
+        Result:=compiler.cg;
+      end;
+
+    constructor tcg128.create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
       end;
 
 
@@ -3468,8 +3477,6 @@ implementation
 
     procedure tcg128.a_load128_reg_ref(list: TAsmList; reg: tregister128;
       const ref: treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -3489,8 +3496,6 @@ implementation
 
     procedure tcg128.a_load128_ref_reg(list: TAsmList; const ref: treference;
       reg: tregister128);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -3589,8 +3594,6 @@ implementation
 
     procedure tcg128.a_load128_reg_cgpara(list : TAsmList;reg : tregister128;const paraloc : tcgpara);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         tmplochi,tmploclo: tcgpara;
       begin
         tmploclo.init(compiler);
@@ -3604,8 +3607,6 @@ implementation
 
 
     procedure tcg128.a_load128_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
