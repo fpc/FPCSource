@@ -342,7 +342,7 @@ interface
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
         function writeData:boolean;override;
       public
-        constructor create(acompiler:tcompilerbase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy;override;
         procedure Load_Symbol(const aname:string);override;
         procedure MemPos_EndExeSection;override;
@@ -781,7 +781,7 @@ interface
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
       public
-        constructor create(acompiler:tcompilerbase);override;
+        constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy;override;
 
         procedure Order_ExeSection(const aname:string);override;
@@ -3051,14 +3051,14 @@ implementation
             UniSeg.CalcMemPos;
             if UniSeg.Size>$10000 then
               begin
-                if compiler.globals.current_settings.x86memorymodel=mm_tiny then
-                  compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniSeg.Size-$10000))
+                if globals.current_settings.x86memorymodel=mm_tiny then
+                  verbose.Message1(link_e_program_segment_too_large,IntToStr(UniSeg.Size-$10000))
                 else if UniSeg.SegClass='CODE' then
-                  compiler.verbose.Message2(link_e_code_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
+                  verbose.Message2(link_e_code_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
                 else if UniSeg.SegClass='DATA' then
-                  compiler.verbose.Message2(link_e_data_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
+                  verbose.Message2(link_e_data_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
                 else
-                  compiler.verbose.Message2(link_e_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000)+' '+UniSeg.SegName);
+                  verbose.Message2(link_e_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000)+' '+UniSeg.SegName);
               end;
           end;
       end;
@@ -3103,12 +3103,12 @@ implementation
             UniGrp.CalcMemPos;
             if UniGrp.Size>$10000 then
               begin
-                if compiler.globals.current_settings.x86memorymodel=mm_tiny then
-                  compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniGrp.Size-$10000))
+                if globals.current_settings.x86memorymodel=mm_tiny then
+                  verbose.Message1(link_e_program_segment_too_large,IntToStr(UniGrp.Size-$10000))
                 else if UniGrp.Name='DGROUP' then
-                  compiler.verbose.Message2(link_e_data_segment_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000))
+                  verbose.Message2(link_e_data_segment_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000))
                 else
-                  compiler.verbose.Message2(link_e_group_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000));
+                  verbose.Message2(link_e_group_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000));
               end;
           end;
       end;
@@ -3236,11 +3236,11 @@ implementation
         heapmin_paragraphs: Integer;
         heapmax_paragraphs: Integer;
       begin
-        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
+        if globals.current_settings.x86memorymodel in x86_far_data_models then
           begin
             { calculate the additional number of paragraphs needed }
-            heapmin_paragraphs:=(compiler.globals.heapsize + 15) div 16;
-            heapmax_paragraphs:=(compiler.globals.maxheapsize + 15) div 16;
+            heapmin_paragraphs:=(globals.heapsize + 15) div 16;
+            heapmax_paragraphs:=(globals.maxheapsize + 15) div 16;
             Header.MaxExtraParagraphs:=min(Header.MinExtraParagraphs-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
           end
         else
@@ -3328,7 +3328,7 @@ implementation
         FillHeaderData;
         if Length(Header.Relocations)>0 then
           begin
-            compiler.verbose.Message(link_e_com_program_uses_segment_relocations);
+            verbose.Message(link_e_com_program_uses_segment_relocations);
             exit(False);
           end;
         ExeSec:=MZFlatContentSection;
@@ -3462,13 +3462,13 @@ implementation
         ElfHeader.e_shentsize:=SizeOf(TElf32sechdr);
         ElfHeader.e_shnum:=elfsections_count;
         ElfHeader.e_shstrndx:=shstrndx;
-        MaybeSwapHeader(compiler.target.info.endian,ElfHeader);
+        MaybeSwapHeader(target.info.endian,ElfHeader);
         Writer.write(ElfHeader,sizeof(ElfHeader));
 
         { write section headers }
         for I:=0 to elfsections_count-1 do
           begin
-            MaybeSwapSecHeader(compiler.target.info.endian,elfsechdrs[I]);
+            MaybeSwapSecHeader(target.info.endian,elfsechdrs[I]);
             Writer.write(elfsechdrs[I],SizeOf(elfsechdrs[I]));
           end;
 
@@ -3498,7 +3498,7 @@ implementation
             tis_type:=TIS_TRAILER_TYPE_TIS_DWARF;
             tis_size:=(elf_end_pos-elf_start_pos)+sizeof(tis_trailer);
           end;
-        MayBeSwapTISTrailer(compiler.target.info.endian,tis_trailer);
+        MayBeSwapTISTrailer(target.info.endian,tis_trailer);
         Writer.write(tis_trailer,sizeof(tis_trailer));
 
         Result:=True;
@@ -3539,7 +3539,7 @@ cleanup:
         i: Integer;
         omfsec: TOmfObjSection absolute objsec;
         objreloc: TOmfRelocation;
-        target: DWord;
+        _target: DWord;
         framebase: DWord;
         fixupamount: Integer;
         target_group: TMZExeUnifiedLogicalGroup;
@@ -3591,7 +3591,7 @@ cleanup:
             objreloc:=TOmfRelocation(objsec.ObjRelocations[i]);
             if assigned(objreloc.symbol) then
               begin
-                target:=objreloc.symbol.address;
+                _target:=objreloc.symbol.address;
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else if assigned(objreloc.symbol.group) then
@@ -3602,15 +3602,15 @@ cleanup:
                   else
                     begin
                       framebase:=0;
-                      compiler.verbose.Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
+                      verbose.Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
                     end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=_target-framebase;
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015082402);
                 end;
@@ -3642,7 +3642,7 @@ cleanup:
               end
             else if assigned(objreloc.objsection) then
               begin
-                target:=objreloc.objsection.MemPos;
+                _target:=objreloc.objsection.MemPos;
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else
@@ -3652,16 +3652,16 @@ cleanup:
                     else
                       begin
                         framebase:=0;
-                        compiler.verbose.Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
+                        verbose.Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
                       end;
                   end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=_target-framebase;
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015082405);
                 end;
@@ -3694,18 +3694,18 @@ cleanup:
             else if assigned(objreloc.group) then
               begin
                 target_group:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.group.Name));
-                target:=target_group.MemPos;
+                _target:=target_group.MemPos;
                 if objreloc.FrameGroup<>'' then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.FrameGroup)).MemPos
                 else
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=_target-framebase;
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=_target-(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015111202);
                 end;
@@ -3811,22 +3811,22 @@ cleanup:
         Result:=False;
         if ExeWriteMode in [ewm_exefull,ewm_exeonly] then
           begin
-            if compiler.globals.apptype=app_com then
+            if globals.apptype=app_com then
               Result:=WriteCom
             else
               Result:=WriteExe;
             if not Result then
               exit;
           end;
-        if ((cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
-            (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
+        if ((cs_debuginfo in globals.current_settings.moduleswitches) and
+            (target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
            ((ExeWriteMode=ewm_dbgonly) or
             ((ExeWriteMode=ewm_exefull) and
-              not(cs_link_strip in compiler.globals.current_settings.globalswitches))) then
+              not(cs_link_strip in globals.current_settings.globalswitches))) then
           Result:=writeDebugElf;
       end;
 
-    constructor TMZExeOutput.create(acompiler:tcompilerbase);
+    constructor TMZExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CExeSection:=TMZExeSection;
@@ -4483,7 +4483,7 @@ cleanup:
           ImportLibrary:=TImportLibrary.Create(FImports,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,compiler.target);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar,target);
       end;
 
     procedure TNewExeOutput.AddImportLibrariesExtractedFromObjectModules;
@@ -4551,7 +4551,7 @@ cleanup:
         { the first entry in the resident-name table is the module name }
         TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
         { the first entry in the nonresident-name table is the module description }
-        TNewExeExportNameTableEntry.Create(NonresidentNameTable,compiler.globals.description,0);
+        TNewExeExportNameTableEntry.Create(NonresidentNameTable,globals.description,0);
         { add all symbols, exported by name to the resident and nonresident-name tables }
         AddExportedNames;
 
@@ -4563,7 +4563,7 @@ cleanup:
         Header.InitialSP:=0;
         Header.InitialSS:=Header.AutoDataSegmentNumber;
         Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
-        Header.InitialLocalHeapSize:=compiler.globals.heapsize;
+        Header.InitialLocalHeapSize:=globals.heapsize;
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
@@ -4764,7 +4764,7 @@ cleanup:
         ObjSectionList.Sort(@INewExeOmfObjSectionClassNameCompare);
       end;
 
-    constructor TNewExeOutput.create(acompiler:tcompilerbase);
+    constructor TNewExeOutput.create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjData:=TOmfObjData;
