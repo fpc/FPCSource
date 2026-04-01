@@ -58,6 +58,8 @@ unit scandir;
 
       TScanDir = class
       private
+        FCompiler: TCompilerBase;
+
         procedure dir_align;
         procedure dir_a1;
         procedure dir_a2;
@@ -193,7 +195,10 @@ unit scandir;
         procedure dir_z2;
         procedure dir_z4;
         procedure dir_zerobasesstrings;
+
+        property Compiler: TCompilerBase read FCompiler;
       public
+        constructor Create(ACompiler: TCompilerBase);
         procedure InitScannerDirectives(AScanner: TScanner);
       end;
 
@@ -371,8 +376,6 @@ unit scandir;
 
     procedure TScanDir.dir_align;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         b : longint;
       begin
@@ -414,36 +417,26 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_a1;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=1;
       end;
 
     procedure TScanDir.dir_a2;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=2;
       end;
 
     procedure TScanDir.dir_a4;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=4;
       end;
 
     procedure TScanDir.dir_a8;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packrecords:=8;
       end;
 
     procedure TScanDir.dir_asmcpu;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
         cpu: tcputype;
@@ -474,8 +467,6 @@ unit scandir;
 
     procedure TScanDir.dir_asmmode;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
         asmmode: tasmmode;
       begin
@@ -494,8 +485,6 @@ unit scandir;
 
 {$if defined(m68k) or defined(arm)}
     procedure TScanDir.dir_appid;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.info.system<>system_m68k_palmos then
           compiler.verbose.Message(scan_w_appid_not_support);
@@ -506,8 +495,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_appname;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.info.system<>system_m68k_palmos then
           compiler.verbose.Message(scan_w_appname_not_support);
@@ -519,8 +506,6 @@ unit scandir;
 {$endif defined(m68k) or defined(arm)}
 
     procedure TScanDir.dir_apptype;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          hs : string;
       begin
@@ -571,8 +556,6 @@ unit scandir;
 
     procedure TScanDir.dir_calling;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          hs : string;
       begin
         current_scanner.skipspace;
@@ -591,8 +574,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_checkpointer;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         switch: char;
       begin
@@ -660,8 +641,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_description;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,system_i386_netwlibc,system_i8086_win16]) then
@@ -674,8 +653,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_screenname; {ad}
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {compiler.verbose.Message(scan_w_description_not_support);}
@@ -685,8 +662,6 @@ unit scandir;
       end;
 
       procedure TScanDir.dir_threadname; {ad}
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {compiler.verbose.Message(scan_w_description_not_support);}
@@ -696,8 +671,6 @@ unit scandir;
       end;
 
       procedure TScanDir.dir_copyright; {ad}
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {compiler.verbose.Message(scan_w_description_not_support);}
@@ -717,8 +690,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_forcefarcalls;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
@@ -749,7 +720,6 @@ unit scandir;
 
     procedure TScanDir.dir_fputype;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         fputype: tfputype;
       begin
         current_scanner.skipspace;
@@ -763,8 +733,6 @@ unit scandir;
      end;
 
     procedure TScanDir.dir_frameworkpath;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
@@ -797,8 +765,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_imagebase;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_imagebase_not_support);
@@ -818,8 +784,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_includepath;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         path : string;
       begin
@@ -845,8 +809,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_interfaces;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs : string;
       begin
@@ -878,8 +840,6 @@ unit scandir;
 
     procedure TScanDir.dir_librarypath;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         path : string;
       begin
         if not current_module.in_global then
@@ -894,8 +854,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_link;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
       begin
@@ -915,8 +873,6 @@ unit scandir;
 
     procedure TScanDir.dir_linkframework;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         current_scanner.skipspace;
@@ -935,8 +891,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_linklib;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         tLinkMode=(lm_shared,lm_static);
       var
@@ -1023,8 +977,6 @@ unit scandir;
 
     procedure TScanDir.dir_pascalmainname;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s: string;
       begin
         current_scanner.skipspace;
@@ -1044,8 +996,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_maxfpuregisters;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          l  : integer;
          hs : string;
@@ -1072,8 +1022,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_maxstacksize;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_maxstacksize_not_support);
@@ -1083,8 +1031,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_memory;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         l : int64;
         heapsize_limit: int64;
@@ -1152,8 +1098,6 @@ unit scandir;
 
     procedure TScanDir.dir_message;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         s  : AnsiString;
         w  : longint;
@@ -1202,8 +1146,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_minstacksize;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_minstacksize_not_support);
@@ -1214,8 +1156,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_mode;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if not current_module.in_global then
@@ -1234,8 +1174,6 @@ unit scandir;
     end;
 
     procedure TScanDir.dir_multilinestringlineending;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
       begin
@@ -1259,8 +1197,6 @@ unit scandir;
 
     procedure TScanDir.dir_textblock;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         if not (m_delphi in compiler.globals.current_settings.modeswitches) then
@@ -1280,8 +1216,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_multilinestringtrimleft;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         count : longint;
         s : string;
@@ -1323,8 +1257,6 @@ unit scandir;
 
     procedure TScanDir.dir_modeswitch;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         if not current_module.in_global then
@@ -1345,8 +1277,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_namespaces;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     { add namespaces to the local namespace list }
       var
@@ -1380,8 +1310,6 @@ unit scandir;
     end;
 
     procedure TScanDir.dir_namespace;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
       begin
@@ -1427,8 +1355,6 @@ unit scandir;
 
     procedure TScanDir.dir_objectpath;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         path : string;
       begin
         if not current_module.in_global then
@@ -1448,8 +1374,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_optimization;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs : string;
         optimizerswitches: toptimizerswitches;
@@ -1483,8 +1407,6 @@ unit scandir;
 
     procedure TScanDir.dir_packenum;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         v : longint;
       begin
@@ -1511,7 +1433,6 @@ unit scandir;
 
     procedure TScanDir.dir_minfpconstprec;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         minfpconstprec: tfloattype;
       begin
         current_scanner.skipspace;
@@ -1524,8 +1445,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_packrecords;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs : string;
         v : longint;
@@ -1560,8 +1479,6 @@ unit scandir;
 
     procedure TScanDir.dir_packset;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         v : longint;
       begin
@@ -1587,8 +1504,6 @@ unit scandir;
 
 
     procedure TScanDir.dir_pic;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { windows doesn't need/support pic }
         if tf_no_pic_supported in compiler.target.info.flags then
@@ -1598,8 +1513,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_pop;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if switchesstatestackpos < 1 then
@@ -1632,8 +1545,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_profile;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         do_moduleswitch(cs_profile);
         { defined/undefine FPC_PROFILE }
@@ -1644,8 +1555,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_push;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if switchesstatestackpos > switchesstatestackmax then
@@ -1709,8 +1618,6 @@ unit scandir;
 
     procedure TScanDir.dir_resource;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         current_scanner.skipspace;
@@ -1747,8 +1654,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_rtti;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function read_rtti_options: trtti_visibilities;
         var
@@ -1875,8 +1780,6 @@ unit scandir;
 
     procedure TScanDir.dir_setpeflags;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         flags : int64;
       begin
         if not (compiler.target.info.system in (systems_all_windows)) then
@@ -1892,8 +1795,6 @@ unit scandir;
 
     procedure TScanDir.dir_setpeoptflags;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         flags : int64;
       begin
         if not (compiler.target.info.system in (systems_all_windows)) then
@@ -1908,8 +1809,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_setpeuserversion;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         dummystr : string;
         dummyrev, vmajor, vminor: word;
@@ -1930,8 +1829,6 @@ unit scandir;
 
     procedure TScanDir.dir_setpeosversion;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         dummystr : string;
         dummyrev, vmajor, vminor: word;
         isset: boolean;
@@ -1951,8 +1848,6 @@ unit scandir;
 
     procedure TScanDir.dir_setpesubsysversion;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         dummystr : string;
         dummyrev, vmajor, vminor: word;
         isset: boolean;
@@ -1971,8 +1866,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_smartlink;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         do_moduleswitch(cs_create_smart);
         if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
@@ -2018,8 +1911,6 @@ unit scandir;
 
     procedure TScanDir.dir_syscall;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         sctype : string;
         syscall : psyscallinfo;
       begin
@@ -2039,8 +1930,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_targetswitch;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         name, value: string;
         targetswitches: ttargetswitches;
@@ -2084,8 +1973,6 @@ unit scandir;
 
     procedure TScanDir.dir_unitpath;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         unitpath: TPathStr;
       begin
         if not current_module.in_global then
@@ -2103,8 +1990,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_varparacopyoutcheck;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(compiler.target.info.system in systems_jvm) then
           begin
@@ -2125,8 +2010,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_version;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         major, minor, revision : longint;
         error : integer;
@@ -2196,8 +2079,6 @@ unit scandir;
 
     procedure TScanDir.dir_wait;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         had_info : boolean;
       begin
         had_info:=(status.verbosity and V_Info)<>0;
@@ -2215,8 +2096,6 @@ unit scandir;
       $warn <identifier> error
     }
     procedure TScanDir.dir_warn;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         ident : string;
         state : string;
@@ -2354,22 +2233,16 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_z1;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=1;
       end;
 
     procedure TScanDir.dir_z2;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=2;
       end;
 
     procedure TScanDir.dir_z4;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.globals.current_settings.packenum:=4;
       end;
@@ -2387,8 +2260,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_hugecode;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
@@ -2403,8 +2274,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_hugepointernormalization;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs : string;
       begin
@@ -2437,8 +2306,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_hugepointerarithmeticnormalization;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
@@ -2449,8 +2316,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_hugepointercomparisonnormalization;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
@@ -2462,8 +2327,6 @@ unit scandir;
 
     procedure TScanDir.dir_codealign;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s : string;
       begin
         current_scanner.skipspace;
@@ -2473,8 +2336,6 @@ unit scandir;
       end;
 
     procedure TScanDir.dir_codepage;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          s : string;
       begin
@@ -2519,6 +2380,11 @@ unit scandir;
     procedure TScanDir.dir_zerobasesstrings;
       begin
         do_localswitch(cs_zerobasedstrings);
+      end;
+
+    constructor TScanDir.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
       end;
 
 

@@ -7168,7 +7168,7 @@ exit_label:
         AddConditional('ELIFC',directive_mac, @dir_elseif);
         AddConditional('ENDC',directive_mac, @dir_endif);
 
-        FScanDir:=TScanDir.Create;
+        FScanDir:=TScanDir.Create(compiler);
         TScanDir(FScanDir).InitScannerDirectives(Self);
       end;
 
