@@ -483,7 +483,7 @@ end;
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject;
+      class procedure TObject.InitZeroedInstance(instance : pointer);
 
         var
            vmt  : PVmt;
@@ -494,8 +494,6 @@ end;
 {$endif def FPC_HAS_FEATURE_RTTI}
            i : longword;
         begin
-           { the size is saved at offset 0 }
-           fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            {$IFNDEF FPC_HAS_FEATURE_MONITOR}
@@ -541,11 +539,18 @@ end;
              end;
 {$endif def FPC_HAS_FEATURE_RTTI}
 
-           InitInstance:=TObject(Instance);
            {$IFDEF ENABLE_OBJECTHOOK}
            If Assigned(AllocateObjectHook) then
              AllocateObjectHook(TObject(Instance));
            {$ENDIF}
+        end;
+
+      class function TObject.InitInstance(instance : pointer) : tobject;
+
+        begin
+          FillChar(Instance^, InstanceSize, 0);
+          InitZeroedInstance(Instance);
+          InitInstance:=TObject(Instance);
         end;
 
       class function TObject.ClassParent : tclass;
@@ -559,13 +564,12 @@ end;
       class function TObject.NewInstance : tobject;
 
         var
-           p : pointer;
+           p : pointer absolute result;
 
         begin
-           getmem(p, InstanceSize);
-           if p <> nil then
-              InitInstance(p);
-           NewInstance:=TObject(p);
+           p:=AllocMem(InstanceSize);
+           if p<>nil then
+              InitZeroedInstance(p);
         end;
 
       procedure TObject.FreeInstance;
