@@ -346,7 +346,8 @@ implementation
           end;
 
          { close scanner }
-         DoneScanner;
+         TCompiler(Compiler).Scanner.Free;
+         TCompiler(Compiler).Scanner := nil;
 
          compiler.RTTIWriter.free;
          tcompiler(compiler).RTTIWriter := nil;

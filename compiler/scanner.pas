@@ -321,15 +321,17 @@ interface
        private
          FCompiler: TCompilerBase;
          property Compiler: TCompilerBase read FCompiler;
+
          procedure InitScanner;
+         procedure DoneScanner;
+
        public
          constructor Create(ACompiler: TCompilerBase);
+         destructor Destroy; override;
        end;
 
     procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
     procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
-
-    procedure DoneScanner;
 
     function current_scanner : tscannerfile;  { current scanner in use }
     procedure set_current_scanner(avalue : tscannerfile);  { current scanner in use }
@@ -7097,6 +7099,12 @@ exit_label:
         InitScanner;
       end;
 
+    destructor TScanner.Destroy;
+      begin
+        DoneScanner;
+        inherited Destroy;
+      end;
+
 
 {*****************************************************************************
                                    Helpers
@@ -7160,7 +7168,7 @@ exit_label:
       end;
 
 
-    procedure DoneScanner;
+    procedure TScanner.DoneScanner;
       begin
         turbo_scannerdirectives.Free;
         turbo_scannerdirectives := nil;
