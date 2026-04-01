@@ -318,12 +318,17 @@ interface
         tdirectivemode = (directive_all, directive_turbo, directive_mac);
 
        TScanner = class
+       private
+         FCompiler: TCompilerBase;
+         property Compiler: TCompilerBase read FCompiler;
+         procedure InitScanner;
+       public
+         constructor Create(ACompiler: TCompilerBase);
        end;
 
     procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
     procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
 
-    procedure InitScanner;
     procedure DoneScanner;
 
     function current_scanner : tscannerfile;  { current scanner in use }
@@ -7083,6 +7088,16 @@ exit_label:
       end;
 {$endif EXTDEBUG}
 
+
+    { TScanner }
+
+    constructor TScanner.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+        InitScanner;
+      end;
+
+
 {*****************************************************************************
                                    Helpers
 *****************************************************************************}
@@ -7107,7 +7122,7 @@ exit_label:
                                 Initialization
 *****************************************************************************}
 
-    procedure InitScanner;
+    procedure TScanner.InitScanner;
       begin
         turbo_scannerdirectives:=TFPHashObjectList.Create;
         mac_scannerdirectives:=TFPHashObjectList.Create;

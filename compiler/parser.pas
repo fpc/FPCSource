@@ -194,7 +194,7 @@ implementation
          compiler.globals.current_settings.sourcecodepage:=compiler.globals.init_settings.sourcecodepage;
 
          { initialize scanner }
-         InitScanner;
+         tcompiler(compiler).Scanner:=TScanner.Create(compiler);
          InitScannerDirectives;
 
          { scanner }
