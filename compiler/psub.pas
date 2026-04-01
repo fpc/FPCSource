@@ -122,6 +122,9 @@ interface
     procedure XMLFinalizeNodeFile(RootName: shortstring);
 {$endif DEBUG_NODE_XML}
 type
+
+  { TSubroutineParser }
+
   TSubroutineParser = class
   private
     FCompiler: TCompilerBase;
@@ -129,6 +132,7 @@ type
     { we use TObject instead of TParser to avoid cyclic unit reference }
     FParser: TObject;
 
+    procedure check_forward_class(p: TObject; arg: pointer);
     procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -3073,9 +3077,7 @@ implementation
 ****************************************************************************}
 
     { search in symtablestack for not complete classes }
-    procedure check_forward_class(p:TObject;arg:pointer);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TSubroutineParser.check_forward_class(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=typesym) and
            (ttypesym(p).typedef.typ=objectdef) and
