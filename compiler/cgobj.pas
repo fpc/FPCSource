@@ -508,6 +508,7 @@ unit cgobj;
        private
         FCompiler: TCompilerBase;
         function GetCG: tcg; inline;
+        procedure splitparaloc128(const cgpara: tcgpara; var cgparalo, cgparahi: tcgpara);
        protected
         property Compiler: TCompilerBase read FCompiler;
         property cg: tcg read GetCG;
@@ -3384,9 +3385,7 @@ implementation
       end;
 
 
-    procedure splitparaloc128(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure tcg128.splitparaloc128(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
       var
         paraloclo,
         paralochi : pcgparalocation;
