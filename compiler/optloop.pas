@@ -33,9 +33,13 @@ unit optloop;
       node,nutils;
 
 type
+
+  { TLoopOptimizer }
+
   TLoopOptimizer = class
   private
     FCompiler: TCompilerBase;
+    function number_unrolls(node: tnode): cardinal;
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
     function recordloopfindrefs_recursive(var n: tnode; arg: pointer): foreachnoderesult;
     function recordloopfindrefs(var n: tnode; arg: pointer): foreachnoderesult;
@@ -74,9 +78,7 @@ type
       end;
 
 
-    function number_unrolls(node : tnode) : cardinal;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TLoopOptimizer.number_unrolls(node : tnode) : cardinal;
       var
         nodeCount : cardinal;
       begin
