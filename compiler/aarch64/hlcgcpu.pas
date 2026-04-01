@@ -37,11 +37,16 @@ interface
     compilerbase;
 
   type
+
+    { thlcgaarch64 }
+
     thlcgaarch64 = class(thlcg2ll)
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
 
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+     private
+      procedure makeregssamesize(list: tasmlist; fromsize, tosize: tcgsize; orgfromreg, orgtoreg: tregister; out newfromreg, newtoreg: tregister);
      protected
       procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
     end;
@@ -98,12 +103,8 @@ implementation
     end;
 
 
-  procedure makeregssamesize(list: tasmlist; fromsize, tosize: tcgsize; orgfromreg, orgtoreg: tregister; out newfromreg, newtoreg: tregister);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      cg: tcg;
+  procedure thlcgaarch64.makeregssamesize(list: tasmlist; fromsize, tosize: tcgsize; orgfromreg, orgtoreg: tregister; out newfromreg, newtoreg: tregister);
     begin
-      cg:=compiler.cg;
       if (fromsize in [OS_S64,OS_64])<>
          (tosize in [OS_S64,OS_64]) then
         begin
