@@ -30,7 +30,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,verbose,compilerbase,
+       cclasses,globtype,globals,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -129,7 +129,7 @@ interface
         FExportedSymbolList:TFPHashObjectList;
         class function CodeSectionName(const aname:string): string;
       public
-        constructor create(const n:string;acompiler: TCompilerBase);override;
+        constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
         class function sectiontype2class(atype:TAsmSectiontype):string;
@@ -803,7 +803,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,globals,fpchash,
+       cutils,fpchash,
        fmodule,aasmtai,aasmdata,
        ogmap,owomflib,elfbase,
        version,
@@ -1067,7 +1067,7 @@ implementation
           result:='_TEXT';
       end;
 
-    constructor TOmfObjData.create(const n: string;acompiler: TCompilerBase);
+    constructor TOmfObjData.create(const n: string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjSymbol:=TOmfObjSymbol;
@@ -2665,7 +2665,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler);
+        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.target,compiler.verbose);
         result:=false;
         { the TOmfObjData constructor creates a group 'DGROUP', which is to be
           used by the code generator, when writing files. When reading object

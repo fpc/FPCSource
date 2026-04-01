@@ -418,7 +418,9 @@ interface
 
      TObjData = class(TLinkedListItem)
      private
-       FCompiler: TCompilerBase;
+       FGlobals: TReadOnlyCompilerGlobals;
+       FTarget: TReadOnlyCompilerTarget;
+       FVerbose: TVerbose;
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSymbol      : TObjSymbolClass;
@@ -432,9 +434,6 @@ interface
        FStabStrObjSec : TObjSection;
        FGroupsList : TFPHashObjectList;
        FCPUType : tcputype;
-       function GetGlobals: TReadOnlyCompilerGlobals;
-       function GetTarget: TReadOnlyCompilerTarget;
-       function GetVerbose: TVerbose; inline;
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
@@ -448,7 +447,7 @@ interface
 {$ifdef ARM}
        ThumbFunc : boolean;
 {$endif ARM}
-       constructor create(const n:string;acompiler: TCompilerBase);virtual;
+       constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);virtual;
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
@@ -509,10 +508,9 @@ interface
          Instructions, not supported by the given CPU should produce an error.
          A value of 'cpu_none' means no restrictions (all instructions should be accepted) }
        property CPUType : tcputype read FCPUType write FCPUType;
-       //property Compiler: TCompilerBase read FCompiler;
-       property Globals: TReadOnlyCompilerGlobals read GetGlobals;
-       property Target: TReadOnlyCompilerTarget read GetTarget;
-       property Verbose: TVerbose read GetVerbose;
+       property Globals: TReadOnlyCompilerGlobals read FGlobals;
+       property Target: TReadOnlyCompilerTarget read FTarget;
+       property Verbose: TVerbose read FVerbose;
      end;
      TObjDataClass = class of TObjData;
 
@@ -1438,10 +1436,12 @@ implementation
                                 TObjData
 ****************************************************************************}
 
-    constructor TObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited create;
-        FCompiler:=ACompiler;
+        FGlobals:=AGlobals;
+        FTarget:=ATarget;
+        FVerbose:=AVerbose;
         FName:=ExtractFileName(n);
         FObjSectionList:=TFPHashObjectList.Create(true);
         FStabsObjSec:=nil;
@@ -2002,24 +2002,6 @@ implementation
       end;
 
 
-    function TObjData.GetVerbose: TVerbose; inline;
-      begin
-        result:=FCompiler.Verbose;
-      end;
-
-
-    function TObjData.GetTarget: TReadOnlyCompilerTarget;
-      begin
-        result:=FCompiler.Target;
-      end;
-
-
-    function TObjData.GetGlobals: TReadOnlyCompilerGlobals;
-      begin
-        result:=FCompiler.Globals;
-      end;
-
-
     procedure TObjData.beforealloc;
       begin
         FCPUType:=globals.current_settings.cputype;
@@ -2114,7 +2096,7 @@ implementation
 
     function TObjOutput.newObjData(const n:string):TObjData;
       begin
-        result:=CObjData.create(n,compiler);
+        result:=CObjData.create(n,compiler.globals,compiler.target,compiler.verbose);
         if (cs_use_lineinfo in compiler.globals.current_settings.globalswitches) or
            (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           result.CreateDebugSections;
@@ -2554,7 +2536,7 @@ implementation
         ObjDataList.Clear;
         { Globals defined in the linker script }
         if not assigned(internalObjData) then
-          internalObjData:=CObjData.create('*Internal*',compiler);
+          internalObjData:=CObjData.create('*Internal*',compiler.globals,compiler.target,compiler.verbose);
         AddObjData(internalObjData);
         { Common Data section }
         commonObjSection:=internalObjData.createsection(sec_bss,'');

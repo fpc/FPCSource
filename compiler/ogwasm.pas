@@ -27,7 +27,7 @@ interface
 
     uses
       { common }
-      sysutils,cclasses,globtype,verbose,
+      sysutils,cclasses,globtype,globals,verbose,
       { target }
       systems,cpubase,compilerbase,
       { assembler }
@@ -169,7 +169,7 @@ interface
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       public
-        constructor create(const n:string;acompiler: TCompilerBase);override;
+        constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
         destructor destroy; override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
@@ -353,7 +353,7 @@ interface
 implementation
 
     uses
-      cutils,version,globals,fmodule,ogmap,compiler;
+      cutils,version,fmodule,ogmap,compiler;
 
     const
       StackPointerSymStr='__stack_pointer';
@@ -1066,7 +1066,7 @@ implementation
           result:=secname;
       end;
 
-    constructor TWasmObjData.create(const n: string;acompiler: TCompilerBase);
+    constructor TWasmObjData.create(const n: string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjSection:=TWasmObjSection;
@@ -4378,7 +4378,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler);
+        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.Target,compiler.verbose);
         result:=false;
         CodeSegments:=nil;
         DataSegments:=nil;

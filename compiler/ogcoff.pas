@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,verbose,compilerbase,
+       cclasses,globtype,globals,verbose,compilerbase,
        { target }
        systems,
        { assembler }
@@ -133,18 +133,18 @@ interface
          eVCobj     : boolean;
 {$endif arm}
        public
-         constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass;acompiler: TCompilerBase);
+         constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
        TDJCoffObjData = class(TCoffObjData)
-         constructor create(const n:string;acompiler: TCompilerBase);override;
+         constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TPECoffObjData = class(TCoffObjData)
-         constructor create(const n:string;acompiler: TCompilerBase);override;
+         constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
        TCoffObjOutput = class(tObjOutput)
@@ -306,7 +306,7 @@ implementation
        Windows,
 {$endif win32}
        SysUtils,
-       cutils,globals,compiler,
+       cutils,compiler,
        cpubase,cpuinfo,
        fmodule,
        ogmap,
@@ -1590,9 +1590,9 @@ const pemagic : array[0..3] of byte = (
                                 TCoffObjData
 ****************************************************************************}
 
-    constructor TCoffObjData.createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass;acompiler: TCompilerBase);
+    constructor TCoffObjData.createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited create(n,acompiler);
+        inherited create(n,aglobals,atarget,averbose);
         CObjSection:=ACObjSection;
         win32:=awin32;
       end;
@@ -1770,9 +1770,9 @@ const pemagic : array[0..3] of byte = (
                                 TDJCoffObjData
 ****************************************************************************}
 
-    constructor TDJCoffObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TDJCoffObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(n,false,TCoffObjSection,acompiler);
+        inherited createcoff(n,false,TCoffObjSection,aglobals,atarget,averbose);
       end;
 
 
@@ -1780,9 +1780,9 @@ const pemagic : array[0..3] of byte = (
                                 TPECoffObjData
 ****************************************************************************}
 
-    constructor TPECoffObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TPECoffObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(n,true,TCoffObjSection,acompiler);
+        inherited createcoff(n,true,TCoffObjSection,aglobals,atarget,averbose);
       end;
 
 
@@ -2698,7 +2698,7 @@ const pemagic : array[0..3] of byte = (
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName,compiler);
+        objdata:=CObjData.Create(InputFileName,compiler.globals,compiler.Target,compiler.verbose);
         result:=false;
         boheader:=default(tcoffbigobjheader);
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);

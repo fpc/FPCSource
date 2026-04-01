@@ -954,7 +954,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        Data:=CObjData.Create(InputFileName,compiler);
+        Data:=CObjData.Create(InputFileName,compiler.globals,compiler.target,compiler.verbose);
         ExpectedAreas:=-1;
         ExpectedSymbols:=-1;
         result:=false;

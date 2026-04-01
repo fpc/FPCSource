@@ -28,7 +28,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,verbose,
+       cclasses,globtype,globals,verbose,
        { target }
        systems,
        aasmbase,assemble,link,
@@ -307,7 +307,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjData = class(TCoffObjData)
-         constructor create(const n:string;acompiler: TCompilerBase);override;
+         constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
        end;
 
       TNLMCoffObjOutput = class(TCoffObjOutput)
@@ -325,7 +325,7 @@ implementation
        Windows,
 {$endif win32}
        SysUtils,
-       cutils,globals,
+       cutils,
        fmodule,aasmdata,
        ogmap,export,owar,
        compiler;
@@ -1447,9 +1447,9 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                 TNLMCoffObjData
 ****************************************************************************}
 
-    constructor TNLMCoffObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TNLMCoffObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
-        inherited createcoff(n,true,TNLMCoffObjSection,acompiler);
+        inherited createcoff(n,true,TNLMCoffObjSection,aglobals,atarget,averbose);
       end;
 
 

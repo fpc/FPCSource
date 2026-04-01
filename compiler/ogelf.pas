@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,verbose,compilerbase,
+       cclasses,globtype,verbose,globals,compilerbase,
        { target }
        systems,
        { assembler }
@@ -79,7 +79,7 @@ interface
 {$ifdef mips}
          gp_value: longword;
 {$endif mips}
-         constructor create(const n:string;acompiler: TCompilerBase);override;
+         constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);override;
@@ -165,7 +165,7 @@ interface
        public
          soname_strofs: longword;
          vernaux_count: longword;
-         constructor create(const n:string;acompiler: TCompilerBase);override;
+         constructor create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);override;
          destructor destroy;override;
          property versiondefs:TFPHashObjectList read FVersionDefs;
        end;
@@ -344,7 +344,7 @@ implementation
         SysUtils,
         compiler,
         export,expunix,
-        cutils,globals,fmodule,owar;
+        cutils,fmodule,owar;
 
     const
       symbolresize = 200*18;
@@ -507,7 +507,7 @@ implementation
                             TElfObjData
 ****************************************************************************}
 
-    constructor TElfObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TElfObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         CObjSection:=TElfObjSection;
@@ -735,7 +735,7 @@ implementation
                             TElfDynamicObjData
 ****************************************************************************}
 
-    constructor TElfDynamicObjData.create(const n:string;acompiler: TCompilerBase);
+    constructor TElfDynamicObjData.create(const n:string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
       begin
         inherited;
         FVersionDefs:=TFPHashObjectList.create(true);
@@ -1521,12 +1521,12 @@ implementation
 
         if dynobj then
           begin
-            objdata:=TElfDynamicObjData.Create(InputFilename,compiler);
+            objdata:=TElfDynamicObjData.Create(InputFilename,compiler.globals,compiler.target,compiler.verbose);
             verdefs:=TElfDynamicObjData(objdata).versiondefs;
             CObjSymbol:=TVersionedObjSymbol;
           end
         else
-          objdata:=CObjData.Create(InputFilename,compiler);
+          objdata:=CObjData.Create(InputFilename,compiler.globals,compiler.target,compiler.verbose);
 
         TElfObjData(objdata).ident:=header.e_ident;
         TElfObjData(objdata).flags:=header.e_flags;
