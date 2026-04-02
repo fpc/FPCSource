@@ -292,7 +292,7 @@ Procedure AssignVideoBuf (OldCols, OldRows : Word);
 var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
     old_rowstart,new_rowstart:word;
     NewVideoBufSize : longint;
-
+    ooOldCols:Word;
 begin
   if VideoInitialized or Assigned(CurrentVideoDriver.InitDriver) then
     begin
@@ -302,6 +302,7 @@ begin
       {Move contents of old videobuffers to new if there are any.}
       if VideoBuf<>nil then
         begin
+          ooOldCols:=OldCols;
           if ScreenWidth<OldCols then
             OldCols:=ScreenWidth;
           if ScreenHeight<OldRows then
@@ -312,7 +313,7 @@ begin
             begin
               move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
               move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-              inc(old_rowstart,OldCols);
+              inc(old_rowstart,ooOldCols);
               inc(new_rowstart,ScreenWidth);
               dec(OldRows);
             end;
