@@ -686,7 +686,7 @@ implementation
         { only do range checking when explicitly asked for it
           and if the type can be range checked, see tests/tbs/tb0539.pp }
         if (resultdef.typ in [orddef,enumdef]) and not(nf_generic_para in flags) then
-          adaptrange(resultdef,value,nf_internal in flags,not rangecheck,rangecheck)
+          adaptrange(resultdef,value,nf_internal in flags,not rangecheck,rangecheck,compiler.verbose)
       end;
 
     function tordconstnode.pass_1 : tnode;

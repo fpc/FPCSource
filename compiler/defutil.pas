@@ -26,7 +26,7 @@ unit defutil;
 interface
 
     uses
-       globtype,globals,constexp,compilerbase,
+       globtype,globals,constexp,verbose,compilerbase,
        symconst,symtype,symdef,
        cgbase,cpubase;
 
@@ -336,9 +336,9 @@ interface
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
-    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck);
+    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck; verbose: tverbose);
     { for when used with nf_explicit/nf_internal/cs_check_range nodeflags }
-    procedure adaptrange(todef : tdef;var l : tconstexprint; internal, explicit, rangecheckstate: boolean);
+    procedure adaptrange(todef : tdef;var l : tconstexprint; internal, explicit, rangecheckstate: boolean; verbose: tverbose);
 
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
@@ -429,7 +429,7 @@ interface
 implementation
 
     uses
-       verbose,cutils,
+       cutils,
        symtable, // search_system_type
        symsym,
        compiler,
@@ -1312,9 +1312,7 @@ implementation
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck; verbose: tverbose);
       var
          lv,hv,oldval,sextval,mask: TConstExprInt;
          rangedef: tdef;
@@ -1329,9 +1327,9 @@ implementation
                begin
                  if (rangecheck=rc_yes) or
                     (todef.typ=enumdef) then
-                   compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
+                   verbose.Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
-                   compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                   verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                  warned:=true;
                end
              { give warnings about range errors with explicit typeconversions if the target
@@ -1341,7 +1339,7 @@ implementation
                      (not is_pasbool(todef) and
                       not spans_entire_range(todef)) then
                begin
-                 compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                 verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                  warned:=true;
                end;
 
@@ -1374,7 +1372,7 @@ implementation
                 (oldval.uvalue<>l.uvalue) and
                 (oldval.uvalue<>sextval.uvalue) then
                begin
-                 compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(oldval),tostr(lv),tostr(hv));
+                 verbose.Message3(type_w_range_check_error_bounds,tostr(oldval),tostr(lv),tostr(hv));
                end;
               if is_signed(rangedef) then
                 l:=sextval;
@@ -1382,16 +1380,16 @@ implementation
       end;
 
 
-    procedure adaptrange(todef: tdef; var l: tconstexprint; internal, explicit, rangecheckstate: boolean);
+    procedure adaptrange(todef: tdef; var l: tconstexprint; internal, explicit, rangecheckstate: boolean; verbose: tverbose);
       begin
         if internal then
-          adaptrange(todef, l, rc_internal)
+          adaptrange(todef, l, rc_internal, verbose)
         else if explicit then
-          adaptrange(todef, l, rc_explicit)
+          adaptrange(todef, l, rc_explicit, verbose)
         else if not rangecheckstate then
-          adaptrange(todef, l, rc_implicit)
+          adaptrange(todef, l, rc_implicit, verbose)
         else
-          adaptrange(todef, l, rc_yes)
+          adaptrange(todef, l, rc_yes, verbose)
       end;
 
 

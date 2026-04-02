@@ -1536,7 +1536,7 @@ implementation
                     v:=v div 10000;
                  end
                else if (resultdef.typ in [orddef,enumdef]) then
-                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches);
+                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches,compiler.verbose);
                result:=compiler.cordconstnode(v,resultdef,false);
              end;
          end
@@ -3738,7 +3738,8 @@ implementation
                               lost bits; only warn if someone literally typed e.g. byte($1ff) }
                             (([nf_internal,nf_absolute]*flags)<>[]) or (forinline and (nf_explicit in flags)),
                             nf_explicit in flags,
-                            cs_check_range in localswitches);
+                            cs_check_range in localswitches,
+                            compiler.verbose);
                        { swap value back, but according to new type }
                        if (compiler.target.info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);

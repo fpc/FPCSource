@@ -674,7 +674,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constboolnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def)
                   end
                 else
@@ -708,7 +708,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constintnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def);
                   end
                 else
@@ -1163,7 +1163,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   performed; needed for handling hacks like
                     const x = tenum(255); }
                 if not equal then
-                  adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                  adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                 case node.resultdef.size of
                   1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
                   2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);

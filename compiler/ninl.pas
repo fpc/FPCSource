@@ -3342,9 +3342,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  adaptrange(unpackedarraydef,tempindex,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                  adaptrange(unpackedarraydef,tempindex,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                 end;
             end;
 

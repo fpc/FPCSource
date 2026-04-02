@@ -270,8 +270,8 @@ implementation
                        compiler.verbose.CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
-                         adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
-                         adaptrange(casedef,hl2,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                         adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
+                         adaptrange(casedef,hl2,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                        end;
                    end
                  else
@@ -299,7 +299,7 @@ implementation
                    begin
                      hl1:=get_ordinal_value(p);
                      if not casedeferror then
-                       adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                       adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches,compiler.verbose);
                      casenode.addlabel(blockid,hl1,hl1);
                    end;
                end;
@@ -414,7 +414,7 @@ implementation
                (fordef.typ<>errordef) and
                { the node was derived from a generic parameter so ignore range check }
                not(nf_generic_para in hp.flags) then
-              adaptrange(fordef,tordconstnode(hp).value,false,false,true);
+              adaptrange(fordef,tordconstnode(hp).value,false,false,true,compiler.verbose);
           end;
 
         function for_loop_create(hloopvar: tnode): tnode;
@@ -1232,7 +1232,7 @@ implementation
           end;
           if cv.uvalue>get_max_value(def).uvalue then
             def:=get_unsigned_inttype(def);
-          adaptrange(def,cv,rc_implicit);
+          adaptrange(def,cv,rc_implicit,compiler.verbose);
           result:=cv.svalue;
         end;
 
