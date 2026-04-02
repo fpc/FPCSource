@@ -1396,7 +1396,7 @@ var
              needed for a correct circular dependency check }
            hp:=registerunit(compiler,self,hs,'',isnew);
            if isnew then
-             usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
+             compiler.usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
            pu:=findusedunit(hp);
            if pu=nil then
              pu:=addusedunit(hp,false,nil);
@@ -2412,7 +2412,7 @@ var
                discardppu;
              end;
             { add the unit to the used units list of the program }
-            usedunits.concat(tused_unit.create(self,true,false,nil));
+            compiler.usedunits.concat(tused_unit.create(self,true,false,nil));
           end;
       end;
 

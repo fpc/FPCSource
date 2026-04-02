@@ -353,7 +353,6 @@ interface
       end;
 
     var
-       usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
        all_modules: array of tmodule;   { modules by moduleid }

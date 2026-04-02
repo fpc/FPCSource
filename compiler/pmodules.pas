@@ -239,7 +239,7 @@ implementation
           end;
       end;
 
-        function TModulesParser.CheckResourcesUsed(curr: tmodule): boolean;
+    function TModulesParser.CheckResourcesUsed(curr: tmodule): boolean;
       var
         hp           : tused_unit;
         found        : Boolean;
@@ -247,7 +247,7 @@ implementation
         CheckResourcesUsed:=tf_has_winlike_resources in compiler.target.info.flags;
         if not CheckResourcesUsed then exit;
 
-        hp:=tused_unit(usedunits.first);
+        hp:=tused_unit(compiler.usedunits.first);
         found:=mf_has_resourcefiles in curr.moduleflags;
         while Assigned(hp) and not found do
           begin
@@ -268,7 +268,7 @@ implementation
         { load unit }
         hp:=registerunit(compiler,curr,s,'',isnew);
         if isnew then
-          usedunits.concat(tused_unit.create(hp,true,addasused,nil));
+          compiler.usedunits.concat(tused_unit.create(hp,true,addasused,nil));
         hp.adddependency(curr,curr.in_interface); { adddependency before loadppu for invalid cycle test }
         hp.loadppu(curr);
         tmodule.finish_module(hp);
@@ -356,7 +356,7 @@ implementation
             if not assigned(hp) then
               internalerror(200801071);
             { find its tused_unit in the global list }
-            uu:=tused_unit(usedunits.first);
+            uu:=tused_unit(compiler.usedunits.first);
             while assigned(uu) do
               begin
                 if uu.u=hp then break;
@@ -365,7 +365,7 @@ implementation
             if not assigned(uu) then
               internalerror(200801072);
            { remove the tused_unit }
-            usedunits.Remove(uu);
+            compiler.usedunits.Remove(uu);
             uu.Free;
             // Remove from local list
             uu:=tused_unit(curr.used_units.first);
@@ -736,7 +736,7 @@ implementation
                begin
                hp2:=registerunit(compiler,curr,sorg,fn,isnew);
                if isnew then
-                 usedunits.concat(tused_unit.create(hp2,curr.in_interface,true,nil));
+                 compiler.usedunits.concat(tused_unit.create(hp2,curr.in_interface,true,nil));
                end
              else
                compiler.verbose.Message1(sym_e_duplicate_id,s);
@@ -2286,7 +2286,7 @@ type
          compiler.exportlib.ignoreduplicates:=true;
 
          { force exports }
-         uu:=tused_unit(usedunits.first);
+         uu:=tused_unit(compiler.usedunits.first);
          while assigned(uu) do
            begin
              if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then

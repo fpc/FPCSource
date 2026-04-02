@@ -221,6 +221,7 @@ type
 
     Fmain_module       : tmodule;     { Main module of the program }
     Fcurrent_module    : tmodule;     { Current module which is compiled or loaded }
+    Fusedunits         : tlinkedlist; { Used units for this program }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -279,6 +280,7 @@ type
     property aktassignmentnode : tassignmentnode read Faktassignmentnode write Faktassignmentnode;
     property main_module: tmodule read Fmain_module write Fmain_module;
     property current_module: tmodule read Fcurrent_module write Fcurrent_module;
+    property usedunits: tlinkedlist read Fusedunits write Fusedunits;
   end;
 
   { TCompilerHelper }
@@ -320,6 +322,7 @@ type
     function GetTarget: TCompilerTarget; inline;
     function GetTG: ttgobj; inline;
     function GetTime: TCompilerTime; inline;
+    function Getusedunits: tlinkedlist; inline;
     function GetVerbose: TVerbose; inline;
     function GetWpoInfoManager: twpoinfomanagerbase; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
@@ -469,6 +472,7 @@ type
     property aktassignmentnode : tassignmentnode read Getaktassignmentnode write Setaktassignmentnode;
     property main_module: tmodule read Getmain_module;
     property current_module: tmodule read Getcurrent_module;
+    property usedunits: tlinkedlist read Getusedunits;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1130,6 +1134,11 @@ end;
 function TCompilerHelper.GetTime: TCompilerTime;
 begin
   Result := TCompiler(Self).Time;
+end;
+
+function TCompilerHelper.Getusedunits: tlinkedlist; inline;
+begin
+  Result := TCompiler(Self).usedunits;
 end;
 
 function TCompilerHelper.GetVerbose: TVerbose; inline;

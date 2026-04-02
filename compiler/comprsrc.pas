@@ -563,7 +563,7 @@ begin
   if (res_arch_in_file_name in compiler.target.res.resflags) then
     s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+compiler.target.info.resobjext);
   resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s,compiler));
-  hp:=tused_unit(usedunits.first);
+  hp:=tused_unit(compiler.usedunits.first);
   while assigned(hp) do
     begin
       ProcessModule(hp.u);

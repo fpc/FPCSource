@@ -184,7 +184,7 @@ implementation
 
          loaded_units:=TLinkedList.Create;
 
-         usedunits:=TLinkedList.Create;
+         tcompiler(compiler).usedunits:=TLinkedList.Create;
 
          unloaded_units:=TLinkedList.Create;
 
@@ -323,10 +323,10 @@ implementation
              loaded_units.free;
              loaded_units:=nil;
            end;
-         if assigned(usedunits) then
+         if assigned(compiler.usedunits) then
            begin
-             usedunits.free;
-             usedunits:=nil;
+             tcompiler(compiler).usedunits.free;
+             tcompiler(compiler).usedunits:=nil;
            end;
          if assigned(unloaded_units) then
            begin

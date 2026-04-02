@@ -176,7 +176,7 @@ implementation
          end;
       create_hlcodegen(compiler);
       InsertModuleInfo(list,compiler.current_module);
-      cur_unit:=tused_unit(usedunits.First);
+      cur_unit:=tused_unit(compiler.usedunits.First);
       while assigned(cur_unit) do
         begin
           InsertModuleInfo(list,cur_unit.u);
