@@ -73,6 +73,8 @@ Type
     FIndexTitlesOnly: Boolean;
     FIndexedFileCount: DWord;
     //vars while processing page
+    FInScript,
+    FInStyle,
     FInTitle,
     FInBody: Boolean;
     FWordCount: Integer; // only words in body
@@ -200,7 +202,12 @@ end;
 procedure TIndexedWordList.CBFoundTag(NoCaseTag, ActualTag: string);
 begin
   if FInBody then begin
-    if NoCaseTag = '</BODY>' then FInBody := False;
+    if NoCaseTag = '</BODY>' then FInBody := False
+    else if copy(NoCaseTag,1,7) = '<SCRIPT' then FInScript:= True
+    else if copy(NoCaseTag,1,8) = '</SCRIPT' then FInScript:= False
+    else if copy(NoCaseTag,1,6) = '<STYLE' then FInStyle:= True          // style in body is not WhatWG but is HTML5.2 ?
+    else if copy(NoCaseTag,1,7) = '</STYLE' then FInStyle:= False
+
   end
   else begin
     if copy(NoCaseTag,1,6) = '<TITLE' then FInTitle := True
@@ -218,6 +225,8 @@ begin
 
   if (not FInTitle) and (not FInBody) then
     Exit;
+  if finscript or FInStyle then
+    exit;
 
   EatWords(Text, FInTitle and not FInBody);
 end;
