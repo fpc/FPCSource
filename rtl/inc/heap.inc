@@ -1689,9 +1689,7 @@ type
         { bail out if the next pointer points outside of the allocated OS chunk,
           or if the size is zero, so the next block would point to ourselves }
         if (h and VarSizeMask = 0) or (h and VarSizeMask > uint32(vOsEnd - p)) then
-        begin
-          RunError(203);
-        end;
+          RunError(204);
         if (h and UsedFlag = 0) and (h >= MinSearchableVarHeaderAndPayload) then
           gs.varFree.Add(p, pFreeVarChunk(p)^.binIndex);
         inc(p, h and VarSizeMask);
@@ -2170,7 +2168,7 @@ type
   class function HeapInc.AllocFailed: pointer;
   begin
     if not ReturnNilIfGrowHeapFails then
-      HandleError(204);
+      HandleError(203);
     result := nil;
   end;
 
