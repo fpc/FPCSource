@@ -60,6 +60,16 @@ unit scandir;
       private
         FCompiler: TCompilerBase;
 
+        procedure do_delphiswitch(sw: char);
+        procedure do_localswitch(sw: tlocalswitch);
+        function do_localswitchdefault(sw: tlocalswitch): char;
+        procedure do_message(w: integer);
+        procedure do_moduleflagswitch(flag: tmoduleflag; optional: boolean);
+        procedure do_moduleswitch(sw: tmoduleswitch);
+        procedure do_setverbose(flag: char);
+        procedure do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
+        function get_peflag_const(const ident: string; error: longint): longint;
+
         procedure dir_align;
         procedure dir_a1;
         procedure dir_a2;
@@ -221,7 +231,7 @@ unit scandir;
                                     Helpers
 *****************************************************************************}
 
-    procedure do_delphiswitch(sw:char);
+    procedure TScanDir.do_delphiswitch(sw:char);
       var
         state : char;
       begin
@@ -232,7 +242,7 @@ unit scandir;
       end;
 
 
-    procedure do_setverbose(flag:char);
+    procedure TScanDir.do_setverbose(flag:char);
       var
         state : char;
       begin
@@ -242,9 +252,7 @@ unit scandir;
       end;
 
 
-    procedure do_moduleswitch(sw:tmoduleswitch);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanDir.do_moduleswitch(sw:tmoduleswitch);
       var
         state : char;
       begin
@@ -259,7 +267,7 @@ unit scandir;
       end;
 
 
-    procedure do_localswitch(sw:tlocalswitch);
+    procedure TScanDir.do_localswitch(sw:tlocalswitch);
       var
         state : char;
       begin
@@ -268,7 +276,7 @@ unit scandir;
           recordpendinglocalswitch(sw,state);
       end;
 
-    function do_localswitchdefault(sw:tlocalswitch): char;
+    function TScanDir.do_localswitchdefault(sw:tlocalswitch): char;
       begin
         result:=current_scanner.readstatedefault;
         if (sw<>cs_localnone) and (result in ['-','+','*']) then
@@ -276,7 +284,7 @@ unit scandir;
       end;
 
 
-    procedure do_moduleflagswitch(flag:tmoduleflag;optional:boolean);
+    procedure TScanDir.do_moduleflagswitch(flag:tmoduleflag;optional:boolean);
       var
         state : char;
       begin
@@ -291,18 +299,14 @@ unit scandir;
       end;
 
 
-    procedure do_message(w:integer);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanDir.do_message(w:integer);
       begin
         current_scanner.skipspace;
         compiler.verbose.Message1(w,current_scanner.readlongcomment);
       end;
 
 
-    procedure do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TScanDir.do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
       var
         majorl,
         minorl,
@@ -1755,9 +1759,7 @@ unit scandir;
         do_localswitch(cs_scopedenums);
       end;
 
-    function get_peflag_const(const ident:string;error:longint):longint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TScanDir.get_peflag_const(const ident:string;error:longint):longint;
       var
         srsym : tsym;
         srsymtable : tsymtable;
