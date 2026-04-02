@@ -2379,7 +2379,7 @@ type
                  CollectResourceFiles;
                  { write .def file }
                  if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
-                   deffile.writefile;
+                   compiler.deffile.writefile;
 
                  { generate the pcp file }
                  pkg.savepcp;
@@ -2435,7 +2435,7 @@ type
             CollectResourceFiles;
             { write .def file }
             if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
-             deffile.writefile;
+             compiler.deffile.writefile;
             { link SysInit (if any) first, to have behavior consistent with
               assembler startup files }
             if assigned(sysinitmod) then

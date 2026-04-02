@@ -239,7 +239,7 @@ implementation
                           compiler.globals.UseDeffileForExports or
                           (cs_link_deffile in compiler.globals.current_settings.globalswitches)
                         ) then
-                     DefFile.AddExport(DefString);
+                     compiler.DefFile.AddExport(DefString);
                   end;
                 // consumed the symbol. Only do something if there was no error.
                 if compiler.verbose.ErrorCount=0 then
@@ -310,8 +310,8 @@ implementation
              parser.pbase.consume(_ID);
          until not parser.pbase.try_to_consume(_COMMA);
          parser.pbase.consume(_SEMICOLON);
-        if not DefFile.empty then
-         DefFile.writefile;
+        if not compiler.DefFile.empty then
+         compiler.DefFile.writefile;
       end;
 
 end.

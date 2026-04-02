@@ -6816,7 +6816,7 @@ implementation
          if (cs_link_deffile in compiler.globals.current_settings.globalswitches) and
             (tf_need_export in compiler.target.info.flags) and
             (po_exports in procoptions) then
-           deffile.AddExport(mangledname);
+           compiler.deffile.AddExport(mangledname);
          { Disable po_has_inlining until the derefimpl is done }
          has_inlininginfo:=false;
       end;

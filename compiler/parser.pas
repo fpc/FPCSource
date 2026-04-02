@@ -218,7 +218,7 @@ implementation
            GenerateAsmRes(compiler.globals.outputexedir+'ppas',compiler);
 
          { open deffile }
-         DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext),compiler.globals,compiler.target);
+         tcompiler(compiler).DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext),compiler.globals,compiler.target);
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TCmdStrList.Create;
@@ -354,8 +354,8 @@ implementation
          { close ppas,deffile }
          asmres.free;
          asmres := nil;
-         deffile.free;
-         deffile := nil;
+         tcompiler(compiler).deffile.free;
+         tcompiler(compiler).deffile := nil;
 
          { free list of .o files }
          SmartLinkOFiles.Free;

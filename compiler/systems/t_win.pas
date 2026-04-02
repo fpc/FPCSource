@@ -1466,7 +1466,7 @@ implementation
 
       { Call linker }
         success:=false;
-        if compiler.globals.RelocSection or (not Deffile.empty) then
+        if compiler.globals.RelocSection or (not compiler.Deffile.empty) then
           cmds:=3
         else
           cmds:=1;
@@ -1486,10 +1486,10 @@ implementation
               Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
               Replace(cmdstr,'$STRIP',StripStr);
               Replace(cmdstr,'$MAP',MapStr);
-              if not DefFile.Empty then
+              if not compiler.DefFile.Empty then
                 begin
-                  DefFile.WriteFile;
-                  Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
+                  compiler.DefFile.WriteFile;
+                  Replace(cmdstr,'$DEF','-d '+maybequoted(compiler.deffile.fname));
                 end
               else
                 Replace(cmdstr,'$DEF','');
@@ -1572,7 +1572,7 @@ implementation
 
       { Call linker }
         success:=false;
-        if compiler.globals.RelocSection or (not Deffile.empty) then
+        if compiler.globals.RelocSection or (not compiler.Deffile.empty) then
           cmds:=3
         else
           cmds:=1;
@@ -1592,10 +1592,10 @@ implementation
               Replace(cmdstr,'$STRIP',StripStr);
               Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
               Replace(cmdstr,'$MAP',MapStr);
-              if not DefFile.Empty then
+              if not compiler.DefFile.Empty then
                 begin
-                  DefFile.WriteFile;
-                  Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
+                  compiler.DefFile.WriteFile;
+                  Replace(cmdstr,'$DEF','-d '+maybequoted(compiler.deffile.fname));
                 end
               else
                 Replace(cmdstr,'$DEF','');

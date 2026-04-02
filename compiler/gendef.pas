@@ -49,9 +49,6 @@ type
     importlist   : TCmdStrList;
   end;
 
-var
-  deffile : tdeffile;
-
 
 implementation
 

@@ -157,7 +157,7 @@ uses
 {$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
-  ,hlcgobj,cgobj,tgobj,wpobase
+  ,hlcgobj,cgobj,tgobj,wpobase,gendef
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr,syscinfo
   ,opt,optloop
   ,aasmdata
@@ -180,6 +180,7 @@ type
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FScanner: TScanner;
+    FDefFile: TDefFile;
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
@@ -239,6 +240,7 @@ type
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
     property Scanner: TScanner read FScanner write FScanner;
+    property DefFile: TDefFile read FDefFile write FDefFile;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
@@ -282,6 +284,7 @@ type
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
+    function GetDefFile: TDefFile; inline;
 {$ifdef cpu64bitalu}
     function GetCG128 : tcg128; inline;
 {$else cpu64bitalu}
@@ -428,6 +431,7 @@ type
     property Globals: TCompilerGlobals read GetGlobals;
     property Parser: TParser read GetParser;
     property Scanner: TScanner read GetScanner;
+    property DefFile: TDefFile read GetDefFile;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
@@ -977,12 +981,16 @@ begin
   Result := TCompiler(Self).DefaultSyscallConvention;
 end;
 
+function TCompilerHelper.GetDefFile: TDefFile; inline;
+begin
+  Result := TCompiler(Self).DefFile;
+end;
+
 {$ifdef cpu64bitalu}
 function TCompilerHelper.GetCG128 : tcg128; inline;
 begin
   Result := TCompiler(Self).cg128;
 end;
-
 {$else cpu64bitalu}
 function TCompilerHelper.GetCG64 : tcg64; inline;
 begin

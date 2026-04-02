@@ -2716,7 +2716,7 @@ implementation
           begin
             pd.aliasnames.insert(pd.procsym.realname);
             if cs_link_deffile in compiler.globals.current_settings.globalswitches then
-              deffile.AddExport(pd.mangledname);
+              compiler.deffile.AddExport(pd.mangledname);
           end;
 
         { Insert result variables in the localst }
