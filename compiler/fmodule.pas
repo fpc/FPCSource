@@ -353,10 +353,9 @@ interface
       end;
 
     var
-       main_module       : tmodule;     { Main module of the program }
        current_module    : tmodule;     { Current module which is compiled or loaded }
        usedunits         : tlinkedlist; { Used units for this program }
-       loaded_units      : tlinkedlist; { All loaded units, excluding main_module }
+       loaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
        all_modules: array of tmodule;   { modules by moduleid }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,

@@ -614,8 +614,8 @@ var
            result:=PPUSearchPath('.',prefix);
            if (not result) and (outputpath<>'') then
             result:=PPUSearchPath(outputpath,prefix);
-           if (not result) and Assigned(main_module) and (main_module.Path<>'')  then
-            result:=PPUSearchPath(main_module.Path,prefix);
+           if (not result) and Assigned(compiler.main_module) and (compiler.main_module.Path<>'')  then
+            result:=PPUSearchPath(compiler.main_module.Path,prefix);
          end;
 
          function SearchSourcePaths(const prefix:TCmdStr):TAvailableUnitFiles;
@@ -623,8 +623,8 @@ var
            result:=[];
            if SourceSearchPath('.',prefix) then
               include(Result,auSrc);
-           if (result=[]) and Assigned(main_module) and (main_module.Path<>'') then
-             if SourceSearchPath(main_module.Path,prefix) then
+           if (result=[]) and Assigned(compiler.main_module) and (compiler.main_module.Path<>'') then
+             if SourceSearchPath(compiler.main_module.Path,prefix) then
               include(Result,auSrc);
            if (result=[]) and Assigned(loaded_from) then
              result:=SearchPathList(loaded_from.LocalUnitSearchPath,prefix);

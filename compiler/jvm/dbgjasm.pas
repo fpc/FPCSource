@@ -202,7 +202,7 @@ implementation
           { Java does not support multiple source files }
           if (hp.typ=ait_instruction) and
              (nolineinfolevel=0) and
-             (tailineinfo(hp).fileinfo.fileindex=main_module.moduleid) then
+             (tailineinfo(hp).fileinfo.fileindex=compiler.main_module.moduleid) then
             begin
               currfileinfo:=tailineinfo(hp).fileinfo;
 

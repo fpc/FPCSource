@@ -219,6 +219,8 @@ type
     { Current assignment node }
     Faktassignmentnode : tassignmentnode;
 
+    Fmain_module       : tmodule;     { Main module of the program }
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -274,6 +276,7 @@ type
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
     property syssymlist: tsyssymlist read FSysSymList;
     property aktassignmentnode : tassignmentnode read Faktassignmentnode write Faktassignmentnode;
+    property main_module: tmodule read Fmain_module write Fmain_module;
   end;
 
   { TCompilerHelper }
@@ -298,6 +301,7 @@ type
     function Getinitialmacrosymtable: TSymtable; inline;
     function GetLinker: TLinker; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
+    function Getmain_module: tmodule; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetObjCUtil: TObjectiveCUtils; inline;
     function GetParaManager: tparamanager; inline;
@@ -460,6 +464,7 @@ type
     property symtablestack: TSymtablestack read Getsymtablestack;
     property syssymlist: tsyssymlist read GetSysSymList;
     property aktassignmentnode : tassignmentnode read Getaktassignmentnode write Setaktassignmentnode;
+    property main_module: tmodule read Getmain_module;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1036,6 +1041,11 @@ end;
 function TCompilerHelper.Getmacrosymtablestack: TSymtablestack;
 begin
   Result := TCompiler(Self).macrosymtablestack;
+end;
+
+function TCompilerHelper.Getmain_module: tmodule; inline;
+begin
+  Result := TCompiler(Self).main_module;
 end;
 
 function TCompilerHelper.GetObjCGUtl: TObjCCodeGenUtils; inline;

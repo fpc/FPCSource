@@ -229,7 +229,7 @@ begin
          end;
        globalsw :
          begin
-           if current_module.in_global and (current_module=main_module) then
+           if current_module.in_global and (current_module=compiler.main_module) then
             begin
               if state='+' then
                compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[tglobalswitch(setsw)]

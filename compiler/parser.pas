@@ -438,7 +438,7 @@ implementation
          { read the first token }
          // current_scanner.readtoken(false);
 
-         main_module:=current_module;
+         compiler.main_module:=current_module;
          repeat
            current_scanner.readtoken(true);
            preprocfile.AddSpace;

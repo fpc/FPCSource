@@ -29,7 +29,8 @@ unit optvirt;
       globtype,
       cclasses,
       symtype,symdef,
-      wpobase;
+      wpobase,
+      compilerbase;
 
     type
        { node in an inheritance tree, contains a link to the parent type (if any) and to all
@@ -171,7 +172,8 @@ unit optvirt;
       symconst,
       symbase,
       defcmp,
-      verbose;
+      verbose,
+      compiler;
 
     const
       DEVIRT_SECTION_NAME = 'contextinsensitive_devirtualization';
@@ -585,6 +587,8 @@ unit optvirt;
     }
 
     procedure defunitclassname(objdef: tobjectdef; out unitname, classname: pshortstring; out classprefix: shortstring);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         mainprogname: string[2] = 'P$';
       var
@@ -602,8 +606,8 @@ unit optvirt;
         { main symtable must be static or global }
         if not(mainsymtab.symtabletype in [staticsymtable,globalsymtable]) then
          internalerror(200204177);
-        if (TSymtable(main_module.localsymtable)=mainsymtab) and
-            (not main_module.is_unit) then
+        if (TSymtable(compiler.main_module.localsymtable)=mainsymtab) and
+            (not compiler.main_module.is_unit) then
            { same convention as for mangled names }
           unitname:=@mainprogname
         else

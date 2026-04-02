@@ -1743,8 +1743,8 @@ implementation
           result:=result+typeprefix+'_$';
         { Add P$ for program, which can have the same name as
           a unit }
-        if (TSymtable(main_module.localsymtable)=st) and
-           (not main_module.is_unit) then
+        if (TSymtable(compiler.main_module.localsymtable)=st) and
+           (not compiler.main_module.is_unit) then
           result:=result+'P$'+st.name^
         else
           result:=result+st.name^;

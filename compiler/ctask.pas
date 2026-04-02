@@ -424,7 +424,7 @@ begin
     ms_load: (m as tppumodule).continueloadppu;
     ms_compile :
       begin
-        if (m=main_module) and (compiler.macrosymtablestack<>nil) then
+        if (m=compiler.main_module) and (compiler.macrosymtablestack<>nil) then
           begin
             compiler.macrosymtablestack.clear;
             compiler.macrosymtablestack.free;
@@ -972,7 +972,7 @@ function ttask_handler.check_compiled_uses(dst: tmodule): tmodule;
 begin
   Result:=nil;
   tmodule.increase_cycle_stamp;
-  search_compiled(main_module);
+  search_compiled(compiler.main_module);
 end;
 
 function ttask_handler.restore_state(m: tmodule): ttask;
@@ -1162,7 +1162,7 @@ var
 begin
   cnt:=0;
   tmodule.increase_cycle_stamp;
-  scc_clear(main_module);
+  scc_clear(compiler.main_module);
   stack:=[];
   SetLength(stack,cnt);
   stackindex:=0;
@@ -1171,7 +1171,7 @@ begin
   grp_cnt:=0;
   {$ENDIF}
   cur_index:=0;
-  scc_traverse(main_module);
+  scc_traverse(compiler.main_module);
   {$IFDEF DEBUG_PPU_CYCLES}
   writeln('tmodule.update_circular_unit_groups modulecnt=',cnt,' grp_cnt=',grp_cnt);
   {$ENDIF}
@@ -1197,7 +1197,7 @@ begin
     writeln('CTASK: Iteration: ',loopcnt);
     {$ENDIF}
 
-    if main_module.state<ms_compiled then
+    if compiler.main_module.state<ms_compiled then
       recompile_pending(scc_root);
 
     { compute circular unit groups aka scc (strongly connected components) }
@@ -1205,17 +1205,17 @@ begin
 
     { compute scc_tree_unfinished and other_scc_unfinished, and mark finished scc }
     tmodule.increase_cycle_stamp;
-    search_finished_scc(main_module);
+    search_finished_scc(compiler.main_module);
     { now each scc root module has scc_tree_unfinished and other_scc_unfinished:
         scc_tree_unfinished=true means at least one module is not yet finished (do_reload or not ms_compiled)
         other_scc_unfinished=true means at least one sub scc has one unfinished module }
 
-    if not main_module.scc_tree_unfinished then
+    if not compiler.main_module.scc_tree_unfinished then
       exit;
 
     { find a scc with at least one unfinished module and all sub scc are finished }
     tmodule.increase_cycle_stamp;
-    scc_root:=find_unfinished_leaf_scc(main_module);
+    scc_root:=find_unfinished_leaf_scc(compiler.main_module);
     if scc_root=nil then
     begin
       write_scc;
@@ -1411,7 +1411,7 @@ procedure ttask_handler.write_scc;
 begin
   writeln('ttask_handler.write_scc');
   tmodule.increase_cycle_stamp;
-  Search(main_module,'');
+  Search(compiler.main_module,'');
 end;
 
 function ttask_handler.get_scc_count(scc_root: tmodule): integer;
@@ -1576,7 +1576,7 @@ begin
   Visited:=nil;
   SetLength(Visited,length(all_modules));
 
-  check(main_module);
+  check(compiler.main_module);
 end;
 
 end.
