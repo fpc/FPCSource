@@ -3497,6 +3497,7 @@ type
 
             cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
             optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            asmcputype:=tcputype(tokenreadenum(sizeof(tcputype)));
             fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
             asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
             interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
@@ -3584,6 +3585,7 @@ type
 
             tokenwriteenum(cputype,sizeof(tcputype));
             tokenwriteenum(optimizecputype,sizeof(tcputype));
+            tokenwriteenum(asmcputype,sizeof(tcputype));
             tokenwriteenum(fputype,sizeof(tfputype));
             tokenwriteenum(asmmode,sizeof(tasmmode));
             tokenwriteenum(interfacetype,sizeof(tinterfacetypes));
