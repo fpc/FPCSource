@@ -33,9 +33,13 @@ interface
       symtype,symdef;
 
 type
+
+  { TObjectiveCUtils }
+
   TObjectiveCUtils = class
   private
     FCompiler: TCompilerBase;
+    procedure exportobjcclassfields(objccls: tobjectdef);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -287,9 +291,7 @@ end;
                     ObjC class exporting
 *******************************************************************}
 
-    procedure exportobjcclassfields(objccls: tobjectdef);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TObjectiveCUtils.exportobjcclassfields(objccls: tobjectdef);
     var
       i: longint;
       vf: tfieldvarsym;
