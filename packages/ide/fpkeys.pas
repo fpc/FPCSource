@@ -21,7 +21,7 @@ interface
 
   uses
     keyboard, Objects, Drivers, Dialogs, App,
-    FPViews, WViews;
+    WViews;
 
 procedure  LearnKeysDialog;
 
@@ -41,10 +41,11 @@ type
       PSTL : Array [1..NumWantedKeys] of PLabel;
       PL : Array [1..NumWantedKeys] of PInputLine;
       KeyOK : Array [1..NumWantedKeys] of boolean;
+      FKeyEscape : Array[1..NumWantedKeys] of String[10];
       PST,PST2 : PAdvancedStaticText;
       Constructor Init(Const ATitle : String);
-     {Procedure HandleEvent(var E : TEvent);virtual;}
-     function Execute : Word;Virtual;
+      Procedure HandleEvent(var E : TEvent);virtual;
+      function Execute : Word;Virtual;
    end;
 
 Procedure LoadKeys(var S : TStream);
@@ -54,10 +55,24 @@ Procedure SetKnownKeys;
 implementation
 
 uses
-  FVConsts,
+  FVConsts,Mouse,
   WUtils;
 
 {$ifndef NotUseTree}
+function GetSpecial(Const St : String;var AProc : Tprocedure) : boolean;
+var
+  El : TTreeElement;
+begin
+  GetSpecial:=false;
+  AProc:=nil;
+  If FindSequence(St,El) then
+    if Assigned(El.SpecialHandler) then
+      begin
+        GetSpecial:=true;
+        AProc:=El.SpecialHandler;
+      end;
+end;
+
 function GetKey(Const St : String) : word;
 var
   AChar,AScan : byte;
@@ -179,6 +194,7 @@ begin
       R.B.X:=R.B.X+11;
       New(PL[i],Init(R,20));
       St:=NiceEscape(KeyEscape[i]);
+      FKeyEscape[i]:=KeyEscape[i];
       PL[i]^.SetData(St);
       Insert(PL[i]);
       PSTL[i]^.Link:=PL[i];
@@ -198,8 +214,117 @@ begin
   InsertButtons(@Self);
 end;
 
-function TKeyDialog.Execute : Word;
+function ValidSequence(Const St: String):boolean;
+begin
+  ValidSequence:=true;
+  if length(St)>3 then
+  begin
+    if (St[1]=#27) and (St[2]='[') and (St[Length(St)] in ['u','A','B','C','D','F','H','P','Q','S','~'])
+      and (  ((St[Length(St)-2]=':') and ((St[Length(St)-1]='2') or (St[Length(St)-1]='3'))) ) then
+      ValidSequence:=false; { do not permit key ups and repeats }
+    if (St[1]=#27) and (St[2]='[') and (St[Length(St)] in ['_']) then
+      ValidSequence:=false; { do not permit Win escape keys }
+    if (St[1]=#27) and (St[2]='[') and (St[Length(St)] in ['u']) then
+      ValidSequence:=false; { do not permit kitty keys (will be doubled otherwise) }
+  end;
+end;
 
+function DecodeWin32(Const St: String):String; { decode only Tab, Esc, Enter }
+var S:String[11];
+    sKey:String[11];
+    sModif:String[11];
+    sKeyPress:String[11];
+    nKey,nModif,ii : Sw_Integer;
+    N,idx  : longword;
+begin
+  DecodeWin32:=St;
+  if length(St)>3 then
+  begin
+    if (St[1]=#27) and (St[2]='[') and (St[Length(St)]='_') and (St[Length(St)-1]='1') then
+    begin
+      sKey:='';
+      sModif:='';
+      sKeyPress:='';
+      N:=3;
+      S:='';
+      idx:=1;
+      for N:=3 to Length(St) do
+        if St[N] in ['0'..'9'] then
+          S:=S+St[N]
+        else
+          begin
+            if (idx=1) and (sKey='') then
+              sKey:=S;
+            if (idx=5) and (sModif='') then
+              sModif:=S;
+            if (idx=4) and (sKeyPress='') then
+              sKeyPress:=S;
+            if St[N]=';' then
+             inc(idx);
+            S:='';
+          end;
+      if sKeyPress='0' then
+        exit; { key release }
+      val(sKey,nKey,ii);
+      val(sModif,nModif,ii);
+      nModif:=nModif and $f;
+      if nKey in [9,13,27] then
+      begin
+        DecodeWin32:='';
+        if (nModif=0) then
+          DecodeWin32:=AnsiChar(nKey);
+      end;
+    end;
+  end;
+end;
+
+function DecodeKitty(Const St: String):String; { decode only Tab, Esc, Enter }
+var S:String[11];
+    sKey:String[11];
+    sModif:String[11];
+    nKey,nModif,ii : Sw_Integer;
+    N,idx  : longword;
+begin
+  DecodeKitty:=St;
+  if length(St)>3 then
+  begin
+    if (St[1]=#27) and (St[2]='[') and (St[Length(St)]='u')
+      and ( (St[Length(St)-2]<>':') or ((St[Length(St)-2]=':') and (St[Length(St)-1]<>'3')) ) then
+    begin
+      sKey:='';
+      sModif:='';
+      N:=3;
+      S:='';
+      idx:=1;
+      for N:=3 to Length(St) do
+        if St[N] in ['0'..'9'] then
+          S:=S+St[N]
+        else
+          begin
+            if (idx=1) and (sKey='') then
+              sKey:=S;
+            if (idx=2) and (sModif='') then
+              sModif:=S;
+            if St[N]=';' then
+             inc(idx);
+            S:='';
+          end;
+      val(sKey,nKey,ii);
+      val(sModif,nModif,ii);
+      nModif:=nModif and $f;
+      if nModif=0 then nModif:=1;
+      nModif:=nModif-1;
+      if nKey in [9,13,27] then
+      begin
+        DecodeKitty:='';
+        if (nModif=0) then
+          DecodeKitty:=AnsiChar(nKey);
+      end;
+    end;
+  end;
+end;
+
+function TKeyDialog.Execute : Word;
 var
   APL : PInputLine;
   i,j : longint;
@@ -207,8 +332,12 @@ var
   E : TEvent;
   OldKey : word;
   keyfound : boolean;
+  eMouseEvent : TMouseEvent;
+  SpecialProc : Tprocedure;
+  ch : AnsiChar;
 begin
 {$ifndef NotUseTree}
+  ch:=#0;
   repeat
     EndState := 0;
     repeat
@@ -219,21 +348,39 @@ begin
     else
       APL:=nil;
     FillChar(E,SizeOf(E),#0);
+    St:='';
+    if ch<>#0 then
+      St:=ch;
     if Keyboard.KeyPressed then
-      St:=RawReadString
+      repeat
+        ch:=RawReadKey;
+        if (ch=#27) and (Length(St)>2) then
+          break { encountered next escape sequence }
+        else
+          St:=St+ch;
+        ch:=#0;
+        if GetSpecial(St,SpecialProc) then
+          if assigned(SpecialProc) then
+            begin
+              SpecialProc;
+              break;
+            end;
+      until not Keyboard.KeyPressed
     else
-      begin
-        St:='';
+      if St='' then
         Application^.GetEvent(E);
-      end;
     if E.What= evNothing then
       begin
         if St<>'' then
           begin
+            St:=DecodeKitty(St);
+            St:=DecodeWin32(St);
             if GetKey(St)<>0 then
               begin
                 E.What:=evKeyDown;
                 E.KeyCode:=GetKey(St);
+                if E.KeyCode=$0008 then
+                  E.KeyCode:=kbBack;  { recognize key BackSpace }
               end
             else if St=#9 then
               begin
@@ -262,19 +409,28 @@ begin
               PSTL[i]^.Text:=NewStr(WantedKeysLabels[i]+' OK ');
               keyFound:=true;
               keyOK[i]:=true;
-              KeyEscape[i]:=St;
+              FKeyEscape[i]:=St;
               St:=NiceEscape(St);
               PL[i]^.SetData(St);
               ClearEvent(E);
               ReDraw;
             end;
       end;
+    if (E.What= evNothing) and not(keyFound) then
+      if St<>'' then
+      begin
+        if pollMouseEvent(eMouseEvent) then
+        begin
+          Application^.GetEvent(E);
+          St:=''; { have found mouse escape string, don't try to match with keyboard keys }
+        end;
+      end;
     if (St<>'') and not keyfound and
-       ((E.What<>evKeyDown) or
-       ((E.KeyCode<>kbTab) and (E.Keycode<>kbEnter) and (E.Keycode<>kbEsc))) then
+       ((E.What=evNothing) or
+       ((E.What=evKeyDown) and (E.KeyCode<>kbTab) and (E.Keycode<>kbEnter) and (E.Keycode<>kbEsc))) then
       begin
         PST^.SetText('"'+NiceEscape(St)+'"');
-        if Assigned(APL) then
+        if Assigned(APL) and ValidSequence(St) then
           begin
             j:=-1;
             for i:=1 to NumWantedKeys do
@@ -285,6 +441,7 @@ begin
                 OldKey:=GetKey(St);
                 if OldKey<>0 then
                   begin
+                    if oldKey=$0008 then oldkey:=kbBack; { recognize as BackSpace }
                     for i:=1 to NumWantedKeys do
                       if (OldKey=WantedKeys[i]) and (i<>j) then
                         begin
@@ -292,8 +449,8 @@ begin
                             'key $'+hexstr(oldKey,4)+' '+WantedKeysLabels[i]+#13+
                             'Change it to '+WantedKeysLabels[j],nil,true)=cmYes then
                             begin
-                              KeyEscape[i]:='';
-                              PL[i]^.SetData(KeyEscape[i]);
+                              FKeyEscape[i]:='';
+                              PL[i]^.SetData(FKeyEscape[i]);
                             end
                           else
                             begin
@@ -303,10 +460,12 @@ begin
                   end;
                 if St<>'' then
                   Begin
-                    SetKey(St,WantedKeys[j]);
-                    KeyEscape[j]:=St;
+                    DisposeStr(PSTL[j]^.Text); { Ok - learned this one }
+                    PSTL[j]^.Text:=NewStr(WantedKeysLabels[j]+' OK ');
+                    FKeyEscape[j]:=St;
                     St:=NiceEscape(St);
                     APL^.SetData(St);
+                    PSTL[j]^.Draw;
                   end;
               end;
             ClearEvent(E);
@@ -323,6 +482,22 @@ begin
 {$endif NotUseTree}
 end;
 
+Procedure TKeyDialog.HandleEvent(var E : TEvent);
+var k : longint;
+begin
+  case E.What of
+    evCommand :
+      case E.Command of
+         cmOk : begin
+                  { accept learned keys  }
+                  for k:=1 to NumWantedKeys do KeyEscape[k]:=FKeyEscape[k];
+                  SetKnownKeys;
+               end;
+         cmCancel : ;  { do nothing - discard learned keys }
+      end;
+  end;
+  inherited HandleEvent(E);
+end;
 
 procedure  LearnKeysDialog;
 

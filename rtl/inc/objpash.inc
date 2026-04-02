@@ -249,6 +249,8 @@
           function SetMonitorData(aData,aCheckOld : Pointer) : Pointer; inline;
           function GetMonitorData: Pointer; inline;
        {$ENDIF}
+       strict private
+          class procedure InitZeroedInstance(instance : pointer);
        protected
           function GetDisposed : Boolean; inline;
           Property Disposed : Boolean Read GetDisposed;

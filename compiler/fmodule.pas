@@ -145,6 +145,7 @@ interface
       private
         FImportLibraryList : TFPHashObjectList;
       public
+        loadedfrommodule: tmodule;
         is_reset,                 { has reset been called ? }
         do_recompile,         { reset needed, done by ctask }
         do_reload,                { force reloading of the unit }
@@ -233,7 +234,7 @@ interface
         dependent_units      : tlinkedlist;
 
         { circular unit groups = strongly connected components }
-        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are finished
+        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are ms_procesed
                                  Note that in a cycle ms_processed can be reached while scc_finished is still false }
         scc_root: tmodule;     { valid if not scc_finished: all modules of a scc poins to their root module }
         scc_next: tmodule;     { next module in same scc }
@@ -247,9 +248,9 @@ interface
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
-        scc_tree_unfinished: boolean; { only valid for scc roots }
-        other_scc_unfinished: boolean; { only valid for scc roots }
-        scc_tree_crc_wait: tmodule;
+        scc_tree_unfinished: boolean; { the scc or a sub scc has at least one module not ms_processed }
+        other_scc_unfinished: boolean; { a sub scc has a module not ms_processed }
+        scc_tree_crc_wait: tmodule; { an unfinished used unit, can be indirectly used, not self }
 
         task: TObject;         { ctask ttask }
 
@@ -309,7 +310,7 @@ interface
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritance of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
+        constructor create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
         destructor destroy;override;
         procedure reset(for_recompile: boolean);virtual;
         function statestr: string; virtual;
@@ -604,7 +605,7 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
+    constructor tmodule.create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
       var
         n:string;
         fn:TPathStr;
@@ -612,6 +613,7 @@ implementation
         new_mod_cnt: Integer;
       begin
         compiler:=acompiler;
+        loadedfrommodule:=LoadedFrom;
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
         else
@@ -1226,43 +1228,46 @@ implementation
 
     function tmodule.find_used_unit_compiling: tmodule;
 
-      function find_compiling(m: tmodule): tmodule;
-      var
-        uu: tused_unit;
-      begin
-        Result:=nil;
-        if m.cycle_search_stamp=tmodule.cycle_stamp then
-          exit; // already visited
-        m.cycle_search_stamp:=tmodule.cycle_stamp;
+        function find_compiling(m: tmodule): tmodule;
+        var
+          uu: tused_unit;
+        begin
+          Result:=nil;
+          if m.cycle_search_stamp=tmodule.cycle_stamp then
+            exit; // already visited
+          m.cycle_search_stamp:=tmodule.cycle_stamp;
 
-        if m<>self then
-          case m.state of
-            ms_load:
-              if ppu_waitingfor_crc then
-                // check used units
+          if m<>self then
+            if m.do_reload then
+              exit(m)
+            else
+              case m.state of
+                ms_load:
+                  if m.ppu_waitingfor_crc then
+                    // check used units
+                  else
+                    exit(m);
+                ms_compiled_waitcrc:
+                  ; // check used units
+                ms_compiled, ms_processed:
+                  exit;
               else
                 exit(m);
-            ms_compiled_waitcrc:
-              ; // check used units
-            ms_compiled, ms_processed:
-              exit;
-          else
-            exit(m);
-          end;
+              end;
 
-        uu:=tused_unit(m.used_units.first);
-        while uu<>nil do
-          begin
-            Result:=find_compiling(uu.u);
-            if Result<>nil then exit;
-            uu:=tused_unit(uu.Next);
-          end;
+          uu:=tused_unit(m.used_units.first);
+          while uu<>nil do
+            begin
+              Result:=find_compiling(uu.u);
+              if Result<>nil then exit;
+              uu:=tused_unit(uu.Next);
+            end;
+        end;
+
+      begin
+        increase_cycle_stamp;
+        Result:=find_compiling(self);
       end;
-
-    begin
-      increase_cycle_stamp;
-      Result:=find_compiling(self);
-    end;
 
     class procedure tmodule.increase_cycle_stamp;
       begin
@@ -1439,31 +1444,12 @@ implementation
       end;
 
     function tmodule.usedunitsfinalcrc(out firstwaiting: tmodule): boolean;
+      { return a used unit, that has not yet computed its crc }
 
-    var
-      uu: tused_unit;
-
-    begin
-      firstwaiting:=scc_tree_crc_wait;
-      if (firstwaiting<>nil) and (firstwaiting<>self) then
-        exit(false);
-
-      uu:=tused_unit(used_units.First);
-      while assigned(uu) do
-        begin
-        if uu.u.do_reload
-            or not uu.u.interface_compiled
-            or not uu.u.crc_final then
-          begin
-          firstwaiting:=uu.u;
-          exit(false);
-          end;
-        uu:=tused_unit(uu.Next);
-        end;
-
-      firstwaiting:=nil;
-      Result:=True;
-    end;
+      begin
+        firstwaiting:=scc_tree_crc_wait;
+        Result:=firstwaiting=nil;
+      end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
 
@@ -1482,19 +1468,19 @@ implementation
       end;
 
     function tmodule.findusedunit(m: tmodule): tused_unit;
-    var
-      u : tused_unit;
+      var
+        u : tused_unit;
 
-    begin
-      result:=nil;
-      u:=tused_unit(used_units.First);
-      while assigned(u) do
-        begin
-        if u.u=m then
-          exit(u);
-        u:=tused_unit(u.next);
-        end;
-    end;
+      begin
+        result:=nil;
+        u:=tused_unit(used_units.First);
+        while assigned(u) do
+          begin
+          if u.u=m then
+            exit(u);
+          u:=tused_unit(u.next);
+          end;
+      end;
 
     procedure tmodule.updatemaps;
       var

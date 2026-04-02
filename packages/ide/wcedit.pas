@@ -258,9 +258,9 @@ function DefUseTabsPattern(Editor: PFileEditor): boolean;
 
 const
      DefaultCodeEditorFlags : longint =
-       efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+efOverwriteBlocks+
+       efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
-       efExpandAllTabs+efCodeComplete{+efFolds};
+       efExpandAllTabs+efCodeComplete{+efFolds}+efEnhWordRightLeft;
      DefaultTabSize     : integer = 8;
      DefaultIndentSize   : integer = 1;
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = {$ifdef fpc}@{$endif}DefUseSyntaxHighlight;

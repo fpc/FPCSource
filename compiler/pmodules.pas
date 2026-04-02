@@ -1412,6 +1412,10 @@ type
            compiler.symtablestack.pop(curr.globalsymtable);
            end;
 
+        if (compiler.verbose.Errorcount=0) and tppumodule(curr).dependent_module_crc_mismatch then
+          { a dependent module needs recompile }
+          curr.state:=ms_compiling_waitimpl;
+
         { Can we continue compiling ? }
         result:=curr.state<>ms_compiling_waitimpl;
         if result then
@@ -1612,9 +1616,9 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        ag : boolean;
+        ag , wait_dep: boolean;
         finishstate : tfinishstate;
-        old_module: tmodule;
+        old_module, wait_m: tmodule;
       begin
          result:=true;
          { curr is now module }
@@ -1828,9 +1832,13 @@ type
         { compute CRC }
         if compiler.verbose.ErrorCount=0 then
           begin
-          if module.find_used_unit_compiling<>nil then
+          wait_m:=module.find_used_unit_compiling;
+          wait_dep:=tppumodule(module).dependent_module_has_our_crc;
+          if (wait_m<>nil) or wait_dep then
             begin
-              { Some used units are still compiling, so their CRCs can change.
+              { Some used units are still compiling, so their CRCs can change
+                OR some dependent module waits for checking this module's CRC
+                   (e.g. this module was recompiled and a ppu is waiting).
                 Compute the final CRC of this module and wait.
                 Needed for compiling circular dependent units. }
               {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
@@ -2655,6 +2663,7 @@ type
            status.skip_error:=true;
          end;
 
+        curr.crc_final:=true;
         curr.state:=ms_compiled;
 
       end;
