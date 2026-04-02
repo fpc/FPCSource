@@ -34,6 +34,11 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
+    { Allow finding other unit sources when build unit is not used }
+    P.UnitPath.Add('src/coreunits');
+    P.UnitPath.Add('src/otherlibs');
+    P.UnitPath.Add('src/utilunits');
+
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');
