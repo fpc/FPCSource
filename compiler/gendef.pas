@@ -25,12 +25,18 @@ unit gendef;
 
 interface
 uses
-  globtype,cclasses,compilerbase;
+  globtype,cclasses,globals,systems;
 
 type
   tdeffile=class
+  private
+    FGlobals: TReadOnlyCompilerGlobals;
+    FTarget: TReadOnlyCompilerTarget;
+    property Globals: TReadOnlyCompilerGlobals read FGlobals;
+    property Target: TReadOnlyCompilerTarget read FTarget;
+  public
     fname : string;
-    constructor create(const fn:string);
+    constructor create(const fn:string; AGlobals: TReadOnlyCompilerGlobals; ATarget: TReadOnlyCompilerTarget);
     destructor  destroy;override;
     procedure addexport(const s:TSymStr);
     procedure addimport(const s:TSymStr);
@@ -51,14 +57,16 @@ implementation
 
 uses
   SysUtils,
-  systems,cutils,globals,compiler;
+  cutils;
 
 {******************************************************************************
                                TDefFile
 ******************************************************************************}
 
-constructor tdeffile.create(const fn:string);
+constructor tdeffile.create(const fn:string; AGlobals: TReadOnlyCompilerGlobals; ATarget: TReadOnlyCompilerTarget);
 begin
+  FGlobals:=AGlobals;
+  FTarget:=ATarget;
   fname:=fn;
   WrittenOnDisk:=false;
   is_empty:=true;
@@ -68,11 +76,9 @@ end;
 
 
 destructor tdeffile.destroy;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if WrittenOnDisk and
-     ([cs_link_nolink,cs_link_deffile]*compiler.globals.current_settings.globalswitches=[]) then
+     ([cs_link_nolink,cs_link_deffile]*globals.current_settings.globalswitches=[]) then
     DeleteFile(FName);
   importlist.Free;
   importlist := nil;
@@ -97,16 +103,12 @@ end;
 
 
 function tdeffile.empty : boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  empty:=is_empty or compiler.globals.DescriptionSetExplicity;
+  empty:=is_empty or globals.DescriptionSetExplicity;
 end;
 
 
 procedure tdeffile.writefile;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   t : text;
 begin
@@ -119,18 +121,18 @@ begin
   {$pop}
   if ioresult<>0 then
    exit;
-  case compiler.target.info.system of
+  case target.info.system of
     system_i386_Os2, system_i386_emx:
       begin
-        write(t,'NAME '+ChangeFileExt(compiler.globals.inputfilename,''));
-        if compiler.globals.usewindowapi then
+        write(t,'NAME '+ChangeFileExt(globals.inputfilename,''));
+        if globals.usewindowapi then
           write(t,' WINDOWAPI');
         writeln(t,'');
         writeln(t,'PROTMODE');
-        writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
+        writeln(t,'DESCRIPTION '+''''+globals.description+'''');
         writeln(t,'DATA'#9'MULTIPLE');
-        writeln(t,'STACKSIZE'#9+tostr(compiler.globals.stacksize));
-        writeln(t,'HEAPSIZE'#9+tostr(compiler.globals.heapsize));
+        writeln(t,'STACKSIZE'#9+tostr(globals.stacksize));
+        writeln(t,'HEAPSIZE'#9+tostr(globals.heapsize));
       end;
     system_i386_win32,
     system_x86_64_win64,
@@ -140,10 +142,10 @@ begin
     system_i386_wince,
     system_i386_wdosx :
       begin
-        if compiler.globals.description<>'' then
-          writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
-        if compiler.globals.dllversion<>'' then
-          writeln(t,'VERSION '+compiler.globals.dllversion);
+        if globals.description<>'' then
+          writeln(t,'DESCRIPTION '+''''+globals.description+'''');
+        if globals.dllversion<>'' then
+          writeln(t,'VERSION '+globals.dllversion);
       end;
     else
       ;

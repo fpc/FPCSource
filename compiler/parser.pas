@@ -218,7 +218,7 @@ implementation
            GenerateAsmRes(compiler.globals.outputexedir+'ppas',compiler);
 
          { open deffile }
-         DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext));
+         DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext),compiler.globals,compiler.target);
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TCmdStrList.Create;
