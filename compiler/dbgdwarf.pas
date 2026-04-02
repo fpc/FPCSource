@@ -3586,7 +3586,7 @@ implementation
       begin
 {$ifdef OMFOBJSUPPORT}
         if ds_dwarf_omf_linnum in compiler.globals.current_settings.debugswitches then
-          dbgcodeview.InsertLineInfo_OMF_LINNUM_MsLink(list);
+          dbgcodeview.InsertLineInfo_OMF_LINNUM_MsLink(list,compiler);
 {$endif OMFOBJSUPPORT}
         { this function will always terminate the lineinfo block }
         generated_lineinfo := true;

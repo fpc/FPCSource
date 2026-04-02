@@ -38,7 +38,8 @@ interface
 
     uses
       aasmdata,
-      dbgbase;
+      dbgbase,
+      compilerbase;
 
     type
       TSymbolIndex = (
@@ -188,7 +189,7 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
       end;
 
-    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList);
+    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList; compiler: TCompilerBase);
 
 implementation
 
@@ -197,9 +198,10 @@ implementation
       cutils,
       aasmtai,
       fmodule,
-      systems;
+      systems,
+      compiler;
 
-    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList);
+    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList; compiler: TCompilerBase);
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -264,7 +266,7 @@ implementation
 
     procedure TDebugInfoCodeView.insertlineinfo(list: TAsmList);
       begin
-        InsertLineInfo_OMF_LINNUM_MsLink(list);
+        InsertLineInfo_OMF_LINNUM_MsLink(list,compiler);
       end;
 
 {****************************************************************************
