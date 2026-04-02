@@ -30,7 +30,8 @@ interface
       aasmbase,aasmtai,aasmdata,
       symbase,symconst,symtype,symdef,symsym,
       finput,
-      DbgBase;
+      DbgBase,
+      compilerbase;
 
     type
       { TDebugInfoJasmin }
@@ -59,7 +60,8 @@ implementation
       version,globals,verbose,systems,
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
-      defutil,symtable,symcpu,jvmdef,ppu
+      defutil,symtable,symcpu,jvmdef,ppu,
+      compiler
       ;
 
 {****************************************************************************
