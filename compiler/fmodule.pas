@@ -355,7 +355,6 @@ interface
     var
        main_module       : tmodule;     { Main module of the program }
        current_module    : tmodule;     { Current module which is compiled or loaded }
-       compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units, excluding main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
