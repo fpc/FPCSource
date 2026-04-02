@@ -353,7 +353,6 @@ interface
       end;
 
     var
-       unloaded_units    : tlinkedlist; { Units removed from compiler.loaded_units, to be freed }
        all_modules: array of tmodule;   { modules by moduleid }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }

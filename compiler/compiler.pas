@@ -223,6 +223,7 @@ type
     Fcurrent_module    : tmodule;     { Current module which is compiled or loaded }
     Fusedunits         : tlinkedlist; { Used units for this program }
     Floaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
+    Funloaded_units    : tlinkedlist; { Units removed from compiler.loaded_units, to be freed }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -283,6 +284,7 @@ type
     property current_module: tmodule read Fcurrent_module write Fcurrent_module;
     property usedunits: tlinkedlist read Fusedunits write Fusedunits;
     property loaded_units: tlinkedlist read Floaded_units write Floaded_units;
+    property unloaded_units: tlinkedlist read Funloaded_units write Funloaded_units;
   end;
 
   { TCompilerHelper }
@@ -325,6 +327,7 @@ type
     function GetTarget: TCompilerTarget; inline;
     function GetTG: ttgobj; inline;
     function GetTime: TCompilerTime; inline;
+    function Getunloaded_units: tlinkedlist; inline;
     function Getusedunits: tlinkedlist; inline;
     function GetVerbose: TVerbose; inline;
     function GetWpoInfoManager: twpoinfomanagerbase; inline;
@@ -477,6 +480,7 @@ type
     property current_module: tmodule read Getcurrent_module;
     property usedunits: tlinkedlist read Getusedunits;
     property loaded_units: tlinkedlist read Getloaded_units;
+    property unloaded_units: tlinkedlist read Getunloaded_units;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1143,6 +1147,11 @@ end;
 function TCompilerHelper.GetTime: TCompilerTime;
 begin
   Result := TCompiler(Self).Time;
+end;
+
+function TCompilerHelper.Getunloaded_units: tlinkedlist; inline;
+begin
+  Result := TCompiler(Self).unloaded_units;
 end;
 
 function TCompilerHelper.Getusedunits: tlinkedlist; inline;

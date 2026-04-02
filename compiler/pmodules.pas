@@ -381,7 +381,7 @@ implementation
             uu := nil;
            { remove the module }
             compiler.loaded_units.Remove(hp);
-            unloaded_units.Concat(hp);
+            compiler.unloaded_units.Concat(hp);
           end;
         MaybeRemoveResUnit:=resources_used;
       end;
@@ -2479,7 +2479,7 @@ type
              end;
             { free also unneeded units we didn't free before }
             if not needsymbolinfo then
-              unloaded_units.Clear;
+              compiler.unloaded_units.Clear;
             { Does any unit use checkpointer function }
             if program_uses_checkpointer then
               compiler.verbose.Message1(link_w_program_uses_checkpointer,curr.modulename^);
@@ -2549,7 +2549,7 @@ type
               not assigned(hp2.globalsymtable) then
                begin
                  compiler.loaded_units.remove(hp2);
-                 unloaded_units.concat(hp2);
+                 compiler.unloaded_units.concat(hp2);
                end;
          end;
 

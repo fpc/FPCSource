@@ -154,7 +154,7 @@ implementation
             hp:=hp2;
           end;
          { free also unneeded units we didn't free before }
-         unloaded_units.Clear;
+         compiler.unloaded_units.Clear;
         end;
 
       { If used units are compiled compiler.current_module is already the same as
@@ -186,7 +186,7 @@ implementation
 
          tcompiler(compiler).usedunits:=TLinkedList.Create;
 
-         unloaded_units:=TLinkedList.Create;
+         tcompiler(compiler).unloaded_units:=TLinkedList.Create;
 
          { global switches }
          compiler.globals.current_settings.globalswitches:=compiler.globals.init_settings.globalswitches;
@@ -328,10 +328,10 @@ implementation
              tcompiler(compiler).usedunits.free;
              tcompiler(compiler).usedunits:=nil;
            end;
-         if assigned(unloaded_units) then
+         if assigned(compiler.unloaded_units) then
            begin
-             unloaded_units.free;
-             unloaded_units:=nil;
+             tcompiler(compiler).unloaded_units.free;
+             tcompiler(compiler).unloaded_units:=nil;
            end;
          { Set default types to nil. At this point they are not valid class pointers. }
          reset_all_default_types;
