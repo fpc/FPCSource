@@ -239,7 +239,7 @@ implementation
         convention }
       compiler.parser.pparautl.insert_self_and_vmt_para(result);
       compiler.parser.pparautl.insert_funcret_para(result);
-      finish_copied_procdef(result,wrappername,current_module.localsymtable,nil);
+      finish_copied_procdef(result,wrappername,compiler.current_module.localsymtable,nil);
       if orgpd.is_addressonly then
         begin
           result.synthetickind:=tsk_callthrough;
@@ -362,7 +362,7 @@ implementation
 
       { add every symbol that we create here to the unit-level symbol table }
       old_symtablestack:=compiler.symtablestack;
-      tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
+      tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(compiler.current_module.localsymtable);
       { save scanner state }
       replace_scanner('block literal creation',sstate);
 

@@ -103,7 +103,7 @@ begin
      exit;
    end;
   { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) and
      (hp.name^>hp2.name^) do
     hp2:=texported_item(hp2.next);
@@ -114,8 +114,8 @@ begin
       duplicatesymbol(hp.name^);
       exit;
     end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.concat(hp)
+  if hp2=texported_item(compiler.current_module._exports.first) then
+    compiler.current_module._exports.concat(hp)
   else if assigned(hp2) then
     begin
        hp.next:=hp2;
@@ -125,7 +125,7 @@ begin
        hp2.previous:=hp;
     end
   else
-    current_module._exports.concat(hp);
+    compiler.current_module._exports.concat(hp);
 {$ifdef cpuhighleveltarget}
   { in case of a high level target create a stub procedure at the node/def
     level instead of via hlcg.g_external_wrapper() later on, because it's
@@ -152,7 +152,7 @@ begin
         begin
           { avoid name clashes for the identifier }
           wrapperpd:=create_procdef_alias(pd,'$fpc_exported$'+hp.name^,hp.name^,
-            current_module.localsymtable,nil,
+            compiler.current_module.localsymtable,nil,
             tsk_callthrough,pd);
         end;
     end;
@@ -179,7 +179,7 @@ begin
   create_hlcodegen(compiler);
   hlcg:=compiler.hlcg;
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and

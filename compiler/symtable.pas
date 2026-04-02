@@ -520,10 +520,10 @@ implementation
       begin
         inherited create(s,ACompiler);
         { Note: this happens for the initial macro symtable, so no error here }
-        if not assigned(current_module) then
+        if not assigned(compiler.current_module) then
           compiler.verbose.comment(v_debug,'Current module not available for module id')
         else
-          moduleid:=current_module.moduleid;
+          moduleid:=compiler.current_module.moduleid;
       end;
 
 
@@ -791,8 +791,8 @@ implementation
             or inlined routines in the static symbtable }
 
           { current number of registered defs/syms }
-          defidmax:=current_module.deflist.count;
-          symidmax:=current_module.symlist.count;
+          defidmax:=compiler.current_module.deflist.count;
+          symidmax:=compiler.current_module.symlist.count;
           changed:=false;
 
           { build the derefs for the registered defs we haven't processed yet }
@@ -838,8 +838,8 @@ implementation
           the currently registered ones (defs/syms get added to the module's
           deflist/symlist when they are registered) }
         until not changed and
-          (defidmax=current_module.deflist.count) and
-          (symidmax=current_module.symlist.count);
+          (defidmax=compiler.current_module.deflist.count) and
+          (symidmax=compiler.current_module.symlist.count);
       end;
 
 
@@ -1057,7 +1057,7 @@ implementation
                  (
                   (tsym(sym).typ<>procsym) or
                   ((tsym(sym).owner.symtabletype=staticsymtable) and
-                   not current_module.is_unit)
+                   not compiler.current_module.is_unit)
                  ) and
                  { don't complain about alias for hidden _cmd parameter to
                    obj-c methods }
@@ -1885,7 +1885,7 @@ implementation
 
     function tabstractrecordsymtable.iscurrentunit: boolean;
       begin
-        Result:=assigned(current_module)and(current_module.moduleid=moduleid);
+        Result:=assigned(compiler.current_module)and(compiler.current_module.moduleid=moduleid);
       end;
 
 {****************************************************************************
@@ -2653,10 +2653,10 @@ implementation
 
     function tabstractuniTSymtable.iscurrentunit:boolean;
       begin
-        result:=assigned(current_module) and
+        result:=assigned(compiler.current_module) and
                 (
-                 (current_module.globalsymtable=self) or
-                 (current_module.localsymtable=self)
+                 (compiler.current_module.globalsymtable=self) or
+                 (compiler.current_module.localsymtable=self)
                 );
       end;
 
@@ -2760,18 +2760,18 @@ implementation
         result:=inherited checkduplicate(hashedid,sym);
 
         if not result and
-           (current_module.localsymtable=self) and
-           assigned(current_module.globalsymtable) then
-          result:=tglobalsymtable(current_module.globalsymtable).checkduplicate(hashedid,sym);
+           (compiler.current_module.localsymtable=self) and
+           assigned(compiler.current_module.globalsymtable) then
+          result:=tglobalsymtable(compiler.current_module.globalsymtable).checkduplicate(hashedid,sym);
       end;
 
     function tstaticsymtable.findnamespace(const n:string):TSymEntry;
       begin
         result:=inherited findnamespace(n);
         if not assigned(result) and
-           (current_module.localsymtable=self) and
-           assigned(current_module.globalsymtable) then
-          result:=tglobalsymtable(current_module.globalsymtable).findnamespace(n);
+           (compiler.current_module.localsymtable=self) and
+           assigned(compiler.current_module.globalsymtable) then
+          result:=tglobalsymtable(compiler.current_module.globalsymtable).findnamespace(n);
      end;
 
 
@@ -3095,7 +3095,7 @@ implementation
             if assigned(st) and
                (st.symtabletype=globalsymtable) and
                st.iscurrentunit then
-              compiler.verbose.Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
+              compiler.verbose.Message2(sym_h_duplicate_id_where,compiler.current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
               begin
                 filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
@@ -3180,24 +3180,24 @@ implementation
          owner:=sym.owner;
          while owner.symtabletype in [objectsymtable,recordsymtable,enumsymtable] do
            owner:=tdef(owner.defowner).owner;
-         if assigned(current_module) and
+         if assigned(compiler.current_module) and
             (owner.symtabletype=globalsymtable) then
              begin
-               if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
+               if tglobalsymtable(owner).moduleid>=compiler.current_module.unitmapsize then
                  internalerror(200501152);
                { unit uses count }
-               inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
+               inc(compiler.current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
                { Note: don't check the symtable directly as owner might be
                        a specialize symtable which is a globalsymtable as well }
                if (
-                     assigned(current_module.globalsymtable) and
-                     (current_module.globalsymtable.moduleid<>owner.moduleid)
+                     assigned(compiler.current_module.globalsymtable) and
+                     (compiler.current_module.globalsymtable.moduleid<>owner.moduleid)
                   ) or (
-                     assigned(current_module.localsymtable) and
-                     (current_module.localsymtable.moduleid<>owner.moduleid)
+                     assigned(compiler.current_module.localsymtable) and
+                     (compiler.current_module.localsymtable.moduleid<>owner.moduleid)
                   ) then
                  { symbol is imported from another unit }
-                 current_module.addimportedsym(sym);
+                 compiler.current_module.addimportedsym(sym);
              end;
          { static symbols that are used in public functions must be exported
            for packages as well }
@@ -3829,6 +3829,8 @@ implementation
 
     function searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pmod : tmodule;
       begin
         result:=false;
@@ -3847,7 +3849,7 @@ implementation
           end;
         { If the module is the current unit we also need
           to search the local symtable }
-        if (pmod=current_module) and
+        if (pmod=compiler.current_module) and
            assigned(pmod.localsymtable) then
           begin
             srsym:=tsym(pmod.localsymtable.Find(s));
@@ -3865,6 +3867,8 @@ implementation
 
 
     function searchsym_in_named_module(symtablestack:TSymtablestack;const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         stackitem  : psymtablestackitem;
       begin
@@ -3887,10 +3891,10 @@ implementation
 
         { If the module is the current unit we also need
           to search the local symtable }
-        if assigned(current_module.localsymtable) and
-           (current_module.localsymtable.name^=unitname) then
+        if assigned(compiler.current_module.localsymtable) and
+           (compiler.current_module.localsymtable.name^=unitname) then
           begin
-            srsymtable:=current_module.localsymtable;
+            srsymtable:=compiler.current_module.localsymtable;
             srsym:=tsym(srsymtable.find(symname));
             if assigned(srsym) then
               begin
@@ -4493,14 +4497,16 @@ implementation
 
     function try_search_current_module_type(const s: TIDString): ttypesym;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         found: boolean;
         srsymtable: tsymtable;
         srsym: tsym;
       begin
         if s[1]='$' then
-          found:=searchsym_in_module(current_module,copy(s,2,length(s)),srsym,srsymtable)
+          found:=searchsym_in_module(compiler.current_module,copy(s,2,length(s)),srsym,srsymtable)
         else
-          found:=searchsym_in_module(current_module,s,srsym,srsymtable);
+          found:=searchsym_in_module(compiler.current_module,s,srsym,srsymtable);
         if found then
           begin
             if (srsym.typ<>typesym) then
@@ -4609,13 +4615,15 @@ implementation
 
     function get_objectpascal_helpers(pd : tdef):TFPObjectList;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : TSymStr;
         st : tsymtable;
       begin
         result:=nil;
         { when there are no helpers active currently then we don't need to do
           anything }
-        if current_module.extendeddefs.count=0 then
+        if compiler.current_module.extendeddefs.count=0 then
           exit;
         if (df_genconstraint in pd.defoptions) then
           begin
@@ -4645,7 +4653,7 @@ implementation
           exit;
         { the mangled name is used as the key for tmodule.extendeddefs }
         s:=generate_objectpascal_helper_key(pd);
-        result:=TFPObjectList(current_module.extendeddefs.Find(s));
+        result:=TFPObjectList(compiler.current_module.extendeddefs.Find(s));
       end;
 
     function search_best_objectpascal_helper(const name: string;pd : tdef;contextclassh : tabstractrecorddef;out srsym: tsym;out srsymtable: tsymtable):boolean;
@@ -4924,9 +4932,9 @@ implementation
 
         { First search the localmacrosymtable before searching the
           global macrosymtables from the units }
-        if assigned(current_module) then
+        if assigned(compiler.current_module) then
           begin
-            srsym:=tsym(current_module.localmacrosymtable.FindWithHash(hashedid));
+            srsym:=tsym(compiler.current_module.localmacrosymtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
                 result:= srsym;
@@ -5022,8 +5030,8 @@ implementation
          if not assigned(mac) then
            begin
              mac:=tmacro.create(s);
-             if assigned(current_module) then
-               current_module.localmacrosymtable.insertsym(mac)
+             if assigned(compiler.current_module) then
+               compiler.current_module.localmacrosymtable.insertsym(mac)
              else
                compiler.initialmacrosymtable.insertsym(mac);
            end;
@@ -5046,8 +5054,8 @@ implementation
          if not assigned(mac) then
            begin
              mac:=tmacro.create(s);
-             if assigned(current_module) then
-               current_module.localmacrosymtable.insertsym(mac)
+             if assigned(compiler.current_module) then
+               compiler.current_module.localmacrosymtable.insertsym(mac)
              else
                compiler.initialmacrosymtable.insertsym(mac);
            end
@@ -5078,8 +5086,8 @@ implementation
            begin
              mac:=tmacro.create(s);
              mac.is_compiler_var:=true;
-             if assigned(current_module) then
-               current_module.localmacrosymtable.insertsym(mac)
+             if assigned(compiler.current_module) then
+               compiler.current_module.localmacrosymtable.insertsym(mac)
              else
                compiler.initialmacrosymtable.insertsym(mac);
            end

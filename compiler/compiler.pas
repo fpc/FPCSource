@@ -220,6 +220,7 @@ type
     Faktassignmentnode : tassignmentnode;
 
     Fmain_module       : tmodule;     { Main module of the program }
+    Fcurrent_module    : tmodule;     { Current module which is compiled or loaded }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -277,6 +278,7 @@ type
     property syssymlist: tsyssymlist read FSysSymList;
     property aktassignmentnode : tassignmentnode read Faktassignmentnode write Faktassignmentnode;
     property main_module: tmodule read Fmain_module write Fmain_module;
+    property current_module: tmodule read Fcurrent_module write Fcurrent_module;
   end;
 
   { TCompilerHelper }
@@ -286,6 +288,7 @@ type
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
+    function Getcurrent_module: tmodule; inline;
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
     function GetDefFile: TDefFile; inline;
 {$ifdef cpu64bitalu}
@@ -465,6 +468,7 @@ type
     property syssymlist: tsyssymlist read GetSysSymList;
     property aktassignmentnode : tassignmentnode read Getaktassignmentnode write Setaktassignmentnode;
     property main_module: tmodule read Getmain_module;
+    property current_module: tmodule read Getcurrent_module;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -979,6 +983,11 @@ end;
 function TCompilerHelper.GetCG: tcg; inline;
 begin
   Result := TCompiler(Self).cg;
+end;
+
+function TCompilerHelper.Getcurrent_module: tmodule; inline;
+begin
+  Result := TCompiler(Self).current_module;
 end;
 
 function TCompilerHelper.GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;

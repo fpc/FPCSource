@@ -167,7 +167,7 @@ implementation
           compiler.verbose.Message(parser_e_no_paras_for_class_constructor);
         parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
-        include(current_module.moduleflags,mf_classinits);
+        include(compiler.current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -306,7 +306,7 @@ implementation
           compiler.verbose.Message(parser_e_no_paras_for_class_destructor);
         parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
-        include(current_module.moduleflags,mf_classinits);
+        include(compiler.current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -1630,7 +1630,7 @@ implementation
                     ;
                 end;
               end;
-            if (current_module.modulename^='OBJCBASE') then
+            if (compiler.current_module.modulename^='OBJCBASE') then
               begin
                 case current_objectdef.objecttype of
                   odt_objcclass:
@@ -1684,7 +1684,7 @@ implementation
                   parser.pbase.consume(_FOR);
                 { add to the list of definitions to check that the forward
                   is resolved. this is required for delphi mode }
-                current_module.checkforwarddefs.add(current_structdef);
+                compiler.current_module.checkforwarddefs.add(current_structdef);
 
                 compiler.symtablestack.push(current_structdef.symtable);
                 parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
@@ -1768,8 +1768,8 @@ implementation
               olddef:=nil;
 
             { if set explicitly, apply $RTTI directive to current object }
-            if current_module.rtti_directive.clause<>rtc_none then
-              current_structdef.apply_rtti_directive(current_module.rtti_directive)
+            if compiler.current_module.rtti_directive.clause<>rtc_none then
+              current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive)
             else
               { if not set, and class has a parent, take parent object settings }
               if (objectType = odt_class) and assigned(current_objectdef.childof) then
@@ -1864,11 +1864,11 @@ implementation
                 else
                   s:=make_mangledname('',current_objectdef.extendeddef.owner,current_objectdef.extendeddef.typesym.name);
                 compiler.verbose.Message1(sym_d_adding_helper_for,s);
-                list:=TFPObjectList(current_module.extendeddefs.Find(s));
+                list:=TFPObjectList(compiler.current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
                     list:=TFPObjectList.Create(false);
-                    current_module.extendeddefs.Add(s, list);
+                    compiler.current_module.extendeddefs.Add(s, list);
                   end;
                 list.add(current_structdef);
               end;

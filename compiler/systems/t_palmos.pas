@@ -98,7 +98,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L'+HPath.Str);
@@ -184,7 +184,7 @@ var
   i : longint;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Create some replacements }
   StripStr:='';
@@ -202,7 +202,7 @@ begin
      binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename));
+        Replace(cmdstr,'$EXE',MaybeQuoted(compiler.current_module.exefilename));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',MaybeQuoted(compiler.globals.outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);

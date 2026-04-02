@@ -183,7 +183,7 @@ implementation
         { FPC_EMPTYCHAR is a widechar -> 2 bytes }
         reference_reset(hr,2,[]);
         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
-        current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+        compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
         thlcgwasm(hlcg).a_loadaddr_ref_stack(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr);
 
         current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );

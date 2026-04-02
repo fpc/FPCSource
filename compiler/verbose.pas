@@ -210,7 +210,7 @@ implementation
         while assigned(pstate) do
           begin
             {$IFDEF DEBUG_MESSAGESTATE}
-            if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+            if assigned(pstate^.owner) and (pstate^.owner<>compiler.current_module) then
               Internalerror(2026030702);
             {$ENDIF}
             msgfound:=false;
@@ -232,7 +232,7 @@ implementation
           begin
             unaligned(fstate):=pstate^.next;
             {$IFDEF DEBUG_MESSAGESTATE}
-            if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+            if assigned(pstate^.owner) and (pstate^.owner<>compiler.current_module) then
               Internalerror(2026030703);
             {$ENDIF}
             dispose(pstate);

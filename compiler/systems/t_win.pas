@@ -404,16 +404,16 @@ implementation
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TImportSymbol;
       begin
-        AsmPrefix:='imp'+Lower(current_module.modulename^);
+        AsmPrefix:='imp'+Lower(compiler.current_module.modulename^);
         idatalabnr:=0;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
-        current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
-        ObjWriter:=TARObjectWriter.CreateAr(current_module.importlibfilename,compiler.verbose);
+        compiler.current_module.linkotherstaticlibs.add(compiler.current_module.importlibfilename,link_always);
+        ObjWriter:=TARObjectWriter.CreateAr(compiler.current_module.importlibfilename,compiler.verbose);
         ObjOutput:=TPECoffObjOutput.Create(ObjWriter,compiler.globals,compiler.target,compiler.verbose);
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
             StartImport(ImportLibrary.Name);
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
@@ -447,9 +447,9 @@ implementation
         if (compiler.target._asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
-            for i:=0 to current_module.ImportLibraryList.Count-1 do
+            for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
               begin
-                ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+                ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
                 for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
                   begin
                     ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
@@ -460,9 +460,9 @@ implementation
             exit;
           end;
 
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
             { align al_procedures for the jumps }
             new_section(current_asmdata.asmlists[al_imports],sec_code,'',sizeof(aint));
             { Get labels for the sections }
@@ -692,13 +692,13 @@ implementation
       var
         hp2 : texported_item;
       begin
-        hp2:=texported_item(current_module._exports.first);
+        hp2:=texported_item(compiler.current_module._exports.first);
         while assigned(hp2) and
            (hp.name^>hp2.name^) do
           hp2:=texported_item(hp2.next);
         { insert hp there !! }
         if hp2=nil then
-          current_module._exports.concat(hp)
+          compiler.current_module._exports.concat(hp)
         else
           begin
             if hp2.name^=hp.name^ then
@@ -707,7 +707,7 @@ implementation
                 duplicatesymbol(hp.name^);
                 exit;
               end;
-            current_module._exports.insertbefore(hp,hp2);
+            compiler.current_module._exports.insertbefore(hp,hp2);
           end;
       end;
 
@@ -772,7 +772,7 @@ implementation
             exit;
           end;
 
-         hp:=texported_item(current_module._exports.first);
+         hp:=texported_item(compiler.current_module._exports.first);
          if not assigned(hp) then
            exit;
 
@@ -807,7 +807,7 @@ implementation
          new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
          { export flags }
          current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }
@@ -833,7 +833,7 @@ implementation
          { the name }
          current_asmdata.asmlists[al_exports].concat(Tai_label.Create(dll_name_label));
          if st='' then
-           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(current_module.modulename^+compiler.target.info.sharedlibext+#0))
+           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(compiler.current_module.modulename^+compiler.target.info.sharedlibext+#0))
          else
            current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+compiler.target.info.sharedlibext+#0));
 
@@ -850,7 +850,7 @@ implementation
          name_table:=TAsmList.Create;
          name_table.concat(Tai_align.Create_op(4,0));
          { write each address }
-         hp:=texported_item(current_module._exports.first);
+         hp:=texported_item(compiler.current_module._exports.first);
          while assigned(hp) do
            begin
               if eo_name in hp.options then
@@ -867,10 +867,10 @@ implementation
          { order in increasing ordinal values }
          { into temtexport list }
          temtexport:=TLinkedList.Create;
-         hp:=texported_item(current_module._exports.first);
+         hp:=texported_item(compiler.current_module._exports.first);
          while assigned(hp) do
            begin
-              current_module._exports.remove(hp);
+              compiler.current_module._exports.remove(hp);
               hp2:=texported_item(temtexport.first);
               while assigned(hp2) and (hp.index>hp2.index) do
                 hp2:=texported_item(hp2.next);
@@ -878,7 +878,7 @@ implementation
                 temtexport.concat(hp)
               else
                 temtexport.insertbefore(hp,hp2);
-              hp:=texported_item(current_module._exports.first);
+              hp:=texported_item(compiler.current_module._exports.first);
            end;
 
          { write the export adress table }
@@ -921,7 +921,7 @@ implementation
 
          { the package support needs this data later on
            to create the import library }
-         current_module._exports.concatlist(temtexport);
+         compiler.current_module._exports.concatlist(temtexport);
          temtexport.free;
       end;
 
@@ -933,7 +933,7 @@ implementation
          s  : string;}
       begin
          new_section(current_asmdata.asmlists[al_exports],sec_code,'',0);
-         hp:=texported_item(current_module._exports.first);
+         hp:=texported_item(compiler.current_module._exports.first);
          while assigned(hp) do
            begin
 {             case hp.sym.typ of
@@ -1195,7 +1195,7 @@ implementation
         with linkres do
           begin
             { Write path to search libraries }
-            HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+            HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
             while assigned(HPath) do
              begin
                Add('SEARCH_DIR("'+HPath.Str+'")');
@@ -1424,7 +1424,7 @@ implementation
         ImageBaseStr : string[40];
       begin
         if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-         compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+         compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
         { Create some replacements }
         RelocStr:='';
@@ -1459,7 +1459,7 @@ implementation
         if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(false);
@@ -1475,7 +1475,7 @@ implementation
            SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+              Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1501,7 +1501,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.exefilename,false);
+         success:=PostProcessExecutable(compiler.current_module.exefilename,false);
 
       { Remove ResponseFile }
         if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
@@ -1534,7 +1534,7 @@ implementation
       begin
         MakeSharedLibrary:=false;
         if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-         compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+         compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
       { Create some replacements }
         RelocStr:='';
@@ -1565,7 +1565,7 @@ implementation
         if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(true);
@@ -1581,7 +1581,7 @@ implementation
            SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+              Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1607,7 +1607,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.sharedlibfilename,true);
+         success:=PostProcessExecutable(compiler.current_module.sharedlibfilename,true);
 
       { Remove ResponseFile }
         if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
@@ -1825,17 +1825,19 @@ implementation
 
     procedure TDLLScannerWin.CheckDLLFunc(const dllname,funcname:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         ExtName : string;
       begin
-        for i:=0 to current_module.dllscannerinputlist.count-1 do
+        for i:=0 to compiler.current_module.dllscannerinputlist.count-1 do
           begin
-            ExtName:=current_module.dllscannerinputlist.NameOfIndex(i);
+            ExtName:=compiler.current_module.dllscannerinputlist.NameOfIndex(i);
             if (ExtName=funcname) then
               begin
-                current_module.AddExternalImport(dllname,funcname,funcname,0,false,false);
+                compiler.current_module.AddExternalImport(dllname,funcname,funcname,0,false,false);
                 importfound:=true;
-                current_module.dllscannerinputlist.Delete(i);
+                compiler.current_module.dllscannerinputlist.Delete(i);
                 exit;
               end;
           end;
@@ -1862,7 +1864,7 @@ implementation
         importfound:=false;
         ReadDLLImports(dllname,@CheckDLLFunc,compiler.target,compiler.verbose);
         if importfound then
-          current_module.dllscannerinputlist.Pack;
+          compiler.current_module.dllscannerinputlist.Pack;
         result:=importfound;
       end;
 

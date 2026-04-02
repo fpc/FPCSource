@@ -108,7 +108,7 @@ begin
     LinkRes.fForceUseForwardSlash:=true;
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -294,9 +294,9 @@ begin
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     if UseVLink then
-      MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename))
+      MapStr:='-M'+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename))
     else
-      MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
+      MapStr:='-Map '+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
@@ -307,7 +307,7 @@ begin
         GCSectionsStr:='-gc-all -sc';
     end;
 
-  ExeName:=current_module.exefilename;
+  ExeName:=compiler.current_module.exefilename;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -330,7 +330,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

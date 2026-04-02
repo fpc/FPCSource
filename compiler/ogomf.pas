@@ -1060,7 +1060,7 @@ implementation
             if cs_huge_code in _compiler.globals.current_settings.moduleswitches then
               result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
-              result:=current_module.modulename^ + '_TEXT';
+              result:=_compiler.current_module.modulename^ + '_TEXT';
           end
         else
 {$endif}
@@ -1068,12 +1068,14 @@ implementation
       end;
 
     constructor TOmfObjData.create(const n: string;aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited;
         CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
         createsectiongroup('DGROUP');
-        FMainSource:=current_module.mainsource;
+        FMainSource:=compiler.current_module.mainsource;
         FImportLibraryList:=TFPHashObjectList.Create(true);
         FExportedSymbolList:=TFPHashObjectList.Create(true);
       end;
@@ -1099,6 +1101,8 @@ implementation
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sep : string[3];
         secname : string;
       begin
@@ -1109,7 +1113,7 @@ implementation
             if omf_secnames[atype]=omf_secnames[sec_code] then
               secname:=CodeSectionName(aname)
             else if omf_segclass(atype)='FAR_DATA' then
-              secname:=current_module.modulename^ + '_DATA'
+              secname:=compiler.current_module.modulename^ + '_DATA'
             else
               secname:=omf_secnames[atype];
             if target.create_smartlink_sections and (aname<>'') then
@@ -1166,9 +1170,11 @@ implementation
 
     function TOmfObjData.reffardatasection: TObjSection;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         secname: string;
       begin
-        secname:=current_module.modulename^ + '_DATA';
+        secname:=compiler.current_module.modulename^ + '_DATA';
 
         result:=TObjSection(ObjSectionList.Find(secname));
         if not assigned(result) then
@@ -4531,6 +4537,8 @@ cleanup:
       end;
 
     function TNewExeOutput.WriteNewExe: boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         function ExtractModuleName(filename: string): string;
           begin
@@ -4549,7 +4557,7 @@ cleanup:
         AddEntryPointsForAllExportSymbols;
 
         { the first entry in the resident-name table is the module name }
-        TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
+        TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(compiler.current_module.exefilename),0);
         { the first entry in the nonresident-name table is the module description }
         TNewExeExportNameTableEntry.Create(NonresidentNameTable,globals.description,0);
         { add all symbols, exported by name to the resident and nonresident-name tables }

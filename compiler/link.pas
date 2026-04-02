@@ -270,7 +270,7 @@ Implementation
         if (not found) then
          found:=compiler.globals.UnitSearchPath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=current_module.localobjectsearchpath.FindFile(s,false,foundfile);
+         found:=compiler.current_module.localobjectsearchpath.FindFile(s,false,foundfile);
         if (not found) then
          found:=compiler.globals.objectsearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and (not found) then
@@ -354,10 +354,10 @@ Implementation
            4. exe path of the compiler (not when linking on target)
           for all searches don't use the directory cache }
         found:=FindFile(s, CurDirRelPath(source_info), false,foundfile);
-        if (not found) and (current_module.outputpath<>'') then
-         found:=FindFile(s,current_module.outputpath,false,foundfile);
+        if (not found) and (compiler.current_module.outputpath<>'') then
+         found:=FindFile(s,compiler.current_module.outputpath,false,foundfile);
         if (not found) then
-         found:=current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
+         found:=compiler.current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
          found:=compiler.globals.librarysearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and (not found) then
@@ -936,10 +936,10 @@ Implementation
          begin
            if showinfo then
              begin
-               if current_module.islibrary then
-                 AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename)
+               if compiler.current_module.islibrary then
+                 AsmRes.AddLinkCommand(Command,Para,compiler.current_module.sharedlibfilename)
                else
-                 AsmRes.AddLinkCommand(Command,Para,current_module.exefilename);
+                 AsmRes.AddLinkCommand(Command,Para,compiler.current_module.exefilename);
              end
            else
             AsmRes.AddLinkCommand(Command,Para,'');
@@ -1008,9 +1008,9 @@ Implementation
         MakeStaticLibrary:=false;
 	total_size:=0;
       { remove the library, to be sure that it is rewritten }
-        DeleteFile(current_module.staticlibfilename);
+        DeleteFile(compiler.current_module.staticlibfilename);
       { Call AR }
-        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,compiler.target.info.smartext),false);
+        smartpath:=FixPath(ChangeFileExt(compiler.current_module.asmfilename,compiler.target.info.smartext),false);
         SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(compiler.globals.utilsprefix + binstr);
         if compiler.target.ar.arfirstcmd<>'' then
@@ -1037,10 +1037,10 @@ Implementation
             Rewrite(script);
             try
               if (compiler.target.ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
-                writeln(script, 'CREATE ' + current_module.staticlibfilename)
+                writeln(script, 'CREATE ' + compiler.current_module.staticlibfilename)
               else { wlib case }
                 writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
-                  maybequoted(current_module.staticlibfilename));
+                  maybequoted(compiler.current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
@@ -1063,10 +1063,10 @@ Implementation
         else
           begin
             ar_creates_different_output_file:=(Pos('$OUTPUTLIB',cmdstr)>0) or (Pos('$OUTPUTLIB',firstcmd)>0);
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
-            Replace(firstcmd,'$LIB',maybequoted(current_module.staticlibfilename));
-            Replace(cmdstr,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
-            Replace(firstcmd,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
+            Replace(cmdstr,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
+            Replace(firstcmd,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
+            Replace(cmdstr,'$OUTPUTLIB',maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
+            Replace(firstcmd,'$OUTPUTLIB',maybequoted(compiler.current_module.staticlibfilename+'.tmp'));
             if compiler.target.ar.id=ar_watcom_wlib_omf then
               begin
                 Replace(cmdstr,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
@@ -1088,10 +1088,10 @@ Implementation
                 success:=DoExec(binstr,nextcmd,false,true);
               if ar_creates_different_output_file then
                 begin
-                  if FileExists(current_module.staticlibfilename,false) then
-                    DeleteFile(current_module.staticlibfilename);
-                  if FileExists(current_module.staticlibfilename+'.tmp',false) then
-                    RenameFile(current_module.staticlibfilename+'.tmp',current_module.staticlibfilename);
+                  if FileExists(compiler.current_module.staticlibfilename,false) then
+                    DeleteFile(compiler.current_module.staticlibfilename);
+                  if FileExists(compiler.current_module.staticlibfilename+'.tmp',false) then
+                    RenameFile(compiler.current_module.staticlibfilename+'.tmp',compiler.current_module.staticlibfilename);
                 end;
               first := false;
             until (not assigned(current)) or (not success);
@@ -1101,7 +1101,7 @@ Implementation
           begin
             SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(compiler.globals.utilsprefix + binstr);
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
+            Replace(cmdstr,'$LIB',maybequoted(compiler.current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);
           end;
 
@@ -2106,7 +2106,7 @@ Implementation
         DefaultLinkScript;
 
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          exemap:=texemap.create(current_module.mapfilename);
+          exemap:=texemap.create(compiler.current_module.mapfilename);
 
         PrintLinkerScript;
 
@@ -2200,13 +2200,13 @@ Implementation
 
     function TInternalLinker.ExecutableFilename:String;
       begin
-        result:=current_module.exefilename;
+        result:=compiler.current_module.exefilename;
       end;
 
 
     function TInternalLinker.SharedLibFilename:String;
       begin
-        result:=current_module.sharedlibfilename;
+        result:=compiler.current_module.sharedlibfilename;
       end;
 
 
@@ -2215,7 +2215,7 @@ Implementation
         IsSharedLibrary:=false;
         result:=RunLinkScript(ExecutableFilename);
 {$ifdef hasUnix}
-        fpchmod(current_module.exefilename,493);
+        fpchmod(compiler.current_module.exefilename,493);
 {$endif hasUnix}
       end;
 

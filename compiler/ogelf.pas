@@ -1058,6 +1058,8 @@ implementation
 
     function TElfObjectOutput.writedata(data:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         header : telfheader;
         shoffset,
         datapos   : aword;
@@ -1075,7 +1077,7 @@ implementation
               not(cs_executable_stack in globals.current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0,target,verbose);
            { symbol for filename }
-           symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
+           symtabsect.fstrsec.writestr(ExtractFileName(compiler.current_module.mainsource));
            symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
            { calc amount of sections we have }
            nsections:=1;
@@ -3056,6 +3058,8 @@ implementation
 
     procedure TElfExeOutput.WriteDynamicTags;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s: aword;
         i: longint;
         sym: TExeSymbol;
@@ -3072,7 +3076,7 @@ implementation
 
         if IsSharedLibrary then
           begin
-            s:=dynsymtable.fstrsec.writestr(ExtractFileName(current_module.sharedlibfilename));
+            s:=dynsymtable.fstrsec.writestr(ExtractFileName(compiler.current_module.sharedlibfilename));
             WriteDynTag(DT_SONAME,s);
             { TODO: names hardcoded here }
             sym:=TExeSymbol(ExeSymbolList.Find('FPC_SHARED_LIB_START'));

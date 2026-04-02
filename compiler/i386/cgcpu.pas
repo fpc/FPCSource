@@ -605,12 +605,12 @@ unit cgcpu;
                   begin
                     { Mark EBX as used in the proc }
                     include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
-                    current_module.requires_ebx_pic_helper:=true;
+                    compiler.current_module.requires_ebx_pic_helper:=true;
                     a_call_name_static(list,'fpc_geteipasebx');
                   end
                 else
                   begin
-                    current_module.requires_ecx_pic_helper:=true;
+                    compiler.current_module.requires_ecx_pic_helper:=true;
                     a_call_name_static(list,'fpc_geteipasecx');
                   end;
                 list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));

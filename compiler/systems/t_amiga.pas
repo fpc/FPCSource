@@ -134,7 +134,7 @@ begin
   if UseVLink and (source_info.dirsep <> '/') then
     LinkRes.fForceUseForwardSlash:=true;
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -360,7 +360,7 @@ begin
   MapStr:='';
 
   if UseVlink and (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(compiler.current_module.mapfilename)));
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' Then
@@ -375,7 +375,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -401,7 +401,7 @@ begin
   MapStr:='';
 
   if UseVlink and (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(compiler.current_module.mapfilename)));
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' Then
@@ -416,7 +416,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -432,7 +432,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

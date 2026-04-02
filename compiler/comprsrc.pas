@@ -224,7 +224,7 @@ begin
   if (not Result) and (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     AsmRes.AddLinkCommand(resbin,s,OutName);
   if Result and (output=roOBJ) and ObjUsed then
-    current_module.linkunitofiles.add(OutName,link_always);
+    compiler.current_module.linkunitofiles.add(OutName,link_always);
 end;
 
 constructor TWinLikeResourceFile.Create(const fn : ansistring;acompiler: TCompilerBase);
@@ -269,7 +269,7 @@ var
   end;
 
 begin
-  srcfilepath:=ExtractFilePath(current_module.mainsource);
+  srcfilepath:=ExtractFilePath(compiler.current_module.mainsource);
   if output=roRES then
     begin
       if compiler.globals.RCForceFPCRes then
@@ -442,7 +442,7 @@ begin
       compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_link_nolink];
       exit;
     end;
-  dst:=CFileStreamClass.Create(current_module.outputpath+outf,fmCreate);
+  dst:=CFileStreamClass.Create(compiler.current_module.outputpath+outf,fmCreate);
   if CStreamError<>0 then
     begin
       compiler.verbose.Message1(exec_e_cant_write_resource_file, dst.FileName);
@@ -472,8 +472,8 @@ begin
      (res_no_compile in compiler.target.res.resflags) then
     exit;
 
-  p:=ExtractFilePath(ExpandFileName(current_module.mainsource));
-  res:=TCmdStrListItem(current_module.ResourceFiles.First);
+  p:=ExtractFilePath(ExpandFileName(compiler.current_module.mainsource));
+  res:=TCmdStrListItem(compiler.current_module.ResourceFiles.First);
   while res<>nil do
     begin
       if compiler.target.info.res=res_none then
@@ -492,7 +492,7 @@ begin
         begin
           resourcefile.free;
           resourcefile := nil;
-          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath)), p) <> 0 then
+          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(compiler.current_module.outputpath)), p) <> 0 then
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }
@@ -514,7 +514,7 @@ begin
               outfmt:=roRES;
               res.FPStr:=ChangeFileExt(res.FPStr,compiler.target.info.resext);
             end;
-          resourcefile.compile(outfmt, current_module.outputpath+res.FPStr);
+          resourcefile.compile(outfmt, compiler.current_module.outputpath+res.FPStr);
           resourcefile.free;
           resourcefile := nil;
         end;
@@ -559,7 +559,7 @@ begin
       exit;
 //  if cs_link_nolink in compiler.globals.current_settings.globalswitches then
 //    exit;
-  s:=ChangeFileExt(current_module.ppufilename,compiler.target.info.resobjext);
+  s:=ChangeFileExt(compiler.current_module.ppufilename,compiler.target.info.resobjext);
   if (res_arch_in_file_name in compiler.target.res.resflags) then
     s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+compiler.target.info.resobjext);
   resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s,compiler));
@@ -569,7 +569,7 @@ begin
       ProcessModule(hp.u);
       hp:=tused_unit(hp.next);
     end;
-  ProcessModule(current_module);
+  ProcessModule(compiler.current_module);
   { Finish collection }
   resourcefile.EndCollect;
   resourcefile.free;

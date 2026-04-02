@@ -202,7 +202,7 @@ begin
          recordpendinglocalswitch(tlocalswitch(setsw),state);
        modulesw :
          begin
-           if current_module.in_global then
+           if compiler.current_module.in_global then
             begin
 {$ifndef cpufpemu}
               if tmoduleswitch(setsw)=cs_fp_emulation then
@@ -229,7 +229,7 @@ begin
          end;
        globalsw :
          begin
-           if current_module.in_global and (current_module=compiler.main_module) then
+           if compiler.current_module.in_global and (compiler.current_module=compiler.main_module) then
             begin
               if state='+' then
                compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[tglobalswitch(setsw)]
@@ -256,7 +256,7 @@ begin
        targetsw:
          begin
            targetswitches:=compiler.globals.current_settings.targetswitches;
-           UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,targetswitches,current_module.in_global);
+           UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,targetswitches,compiler.current_module.in_global);
            compiler.globals.current_settings.targetswitches:=targetswitches;
          end;
      end;
@@ -322,7 +322,7 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
   begin
     new(pstate);
     {$IFDEF DEBUG_MESSAGESTATE}
-    pstate^.owner:=current_module; { nil for global option }
+    pstate^.owner:=compiler.current_module; { nil for global option }
     {$ENDIF}
     pstate^.next:=compiler.globals.pendingstate.nextmessagerecord;
     pstate^.value:=msg;
@@ -498,9 +498,9 @@ procedure flushpendingswitchesstate;
     while assigned(pstate) do
       begin
         {$IFDEF DEBUG_MESSAGESTATE}
-        if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+        if assigned(pstate^.owner) and (pstate^.owner<>compiler.current_module) then
           begin
-            writeln('flushpendingswitchesstate cur: ',current_module.modulename^,' ',current_module.statestr);
+            writeln('flushpendingswitchesstate cur: ',compiler.current_module.modulename^,' ',compiler.current_module.statestr);
             writeln('flushpendingswitchesstate pstate: ',tmodule(pstate^.owner).modulename^,' ',tmodule(pstate^.owner).statestr);
             Internalerror(2026030701);
           end;

@@ -120,7 +120,7 @@ implementation
         end;
 
       begin
-         include(current_module.moduleflags,mf_has_exports);
+         include(compiler.current_module.moduleflags,mf_has_exports);
          DefString:='';
          InternalProcName:='';
          parser.pbase.consume(_EXPORTS);

@@ -72,10 +72,10 @@ implementation
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -100,7 +100,7 @@ begin
      exit;
    end;
   { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) and
      (hp.name^>hp2.name^) do
     hp2:=texported_item(hp2.next);
@@ -111,8 +111,8 @@ begin
       duplicatesymbol(hp.name^);
       exit;
     end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.concat(hp)
+  if hp2=texported_item(compiler.current_module._exports.first) then
+    compiler.current_module._exports.concat(hp)
   else if assigned(hp2) then
     begin
        hp.next:=hp2;
@@ -122,7 +122,7 @@ begin
        hp2.previous:=hp;
     end
   else
-    current_module._exports.concat(hp);
+    compiler.current_module._exports.concat(hp);
 end;
 
 
@@ -138,7 +138,7 @@ var
   hp2 : texported_item;
   pd  : tprocdef;
 begin
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and
@@ -255,7 +255,7 @@ begin
   LinkRes.Add('-Bsymbolic');
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L'+HPath.Str);
@@ -371,7 +371,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -402,7 +402,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -434,7 +434,7 @@ var
  begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -456,11 +456,11 @@ var
 { Write used files and libraries }
   WriteResponseFile(true,true);
 
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
+  SoNameStr:='-soname '+ExtractFileName(compiler.current_module.sharedlibfilename);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -475,7 +475,7 @@ var
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 

@@ -185,15 +185,15 @@ uses
         tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
         { Write unitname entry }
         tcb.maybe_begin_aggregate(resstrdef);
-        namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage);
-        tcb.emit_string_offset(namelab,length(current_module.localsymtable.name^),st_ansistring,false,charpointertype);
+        namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@compiler.current_module.localsymtable.name^[1],length(compiler.current_module.localsymtable.name^),getansistringcodepage);
+        tcb.emit_string_offset(namelab,length(compiler.current_module.localsymtable.name^),st_ansistring,false,charpointertype);
         tcb.emit_tai(tai_const.create_nil_dataptr,cansistringtype);
         tcb.emit_tai(tai_const.create_nil_dataptr,cansistringtype);
         tcb.emit_ord_const(0,u32inttype);
         tcb.maybe_end_aggregate(resstrdef);
         current_asmdata.asmlists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
-            nil,resstrdef,'RESSTR','',current_module.localsymtable,sizeof(pint)
+            nil,resstrdef,'RESSTR','',compiler.current_module.localsymtable,sizeof(pint)
           )
         );
         tcb.free;
@@ -249,7 +249,7 @@ uses
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         current_asmdata.AsmLists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
-            nil,tcb.end_anonymous_record,'RESSTR','',current_module.localsymtable,sizeof(pint)
+            nil,tcb.end_anonymous_record,'RESSTR','',compiler.current_module.localsymtable,sizeof(pint)
           )
         );
         tcb.free;
@@ -267,7 +267,7 @@ uses
         P : PByte;
 
       begin
-        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rsj');
+        ResFileName:=ChangeFileExt(compiler.current_module.ppufilename,'.rsj');
         compiler.verbose.Message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$push}{$i-}
@@ -353,9 +353,9 @@ uses
 
     procedure Tresourcestrings.RegisterResourceStrings;
       begin
-        if assigned(current_module.globalsymtable) then
-          current_module.globalsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
-        current_module.localsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
+        if assigned(compiler.current_module.globalsymtable) then
+          compiler.current_module.globalsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
+        compiler.current_module.localsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
       end;
 
 
@@ -364,22 +364,22 @@ uses
         resstrs : Tresourcestrings;
       begin
         { needed for the typed constant defs that get generated/looked up }
-        if assigned(current_module.globalsymtable) then
-          compiler.symtablestack.push(current_module.globalsymtable);
-        compiler.symtablestack.push(current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          compiler.symtablestack.push(compiler.current_module.globalsymtable);
+        compiler.symtablestack.push(compiler.current_module.localsymtable);
         resstrs:=Tresourcestrings.Create(compiler);
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
-            include(current_module.moduleflags,mf_has_resourcestrings);
+            include(compiler.current_module.moduleflags,mf_has_resourcestrings);
             resstrs.CreateResourceStringData;
             resstrs.WriteRSJFile;
           end;
         resstrs.Free;
         resstrs := nil;
-        compiler.symtablestack.pop(current_module.localsymtable);
-        if assigned(current_module.globalsymtable) then
-          compiler.symtablestack.pop(current_module.globalsymtable);
+        compiler.symtablestack.pop(compiler.current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          compiler.symtablestack.pop(compiler.current_module.globalsymtable);
       end;
 
 end.

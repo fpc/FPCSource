@@ -121,7 +121,7 @@ end;
 
 procedure tlinkerwasi.InitSysInitUnitName;
 begin
-  if current_module.islibrary then
+  if compiler.current_module.islibrary then
     sysinitunit:='si_dll'
   else
     sysinitunit:='si_prc';
@@ -146,12 +146,12 @@ var
   maxmem : longint;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Create some replacements }
   mapstr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -160,7 +160,7 @@ begin
 
   SoNameStr:='';
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
@@ -222,12 +222,12 @@ var
 begin
   Result:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
   { Create some replacements }
   mapstr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -236,7 +236,7 @@ begin
 
   SoNameStr:='';
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
@@ -389,7 +389,7 @@ end;
 
 procedure TInternalLinkerWasi.InitSysInitUnitName;
 begin
-  if current_module.islibrary then
+  if compiler.current_module.islibrary then
     sysinitunit:='si_dll'
   else
     sysinitunit:='si_prc';

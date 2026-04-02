@@ -1872,9 +1872,9 @@ implementation
         potype_unitinit:
           begin
             cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
-            if assigned(current_module.globalsymtable) then
-              allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
-            allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
+            if assigned(compiler.current_module.globalsymtable) then
+              allocate_implicit_structs_for_st_with_base_ref(list,compiler.current_module.globalsymtable,ref,staticvarsym);
+            allocate_implicit_structs_for_st_with_base_ref(list,compiler.current_module.localsymtable,ref,staticvarsym);
           end;
         potype_class_constructor:
           begin

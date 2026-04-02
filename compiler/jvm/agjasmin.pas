@@ -320,7 +320,7 @@ implementation
                   { load infile }
                   if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
                    begin
-                     infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
+                     infile:=compiler.current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                      if assigned(infile) then
                       begin
                         { open only if needed !! }
@@ -520,8 +520,8 @@ implementation
         writer.AsmWriteLn('.bytecode 49.0');
         // include files are not support by Java, and the directory of the main
         // source file must not be specified
-        if current_module.mainsource<>'' then
-          n:=ExtractFileName(current_module.mainsource)
+        if compiler.current_module.mainsource<>'' then
+          n:=ExtractFileName(compiler.current_module.mainsource)
         else
           n:=compiler.globals.InputFileName;
         writer.AsmWriteLn('.source '+ExtractFileName(n));
@@ -533,9 +533,9 @@ implementation
               superclass=java.lang.object, make final so you cannot descend
               from it }
             writer.AsmWrite('.class final public ');
-            if assigned(current_module.namespace) then
-              writer.AsmWrite(current_module.namespace^+'.');
-            writer.AsmWriteln(current_module.realmodulename^);
+            if assigned(compiler.current_module.namespace) then
+              writer.AsmWrite(compiler.current_module.namespace^+'.');
+            writer.AsmWriteln(compiler.current_module.realmodulename^);
             writer.AsmWriteLn('.super java/lang/Object');
           end
         else
@@ -1077,15 +1077,15 @@ implementation
         writer.MarkEmpty;
         WriteExtraHeader(nil);
         { print all global variables }
-        WriteSymtableVarSyms(current_module.globalsymtable);
-        WriteSymtableVarSyms(current_module.localsymtable);
+        WriteSymtableVarSyms(compiler.current_module.globalsymtable);
+        WriteSymtableVarSyms(compiler.current_module.localsymtable);
         writer.AsmLn;
         { print all global procedures/functions }
-        WriteSymtableProcdefs(current_module.globalsymtable);
-        WriteSymtableProcdefs(current_module.localsymtable);
+        WriteSymtableProcdefs(compiler.current_module.globalsymtable);
+        WriteSymtableProcdefs(compiler.current_module.localsymtable);
 
-        WriteSymtableStructDefs(current_module.globalsymtable);
-        WriteSymtableStructDefs(current_module.localsymtable);
+        WriteSymtableStructDefs(compiler.current_module.globalsymtable);
+        WriteSymtableStructDefs(compiler.current_module.localsymtable);
 
         writer.AsmLn;
       end;

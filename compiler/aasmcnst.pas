@@ -299,7 +299,7 @@ type
      { get a label in the middle of an internal data section (no dead
        stripping) }
      function get_internal_data_section_internal_label: tasmlabel; virtual;
-     { adds a new entry to current_module.linkorderedsymbols }
+     { adds a new entry to compiler.current_module.linkorderedsymbols }
      procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); virtual;
 
      { easy access to the top level aggregate information instance }
@@ -949,7 +949,7 @@ implementation
 
    procedure ttai_typedconstbuilder.add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr);
      begin
-       current_module.linkorderedsymbols.concat(sym.Name);
+       compiler.current_module.linkorderedsymbols.concat(sym.Name);
      end;
 
 
@@ -1089,7 +1089,7 @@ implementation
            indtcb.free;
            indtcb := nil;
            if not (compiler.target.info.system in systems_indirect_var_imports) then
-             current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
+             compiler.current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
          end;
      end;
 
@@ -1141,7 +1141,7 @@ implementation
              asmtype:=AT_DATA;
            asmsym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,asmtype,def);
            if tcalo_is_public_asm in options then
-             current_module.add_public_asmsym(asmsym);
+             compiler.current_module.add_public_asmsym(asmsym);
            if not customsecname then
              secname:=make_mangledname(basename,st,'2_'+itemname);
          end;
@@ -1579,6 +1579,8 @@ implementation
 
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
      var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     var
        name: TSymStr;
        asmtype : TAsmsymtype;
      begin
@@ -1594,13 +1596,13 @@ implementation
              asmtype:=AT_DATA;
            result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,asmtype,voidpointertype);
            if tcdssso_register_asmsym in options then
-             current_module.add_public_asmsym(result);
+             _compiler.current_module.add_public_asmsym(result);
          end
        else
          begin
            result:=current_asmdata.RefAsmSymbol(name,AT_DATA,tcdssso_use_indirect in options);
            if tcdssso_register_asmsym in options then
-             current_module.add_extern_asmsym(result);
+             _compiler.current_module.add_extern_asmsym(result);
          end;
      end;
 

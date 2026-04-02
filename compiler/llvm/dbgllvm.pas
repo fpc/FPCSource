@@ -529,9 +529,9 @@ implementation
         fstaticvarsymdecl.Clear;
         { one item per def, plus some extra space in case of nested types,
           externally used types etc (it will grow further if necessary) }
-        i:=current_module.localsymtable.DefList.count*4;
-        if assigned(current_module.globalsymtable) then
-          inc(i,current_module.globalsymtable.DefList.count*2);
+        i:=compiler.current_module.localsymtable.DefList.count*4;
+        if assigned(compiler.current_module.globalsymtable) then
+          inc(i,compiler.current_module.globalsymtable.DefList.count*2);
         fdefmeta:=TLLVMMetaDefHashSet.Create(i,true,false);
 
         defnumberlist.Clear;
@@ -2769,7 +2769,7 @@ implementation
       begin
         ensuremetainit;
         storefilepos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=current_module.mainfilepos;
+        compiler.globals.current_filepos:=compiler.current_module.mainfilepos;
 
         vardatatype:=try_search_system_type('TVARDATA');
         if assigned(vardatatype) then
@@ -2778,28 +2778,28 @@ implementation
         collectglobalsyms;
 
         { write all global/local variables. This will flag all required tdefs  }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { write all procedures and methods. This will flag all required tdefs }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { reset unit type info flag }
         reset_unit_type_info;
 
         { write used types from the used units }
-        write_used_unit_type_info(current_asmdata.asmlists[al_dwarf_info],current_module);
+        write_used_unit_type_info(current_asmdata.asmlists[al_dwarf_info],compiler.current_module);
 
         { last write the types from this unit }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { write defs not written yet }
         write_remaining_defs_to_write(current_asmdata.asmlists[al_dwarf_info]);

@@ -1123,9 +1123,9 @@ implementation
                    the symbol in the localsymtable }
                  if not assigned(srsym) and
                     not(parser.pbase.parse_only) and
-                    (compiler.symtablestack.top=current_module.localsymtable) and
-                    assigned(current_module.globalsymtable) then
-                   srsym:=tsym(current_module.globalsymtable.Find(sp));
+                    (compiler.symtablestack.top=compiler.current_module.localsymtable) and
+                    assigned(compiler.current_module.globalsymtable) then
+                   srsym:=tsym(compiler.current_module.globalsymtable.Find(sp));
 
                  { if the symbol isn't assigned, but we're parsing a class or
                    object then check in the parent types for symbols of the same
@@ -1284,9 +1284,9 @@ implementation
                   begin
                     dummysym:=tsym(insertst.find(spnongen));
                     if not assigned(dummysym) and
-                        (compiler.symtablestack.top=current_module.localsymtable) and
-                        assigned(current_module.globalsymtable) then
-                      dummysym:=tsym(current_module.globalsymtable.find(spnongen));
+                        (compiler.symtablestack.top=compiler.current_module.localsymtable) and
+                        assigned(compiler.current_module.globalsymtable) then
+                      dummysym:=tsym(compiler.current_module.globalsymtable.find(spnongen));
                   end;
                 if not assigned(dummysym) then
                   begin
@@ -1503,7 +1503,7 @@ implementation
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
                not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
-              include(current_module.moduleflags,mf_uses_variants);
+              include(compiler.current_module.moduleflags,mf_uses_variants);
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               compiler.verbose.Message1(type_e_not_automatable,pd.returndef.typename);

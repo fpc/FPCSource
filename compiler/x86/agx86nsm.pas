@@ -341,7 +341,7 @@ interface
             if cs_huge_code in compiler.globals.current_settings.moduleswitches then
               result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
-              result:=current_module.modulename^ + '_TEXT';
+              result:=compiler.current_module.modulename^ + '_TEXT';
           end
         else
           result:='_TEXT';
@@ -449,7 +449,7 @@ interface
                 end
               else if o.ref^.refaddr=addr_fardataseg then
                 begin
-                  writer.AsmWrite(current_module.modulename^+'_DATA');
+                  writer.AsmWrite(compiler.current_module.modulename^+'_DATA');
                 end
 {$endif i8086}
               else
@@ -616,7 +616,7 @@ interface
             else if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
             else if omf_segclass(atype)='FAR_DATA' then
-              secname:=current_module.modulename^ + '_DATA'
+              secname:=compiler.current_module.modulename^ + '_DATA'
             else
               secname:=omf_secnames[atype];
             writer.AsmWrite(secname);
@@ -879,7 +879,7 @@ interface
                  aitconst_dgroup:
                    writer.AsmWriteLn(#9'DW'#9'DGROUP');
                  aitconst_fardataseg:
-                   writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
+                   writer.AsmWriteLn(#9'DW'#9+compiler.current_module.modulename^+'_DATA');
 {$endif i8086}
 {$ifdef x86_64}
                  aitconst_rva_symbol,
@@ -1393,8 +1393,8 @@ interface
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Start writing nasm-styled assembler output for '+compiler.current_module.mainsource);
 {$endif}
       ResetSectionsList;
       WriteHeader;
@@ -1420,8 +1420,8 @@ interface
         end;
       WriteGroups;
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Done writing nasm-styled assembler output for '+compiler.current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

@@ -974,7 +974,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     }
     hiddenflag:=0;
     if (objclss.owner.symtabletype=staticsymtable) and
-       current_module.is_unit then
+       compiler.current_module.is_unit then
       hiddenflag:=CLS_HIDDEN;
 
     { class declaration section }
@@ -1645,7 +1645,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
     }
     flags:=0;
     if (objclss.owner.symtabletype=staticsymtable) and
-       current_module.is_unit then
+       compiler.current_module.is_unit then
       flags:=OBJC2_CLS_HIDDEN;
     if metaclass then
       begin

@@ -330,7 +330,7 @@ implementation
 
       name:='funcrefintf_'+suffix;
       if pd.owner.symtabletype=globalsymtable then
-        symowner:=current_module.localsymtable
+        symowner:=compiler.current_module.localsymtable
       else
         symowner:=pd.owner;
       sym:=tsym(symowner.find(name));

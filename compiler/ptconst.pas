@@ -111,13 +111,13 @@ implementation
             if assigned(current_structdef) then
               previnit:=current_structdef.tcinitcode
             else
-              previnit:=tnode(current_module.tcinitcode);
+              previnit:=tnode(compiler.current_module.tcinitcode);
             tcbuilder:=tnodetreetypedconstbuilderclass(ctypedconstbuilder).create(sym,previnit,compiler);
             restree:=tnodetreetypedconstbuilder(tcbuilder).parse_into_nodetree;
             if assigned(current_structdef) then
               current_structdef.tcinitcode:=restree
             else
-              current_module.tcinitcode:=restree;
+              compiler.current_module.tcinitcode:=restree;
           end;
 
         { Parse hints }
@@ -164,7 +164,7 @@ implementation
         if not parser.pbase.parse_generic then
           begin
             if vo_is_public in sym.varoptions then
-              current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);
+              compiler.current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);
 
             if not(compiler.target.info.system in systems_typed_constants_node_init) then
               begin

@@ -727,22 +727,22 @@ implementation
         if cs_no_regalloc in compiler.globals.current_settings.globalswitches then
           exit;
         storefilepos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=current_module.mainfilepos;
+        compiler.globals.current_filepos:=compiler.current_module.mainfilepos;
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
 
         { write all global/static variables, part of flagging all required tdefs  }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_start],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_start],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_start],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_start],compiler.current_module.localsymtable);
 
         { write all procedures and methods, part of flagging all required tdefs }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_start],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_start],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_start],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_start],compiler.current_module.localsymtable);
 
         { process all llvm instructions, part of flagging all required tdefs }
         for hal:=low(TasmlistType) to high(TasmlistType) do

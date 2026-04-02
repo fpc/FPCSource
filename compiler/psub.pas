@@ -422,7 +422,7 @@ implementation
          if (
              assigned(current_procinfo.procdef.localst) and
              (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
-             (current_module.is_unit or islibrary)
+             (compiler.current_module.is_unit or islibrary)
             ) then
            begin
              if (current_scanner.token=_END) then
@@ -1541,16 +1541,16 @@ implementation
         end;
 
       begin
-        if current_module.ppxfilefail then
+        if compiler.current_module.ppxfilefail then
           Exit;
 
-        Assign(T, current_module.ppxfilename);
+        Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Append(T);
         if IOResult <> 0 then
           begin
-            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
-            current_module.ppxfilefail := True;
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,compiler.current_module.ppxfilename);
+            compiler.current_module.ppxfilefail := True;
             Exit;
           end;
         {$pop}
@@ -1894,9 +1894,9 @@ implementation
              begin
                 { this is also used for initialization of variables in a
                   program which does not have a globalsymtable }
-                if assigned(current_module.globalsymtable) then
-                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@searchthreadvar,nil);
-                TSymtable(current_module.localsymtable).SymList.ForEachCall(@searchthreadvar,nil);
+                if assigned(compiler.current_module.globalsymtable) then
+                  TSymtable(compiler.current_module.globalsymtable).SymList.ForEachCall(@searchthreadvar,nil);
+                TSymtable(compiler.current_module.localsymtable).SymList.ForEachCall(@searchthreadvar,nil);
              end;
          end;
 
@@ -2022,11 +2022,11 @@ implementation
 
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
-           (not current_module.is_unit) then
+           (not compiler.current_module.is_unit) then
           begin
             include(flags,pi_do_call);
             { the main program never returns due to the do_exit call }
-            if not(current_module.islibrary) and (procdef.proctypeoption=potype_proginit) then
+            if not(compiler.current_module.islibrary) and (procdef.proctypeoption=potype_proginit) then
               include(procdef.procoptions,po_noreturn);
           end;
 
@@ -2565,7 +2565,7 @@ implementation
            end;
 
          { parse the code ... }
-         code:=block(current_module.islibrary);
+         code:=block(compiler.current_module.islibrary);
 
          compiler.procdefutil.postprocess_capturer(self);
 
@@ -2697,7 +2697,7 @@ implementation
 
         { create a new procedure }
         current_procinfo:=cprocinfo.create(old_current_procinfo,compiler);
-        current_module.procinfo:=current_procinfo;
+        compiler.current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
         isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
         { an anonymous function is always considered as nested }
@@ -2758,9 +2758,9 @@ implementation
           end;
 
         { release procinfo }
-        if tprocinfo(current_module.procinfo)<>current_procinfo then
+        if tprocinfo(compiler.current_module.procinfo)<>current_procinfo then
           internalerror(200304274);
-        current_module.procinfo:=current_procinfo.parent;
+        compiler.current_module.procinfo:=current_procinfo.parent;
 
         { For specialization we didn't record the last semicolon. Moving this parsing
           into the parse_body routine is not done because of having better file position
@@ -2789,12 +2789,12 @@ implementation
         old_current_procinfo : tprocinfo;
       begin
         old_current_procinfo:=current_procinfo;
-        old_module_procinfo:=current_module.procinfo;
+        old_module_procinfo:=compiler.current_module.procinfo;
         current_procinfo:=nil;
-        current_module.procinfo:=nil;
+        compiler.current_module.procinfo:=nil;
         read_proc_body(nil,pd);
         current_procinfo:=old_current_procinfo;
-        current_module.procinfo:=old_module_procinfo;
+        compiler.current_module.procinfo:=old_module_procinfo;
       end;
 
 
@@ -2860,9 +2860,9 @@ implementation
          else
           begin
             pdflags:=[pd_body];
-            if (not current_module.in_interface) then
+            if (not compiler.current_module.in_interface) then
               include(pdflags,pd_implemen);
-            if (not current_module.is_unit) or
+            if (not compiler.current_module.is_unit) or
                compiler.globals.create_smartlink_library then
               include(result.procoptions,po_global);
             result.forwarddef:=false;
@@ -2891,7 +2891,7 @@ implementation
            begin
              { One may not implement a method of a type declared in a different unit }
              if assigned(result.struct) and
-                (result.struct.symtable.moduleid<>current_module.moduleid) and
+                (result.struct.symtable.moduleid<>compiler.current_module.moduleid) and
                 not result.is_specialization then
               begin
                 compiler.verbose.MessagePos1(result.fileinfo,parser_e_method_for_type_in_other_unit,result.struct.typesymbolprettyname);
@@ -3053,11 +3053,11 @@ implementation
         if assigned(pd.import_dll) then
           begin
             if assigned (pd.import_name) then
-              current_module.AddExternalImport(pd.import_dll^,
+              compiler.current_module.AddExternalImport(pd.import_dll^,
                 pd.import_name^,parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,false)
             else
-              current_module.AddExternalImport(pd.import_dll^,
+              compiler.current_module.AddExternalImport(pd.import_dll^,
                 parser.pdecsub.proc_get_importname(pd),parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,true);
           end
@@ -3066,9 +3066,9 @@ implementation
             name:=parser.pdecsub.proc_get_importname(pd);
             { add import name to external list for DLL scanning }
             if tf_has_dllscanner in compiler.target.info.flags then
-              current_module.dllscannerinputlist.Add(name,pd);
+              compiler.current_module.dllscannerinputlist.Add(name,pd);
             { needed for units that use functions in packages this way }
-            current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_FUNCTION);
+            compiler.current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_FUNCTION);
           end;
       end;
 
@@ -3090,18 +3090,18 @@ implementation
       var
         T: Text;
       begin
-        Assign(T, current_module.ppxfilename);
+        Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Rewrite(T);
         if IOResult<>0 then
           begin
-            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
-            current_module.ppxfilefail := True;
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,compiler.current_module.ppxfilename);
+            compiler.current_module.ppxfilefail := True;
             Exit;
           end;
         {$pop}
         { Mark the node dump file as available for writing }
-        current_module.ppxfilefail := False;
+        compiler.current_module.ppxfilefail := False;
         WriteLn(T, '<?xml version="1.0" encoding="utf-8"?>');
         WriteLn(T, '<', RootName, ' name="', ModuleName, '">');
         Close(T);
@@ -3114,16 +3114,16 @@ implementation
       var
         T: Text;
       begin
-        if current_module.ppxfilefail then
+        if compiler.current_module.ppxfilefail then
           Exit;
 
-        current_module.ppxfilefail := True; { File is now considered closed no matter what happens }
-        Assign(T, current_module.ppxfilename);
+        compiler.current_module.ppxfilefail := True; { File is now considered closed no matter what happens }
+        Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Append(T);
         if IOResult<>0 then
           begin
-            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,compiler.current_module.ppxfilename);
             Exit;
           end;
         {$pop}

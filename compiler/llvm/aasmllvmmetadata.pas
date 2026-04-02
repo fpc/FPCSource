@@ -454,9 +454,11 @@ implementation
 
   class function tllvmmetadata.addstring(const s: TSymStr): TSuperRegister;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       index: longint;
     begin
-      index:=current_module.llvmmetadatastrings.Add(s,nil);
+      index:=compiler.current_module.llvmmetadatastrings.Add(s,nil);
       if index>high(result) then
         internalerror(2019122806);
       result:=index;
@@ -464,21 +466,25 @@ implementation
 
 
   class function tllvmmetadata.regtostring(reg: TRegister): TSymStr;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if getregtype(reg)<>R_METADATAREGISTER then
         internalerror(2019122807);
       if getsubreg(reg)<>R_SUBMETASTRING then
         internalerror(2019122808);
-      result:=current_module.llvmmetadatastrings.NameOfIndex(getsupreg(reg));
+      result:=compiler.current_module.llvmmetadatastrings.NameOfIndex(getsupreg(reg));
     end;
 
 
   class function tllvmmetadata.getstringreg(const s: TSymstr): TRegister;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       supreg: TSuperRegister;
       index: longint;
     begin
-      index:=current_module.llvmmetadatastrings.FindIndexOf(s);
+      index:=compiler.current_module.llvmmetadatastrings.FindIndexOf(s);
       if index<>-1 then
         supreg:=index
       else

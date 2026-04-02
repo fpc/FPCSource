@@ -168,9 +168,9 @@ implementation
         hs : string;
         fileinfo : tfileposinfo;
       begin
-        for i:=0 to current_module.checkforwarddefs.Count-1 do
+        for i:=0 to compiler.current_module.checkforwarddefs.Count-1 do
           begin
-            def:=tdef(current_module.checkforwarddefs[i]);
+            def:=tdef(compiler.current_module.checkforwarddefs[i]);
             case def.typ of
               pointerdef,
               classrefdef :
@@ -277,7 +277,7 @@ implementation
                 internalerror(200811071);
             end;
           end;
-        current_module.checkforwarddefs.clear;
+        compiler.current_module.checkforwarddefs.clear;
       end;
 
 
@@ -1128,7 +1128,7 @@ implementation
            begin
              { for the JVM target records always need a name, because they are
                represented by a class }
-             recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),
+             recst:=trecordsymtable.create(compiler.current_module.realmodulename^+'__fpc_intern_recname_'+tostr(compiler.current_module.deflist.count),
                compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
              current_structdef:=crecorddef.create(recst.name^,recst,compiler);
            end;
@@ -1163,7 +1163,7 @@ implementation
            count and type parameters in the name to simply resolving }
          parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
          { apply $RTTI directive to current object }
-         current_structdef.apply_rtti_directive(current_module.rtti_directive);
+         current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive);
 
          { the correct typesym<->def relationship is needed for example when
            parsing parameters that are specializations of the record, when
@@ -1513,7 +1513,7 @@ implementation
             declaration (-> must create new typedef) }
           def:=cpointerdef.create(tt2,compiler);
           if tt2.typ=forwarddef then
-            current_module.checkforwarddefs.add(def);
+            compiler.current_module.checkforwarddefs.add(def);
         end;
 
 
@@ -2073,7 +2073,7 @@ implementation
                       if hdef.typ=forwarddef then
                         begin
                           def:=cclassrefdef.create(hdef,compiler);
-                          current_module.checkforwarddefs.add(def);
+                          compiler.current_module.checkforwarddefs.add(def);
                         end
                     else
                       compiler.verbose.Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
@@ -2192,7 +2192,7 @@ implementation
                   single_type(tt2,SingleTypeOptionsInTypeBlock[compiler.globals.block_type=bt_type]);
                   def:=cpointerdef.create(tt2,compiler);
                   if tt2.typ=forwarddef then
-                    current_module.checkforwarddefs.add(def);
+                    compiler.current_module.checkforwarddefs.add(def);
                 end
               else
                 expr_type;

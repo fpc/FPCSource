@@ -1685,7 +1685,7 @@ implementation
         vardatatype : ttypesym;
       begin
         storefilepos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=current_module.mainfilepos;
+        compiler.globals.current_filepos:=compiler.current_module.mainfilepos;
 
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
@@ -1699,37 +1699,37 @@ implementation
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
-        include(current_module.moduleflags,mf_has_stabs_debuginfo);
+        include(compiler.current_module.moduleflags,mf_has_stabs_debuginfo);
         if not(compiler.target.info.system in systems_darwin) then
           begin
-            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),sizeof(pint));
-            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
+            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
           end
         else
-          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(current_module.localsymtable),sizeof(pint));
+          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
 
         { write all global/local variables. This will flag all required tdefs  }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_syms(stabsvarlist,current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_syms(stabsvarlist,current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_syms(stabsvarlist,compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_syms(stabsvarlist,compiler.current_module.localsymtable);
 
         { write all procedures and methods. This will flag all required tdefs }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_procdefs(stabsvarlist,current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_procdefs(stabsvarlist,current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_procdefs(stabsvarlist,compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_procdefs(stabsvarlist,compiler.current_module.localsymtable);
 
         { reset unit type info flag }
         reset_unit_type_info;
 
         { write used types from the used units }
-        write_used_unit_type_info(stabstypelist,current_module);
+        write_used_unit_type_info(stabstypelist,compiler.current_module);
         { last write the types from this unit }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_defs(stabstypelist,current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_defs(stabstypelist,current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_defs(stabstypelist,compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_defs(stabstypelist,compiler.current_module.localsymtable);
 
         write_remaining_defs_to_write(stabstypelist);
 
@@ -1845,10 +1845,10 @@ implementation
       begin
         { emit main source n_sourcefile for start of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
-        infile:=current_module.sourcefiles.get_file(1);
-        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),sizeof(pint),secorder_begin);
+        infile:=compiler.current_module.sourcefiles.get_file(1);
+        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
 {$ifdef MIPS}
        { at least mipsel needs an explicit '.set nomips16' before any reference to
          procedure/function, see bug report 32138 }
@@ -1867,9 +1867,9 @@ implementation
           current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(STABS_N_OSO,'0','0','0')));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
-        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),sizeof(pint),secorder_end);
+        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),sizeof(pint),secorder_end);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
         hlabel.increfs;

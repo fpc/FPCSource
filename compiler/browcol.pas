@@ -1981,11 +1981,11 @@ begin
   DisposeBrowserCol;
 
   if (cs_browser in compiler.globals.current_settings.moduleswitches) then
-    if not assigned(current_module.arraydefs) then
+    if not assigned(compiler.current_module.arraydefs) then
       { Need this to get variable size in memory (MemInfo.Size).
         Units always fall in this branch, because
         their "arraydefs" is destroyed as soon they are compiled. }
-      current_module.arraydefs:=THashSet.Create(64,true,false);
+      compiler.current_module.arraydefs:=THashSet.Create(64,true,false);
 
   if (cs_browser in compiler.globals.current_settings.moduleswitches) then
     NewBrowserCol;
@@ -2009,7 +2009,7 @@ begin
              if assigned(hp.loaded_from.globalsymtable) then
                UnitS^.SetLoadedFrom(tsymtable(hp.loaded_from.globalsymtable).name^);
                }
-{           pimportlist(current_module^.imports^.first);}
+{           pimportlist(compiler.current_module^.imports^.first);}
 
            if assigned(hp.sourcefiles) then
              for ifile:=hp.sourcefiles.nfiles-1 downto 0 do

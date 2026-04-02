@@ -63,10 +63,10 @@ var
   i: longint;
   ImportLibrary: TImportLibrary;
 begin
-  for i:=0 to current_module.ImportLibraryList.count -1 do
+  for i:=0 to compiler.current_module.ImportLibraryList.count -1 do
   begin
-    ImportLibrary := TImportlibrary(current_module.ImportLibraryList[i]);
-    current_module.linkothersharedlibs.add(ImportLibrary.Name, link_always);
+    ImportLibrary := TImportlibrary(compiler.current_module.ImportLibraryList[i]);
+    compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name, link_always);
   end;
 end;
 
@@ -118,7 +118,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -230,12 +230,12 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$ENTRY',EntryStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
 
-  { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename^))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));}
 
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
@@ -244,7 +244,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     begin
       SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
       success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
     end;
 
@@ -258,7 +258,7 @@ var
 begin
   success:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

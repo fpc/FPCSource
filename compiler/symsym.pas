@@ -652,6 +652,8 @@ implementation
 
 
     constructor tstoredsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef symansistr}
          inherited Create(st,ppufile.getansistring);
@@ -659,7 +661,7 @@ implementation
          inherited Create(st,ppufile.getstring);
 {$endif symansistr}
          SymId:=ppufile.getlongint;
-         current_module.symlist[SymId]:=self;
+         compiler.current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getset(tppuset2(symoptions));
@@ -767,16 +769,16 @@ implementation
         if assigned(owner) then
           begin
             tmod:=find_module_from_symtable(owner);
-            if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
+            if assigned(tmod) and assigned(compiler.current_module) and (tmod<>compiler.current_module) then
               begin
-                compiler.verbose.comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
+                compiler.verbose.comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+compiler.current_module.mainsource);
               end;
             if not assigned(tmod) then
-              tmod:=current_module;
+              tmod:=compiler.current_module;
           end
         else
-          tmod:=current_module;
-        { Register in current_module }
+          tmod:=compiler.current_module;
+        { Register in compiler.current_module }
         if assigned(tmod) then
           begin
             tmod.symlist.Add(self);
@@ -1085,7 +1087,7 @@ implementation
                    (pd.interfacedef) then
                   begin
                     pd.setmangledname(compiler.target.info.CPrefix+tprocdef(pd).procsym.realname);
-                    if (not current_module.interface_only) then
+                    if (not compiler.current_module.interface_only) then
                       compiler.verbose.MessagePos1(pd.fileinfo,sym_w_forward_not_resolved,pd.fullprocname(false));
                   end
                 else
@@ -2151,7 +2153,7 @@ implementation
             { when generating the debug info for the module in which the }
             { symbol is defined, the localsymtable of that module is     }
             { already popped from the symtablestack                      }
-            else if searchsym_in_module(current_module,lower(owner.name^)+'_'+name,srsym,srsymtable) then
+            else if searchsym_in_module(compiler.current_module,lower(owner.name^)+'_'+name,srsym,srsymtable) then
               result:=srsym.mangledname
             else
               internalerror(2007012501);
@@ -2229,7 +2231,7 @@ implementation
           (owner.symtabletype=globalsymtable) or
           (compiler.globals.create_smartlink and
            not(tf_smartlink_sections in compiler.target.info.flags)) or
-          current_module.islibrary or
+          compiler.current_module.islibrary or
           (assigned(current_procinfo) and
            ((po_inline in current_procinfo.procdef.procoptions) or
             { globalasmsym is called normally before the body of a subroutine is parsed

@@ -862,8 +862,8 @@ implementation
         if findunitsymtable(nonuniqueintf.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then
           begin
             if siid<>'' then
-              current_module.add_extern_asmsym(siid,AB_EXTERNAL,AT_DATA);
-            current_module.add_extern_asmsym(siidstr,AB_EXTERNAL,AT_DATA);
+              compiler.current_module.add_extern_asmsym(siid,AB_EXTERNAL,AT_DATA);
+            compiler.current_module.add_extern_asmsym(siidstr,AB_EXTERNAL,AT_DATA);
           end;
       end;
 
@@ -941,7 +941,7 @@ implementation
             sizeof(pint)));
           tcb.free;
           tcb := nil;
-          current_module.add_public_asmsym(sym);
+          compiler.current_module.add_public_asmsym(sym);
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
@@ -955,7 +955,7 @@ implementation
         sizeof(pint)));
       tcb.free;
       tcb := nil;
-      current_module.add_public_asmsym(sym);
+      compiler.current_module.add_public_asmsym(sym);
     end;
 
 
@@ -1039,14 +1039,14 @@ implementation
            else if (cs_opt_remove_empty_proc in compiler.globals.current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              begin
                procname:='FPC_EMPTYMETHOD';
-               if current_module.globalsymtable<>systemunit then
-                 current_module.add_extern_asmsym(procname,AB_EXTERNAL,AT_FUNCTION);
+               if compiler.current_module.globalsymtable<>systemunit then
+                 compiler.current_module.add_extern_asmsym(procname,AB_EXTERNAL,AT_FUNCTION);
              end
            else if not compiler.wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              begin
                procname:=vmtpd.mangledname;
-               if current_module.moduleid<>vmtpd.owner.moduleid then
-                 current_module.addimportedsym(vmtpd.procsym);
+               if compiler.current_module.moduleid<>vmtpd.owner.moduleid then
+                 compiler.current_module.addimportedsym(vmtpd.procsym);
              end;
            tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd,pc_address_only,compiler));
 {$ifdef vtentry}
@@ -1089,7 +1089,7 @@ implementation
          { this code gets executed after the current module's symtable has
            already been removed from the symtablestack -> add it again, so that
            newly created defs here end up in the right unit }
-         compiler.symtablestack.push(current_module.localsymtable);
+         compiler.symtablestack.push(compiler.current_module.localsymtable);
          strmessagetable:=nil;
          interfacetable:=nil;
          fieldtablelabel:=nil;
@@ -1170,8 +1170,8 @@ implementation
              tcb.queue_emit_asmsym(
                sym,
                tfieldvarsym(_class.childof.vmt_field).vardef);
-             if _class.childof.owner.moduleid<>current_module.moduleid then
-               current_module.add_extern_asmsym(sym);
+             if _class.childof.owner.moduleid<>compiler.current_module.moduleid then
+               compiler.current_module.add_extern_asmsym(sym);
            end
          else
            tcb.emit_tai(Tai_const.Create_nil_dataptr,parentvmtdef);
@@ -1241,7 +1241,7 @@ implementation
          tcb.maybe_end_aggregate(vmtdef);
 
          sym:=current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_NOINDIRECT,vmtdef);
-         current_module.add_public_asmsym(sym);
+         compiler.current_module.add_public_asmsym(sym);
 
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
@@ -1261,7 +1261,7 @@ implementation
            hs:=hs+_class.vmt_mangledname;
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
-        compiler.symtablestack.pop(current_module.localsymtable);
+        compiler.symtablestack.pop(compiler.current_module.localsymtable);
       end;
 
 
@@ -1320,7 +1320,7 @@ implementation
                         symbol table, but set the owning "struct" to the current
                         class (so self will have the correct type) }
                       wrapperpd:=create_procdef_alias(pd,tmps,tmps,
-                        current_module.localsymtable,_class,
+                        compiler.current_module.localsymtable,_class,
                         tsk_interface_wrapper,wrapperinfo);
                       include(wrapperpd.implprocoptions,pio_thunk);
                     end
@@ -1331,7 +1331,7 @@ implementation
                         compiler.globals.current_filepos:=pd.fileinfo
                       else
                         begin
-                          compiler.globals.current_filepos.moduleindex:=current_module.moduleid;
+                          compiler.globals.current_filepos.moduleindex:=compiler.current_module.moduleid;
                           compiler.globals.current_filepos.fileindex:=1;
                           compiler.globals.current_filepos.line:=1;
                           compiler.globals.current_filepos.column:=1;

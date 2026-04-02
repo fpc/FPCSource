@@ -157,10 +157,10 @@ implementation
   procedure TDebugInfoJasmin.inserttypeinfo;
     begin
       { write all procedures and methods }
-      if assigned(current_module.globalsymtable) then
-        write_symtable_procdefs(nil,current_module.globalsymtable);
-      if assigned(current_module.localsymtable) then
-        write_symtable_procdefs(nil,current_module.localsymtable);
+      if assigned(compiler.current_module.globalsymtable) then
+        write_symtable_procdefs(nil,compiler.current_module.globalsymtable);
+      if assigned(compiler.current_module.localsymtable) then
+        write_symtable_procdefs(nil,compiler.current_module.localsymtable);
     end;
 
   procedure TDebugInfoJasmin.insertlineinfo(list: TAsmList);

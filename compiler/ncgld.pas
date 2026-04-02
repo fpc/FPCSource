@@ -310,12 +310,12 @@ implementation
 
              { FPC_THREADVAR_RELOCATE is nil? }
              issystemunit:=(
-                             assigned(current_module.globalsymtable) and
-                             (current_module.globalsymtable=systemunit)
+                             assigned(compiler.current_module.globalsymtable) and
+                             (compiler.current_module.globalsymtable=systemunit)
                            ) or
                            (
-                             not assigned(current_module.globalsymtable) and
-                             (current_module.localsymtable=systemunit)
+                             not assigned(compiler.current_module.globalsymtable) and
+                             (compiler.current_module.localsymtable=systemunit)
                            );
              indirect:=(tf_supports_packages in compiler.target.info.flags) and
                          (compiler.target.info.system in systems_indirect_var_imports) and
@@ -346,7 +346,7 @@ implementation
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
              reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment,[]);
              if not issystemunit then
-               current_module.add_extern_asmsym('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA);
+               compiler.current_module.add_extern_asmsym('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
              { no, call it with the index of the threadvar as parameter }
@@ -404,10 +404,10 @@ implementation
                 (gvs.varoptions*[vo_is_external,vo_is_weak_external]=[]) and
                 (gvs.owner.symtabletype in [globalsymtable,staticsymtable]) and
                 (cs_imported_data in localswitches) and
-                not sym_is_owned_by(gvs,current_module.globalsymtable) and
+                not sym_is_owned_by(gvs,compiler.current_module.globalsymtable) and
                 (
-                  (current_module.globalsymtable=current_module.localsymtable) or
-                  not sym_is_owned_by(gvs,current_module.localsymtable)
+                  (compiler.current_module.globalsymtable=compiler.current_module.localsymtable) or
+                  not sym_is_owned_by(gvs,compiler.current_module.localsymtable)
                 );
       end;
 
@@ -451,11 +451,11 @@ implementation
                      indirect:=(tf_supports_packages in compiler.target.info.flags) and
                                  (compiler.target.info.system in systems_indirect_var_imports) and
                                  (cs_imported_data in localswitches) and
-                                 (symtableentry.owner.moduleid<>current_module.moduleid);
+                                 (symtableentry.owner.moduleid<>compiler.current_module.moduleid);
                      name:=make_mangledname('RESSTR',symtableentry.owner,symtableentry.name);
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
-                     if symtableentry.owner.moduleid<>current_module.moduleid then
-                       current_module.addimportedsym(symtableentry);
+                     if symtableentry.owner.moduleid<>compiler.current_module.moduleid then
+                       compiler.current_module.addimportedsym(symtableentry);
                      vd:=search_system_type('TRESOURCESTRINGRECORD').typedef;
                      hlcg.g_set_addr_nonbitpacked_field_ref(
                        current_asmdata.CurrAsmList,
@@ -1575,7 +1575,7 @@ implementation
         indirect := (tf_supports_packages in compiler.target.info.flags) and
                       (compiler.target.info.system in systems_indirect_var_imports) and
                       (cs_imported_data in localswitches) and
-                      (rttidef.owner.moduleid<>current_module.moduleid);
+                      (rttidef.owner.moduleid<>compiler.current_module.moduleid);
 
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint),[]);
         case rttidatatype of

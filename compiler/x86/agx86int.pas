@@ -1078,8 +1078,8 @@ implementation
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Start writing intel-styled assembler output for '+compiler.current_module.mainsource);
 {$endif}
       if asminfo^.id<>as_x86_64_masm then
         begin
@@ -1127,8 +1127,8 @@ implementation
       writer.AsmLn;
 
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Done writing intel-styled assembler output for '+compiler.current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

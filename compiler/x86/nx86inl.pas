@@ -804,7 +804,7 @@ implementation
                  begin
                    sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
-                   current_module.add_extern_asmsym(sym);
+                   compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -816,7 +816,7 @@ implementation
                  begin
                    sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
-                   current_module.add_extern_asmsym(sym);
+                   compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(

@@ -327,15 +327,15 @@ Implementation
         FCompiler:=ACompiler;
         asminfo:=info;
       { load start values }
-        AsmFileName:=current_module.AsmFilename;
-        ObjFileName:=current_module.ObjFileName;
-        name:=Lower(current_module.modulename^);
-        path:=current_module.outputpath;
-        asmprefix := current_module.asmprefix^;
-        if current_module.outputpath = '' then
+        AsmFileName:=compiler.current_module.AsmFilename;
+        ObjFileName:=compiler.current_module.ObjFileName;
+        name:=Lower(compiler.current_module.modulename^);
+        path:=compiler.current_module.outputpath;
+        asmprefix := compiler.current_module.asmprefix^;
+        if compiler.current_module.outputpath = '' then
           ppufilename := ''
         else
-          ppufilename := current_module.ppufilename;
+          ppufilename := compiler.current_module.ppufilename;
         SmartAsm:=smart;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
@@ -1079,8 +1079,8 @@ Implementation
             (lastfileinfo.fileindex<>hp.fileinfo.fileindex) then
           begin
             { in case of a generic the module can be different }
-            if current_module.moduleid=hp.fileinfo.moduleindex then
-              module:=current_module
+            if compiler.current_module.moduleid=hp.fileinfo.moduleindex then
+              module:=compiler.current_module
             else
               module:=get_module(hp.fileinfo.moduleindex);
             { during the compilation of the system unit there are cases when
@@ -2804,7 +2804,7 @@ Implementation
       begin
         if not(cs_asm_leave in compiler.globals.current_settings.globalswitches) and
            not(af_needar in asminfo^.flags) then
-          ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename,compiler.verbose)
+          ObjWriter:=CInternalAr.CreateAr(compiler.current_module.staticlibfilename,compiler.verbose)
         else
           ObjWriter:=TObjectwriter.create(compiler.verbose);
 

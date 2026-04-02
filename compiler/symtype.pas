@@ -467,14 +467,14 @@ implementation
         if (defid=defid_not_registered) or
            (defid=defid_registered_nost) then
           begin
-            if not assigned(current_module) then
+            if not assigned(compiler.current_module) then
               internalerror(2015102505);
-            current_module.deflist.Add(self);
-            registered_in_module:=current_module;
+            compiler.current_module.deflist.Add(self);
+            registered_in_module:=compiler.current_module;
             { invert the defid to indicate that it was only set because we
               needed a unique number -- then add defid_not_registered so we
               don't get the values between defid_registered and 0 }
-            defid:=-(current_module.deflist.Count-1)+defid_not_registered-1;
+            defid:=-(compiler.current_module.deflist.Count-1)+defid_not_registered-1;
           end;
         { use deflist_index so that it will remain the same if def first gets a
           defid just for the unique id (as above) and later it gets registered
@@ -542,10 +542,10 @@ implementation
           internalerror(2015111701)
         else if origowner.symtabletype=localsymtable then
           result:=origowner
-        else if assigned(current_module.localsymtable) then
-          result:=current_module.localsymtable
+        else if assigned(compiler.current_module.localsymtable) then
+          result:=compiler.current_module.localsymtable
         else
-          result:=current_module.globalsymtable;
+          result:=compiler.current_module.globalsymtable;
       end;
 
 
@@ -580,16 +580,16 @@ implementation
         T: Text;
 
       begin
-        if current_module.ppxfilefail then
+        if compiler.current_module.ppxfilefail then
           Exit;
 
-        Assign(T, current_module.ppxfilename);
+        Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Append(T);
         if IOResult <> 0 then
           begin
-            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
-            current_module.ppxfilefail := True;
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,compiler.current_module.ppxfilename);
+            compiler.current_module.ppxfilefail := True;
             Exit;
           end;
         {$pop}
@@ -913,6 +913,8 @@ implementation
 
 
     procedure tderef.build(s:TObject);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
        procedure do_internal_error(i : integer);noreturn;
        // local proc so we do not have an implicit try..finally in the build proc.
@@ -966,7 +968,7 @@ implementation
              begin
                { register that the unit is needed for resolving }
                data[len]:=ord(deref_unit);
-               idx:=current_module.derefidx_unit(st.moduleid);
+               idx:=compiler.current_module.derefidx_unit(st.moduleid);
                unaligned(PUint16(@data[len+1{..len+2}])^):=NtoBE(uint16(idx));
                inc(len,3);
              end;
@@ -994,12 +996,14 @@ implementation
         data[0]:=len-1;
 
         { store index and write to derefdata }
-        dataidx:=current_module.derefdata.size;
-        current_module.derefdata.write(data,len);
+        dataidx:=compiler.current_module.derefdata.size;
+        compiler.current_module.derefdata.write(data,len);
       end;
 
 
     function tderef.resolve:TObject;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pm     : tmodule;
         typ    : tdereftype;
@@ -1013,16 +1017,16 @@ implementation
         if dataidx<0 then
           internalerror(200306067);
         { read data }
-        current_module.derefdata.seek(dataidx);
-        if current_module.derefdata.read(len,1)<>1 then
+        compiler.current_module.derefdata.seek(dataidx);
+        if compiler.current_module.derefdata.read(len,1)<>1 then
           internalerror(200310221);
         if len>0 then
           begin
-            if current_module.derefdata.read(data,len)<>len then
+            if compiler.current_module.derefdata.read(data,len)<>len then
               internalerror(200310222);
           end;
         { process data }
-        pm:=current_module;
+        pm:=compiler.current_module;
         i:=0;
         while (i<len) do
           begin
@@ -1033,7 +1037,7 @@ implementation
                 begin
                   idx:=BEtoN(unaligned(PUint16(@data[i{..i+1}])^));
                   inc(i,2);
-                  pm:=current_module.resolve_unit(idx);
+                  pm:=compiler.current_module.resolve_unit(idx);
                 end;
               deref_defid :
                 begin
@@ -1121,7 +1125,7 @@ implementation
          2 : p.column:=(getbyte shl 16) or getword;
          3 : p.column:=getlongint;
         end;
-        p.moduleindex:=current_module.moduleid;
+        p.moduleindex:=compiler.current_module.moduleid;
       end;
 
 

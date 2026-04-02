@@ -213,7 +213,7 @@ begin
     so we use bstoslash }
   LinkRes.Add('--script='+maybequoted(bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(current_module.exefilename,'.map'))));
+    LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(compiler.current_module.exefilename,'.map'))));
   if compiler.target.create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
@@ -221,7 +221,7 @@ begin
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(bstoslash(current_module.exefilename)));
+  LinkRes.Add('-o '+maybequoted(bstoslash(compiler.current_module.exefilename)));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -354,7 +354,7 @@ begin
   ScriptRes.Add('  }');
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
@@ -383,7 +383,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries and our own ld script }
   WriteScript(false);

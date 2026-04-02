@@ -909,7 +909,7 @@ implementation
            until not parser.pbase.try_to_consume(_COMMA);
 
          { register propgetter and propsetter procdefs }
-         if assigned(current_module) and current_module.in_interface then
+         if assigned(compiler.current_module) and compiler.current_module.in_interface then
            begin
              if readprocdef.proctypeoption=potype_propgetter then
                readprocdef.register_def
@@ -1118,11 +1118,11 @@ implementation
                                        [system_i386_emx, system_i386_os2]) then
                 mangledname:=make_dllmangledname(dll_name,C_name,0,pocall_none);
 
-              current_module.AddExternalImport(dll_name,C_Name,mangledname,0,true,false);
+              compiler.current_module.AddExternalImport(dll_name,C_Name,mangledname,0,true,false);
             end
           else
             if tf_has_dllscanner in compiler.target.info.flags then
-              current_module.dllscannerinputlist.Add(vs.mangledname,vs);
+              compiler.current_module.dllscannerinputlist.Add(vs.mangledname,vs);
         end;
 
       { Set the assembler name }
@@ -1678,7 +1678,7 @@ implementation
                     not(vo_is_external in vs.varoptions) then
                    compiler.nodeutils.insertbssdata(tstaticvarsym(vs));
                  if vo_is_public in vs.varoptions then
-                   current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
+                   compiler.current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
                end;
 
              first:=false;

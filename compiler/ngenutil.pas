@@ -529,12 +529,12 @@ implementation
            begin
              { this is also used for initialization of variables in a
                program which does not have a globalsymtable }
-             if assigned(current_module.globalsymtable) then
-               TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
-             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+             if assigned(compiler.current_module.globalsymtable) then
+               TSymtable(compiler.current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+             TSymtable(compiler.current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              { insert class constructors  }
-             if mf_classinits in current_module.moduleflags then
-               append_struct_initfinis(current_module, potype_class_constructor, stat);
+             if mf_classinits in compiler.current_module.moduleflags then
+               append_struct_initfinis(compiler.current_module, potype_class_constructor, stat);
            end;
          { units have separate code for initialization and finalization }
          potype_unitfinalize: ;
@@ -557,13 +557,13 @@ implementation
          potype_unitfinalize:
            begin
              { insert class destructors  }
-             if mf_classinits in current_module.moduleflags then
-               append_struct_initfinis(current_module, potype_class_destructor, stat);
+             if mf_classinits in compiler.current_module.moduleflags then
+               append_struct_initfinis(compiler.current_module, potype_class_destructor, stat);
              { this is also used for initialization of variables in a
                program which does not have a globalsymtable }
-             if assigned(current_module.globalsymtable) then
-               TSymtable(current_module.globalsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
-             TSymtable(current_module.localsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
+             if assigned(compiler.current_module.globalsymtable) then
+               TSymtable(compiler.current_module.globalsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
+             TSymtable(compiler.current_module.localsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
            end;
          { units/progs have separate code for initialization and finalization }
          potype_unitinit: ;
@@ -579,7 +579,7 @@ implementation
     begin
       result:=
         (compiler.target.info.system in systems_typed_constants_node_init) and
-        assigned(current_module.tcinitcode);
+        assigned(compiler.current_module.tcinitcode);
     end;
 
 
@@ -752,11 +752,11 @@ implementation
               end;
             potype_unitinit:
               begin
-                if assigned(current_module.tcinitcode) then
+                if assigned(compiler.current_module.tcinitcode) then
                   begin
                     block:=internalstatements(compiler,stat);
-                    addstatement(stat,tnode(current_module.tcinitcode));
-                    current_module.tcinitcode:=nil;
+                    addstatement(stat,tnode(compiler.current_module.tcinitcode));
+                    compiler.current_module.tcinitcode:=nil;
                     addstatement(stat,result);
                     result:=block;
                   end;
@@ -1127,15 +1127,15 @@ implementation
       if (main.moduleflags * [mf_init,mf_finalize])<>[] then
         begin
           new(entry);
-          entry^.module:=current_module;
+          entry^.module:=compiler.current_module;
           entry^.initpd:=nil;
           entry^.finipd:=nil;
-          if mf_init in current_module.moduleflags then
-            entry^.initfunc:=make_mangledname('INIT$',current_module.localsymtable,'')
+          if mf_init in compiler.current_module.moduleflags then
+            entry^.initfunc:=make_mangledname('INIT$',compiler.current_module.localsymtable,'')
           else
             entry^.initfunc:='';
-          if mf_finalize in current_module.moduleflags then
-            entry^.finifunc:=make_mangledname('FINALIZE$',current_module.localsymtable,'')
+          if mf_finalize in compiler.current_module.moduleflags then
+            entry^.finifunc:=make_mangledname('FINALIZE$',compiler.current_module.localsymtable,'')
           else
             entry^.finifunc:='';
           result.add(entry);
@@ -1195,12 +1195,12 @@ implementation
                   pd:=tprocdef(tprocsym(sym).procdeflist[j]);
                   if (nameinit<>'') and not foundinit and pd.has_alias_name(nameinit) then
                     begin
-                      current_module.addimportedsym(sym);
+                      compiler.current_module.addimportedsym(sym);
                       foundinit:=true;
                     end;
                   if (namefini<>'') and not foundfini and pd.has_alias_name(namefini) then
                     begin
-                      current_module.addimportedsym(sym);
+                      compiler.current_module.addimportedsym(sym);
                       foundfini:=true;
                     end;
                   if foundinit and foundfini then
@@ -1231,16 +1231,16 @@ implementation
               if assigned(entry^.initpd) then
                 begin
                   unitinits.emit_procdef_const(entry^.initpd);
-                  if entry^.module<>current_module then
-                    current_module.addimportedsym(entry^.initpd.procsym);
+                  if entry^.module<>compiler.current_module then
+                    compiler.current_module.addimportedsym(entry^.initpd.procsym);
                 end
               else
                 unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
               if assigned(entry^.finipd) then
                 begin
                   unitinits.emit_procdef_const(entry^.finipd);
-                  if entry^.module<>current_module then
-                    current_module.addimportedsym(entry^.finipd.procsym);
+                  if entry^.module<>compiler.current_module then
+                    compiler.current_module.addimportedsym(entry^.finipd.procsym);
                 end
               else
                 unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
@@ -1267,7 +1267,7 @@ implementation
                 end
               else
                 unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-              if entry^.module<>current_module then
+              if entry^.module<>compiler.current_module then
                 add_initfinal_import(entry^.module.localsymtable);
             end;
           { Add pointer to unit name }
@@ -1306,7 +1306,7 @@ implementation
       Result:=True;
 
       { Check current module first }
-      if mf_init in current_module.moduleflags then
+      if mf_init in compiler.current_module.moduleflags then
         Exit;
 
       { Check used units }
@@ -1348,15 +1348,15 @@ implementation
              tcb.emit_tai(
                tai_const.Create_sym(sym),
                voidpointertype);
-             current_module.add_extern_asmsym(sym);
+             compiler.current_module.add_extern_asmsym(sym);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
        end;
       { Add program threadvars, if any }
-      if mf_threadvars in current_module.moduleflags then
+      if mf_threadvars in compiler.current_module.moduleflags then
         begin
-          sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,true);
+          sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
             Tai_const.Create_sym(sym),
             voidpointertype);
@@ -1420,9 +1420,9 @@ implementation
          exit;
        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
        tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-       if assigned(current_module.globalsymtable) then
-         current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
-       current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
+       if assigned(compiler.current_module.globalsymtable) then
+         compiler.current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
+       compiler.current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        if trecordsymtable(tabledef.symtable).datasize<>0 then
          { terminator }
          tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
@@ -1430,12 +1430,12 @@ implementation
        add:=trecordsymtable(tabledef.symtable).datasize<>0;
        if add then
          begin
-           s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
+           s:=make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,'');
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
-           include(current_module.moduleflags,mf_threadvars);
-           current_module.add_public_asmsym(sym);
+           include(compiler.current_module.moduleflags,mf_threadvars);
+           compiler.current_module.add_public_asmsym(sym);
          end;
        tcb.Free;
        tcb := nil;
@@ -1470,10 +1470,10 @@ implementation
          hp:=tused_unit(hp.next);
        end;
       { Add items from program, if any }
-      if unitflag in current_module.moduleflags then
+      if unitflag in compiler.current_module.moduleflags then
        begin
          tcb.emit_tai(
-           Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0),
+           Tai_const.Createname(make_mangledname(prefix,compiler.current_module.localsymtable,''),0),
            voidcodepointertype);
          inc(count);
        end;
@@ -1505,7 +1505,7 @@ implementation
       item:=TTCInitItem(list.First);
       if item=nil then
         exit;
-      s:=make_mangledname(prefix,current_module.localsymtable,'');
+      s:=make_mangledname(prefix,compiler.current_module.localsymtable,'');
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -1533,7 +1533,7 @@ implementation
           rawdatadef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
       tcb.free;
       tcb := nil;
-      include(current_module.moduleflags,unitflag);
+      include(compiler.current_module.moduleflags,unitflag);
     end;
 
 

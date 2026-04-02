@@ -3055,8 +3055,8 @@ implementation
     procedure tcg.g_call(list: TAsmList;const s: string);
       begin
         allocallcpuregisters(list);
-        if systemunit<>current_module.globalsymtable then
-          current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_FUNCTION);
+        if systemunit<>compiler.current_module.globalsymtable then
+          compiler.current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_FUNCTION);
         a_call_name(list,s,false);
         deallocallcpuregisters(list);
       end;

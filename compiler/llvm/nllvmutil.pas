@@ -255,7 +255,7 @@ implementation
                     end
                   else
                     begin
-                      sourcefile:=current_module.sourcefiles.get_file(1);
+                      sourcefile:=compiler.current_module.sourcefiles.get_file(1);
                       globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
@@ -368,16 +368,16 @@ implementation
           current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
         end;
 
-      compiler.symtablestack.push(current_module.localsymtable);
+      compiler.symtablestack.push(compiler.current_module.localsymtable);
 
       { add the llvm.compiler.used array }
-      InsertUsedList(current_module.llvmcompilerusedsyms,'llvm.compiler.used');
+      InsertUsedList(compiler.current_module.llvmcompilerusedsyms,'llvm.compiler.used');
       { add the llvm.used array }
-      InsertUsedList(current_module.llvmusedsyms,'llvm.used');
+      InsertUsedList(compiler.current_module.llvmusedsyms,'llvm.used');
       { add the llvm.global_ctors array }
-      InsertInitFiniList(current_module.llvminitprocs,'llvm.global_ctors');
+      InsertInitFiniList(compiler.current_module.llvminitprocs,'llvm.global_ctors');
       { add the llvm.global_dtors array }
-      InsertInitFiniList(current_module.llvmfiniprocs,'llvm.global_dtors');
+      InsertInitFiniList(compiler.current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
       with TLLVMTypeInfo.Create(compiler) do
@@ -386,7 +386,7 @@ implementation
           free;
         end;
 
-      compiler.symtablestack.pop(current_module.localsymtable);
+      compiler.symtablestack.pop(compiler.current_module.localsymtable);
     end;
 
 
@@ -397,30 +397,30 @@ implementation
       if compileronly then
         begin
           { filter multiple adds in succession here already }
-          last:=TTypedAsmSym(current_module.llvmcompilerusedsyms.Last);
+          last:=TTypedAsmSym(compiler.current_module.llvmcompilerusedsyms.Last);
           if not assigned(last) or
              (last.sym<>sym) then
-            current_module.llvmcompilerusedsyms.Add(TTypedAsmSym.Create(sym,def))
+            compiler.current_module.llvmcompilerusedsyms.Add(TTypedAsmSym.Create(sym,def))
         end
       else
         begin
-          last:=TTypedAsmSym(current_module.llvmusedsyms.Last);
+          last:=TTypedAsmSym(compiler.current_module.llvmusedsyms.Last);
           if not assigned(last) or
              (last.sym<>sym) then
-          current_module.llvmusedsyms.Add(TTypedAsmSym.Create(sym,def))
+          compiler.current_module.llvmusedsyms.Add(TTypedAsmSym.Create(sym,def))
         end;
     end;
 
 
   procedure tllvmnodeutils.RegisterModuleInitFunction(pd: tprocdef);
     begin
-      current_module.llvminitprocs.add(pd);
+      compiler.current_module.llvminitprocs.add(pd);
     end;
 
 
   procedure tllvmnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
     begin
-      current_module.llvmfiniprocs.add(pd);
+      compiler.current_module.llvmfiniprocs.add(pd);
     end;
 
 

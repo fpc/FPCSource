@@ -148,7 +148,7 @@ begin
     LinkRes.fForceUseForwardSlash:=true;
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
     begin
       s:=HPath.Str;
@@ -271,7 +271,7 @@ begin
   MapStr:='';
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    MapStr:='-M'+maybequoted(ScriptFixFilename(current_module.mapfilename));
+    MapStr:='-M'+maybequoted(ScriptFixFilename(compiler.current_module.mapfilename));
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
@@ -286,7 +286,7 @@ begin
         QLFlagsStr:='-b rawseg -q';
     end;
 
-  ExeName:=current_module.exefilename;
+  ExeName:=compiler.current_module.exefilename;
   HdrName:=ExeName+'.hdr';
 
   { Call linker }
@@ -392,7 +392,7 @@ var
   ExeName: String;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

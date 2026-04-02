@@ -353,7 +353,6 @@ interface
       end;
 
     var
-       current_module    : tmodule;     { Current module which is compiled or loaded }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
@@ -400,15 +399,15 @@ implementation
         if assigned(current_scanner) then
           current_scanner.tempcloseinputfile;
         { set new module }
-        current_module:=p;
+        tcompiler(compiler).current_module:=p;
         { restore previous module settings }
         Fillchar(compiler.globals.current_filepos,sizeof(compiler.globals.current_filepos),0);
-        if assigned(current_module) then
+        if assigned(compiler.current_module) then
           begin
-            current_asmdata:=tasmdata(current_module.asmdata);
-            current_debuginfo:=tdebuginfo(current_module.debuginfo);
+            current_asmdata:=tasmdata(compiler.current_module.asmdata);
+            current_debuginfo:=tdebuginfo(compiler.current_module.debuginfo);
             { restore scanner and file positions }
-            set_current_scanner(tscannerfile(current_module.scanner));
+            set_current_scanner(tscannerfile(compiler.current_module.scanner));
             if assigned(current_scanner) then
               begin
                 current_scanner.tempopeninputfile;
@@ -417,7 +416,7 @@ implementation
               end
             else
               begin
-                compiler.globals.current_filepos.moduleindex:=current_module.moduleid;
+                compiler.globals.current_filepos.moduleindex:=compiler.current_module.moduleid;
                 compiler.globals.parser_current_file:='';
               end;
           end
@@ -1000,7 +999,7 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=casmdata.create(modulename,compiler);
-        if current_module=self then
+        if compiler.current_module=self then
           current_asmdata:=TAsmData(asmdata);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;

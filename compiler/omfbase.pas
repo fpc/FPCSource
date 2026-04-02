@@ -3056,7 +3056,7 @@ implementation
                   if cs_huge_code in compiler.globals.current_settings.moduleswitches then
                     result:=''
                   else
-                    result:='CGROUP_'+current_module.modulename^;
+                    result:='CGROUP_'+compiler.current_module.modulename^;
                 end
               else
                 result:='CGROUP';

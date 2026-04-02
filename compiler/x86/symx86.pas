@@ -108,11 +108,11 @@ implementation
       oldsymtablestack: tsymtablestack;
       key: tx86PtrDefKey;
     begin
-      if not assigned(current_module) then
+      if not assigned(acompiler.current_module) then
         internalerror(2011071102);
       key.def:=def;
       key.x86typ:=x86typ;
-      res:=current_module.ptrdefs.FindOrAdd(@key,sizeof(key));
+      res:=acompiler.current_module.ptrdefs.FindOrAdd(@key,sizeof(key));
       if not assigned(res^.Data) then
         begin
           { since these pointerdefs can be reused anywhere in the current
@@ -121,7 +121,7 @@ implementation
             to the ppu referencing a local symtable entry that doesn't
             exist in the ppu) }
           oldsymtablestack:=acompiler.symtablestack;
-          { do not simply push/pop current_module.localsymtable, because
+          { do not simply push/pop compiler.current_module.localsymtable, because
             that can have side-effects (e.g., it removes helpers) }
           tcompiler(acompiler).symtablestack:=nil;
           result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ,acompiler);

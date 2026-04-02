@@ -774,8 +774,8 @@ implementation
          old_block_type:=compiler.globals.block_type;
          { save unit container of forward declarations -
            we can be inside nested class type block }
-         old_checkforwarddefs:=current_module.checkforwarddefs;
-         current_module.checkforwarddefs:=TFPObjectList.Create(false);
+         old_checkforwarddefs:=compiler.current_module.checkforwarddefs;
+         compiler.current_module.checkforwarddefs:=TFPObjectList.Create(false);
          compiler.globals.block_type:=bt_type;
          hdef:=nil;
          first:=true;
@@ -996,7 +996,7 @@ implementation
                             end;
                           if (hdef.typ in [pointerdef,classrefdef]) and
                              (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
-                            current_module.checkforwarddefs.add(hdef);
+                            compiler.current_module.checkforwarddefs.add(hdef);
                         end;
 
                       include(hdef.defoptions,df_unique);
@@ -1288,8 +1288,8 @@ implementation
          { resolve type block forward declarations and restore a unit
            container for them }
          parser.ptype.resolve_forward_types;
-         current_module.checkforwarddefs.free;
-         current_module.checkforwarddefs:=old_checkforwarddefs;
+         compiler.current_module.checkforwarddefs.free;
+         compiler.current_module.checkforwarddefs:=old_checkforwarddefs;
          compiler.globals.block_type:=old_block_type;
       end;
 

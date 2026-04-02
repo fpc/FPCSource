@@ -1213,8 +1213,8 @@ interface
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Start writing MPW-styled assembler output for '+compiler.current_module.mainsource);
 {$endif}
 
       WriteAsmFileHeader;
@@ -1231,8 +1231,8 @@ interface
       writer.AsmLn;
 
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.comment(v_info,'Done writing MPW-styled assembler output for '+compiler.current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

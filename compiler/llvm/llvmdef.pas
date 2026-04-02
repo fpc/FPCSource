@@ -1079,9 +1079,9 @@ implementation
           begin
             addtypename(typename,fieldtypes[i]);
           end;
-        if not assigned(current_module) then
+        if not assigned(compiler.current_module) then
           internalerror(2014012002);
-        res:=current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
+        res:=compiler.current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
         if not assigned(res^.Data) then
           begin
             res^.Data:=crecorddef.create_global_internal(typename,packrecords,

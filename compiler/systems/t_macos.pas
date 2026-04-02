@@ -75,10 +75,10 @@ implementation
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -149,7 +149,7 @@ begin
       if compiler.globals.apptype = app_cui then {If SIOW, to avoid some warnings.}
         Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main -ignoredups qd '#182);
 
-      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename));
+      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(compiler.current_module.exefilename));
 
       Add('Exit If "{Status}" != 0');
 
@@ -165,24 +165,24 @@ begin
       if compiler.globals.apptype <> app_tool then
         begin
           Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
-                                         #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename));
+                                         #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(compiler.current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
       {Add mac resources}
       if compiler.globals.apptype = app_cui then
         begin
-          Add('Rez -a "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename));
+          Add('Rez -a "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(compiler.current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
-      while not (current_module.ResourceFiles.Empty) do
+      while not (compiler.current_module.ResourceFiles.Empty) do
         begin
-          s := Current_module.ResourceFiles.GetFirst;
+          s := compiler.current_module.ResourceFiles.GetFirst;
           if Copy(s,Length(s)-1,Length(s)) = '.r' then
-            Add('Rez -a ' + s + ' -o ' + ScriptFixFileName(current_module.exefilename))
+            Add('Rez -a ' + s + ' -o ' + ScriptFixFileName(compiler.current_module.exefilename))
           else
-            Add('DeRez ' + s + ' | Rez -a -o ' + ScriptFixFileName(current_module.exefilename));
+            Add('DeRez ' + s + ' | Rez -a -o ' + ScriptFixFileName(compiler.current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
@@ -208,7 +208,7 @@ begin
   //TODO Only external link in MPW is possible, otherwise yell.
 
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';
@@ -226,7 +226,7 @@ begin
 
 { Prepare linking }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -304,7 +304,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -405,7 +405,7 @@ begin
     if compiler.target.create_smartlink_sections then
       GCSectionsStr:='--gc-sections ';
 
-  ExeName:=current_module.exefilename;
+  ExeName:=compiler.current_module.exefilename;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -426,7 +426,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

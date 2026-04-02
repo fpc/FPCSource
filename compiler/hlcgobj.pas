@@ -3963,7 +3963,7 @@ implementation
       result:=(tf_supports_packages in compiler.target.info.flags) and
                 (compiler.target.info.system in systems_indirect_var_imports) and
                 (cs_imported_data in compiler.globals.current_settings.localswitches) and
-                (findunitsymtable(t.owner).moduleid<>current_module.moduleid);
+                (findunitsymtable(t.owner).moduleid<>compiler.current_module.moduleid);
     end;
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
@@ -5071,7 +5071,7 @@ implementation
       case current_procinfo.procdef.proctypeoption of
         potype_unitinit,
         potype_proginit:
-          TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
+          TSymtable(compiler.current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
         else
           ;
       end;
@@ -5151,7 +5151,7 @@ implementation
       if (current_procinfo.procdef.proctypeoption=potype_proginit) then
        begin
          { initialize units }
-         if not(current_module.islibrary) then
+         if not(compiler.current_module.islibrary) then
            begin
              if tf_init_final_units_by_calls in compiler.target.info.flags then
                begin
@@ -5175,7 +5175,7 @@ implementation
           look up procdef, use hlcgobj.a_call_name()) }
 
       { call __EXIT for main program }
-      if (not current_module.islibrary) and
+      if (not compiler.current_module.islibrary) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
         g_call_system_proc(list,'fpc_do_exit',[],nil).resetiftemp;
     end;
@@ -5849,8 +5849,8 @@ implementation
     begin
       pd:=search_system_proc(procname);
       pd.init_paraloc_info(callerside);
-      if systemunit<>current_module.globalsymtable then
-        current_module.addimportedsym(pd.procsym);
+      if systemunit<>compiler.current_module.globalsymtable then
+        compiler.current_module.addimportedsym(pd.procsym);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
@@ -5860,8 +5860,8 @@ implementation
         override, if any, is g_call_system_proc_intern (and that none of
         the g_call_system_proc variants should be made virtual) }
       pd.init_paraloc_info(callerside);
-      if systemunit<>current_module.globalsymtable then
-        current_module.addimportedsym(pd.procsym);
+      if systemunit<>compiler.current_module.globalsymtable then
+        compiler.current_module.addimportedsym(pd.procsym);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 

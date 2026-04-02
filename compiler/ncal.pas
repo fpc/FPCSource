@@ -607,10 +607,10 @@ implementation
         { may be referred from other units in case of inlining -> global
           -> must have unique name in entire progream }
         calldescsym:=cstaticvarsym.create(
-          internaltypeprefixName[itp_vardisp_calldesc]+current_module.modulename^+'$'+tostr(current_module.localsymtable.SymList.count),
+          internaltypeprefixName[itp_vardisp_calldesc]+compiler.current_module.modulename^+'$'+tostr(compiler.current_module.localsymtable.SymList.count),
           vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const]);
         calldescsym.varstate:=vs_initialised;
-        current_module.localsymtable.insertsym(calldescsym);
+        compiler.current_module.localsymtable.insertsym(calldescsym);
         current_asmdata.AsmLists[al_typedconsts].concatList(
           tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA,calldescsym.vardef),
@@ -641,7 +641,7 @@ implementation
             addstatement(statements,compiler.ccallnode_intern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(params)),
-              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,current_module.localsymtable)),
+              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,compiler.current_module.localsymtable)),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfpara,vardatadef),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -653,7 +653,7 @@ implementation
             addstatement(statements,compiler.ccallnode_intern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(params)),
-              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,current_module.localsymtable)),
+              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,compiler.current_module.localsymtable)),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,voidpointertype),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -5708,6 +5708,8 @@ implementation
     { reference symbols that are imported from another unit }
     function importglobalsyms(var n:tnode; arg:pointer):foreachnoderesult;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym : tsym;
       begin
         result:=fen_false;
@@ -5716,21 +5718,21 @@ implementation
             sym:=tloadnode(n).symtableentry;
             if sym.typ=staticvarsym then
               begin
-                if FindUnitSymtable(tloadnode(n).symtable).moduleid<>current_module.moduleid then
-                  current_module.addimportedsym(sym);
+                if FindUnitSymtable(tloadnode(n).symtable).moduleid<>compiler.current_module.moduleid then
+                  compiler.current_module.addimportedsym(sym);
               end
             else if (sym.typ=constsym) and (tconstsym(sym).consttyp in [constwresourcestring,constresourcestring]) then
               begin
-                if tloadnode(n).symtableentry.owner.moduleid<>current_module.moduleid then
-                  current_module.addimportedsym(sym);
+                if tloadnode(n).symtableentry.owner.moduleid<>compiler.current_module.moduleid then
+                  compiler.current_module.addimportedsym(sym);
               end;
           end
         else if (n.nodetype=calln) then
           begin
             if (assigned(tcallnode(n).procdefinition)) and
                (tcallnode(n).procdefinition.typ=procdef) and
-               (findunitsymtable(tcallnode(n).procdefinition.owner).moduleid<>current_module.moduleid) then
-              current_module.addimportedsym(tprocdef(tcallnode(n).procdefinition).procsym);
+               (findunitsymtable(tcallnode(n).procdefinition.owner).moduleid<>compiler.current_module.moduleid) then
+              compiler.current_module.addimportedsym(tprocdef(tcallnode(n).procdefinition).procsym);
           end;
       end;
 

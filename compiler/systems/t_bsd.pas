@@ -99,10 +99,10 @@ end;
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -197,7 +197,7 @@ var
   si_gprt : string[80];
 begin
   linklibc:=ModulesLinkToLibc(compiler);
-  if current_module.islibrary and
+  if compiler.current_module.islibrary and
      (compiler.target.info.system in systems_bsd) then
     begin
       prtobj:='dllprt0';
@@ -267,7 +267,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,not LdSupportsNoResponseFile,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
@@ -321,7 +321,7 @@ begin
       LinkRes.AddFileName(s);
      if ((cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          not (compiler.target.info.system in systems_openbsd)) or
-        (current_module.islibrary and
+        (compiler.current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
        begin
          if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
@@ -413,7 +413,7 @@ begin
    begin
      if ((cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          not (compiler.target.info.system in systems_openbsd)) or
-        (current_module.islibrary and
+        (compiler.current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
        Fl1:=compiler.globals.librarysearchpath.FindFile('crtendS.o',false,s1)
      else
@@ -455,7 +455,7 @@ var
   useshell : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -466,7 +466,7 @@ begin
   mapstr:='';
   ltostr:='';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -530,7 +530,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
@@ -608,7 +608,7 @@ begin
   ltostr:='';
   linkscript:=nil;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -623,7 +623,7 @@ begin
     ;
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
@@ -641,11 +641,11 @@ begin
 
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
+  SoNameStr:='-soname '+ExtractFileName(compiler.current_module.sharedlibfilename);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
@@ -686,7 +686,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
    end;
 

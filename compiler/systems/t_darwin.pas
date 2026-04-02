@@ -403,7 +403,7 @@ implementation
         HPath: TCmdStrListItem;
       begin
         result:='';
-        HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+        HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
         while assigned(HPath) do
          begin
            result:=result+' '+maybequoted('-L'+HPath.Str);
@@ -416,7 +416,7 @@ implementation
            HPath:=TCmdStrListItem(HPath.Next);
          end;
 
-        HPath:=TCmdStrListItem(current_module.localframeworksearchpath.First);
+        HPath:=TCmdStrListItem(compiler.current_module.localframeworksearchpath.First);
         while assigned(HPath) do
          begin
            result:=result+' '+maybequoted('-F'+HPath.Str);
@@ -511,7 +511,7 @@ implementation
       success : boolean;
     begin
       if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-       compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+       compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
     { Create some replacements }
       StaticStr:='';
@@ -522,7 +522,7 @@ implementation
       ltostr:='';
 
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        mapstr:='-map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+        mapstr:='-map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
       if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
         StaticStr:='-static';
@@ -546,7 +546,7 @@ implementation
 
     { Call linker }
       SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+      Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
       Replace(cmdstr,'$MAP',mapstr);
@@ -590,7 +590,7 @@ implementation
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
-          extdbgcmdstr:=maybequoted(current_module.exefilename);
+          extdbgcmdstr:=maybequoted(compiler.current_module.exefilename);
         end;
 
       success:=DoExec(BinStr,CmdStr,true,false);
@@ -609,7 +609,7 @@ implementation
 
      { Post process }
      if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-       success:=PostProcessExecutable(current_module.exefilename,false);
+       success:=PostProcessExecutable(compiler.current_module.exefilename,false);
 
       MakeExecutable:=success;   { otherwise a recursive call to link method }
     end;
@@ -638,7 +638,7 @@ implementation
       mapstr:='';
       ltostr:='';
       if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-       compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+       compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
       { Write symbol order file }
       ordersymfile:=WriteSymbolOrderFile;
@@ -647,7 +647,7 @@ implementation
         GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        mapstr:='-map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+        mapstr:='-map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
       { add custom LTO library if using custom clang }
       if (cs_lto in compiler.globals.current_settings.moduleswitches) and
@@ -665,7 +665,7 @@ implementation
 
       { Call linker }
       SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
+      Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(compiler.current_module.sharedlibfilename)));
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
       Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
@@ -709,7 +709,7 @@ implementation
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
-          extdbgcmdstr:=maybequoted(current_module.sharedlibfilename);
+          extdbgcmdstr:=maybequoted(compiler.current_module.sharedlibfilename);
         end;
 
       LinkSymsFileName:='';
@@ -735,7 +735,7 @@ implementation
       if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
        begin
          SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-         Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+         Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
          success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
        end;
 

@@ -703,6 +703,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
 
     function TNLMexeoutput.writedata:boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         dummyLong       : array[0..4] of char;
         textExeSec,
         dataExeSec,
@@ -775,7 +777,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         { Initial header, will be updated later }
         nlmHeader.signature := NLM_SIGNATURE;
         nlmHeader.version := NLM_HEADER_VERSION;
-        moduleName := upperCase(current_module.exefilename);
+        moduleName := upperCase(compiler.current_module.exefilename);
         nlmHeader.moduleName := moduleName;
         nlmHeader.codeImageOffset := TextExeSec.DataPos+TObjSection(TextExeSec.ObjSectionList[0]).dataalignbytes; // ??? may be that align has to be moved to fixups/imports
         nlmHeader.codeImageSize := TextExeSec.Size;
@@ -1115,6 +1117,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
 
     procedure TNLMexeoutput.GenerateExports;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
         hp  : texported_item;  { for exports }
         len : byte;
         addr: longword;
@@ -1124,7 +1128,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       {name   LString                                   1+n bytes
       addr                                               4 bytes
       addr and $80000000 > 0 -> .text else .data}
-      hp:=texported_item(current_module._exports.first);
+      hp:=texported_item(compiler.current_module._exports.first);
       if assigned(hp) then
         if assigned(exemap) then
            exemap.Add('');

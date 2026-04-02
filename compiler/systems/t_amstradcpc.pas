@@ -242,7 +242,7 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
@@ -290,10 +290,10 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     StripStr:='';
     MapStr:='';
     StartSymbolStr:='start';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-      MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
+      MapStr:='-M'+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
 
   { Write used files and libraries }
     WriteResponseFile_Vlink();
@@ -420,7 +420,7 @@ function TInternalLinkerAmstradCPC.MakeExecutable: boolean;
     result:=inherited;
     { Post process }
     if result and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-      result:=PostProcessExecutable(current_module.exefilename);
+      result:=PostProcessExecutable(compiler.current_module.exefilename);
   end;
 
 function TInternalLinkerAmstradCPC.postprocessexecutable(const fn: string): boolean;

@@ -117,7 +117,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -1673,14 +1673,14 @@ begin
   Replace(Info.ExeCmd[1],'$IDF_PATH',compiler.globals.idfpath);
 {$endif defined(XTENSA) or defined(RISCV32)}
 
-  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
+  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+    mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -1749,7 +1749,7 @@ begin
           success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
             '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--version=3 '+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,
             true,false);
         end
@@ -1759,7 +1759,7 @@ begin
           success:=DoExec(binstr,cmdstr+'--chip '+cntrlr+' elf2image '+
             '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--elf-sha256-offset 0xb0 '+extraopts+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,
             true,false);
         end;
@@ -1768,7 +1768,7 @@ begin
   if success then
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
       FixedExeFileName+' '+
-      maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+      maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),true,false);
 {$endif defined(XTENSA) or defined(RISCV32)}
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

@@ -236,7 +236,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
@@ -282,7 +282,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     GCSectionsStr:='-gc-all -mtype';
     StripStr:='';
     StartSymbolStr:='start';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
   { Write used files and libraries }
     WriteResponseFile_Vlink();
@@ -326,7 +326,7 @@ end;
 
 function TLinkerMSXDOS.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(current_module.exefilename)),true,false);
+    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(compiler.current_module.exefilename)),true,false);
   end;
 
 
@@ -400,7 +400,7 @@ constructor TInternalLinkerMSXDOS.create(acompiler: TCompilerBase);
 
 function TInternalLinkerMSXDOS.ExecutableFilename:String;
   begin
-    result:=ChangeFileExt(current_module.exefilename,'.ihx');
+    result:=ChangeFileExt(compiler.current_module.exefilename,'.ihx');
   end;
 
 procedure TInternalLinkerMSXDOS.InitSysInitUnitName;
@@ -413,7 +413,7 @@ function TInternalLinkerMSXDOS.MakeExecutable: boolean;
     result:=inherited;
     { Post process }
     if result and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-      result:=PostProcessExecutable(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx'))));
+      result:=PostProcessExecutable(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx'))));
   end;
 
 function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
@@ -435,7 +435,7 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
 
     if Found then
       begin
-        exitcode:=RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+maybequoted(ScriptFixFileName(current_module.exefilename)));
+        exitcode:=RequotedExecuteProcess(foundbin,' -t bin '+fn+' '+maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
         result:=exitcode<>0;
       end;
   end;

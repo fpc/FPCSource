@@ -91,10 +91,10 @@ const
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -126,7 +126,7 @@ const
           JNI_OnLoad().
         }
         // Check for the JNI_OnLoad export
-        if current_module.islibrary and not hp.is_var and assigned(hp.sym) and
+        if compiler.current_module.islibrary and not hp.is_var and assigned(hp.sym) and
            (hp.sym.typ = procsym) and (eo_name in hp.options) and
            (hp.name^ = SJNI_OnLoad) and (tprocsym(hp.sym).procdeflist.count = 1) then
           begin
@@ -204,7 +204,7 @@ End;
 Procedure TLinkerAndroid.InitSysInitUnitName;
 begin
   reorder := ReOrderEntries;
-  if current_module.islibrary then
+  if compiler.current_module.islibrary then
     prtobj:='dllprt0'
   else
     prtobj:='prt0';
@@ -226,7 +226,7 @@ begin
   with linkres do
     begin
       { Write path to search libraries }
-      HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+      HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
@@ -390,9 +390,9 @@ var
 begin
   Result:=False;
   if IsSharedLib then
-    outname:=current_module.sharedlibfilename
+    outname:=compiler.current_module.sharedlibfilename
   else
-    outname:=current_module.exefilename;
+    outname:=compiler.current_module.exefilename;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking, outname);
 
@@ -459,8 +459,8 @@ begin
         begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(outname));
-          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
-          Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
+          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
+          Replace(cmdstr,'$DBG',maybequoted(compiler.current_module.dbgfilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;

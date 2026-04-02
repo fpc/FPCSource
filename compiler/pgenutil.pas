@@ -136,7 +136,7 @@ uses
         if assigned(paramtype.owner) then
           module:=find_module_from_symtable(paramtype.owner)
         else
-          module:=current_module;
+          module:=compiler.current_module;
         if not assigned(module) then
           internalerror(2016112802);
         namepart:='_$'+hexstr(module.moduleid,8)+'$$'+paramtype.unique_id_str;
@@ -308,6 +308,8 @@ uses
       end;
 
     procedure maybe_add_waiting_unit(tt:tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { called only by a pas module when specializing or inlining, not by a ppu module }
       var
         hmodule : tmodule;
@@ -320,7 +322,7 @@ uses
         if not assigned(hmodule) then
           internalerror(2012092401);
 
-        if hmodule=current_module then
+        if hmodule=compiler.current_module then
           exit;
 
         { Note: if hmodule.state=ms_load its implementation is not yet ready }
@@ -329,18 +331,20 @@ uses
           begin
             tmodule.ctask_fast_backtrack:=true;
 {$ifdef DEBUG_UNITWAITING}
-            Writeln('Unit ', current_module.modulename^,
+            Writeln('Unit ', compiler.current_module.modulename^,
               ' waiting for ', hmodule.modulename^);
 {$endif DEBUG_UNITWAITING}
-            if current_module.waitingforunit.indexof(hmodule)<0 then
-              current_module.waitingforunit.add(hmodule);
-            if hmodule.waitingunits.indexof(current_module)<0 then
-              hmodule.waitingunits.add(current_module);
+            if compiler.current_module.waitingforunit.indexof(hmodule)<0 then
+              compiler.current_module.waitingforunit.add(hmodule);
+            if hmodule.waitingunits.indexof(compiler.current_module)<0 then
+              hmodule.waitingunits.add(compiler.current_module);
           end;
       end;
 
 
     procedure add_forward_generic_def(def:tdef;context:tspecializationcontext);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         list : tfpobjectlist;
         fwdcontext : tspecializationcontext;
@@ -351,11 +355,11 @@ uses
           internalerror(2020070302);
         if not assigned(tobjectdef(def).genericdef) then
           internalerror(2020070303);
-        list:=tfpobjectlist(current_module.forwardgenericdefs.find(tobjectdef(def).genericdef.fulltypename));
+        list:=tfpobjectlist(compiler.current_module.forwardgenericdefs.find(tobjectdef(def).genericdef.fulltypename));
         if not assigned(list) then
           begin
             list:=tfpobjectlist.create(true);
-            current_module.forwardgenericdefs.add(tobjectdef(def).genericdef.fulltypename,list);
+            compiler.current_module.forwardgenericdefs.add(tobjectdef(def).genericdef.fulltypename,list);
           end;
         fwdcontext:=context.getcopy;
         fwdcontext.forwarddef:=def;
@@ -1957,10 +1961,10 @@ uses
               end;
 
             if not assigned(specializest) then
-              if current_module.is_unit and current_module.in_interface then
-                specializest:=current_module.globalsymtable
+              if compiler.current_module.is_unit and compiler.current_module.in_interface then
+                specializest:=compiler.current_module.globalsymtable
               else
-                specializest:=current_module.localsymtable;
+                specializest:=compiler.current_module.localsymtable;
           end;
         if not assigned(specializest) then
           internalerror(2014050910);
@@ -1997,9 +2001,9 @@ uses
             else
               { the generic could have been specialized in the globalsymtable
                 already, so search there as well }
-              if (specializest<>current_module.globalsymtable) and assigned(current_module.globalsymtable) then
+              if (specializest<>compiler.current_module.globalsymtable) and assigned(compiler.current_module.globalsymtable) then
                 begin
-                  srsym:=tsym(current_module.globalsymtable.findwithhash(hashedid));
+                  srsym:=tsym(compiler.current_module.globalsymtable.findwithhash(hashedid));
                   if assigned(srsym) then
                     begin
                       retrieve_genericdef_or_procsym(srsym,result,psym);
@@ -2015,7 +2019,7 @@ uses
               added to the correct symtable; this symtable does not contain
               any other symbols, so that the type resolution can not be
               influenced by symbols in the current unit }
-            tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid,compiler);
+            tempst:=tspecializesymtable.create(compiler.current_module.modulename^,compiler.current_module.moduleid,compiler);
             compiler.symtablestack.push(tempst);
 
             { Reparse the original type definition }
@@ -2024,10 +2028,10 @@ uses
                 old_current_genericdef:=nil;
                 old_current_structdef:=nil;
                 old_current_procinfo:=current_procinfo;
-                old_module_procinfo:=current_module.procinfo;
+                old_module_procinfo:=compiler.current_module.procinfo;
 
                 current_procinfo:=nil;
-                current_module.procinfo:=nil;
+                compiler.current_module.procinfo:=nil;
 
                 if parse_class_parent then
                   begin
@@ -2237,7 +2241,7 @@ uses
 
                 compiler.globals.block_type:=old_block_type;
                 current_procinfo:=old_current_procinfo;
-                current_module.procinfo:=old_module_procinfo;
+                compiler.current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;
@@ -2281,7 +2285,7 @@ uses
             { procdefs are only added once we know which overload we use }
             if not parser.pbase.parse_generic and (result.typ<>procdef) and
               not has_generic_paras(tstoreddef(result)) then
-                  current_module.pendingspecializations.add(result.typename,result);
+                  compiler.current_module.pendingspecializations.add(result.typename,result);
           end;
 
         generictypelist.free;
@@ -2398,7 +2402,7 @@ uses
               constraintdata:=tgenericconstraintdata.create;
               constraintdata.fileinfo:=fileinfo;
               defname:='';
-              str(current_module.deflist.count,defname);
+              str(compiler.current_module.deflist.count,defname);
               defname:='$gendef'+defname;
 
               allowconstructor:=m_delphi in compiler.globals.current_settings.modeswitches;
@@ -2776,11 +2780,11 @@ uses
             if n='' then
               n:=name;
             { did we already search for a generic with that name? }
-            list:=tfpobjectlist(current_module.genericdummysyms.find(n));
+            list:=tfpobjectlist(compiler.current_module.genericdummysyms.find(n));
             if not assigned(list) then
               begin
                 list:=tfpobjectlist.create(true);
-                current_module.genericdummysyms.add(n,list);
+                compiler.current_module.genericdummysyms.add(n,list);
               end;
             { is the dummy sym still "dummy"? }
             if (sym.typ=typesym) and
@@ -2816,7 +2820,7 @@ uses
       var
         list : tfpobjectlist;
       begin
-        list:=tfpobjectlist(current_module.genericdummysyms.find(name));
+        list:=tfpobjectlist(compiler.current_module.genericdummysyms.find(name));
         if assigned(list) and (list.count>0) then
           result:=tgenericdummyentry(list.last).resolvedsym
         else
@@ -2827,7 +2831,7 @@ uses
     function TGenericsParseUtils.could_be_generic(const name:tidstring):boolean;
       begin
         result:=(name<>'') and
-                  (current_module.genericdummysyms.findindexof(name)>=0);
+                  (compiler.current_module.genericdummysyms.findindexof(name)>=0);
       end;
 
 
@@ -2839,7 +2843,7 @@ uses
         if (def=current_genericdef) or
             defs_belong_to_same_generic(def,current_genericdef) then
           exit;
-        state:=pspecializationstate(current_module.specializestate);
+        state:=pspecializationstate(compiler.current_module.specializestate);
         while assigned(state) do
           begin
             if (state^.oldcurrent_genericdef=def) or
@@ -2868,18 +2872,18 @@ uses
         to get types right, however this is not perfect, we should probably record
         the resolved symbols }
       state.oldsymtablestack:=compiler.symtablestack;
-      state.oldextendeddefs:=current_module.extendeddefs;
-      state.oldgenericdummysyms:=current_module.genericdummysyms;
+      state.oldextendeddefs:=compiler.current_module.extendeddefs;
+      state.oldgenericdummysyms:=compiler.current_module.genericdummysyms;
       state.oldcurrent_genericdef:=current_genericdef;
-      state.oldspecializestate:=pspecializationstate(current_module.specializestate);
+      state.oldspecializestate:=pspecializationstate(compiler.current_module.specializestate);
       state.oldoptoken:=parser.pbase.optoken;
       parser.pbase.optoken:=NOTOKEN;
-      current_module.specializestate:=@state;
-      current_module.extendeddefs:=TFPHashObjectList.create(true);
-      current_module.genericdummysyms:=tfphashobjectlist.create(true);
+      compiler.current_module.specializestate:=@state;
+      compiler.current_module.extendeddefs:=TFPHashObjectList.create(true);
+      compiler.current_module.genericdummysyms:=tfphashobjectlist.create(true);
       tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
       if not assigned(genericdef.owner) then
-        hmodule:=current_module
+        hmodule:=compiler.current_module
       else
         hmodule:=find_module_from_symtable(genericdef.owner);
       if hmodule=nil then
@@ -2887,7 +2891,7 @@ uses
       { collect all unit syms in the generic's unit as we need to establish
         their unitsym.module link again so that unit identifiers can be used }
       unitsyms:=tfphashobjectlist.create(false);
-      if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
+      if (hmodule<>compiler.current_module) and assigned(hmodule.globalsymtable) then
         for i:=0 to hmodule.globalsymtable.symlist.count-1 do
           begin
             sym:=tsym(hmodule.globalsymtable.symlist[i]);
@@ -2939,7 +2943,7 @@ uses
         compiler.symtablestack.push(hmodule.globalsymtable);
       symtable:=genericdef.owner;
       { push the localsymtable if needed }
-      if ((hmodule<>current_module) or not current_module.in_interface)
+      if ((hmodule<>compiler.current_module) or not compiler.current_module.in_interface)
           and assigned(hmodule.localsymtable) then
         compiler.symtablestack.push(hmodule.localsymtable);
       { also push the symtables of all owning types }
@@ -2956,11 +2960,11 @@ uses
     procedure TGenericsParseUtils.specialization_done(var state: tspecializationstate);
     begin
       { Restore symtablestack }
-      current_module.extendeddefs.free;
-      current_module.extendeddefs:=state.oldextendeddefs;
-      current_module.genericdummysyms.free;
-      current_module.genericdummysyms:=state.oldgenericdummysyms;
-      current_module.specializestate:=state.oldspecializestate;
+      compiler.current_module.extendeddefs.free;
+      compiler.current_module.extendeddefs:=state.oldextendeddefs;
+      compiler.current_module.genericdummysyms.free;
+      compiler.current_module.genericdummysyms:=state.oldgenericdummysyms;
+      compiler.current_module.specializestate:=state.oldspecializestate;
       parser.pbase.optoken:=state.oldoptoken;
       compiler.symtablestack.free;
       tcompiler(compiler).symtablestack:=state.oldsymtablestack;
@@ -3023,7 +3027,7 @@ uses
                  case if the generic routine is part of another unit) }
                if (
                     not assigned(hmodule) or
-                    (hmodule=current_module) or
+                    (hmodule=compiler.current_module) or
                     (hmodule.state=ms_compile)
                   ) and
                   { may not be assigned in case it's a synthetic procdef that
@@ -3062,11 +3066,11 @@ uses
         list:=tfpobjectlist.create(false);
         readdlist:=tfpobjectlist.create(false);
 
-        list.Capacity:=current_module.pendingspecializations.Count;
-        for i:=0 to current_module.pendingspecializations.Count-1 do
-          list.add(current_module.pendingspecializations.Items[i]);
+        list.Capacity:=compiler.current_module.pendingspecializations.Count;
+        for i:=0 to compiler.current_module.pendingspecializations.Count-1 do
+          list.add(compiler.current_module.pendingspecializations.Items[i]);
 
-        current_module.pendingspecializations.clear;
+        compiler.current_module.pendingspecializations.clear;
 
         for i:=0 to list.count-1 do
           begin
@@ -3088,8 +3092,8 @@ uses
                   { we need to check for a forward declaration only if the
                     generic was declared in the same unit (otherwise there
                     should be one) }
-                  if ((hmodule=current_module) and tprocdef(def.genericdef).forwarddef)
-                      or ((hmodule<>current_module) and (hmodule.state<ms_compiling_waitfinish)) then
+                  if ((hmodule=compiler.current_module) and tprocdef(def.genericdef).forwarddef)
+                      or ((hmodule<>compiler.current_module) and (hmodule.state<ms_compiling_waitfinish)) then
                     begin
                       readdlist.add(def);
                       continue;
@@ -3119,7 +3123,7 @@ uses
         { add those defs back to the pending list for which we don't yet have
           all method bodies }
         for i:=0 to readdlist.count-1 do
-          current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
+          compiler.current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
 
         readdlist.free;
         readdlist := nil;
@@ -3137,17 +3141,17 @@ uses
       begin
         if not tstoreddef(def).is_generic then
           internalerror(2020070304);
-        idx:=current_module.forwardgenericdefs.findindexof(def.fulltypename);
+        idx:=compiler.current_module.forwardgenericdefs.findindexof(def.fulltypename);
         if idx<0 then
           exit;
-        list:=tfpobjectlist(current_module.forwardgenericdefs.items[idx]);
+        list:=tfpobjectlist(compiler.current_module.forwardgenericdefs.items[idx]);
         if not assigned(list) then
           internalerror(2020070305);
         for i:=0 to list.count-1 do begin
           context:=tspecializationcontext(list[i]);
           generate_specialization_phase2(context,tstoreddef(def),false,'');
         end;
-        current_module.forwardgenericdefs.delete(idx);
+        compiler.current_module.forwardgenericdefs.delete(idx);
       end;
 
 
@@ -3165,8 +3169,8 @@ uses
         while st.symtabletype in [localsymtable] do
           st:=st.defowner.owner;
         hmodule:=find_module_from_symtable(st);
-        if tstoreddef(def).is_specialization and (hmodule=current_module) then
-          current_module.pendingspecializations.add(def.typename,def);
+        if tstoreddef(def).is_specialization and (hmodule=compiler.current_module) then
+          compiler.current_module.pendingspecializations.add(def.typename,def);
       end;
 
 

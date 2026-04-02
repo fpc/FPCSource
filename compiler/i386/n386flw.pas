@@ -382,7 +382,7 @@ procedure ti386tryfinallynode.pass_generate_code;
           sym,
           exceptlabel
         );
-        current_module.add_extern_asmsym(sym);
+        compiler.current_module.add_extern_asmsym(sym);
       end
     else
       begin
@@ -391,7 +391,7 @@ procedure ti386tryfinallynode.pass_generate_code;
           sym,
           current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION)
         );
-        current_module.add_extern_asmsym(sym);
+        compiler.current_module.add_extern_asmsym(sym);
       end;
 
     { try code }
@@ -561,7 +561,7 @@ procedure ti386tryexceptnode.pass_generate_code;
         emit_scope_start(
           sym,
           filterlabel);
-        current_module.add_extern_asmsym(sym);
+        compiler.current_module.add_extern_asmsym(sym);
       end
     else
       begin
@@ -569,7 +569,7 @@ procedure ti386tryexceptnode.pass_generate_code;
         emit_scope_start(
           sym,
           exceptlabel);
-        current_module.add_extern_asmsym(sym);
+        compiler.current_module.add_extern_asmsym(sym);
       end;
 
     { set control flow labels for the try block }
@@ -640,7 +640,7 @@ procedure ti386tryexceptnode.pass_generate_code;
             sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
             hlist.concat(tai_const.create_sym(sym));
             hlist.concat(tai_const.create_sym(onlabel));
-            current_module.add_extern_asmsym(sym);
+            compiler.current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);
             inc(onnodecount.value);

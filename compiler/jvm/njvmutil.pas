@@ -228,9 +228,9 @@ implementation
 
           { add initialization code for the wrapper }
           block:=internalstatements(compiler,stat);
-          if assigned(current_module.tcinitcode) then
-            addstatement(stat,tnode(current_module.tcinitcode));
-          current_module.tcinitcode:=block;
+          if assigned(compiler.current_module.tcinitcode) then
+            addstatement(stat,tnode(compiler.current_module.tcinitcode));
+          compiler.current_module.tcinitcode:=block;
 
           { create initialization value if necessary }
           initnode:=nil;

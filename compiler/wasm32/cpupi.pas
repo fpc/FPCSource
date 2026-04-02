@@ -178,7 +178,7 @@ implementation
         pd:=search_system_proc('fpc_catches');
         reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
-          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+          compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
         hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
         paramanager.freecgpara(list, paraloc1);
@@ -262,7 +262,7 @@ implementation
         pd:=search_system_proc('fpc_catches');
         reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
-          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+          compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
         hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
         paramanager.freecgpara(list, paraloc1);
@@ -345,7 +345,7 @@ implementation
         pd:=search_system_proc('fpc_catches');
         reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
-          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+          compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
         hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
         paramanager.freecgpara(list, paraloc1);

@@ -96,10 +96,10 @@ implementation
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -565,10 +565,10 @@ Procedure TLinkerLinux.InitSysInitUnitName;
 begin
   linklibc:=ModulesLinkToLibc(compiler);
   reorder:=linklibc and ReOrderEntries;
-  sysinitunit:=defsinames[current_module.islibrary];
-  prtobj:=defprtnames[current_module.islibrary];
+  sysinitunit:=defsinames[compiler.current_module.islibrary];
+  prtobj:=defprtnames[compiler.current_module.islibrary];
 
-  if current_module.islibrary then
+  if compiler.current_module.islibrary then
     exit;
   if cs_profile in compiler.globals.current_settings.moduleswitches then
     begin
@@ -607,7 +607,7 @@ begin
   with linkres do
     begin
       { Write path to search libraries }
-      HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+      HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR("'+HPath.Str+'")');
@@ -863,7 +863,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -879,7 +879,7 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
@@ -912,7 +912,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -949,10 +949,10 @@ begin
       for i:=1 to 3 do
         begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
-          Replace(cmdstr,'$DBGX',current_module.dbgfilename);
-          Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
+          Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
+          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(compiler.current_module.dbgfilename)));
+          Replace(cmdstr,'$DBGX',compiler.current_module.dbgfilename);
+          Replace(cmdstr,'$DBG',maybequoted(compiler.current_module.dbgfilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;
@@ -967,7 +967,7 @@ begin
     as it only writes sections sizes so far, do this only if V_Info is set }
   if success and compiler.verbose.CheckVerbosity(V_Info) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     { do not change success here as we are only writing some info, so if this fails, it does not matter }
-    { success:= }PostProcessExecutable(current_module.exefilename,false);
+    { success:= }PostProcessExecutable(compiler.current_module.exefilename,false);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -992,7 +992,7 @@ begin
   ltostr:='';
   rpathstr:='';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
   if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -1006,9 +1006,9 @@ begin
  { note: linux does not use exportlib.initname/fininame due to the custom startup code }
   InitStr:='-init FPC_SHARED_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
+  SoNameStr:='-soname '+ExtractFileName(compiler.current_module.sharedlibfilename);
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+     mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
 
   { add custom LTO library if using custom clang }
   if (cs_lto in compiler.globals.current_settings.moduleswitches) and
@@ -1026,7 +1026,7 @@ begin
 
  { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
@@ -1044,7 +1044,7 @@ begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 
@@ -1081,8 +1081,8 @@ procedure TInternalLinkerLinux.InitSysInitUnitName;
 begin
   linklibc:=ModulesLinkToLibc(compiler);
   reorder:=linklibc and ReOrderEntries;
-  sysinitunit:=defsinames[current_module.islibrary];
-  prtobj:=defprtnames[current_module.islibrary];
+  sysinitunit:=defsinames[compiler.current_module.islibrary];
+  prtobj:=defprtnames[compiler.current_module.islibrary];
 
   if cs_profile in compiler.globals.current_settings.moduleswitches then
     begin

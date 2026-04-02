@@ -157,13 +157,13 @@ implementation
          unloaded_units.Clear;
         end;
 
-      { If used units are compiled current_module is already the same as
+      { If used units are compiled compiler.current_module is already the same as
         the stored module. Now if the unit is not finished its scanner is
         not yet freed and thus set_current_module would reopen the scanned
         file which will result in pointing to the wrong position in the
-        file. In the normal case current_scanner and current_module.scanner
+        file. In the normal case current_scanner and compiler.current_module.scanner
         would be Nil, thus nothing bad would happen }
-{           if olddata.old_current_module<>current_module then
+{           if olddata.old_current_module<>compiler.current_module then
         set_current_module(olddata.old_current_module);}
 
       pmessage:=compiler.globals.current_settings.pmessage;
@@ -428,17 +428,17 @@ implementation
 
          set_current_scanner(tscannerfile.Create(filename));
          current_scanner.firstfile;
-         current_module.scanner:=current_scanner;
+         compiler.current_module.scanner:=current_scanner;
 
          { init macros before anything in the file is parsed.}
-         current_module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
+         compiler.current_module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
          compiler.macrosymtablestack.push(compiler.initialmacrosymtable);
-         compiler.macrosymtablestack.push(current_module.localmacrosymtable);
+         compiler.macrosymtablestack.push(compiler.current_module.localmacrosymtable);
 
          { read the first token }
          // current_scanner.readtoken(false);
 
-         compiler.main_module:=current_module;
+         compiler.main_module:=compiler.current_module;
          repeat
            current_scanner.readtoken(true);
            preprocfile.AddSpace;
@@ -541,7 +541,7 @@ implementation
          if not (module.state in [ms_compile]) then
            internalerror(200212281);
 
-         { load current asmdata from current_module }
+         { load current asmdata from compiler.current_module }
          current_asmdata:=TAsmData(module.asmdata);
 
          { startup scanner and load the first file }

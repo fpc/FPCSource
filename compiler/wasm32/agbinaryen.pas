@@ -258,7 +258,7 @@ implementation
                   { load infile }
                   if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
                    begin
-                     infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
+                     infile:=compiler.current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                      if assigned(infile) then
                       begin
                         { open only if needed !! }

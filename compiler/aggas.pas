@@ -2018,12 +2018,12 @@ implementation
       i: longint;
     begin
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.Comment(V_Debug,'Start writing gas-styled assembler output for '+compiler.current_module.mainsource);
 {$endif}
 
-      if current_module.mainsource<>'' then
-        n:=ExtractFileName(current_module.mainsource)
+      if compiler.current_module.mainsource<>'' then
+        n:=ExtractFileName(compiler.current_module.mainsource)
       else
         n:=compiler.globals.InputFileName;
 
@@ -2067,8 +2067,8 @@ implementation
       writer.AsmLn;
       WriteExtraFooter;
 {$ifdef EXTDEBUG}
-      if current_module.mainsource<>'' then
-       compiler.verbose.Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
+      if compiler.current_module.mainsource<>'' then
+       compiler.verbose.Comment(V_Debug,'Done writing gas-styled assembler output for '+compiler.current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 

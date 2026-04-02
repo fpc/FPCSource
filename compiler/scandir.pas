@@ -293,9 +293,9 @@ unit scandir;
         else
           state:=current_scanner.readstate;
         if state='-' then
-          exclude(current_module.moduleflags,flag)
+          exclude(compiler.current_module.moduleflags,flag)
         else
-          include(current_module.moduleflags,flag);
+          include(compiler.current_module.moduleflags,flag);
       end;
 
 
@@ -526,7 +526,7 @@ unit scandir;
           end
         else
           begin
-            if not current_module.in_global then
+            if not compiler.current_module.in_global then
               compiler.verbose.Message(scan_w_switch_is_global)
             else
               begin
@@ -738,7 +738,7 @@ unit scandir;
 
     procedure TScanDir.dir_frameworkpath;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
         else if not(compiler.target.info.system in systems_darwin) then
           begin
@@ -749,7 +749,7 @@ unit scandir;
         else
           begin
             current_scanner.skipspace;
-            current_module.localframeworksearchpath.AddPath(current_scanner.readcomment,false);
+            compiler.current_module.localframeworksearchpath.AddPath(current_scanner.readcomment,false);
           end;
       end;
 
@@ -791,14 +791,14 @@ unit scandir;
       var
         path : string;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
-            current_module.localincludesearchpath.AddPath(path,false);
-            compiler.verbose.Message2(general_t_includepath_local,current_module.realmodulename^,path);
+            compiler.current_module.localincludesearchpath.AddPath(path,false);
+            compiler.verbose.Message2(general_t_includepath_local,compiler.current_module.realmodulename^,path);
           end;
       end;
 
@@ -846,14 +846,14 @@ unit scandir;
       var
         path : string;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
-            current_module.locallibrarysearchpath.AddPath(path,false);
-            compiler.verbose.Message2(general_t_librarypath_local,current_module.realmodulename^,path);
+            compiler.current_module.locallibrarysearchpath.AddPath(path,false);
+            compiler.verbose.Message2(general_t_librarypath_local,compiler.current_module.realmodulename^,path);
           end;
       end;
 
@@ -872,7 +872,7 @@ unit scandir;
         s:=FixFileName(s);
         if ExtractFileExt(s)='' then
           s:=ChangeFileExt(s,compiler.target.info.objext);
-        current_module.linkotherofiles.add(s,link_always);
+        compiler.current_module.linkotherofiles.add(s,link_always);
       end;
 
     procedure TScanDir.dir_linkframework;
@@ -889,7 +889,7 @@ unit scandir;
           s:= trimspace(current_scanner.readcomment);
         s:=FixFileName(s);
         if (compiler.target.info.system in systems_darwin) then
-          current_module.linkotherframeworks.add(s,link_always)
+          compiler.current_module.linkotherframeworks.add(s,link_always)
         else
           compiler.verbose.Message(scan_w_frameworks_darwin_only);
       end;
@@ -959,9 +959,9 @@ unit scandir;
 
         { add to the list of other libraries }
         if linkMode=lm_static then
-         current_module.linkOtherStaticLibs.add(libname,link_always)
+         compiler.current_module.linkOtherStaticLibs.add(libname,link_always)
         else
-         current_module.linkOtherSharedLibs.add(libname,link_always);
+         compiler.current_module.linkOtherSharedLibs.add(libname,link_always);
       end;
 
     procedure TScanDir.dir_localsymbols;
@@ -985,18 +985,18 @@ unit scandir;
       begin
         current_scanner.skipspace;
         s:=trimspace(current_scanner.readcomment);
-        if assigned(current_module.mainname) and
-           (s<>current_module.mainname^) then
+        if assigned(compiler.current_module.mainname) and
+           (s<>compiler.current_module.mainname^) then
           begin
-            compiler.verbose.Message1(scan_w_multiple_main_name_overrides,current_module.mainname^);
-            stringdispose(current_module.mainname)
+            compiler.verbose.Message1(scan_w_multiple_main_name_overrides,compiler.current_module.mainname^);
+            stringdispose(compiler.current_module.mainname)
           end
         else if (compiler.globals.mainaliasname<>defaultmainaliasname) and
                 (compiler.globals.mainaliasname<>s) then
           compiler.verbose.Message1(scan_w_multiple_main_name_overrides,compiler.globals.mainaliasname);
         compiler.globals.mainaliasname:=s;
         if (compiler.globals.mainaliasname<>defaultmainaliasname) then
-          current_module.mainname:=stringdup(compiler.globals.mainaliasname);
+          compiler.current_module.mainname:=stringdup(compiler.globals.mainaliasname);
       end;
 
     procedure TScanDir.dir_maxfpuregisters;
@@ -1162,19 +1162,19 @@ unit scandir;
     procedure TScanDir.dir_mode;
 
     begin
-      if not current_module.in_global then
+      if not compiler.current_module.in_global then
         compiler.verbose.Message(scan_w_switch_is_global)
       else
         begin
           current_scanner.skipspace;
           current_scanner.readstring;
-          if not current_module.mode_switch_allowed and
+          if not compiler.current_module.mode_switch_allowed and
               not ((m_mac in compiler.globals.current_settings.modeswitches) and (current_scanner.pattern='MACPAS')) then
             compiler.verbose.Message1(scan_e_mode_switch_not_allowed,current_scanner.pattern)
           else if not SetCompileMode(current_scanner.pattern,false) then
             compiler.verbose.Message1(scan_w_illegal_switch,current_scanner.pattern)
         end;
-      current_module.mode_switch_allowed:= false;
+      compiler.current_module.mode_switch_allowed:= false;
     end;
 
     procedure TScanDir.dir_multilinestringlineending;
@@ -1263,7 +1263,7 @@ unit scandir;
       var
         s : string;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
           compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
@@ -1287,7 +1287,7 @@ unit scandir;
         s : string;
 
     begin
-      if not current_module.in_global then
+      if not compiler.current_module.in_global then
         compiler.verbose.Message(scan_w_switch_is_global)
       else
         begin
@@ -1319,7 +1319,7 @@ unit scandir;
       begin
         { used to define Java package names for all types declared in the
           current unit }
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
           compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
@@ -1332,8 +1332,8 @@ unit scandir;
                 current_scanner.readstring;
                 s:=s+'.'+current_scanner.orgpattern;
               end;
-            disposestr(current_module.namespace);
-            current_module.namespace:=stringdup(s);
+            disposestr(compiler.current_module.namespace);
+            compiler.current_module.namespace:=stringdup(s);
           end;
       end;
 
@@ -1361,14 +1361,14 @@ unit scandir;
       var
         path : string;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
-            current_module.localobjectsearchpath.AddPath(path,false);
-            compiler.verbose.Message2(general_t_objectpath_local,current_module.realmodulename^,path);
+            compiler.current_module.localobjectsearchpath.AddPath(path,false);
+            compiler.verbose.Message2(general_t_objectpath_local,compiler.current_module.realmodulename^,path);
           end;
       end;
 
@@ -1636,22 +1636,22 @@ unit scandir;
         { replace * with the name of the main source.
           This should always be defined. }
         if s[1]='*' then
-          if Assigned(Current_Module) then
+          if Assigned(compiler.current_module) then
             begin
               delete(S,1,1);
-              insert(ChangeFileExt(ExtractFileName(current_module.mainsource),''),S,1 );
+              insert(ChangeFileExt(ExtractFileName(compiler.current_module.mainsource),''),S,1 );
             end;
         s:=FixFileName(s);
         if ExtractFileExt(s)='' then
           s:=ChangeFileExt(s,compiler.target.info.resext);
         if compiler.target.info.res<>res_none then
           begin
-            include(current_module.moduleflags,mf_has_resourcefiles);
+            include(compiler.current_module.moduleflags,mf_has_resourcefiles);
             if (res_single_file in compiler.target.res.resflags) and
-                                   not (Current_module.ResourceFiles.Empty) then
+                                   not (compiler.current_module.ResourceFiles.Empty) then
               compiler.verbose.Message(scan_w_only_one_resourcefile_supported)
             else
-              current_module.resourcefiles.insert(FixFileName(s));
+              compiler.current_module.resourcefiles.insert(FixFileName(s));
           end
         else
           compiler.verbose.Message(scan_e_resourcefiles_not_supported);
@@ -1741,7 +1741,7 @@ unit scandir;
           end;
 
         { set the directive in the module }
-        current_module.rtti_directive:=dir;
+        compiler.current_module.rtti_directive:=dir;
       end;
 
     procedure TScanDir.dir_saturation;
@@ -1818,7 +1818,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
           compiler.verbose.Message(scan_w_setpeuserversion_not_support);
-        if (not current_module.is_initial) then
+        if (not compiler.current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
@@ -1837,7 +1837,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
           compiler.verbose.Message(scan_w_setpeosversion_not_support);
-        if (not current_module.is_initial) then
+        if (not compiler.current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
@@ -1856,7 +1856,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
           compiler.verbose.Message(scan_w_setpesubsysversion_not_support);
-        if (not current_module.is_initial) then
+        if (not compiler.current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
@@ -1945,20 +1945,20 @@ unit scandir;
             current_scanner.readid;
             value:=current_scanner.orgpattern;
             targetswitches:=compiler.globals.current_settings.targetswitches;
-            UpdateTargetSwitchStr(name+'='+value,targetswitches,current_module.in_global);
+            UpdateTargetSwitchStr(name+'='+value,targetswitches,compiler.current_module.in_global);
             compiler.globals.current_settings.targetswitches:=targetswitches;
           end
         else if current_scanner.c='-' then
           begin
             current_scanner.readchar;
             targetswitches:=compiler.globals.current_settings.targetswitches;
-            UpdateTargetSwitchStr(name+'-',targetswitches,current_module.in_global);
+            UpdateTargetSwitchStr(name+'-',targetswitches,compiler.current_module.in_global);
             compiler.globals.current_settings.targetswitches:=targetswitches;
           end
         else
           begin
             targetswitches:=compiler.globals.current_settings.targetswitches;
-            UpdateTargetSwitchStr(name,targetswitches,current_module.in_global);
+            UpdateTargetSwitchStr(name,targetswitches,compiler.current_module.in_global);
             compiler.globals.current_settings.targetswitches:=targetswitches;
           end;
       end;
@@ -1977,17 +1977,17 @@ unit scandir;
       var
         unitpath: TPathStr;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
             unitpath:=current_scanner.readcomment;
-            if (current_module.path<>'') and
+            if (compiler.current_module.path<>'') and
                not path_absolute(unitpath) then
-             unitpath:=current_module.path+source_info.DirSep+unitpath;
-            current_module.localunitsearchpath.AddPath(unitpath,false);
-            compiler.verbose.Message2(general_t_unitpath_local,current_module.realmodulename^,unitpath);
+             unitpath:=compiler.current_module.path+source_info.DirSep+unitpath;
+            compiler.current_module.localunitsearchpath.AddPath(unitpath,false);
+            compiler.verbose.Message2(general_t_unitpath_local,compiler.current_module.realmodulename^,unitpath);
           end;
       end;
 
@@ -2023,7 +2023,7 @@ unit scandir;
             compiler.verbose.Message(scan_n_version_not_support);
             exit;
           end;
-        if (not current_module.is_initial) then
+        if (not compiler.current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
@@ -2341,7 +2341,7 @@ unit scandir;
       var
          s : string;
       begin
-        if not current_module.in_global then
+        if not compiler.current_module.in_global then
           compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin

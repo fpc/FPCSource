@@ -873,7 +873,7 @@ implementation
         forwardfound:=false;
 
         if assigned(currpd.struct) and
-           (currpd.struct.symtable.moduleid<>current_module.moduleid) and
+           (currpd.struct.symtable.moduleid<>compiler.current_module.moduleid) and
            not (df_specialization in currpd.defoptions) then
           begin
             result:=false;
@@ -1167,14 +1167,14 @@ implementation
                    if po_compilerproc in fwpd.procoptions then
                      begin
                        fwpd.setcompilerprocname;
-                       current_module.add_public_asmsym(fwpd.procsym.realname,AB_GLOBAL,AT_FUNCTION);
+                       compiler.current_module.add_public_asmsym(fwpd.procsym.realname,AB_GLOBAL,AT_FUNCTION);
                      end;
                    if po_public in fwpd.procoptions then
                      begin
                        item:=fwpd.aliasnames.first;
                        while assigned(item) do
                          begin
-                           current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
+                           compiler.current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
                            item:=item.next;
                          end;
                      end;
@@ -1272,7 +1272,7 @@ implementation
                 item:=currpd.aliasnames.first;
                 while assigned(item) do
                   begin
-                    current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
+                    compiler.current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
                     item:=item.next;
                   end;
               end;
@@ -1295,11 +1295,11 @@ implementation
           from the symtable in which it was originally created, so that by itself
           is not enough) }
         old_symtablestack:=compiler.symtablestack;
-        tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
+        tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(compiler.current_module.localsymtable);
         { create struct to hold local variables and parameters that are
           accessed from within nested routines (start with extra dollar to prevent
           the JVM from thinking this is a nested class in the unit) }
-        nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
+        nestedvarsst:=trecordsymtable.create('$'+compiler.current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
           compiler.globals.current_settings.alignment.localalignmax,compiler.globals.current_settings.alignment.localalignmin,compiler);
         nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst,compiler);
   {$ifdef jvm}

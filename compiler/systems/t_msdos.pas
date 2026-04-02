@@ -105,9 +105,9 @@ implementation
     begin
       if (tf_smartlink_library in compiler.target.info.flags) and is_smartlink_vectorized_dead_strip(compiler.target) then
         begin
-          with current_module.linkorderedsymbols do
+          with compiler.current_module.linkorderedsymbols do
             if (Last=nil) or (TCmdStrListItem(Last).Str<>secname) then
-              current_module.linkorderedsymbols.concat(secname);
+              compiler.current_module.linkorderedsymbols.concat(secname);
         end;
     end;
 
@@ -179,7 +179,7 @@ begin
     if s<>'' then
       LinkRes.Add(GetShortName(s) + ' +');
   end;
-  LinkRes.Add(', ' + maybequoted(current_module.exefilename));
+  LinkRes.Add(', ' + maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -196,7 +196,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -242,7 +242,7 @@ begin
       LinkRes.Add(maybequoted(s));
   end;
   LinkRes.Add('-oEXE');
-  LinkRes.Add('-o ' + maybequoted(current_module.exefilename));
+  LinkRes.Add('-o ' + maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -274,7 +274,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -357,8 +357,8 @@ begin
   else
     LinkRes.Add('order clname CODE clname FAR_DATA clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
-  LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+    LinkRes.Add('option map='+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map')));
+  LinkRes.Add('name ' + maybequoted(compiler.current_module.exefilename));
 
   { Write and Close response }
   linkres.writetodisk;
@@ -390,7 +390,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -403,7 +403,7 @@ begin
 
   { Post process }
   if success then
-    success:=PostProcessExecutable(current_module.exefilename);
+    success:=PostProcessExecutable(compiler.current_module.exefilename);
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then

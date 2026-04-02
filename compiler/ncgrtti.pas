@@ -1368,7 +1368,7 @@ implementation
               tcb.emit_shortstring_const(hp.realname);
             end;
           { write unit name }
-          tcb.emit_shortstring_const(current_module.realmodulename^);
+          tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
           { write zero which is required by RTL }
           tcb.emit_ord_const(0,u8inttype);
           { terminate all records }
@@ -1652,7 +1652,7 @@ implementation
                else
                  tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
                { write unit name }
-               tcb.emit_shortstring_const(current_module.realmodulename^);
+               tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
              end;
 
           tcb.end_anonymous_record;
@@ -2028,7 +2028,7 @@ implementation
             { write unit name }
 
             maybe_add_comment(tcb, #9'Unit name');
-            tcb.emit_shortstring_const(current_module.realmodulename^);
+            tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
 
             { write published properties for this object }
             properties_write_rtti_data(tcb,propnamelist,def.symtable,false,[vis_published]);
@@ -2081,7 +2081,7 @@ implementation
             write_rtti_reference(tcb,def.hiddenclassdef,fullrtti);
 
             { write unit name }
-            tcb.emit_shortstring_const(current_module.realmodulename^);
+            tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
 
             tcb.begin_anonymous_record('',defaultpacking,reqalign,
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2462,7 +2462,7 @@ implementation
             tcb.free;
             tcb := nil;
 
-            current_module.add_public_asmsym(rttilab);
+            compiler.current_module.add_public_asmsym(rttilab);
         end;
 
 
@@ -2509,7 +2509,7 @@ implementation
           tcb.free;
           tcb := nil;
 
-          current_module.add_public_asmsym(rttilab);
+          compiler.current_module.add_public_asmsym(rttilab);
         end;
 
         procedure enumdef_rtti_extrasyms(def:Tenumdef);
@@ -2647,8 +2647,8 @@ implementation
       begin
         s:=def.rtti_mangledname(rt)+suffix;
         result:=current_asmdata.RefAsmSymbol(s,AT_DATA,indirect);
-        if def.owner.moduleid<>current_module.moduleid then
-          current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
+        if def.owner.moduleid<>compiler.current_module.moduleid then
+          compiler.current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
@@ -2696,7 +2696,7 @@ implementation
         tcb.free;
         tcb := nil;
 
-        current_module.add_public_asmsym(rttilab);
+        compiler.current_module.add_public_asmsym(rttilab);
 
         { write additional data }
         write_rtti_extrasyms(def,rt,rttilab);

@@ -780,6 +780,8 @@ unit optvirt;
 
     procedure tprogdevirtinfo.constructfromcompilerstate;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp: tmodule;
         i: longint;
         inheritancetree: tinheritancetree;
@@ -803,17 +805,17 @@ unit optvirt;
 
          { add all constructed class/object types to the tree }
 {$IFDEF DEBUG_DEVIRT}
-         writeln('constructed object/class/classreftypes in ',current_module.realmodulename^);
+         writeln('constructed object/class/classreftypes in ',compiler.current_module.realmodulename^);
 {$ENDIF}
-         for i := 0 to current_module.wpoinfo.createdobjtypes.count-1 do
+         for i := 0 to compiler.current_module.wpoinfo.createdobjtypes.count-1 do
            begin
-             inheritancetree.registerinstantiatedobjdef(tdef(current_module.wpoinfo.createdobjtypes[i]));
+             inheritancetree.registerinstantiatedobjdef(tdef(compiler.current_module.wpoinfo.createdobjtypes[i]));
 {$IFDEF DEBUG_DEVIRT}
-             write('  ',tdef(current_module.wpoinfo.createdobjtypes[i]).GetTypeName);
+             write('  ',tdef(compiler.current_module.wpoinfo.createdobjtypes[i]).GetTypeName);
 {$ENDIF}
-             case tdef(current_module.wpoinfo.createdobjtypes[i]).typ of
+             case tdef(compiler.current_module.wpoinfo.createdobjtypes[i]).typ of
                objectdef:
-                 case tobjectdef(current_module.wpoinfo.createdobjtypes[i]).objecttype of
+                 case tobjectdef(compiler.current_module.wpoinfo.createdobjtypes[i]).objecttype of
                    odt_object:
 {$IFDEF DEBUG_DEVIRT}
                      writeln(' (object)')
@@ -833,13 +835,13 @@ unit optvirt;
            end;
 
          { register all instantiated classrefdefs with the tree }
-         for i := 0 to current_module.wpoinfo.createdclassrefobjtypes.count-1 do
+         for i := 0 to compiler.current_module.wpoinfo.createdclassrefobjtypes.count-1 do
            begin
-             inheritancetree.registerinstantiatedclassrefdef(tdef(current_module.wpoinfo.createdclassrefobjtypes[i]));
+             inheritancetree.registerinstantiatedclassrefdef(tdef(compiler.current_module.wpoinfo.createdclassrefobjtypes[i]));
 {$IFDEF DEBUG_DEVIRT}
-             write('  Class Of ',tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
+             write('  Class Of ',tdef(compiler.current_module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
 {$ENDIF}
-             case tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).typ of
+             case tdef(compiler.current_module.wpoinfo.createdclassrefobjtypes[i]).typ of
                objectdef:
 {$IFDEF DEBUG_DEVIRT}
                  writeln(' (classrefdef)')
@@ -856,13 +858,13 @@ unit optvirt;
            classrefdef to the tree (as they can, in theory, all
            be instantiated as well)
          }
-         for i := 0 to current_module.wpoinfo.maybecreatedbyclassrefdeftypes.count-1 do
+         for i := 0 to compiler.current_module.wpoinfo.maybecreatedbyclassrefdeftypes.count-1 do
            begin
-             inheritancetree.checkforclassrefinheritance(tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]));
+             inheritancetree.checkforclassrefinheritance(tdef(compiler.current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]));
 {$IFDEF DEBUG_DEVIRT}
-             write('  Class Of ',tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).GetTypeName);
+             write('  Class Of ',tdef(compiler.current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).GetTypeName);
 {$ENDIF}
-             case tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).typ of
+             case tdef(compiler.current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).typ of
                objectdef:
 {$IFDEF DEBUG_DEVIRT}
                  writeln(' (classrefdef)')

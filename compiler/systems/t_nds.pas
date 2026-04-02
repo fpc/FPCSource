@@ -114,7 +114,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -817,11 +817,11 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -830,7 +830,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,preName)))));
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,preName)))));
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -848,16 +848,16 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(compiler.globals.utilsprefix + 'objcopy'), '-O binary '+
-        ChangeFileExt(current_module.exefilename, preName) + ' ' +
-        ChangeFileExt(current_module.exefilename, preName+compiler.target.info.exeext),
+        ChangeFileExt(compiler.current_module.exefilename, preName) + ' ' +
+        ChangeFileExt(compiler.current_module.exefilename, preName+compiler.target.info.exeext),
         true,false);
     end;
 
   if success and (compiler.globals.apptype=app_arm9) then
     begin
       success:=DoExec(FindUtil('ndstool'), '-c ' +
-        ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' +
-        ChangeFileExt(current_module.exefilename, preName+compiler.target.info.exeext),
+        ChangeFileExt(compiler.current_module.exefilename, '.nds') + ' -9 ' +
+        ChangeFileExt(compiler.current_module.exefilename, preName+compiler.target.info.exeext),
         true,false);
     end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }

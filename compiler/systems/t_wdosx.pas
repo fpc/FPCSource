@@ -31,7 +31,8 @@ implementation
     uses
        cutils,
        fmodule,globals,systems,
-       import,export,link,t_win,i_wdosx;
+       import,export,link,t_win,i_wdosx,
+       compilerbase,compiler;
 
   type
     timportlibwdosx=class(TImportLibWin)
@@ -61,7 +62,7 @@ var
 begin
  b := Inherited MakeExecutable;
  if b then
-  DoExec(FindUtil('stubit'),current_module.exefilename,false,false);
+  DoExec(FindUtil('stubit'),compiler.current_module.exefilename,false,false);
  Result := b;
 end;
 

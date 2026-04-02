@@ -149,7 +149,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -1795,15 +1795,15 @@ begin
   StripStr:='';
   mapstr:='';
   DynLinkStr:='';
-  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
+  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in compiler.globals.current_settings.globalswitches) then
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -1856,14 +1856,14 @@ begin
     begin
       success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O ihex '+
         FixedExeFileName+' '+
-        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
+        maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.hex'))),true,false);
       if success then
         success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
           FixedExeFileName+' '+
-          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+          maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),true,false);
         if success and (compiler.target.info.system in systems_support_uf2) and (cs_generate_uf2 in compiler.globals.current_settings.globalswitches) then
-          success := GenerateUF2(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),
-                                 maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.uf2'))),
+          success := GenerateUF2(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),
+                                 maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.uf2'))),
                                  embedded_controllers[compiler.globals.current_settings.controllertype].flashbase);
 {$ifdef ARM}
       if success and (compiler.globals.current_settings.controllertype = ct_raspi2) then
@@ -2006,7 +2006,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
     LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
     { Write path to search libraries }
-(*    HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+(*    HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
     while assigned(HPath) do
      begin
       s:=HPath.Str;
@@ -2165,12 +2165,12 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.ihx')));
 
 (*    GCSectionsStr:='--gc-sections';
     //if not(cs_link_extern in compiler.globals.current_settings.globalswitches) then
     if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);*)
+     compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);*)
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
@@ -2215,11 +2215,11 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
       begin
         success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O ihex '+
           FixedExeFileName+' '+
-          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
+          maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.hex'))),true,false);
         if success then
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
             FixedExeFileName+' '+
-            maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+            maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.bin'))),true,false);
       end;*)
 
     MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -2255,11 +2255,11 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
   begin
     Result:=false;
     if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-      compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+      compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
     mapstr:='';
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+      mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.sharedlibfilename,'.map'));
     if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
        compiler.target.create_smartlink_sections then
      GCSectionsStr:='--gc-sections'
@@ -2268,7 +2268,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
 
     SoNameStr:='';
     SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-    Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+    Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
 
     tmp := TCmdStrListItem(ObjectFiles.First);
     while Assigned(tmp) do begin
@@ -2299,8 +2299,8 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
     //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-    //Replace(cmdstr,'$INPUT',current_module.objfilename );
-    //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+    //Replace(cmdstr,'$INPUT',compiler.current_module.objfilename );
+    //Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
     //DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
 
     MakeSharedLibrary:=success;

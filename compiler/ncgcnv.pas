@@ -87,8 +87,8 @@ interface
         result:=(tf_supports_packages in compiler.target.info.flags) and
                   (compiler.target.info.system in systems_indirect_var_imports) and
                   (
-                    not assigned(current_module) or
-                    (current_module.globalsymtable<>systemunit)
+                    not assigned(compiler.current_module) or
+                    (compiler.current_module.globalsymtable<>systemunit)
                   );
       end;
 
@@ -328,7 +328,7 @@ interface
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2,[]);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
-                  current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+                  compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
                 end
@@ -717,7 +717,7 @@ interface
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2,[]);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
-         current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+         compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;

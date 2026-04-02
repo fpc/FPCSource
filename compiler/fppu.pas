@@ -1885,8 +1885,8 @@ var
          ppufile.header.common.cpu:=word(compiler.target.cpu);
          ppufile.header.common.target:=word(compiler.target.info.system);
          ppufile.header.common.flags:=headerflags;
-         ppufile.header.deflistsize:=current_module.deflist.count;
-         ppufile.header.symlistsize:=current_module.symlist.count;
+         ppufile.header.deflistsize:=compiler.current_module.deflist.count;
+         ppufile.header.symlistsize:=compiler.current_module.symlist.count;
          ppufile.writeheader;
 
 {$ifdef Test_Double_checksum_write}
@@ -2112,7 +2112,7 @@ var
       { self is a ppu (or in a package) }
       begin
         Result:=true;
-        if current_module<>self then
+        if compiler.current_module<>self then
           internalerror(200212284);
 
         if not interface_compiled then
@@ -2121,10 +2121,10 @@ var
           in_interface:=true;
           if not load_usedunits_section then
             exit(false); { e.g. fail or some used unit interface is not ready }
-          if current_module<>self then
+          if compiler.current_module<>self then
             internalerror(2026022317);
           { ok, now load the interface of this unit }
-          if current_module<>self then
+          if compiler.current_module<>self then
             internalerror(200208187);
           deflist.count:=ppufile.header.deflistsize;
           symlist.count:=ppufile.header.symlistsize;
@@ -2152,7 +2152,7 @@ var
         begin
           if not load_usedunits_section then
             exit(false); { fail or some used unit interface is not ready }
-          if current_module<>self then
+          if compiler.current_module<>self then
             internalerror(2026022316);
         end;
 
@@ -2602,7 +2602,7 @@ var
         old_module: tmodule;
       begin
         Result:=false;
-        old_module:=current_module;
+        old_module:=compiler.current_module;
 
         restore_state;
 
@@ -2623,7 +2623,7 @@ var
             writeln('PPUALGO tppumodule.continueloadppu ',modulename^,' delay state=',statestr);
             {$ENDIF}
             store_state;
-            { loading unfinished or reset, restore current_module }
+            { loading unfinished or reset, restore compiler.current_module }
             set_current_module(old_module);
             exit;
           end else if state<>ms_compile then
@@ -2644,7 +2644,7 @@ var
         { finished or recompile: no need to store state }
         FreeAndNil(stored_state);
 
-        { we are back, restore current_module }
+        { we are back, restore compiler.current_module }
         set_current_module(old_module);
       end;
 

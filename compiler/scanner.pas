@@ -383,20 +383,22 @@ implementation
 
     var
       {
-        By default the current_scanner is current_module.scanner.
+        By default the current_scanner is compiler.current_module.scanner.
         set_current_scanner sets the _temp_scanner variable.
         If _temp_scanner is set, it is returned as the current scanner
       }
       _temp_scanner : tscannerfile;
 
       function current_scanner : tscannerfile;  { current scanner in use }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         Result:=_temp_scanner;
         if result<>nil then
           exit;
-        if assigned(current_module) then
-          Result:=Tscannerfile(current_module.scanner)
+        if assigned(compiler.current_module) then
+          Result:=Tscannerfile(compiler.current_module.scanner)
         else
           Result:=Nil;
       end;
@@ -1019,7 +1021,7 @@ implementation
         tmps:=compiler.globals.outputprefix;
         stringdispose(tmps);
         compiler.globals.outputprefix := stringdup(s);
-        with current_module do
+        with compiler.current_module do
          setfilename(paramfn, paramallowoutput);
       end;
 
@@ -1035,7 +1037,7 @@ implementation
         tmps:=compiler.globals.outputsuffix;
         stringdispose(tmps);
         compiler.globals.outputsuffix := stringdup(s);
-        with current_module do
+        with compiler.current_module do
           setfilename(paramfn, paramallowoutput);
       end;
 
@@ -1050,7 +1052,7 @@ implementation
         if compiler.globals.OutputFileName='' then
           compiler.globals.OutputFileName:=compiler.globals.InputFileName;
         compiler.globals.OutputFileName:=ChangeFileExt(compiler.globals.OutputFileName,'.'+s);
-        with current_module do
+        with compiler.current_module do
           setfilename(paramfn, paramallowoutput);
       end;
 
@@ -1745,7 +1747,7 @@ type
              hpath:=current_scanner.inputfile.path+';'+CurDirRelPath(source_info);
              found:=FindFile(path+name, hpath,true,foundfile);
              if not found then
-               found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
+               found:=compiler.current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
              if not found  then
                found:=compiler.globals.includesearchpath.FindFile(path+name,true,foundfile);
            end;
@@ -2007,8 +2009,8 @@ type
           begin
            sym.IncRefCount;
            { do we know an owner? }
-           if Assigned(current_module) and Assigned(current_module.unitmap) and Assigned(sym.owner) then
-             inc(current_module.unitmap[sym.owner.moduleid].refs);
+           if Assigned(compiler.current_module) and Assigned(compiler.current_module.unitmap) and Assigned(sym.owner) then
+             inc(compiler.current_module.unitmap[sym.owner.moduleid].refs);
           end;
 
         function preproc_factor(eval: Boolean):texprvalue;
@@ -2045,7 +2047,7 @@ type
                     { this like 'include' }
                     if (length(name)>=1) and
                        (name[1]='*') then
-                      name:=ChangeFileExt(current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
+                      name:=ChangeFileExt(compiler.current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
 
                     { try to find the file, this like 'include' }
                     found:=findincludefile(path,name,foundfile);
@@ -2695,11 +2697,11 @@ type
             exit;
           end;
         mac:=tmacro(search_macro(hs));
-        if not assigned(mac) or (mac.owner <> current_module.localmacrosymtable) then
+        if not assigned(mac) or (mac.owner <> compiler.current_module.localmacrosymtable) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
-            current_module.localmacrosymtable.insertsym(mac);
+            compiler.current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin
@@ -2797,12 +2799,12 @@ type
         hs:=current_scanner.readid;
         mac:=tmacro(search_macro(hs));
         if not assigned(mac) or
-           (mac.owner <> current_module.localmacrosymtable) then
+           (mac.owner <> compiler.current_module.localmacrosymtable) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
             mac.is_compiler_var:=true;
-            current_module.localmacrosymtable.insertsym(mac);
+            compiler.current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin
@@ -2865,11 +2867,11 @@ type
         hs:=current_scanner.readid;
         mac:=tmacro(search_macro(hs));
         if not assigned(mac) or
-           (mac.owner <> current_module.localmacrosymtable) then
+           (mac.owner <> compiler.current_module.localmacrosymtable) then
           begin
              mac:=tmacro.create(hs);
              mac.defined:=false;
-             current_module.localmacrosymtable.insertsym(mac);
+             compiler.current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin
@@ -2955,7 +2957,7 @@ type
                  macroIsString:=false;
                end;
              'FILE':
-               hs:=current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex);
+               hs:=compiler.current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex);
              'LINE':
                hs:=tostr(compiler.globals.current_filepos.line);
              'LINENUM':
@@ -2995,7 +2997,7 @@ type
              by the file name of the current source file.  }
            if (length(name)>=1) and
               (name[1]='*') then
-             name:=ChangeFileExt(current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
+             name:=ChangeFileExt(compiler.current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
@@ -3030,7 +3032,7 @@ type
                hp:=do_openinputfile(foundfile);
                hp.inc_path:=path;
                current_scanner.addfile(hp);
-               current_module.sourcefiles.register_file(hp);
+               compiler.current_module.sourcefiles.register_file(hp);
                if (not found) then
                 compiler.verbose.Message1(scan_f_cannot_open_includefile,hs);
               if (not current_scanner.openinputfile) then
@@ -3172,8 +3174,8 @@ type
         inputfile:=do_openinputfile(fn);
         if is_macro then
           inputfile.is_macro:=true;
-        if assigned(current_module) then
-          current_module.sourcefiles.register_file(inputfile);
+        if assigned(compiler.current_module) then
+          compiler.current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
         c:=#0;
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
@@ -3215,8 +3217,8 @@ type
       begin
         if assigned(onfreescanner) then
           onfreescanner(self);
-        if assigned(current_module) and
-           (current_module.state in [ms_processed,ms_compiled]) and
+        if assigned(compiler.current_module) and
+           (compiler.current_module.state in [ms_processed,ms_compiled]) and
            (status.errorcount=0) then
           checkpreprocstack
         else
@@ -4070,9 +4072,9 @@ type
                               begin
                                 new(pmsg);
                                 {$IFDEF DEBUG_MESSAGESTATE}
-                                if current_module=nil then
+                                if compiler.current_module=nil then
                                   Internalerror(2026030704);
-                                pmsg^.owner:=current_module;
+                                pmsg^.owner:=compiler.current_module;
                                 {$ENDIF}
                               end;
                             pmsg^.value:=tokenreadlongint;
@@ -4198,7 +4200,7 @@ type
                           already (we don't support {$codepage xxx} switches in
                           the middle of a file either) *)
                        if (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) and
-                          not current_module.in_global then
+                          not compiler.current_module.in_global then
                          compiler.verbose.Message(scanner_f_illegal_utf8_bom);
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
                        inc_inputpointer(3);
@@ -4318,7 +4320,7 @@ type
         filepos.line:=line_no;
         filepos.column:=tokenpos-lastlinepos;
         filepos.fileindex:=inputfile.ref_index;
-        filepos.moduleindex:=current_module.moduleid;
+        filepos.moduleindex:=compiler.current_module.moduleid;
       end;
 
 
@@ -4474,7 +4476,7 @@ type
         while assigned(preprocstack) do
          begin
            compiler.verbose.Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
-             current_module.sourcefiles.get_file_name(preprocstack.fileindex),
+             compiler.current_module.sourcefiles.get_file_name(preprocstack.fileindex),
              tostr(preprocstack.line_nb));
            poppreprocstack;
          end;

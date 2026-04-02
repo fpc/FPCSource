@@ -86,7 +86,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -560,11 +560,11 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
   if compiler.target.create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 
 { Write used files and libraries }
@@ -572,7 +572,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(compiler.current_module.exefilename,'.elf')))));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -590,8 +590,8 @@ begin
 
   if success then
    begin
-    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(current_module.exefilename,'.elf')+' '+
-     current_module.exefilename,true,false);
+    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(compiler.current_module.exefilename,'.elf')+' '+
+     compiler.current_module.exefilename,true,false);
    end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

@@ -153,10 +153,10 @@ var
 
     begin
       reload:=for_module_switch;
-      old_current_module:=current_module;
+      old_current_module:=compiler.current_module;
 
       { save symtable state }
-      if current_module.fromppu then
+      if compiler.current_module.fromppu then
         begin
           { a ppu does not use the symbolstacks
             they might have been set by a pas module loading this ppu
@@ -214,7 +214,7 @@ var
       id: LongInt;
     begin
       {$IFDEF DEBUG_SAVESYMSTACK}
-      writeln('DEBUG_SAVESYMSTACK: tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
+      writeln('DEBUG_SAVESYMSTACK: tglobalstate.save_symtable_stack ',compiler.current_module.modulename^,' ',compiler.current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
       {$ENDIF}
       if stack=nil then exit;
 
@@ -223,7 +223,7 @@ var
         begin
           id:=item^.symtable.moduleid;
           item^.saved_moduleid:=id;
-          if (id<>current_module.moduleid) and (id>0) then
+          if (id<>compiler.current_module.moduleid) and (id>0) then
             begin
               m:=get_module(id);
               {$IFDEF DEBUG_SAVESYMSTACK}
@@ -231,20 +231,20 @@ var
               {$ENDIF}
               if m=nil then
                 begin
-                  writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' unknown moduleid: ',id);
+                  writeln('tglobalstate.save_symtable_stack ',compiler.current_module.modulename^,' ',compiler.current_module.statestr,' ',kind,' unknown moduleid: ',id);
                   Internalerror(2026030103);
                 end;
               case kind of
                 stsk_global:
                   if m.globalsymtable<>item^.symtable then
                     begin
-                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalsymstack: item is not globalsymtable of ', m.modulename^,' ',m.statestr);
+                      writeln('tglobalstate.save_symtable_stack ',compiler.current_module.modulename^,' ',compiler.current_module.statestr,' globalsymstack: item is not globalsymtable of ', m.modulename^,' ',m.statestr);
                       Internalerror(2026030101);
                     end;
                 stsk_macro:
                   if m.globalmacrosymtable<>item^.symtable then
                     begin
-                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalmacrosymstack: item is not globalmacrosymtable of ', m.modulename^,' ',m.statestr);
+                      writeln('tglobalstate.save_symtable_stack ',compiler.current_module.modulename^,' ',compiler.current_module.statestr,' globalmacrosymstack: item is not globalmacrosymtable of ', m.modulename^,' ',m.statestr);
                       Internalerror(2026030102);
                     end;
               end;
@@ -252,7 +252,7 @@ var
           item:=item^.next;
         end;
       {$IFDEF DEBUG_SAVESYMSTACK}
-      writeln('DEBUG_SAVESYMSTACK: END tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
+      writeln('DEBUG_SAVESYMSTACK: END tglobalstate.save_symtable_stack ',compiler.current_module.modulename^,' ',compiler.current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
       {$ENDIF}
     end;
 

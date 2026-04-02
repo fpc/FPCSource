@@ -3065,7 +3065,7 @@ implementation
         if not (compiler.target.info.system in systems_wasm) then
           begin
             { insert DEBUGSTART and DEBUGEND labels }
-            dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+            dbgname:=make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,'');
             { Darwin's linker does not like two global labels both pointing to the
               end of a section, which can happen in case of units without code ->
               make them local; we don't need the debugtable stuff there either,
@@ -3079,7 +3079,7 @@ implementation
             else
               current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
 
-            dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+            dbgname:=make_mangledname('DEBUGEND',compiler.current_module.localsymtable,'');
             { See above. }
             if (compiler.target.info.system in systems_darwin) then
               dbgname:='L'+dbgname;
@@ -3249,17 +3249,17 @@ implementation
         bind: tasmsymbind;
         lang: tdwarf_source_language;
       begin
-        include(current_module.moduleflags,mf_has_dwarf_debuginfo);
+        include(compiler.current_module.moduleflags,mf_has_dwarf_debuginfo);
         storefilepos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=current_module.mainfilepos;
+        compiler.globals.current_filepos:=compiler.current_module.mainfilepos;
 
         if assigned(dwarflabels) then
           internalerror(2015100301);
         { one item per def, plus some extra space in case of nested types,
           externally used types etc (it will grow further if necessary) }
-        i:=current_module.localsymtable.DefList.count*4;
-        if assigned(current_module.globalsymtable) then
-          inc(i,current_module.globalsymtable.DefList.count*2);
+        i:=compiler.current_module.localsymtable.DefList.count*4;
+        if assigned(compiler.current_module.globalsymtable) then
+          inc(i,compiler.current_module.globalsymtable.DefList.count*2);
         dwarflabels:=TDwarfLabHashSet.Create(i,true,false);
 
         currabbrevnumber:=0;
@@ -3354,7 +3354,7 @@ implementation
           lang:=DW_LANG_Pascal83;
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
-          DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path+current_module.sourcefiles.get_file(1).name)+#0,
+          DW_AT_name,DW_FORM_string,relative_dwarf_path(compiler.current_module.sourcefiles.get_file(1).path+compiler.current_module.sourcefiles.get_file(1).name)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
           DW_AT_comp_dir,DW_FORM_string,BSToSlash(FixPath(GetCurrentDir,false))+#0,
           DW_AT_language,DW_FORM_data1,lang,
@@ -3394,7 +3394,7 @@ implementation
           end
         else
           begin
-            dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+            dbgname:=make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,'');
             if (compiler.target.info.system in systems_darwin) then
               begin
                 bind:=AB_LOCAL;
@@ -3403,7 +3403,7 @@ implementation
             else
               bind:=AB_GLOBAL;
             append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
-            dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+            dbgname:=make_mangledname('DEBUGEND',compiler.current_module.localsymtable,'');
             if (compiler.target.info.system in systems_darwin) then
               dbgname:='L'+dbgname;
             append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
@@ -3412,28 +3412,28 @@ implementation
         finish_entry;
 
         { write all global/local variables. This will flag all required tdefs  }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { write all procedures and methods. This will flag all required tdefs }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { reset unit type info flag }
         reset_unit_type_info;
 
         { write used types from the used units }
-        write_used_unit_type_info(current_asmdata.asmlists[al_dwarf_info],current_module);
+        write_used_unit_type_info(current_asmdata.asmlists[al_dwarf_info],compiler.current_module);
 
         { last write the types from this unit }
-        if assigned(current_module.globalsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
-        if assigned(current_module.localsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+        if assigned(compiler.current_module.globalsymtable) then
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.globalsymtable);
+        if assigned(compiler.current_module.localsymtable) then
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],compiler.current_module.localsymtable);
 
         { write defs not written yet }
         write_remaining_defs_to_write(current_asmdata.asmlists[al_dwarf_info]);
@@ -3595,7 +3595,7 @@ implementation
           (the main source of the unit), because normally this table gets
           populated via calls to get_file_index and that won't happen in this
           case }
-        get_file_index(current_module.sourcefiles.get_file(1));
+        get_file_index(compiler.current_module.sourcefiles.get_file(1));
         FillChar(lastfileinfo,sizeof(lastfileinfo),0);
         currfuncname:=nil;
         currsectype:=sec_code;
@@ -3799,7 +3799,7 @@ implementation
         { at least the Darwin linker is annoyed if you do not }
         { finish the lineinfo section, or if it doesn't       }
         { contain at least one file name and set_address      }
-        infile:=current_module.sourcefiles.get_file(1);
+        infile:=compiler.current_module.sourcefiles.get_file(1);
         if not assigned(infile) then
           internalerror(2006020211);
         asmline.concat(tai_const.create_8bit(DW_LNS_set_file));

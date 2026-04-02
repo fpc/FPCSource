@@ -344,13 +344,13 @@ end;
           ImportLibrary : TImportLibrary;
           ImportSymbol  : TImportSymbol;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
             LibName:=FixFileName(ImportLibrary.Name + compiler.target.info.StaticCLibExt);
             seq_no:=1;
-            current_module.linkotherstaticlibs.add(libname,link_always);
-            assign(out_file,current_module.outputpath+libname);
+            compiler.current_module.linkotherstaticlibs.add(libname,link_always);
+            assign(out_file,compiler.current_module.outputpath+libname);
             rewrite(out_file,1);
             blockwrite(out_file,ar_magic,sizeof(ar_magic));
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
@@ -402,7 +402,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L'+HPath.Str);
@@ -465,10 +465,10 @@ var
   OutName: TPathStr;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
-  BaseFilename := ChangeFileExt(current_module.exefilename,'');
+  BaseFilename := ChangeFileExt(compiler.current_module.exefilename,'');
   OutName := BaseFilename + '.out';
   if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    StripStr := '-s '
@@ -483,13 +483,13 @@ begin
   else if compiler.globals.AppType = app_fs then
    AppTypeStr := '-f'
   else AppTypeStr := '-w';
-  if not (Current_module.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst + ' '
+  if not (compiler.current_module.ResourceFiles.Empty) then
+   RsrcStr := '-r ' + compiler.current_module.ResourceFiles.GetFirst + ' '
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
    (should be already empty anyway, though). *)
-  Current_module.ResourceFiles.Clear;
+  compiler.current_module.ResourceFiles.Clear;
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -522,7 +522,7 @@ begin
         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
-        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+        Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
         if i<>3 then
          success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,(i=1),false)
         else

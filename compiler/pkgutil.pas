@@ -396,7 +396,7 @@ implementation
                   outppu.putstring(s);
                   outppu.putlongint(m);
                 end;
-               current_module.linkotherofiles.add(s,link_always);
+               compiler.current_module.linkotherofiles.add(s,link_always);
              end;
             if not MakeStatic then
              outppu.writeentry(b);
@@ -417,13 +417,13 @@ implementation
     { just add a new entry with the new lib }
       if MakeStatic then
        begin
-         outppu.putstring('imp'+current_module.realmodulename^);
+         outppu.putstring('imp'+compiler.current_module.realmodulename^);
          outppu.putlongint(link_static);
          outppu.writeentry(iblinkunitstaticlibs)
        end
       else
        begin
-         outppu.putstring('imp'+current_module.realmodulename^);
+         outppu.putstring('imp'+compiler.current_module.realmodulename^);
          outppu.putlongint(link_shared);
          outppu.writeentry(iblinkunitsharedlibs);
        end;
@@ -450,7 +450,7 @@ implementation
                    if ext<>'' then
                      delete(s,length(s)-length(ext)+1,length(ext));
 
-                   current_module.linkOtherSharedLibs.add(s,link_always);
+                   compiler.current_module.linkOtherSharedLibs.add(s,link_always);
                  end;
              end
            else
@@ -760,7 +760,7 @@ implementation
                 if cacheentry^.sym.typ=AT_DATA then
                   { import as the $indirect symbol if it as a variable }
                   impname:=symname+suffix_indirect;
-                current_module.addexternalimport(cacheentry^.pkg.pplfilename,symname,impname,0,cacheentry^.sym.typ=at_data,false);
+                compiler.current_module.addexternalimport(cacheentry^.pkg.pplfilename,symname,impname,0,cacheentry^.sym.typ=at_data,false);
               end;
           end;
       end;
@@ -773,10 +773,10 @@ implementation
         item := TCmdStrListItem(pd.aliasnames.first);
         if not assigned(item) then
           { at least import the mangled name }
-          current_module.addexternalimport(pkg.pplfilename,pd.mangledname,pd.mangledname,0,false,false);
+          compiler.current_module.addexternalimport(pkg.pplfilename,pd.mangledname,pd.mangledname,0,false,false);
         while assigned(item) do
           begin
-            current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
+            compiler.current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
             item := TCmdStrListItem(item.next);
           end;
        end;
@@ -836,12 +836,12 @@ implementation
                               if tconstsym(sym).consttyp<>constresourcestring then
                                 internalerror(2016072201);
                               name:=make_mangledname('RESSTR',sym.owner,sym.name);
-                              current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
+                              compiler.current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
                             end;
                           staticvarsym:
                             begin
                               name:=tstaticvarsym(sym).mangledname;
-                              current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
+                              compiler.current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
                             end;
                           procsym:
                             begin

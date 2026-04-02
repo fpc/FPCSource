@@ -323,10 +323,10 @@ var
     success : boolean;
 begin
     if not (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-      compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+      compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
     if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+      mapstr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
     else
       mapstr:='';
 
@@ -346,7 +346,7 @@ begin
 
     if cs_link_smart in compiler.globals.current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
 
-    success:= DoExec(FindUtil(compiler.globals.utilsprefix + BinStr), cmdstr + ' -o ' + current_module.exefilename + '.elf', true, false);
+    success:= DoExec(FindUtil(compiler.globals.utilsprefix + BinStr), cmdstr + ' -o ' + compiler.current_module.exefilename + '.elf', true, false);
     if not success then begin
       result:= false;
       exit;
@@ -355,16 +355,16 @@ begin
     DeleteFile(compiler.globals.outputexedir + Info.ResName);
 
 
-    if not FileCopy(current_module.exefilename + '.elf', current_module.exefilename + '.bin', 0) then begin
-      writeln('Cant Write ' + current_module.exefilename + '.bin File!');
+    if not FileCopy(compiler.current_module.exefilename + '.elf', compiler.current_module.exefilename + '.bin', 0) then begin
+      writeln('Cant Write ' + compiler.current_module.exefilename + '.bin File!');
       result:= false;
       exit;
     end;
 
-    DeleteFile(current_module.exefilename + '.elf');
+    DeleteFile(compiler.current_module.exefilename + '.elf');
 
 
-    success:= DoExec(FindUtil(compiler.globals.utilsprefix + 'objcopy'), ' -O binary ' + current_module.exefilename +'.bin', true, false);
+    success:= DoExec(FindUtil(compiler.globals.utilsprefix + 'objcopy'), ' -O binary ' + compiler.current_module.exefilename +'.bin', true, false);
     if not success then begin
       writeln('OBJDUMP failed!');
       result:= false;
@@ -372,14 +372,14 @@ begin
     end;
 
 
-    success:= CreatePSXEXE(current_module.exefilename);
+    success:= CreatePSXEXE(compiler.current_module.exefilename);
     if not success then begin
       writeln('Create PSX-EXE failed!');
       result:= false;
       exit;
     end;
 
-    DeleteFile(current_module.exefilename + '.bin');
+    DeleteFile(compiler.current_module.exefilename + '.bin');
 
     result:= true;
 end;

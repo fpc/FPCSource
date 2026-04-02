@@ -550,7 +550,7 @@ uses
 
 {$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
-         ppheap_register_file(f.path+f.name,current_module.moduleid*100000+f.ref_index);
+         ppheap_register_file(f.path+f.name,compiler.current_module.moduleid*100000+f.ref_index);
 {$endif heaptrc}
 {$endif not GENERIC_CPU}
       end;

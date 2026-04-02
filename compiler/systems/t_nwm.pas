@@ -145,10 +145,10 @@ Const tmpLinkFileName = 'link~tmp._o_';
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -179,7 +179,7 @@ begin
        include(hp.options,eo_name);
     end;
   { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) and
      (hp.name^>hp2.name^) do
     hp2:=texported_item(hp2.next);
@@ -190,8 +190,8 @@ begin
       duplicatesymbol(hp.name^);
       exit;
     end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.insert(hp)
+  if hp2=texported_item(compiler.current_module._exports.first) then
+    compiler.current_module._exports.insert(hp)
   else if assigned(hp2) then
     begin
        hp.next:=hp2;
@@ -201,7 +201,7 @@ begin
        hp2.previous:=hp;
     end
   else
-    current_module._exports.concat(hp);
+    compiler.current_module._exports.concat(hp);
 end;
 
 
@@ -217,7 +217,7 @@ var
   hp2 : texported_item;
   pd  : tprocdef;
 begin
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and
@@ -283,7 +283,7 @@ Var
 begin
   WriteResponseFile:=False;
 
-  ProgNam := current_module.exefilename;
+  ProgNam := compiler.current_module.exefilename;
   i:=Pos(compiler.target.info.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
@@ -483,7 +483,7 @@ begin
    end;
 
   { write exports }
-  hp2:=texported_item(current_module._exports.first);
+  hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) do
    begin
      if not hp2.is_var then
@@ -540,7 +540,7 @@ var
   StripStr : string[2];
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';
@@ -555,7 +555,7 @@ begin
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(compiler.globals.outputexedir+tmpLinkFileName));

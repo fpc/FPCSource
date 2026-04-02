@@ -53,11 +53,11 @@ implementation
         def: tdef;
       begin
         inherited;
-        if (not current_module.is_unit) and (compiler.target.info.system in [system_m68k_sinclairql]) then
+        if (not compiler.current_module.is_unit) and (compiler.target.info.system in [system_m68k_sinclairql]) then
           begin
             { insert the main program name into the object. this will be set as default job name by the system unit }
             tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
-            s:=char(length(current_module.realmodulename^))+current_module.realmodulename^+#0;
+            s:=char(length(compiler.current_module.realmodulename^))+compiler.current_module.realmodulename^+#0;
             def:=carraydef.getreusable(cansichartype,length(s),compiler);
             tcb.maybe_begin_aggregate(def);
             tcb.emit_tai(Tai_string.Create(s),def);

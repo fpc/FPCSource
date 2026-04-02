@@ -1508,29 +1508,29 @@ implementation
           a replacement for ansistring def }
         if ([cs_explicit_codepage,cs_system_codepage]*compiler.globals.current_settings.moduleswitches)<>[] then
           begin
-            if not assigned(current_module) then
+            if not assigned(compiler.current_module) then
               internalerror(2011101301);
             { codepage can be redeclared only once per unit so we don't need a list of
               redefined ansistring but only one pointer }
-            if not assigned(current_module.ansistrdef) then
+            if not assigned(compiler.current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                if current_module.in_interface then
-                  symtable:=current_module.globalsymtable
+                if compiler.current_module.in_interface then
+                  symtable:=compiler.current_module.globalsymtable
                 else
-                  symtable:=current_module.localsymtable;
+                  symtable:=compiler.current_module.localsymtable;
                 { create a temporary stack as it's not good (TM) to mess around
                   with the order if the unit contains generics or helpers; don't
                   use a def aware symtablestack though }
                 oldstack:=compiler.symtablestack;
                 tcompiler(compiler).symtablestack:=tsymtablestack.create(compiler);
                 compiler.symtablestack.push(symtable);
-                current_module.ansistrdef:=cstringdef.createansi(compiler.globals.current_settings.sourcecodepage,true,compiler);
+                compiler.current_module.ansistrdef:=cstringdef.createansi(compiler.globals.current_settings.sourcecodepage,true,compiler);
                 compiler.symtablestack.pop(symtable);
                 compiler.symtablestack.free;
                 tcompiler(compiler).symtablestack:=oldstack;
               end;
-            result:=tstringdef(current_module.ansistrdef);
+            result:=tstringdef(compiler.current_module.ansistrdef);
           end
         else
           result:=tstringdef(cansistringtype);
@@ -1598,7 +1598,7 @@ implementation
           end;
         { also always search in the current module (symtables are popped for
           RTTI related code already) }
-        if searchsym_in_module(pointer(current_module),name,srsym,srsymtable) then
+        if searchsym_in_module(pointer(compiler.current_module),name,srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
             exit;
@@ -1639,7 +1639,7 @@ implementation
           end;
         { also always search in the current module (symtables are popped for
           RTTI related code already) }
-        if searchsym_in_module(pointer(current_module),copy(name,2,length(name)),srsym,srsymtable) then
+        if searchsym_in_module(pointer(compiler.current_module),copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
             fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);
@@ -1860,11 +1860,11 @@ implementation
               begin
                 s:=generate_objectpascal_helper_key(tobjectdef(def).extendeddef);
                 compiler.verbose.Message1(sym_d_adding_helper_for,s);
-                list:=TFPObjectList(current_module.extendeddefs.Find(s));
+                list:=TFPObjectList(compiler.current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
                     list:=TFPObjectList.Create(false);
-                    current_module.extendeddefs.Add(s,list);
+                    compiler.current_module.extendeddefs.Add(s,list);
                   end;
                 list.Add(def);
               end
@@ -1898,9 +1898,9 @@ implementation
         tmpst: TSymtable;
         list: TFPObjectList;
       begin
-        for i:=current_module.extendeddefs.count-1 downto 0 do
+        for i:=compiler.current_module.extendeddefs.count-1 downto 0 do
           begin
-            list:=TFPObjectList(current_module.extendeddefs[i]);
+            list:=TFPObjectList(compiler.current_module.extendeddefs[i]);
             for j:=list.count-1 downto 0 do
               begin
                 if not (list[j] is tobjectdef) then
@@ -1922,7 +1922,7 @@ implementation
                 until not assigned(tmpst) or (tmpst.symtabletype in [globalsymtable,staticsymtable]);
               end;
             if list.count=0 then
-              current_module.extendeddefs.delete(i);
+              compiler.current_module.extendeddefs.delete(i);
           end;
       end;
 
@@ -1933,9 +1933,9 @@ implementation
         entry : tgenericdummyentry;
         list : tfpobjectlist;
       begin
-        for i:=current_module.genericdummysyms.count-1 downto 0 do
+        for i:=compiler.current_module.genericdummysyms.count-1 downto 0 do
           begin
-            list:=tfpobjectlist(current_module.genericdummysyms[i]);
+            list:=tfpobjectlist(compiler.current_module.genericdummysyms[i]);
             if not assigned(list) then
               continue;
             for j:=list.count-1 downto 0 do
@@ -1945,7 +1945,7 @@ implementation
                   list.delete(j);
               end;
             if list.count=0 then
-              current_module.genericdummysyms.delete(i);
+              compiler.current_module.genericdummysyms.delete(i);
           end;
       end;
 
@@ -2115,8 +2115,8 @@ implementation
                registered, so depending on whether or not, or when, an interface
                procedure is called in the implementation, that may change its
                defid otherwise) }
-             if assigned(current_module) and
-                current_module.in_interface then
+             if assigned(compiler.current_module) and
+                compiler.current_module.in_interface then
                register_def
              else
                maybe_put_in_symtable_stack;
@@ -2156,7 +2156,7 @@ implementation
       begin
          inherited create(dt,acompiler);
          DefId:=ppufile.getlongint;
-         current_module.deflist[DefId]:=self;
+         compiler.current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
 {$endif}
@@ -2727,16 +2727,16 @@ implementation
        if assigned(owner) then
          begin
            tmod:=find_module_from_symtable(owner);
-            if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
+            if assigned(tmod) and assigned(compiler.current_module) and (tmod<>compiler.current_module) then
               begin
-                compiler.verbose.comment(v_error,'Definition '+fullownerhierarchyname(false,true)+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
+                compiler.verbose.comment(v_error,'Definition '+fullownerhierarchyname(false,true)+' from module '+tmod.mainsource+' registered with current module '+compiler.current_module.mainsource);
               end;
            if not assigned(tmod) then
-             tmod:=current_module;
+             tmod:=compiler.current_module;
          end
        else
-         tmod:=current_module;
-       { Register in current_module }
+         tmod:=compiler.current_module;
+       { Register in compiler.current_module }
        if assigned(tmod) then
          begin
            exclude(defoptions,df_not_registered_no_free);
@@ -3370,6 +3370,8 @@ implementation
 
 
     class procedure trtti_attribute_list.bind(var dangling,owned:trtti_attribute_list);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if assigned(owned) then
           internalerror(2019071001);
@@ -3377,13 +3379,15 @@ implementation
           exit;
         if dangling.is_bound then
           internalerror(2019071002);
-        current_module.used_rtti_attrs.concatlistcopy(dangling.rtti_attributes);
+        compiler.current_module.used_rtti_attrs.concatlistcopy(dangling.rtti_attributes);
         dangling.is_bound:=true;
         owned:=dangling;
         dangling:=nil;
       end;
 
     class procedure trtti_attribute_list.copyandbind(alist : trtti_attribute_list; var owned: trtti_attribute_list);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       i,j : Integer;
       attr,newattribute : trtti_attribute;
@@ -3403,7 +3407,7 @@ implementation
           newattribute.paras[j]:=attr.paras[j].getcopy;
         owned.AddAttribute(newattribute);
         end;
-      current_module.used_rtti_attrs.concatlistcopy(owned.rtti_attributes);
+      compiler.current_module.used_rtti_attrs.concatlistcopy(owned.rtti_attributes);
     end;
 
 
@@ -4110,9 +4114,9 @@ implementation
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
       begin
-        if not assigned(current_module) then
+        if not assigned(acompiler.current_module) then
           internalerror(2011071101);
-        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
+        res:=acompiler.current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
         if not assigned(res^.Data) then
           begin
             { since these pointerdefs can be reused anywhere in the current
@@ -4121,7 +4125,7 @@ implementation
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
             oldsymtablestack:=acompiler.symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
+            { do not simply push/pop compiler.current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(acompiler).symtablestack:=nil;
             result:=cpointerdef.create(def,acompiler);
@@ -4480,12 +4484,12 @@ implementation
           options: tarraydefoptions
         end;
       begin
-        if not assigned(current_module) then
+        if not assigned(acompiler.current_module) then
           internalerror(2011081301);
         arrdesc.def:=def;
         arrdesc.elecount:=elems;
         arrdesc.options:=options;
-        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
+        res:=acompiler.current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
         if not assigned(res^.Data) then
           begin
             { since these pointerdefs can be reused anywhere in the current
@@ -4494,7 +4498,7 @@ implementation
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
             oldsymtablestack:=acompiler.symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
+            { do not simply push/pop compiler.current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(acompiler).symtablestack:=nil;
             result:=carraydef.create(0,elems-1,sizesinttype,acompiler);
@@ -4832,9 +4836,9 @@ implementation
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
-        if assigned(current_module.namespace) then
+        if assigned(compiler.current_module.namespace) then
           begin
-            import_lib:=stringdup(current_module.namespace^);
+            import_lib:=stringdup(compiler.current_module.namespace^);
             replace(import_lib^,'.','/');
           end;
       end;
@@ -5422,7 +5426,7 @@ implementation
             pname:=@name;
           end;
         oldsymtablestack:=compiler.symtablestack;
-        { do not simply push/pop current_module.localsymtable, because
+        { do not simply push/pop compiler.current_module.localsymtable, because
           that can have side-effects (e.g., it removes helpers) }
         tcompiler(compiler).symtablestack:=nil;
 
@@ -5453,9 +5457,9 @@ implementation
       var
         where : tsymtable;
       begin
-        where:=current_module.localsymtable;
+        where:=acompiler.current_module.localsymtable;
         if not assigned(where) then
-          where:=current_module.globalsymtable;
+          where:=acompiler.current_module.globalsymtable;
         create_internal(n,packrecords,recordalignmin,where,acompiler);
       end;
 
@@ -7098,7 +7102,7 @@ implementation
             if assigned(returndef.typesym) then
               begin
                 module:=find_module_from_symtable(returndef.typesym.owner);
-		if module <> current_module then
+		if module <> compiler.current_module then
                   s:=s+':'+module.realmodulename^+'.'
                 else
 	          s:=s+':';
@@ -7722,11 +7726,11 @@ implementation
         end;
 
       begin
-        if not assigned(current_module) then
+        if not assigned(acompiler.current_module) then
           internalerror(2011081302);
         key.def:=def;
         key.copytyp:=copytyp;
-        res:=current_module.procaddrdefs.FindOrAdd(@key,sizeof(key));
+        res:=acompiler.current_module.procaddrdefs.FindOrAdd(@key,sizeof(key));
         if not assigned(res^.Data) then
           begin
             { since these pointerdefs can be reused anywhere in the current
@@ -7735,7 +7739,7 @@ implementation
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
             oldsymtablestack:=acompiler.symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
+            { do not simply push/pop compiler.current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(acompiler).symtablestack:=nil;
             result:=tprocvardef(def.getcopyas(procvardef,copytyp,'',true));
@@ -8049,7 +8053,7 @@ implementation
          { marked as system unit to avoid some   }
          { equally named user's type to override }
          { the internal types!                   }
-         if mf_system_unit in current_module.moduleflags then
+         if mf_system_unit in compiler.current_module.moduleflags then
            begin
              if (childof=nil) and
                 (objecttype in [odt_class,odt_javaclass]) and
@@ -8821,7 +8825,7 @@ implementation
           begin
             classref_created_in_current_module:=true;
             if not (owner.symtabletype in [localsymtable]) then
-              current_module.wpoinfo.addcreatedobjtypeforclassref(self);
+              compiler.current_module.wpoinfo.addcreatedobjtypeforclassref(self);
           end;
       end;
 
@@ -8832,7 +8836,7 @@ implementation
           begin
             created_in_current_module:=true;
             if not (owner.symtabletype in [localsymtable]) then
-              current_module.wpoinfo.addcreatedobjtype(self);
+              compiler.current_module.wpoinfo.addcreatedobjtype(self);
           end;
       end;
 
@@ -8847,7 +8851,7 @@ implementation
            not (maybe_created_in_current_module) then
           begin
             maybe_created_in_current_module:=true;
-            current_module.wpoinfo.addmaybecreatedbyclassref(self);
+            compiler.current_module.wpoinfo.addmaybecreatedbyclassref(self);
           end;
       end;
 
@@ -8855,7 +8859,7 @@ implementation
     procedure tobjectdef.register_vmt_call(index: longint);
       begin
         if (is_object(self) or is_class(self)) then
-          current_module.wpoinfo.addcalledvmtentry(self,index);
+          compiler.current_module.wpoinfo.addcalledvmtentry(self,index);
       end;
 
 
@@ -9013,12 +9017,12 @@ implementation
               begin
                 { copied from psub.read_proc }
                 if assigned(tobjectdef(pd.struct).import_lib) then
-                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,pd.mangledname,0,false,false)
+                   compiler.current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in compiler.target.info.flags then
-                       current_module.dllscannerinputlist.Add(pd.mangledname,pd);
+                       compiler.current_module.dllscannerinputlist.Add(pd.mangledname,pd);
                    end;
 
               end;

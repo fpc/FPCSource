@@ -103,7 +103,7 @@ begin
     LinkRes.fForceUseForwardSlash:=true;
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -220,21 +220,21 @@ begin
   MapStr:='';
 
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   if UseVLink then
     begin
       if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         StripStr:='-s -P __abox__';
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+        MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(compiler.current_module.mapfilename)));
       if compiler.target.create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc -sd';
     end
   else
     begin
       if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-        MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
+        MapStr:='-Map '+maybequoted(ScriptFixFileName(compiler.current_module.mapfilename));
       if compiler.target.create_smartlink_sections then
         GCSectionsStr:='--gc-sections -e _start';
     end;
@@ -249,13 +249,13 @@ begin
   Replace(cmdstr,'$MAP',MapStr);
   if UseVLink then
     begin
-      Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
+      Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.current_module.exefilename))));
       Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
       Replace(cmdstr,'$STRIP',StripStr);
     end
   else
     begin
-      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(compiler.current_module.exefilename)));
       Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     end;
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
@@ -269,7 +269,7 @@ begin
       if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         begin
           SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+          Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
           success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
         end;
     end;

@@ -115,7 +115,7 @@ implementation
                    - the target does not support packages
                    - the target does not use indirect references
                    - the class is located inside the same unit }
-                 otherunit:=findunitsymtable(left.resultdef.owner).moduleid<>current_module.moduleid;
+                 otherunit:=findunitsymtable(left.resultdef.owner).moduleid<>compiler.current_module.moduleid;
                  indirect:=(tf_supports_packages in compiler.target.info.flags) and
                            (compiler.target.info.system in systems_indirect_var_imports) and
                            otherunit;
@@ -125,7 +125,7 @@ implementation
                    resultdef.alignment,[]);
                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,href,location.register);
                  if otherunit then
-                   current_module.add_extern_asmsym(vmtname,AB_EXTERNAL,AT_DATA);
+                   compiler.current_module.add_extern_asmsym(vmtname,AB_EXTERNAL,AT_DATA);
                end
              else
                begin

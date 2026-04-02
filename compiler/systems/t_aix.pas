@@ -77,10 +77,10 @@ implementation
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -162,7 +162,7 @@ begin
   with linkres do
     begin
       { Write path to search libraries }
-      HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+      HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
          if assumebinutils then
@@ -249,7 +249,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   linkscript:=nil;
 { Create some replacements }
@@ -258,7 +258,7 @@ begin
      not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-   StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   StripStr:='-bmap:'+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -269,7 +269,7 @@ begin
   else
     Replace(binstr,'$LDBIN','ld');
   binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   { the native AIX linker does not support linkres files, so we need
     CatFileContent(). The binutils cross-linker does support such files, so
@@ -343,7 +343,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -387,7 +387,7 @@ begin
       cmdstr:=cmdstr+' -bE:'+maybequoted(compiler.globals.outputexedir)+'linksyms.fpc';
     end;
 
-  libfn:=maybequoted(current_module.sharedlibfilename);
+  libfn:=maybequoted(compiler.current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
   linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink',compiler);
   linkscript.AddLinkCommand(binstr,CmdStr,'');

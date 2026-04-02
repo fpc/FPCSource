@@ -114,12 +114,12 @@ var
     end;
 
 begin
-  current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
-  ObjWriter:=TOmfLibObjectWriter.CreateAr(current_module.importlibfilename,32,compiler.verbose);
+  compiler.current_module.linkotherstaticlibs.add(compiler.current_module.importlibfilename,link_always);
+  ObjWriter:=TOmfLibObjectWriter.CreateAr(compiler.current_module.importlibfilename,32,compiler.verbose);
   ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler.Globals,compiler.target,compiler.verbose);
-  for i:=0 to current_module.ImportLibraryList.Count-1 do
+  for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
     begin
-      ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+      ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
       for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
         begin
           ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
@@ -172,15 +172,15 @@ begin
   if EList.Count=0 then
     exit;
 
-  current_module.linkotherofiles.add(current_module.exportfilename,link_always);
+  compiler.current_module.linkotherofiles.add(compiler.current_module.exportfilename,link_always);
   ObjWriter:=TObjectWriter.Create(compiler.verbose);
   ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler.Globals,compiler.target,compiler.verbose);
-  ObjWriter.createfile(current_module.exportfilename);
+  ObjWriter.createfile(compiler.current_module.exportfilename);
 
   { write header record }
   RawRecord:=TOmfRawRecord.Create;
   Header:=TOmfRecord_THEADR.Create;
-  Header.ModuleName:=current_module.exportfilename;
+  Header.ModuleName:=compiler.current_module.exportfilename;
   Header.EncodeTo(RawRecord);
   RawRecord.WriteTo(ObjWriter);
   Header.Free;
@@ -284,11 +284,11 @@ begin
     LinkRes.Add('format windows');
   LinkRes.Add('option heapsize='+tostr(compiler.globals.heapsize));
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-    LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
+    LinkRes.Add('option map='+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map')));
   if isdll then
-    LinkRes.Add('name ' + maybequoted(current_module.sharedlibfilename))
+    LinkRes.Add('name ' + maybequoted(compiler.current_module.sharedlibfilename))
   else
-    LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+    LinkRes.Add('name ' + maybequoted(compiler.current_module.exefilename));
   LinkRes.Add('option dosseg');
 
   { Write and Close response }
@@ -322,7 +322,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -347,7 +347,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+    compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(true);
@@ -488,7 +488,7 @@ begin
   importfound:=false;
   {todo: ReadDLLImports(dllname,@CheckDLLFunc);}
   if importfound then
-    current_module.dllscannerinputlist.Pack;
+    compiler.current_module.dllscannerinputlist.Pack;
   result:=importfound;
 end;
 

@@ -160,9 +160,9 @@ implementation
           list.Concat(tai_symbol.Create_Weak(current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
         end;
 
-      for i:=0 to current_module.deflist.Count-1 do
+      for i:=0 to compiler.current_module.deflist.Count-1 do
         begin
-          def:=tdef(current_module.deflist[i]);
+          def:=tdef(compiler.current_module.deflist[i]);
           { since commit 48986 deflist might have NIL entries }
           if assigned(def) and (def.typ=procdef) then
             begin
@@ -175,7 +175,7 @@ implementation
             end;
          end;
       create_hlcodegen(compiler);
-      InsertModuleInfo(list,current_module);
+      InsertModuleInfo(list,compiler.current_module);
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
         begin

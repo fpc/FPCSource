@@ -126,8 +126,8 @@ implementation
          begin
            line:=compiler.globals.current_filepos.line;
            col:=compiler.globals.current_filepos.column;
-           if assigned(current_module) then
-            fileindex:=current_module.moduleid*100000+compiler.globals.current_filepos.fileindex
+           if assigned(compiler.current_module) then
+            fileindex:=compiler.current_module.moduleid*100000+compiler.globals.current_filepos.fileindex
            else
             fileindex:=compiler.globals.current_filepos.fileindex;
          end;

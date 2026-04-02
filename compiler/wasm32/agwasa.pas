@@ -434,7 +434,7 @@ implementation
                   { load infile }
                   if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
                    begin
-                     infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
+                     infile:=compiler.current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                      if assigned(infile) then
                       begin
                         { open only if needed !! }
@@ -664,27 +664,27 @@ implementation
 
         // for every unit __stack_top is a weak symbol
         // __stack_top is strong only for libraries or programs.
-        if current_module.is_unit then
+        if compiler.current_module.is_unit then
           writer.AsmWriteLn(#9';;.weak');
         writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
         writer.AsmWrite(tostr(compiler.globals.stacksize));
         writer.AsmWriteLn('))');
 
-        WriteSymtableVarSyms(current_module.globalsymtable);
-        WriteSymtableVarSyms(current_module.localsymtable);
+        WriteSymtableVarSyms(compiler.current_module.globalsymtable);
+        WriteSymtableVarSyms(compiler.current_module.localsymtable);
 
         //writer.AsmLn;
         { print all global procedures/functions }
-        WriteSymtableProcdefs(current_module.globalsymtable);
-        WriteSymtableProcdefs(current_module.localsymtable);
+        WriteSymtableProcdefs(compiler.current_module.globalsymtable);
+        WriteSymtableProcdefs(compiler.current_module.localsymtable);
 
-        if current_module.islibrary then begin
+        if compiler.current_module.islibrary then begin
           WriteExports(asmdata.asmlists[al_exports]);
         end else
-          WriteUnitExports(current_module.globalsymtable);
+          WriteUnitExports(compiler.current_module.globalsymtable);
 
-        //WriteSymtableStructDefs(current_module.globalsymtable);
-        //WriteSymtableStructDefs(current_module.localsymtable);
+        //WriteSymtableStructDefs(compiler.current_module.globalsymtable);
+        //WriteSymtableStructDefs(compiler.current_module.localsymtable);
         //writer.decorator.LinePrefix := '';
         writer.AsmWriteLn(')');
 
@@ -700,7 +700,7 @@ implementation
         // is capable of producing an executable
         if Result then
           if FindExe('wasmtool',true,t) then begin
-            if current_module.is_unit then
+            if compiler.current_module.is_unit then
               // making "common" global variables a week reference
               RequotedExecuteProcess(t,' --weak "$__stack_top" --symbolauto '+ObjFileName)
             else
@@ -969,8 +969,8 @@ implementation
         j    : integer;
         psym : tprocsym;
       begin
-        for i:=0 to current_module.deflist.Count-1 do begin
-          def:=tdef(current_module.deflist[i]);
+        for i:=0 to compiler.current_module.deflist.Count-1 do begin
+          def:=tdef(compiler.current_module.deflist[i]);
           { since commit 48986 deflist might have NIL entries }
           if assigned(def) and (def.typ=procdef) then begin
             proc := tprocdef(def);
@@ -992,8 +992,8 @@ implementation
         // The wasm-import name (name of external module and name)
         // is not important, as the linker would be using the symbol name
         // while linking.
-        for i:=0 to current_module.unitimportsyms.Count-1 do begin
-          sym := tsym(current_module.unitimportsyms[i]);
+        for i:=0 to compiler.current_module.unitimportsyms.Count-1 do begin
+          sym := tsym(compiler.current_module.unitimportsyms[i]);
           if sym.typ = procsym then begin
             psym := tprocsym(sym);
             if psym.ProcdefList.Count>0 then

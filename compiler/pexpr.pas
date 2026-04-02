@@ -3231,7 +3231,7 @@ implementation
                      { We need to know if this unit uses Variants }
                      if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
-                       include(current_module.moduleflags,mf_uses_variants);
+                       include(compiler.current_module.moduleflags,mf_uses_variants);
                      result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
                    end;
                end;
@@ -4868,7 +4868,7 @@ implementation
 
                        if p1.nodetype=specializen then
                          begin
-                           genlist:=tfpobjectlist(current_module.genericdummysyms.find(tspecializenode(p1).sym.name));
+                           genlist:=tfpobjectlist(compiler.current_module.genericdummysyms.find(tspecializenode(p1).sym.name));
                            if assigned(genlist) and (genlist.count>0) then
                              begin
                                gensym:=tgenericdummyentry(genlist.last).resolvedsym;

@@ -336,10 +336,10 @@ implementation
       current_scanner.readtoken(false);
       compiler.parser.pdecl.type_dec(b);
       // In the interface part, the object def is not necessarily the last one, the methods also generate defs.
-      i:=current_module.DefList.count-1;
+      i:=compiler.current_module.DefList.count-1;
       While (result=nil) and (i>=0) do
         begin
-        O:=current_module.DefList[i];
+        O:=compiler.current_module.DefList[i];
         if (o is tobjectdef) then
            if (tobjectdef(o).GetTypeName=typename) then
              result:=tobjectdef(o);
@@ -1175,6 +1175,8 @@ implementation
 
   procedure implement_interface_wrapper(pd: tprocdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       wrapperinfo: pskpara_interface_wrapper;
       callthroughpd, tmpproc: tprocdef;
       str: ansistring;
@@ -1199,7 +1201,7 @@ implementation
         fileinfo:=pd.fileinfo
       else
         begin
-          fileinfo.moduleindex:=current_module.moduleid;
+          fileinfo.moduleindex:=compiler.current_module.moduleid;
           fileinfo.fileindex:=1;
           fileinfo.line:=1;
           fileinfo.column:=1;
@@ -2213,7 +2215,7 @@ implementation
       stringdispose(orgpd.import_dll);
       orgpd.import_nr:=0;
       newpd.setmangledname(newname);
-      finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);
+      finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,compiler.current_module.localsymtable,nil);
       newpd.forwarddef:=false;
       { ideally we would prefix the parameters of the original routine here, but since it
         can be an interface definition, we cannot do that without risking to change the
@@ -2265,7 +2267,7 @@ implementation
           ps.register_sym;
           { the RTTI always references this symbol }
           inc(ps.refs);
-          current_module.localsymtable.insertsym(ps);
+          compiler.current_module.localsymtable.insertsym(ps);
           pd:=cprocdef.create(normal_function_level,true,compiler);
           { always register the def }
           pd.register_def;

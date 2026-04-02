@@ -76,10 +76,10 @@ implementation
         i : longint;
         ImportLibrary : TImportLibrary;
       begin
-        for i:=0 to current_module.ImportLibraryList.Count-1 do
+        for i:=0 to compiler.current_module.ImportLibraryList.Count-1 do
           begin
-            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+            ImportLibrary:=TImportLibrary(compiler.current_module.ImportLibraryList[i]);
+            compiler.current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
 
@@ -215,7 +215,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
@@ -342,7 +342,7 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName+'2',false,compiler);
 
  { Write path to search libraries }
-  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(compiler.current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L '+maybequoted(HPath.Str));
@@ -474,7 +474,7 @@ var
 begin
   success:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -488,11 +488,11 @@ begin
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
-       StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+       StripStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
      else
        begin
          StripStr:='-m';
-         RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+         RedirectStr:=' > '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
        end;
    end;
   If (cs_profile in compiler.globals.current_settings.moduleswitches) or
@@ -513,7 +513,7 @@ begin
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr)
   else
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if use_gnu_ld then
     begin
@@ -562,7 +562,7 @@ begin
   success:=false;
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
-   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,compiler.current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -573,11 +573,11 @@ begin
   if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
-       MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+       MapStr:='-Map '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'))
      else
        begin
          MapStr:='-m';
-         RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+         RedirectStr:=' > '+maybequoted(ChangeFileExt(compiler.current_module.exefilename,'.map'));
        end;
    end;
   need_quotes:= (cs_link_nolink in compiler.globals.current_settings.globalswitches) or
@@ -621,7 +621,7 @@ begin
     SplitBinCmd(Info.DllCmd[1],binstr,cmdstr)
   else
     SplitBinCmd(Info.DllCmd[3],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
@@ -652,7 +652,7 @@ begin
   if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+     Replace(cmdstr,'$EXE',maybequoted(compiler.current_module.sharedlibfilename));
      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 

@@ -442,7 +442,7 @@ implementation
 
         { default the extended RTTI options to that of TObject }
         if assigned(class_tobject) then
-          current_module.rtti_directive.options:=class_tobject.rtti.options;
+          compiler.current_module.rtti_directive.options:=class_tobject.rtti.options;
       end;
 
 
@@ -770,7 +770,7 @@ implementation
         procedure restorestate;
           begin
             state.restore;
-            if assigned(current_scanner) and (current_module.scanner=current_scanner) then
+            if assigned(current_scanner) and (compiler.current_module.scanner=current_scanner) then
               begin
                 if assigned(current_scanner.inputfile) then
                   current_scanner.tempopeninputfile;
@@ -1566,8 +1566,8 @@ type
            curr.consume_semicolon_after_uses:=false;
 
          { move the global symtable from the temporary local to global }
-         current_module.globalsymtable:=current_module.localsymtable;
-         current_module.localsymtable:=nil;
+         compiler.current_module.globalsymtable:=compiler.current_module.localsymtable;
+         compiler.current_module.localsymtable:=nil;
 
          { Now we check if we can continue. }
 
@@ -1623,7 +1623,7 @@ type
          result:=true;
          { curr is now module }
 
-         old_module:=current_module;
+         old_module:=compiler.current_module;
          set_current_module(module);
 
          if not assigned(module.finishstate) then
@@ -1647,7 +1647,7 @@ type
            this must be done before writing the VMTs because
            during VMT writing  the extended field info is written }
 
-         generate_attr_constrs(current_module.used_rtti_attrs);
+         generate_attr_constrs(compiler.current_module.used_rtti_attrs);
 
          { Generate VMTs }
          if compiler.verbose.Errorcount=0 then
@@ -1876,7 +1876,7 @@ type
         {$ENDIF}
         result:=compiler.verbose.ErrorCount=0;
 
-        old_module:=current_module;
+        old_module:=compiler.current_module;
         set_current_module(module);
 
         { Write out the ppufile after the object file has been created }

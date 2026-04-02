@@ -2024,6 +2024,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjOutput.create_symbols(data:TObjData);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         filename   : string[20];
         filenamelen : longint;
         sectionval : word;
@@ -2039,7 +2041,7 @@ const pemagic : array[0..3] of byte = (
            { The `.file' record, and the file name auxiliary record }
            write_symbol('.file', 0, -2, COFF_SYM_FILE, 1);
            fillchar(filename,sizeof(filename),0);
-           filename:=ExtractFileName(current_module.mainsource);
+           filename:=ExtractFileName(compiler.current_module.mainsource);
            inc(symidx);
            if bigobj then
              filenamelen:=sizeof(coffbigobjsymbol)

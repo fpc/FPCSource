@@ -124,7 +124,7 @@ implementation
               saved to the ppu file (the locally defined enum type). Since this
               alias for the locally defined enumtype is only used while
               implementing the class' methods, this is however no problem. }
-            tcompiler(compiler).symtablestack:=compiler.symtablestack.getcopyuntil(current_module.localsymtable);
+            tcompiler(compiler).symtablestack:=compiler.symtablestack.getcopyuntil(compiler.current_module.localsymtable);
           end;
       end;
 
@@ -171,7 +171,7 @@ implementation
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true,compiler);
+        enumclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true,compiler);
         tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
@@ -358,7 +358,7 @@ implementation
         { create new class (different internal name than pvar to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true,compiler);
+        pvclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true,compiler);
         tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
@@ -645,10 +645,10 @@ implementation
                 def can also belong to that -> will be freed when the function
                 has been compiler -> insert a copy in the unit's staticsymtable
               }
-              compiler.symtablestack.push(current_module.localsymtable);
+              compiler.symtablestack.push(compiler.current_module.localsymtable);
               ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
               compiler.symtablestack.top.insertsym(ssym);
-              compiler.symtablestack.pop(current_module.localsymtable);
+              compiler.symtablestack.pop(compiler.current_module.localsymtable);
               { alias storage to the constsym }
               ssym.set_mangledname(csym.realname);
               { ensure that we allocate space for global symbols (won't actually
@@ -710,7 +710,7 @@ implementation
         replace(visname,' ','_');
         { create a name that is unique amongst all units (start with '$unitname$$') and
           unique in this unit (result.unique_id_str) }
-        finish_copied_procdef(result,'$'+current_module.realmodulename^+'$$'+result.unique_id_str+pd.procsym.realname+'$'+visname,obj.symtable,obj);
+        finish_copied_procdef(result,'$'+compiler.current_module.realmodulename^+'$$'+result.unique_id_str+pd.procsym.realname+'$'+visname,obj.symtable,obj);
         { in case the referred method is from an external class }
         exclude(result.procoptions,po_external);
         { not virtual/override/abstract/... }

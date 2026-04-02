@@ -5230,8 +5230,10 @@ implementation
         end;
 
       procedure WriteNameSection;
+        var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
-          WriteName(FWasmNameSubsections[wnstModuleName],current_module.exefilename);
+          WriteName(FWasmNameSubsections[wnstModuleName],compiler.current_module.exefilename);
           WriteNameSubsection(wnstModuleName);
 
           WriteNameMap(FFunctionNameMap,FWasmNameSubsections[wnstFunctionNames]);
