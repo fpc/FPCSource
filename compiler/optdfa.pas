@@ -781,7 +781,7 @@ unit optdfa;
                     begin
                       { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
                       if tcallparanode(n).parasym.varspez=vs_var then
-                        UninitializedVariableMessage(hpt.fileinfo,false,
+                        UninitializedVariableMessage(compiler.verbose,hpt.fileinfo,false,
                           tloadnode(hpt).symtable.symtabletype=localsymtable,
                           is_managed_type(tloadnode(hpt).resultdef),
                           tloadnode(hpt).symtableentry.RealName);
@@ -858,7 +858,7 @@ unit optdfa;
                           { typed consts are initialized, further, warn only once per location }
                           if not (vo_is_typed_const in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                             begin
-                              UninitializedVariableMessage(n.fileinfo,true,varsym.typ=localvarsym,is_managed_type(varsym.vardef),varsym.realname);
+                              UninitializedVariableMessage(compiler.verbose,n.fileinfo,true,varsym.typ=localvarsym,is_managed_type(varsym.vardef),varsym.realname);
                               AddFilepos(n.fileinfo);
                               result:=fen_norecurse_true;
                             end;

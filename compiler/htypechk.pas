@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      sysutils,cclasses,cmsgs,tokens,compilerbase,
+      sysutils,cclasses,cmsgs,tokens,verbose,compilerbase,
       node,globtype,compinnr,
       symconst,symtype,symdef,symsym,symbase,
       pgentype;
@@ -217,13 +217,13 @@ interface
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
 
-    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+    procedure UninitializedVariableMessage(verbose: TVerbose; pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
 
 implementation
 
     uses
        systems,constexp,globals,
-       cutils,verbose,compiler,
+       cutils,compiler,
        symtable,symutil,
        defutil,defcmp,
        nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
@@ -1185,9 +1185,7 @@ implementation
       end;
 
 
-    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure UninitializedVariableMessage(verbose: TVerbose; pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
       const
         msg : array[false..true,false..true,false..true] of dword = (
             (
@@ -1200,7 +1198,7 @@ implementation
             )
           );
       begin
-        compiler.verbose.CGMessagePos1(pos,msg[warning,local,managed],name);
+        verbose.CGMessagePos1(pos,msg[warning,local,managed],name);
       end;
 
 
@@ -1345,7 +1343,7 @@ implementation
                                    end
                                  else
                                    begin
-                                     UninitializedVariableMessage(p.fileinfo,
+                                     UninitializedVariableMessage(compiler.verbose,p.fileinfo,
                                        { on the JVM, an uninitialized var-parameter
                                          is just as fatal as a nil pointer dereference }
                                        not((vsf_use_hints in varstateflags) and not(compiler.target.info.system in systems_jvm)),
