@@ -809,7 +809,7 @@ implementation
             srsymtable:=sym.owner;
             while not (srsymtable.symtabletype in [staticsymtable,globalsymtable]) do
               srsymtable:=srsymtable.defowner.owner;
-            module:=tmodule(loaded_units.first);
+            module:=tmodule(compiler.loaded_units.first);
             while assigned(module) do
               begin
                 if (module.globalsymtable=srsymtable) or (module.localsymtable=srsymtable) then
@@ -878,7 +878,7 @@ implementation
       alreadyloaded:=tfpobjectlist.create(false);
 
       { first pass to find all symbols that were not loaded by asm name }
-      module:=tmodule(loaded_units.first);
+      module:=tmodule(compiler.loaded_units.first);
       while assigned(module) do
         begin
           if not assigned(module.package) then
@@ -887,7 +887,7 @@ implementation
         end;
 
       { second pass to find all symbols that were loaded by asm name }
-      module:=tmodule(loaded_units.first);
+      module:=tmodule(compiler.loaded_units.first);
       while assigned(module) do
         begin
           if not assigned(module.package) then

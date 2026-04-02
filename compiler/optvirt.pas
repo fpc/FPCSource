@@ -787,7 +787,7 @@ unit optvirt;
         inheritancetree: tinheritancetree;
       begin
          { register all instantiated class/object types }
-         hp:=tmodule(loaded_units.first);
+         hp:=tmodule(compiler.loaded_units.first);
          while assigned(hp) do
           begin
             if assigned(hp.wpoinfo.createdobjtypes) then
@@ -876,7 +876,7 @@ unit optvirt;
            end;
 
          { add info about called virtual methods }
-         hp:=tmodule(loaded_units.first);
+         hp:=tmodule(compiler.loaded_units.first);
          while assigned(hp) do
           begin
             if assigned(hp.wpoinfo.calledvmtentries) then

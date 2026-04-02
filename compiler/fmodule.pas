@@ -353,8 +353,7 @@ interface
       end;
 
     var
-       loaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
-       unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
+       unloaded_units    : tlinkedlist; { Units removed from compiler.loaded_units, to be freed }
        all_modules: array of tmodule;   { modules by moduleid }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
@@ -450,8 +449,10 @@ implementation
 
 
     procedure addloadedunit(hp:tmodule);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        loaded_units.concat(hp);
+        compiler.loaded_units.concat(hp);
       end;
 
 
@@ -1486,15 +1487,15 @@ implementation
       begin
         { Extend unitmap }
         oldmapsize:=unitmapsize;
-        unitmapsize:=loaded_units.count+1;
+        unitmapsize:=compiler.loaded_units.count+1;
         setlength(unitmap,unitmapsize);
 
         { Extend Derefmap }
         oldmapsize:=derefmapsize;
-        derefmapsize:=loaded_units.count+1;
+        derefmapsize:=compiler.loaded_units.count+1;
         setlength(derefmap,derefmapsize);
         { Add all units to unitmap }
-        hp:=tmodule(loaded_units.first);
+        hp:=tmodule(compiler.loaded_units.first);
         if hp=nil then exit;
         i:=hp.moduleid;
         while assigned(hp) do
@@ -1551,11 +1552,11 @@ implementation
             if not assigned(derefmap[id].modulename) or
                (derefmap[id].modulename^='') then
               internalerror(200501159);
-            hp:=tmodule(loaded_units.first);
+            hp:=tmodule(compiler.loaded_units.first);
             while assigned(hp) do
               begin
                 { only check for units. The main program is also
-                  as a unit in the loaded_units list. We simply need
+                  as a unit in the compiler.loaded_units list. We simply need
                   to ignore this entry (PFV) }
                 if hp.is_unit and
                    (hp.modulename^=derefmap[id].modulename^) then

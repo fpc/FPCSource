@@ -141,13 +141,13 @@ implementation
        proc_program PM }
      if (module.is_initial) and (module.state=ms_compiled) and needsymbolinfo then
        begin
-         hp:=tmodule(loaded_units.first);
+         hp:=tmodule(compiler.loaded_units.first);
          while assigned(hp) do
           begin
             hp2:=tmodule(hp.next);
             if (hp<>module) then
               begin
-                loaded_units.remove(hp);
+                compiler.loaded_units.remove(hp);
                 hp.free;
                 hp := nil;
               end;
@@ -182,7 +182,7 @@ implementation
          current_genericdef:=nil;
          current_specializedef:=nil;
 
-         loaded_units:=TLinkedList.Create;
+         tcompiler(compiler).loaded_units:=TLinkedList.Create;
 
          tcompiler(compiler).usedunits:=TLinkedList.Create;
 
@@ -318,10 +318,10 @@ implementation
          current_specializedef:=nil;
 
          { unload units }
-         if assigned(loaded_units) then
+         if assigned(compiler.loaded_units) then
            begin
-             loaded_units.free;
-             loaded_units:=nil;
+             tcompiler(compiler).loaded_units.free;
+             tcompiler(compiler).loaded_units:=nil;
            end;
          if assigned(compiler.usedunits) then
            begin

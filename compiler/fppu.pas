@@ -2774,7 +2774,7 @@ var
         ups:=upper(s);
 
         { search all loaded units, skip program/library }
-        hp:=tppumodule(loaded_units.first);
+        hp:=tppumodule(compiler.loaded_units.first);
         while assigned(hp) and ((hp.modulename^<>ups) or not hp.is_unit) do
           hp:=tppumodule(hp.next);
 

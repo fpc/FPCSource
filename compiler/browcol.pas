@@ -1991,7 +1991,7 @@ begin
     NewBrowserCol;
 
   {-- first only create Modules list --}
-  hp:=tmodule(loaded_units.first);
+  hp:=tmodule(compiler.loaded_units.first);
   if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
@@ -2027,7 +2027,7 @@ begin
 
    {-- collect symbol information --}
    FillChar(SymTll,SizeOf(TLinkList),0);
-   hp:=tmodule(loaded_units.first);
+   hp:=tmodule(compiler.loaded_units.first);
    if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
@@ -2054,7 +2054,7 @@ begin
     end;
 
   {-- used modules and dependant modules --}
-  hp:=tmodule(loaded_units.first);
+  hp:=tmodule(compiler.loaded_units.first);
   if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
@@ -2256,6 +2256,8 @@ begin
 end;
 
 procedure BuildSourceList;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var m: tmodule;
     s: tinputfile;
     ppu,obj: string;
@@ -2267,10 +2269,10 @@ begin
       Dispose(SourceFiles, Done);
       SourceFiles:=nil;
     end;
-  if assigned(loaded_units.first) then
+  if assigned(compiler.loaded_units.first) then
   begin
     New(SourceFiles, Init(50,10));
-    m:=tmodule(loaded_units.first);
+    m:=tmodule(compiler.loaded_units.first);
     while assigned(m) do
     begin
       obj:=ExpandFileName(m.objfilename);

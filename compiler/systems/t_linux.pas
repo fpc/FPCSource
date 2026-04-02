@@ -384,7 +384,7 @@ begin
     The former contains library names qualified with prefix and suffix (coming from
     "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
     directives). }
-  hp:=tmodule(loaded_units.first);
+  hp:=tmodule(compiler.loaded_units.first);
   while assigned(hp) do
     begin
       result:=Assigned(hp.ImportLibraryList.find(compiler.target.info.sharedClibprefix+'c'+compiler.target.info.sharedClibext));

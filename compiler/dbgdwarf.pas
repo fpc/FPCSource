@@ -3496,7 +3496,7 @@ implementation
         new_section(list,sec_fpc,'links',0);
 
         { include reference to all debuginfo sections of used units }
-        hp:=tmodule(loaded_units.first);
+        hp:=tmodule(compiler.loaded_units.first);
         while assigned(hp) do
           begin
             If (mf_has_dwarf_debuginfo in hp.moduleflags) and not assigned(hp.package) then

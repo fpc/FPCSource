@@ -322,7 +322,7 @@ begin
     if next=nil then break;
     if state=nil then
       state:=tglobalstate.create(true,compiler);
-    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK-finish: continuing ',next.ToString,' state=',next.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
+    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK-finish: continuing ',next.ToString,' state=',next.statestr,' total-units=',compiler.loaded_units.Count,' tasks=',taskcount);{$ENDIF}
     continue_module(next);
   until false;
 
@@ -1270,7 +1270,7 @@ begin
         continue;
       end;
 
-    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',best.ToString,' state=',best.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
+    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',best.ToString,' state=',best.statestr,' total-units=',compiler.loaded_units.Count,' tasks=',taskcount);{$ENDIF}
     if continue_module(best) then
       // done
     else if best.state=ms_moduleerror then

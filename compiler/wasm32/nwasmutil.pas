@@ -76,7 +76,7 @@ implementation
       var
         module : tmodule;
       begin
-         module:=tmodule(loaded_units.first);
+         module:=tmodule(compiler.loaded_units.first);
         while assigned(module) do
           begin
           module.functypechecked:=false;

@@ -139,7 +139,7 @@ implementation
       if compiler.target.info.system=system_i386_win32 then
         begin
           linkcygwin := false;
-          hp:=tmodule(loaded_units.first);
+          hp:=tmodule(compiler.loaded_units.first);
           while assigned(hp) do
            begin
              linkcygwin := hp.linkothersharedlibs.find('cygwin') or hp.linkotherstaticlibs.find('cygwin');

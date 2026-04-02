@@ -609,7 +609,7 @@ implementation
       var
         hp : tmodule;
       begin
-        hp:=tmodule(loaded_units.first);
+        hp:=tmodule(compiler.loaded_units.first);
         while assigned(hp) do
           begin
             hp.is_dbginfo_written:=false;

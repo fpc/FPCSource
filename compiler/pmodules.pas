@@ -305,7 +305,7 @@ implementation
            (curr.modulename^='SYSTEM.VARUTILS') then
           exit;
         { Variants unit already loaded? }
-        hp:=tmodule(loaded_units.first);
+        hp:=tmodule(compiler.loaded_units.first);
         while assigned(hp) do
           begin
             if (hp.modulename^='VARIANTS') or (hp.modulename^='SYSTEM.VARIANTS') then
@@ -333,7 +333,7 @@ implementation
         { We simply remove the unit from:
            - usedunit list, so that things like init/finalization table won't
               contain references to this unit
-           - loaded_units list, so that the unit object file doesn't get linked
+           - compiler.loaded_units list, so that the unit object file doesn't get linked
              with the executable. }
         { Note: on windows we always need resources! }
         resources_used:=(compiler.target.info.system in systems_all_windows)
@@ -347,7 +347,7 @@ implementation
               _unitname:='FPINTRES';
             compiler.verbose.Message1(unit_u_unload_resunit,_unitname);
             { find the module }
-            hp:=tmodule(loaded_units.first);
+            hp:=tmodule(compiler.loaded_units.first);
             while assigned(hp) do
               begin
                 if hp.is_unit and (hp.modulename^=_unitname) then break;
@@ -380,7 +380,7 @@ implementation
             uu.Free;
             uu := nil;
            { remove the module }
-            loaded_units.Remove(hp);
+            compiler.loaded_units.Remove(hp);
             unloaded_units.Concat(hp);
           end;
         MaybeRemoveResUnit:=resources_used;
@@ -2169,7 +2169,7 @@ type
          { All units are read, now give them a number }
          curr.updatemaps;
 
-         hp:=tmodule(loaded_units.first);
+         hp:=tmodule(compiler.loaded_units.first);
          while assigned(hp) do
            begin
              if (hp<>curr) and not assigned(hp.package) then
@@ -2271,7 +2271,7 @@ type
 
          { remove all unused units, this happens when units are removed
            from the uses clause in the source and the ppu was already being loaded }
-         hp:=tmodule(loaded_units.first);
+         hp:=tmodule(compiler.loaded_units.first);
          while assigned(hp) do
           begin
             hp2:=hp;
@@ -2280,7 +2280,7 @@ type
               compiler.pkgutil.add_package_unit_ref(hp2.package);
             if hp2.is_unit and
                not assigned(hp2.globalsymtable) then
-              loaded_units.remove(hp2);
+              compiler.loaded_units.remove(hp2);
           end;
 
          compiler.exportlib.ignoreduplicates:=true;
@@ -2357,7 +2357,7 @@ type
              { we add all loaded units that are not part of a package to the
                package; this includes units in the "contains" section as well
                as implicitly imported ones }
-             hp:=tmodule(loaded_units.first);
+             hp:=tmodule(compiler.loaded_units.first);
              while assigned(hp) do
               begin
                 if (hp<>curr) then
@@ -2395,7 +2395,7 @@ type
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.
                    Keep the curr because that is still needed }
-                 hp:=tmodule(loaded_units.first);
+                 hp:=tmodule(compiler.loaded_units.first);
                  while assigned(hp) do
                   begin
                     { only link in those units which should become part of this
@@ -2406,7 +2406,7 @@ type
                     if (hp<>curr) and
                        (not needsymbolinfo) then
                       begin
-                        loaded_units.remove(hp);
+                        compiler.loaded_units.remove(hp);
                         hp.free;
                         hp := nil;
                       end;
@@ -2456,7 +2456,7 @@ type
             { insert all .o files from all loaded units and
               unload the units, we don't need them anymore.
               Keep the curr because that is still needed }
-            hp:=tmodule(loaded_units.first);
+            hp:=tmodule(compiler.loaded_units.first);
             while assigned(hp) do
              begin
                if (hp<>sysinitmod) and not assigned(hp.package) then
@@ -2471,7 +2471,7 @@ type
                if (hp<>curr) and
                   (not needsymbolinfo) then
                  begin
-                   loaded_units.remove(hp);
+                   compiler.loaded_units.remove(hp);
                    hp.free;
                    hp := nil;
                  end;
@@ -2540,7 +2540,7 @@ type
 
         { remove all unused units, this happens when units are removed
           from the uses clause in the source and the ppu was already being loaded }
-        hp:=tmodule(loaded_units.first);
+        hp:=tmodule(compiler.loaded_units.first);
         while assigned(hp) do
          begin
            hp2:=hp;
@@ -2548,7 +2548,7 @@ type
            if hp2.is_unit and
               not assigned(hp2.globalsymtable) then
                begin
-                 loaded_units.remove(hp2);
+                 compiler.loaded_units.remove(hp2);
                  unloaded_units.concat(hp2);
                end;
          end;

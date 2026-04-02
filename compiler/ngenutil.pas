@@ -1571,7 +1571,7 @@ implementation
     begin
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       count:=0;
-      hp:=tmodule(loaded_units.first);
+      hp:=tmodule(compiler.loaded_units.first);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
       countplaceholder:=tcb.emit_placeholder(sizesinttype);

@@ -222,6 +222,7 @@ type
     Fmain_module       : tmodule;     { Main module of the program }
     Fcurrent_module    : tmodule;     { Current module which is compiled or loaded }
     Fusedunits         : tlinkedlist; { Used units for this program }
+    Floaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -281,6 +282,7 @@ type
     property main_module: tmodule read Fmain_module write Fmain_module;
     property current_module: tmodule read Fcurrent_module write Fcurrent_module;
     property usedunits: tlinkedlist read Fusedunits write Fusedunits;
+    property loaded_units: tlinkedlist read Floaded_units write Floaded_units;
   end;
 
   { TCompilerHelper }
@@ -305,6 +307,7 @@ type
     function GetImportLib: TImportLib; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function GetLinker: TLinker; inline;
+    function Getloaded_units: tlinkedlist; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function Getmain_module: tmodule; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
@@ -473,6 +476,7 @@ type
     property main_module: tmodule read Getmain_module;
     property current_module: tmodule read Getcurrent_module;
     property usedunits: tlinkedlist read Getusedunits;
+    property loaded_units: tlinkedlist read Getloaded_units;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1049,6 +1053,11 @@ end;
 function TCompilerHelper.GetLinker: TLinker;
 begin
   Result := TCompiler(Self).Linker;
+end;
+
+function TCompilerHelper.Getloaded_units: tlinkedlist; inline;
+begin
+  Result := TCompiler(Self).loaded_units;
 end;
 
 function TCompilerHelper.Getmacrosymtablestack: TSymtablestack;
