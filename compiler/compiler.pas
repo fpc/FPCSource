@@ -285,6 +285,8 @@ type
     property usedunits: tlinkedlist read Fusedunits write Fusedunits;
     property loaded_units: tlinkedlist read Floaded_units write Floaded_units;
     property unloaded_units: tlinkedlist read Funloaded_units write Funloaded_units;
+  public
+    all_modules: array of tmodule;   { modules by moduleid }
   end;
 
   { TCompilerHelper }

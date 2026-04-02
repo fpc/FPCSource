@@ -353,7 +353,6 @@ interface
       end;
 
     var
-       all_modules: array of tmodule;   { modules by moduleid }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
 
@@ -427,11 +426,13 @@ implementation
 
 
     function get_module(moduleindex : longint) : tmodule;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if moduleindex>=length(all_modules) then
+        if moduleindex>=length(tcompiler(compiler).all_modules) then
           result:=nil
         else
-          result:=all_modules[moduleindex];
+          result:=tcompiler(compiler).all_modules[moduleindex];
       end;
 
 
@@ -625,18 +626,18 @@ implementation
          inherited create('Program',compiler);
         mainsource:=fn;
 
-        old_mod_cnt:=length(all_modules);
+        old_mod_cnt:=length(tcompiler(compiler).all_modules);
         if moduleid>=old_mod_cnt then
           begin
             if old_mod_cnt<32 then
               new_mod_cnt:=32
             else
               new_mod_cnt:=old_mod_cnt*2;
-            setlength(all_modules,new_mod_cnt);
+            setlength(tcompiler(compiler).all_modules,new_mod_cnt);
             for i:=old_mod_cnt to new_mod_cnt-1 do
-              all_modules[i]:=nil;
+              tcompiler(compiler).all_modules[i]:=nil;
           end;
-        all_modules[moduleid]:=self;
+        tcompiler(compiler).all_modules[moduleid]:=self;
 
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
@@ -892,7 +893,7 @@ implementation
         localmacrosymtable := nil;
 
         task:=nil;
-        all_modules[moduleid]:=nil;
+        tcompiler(compiler).all_modules[moduleid]:=nil;
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
