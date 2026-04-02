@@ -309,12 +309,12 @@ Implementation
           will be optimized to
             str reg2, [reg1]
         }
-        RegLoadedWithNewValue(taicpu(p).oper[0]^.reg, p) then
+        (taicpu(p).spilling_get_operation_type(0) = operand_write) then
         begin
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
             begin
-              DebugMsg('Peephole '+optimizer+' removed superfluous mov', movp);
+              DebugMsg(SPeepholeOptimization + optimizer +' removed superfluous mov', movp);
               result:=true;
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
@@ -382,8 +382,12 @@ Implementation
 {$ifdef ARM}
                                    A_RSB, A_RSC,
 {$endif ARM}
+{$ifdef AARCH64}
+                                   A_EON,
+{$endif AARCH64}
                                    A_SUB, A_SBC,
-                                   A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
+                                   A_AND, A_BIC, A_EOR, A_ORN, A_ORR,
+                                   A_MOV, A_MVN],
                              [taicpu(p).condition], []) and
             { MOV and MVN might only have 2 ops }
             (taicpu(hp1).ops >= 2) and

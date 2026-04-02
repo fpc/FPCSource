@@ -239,13 +239,13 @@ Implementation
 
   function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
     var
-      p: taicpu;
+      p: taicpu absolute hp; { Implicit typecast }
+      i: integer;
     begin
       Result := false;
       if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
         exit;
 
-      p := taicpu(hp);
       case p.opcode of
         { These operands do not write into a register at all }
         A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD,
@@ -261,7 +261,7 @@ Implementation
               (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
               (taicpu(p).oper[1]^.ref^.base = reg);
             }
-            { STR does not load into it's first register }
+            { STR does not load into its first register }
             if p.opcode = A_STR then
               exit;
           end;
@@ -270,11 +270,6 @@ Implementation
             Result := false;
             exit;
           end;
-        { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
-        A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
-          Result :=
-            (p.oper[1]^.typ = top_reg) and
-            (p.oper[1]^.reg = reg);
         {Loads to oper2 from coprocessor}
         {
         MCR/MRC is currently not supported in FPC
@@ -296,20 +291,38 @@ Implementation
       if Result then
         exit;
 
-      case p.oper[0]^.typ of
-        {This is the case}
-        top_reg:
-          Result := (p.oper[0]^.reg = reg) or
-            { LDRD }
-            (p.opcode=A_LDR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg));
-        {LDM/STM might write a new value to their index register}
-        top_ref:
-          Result :=
-            (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-            (taicpu(p).oper[0]^.ref^.base = reg);
-        else
-          ;
-      end;
+      for i:=0 to p.ops-1 do
+        begin
+          case p.spilling_get_operation_type(i) of
+            operand_read,
+            operand_readwrite:
+              if RegInOp(reg,p.oper[i]^) then
+                { Depends on register's previous value }
+                exit;
+
+            operand_write:
+              case p.oper[i]^.typ of
+                top_specialreg,
+                top_reg:
+                  if SuperRegistersEqual(p.oper[i]^.reg,reg) then
+                    Result:=True;
+                top_regset:
+                  if RegInOp(reg,p.oper[i]^) then
+                    Result:=True;
+                top_ref:
+                  { With a reference, if the register is pre- or post-indexed,
+                    it's a modified value, not a new value }
+                  if (taicpu(p).oper[i]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+                    (taicpu(p).oper[i]^.ref^.base=reg) then
+                    begin
+                      Result:=False;
+                      Exit;
+                    end;
+                else
+                  ;
+              end;
+          end;
+        end;
     end;
 
 
