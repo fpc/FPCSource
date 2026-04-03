@@ -225,7 +225,7 @@ var
           item^.saved_moduleid:=id;
           if (id<>compiler.current_module.moduleid) and (id>0) then
             begin
-              m:=get_module(id);
+              m:=compiler.get_module(id);
               {$IFDEF DEBUG_SAVESYMSTACK}
               writeln('   ',m.modulename^,' ',m.statestr);
               {$ENDIF}
@@ -312,7 +312,7 @@ var
           id:=item^.saved_moduleid;
           if (id<>old_current_module.moduleid) and (id>0) then
             begin
-              m:=get_module(id);
+              m:=compiler.get_module(id);
               {$IFDEF DEBUG_SAVESYMSTACK}
               writeln('  ',m.modulename^,' ',m.statestr,' HasGlobalSymTable=',m.globalsymtable<>nil);
               {$ENDIF}

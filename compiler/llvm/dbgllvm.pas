@@ -637,7 +637,7 @@ implementation
         item:=ffilemeta.FindOrAdd(@modfileindex,sizeof(modfileindex));
         if not assigned(item^.Data) then
           begin
-            infile:=get_module(moduleindex).sourcefiles.get_file(fileindex);
+            infile:=compiler.get_module(moduleindex).sourcefiles.get_file(fileindex);
             if not assigned(infile) then
               begin
                 result:=nil;

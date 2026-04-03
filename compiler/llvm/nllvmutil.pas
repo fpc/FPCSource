@@ -224,7 +224,7 @@ implementation
          (llvmflag_sanitizer_attributes in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
         exit;
       asanglobals:=nil;
-      module:=get_module(compiler.globals.current_filepos.moduleindex);
+      module:=compiler.get_module(compiler.globals.current_filepos.moduleindex);
       for asmlisttype:=low(asmlisttype) to high(asmlisttype) do
         begin
           list:=current_asmdata.AsmLists[asmlisttype];

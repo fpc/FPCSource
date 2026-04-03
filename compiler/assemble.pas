@@ -1082,7 +1082,7 @@ Implementation
             if compiler.current_module.moduleid=hp.fileinfo.moduleindex then
               module:=compiler.current_module
             else
-              module:=get_module(hp.fileinfo.moduleindex);
+              module:=compiler.get_module(hp.fileinfo.moduleindex);
             { during the compilation of the system unit there are cases when
               the fileinfo contains just zeros => invalid }
             if assigned(module) then

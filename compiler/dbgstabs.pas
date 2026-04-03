@@ -1795,7 +1795,7 @@ implementation
                    ((lastfileinfo.fileindex<>currfileinfo.fileindex) or
                     (lastfileinfo.moduleindex<>currfileinfo.moduleindex)) then
                   begin
-                    infile:=get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
+                    infile:=compiler.get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgfile);

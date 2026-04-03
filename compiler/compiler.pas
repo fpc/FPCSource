@@ -242,6 +242,8 @@ type
     procedure InitLinker;
     procedure DoneLinker;
 
+    function get_module(moduleindex : longint) : tmodule;
+
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
     property Verbose: TVerbose read FVerbose;
@@ -446,6 +448,8 @@ type
     function ccasenode(l:tnode):tcasenode; inline;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+
+    function get_module(moduleindex: longint): tmodule;
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
@@ -985,6 +989,14 @@ end;
 procedure TCompiler.DoneLinker;
 begin
   FreeAndNil(FLinker);
+end;
+
+function TCompiler.get_module(moduleindex: longint): tmodule;
+begin
+  if moduleindex>=length(all_modules) then
+    result:=nil
+  else
+    result:=all_modules[moduleindex];
 end;
 
 { TCompilerHelper }
@@ -1687,6 +1699,11 @@ procedure TCompilerHelper.DefaultReplacements(var s: ansistring;
   substitute_env_variables: boolean);
 begin
   tcompiler(self).DefaultReplacements(s,substitute_env_variables);
+end;
+
+function TCompilerHelper.get_module(moduleindex: longint): tmodule;
+begin
+  Result := TCompiler(Self).get_module(moduleindex);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

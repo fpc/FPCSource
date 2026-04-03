@@ -354,7 +354,6 @@ interface
 
 
     procedure set_current_module(p:tmodule);
-    function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
     function find_module_from_symtable(st:tsymtable):tmodule;
@@ -378,8 +377,10 @@ implementation
 *****************************************************************************}
 
     function find_module_from_symtable(st:tsymtable):tmodule;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=get_module(st.moduleid);
+        result:=compiler.get_module(st.moduleid);
       end;
 
     procedure set_current_module(p:tmodule);
@@ -421,22 +422,13 @@ implementation
       end;
 
 
-    function get_module(moduleindex : longint) : tmodule;
+    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        if moduleindex>=length(tcompiler(compiler).all_modules) then
-          result:=nil
-        else
-          result:=tcompiler(compiler).all_modules[moduleindex];
-      end;
-
-
-    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
       var
         hp : tmodule;
       begin
-        hp:=get_module(moduleindex);
+        hp:=compiler.get_module(moduleindex);
         if assigned(hp) then
           get_source_file:=hp.sourcefiles.get_file(fileindex)
         else
@@ -1350,7 +1342,7 @@ implementation
         end;
 
         asymtable:=sym.owner;
-        module:=get_module(asymtable.moduleid);
+        module:=compiler.get_module(asymtable.moduleid);
         if module=nil then
         begin
           writeln('tmodule.find_unitimportsymbol missing moduleid=',asymtable.moduleid);

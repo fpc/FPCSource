@@ -472,7 +472,9 @@ implementation
       end;
 
 
-        procedure TVerbose.UpdateStatus(const filepos: tfileposinfo);
+    procedure TVerbose.UpdateStatus(const filepos: tfileposinfo);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         module : tmodule;
       begin
@@ -482,7 +484,7 @@ implementation
         if (filepos.moduleindex <> lastmoduleidx) or
            (filepos.fileindex <> lastfileidx) then
         begin
-          module:=get_module(filepos.moduleindex);
+          module:=compiler.get_module(filepos.moduleindex);
           if assigned(module) and assigned(module.sourcefiles) then
             begin
               { update status record }

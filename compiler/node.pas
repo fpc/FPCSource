@@ -661,10 +661,12 @@ implementation
 
     procedure printfileinfo(var t:text; pos:tfileposinfo);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
 	infile : string;
       begin
         try
-          infile:=get_module(pos.moduleindex).sourcefiles.get_file(pos.fileindex).name;
+          infile:=compiler.get_module(pos.moduleindex).sourcefiles.get_file(pos.fileindex).name;
 	except
           infile:='inconsistent';
 	end;
