@@ -1124,7 +1124,7 @@ implementation
             not(callnode.procdefinition.proccalloption in cdecl_pocalls)) and
            paramanager.push_addr_param(vs_value,parasym.vardef,
                       callnode.procdefinition.proccalloption) and
-           not(callnode.doinlining) then
+           not(cnf_do_inline in callnode.callnodeflags) then
           copy_value_by_ref_para;
 
         if assigned(fparainit) then
@@ -4701,6 +4701,7 @@ implementation
                 Inc(indexcount);
               end;
             hpcurr.init_contains_stack_tainting_call_cache;
+            hpcurr.ffollowed_by_stack_tainting_call_cached:=false;
             hpcurr:=tcallparanode(hpcurr.right);
           end;
         hpcurr:=tcallparanode(left);
