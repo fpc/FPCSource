@@ -17,6 +17,7 @@ programs_freebsd=installer writeidx
 units=scroll insthelp
 files_linux=installer.pas
 files_freebsd=installer.pas
+programs=install writeidx
 
 [require]
 packages=rtl-unicode rtl-console fv unzip rtl-extra ide

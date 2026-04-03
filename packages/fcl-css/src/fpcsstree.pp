@@ -608,8 +608,11 @@ type
   TCSSRuleElement = class(TCSSChildrenElement)
   Private
     FSelectors : TCSSElementList;
+    FNestedRules : TCSSElementList;
     function GetSelector(aIndex : Integer): TCSSElement;
     function GetSelectorCount: Integer;
+    function GetNestedRule(aIndex: Integer): TCSSRuleElement;
+    function GetNestedRuleCount: Integer;
   Protected
     function DoGetAsString(const aPrefix : TCSSString; aFormat : Boolean; const aIndent : TCSSString): TCSSString; virtual;
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
@@ -618,9 +621,12 @@ type
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
     Procedure AddSelector(aSelector : TCSSElement);
+    Procedure AddNestedRule(aRule: TCSSRuleElement);
     function Equals(Obj: TObject): boolean; override;
     Property Selectors [aIndex : Integer] : TCSSElement Read GetSelector;
     Property SelectorCount : Integer Read GetSelectorCount;
+    Property NestedRules[aIndex: Integer]: TCSSRuleElement Read GetNestedRule;
+    Property NestedRuleCount: Integer Read GetNestedRuleCount;
   end;
   TCSSRuleElementClass = class of TCSSRuleElement;
   TCSSRuleElementArray = array of TCSSRuleElement;
@@ -633,7 +639,7 @@ type
   Public
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
     function Equals(Obj: TObject): boolean; override;
-    Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord;
+    Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord; // e.g. "@media"
   end;
   TCSSAtRuleElementClass = class of TCSSAtRuleElement;
 
@@ -1080,6 +1086,17 @@ begin
         end;
       Result:=Result+Children[I].GetAsString(aFormat,lIndent)+';';
       end;
+    For I:=0 to NestedRuleCount-1 do
+      begin
+      if (ChildCount>0) or (I>0) then
+        begin
+        if aFormat then
+          Result:=Result+sLineBreak
+        else
+          Result:=Result+' ';
+        end;
+      Result:=Result+NestedRules[I].GetAsString(aFormat,lIndent);
+      end;
     if aFormat then
       Result:=Result+sLineBreak+aIndent
     else
@@ -1091,11 +1108,26 @@ begin
     end;
 end;
 
+function TCSSRuleElement.GetNestedRule(aIndex: Integer): TCSSRuleElement;
+begin
+  Result:=FNestedRules[aIndex] as TCSSRuleElement;
+end;
+
+function TCSSRuleElement.GetNestedRuleCount: Integer;
+begin
+  if Assigned(FNestedRules) then
+    Result:=FNestedRules.Count
+  else
+    Result:=0;
+end;
+
 procedure TCSSRuleElement.IterateChildren(aVisitor: TCSSTreeVisitor);
 begin
   if Assigned(FSelectors) then
     FSelectors.Iterate(aVisitor);
   inherited IterateChildren(aVisitor);
+  if Assigned(FNestedRules) then
+    FNestedRules.Iterate(aVisitor);
 end;
 
 class function TCSSRuleElement.CSSType: TCSSType;
@@ -1106,6 +1138,7 @@ end;
 destructor TCSSRuleElement.Destroy;
 begin
   FreeAndNil(FSelectors);
+  FreeAndNil(FNestedRules);
   Inherited Destroy;
 end;
 
@@ -1118,6 +1151,15 @@ begin
   FSelectors.Add(aSelector);
 end;
 
+procedure TCSSRuleElement.AddNestedRule(aRule: TCSSRuleElement);
+begin
+  if not Assigned(aRule) then
+    exit;
+  if not Assigned(FNestedRules) then
+    FNestedRules:=TCSSElementList.Create(Self);
+  FNestedRules.Add(aRule);
+end;
+
 function TCSSRuleElement.Equals(Obj: TObject): boolean;
 var
   Src: TCSSRuleElement absolute Obj;
@@ -1125,6 +1167,7 @@ begin
   if Obj is TCSSRuleElement then
     begin
     if not CSSElementListEquals(FSelectors,Src.FSelectors) then exit(false);
+    if not CSSElementListEquals(FNestedRules,Src.FNestedRules) then exit(false);
     end;
   Result:=inherited Equals(Obj);
 end;

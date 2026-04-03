@@ -91,6 +91,7 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
           function  handle_compilerproc: tnode;
+          procedure set_para_callnode(n : tcallnode);
 
        protected
           function safe_call_self_node: tnode;
@@ -237,9 +238,11 @@ interface
        private
           fcontains_stack_tainting_call_cached,
           ffollowed_by_stack_tainting_call_cached : boolean;
-       protected
           { the call node the para node belongs to }
-          callnode : tcallnode;
+          _callnode : tcallnode;
+          function getcallnode : tcallnode;
+	  procedure setcallnode(calln : tcallnode);
+       protected
           procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;
           { on some targets, value parameters that are passed by reference must
             be copied to a temp location by the caller (and then a reference to
@@ -278,6 +281,7 @@ interface
           { a refcounted into a non-refcounted type                     }
           function can_be_inlined: boolean;
 
+          property callnode : tcallnode read getcallnode write setcallnode;
           property paravalue : tnode read left write left;
           property nextpara : tnode read right write right;
           { third is reused to store the parameter name (only while parsing
@@ -672,6 +676,21 @@ implementation
 {****************************************************************************
                              TCALLPARANODE
  ****************************************************************************}
+    function tcallparanode.getcallnode : tcallnode;
+
+    begin
+      if assigned(_callnode) and not (_callnode is tcallnode) then
+        internalerror(2026033001);
+      getcallnode:=_callnode;
+    end;
+
+    procedure tcallparanode.setcallnode(calln : tcallnode);
+
+    begin
+      if assigned(calln) and not (calln is tcallnode) then
+        internalerror(2026033002);
+      _callnode:=calln;
+    end;
 
     procedure tcallparanode.handlemanagedbyrefpara(orgparadef: tdef);
       var
@@ -4009,6 +4028,18 @@ implementation
       end;
 
 
+    procedure tcallnode.set_para_callnode(n : tcallnode);
+      var
+        pt : tcallparanode;
+      begin
+        pt:=tcallparanode(left);
+        while assigned(pt) do
+          begin
+            pt.callnode:=n;
+            pt:=tcallparanode(pt.right);
+          end;
+      end;
+
     function tcallnode.pass_typecheck:tnode;
 
       function is_undefined_recursive(def:tdef):boolean;
@@ -4025,7 +4056,7 @@ implementation
       var
         candidates : tcallcandidates;
         ccflags : tcallcandidatesflags;
-        hpt,tmp : tnode;
+        hpt: tnode;
         pt : tcallparanode;
         lastpara : longint;
         paraidx,
@@ -4036,19 +4067,26 @@ implementation
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
         calltype: tdispcalltype;
-        invokesym : tsym;
+
+        
+      procedure maybe_reset_para_callnode;
+        begin
+          if assigned(result) then
+            set_para_callnode(nil);
+        end;
+
       begin
         result:=nil;
 
         { determine length of parameter list }
-        pt:=tcallparanode(left);
         paralength:=0;
+        pt:=tcallparanode(left);
         while assigned(pt) do
-         begin
-           pt.callnode:=self;
-           inc(paralength);
-           pt:=tcallparanode(pt.right);
-         end;
+          begin
+            inc(paralength);
+            pt:=tcallparanode(pt.right);
+          end;
+        set_para_callnode(self);
 
         { determine the type of the parameters }
         if assigned(left) then
@@ -4143,11 +4181,13 @@ implementation
                     if symtableprocentry.Name='SQR' then
                       begin
                         result:=cinlinenode.createintern(in_sqr_real,false,tcallparanode(left).left.getcopy);
+                        set_para_callnode(nil);
                         exit;
                       end;
                     if symtableprocentry.Name='ABS' then
                       begin
                         result:=cinlinenode.createintern(in_abs_real,false,tcallparanode(left).left.getcopy);
+                        set_para_callnode(nil);
                         exit;
                       end;
                   end;
@@ -4220,6 +4260,7 @@ implementation
                          end;
                      end;
                    candidates.done;
+                   maybe_reset_para_callnode;
                    exit;
                  end;
 
@@ -4397,17 +4438,20 @@ implementation
                if assigned(tcallparanode(left).right) then
                 begin
                   hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,left);
+                  set_para_callnode(nil);
                   left:=nil;
                 end
                else
                 begin
                   hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,tcallparanode(left).left);
+                  set_para_callnode(nil);
                   tcallparanode(left).left:=nil;
                 end;
              end
             else
              hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,nil);
             result:=hpt;
+            maybe_reset_para_callnode;
             exit;
           end;
 
@@ -4466,6 +4510,7 @@ implementation
                  begin
                    CGMessage(cg_h_inherited_ignored);
                    result:=cnothingnode.create;
+                   maybe_reset_para_callnode;
                    exit;
                  end
                else
@@ -4604,6 +4649,7 @@ implementation
 
             { don't free reused nodes }
             methodpointer:=nil;
+            maybe_reset_para_callnode;
             parameters:=nil;
           end;
 
@@ -4620,6 +4666,7 @@ implementation
             (procdefinition.parast.symtablelevel>normal_function_level) and
             (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
           current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,procdefinition,fileinfo);
+        maybe_reset_para_callnode;
       end;
 
 
@@ -4938,7 +4985,10 @@ implementation
          result:=simplify(false);
 
          if assigned(result) then
-           exit;
+           begin                    
+             set_para_callnode(nil);
+             exit;
+           end;
 
          { as pass_1 is never called on the methodpointer node, we must check
            here that it's not a helper type }
@@ -4983,6 +5033,7 @@ implementation
              if para=nil then
                begin
                  result:=cnothingnode.create;
+                 set_para_callnode(nil);
                  exit;
                end;
            end;
@@ -5625,6 +5676,8 @@ implementation
         result:=ctypeconvnode.create_internal(tassignmentnode(resassign).right.getcopy,hp2.resultdef);
         node_reset_flags(result,[],[tnf_pass1_done]);
         firstpass(result);
+        if assigned(result) then
+          set_para_callnode(nil);
       end;
 
 end.

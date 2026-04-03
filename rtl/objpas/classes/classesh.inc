@@ -2965,9 +2965,6 @@ type
     oteLFM
     );
 
-function GetBinaryVersion(const Input: TStream): TBinaryObjectReader.TBOVersion;
-function IsBinary(const Input: TStream; var Version: TBinaryObjectReader.TBOVersion): Boolean;
-
 procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 procedure ObjectBinaryToText(Input, Output: TStream);
 procedure ObjectTextToBinary(Input, Output: TStream; var Format: TStreamOriginalFormat);

@@ -18,6 +18,9 @@
 {$ifndef HAS_SYSOSALLOC}
 {$define HAS_SYSOSALLOC}
 
+const
+  SysOSAllocZeroesIfAtLeast=0; { (Fp)mmap(MAP_ANONYMOUS) always zeroes. }
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
   result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);

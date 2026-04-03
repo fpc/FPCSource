@@ -103,7 +103,10 @@ const
   CSSKeywordRevert = CSSKeywordUnset+1;
   CSSKeywordRevertLayer = CSSKeywordRevert+1;
   CSSKeywordAuto = CSSKeywordRevertLayer+1;
-  CSSKeyword_LastResolver = CSSKeywordAuto;
+  CSSKeywordAnd = CSSKeywordAuto+1;
+  CSSKeywordOr = CSSKeywordAnd+1;
+  CSSKeywordNot = CSSKeywordOr+1;
+  CSSKeyword_LastResolver = CSSKeywordNot;
 
   // attribute functions
   CSSAttrFuncVar = 1;
@@ -524,6 +527,8 @@ type
     rvkFunction,
     rvkFunctionUnknown,
     rvkString,
+    rvkBrackets, // []
+    rvkParenthesis, // ()
     rvkHexColor
     );
 
@@ -551,11 +556,23 @@ type
     function Fits(const ResValue: TCSSResCompValue): boolean; overload;
   end;
 
+  TCSSHasMediaBoolEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean of object;
+  TCSSIsMediaPlainEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+    const aValue: TCSSResCompValue): boolean of object;
+  TCSSMediaCompareEvent = function(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+    const aValue: TCSSResCompValue;
+    out Cmp: integer // 0=equal, 1=KW is bigger, -1 aValue is bigger
+    ): boolean of object; // false = comparing apples with oranges
+
+
   { TCSSBaseResolver }
 
   TCSSBaseResolver = class(TComponent)
   private
     FCSSRegistry: TCSSRegistry;
+    FHasMediaBoolean: TCSSHasMediaBoolEvent;
+    FIsMediaPlain: TCSSIsMediaPlainEvent;
+    FMediaCompare: TCSSMediaCompareEvent;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
   public
@@ -602,6 +619,10 @@ type
     function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
 
     property CSSRegistry: TCSSRegistry read FCSSRegistry write SetCSSRegistry;
+    // @media
+    property HasMediaBoolean: TCSSHasMediaBoolEvent read FHasMediaBoolean write FHasMediaBoolean;
+    property IsMediaPlain: TCSSIsMediaPlainEvent read FIsMediaPlain write FIsMediaPlain;
+    property MediaCompare: TCSSMediaCompareEvent read FMediaCompare write FMediaCompare;
   end;
 
   { TCSSResolverParser
@@ -619,10 +640,13 @@ type
     function ResolvePseudoElement(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoElementFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
+    function ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
+    procedure CheckMediaSelector(El: TCSSElement); virtual;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
     function ParseSelector: TCSSElement; override;
+    function ParseAtMediaRule: TCSSAtRuleElement; override;
     procedure CheckSelector(El: TCSSElement); virtual;
     procedure CheckSelectorArray(anArray: TCSSArrayElement); virtual;
     procedure CheckSelectorArrayBinary(aBinary: TCSSBinaryElement); virtual;
@@ -787,6 +811,12 @@ begin
     raise ECSSParser.Create('20240623184114');
   if AddKeyword('auto')<>CSSKeywordAuto then
     raise ECSSParser.Create('20240625182731');
+  if AddKeyword('and')<>CSSKeywordAnd then
+    raise ECSSParser.Create('20260327000001');
+  if AddKeyword('or')<>CSSKeywordOr then
+    raise ECSSParser.Create('20260327000002');
+  if AddKeyword('not')<>CSSKeywordNot then
+    raise ECSSParser.Create('20260327000003');
 
   // init attribute functions
   if AddAttrFunction('var')<>CSSAttrFuncVar then
@@ -1903,6 +1933,27 @@ begin
         end;
       end;
     end;
+  '''','"':
+    if SkipString(p) then
+    begin
+      aComp.Kind:=rvkString;
+      aComp.EndP:=p;
+      exit;
+    end;
+  '[':
+    if SkipBrackets(p) then
+    begin
+      aComp.Kind:=rvkBrackets;
+      aComp.EndP:=p;
+      exit;
+    end;
+  '(':
+    if SkipBrackets(p) then
+    begin
+      aComp.Kind:=rvkParenthesis;
+      aComp.EndP:=p;
+      exit;
+    end;
   end;
 
   // skip unknown aComp
@@ -1916,6 +1967,7 @@ begin
     end;
   until false;
   aComp.EndP:=p;
+  Result:=false;
 end;
 
 class function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
@@ -2181,9 +2233,7 @@ begin
       inc(p);
       exit(true);
     end else if c=#0 then
-      exit
-    else
-      inc(p);
+      exit;
   until false;
 end;
 
@@ -2395,6 +2445,53 @@ begin
     Log(etWarning,20240822172830,'unknown pseudo function "'+aName+'"',El);
   end else
     El.NameNumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement
+  ): TCSSNumericalID;
+var
+  aName: TCSSString;
+begin
+  if El.NumericalID<>CSSIDNone then
+    raise ECSSParser.Create('20260323130501');
+  aName:=El.Name;
+  El.Kind:=nikKeyword;
+  Result:=Resolver.CSSRegistry.IndexOfKeyword(aName);
+  if Result<=CSSIDNone then
+  begin
+    El.NumericalID:=-1;
+    Log(etWarning,20260323130502,'unknown media keyword "'+aName+'"',El);
+  end else
+    El.NumericalID:=Result;
+end;
+
+procedure TCSSResolverParser.CheckMediaSelector(El: TCSSElement);
+var
+  i: Integer;
+  Bin: TCSSBinaryElement;
+begin
+  if El=nil then exit;
+  if El.ClassType=TCSSResolvedIdentifierElement then
+    ResolveMediaIdentifier(TCSSResolvedIdentifierElement(El))
+  else if El.ClassType=TCSSListElement then
+    for i:=0 to TCSSListElement(El).ChildCount-1 do
+      CheckMediaSelector(TCSSListElement(El).Children[i])
+  else if El.ClassType=TCSSBinaryElement then
+  begin
+    Bin:=TCSSBinaryElement(El);
+    CheckMediaSelector(Bin.Left);
+    CheckMediaSelector(Bin.Right);
+  end;
+end;
+
+function TCSSResolverParser.ParseAtMediaRule: TCSSAtRuleElement;
+var
+  i: Integer;
+begin
+  Result:=inherited ParseAtMediaRule;
+  if Result=nil then exit;
+  for i:=0 to Result.SelectorCount-1 do
+    CheckMediaSelector(Result.Selectors[i]);
 end;
 
 function TCSSResolverParser.ParseCall(aName: TCSSString; IsSelector: boolean

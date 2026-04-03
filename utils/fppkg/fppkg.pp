@@ -441,6 +441,7 @@ begin
 
   OldCurrDir:=GetCurrentDir;
   Try
+    Defaults := TFPCDefaults.Create;
     InitializeFppkg;
     LoadGlobalDefaults;
     ProcessCommandLine(true);
@@ -582,6 +583,7 @@ begin
         Halt(1);
       end;
   end;
+  FreeAndNil(Defaults);
   SetCurrentDir(OldCurrDir);
 end;
 

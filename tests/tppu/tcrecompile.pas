@@ -45,6 +45,7 @@ type
     procedure CheckCompiler;
   published
     // simple
+    procedure TestSystemPPUNotFound;
     procedure TestTwoUnits; // 2 units, recompile first
     procedure TestChangeLeaf1; // prog->ant->bird, change bird, recompile ant as well
     procedure TestChangeInner1; // prog->ant->bird, change ant, keep bird.ppu
@@ -306,6 +307,31 @@ begin
     E('missing compiler');
   if not FileIsExecutable(PP) then
     E('compiler not executable: "'+PP+'"');
+end;
+
+procedure TTestRecompile.TestSystemPPUNotFound;
+var
+  Params, Lines: TStringList;
+begin
+  UnitPath:='twounits';
+  OutDir:='twounits'+PathDelim+'ppus';
+  MainSrc:='twounits'+PathDelim+'tppu_twounits_ant.pas';
+  Step:='First compile';
+
+  Params:=TStringList.Create;
+  Lines:=nil;
+  try
+    Params.Add('-n');
+    Params.Add('-Fu'+UnitPath);
+    Params.Add('-FE'+OutDir);
+    Params.Add('-FE'+OutDir);
+    Params.Add(MainSrc);
+    if RunTool(PP,Params,'',false,false,Lines) then
+      Fail('compile succeeded without system.ppu');
+  finally
+    Lines.Free;
+    Params.Free;
+  end;
 end;
 
 procedure TTestRecompile.TestTwoUnits;

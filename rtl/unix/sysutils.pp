@@ -43,6 +43,7 @@ interface
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE HAS_INVALIDHANDLE}
 
 // this target has an fileflush implementation, don't include dummy
 {$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
@@ -63,6 +64,10 @@ uses
 {$IFDEF FreeBSD}freebsd,{$ENDIF}
   baseunix, Unix,errors,sysconst,Unixtype;
 {$ENDIF FPC_DOTTEDUNITS}
+
+
+const
+  INVALID_HANDLE_VALUE = -1;
 
 {$IF defined(LINUX) or defined(FreeBSD)}
 {$DEFINE HAVECLOCKGETTIME}

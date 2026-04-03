@@ -145,6 +145,7 @@ interface
       private
         FImportLibraryList : TFPHashObjectList;
       public
+        loadedfrommodule: tmodule;
         is_reset,                 { has reset been called ? }
         do_recompile,         { reset needed, done by ctask }
         do_reload,                { force reloading of the unit }
@@ -233,7 +234,7 @@ interface
         dependent_units      : tlinkedlist;
 
         { circular unit groups = strongly connected components }
-        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are finished
+        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are ms_procesed
                                  Note that in a cycle ms_processed can be reached while scc_finished is still false }
         scc_root: tmodule;     { valid if not scc_finished: all modules of a scc poins to their root module }
         scc_next: tmodule;     { next module in same scc }
@@ -247,9 +248,9 @@ interface
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
-        scc_tree_unfinished: boolean; { only valid for scc roots }
-        other_scc_unfinished: boolean; { only valid for scc roots }
-        scc_tree_crc_wait: tmodule;
+        scc_tree_unfinished: boolean; { the scc or a sub scc has at least one module not ms_processed }
+        other_scc_unfinished: boolean; { a sub scc has a module not ms_processed }
+        scc_tree_crc_wait: tmodule; { an unfinished used unit, can be indirectly used, not self }
 
         task: TObject;         { ctask ttask }
 
@@ -309,7 +310,7 @@ interface
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritance of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+        constructor create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
         procedure reset(for_recompile: boolean);virtual;
         function statestr: string; virtual;
@@ -319,10 +320,10 @@ interface
         procedure removedependency(callermodule:tmodule);
         function hasdependency(callermodule:tmodule): boolean;
         procedure flagdependent;
+        function find_used_unit_compiling: tmodule; // find a used module compiling/loading, even indirect
         class procedure increase_cycle_stamp;
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
-        function are_all_used_units_compiled: boolean;
         class var finish_module: tfinish_module_event;
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
         procedure derefimportedsymbols;
@@ -348,12 +349,12 @@ interface
         procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
+        procedure WriteUsedUnits(m: tmodule);
       end;
 
     var
        main_module       : tmodule;     { Main module of the program }
        current_module    : tmodule;     { Current module which is compiled or loaded }
-       compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units, excluding main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
@@ -599,13 +600,14 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+    constructor tmodule.create(loadedfrom: tmodule; const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       var
         n:string;
         fn:TPathStr;
         old_mod_cnt, i: SizeInt;
         new_mod_cnt: Integer;
       begin
+        loadedfrommodule:=LoadedFrom;
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
         else
@@ -1165,7 +1167,7 @@ implementation
     procedure tmodule.flagdependent;
       var
         dm : tdependent_unit;
-        m : tmodule;
+        m , bm: tmodule;
 
       begin
         { flag all units that depend on this unit for reloading }
@@ -1174,13 +1176,26 @@ implementation
         dm:=tdependent_unit(dependent_units.first);
         while assigned(dm) do
         begin
-          { We do not have to reload the unit that wants to load
-            this unit, unless this unit is already compiled during
-            the loading }
           m:=dm.u;
           if m.state in [ms_compiled,ms_processed] then
           begin
+            { Inconsistency: ms_compiled must only be set when all depending units (even indirect)
+                are complete aka wait for crc or higher }
             writeln('tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
+            bm:=find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',modulename^,' is not using any incomplete unit.');
+            bm:=m.find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',m.modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',m.modulename^,' is not using any incomplete unit.');
+
+            WriteUsedUnits(self);
+            WriteUsedUnits(m);
+
             Internalerror(2026022510);
           end;
           if not m.do_reload and is_reload_needed(dm) then
@@ -1203,6 +1218,49 @@ implementation
           end;
           dm:=tdependent_unit(dm.next);
         end;
+      end;
+
+    function tmodule.find_used_unit_compiling: tmodule;
+
+        function find_compiling(m: tmodule): tmodule;
+        var
+          uu: tused_unit;
+        begin
+          Result:=nil;
+          if m.cycle_search_stamp=tmodule.cycle_stamp then
+            exit; // already visited
+          m.cycle_search_stamp:=tmodule.cycle_stamp;
+
+          if m<>self then
+            if m.do_reload then
+              exit(m)
+            else
+              case m.state of
+                ms_load:
+                  if m.ppu_waitingfor_crc then
+                    // check used units
+                  else
+                    exit(m);
+                ms_compiled_waitcrc:
+                  ; // check used units
+                ms_compiled, ms_processed:
+                  exit;
+              else
+                exit(m);
+              end;
+
+          uu:=tused_unit(m.used_units.first);
+          while uu<>nil do
+            begin
+              Result:=find_compiling(uu.u);
+              if Result<>nil then exit;
+              uu:=tused_unit(uu.Next);
+            end;
+        end;
+
+      begin
+        increase_cycle_stamp;
+        Result:=find_compiling(self);
       end;
 
     class procedure tmodule.increase_cycle_stamp;
@@ -1276,20 +1334,6 @@ implementation
         Result:=(du.u.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed])
              or (du.in_interface and du.u.interface_compiled);
         { Note: see also the override in fppu.tppumodule }
-      end;
-
-    function tmodule.are_all_used_units_compiled: boolean;
-      var
-        uu: tused_unit;
-      begin
-        uu:=tused_unit(used_units.First);
-        while assigned(uu) do
-          begin
-            if not (uu.u.state in [ms_compiled,ms_processed]) then
-              exit(false);
-            uu:=tused_unit(uu.Next);
-          end;
-        Result:=true;
       end;
 
     procedure tmodule.addimportedsym(sym: TSymEntry; check_if_exists: boolean);
@@ -1394,31 +1438,12 @@ implementation
       end;
 
     function tmodule.usedunitsfinalcrc(out firstwaiting: tmodule): boolean;
+      { return a used unit, that has not yet computed its crc }
 
-    var
-      uu: tused_unit;
-
-    begin
-      firstwaiting:=scc_tree_crc_wait;
-      if (firstwaiting<>nil) and (firstwaiting<>self) then
-        exit(false);
-
-      uu:=tused_unit(used_units.First);
-      while assigned(uu) do
-        begin
-        if uu.u.do_reload
-            or not uu.u.interface_compiled
-            or not uu.u.crc_final then
-          begin
-          firstwaiting:=uu.u;
-          exit(false);
-          end;
-        uu:=tused_unit(uu.Next);
-        end;
-
-      firstwaiting:=nil;
-      Result:=True;
-    end;
+      begin
+        firstwaiting:=scc_tree_crc_wait;
+        Result:=firstwaiting=nil;
+      end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
 
@@ -1437,19 +1462,19 @@ implementation
       end;
 
     function tmodule.findusedunit(m: tmodule): tused_unit;
-    var
-      u : tused_unit;
+      var
+        u : tused_unit;
 
-    begin
-      result:=nil;
-      u:=tused_unit(used_units.First);
-      while assigned(u) do
-        begin
-        if u.u=m then
-          exit(u);
-        u:=tused_unit(u.next);
-        end;
-    end;
+      begin
+        result:=nil;
+        u:=tused_unit(used_units.First);
+        while assigned(u) do
+          begin
+          if u.u=m then
+            exit(u);
+          u:=tused_unit(u.next);
+          end;
+      end;
 
     procedure tmodule.updatemaps;
       var
@@ -1781,6 +1806,30 @@ implementation
          Result:='(<'+inttostr(ptrint(self))+'>)';
         // Possibly add some state ?
       end;
+
+    procedure tmodule.WriteUsedUnits(m: tmodule);
+    var
+      uu: tused_unit;
+    begin
+      if m=nil then exit;
+      writeln('tmodule.WriteUsedUnits ',m.modulename^,' ',m.statestr);
+      writeln('  interface uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+      writeln('  implementation uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if not uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+    end;
 
 
 initialization

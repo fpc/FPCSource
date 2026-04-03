@@ -292,8 +292,10 @@ Procedure AssignVideoBuf (OldCols, OldRows : Word);
 var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
     old_rowstart,new_rowstart:word;
     NewVideoBufSize : longint;
-
+    ooOldCols,ooOldRows:Word;
 begin
+  ooOldCols:=OldCols;
+  ooOldRows:=OldRows;
   if VideoInitialized or Assigned(CurrentVideoDriver.InitDriver) then
     begin
       NewVideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
@@ -308,11 +310,12 @@ begin
             OldRows:=ScreenHeight;
           old_rowstart:=0;
           new_rowstart:=0;
+          FillWord(NewOldVideoBuf^,NewVideoBufSize shr 1, 0);
           while oldrows>0 do
             begin
               move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
               move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-              inc(old_rowstart,OldCols);
+              inc(old_rowstart,ooOldCols);
               inc(new_rowstart,ScreenWidth);
               dec(OldRows);
             end;
@@ -325,8 +328,8 @@ begin
     end;
   if EnhancedVideoInitialized or Assigned(CurrentVideoDriver.InitEnhancedDriver) then
     begin
-      EnhancedVideoBufResize(EnhancedVideoBuf,OldCols,OldRows);
-      EnhancedVideoBufResize(OldEnhancedVideoBuf,OldCols,OldRows);
+      EnhancedVideoBufResize(EnhancedVideoBuf,ooOldCols,ooOldRows);
+      EnhancedVideoBufResize(OldEnhancedVideoBuf,ooOldCols,ooOldRows);
     end;
 end;
 
@@ -506,19 +509,23 @@ procedure Legacy2Enhanced;
 var
   I: Integer;
 begin
-  { todo: optimize this }
   for I := 0 to Length(EnhancedVideoBuf)-1 do
     begin
-      with EnhancedVideoBuf[I] do
-        begin
-          Attribute:=Byte(VideoBuf^[I] shr 8);
-          ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(VideoBuf^[I])));
-        end;
-      with OldEnhancedVideoBuf[I] do
-        begin
-          Attribute:=Byte(OldVideoBuf^[I] shr 8);
-          ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(OldVideoBuf^[I])));
-        end;
+      if VideoBuf^[I]<> OldVideoBuf^[i] then
+      begin
+        with EnhancedVideoBuf[I] do
+          begin
+            Attribute:=Byte(VideoBuf^[I] shr 8);
+            ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(VideoBuf^[I])));
+          end;
+        with OldEnhancedVideoBuf[I] do
+          begin
+            Attribute:=0; { Zero out to indicate that old cell is different from new }
+            ExtendedGraphemeCluster:=EnhancedVideoBuf[I].ExtendedGraphemeCluster;
+          end;
+      end else
+        with OldEnhancedVideoBuf[I] do
+         Attribute:=EnhancedVideoBuf[I].Attribute;  { Old and new cell will be equal }
     end;
 end;
 
@@ -568,6 +575,8 @@ begin
       else if VideoInitialized and Assigned(CurrentVideoDriver.InitEnhancedDriver) then
         Legacy2Enhanced;
       CurrentVideoDriver.UpdateScreen(Force);
+      if VideoInitialized and Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+        Move(VideoBuf^,OldVideoBuf^,VideoBufSize);
     end;
 end;
 

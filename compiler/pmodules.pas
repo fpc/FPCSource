@@ -1341,6 +1341,10 @@ type
            symtablestack.pop(curr.globalsymtable);
            end;
 
+        if (Errorcount=0) and tppumodule(curr).dependent_module_crc_mismatch then
+          { a dependent module needs recompile }
+          curr.state:=ms_compiling_waitimpl;
+
         { Can we continue compiling ? }
         result:=curr.state<>ms_compiling_waitimpl;
         if result then
@@ -1541,9 +1545,9 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        ag : boolean;
+        ag , wait_dep: boolean;
         finishstate : tfinishstate;
-        old_module: tmodule;
+        old_module, wait_m: tmodule;
       begin
          result:=true;
          { curr is now module }
@@ -1757,9 +1761,13 @@ type
         { compute CRC }
         if ErrorCount=0 then
           begin
-          if not module.are_all_used_units_compiled then
+          wait_m:=module.find_used_unit_compiling;
+          wait_dep:=tppumodule(module).dependent_module_has_our_crc;
+          if (wait_m<>nil) or wait_dep then
             begin
-              { Some used units are still compiling, so their CRCs can change.
+              { Some used units are still compiling, so their CRCs can change
+                OR some dependent module waits for checking this module's CRC
+                   (e.g. this module was recompiled and a ppu is waiting).
                 Compute the final CRC of this module and wait.
                 Needed for compiling circular dependent units. }
               {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
@@ -1829,10 +1837,13 @@ type
         free_localsymtables(module.localsymtable);
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (Errorcount>0) then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
-            status.skip_error:=true;
+            if not status.skip_error then
+              begin
+                Message1(unit_f_errors_in_unit,tostr(Errorcount));
+                status.skip_error:=true;
+              end;
             module_is_done(module);
             module.state := ms_moduleerror;
 {$ifdef DEBUG_NODE_XML}
@@ -2581,6 +2592,7 @@ type
            status.skip_error:=true;
          end;
 
+        curr.crc_final:=true;
         curr.state:=ms_compiled;
 
       end;

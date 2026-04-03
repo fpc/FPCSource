@@ -421,7 +421,7 @@ begin
           P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
           P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
           P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
-          P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
+          P.InstallFiles.Add('fp.ico', [win32, win64], '$(bininstalldir)');
         end;
 
         with P.Sources do

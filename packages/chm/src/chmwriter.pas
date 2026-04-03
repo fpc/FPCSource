@@ -559,7 +559,7 @@ begin
   for i := 0 to AWord.DocumentCount-1 do
     Inc(cnt, AWord.GetLogicalDocument(i).NumberOfIndexEntries);
           // was commented in original procedure, seems to list index entries per doc.
-            //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' h
+            //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount);
   pinteger(state)^:=cnt;
 end;
 

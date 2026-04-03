@@ -13,20 +13,28 @@ fpcdir=../..
 nortl=y
 
 [target]
-programs=dotest fptime fail testfail digest concat $(DBDIGEST) $(MSDOSPROG)
+programs=dotest fptime fail testfail digest concat $(DBDIGEST)
 programs_win32=prepup
 programs_win64=prepup
-programs_go32v2=prepup
+programs_go32v2=prepup $(DOSBOX_WRAPPER)
+programs_msdos=prepup $(EXITCODE_MSDOS) $(DOSBOX_WRAPPER)
 
 [clean]
-programs=dbdigest dbconfig dosbox/dosbox_wrapper
+programs=dbdigest dbconfig dosbox/dosbox_wrapper dosbox/exitcode
+files=dosbox/exitcode$(OEXT)
 
 [prerules]
 
 ifneq ($(findstring dosbox_wrapper,$(EMULATOR)),)
-  MSDOSPROG=dosbox/dosbox_wrapper
+  DOSBOX_WRAPPER=dosbox/dosbox_wrapper$(SRCEXEEXT)
+ifeq ($(TEST_OS_TARGET),msdos)
+  EXITCODE_MSDOS=dosbox/exitcode$(EXEEXT)
 else
-  MSDOSPROG=
+  EXITCODE_MSDOS=
+endif
+else
+  DOSBOX_WRAPPER=
+  EXITCODE_MSDOS=
 endif
 
 [rules]
@@ -46,6 +54,9 @@ digest$(SRCEXEEXT): digest.pp tsstring$(PPUEXT)
 dosbox/dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
 	$(COMPILER) -FE./dosbox $<
 
+dosbox/exitcode$(EXEEXT): dosbox/exitcode.pas
+	$(TEST_FPC) $(TEST_OPT) -FE./dosbox $<
+
 dotest$(SRCEXEEXT): dotest.pp bench$(PPUEXT) tsstring$(PPUEXT) redir$(PPUEXT) tsutils$(PPUEXT)
         $(COMPILER) $<
 
@@ -56,4 +67,4 @@ testfail$(SRCEXEEXT): testfail.pp redir$(PPUEXT)
         $(COMPILER) $<
 
 utilsdb:
-        $(MAKE) utils DBDIGEST="dbdigest dbconfig"
+	$(MAKE) utils DBDIGEST="dbdigest dbconfig"

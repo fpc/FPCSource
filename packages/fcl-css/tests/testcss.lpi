@@ -33,6 +33,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcCSSResolver"/>
       </Unit>
+      <Unit>
+        <Filename Value="tccssskipinvalid.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcCSSSkipInvalid"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

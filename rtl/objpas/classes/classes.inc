@@ -2326,9 +2326,17 @@ var
     OutLn(indent + 'end');
   end;
 
-begin
-  Version := GetBinaryVersion(Input);
+var
+  Signature: DWord;
 
+begin
+  Signature:=Input.ReadDWord;
+  if Signature = DWord(unaligned(FilerSignature1)) then
+    Version:=TBinaryObjectReader.TBOVersion.boVersion1
+  else if Signature = DWord(unaligned(FilerSignature)) then
+    Version:=TBinaryObjectReader.TBOVersion.boVersion0
+  else
+    raise EReadError.Create('Illegal stream image' {###SInvalidImage});
   ReadObject('');
 end;
 
@@ -2748,23 +2756,17 @@ var
     Output.WriteByte(0);        // Terminate property list
   end;
 
-begin
-  if IsBinary(Input, Version) then
-  begin
-    Input.Position := 0;
+const
+  signature: PAnsiChar = 'TPF0';
 
-    Output.CopyFrom(Input, Input.Size);
-  end
-  else
-  begin
-    Version:=TBinaryObjectReader.TBOVersion.boVersion0;
-    parser := TParser.Create(Input);
-    try
-      StartPos:=Output.Position;
-      ProcessObject(true);
-    finally
-      parser.Free;
-    end;
+begin
+  Version:=TBinaryObjectReader.TBOVersion.boVersion0;
+  parser := TParser.Create(Input);
+  try
+    StartPos:=Output.Position;
+    ProcessObject(true);
+  finally
+    parser.Free;
   end;
 end;
 
