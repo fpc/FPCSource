@@ -864,7 +864,7 @@ implementation
         begin
           { insert an ordinal -> non-ordinal (e.g. pointer) conversion, as you
             cannot have integer constants as pointer values in LLVM }
-          int_to_type(value,valuedef);
+          valuedef:=cgsize_orddef(def_cgsize(def));
           queue_typeconvn(valuedef,def);
           { and now emit the constant as an ordinal }
           def:=valuedef;
