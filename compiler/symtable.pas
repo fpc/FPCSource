@@ -3098,7 +3098,7 @@ implementation
               compiler.verbose.Message2(sym_h_duplicate_id_where,compiler.current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
               begin
-                filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
+                filename:=compiler.find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
                 if filename<>'' then
                   compiler.verbose.Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
                 else

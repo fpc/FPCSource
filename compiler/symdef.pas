@@ -2726,7 +2726,7 @@ implementation
          exit;
        if assigned(owner) then
          begin
-           tmod:=find_module_from_symtable(owner);
+           tmod:=compiler.find_module_from_symtable(owner);
             if assigned(tmod) and assigned(compiler.current_module) and (tmod<>compiler.current_module) then
               begin
                 compiler.verbose.comment(v_error,'Definition '+fullownerhierarchyname(false,true)+' from module '+tmod.mainsource+' registered with current module '+compiler.current_module.mainsource);
@@ -4962,7 +4962,7 @@ implementation
             for i:=0 to genericparas.count-1 do
               begin
                 sym:=tsym(genericparas[i]);
-                module:=find_module_from_symtable(sym.owner);
+                module:=compiler.find_module_from_symtable(sym.owner);
                 if not assigned(module) then
                   internalerror(2014121202);
                 if not (sym.typ in [constsym,symconst.typesym]) then
@@ -7101,7 +7101,7 @@ implementation
           begin
             if assigned(returndef.typesym) then
               begin
-                module:=find_module_from_symtable(returndef.typesym.owner);
+                module:=compiler.find_module_from_symtable(returndef.typesym.owner);
 		if module <> compiler.current_module then
                   s:=s+':'+module.realmodulename^+'.'
                 else

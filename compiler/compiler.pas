@@ -245,6 +245,7 @@ type
     function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
+    function find_module_from_symtable(st:tsymtable):tmodule;
 
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
@@ -454,6 +455,7 @@ type
     function get_module(moduleindex: longint): tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
+    function find_module_from_symtable(st:tsymtable):tmodule;
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
@@ -1016,6 +1018,11 @@ end;
 procedure TCompiler.addloadedunit(hp: tmodule);
 begin
   loaded_units.concat(hp);
+end;
+
+function TCompiler.find_module_from_symtable(st: tsymtable): tmodule;
+begin
+  result:=get_module(st.moduleid);
 end;
 
 { TCompilerHelper }
@@ -1733,6 +1740,11 @@ end;
 procedure TCompilerHelper.addloadedunit(hp: tmodule);
 begin
   TCompiler(Self).addloadedunit(hp);
+end;
+
+function TCompilerHelper.find_module_from_symtable(st: tsymtable): tmodule;
+begin
+  Result := TCompiler(Self).find_module_from_symtable(st);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -403,6 +403,8 @@ implementation
 
     procedure jvmaddtypeownerprefix(owner: tsymtable; var name: TSymStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         owningcontainer: tsymtable;
         tmpresult: TSymStr;
         module: tmodule;
@@ -416,7 +418,7 @@ implementation
           globalsymtable,
           staticsymtable:
             begin
-              module:=find_module_from_symtable(owningcontainer);
+              module:=compiler.find_module_from_symtable(owningcontainer);
               tmpresult:='';
               if assigned(module.namespace) then
                 tmpresult:=module.namespace^+'/';

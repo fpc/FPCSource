@@ -822,7 +822,7 @@ implementation
                     error:=true;
                     continue;
                   end;
-                module:=find_module_from_symtable(ttypesym(typesrsym).typedef.owner);
+                module:=compiler.find_module_from_symtable(ttypesym(typesrsym).typedef.owner);
                 if not assigned(module) then
                   internalerror(2016112803);
                 specializename:=specializename+'_$'+hexstr(module.moduleid,8)+'$$'+ttypesym(typesrsym).typedef.unique_id_str;
@@ -844,7 +844,7 @@ implementation
                 exit;
               end;
 
-            module:=find_module_from_symtable(ttypesym(typesrsym).owner);
+            module:=compiler.find_module_from_symtable(ttypesym(typesrsym).owner);
             if not assigned(module) then
               internalerror(2022102105);
 

@@ -768,7 +768,7 @@ implementation
           exit;
         if assigned(owner) then
           begin
-            tmod:=find_module_from_symtable(owner);
+            tmod:=compiler.find_module_from_symtable(owner);
             if assigned(tmod) and assigned(compiler.current_module) and (tmod<>compiler.current_module) then
               begin
                 compiler.verbose.comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+compiler.current_module.mainsource);

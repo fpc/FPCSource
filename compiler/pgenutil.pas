@@ -134,7 +134,7 @@ uses
         module : tmodule;
       begin
         if assigned(paramtype.owner) then
-          module:=find_module_from_symtable(paramtype.owner)
+          module:=compiler.find_module_from_symtable(paramtype.owner)
         else
           module:=compiler.current_module;
         if not assigned(module) then
@@ -318,7 +318,7 @@ uses
             not (df_generic in tt.defoptions) then
           exit;
 
-        hmodule:=find_module_from_symtable(tt.owner);
+        hmodule:=compiler.find_module_from_symtable(tt.owner);
         if not assigned(hmodule) then
           internalerror(2012092401);
 
@@ -620,7 +620,7 @@ uses
         if assigned(parsedtype) then
           begin
             paramlist.Add(parsedtype.typesym);
-            module:=find_module_from_symtable(parsedtype.owner);
+            module:=compiler.find_module_from_symtable(parsedtype.owner);
             if not assigned(module) then
               internalerror(2016112801);
             namepart:='_$'+hexstr(module.moduleid,8)+'$$'+parsedtype.unique_id_str;
@@ -1593,7 +1593,7 @@ uses
               internalerror(2022102101);
             if not (symowner.symtabletype in [globalsymtable,staticsymtable]) then
               internalerror(2022102102);
-            hmodule:=find_module_from_symtable(symowner);
+            hmodule:=compiler.find_module_from_symtable(symowner);
             if not assigned(hmodule) then
               internalerror(2022102103);
             found:=searchsym_in_module(hmodule,ugenname,context.sym,context.symtable);
@@ -1830,7 +1830,7 @@ uses
         hierarchy:=genericdef.ownerhierarchyname;
         if assigned(genericdef.owner) then
           begin
-            hmodule:=find_module_from_symtable(genericdef.owner);
+            hmodule:=compiler.find_module_from_symtable(genericdef.owner);
             if not assigned(hmodule) then
               internalerror(2022102801);
             if hierarchy<>'' then
@@ -2885,7 +2885,7 @@ uses
       if not assigned(genericdef.owner) then
         hmodule:=compiler.current_module
       else
-        hmodule:=find_module_from_symtable(genericdef.owner);
+        hmodule:=compiler.find_module_from_symtable(genericdef.owner);
       if hmodule=nil then
         internalerror(200705152);
       { collect all unit syms in the generic's unit as we need to establish
@@ -3012,7 +3012,7 @@ uses
         result:=true;
         hmodule:=nil;
         if assigned(def.genericdef) then
-          hmodule:=find_module_from_symtable(def.genericdef.owner)
+          hmodule:=compiler.find_module_from_symtable(def.genericdef.owner)
         else if not (df_internal in def.defoptions) then
           internalerror(201202041);
         for i:=0 to def.symtable.DefList.Count-1 do
@@ -3086,7 +3086,7 @@ uses
                     continue;
                   if not assigned(def.genericdef) then
                     internalerror(2015061903);
-                  hmodule:=find_module_from_symtable(def.genericdef.owner);
+                  hmodule:=compiler.find_module_from_symtable(def.genericdef.owner);
                   if hmodule=nil then
                     internalerror(2015061904);
                   { we need to check for a forward declaration only if the
@@ -3168,7 +3168,7 @@ uses
         st:=def.owner;
         while st.symtabletype in [localsymtable] do
           st:=st.defowner.owner;
-        hmodule:=find_module_from_symtable(st);
+        hmodule:=compiler.find_module_from_symtable(st);
         if tstoreddef(def).is_specialization and (hmodule=compiler.current_module) then
           compiler.current_module.pendingspecializations.add(def.typename,def);
       end;

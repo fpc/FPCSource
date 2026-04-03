@@ -1785,7 +1785,7 @@ type
                   found in the current module
                   we can use iscurrentunit because generic specializations does not
                   change current_unit variable }
-                hmodule:=find_module_from_symtable(srsym.Owner);
+                hmodule:=compiler.find_module_from_symtable(srsym.Owner);
                 if not Assigned(hmodule) then
                   internalerror(201001120);
                 if hmodule.moduleid=compiler.globals.current_filepos.moduleindex then

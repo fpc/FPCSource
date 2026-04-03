@@ -354,7 +354,6 @@ interface
 
 
     procedure set_current_module(p:tmodule);
-    function find_module_from_symtable(st:tsymtable):tmodule;
 
 
 implementation
@@ -373,13 +372,6 @@ implementation
 {*****************************************************************************
                              Global Functions
 *****************************************************************************}
-
-    function find_module_from_symtable(st:tsymtable):tmodule;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        result:=compiler.get_module(st.moduleid);
-      end;
 
     procedure set_current_module(p:tmodule);
       var
