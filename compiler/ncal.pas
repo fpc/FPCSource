@@ -1774,6 +1774,8 @@ implementation
 
 
     constructor tcallnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        para : tcallparanode;
       begin
         callinitblock:=tblocknode(ppuloadnode(ppufile));
         methodpointer:=ppuloadnode(ppufile);
@@ -1782,6 +1784,18 @@ implementation
         callcleanupblock:=tblocknode(ppuloadnode(ppufile));
         funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
+
+        if assigned(left) then
+          begin
+            { update callnode reference in parameter nodes }
+            para:=tcallparanode(left);
+            while assigned(para) do
+              begin
+                para.callnode:=self;
+                para:=tcallparanode(para.right);
+              end;
+          end;
+
         ppufile.getderef(symtableprocentryderef);
 { TODO: FIXME: No withsymtable support}
         symtableproc:=nil;
