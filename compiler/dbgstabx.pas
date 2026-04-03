@@ -367,13 +367,13 @@ implementation
                 begin
                   if curincludefileinfo.fileindex<>0 then
                     begin
-                      infile:=get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
+                      infile:=compiler.get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
                       list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name)+'"'),inclinsertpos);
                       curincludefileinfo.fileindex:=0;
                     end;
                   if currfileinfo.fileindex<>1 then
                     begin
-                      infile:=get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
+                      infile:=compiler.get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                       if assigned(infile) then
                         begin
                           list.insertbefore(Tai_stab.Create_str(stabx_bi,'"'+FixFileName(infile.name)+'"'),inclinsertpos);
@@ -439,7 +439,7 @@ implementation
       { close include file if still open }
       if curincludefileinfo.fileindex<>0 then
         begin
-          infile:=get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
+          infile:=compiler.get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
           list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name)+'"'),last);
           curincludefileinfo.fileindex:=0;
         end;
