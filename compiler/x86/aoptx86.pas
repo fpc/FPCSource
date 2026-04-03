@@ -5413,8 +5413,13 @@ unit aoptx86;
 {$ifndef x86_64} { This is handled during the code generation stage under x86_64 }
               end
             else if
-               { Need to check again in case we entered this block because aoc_MovAnd2Mov_3 was set }
+              { Need to check again in case we entered this block because aoc_MovAnd2Mov_3 was set }
               (getsupreg(taicpu(p).oper[1]^.reg) = RS_ECX) and
+              (
+                (taicpu(p).oper[0]^.typ <> top_reg) or
+                { Only EAX, ECX, EDX and EBX have 8-bit counterparts }
+                (getsupreg(taicpu(p).oper[0]^.reg) in [RS_EAX, RS_ECX, RS_EDX, RS_EBX])
+              ) and
               MatchInstruction(hp2, [A_SHL, A_SHR, A_SHLD, A_SHRD, A_SAR, A_ROR, A_ROL, A_RCR, A_RCL], []) and
               (taicpu(hp2).oper[0]^.typ = top_reg) { Will be %cl } and
               (
@@ -15185,7 +15190,7 @@ unit aoptx86;
 
               into
 
-              op     %reg1,%reg3
+              test    $x,(oper)
 
               if the second op accesses only the bits stored in reg1
             }
@@ -15280,28 +15285,51 @@ unit aoptx86;
 
                 if not RegUsed then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovxOp2Op 1',p);
-                    if taicpu(p).oper[0]^.typ=top_reg then
+{$ifndef x86_64}
+                    if (taicpu(hp1).opsize=S_B) and (taicpu(p).oper[0]^.typ=top_reg) and
+                      not (getsupreg(taicpu(p).oper[0]^.reg) in [RS_EAX, RS_ECX, RS_EDX, RS_EBX]) then
                       begin
-                        case taicpu(hp1).opsize of
-                          S_B:
-                            taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBL));
-                          S_W:
-                            taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBW));
-                          S_L:
-                            taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBD));
-                          else
-                            Internalerror(2020102301);
-                        end;
-                        AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+                        { Only EAX, ECX, EDX and EBX have 8-bit counterparts }
+                        if (taicpu(hp1).opcode=A_MOV) then
+                          begin
+                            { We can expand a MOV to Word-sized though }
+                            DebugMsg(SPeepholeOptimization + 'MovxOp2Op 1a (byte-to-word)',p);
+                            taicpu(hp1).opsize:=S_W;
+                            taicpu(hp1).oper[0]^.reg:=newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBW);
+                            setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBW);
+                            RemoveCurrentP(p);
+                            if AndTest then
+                              RemoveInstruction(hp2);
+                            result:=true;
+                            exit;
+                          end;
                       end
                     else
-                      taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
-                    RemoveCurrentP(p);
-                    if AndTest then
-                      RemoveInstruction(hp2);
-                    result:=true;
-                    exit;
+{$endif not x86_64}
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2Op 1',p);
+                        if taicpu(p).oper[0]^.typ=top_reg then
+                          begin
+                            case taicpu(hp1).opsize of
+                              S_B:
+                                taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBL));
+                              S_W:
+                                taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBW));
+                              S_L:
+                                taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBD));
+                              else
+                                Internalerror(2020102301);
+                            end;
+                            AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+                          end
+                        else
+                          taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+                        RemoveCurrentP(p);
+                        if AndTest then
+                          RemoveInstruction(hp2);
+                        result:=true;
+                        exit;
+                      end;
                   end;
               end
             else if (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) and
