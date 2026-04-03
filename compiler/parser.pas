@@ -221,7 +221,7 @@ implementation
          tcompiler(compiler).DefFile:=TDefFile.Create(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,compiler.target.info.defext),compiler.globals,compiler.target);
 
          { list of generated .o files, so the linker can remove them }
-         SmartLinkOFiles:=TCmdStrList.Create;
+         tcompiler(compiler).SmartLinkOFiles:=TCmdStrList.Create;
 
          { codegen }
          if compiler.verbose.paraprintnodetree<>0 then
@@ -358,8 +358,8 @@ implementation
          tcompiler(compiler).deffile := nil;
 
          { free list of .o files }
-         SmartLinkOFiles.Free;
-         SmartLinkOFiles := nil;
+         tcompiler(compiler).SmartLinkOFiles.Free;
+         tcompiler(compiler).SmartLinkOFiles := nil;
       end;
 
 

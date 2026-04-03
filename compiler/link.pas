@@ -987,12 +987,12 @@ Implementation
                 page_size:=16 div 2;
                 repeat
                   page_size:=page_size*2;
-                  nb_pages:=(total_size + (page_size-1)*SmartLinkOFiles.count) div page_size;
+                  nb_pages:=(total_size + (page_size-1)*compiler.SmartLinkOFiles.count) div page_size;
 		until nb_pages <= high(word);
                 result:=nb_pages;
               end
             else
-              result:=max(16,nextpowerof2(SmartLinkOFiles.count div 16, power));
+              result:=max(16,nextpowerof2(compiler.SmartLinkOFiles.count div 16, power));
           end;
 
       var
@@ -1041,7 +1041,7 @@ Implementation
               else { wlib case }
                 writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
                   maybequoted(compiler.current_module.staticlibfilename));
-              current := TCmdStrListItem(SmartLinkOFiles.First);
+              current := TCmdStrListItem(compiler.SmartLinkOFiles.First);
               while current <> nil do
                 begin
                   if (compiler.target.ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
@@ -1074,7 +1074,7 @@ Implementation
               end;
             { create AR commands }
             success := true;
-            current := TCmdStrListItem(SmartLinkOFiles.First);
+            current := TCmdStrListItem(compiler.SmartLinkOFiles.First);
             first := true;
             repeat
               if first then
@@ -1109,16 +1109,16 @@ Implementation
         if not(cs_asm_leave in compiler.globals.current_settings.globalswitches) then
          if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
           begin
-            while not SmartLinkOFiles.Empty do
-              DeleteFile(SmartLinkOFiles.GetFirst);
+            while not compiler.SmartLinkOFiles.Empty do
+              DeleteFile(compiler.SmartLinkOFiles.GetFirst);
             if scripted_ar then
               DeleteFile(scriptfile);
             RemoveDir(smartpath);
           end
          else
           begin
-            while not SmartLinkOFiles.Empty do
-              AsmRes.AddDeleteCommand(SmartLinkOFiles.GetFirst);
+            while not compiler.SmartLinkOFiles.Empty do
+              AsmRes.AddDeleteCommand(compiler.SmartLinkOFiles.GetFirst);
             if scripted_ar then
               AsmRes.AddDeleteCommand(scriptfile);
             AsmRes.AddDeleteDirCommand(smartpath);

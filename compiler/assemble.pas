@@ -339,7 +339,7 @@ Implementation
         SmartAsm:=smart;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
-        SmartLinkOFiles.Clear;
+        compiler.SmartLinkOFiles.Clear;
       end;
 
 
@@ -369,7 +369,7 @@ Implementation
         AsmFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.asmext);
         ObjFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext);
         { insert in container so it can be cleared after the linking }
-        SmartLinkOFiles.Insert(ObjFileName);
+        compiler.SmartLinkOFiles.Insert(ObjFileName);
       end;
 
 

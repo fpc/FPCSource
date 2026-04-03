@@ -224,6 +224,8 @@ type
     Fusedunits         : tlinkedlist; { Used units for this program }
     Floaded_units      : tlinkedlist; { All loaded units, excluding compiler.main_module }
     Funloaded_units    : tlinkedlist; { Units removed from compiler.loaded_units, to be freed }
+    FSmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
+                                        used to delete them after linking }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -287,6 +289,7 @@ type
     property unloaded_units: tlinkedlist read Funloaded_units write Funloaded_units;
   public
     all_modules: array of tmodule;   { modules by moduleid }
+    property SmartLinkOFiles: TCmdStrList read FSmartLinkOFiles write FSmartLinkOFiles;
   end;
 
   { TCompilerHelper }
@@ -324,6 +327,7 @@ type
     function GetProcDefUtil: TProcDefUtils; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
     function GetScanner: TScanner; inline;
+    function GetSmartLinkOFiles: TCmdStrList; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetSysSymList: tsyssymlist; inline;
     function GetTarget: TCompilerTarget; inline;
@@ -483,6 +487,7 @@ type
     property usedunits: tlinkedlist read Getusedunits;
     property loaded_units: tlinkedlist read Getloaded_units;
     property unloaded_units: tlinkedlist read Getunloaded_units;
+    property SmartLinkOFiles: TCmdStrList read GetSmartLinkOFiles;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1124,6 +1129,11 @@ end;
 function TCompilerHelper.GetScanner: TScanner; inline;
 begin
   Result := TCompiler(Self).Scanner;
+end;
+
+function TCompilerHelper.GetSmartLinkOFiles: TCmdStrList; inline;
+begin
+  Result := TCompiler(Self).SmartLinkOFiles;
 end;
 
 function TCompilerHelper.Getsymtablestack: TSymtablestack;

@@ -352,10 +352,6 @@ interface
         procedure WriteUsedUnits(m: tmodule);
       end;
 
-    var
-       SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
-                                          used to delete them after linking }
-
 
     procedure set_current_module(p:tmodule);
     function get_module(moduleindex : longint) : tmodule;
