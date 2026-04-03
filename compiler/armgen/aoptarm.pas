@@ -41,6 +41,8 @@ Type
   TARMAsmOptimizer = class(TAsmOptimizer)
     procedure DebugMsg(const s : string; p : tai);
 
+    function RegEndOfLife(reg: TRegister;p: taicpu): boolean; override;
+
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
     function RedundantMovProcess(var p: tai; var hp1: tai): boolean;
     function GetNextInstructionUsingReg(Current: tai; out Next: tai; const reg: TRegister): Boolean;
@@ -210,6 +212,51 @@ Implementation
       result := (oper.typ = top_const) and (oper.val = a);
     end;
 
+
+  function TARMAsmOptimizer.RegEndOfLife(reg: TRegister;p: taicpu): boolean;
+    var
+      i: Integer;
+      RegWritten: Boolean;
+    begin
+      Result:=assigned(FindRegDealloc(reg,tai(p.Next)));
+      if Result then
+        Exit;
+
+      RegWritten:=False;
+      for i:=0 to p.ops-1 do
+        begin
+          case taicpu(p).oper[i]^.typ of
+{$ifdef arm}
+            top_specialreg,
+{$endif arm}
+{$ifdef aarch64}
+            top_indexedreg,
+{$endif aarch64}
+            top_reg,
+            top_regset:
+              if RegInOp(reg,taicpu(p).oper[i]^) then
+                case taicpu(p).spilling_get_operation_type(i) of
+                  operand_read:
+                    { Do nothing };
+
+                  operand_write:
+                    RegWritten:=True;
+
+                  operand_readwrite:
+                    { The register is directly modified, so it isn't end-of-life }
+                    Exit;
+                end;
+
+            else
+              { If a register is modified by a reference via pre- or
+                post-indexing, its value gets overwritten anyway if it is
+                directly written to in another operator, i.e. if RegWritten is
+                set to True) };
+          end;
+        end;
+      Result:=RegWritten;
+    end;
+
 {$ifdef AARCH64}
   function TARMAsmOptimizer.USxtOp2Op(var p,hp1: tai; shiftmode: tshiftmode): Boolean;
     var
@@ -226,10 +273,10 @@ Implementation
          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))
         ) and
         RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-        { reg1 might not be modified in between }
+        { reg1 must not be modified in between }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
-          DebugMsg('Peephole '+gas_op2str[taicpu(p).opcode]+gas_op2str[taicpu(hp1).opcode]+'2'+gas_op2str[taicpu(hp1).opcode]+' done', p);
+          DebugMsg(SPeepholeOptimization+gas_op2str[taicpu(p).opcode]+gas_op2str[taicpu(hp1).opcode]+'2'+gas_op2str[taicpu(hp1).opcode]+' done', p);
           AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
           if MatchInstruction(hp1, [A_CMP,A_CMN], [C_None], [PF_None]) then
             opoffset:=0
