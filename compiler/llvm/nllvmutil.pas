@@ -248,7 +248,7 @@ implementation
                   current_asmdata.AsmLists[al_rotypedconsts].concat(globalfileloc);
                   if assigned(hpdecl.sym) then
                     begin
-                      sourcefile:=get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
+                      sourcefile:=compiler.get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
                       globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.line)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.column)));

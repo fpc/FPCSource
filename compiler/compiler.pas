@@ -49,7 +49,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,switches,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,wpo,scanner
+  assemble,link,dbgbase,import,export,tokens,wpo,scanner,finput
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }
@@ -243,6 +243,7 @@ type
     procedure DoneLinker;
 
     function get_module(moduleindex : longint) : tmodule;
+    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
 
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
@@ -450,6 +451,7 @@ type
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
     function get_module(moduleindex: longint): tmodule;
+    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
@@ -499,7 +501,6 @@ function Compile(const cmd:TCmdStr):longint;
 implementation
 
 uses
-  finput,
   fppu,
   aasmcpu,
   version
@@ -997,6 +998,17 @@ begin
     result:=nil
   else
     result:=all_modules[moduleindex];
+end;
+
+function TCompiler.get_source_file(moduleindex, fileindex: longint): tinputfile;
+var
+  hp : tmodule;
+begin
+  hp:=get_module(moduleindex);
+  if assigned(hp) then
+    get_source_file:=hp.sourcefiles.get_file(fileindex)
+  else
+    get_source_file:=nil;
 end;
 
 { TCompilerHelper }
@@ -1704,6 +1716,11 @@ end;
 function TCompilerHelper.get_module(moduleindex: longint): tmodule;
 begin
   Result := TCompiler(Self).get_module(moduleindex);
+end;
+
+function TCompilerHelper.get_source_file(moduleindex, fileindex: longint): tinputfile;
+begin
+  Result := TCompiler(Self).get_source_file(moduleindex,fileindex);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

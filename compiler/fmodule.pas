@@ -354,7 +354,6 @@ interface
 
 
     procedure set_current_module(p:tmodule);
-    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
     function find_module_from_symtable(st:tsymtable):tmodule;
 
@@ -419,20 +418,6 @@ implementation
             set_current_scanner(nil);
             current_debuginfo:=nil;
           end;
-      end;
-
-
-    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        hp : tmodule;
-      begin
-        hp:=compiler.get_module(moduleindex);
-        if assigned(hp) then
-          get_source_file:=hp.sourcefiles.get_file(fileindex)
-        else
-          get_source_file:=nil;
       end;
 
 

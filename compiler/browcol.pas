@@ -1872,7 +1872,7 @@ end;
         if assigned(sym) then
           begin
             DefPos:=tstoredsym(sym).FileInfo;
-            inputfile:=get_source_file(defpos.moduleindex,defpos.fileindex);
+            inputfile:=compiler.get_source_file(defpos.moduleindex,defpos.fileindex);
             if Assigned(inputfile) and (inputfile.name<>'') then
               begin
                 New(Reference, Init(ModuleNames^.Add(inputfile.name),
@@ -1885,7 +1885,7 @@ end;
             Ref:=TRefItem(tstoredsym(sym).RefList.First);
             while assigned(Ref) do
               begin
-                inputfile:=get_source_file(ref.refinfo.moduleindex,ref.refinfo.fileindex);
+                inputfile:=compiler.get_source_file(ref.refinfo.moduleindex,ref.refinfo.fileindex);
                 if Assigned(inputfile) and (inputfile.name<>'') then
                   begin
                     New(Reference, Init(ModuleNames^.Add(inputfile.name),
