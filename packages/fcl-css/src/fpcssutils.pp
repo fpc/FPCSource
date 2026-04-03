@@ -31,9 +31,9 @@ uses
 
 Type
 
-  { TClassNameVisitor }
+  { TCSSClassNameVisitor }
 
-  TClassNameVisitor = Class(TCSSTreeVisitor)
+  TCSSClassNameVisitor = Class(TCSSTreeVisitor)
   private
     FList: TStrings;
   public
@@ -60,14 +60,14 @@ Type
 
 implementation
 
-{ TClassNameVisitor }
+{ TCSSClassNameVisitor }
 
-constructor TClassNameVisitor.Create(aList: TStrings);
+constructor TCSSClassNameVisitor.Create(aList: TStrings);
 begin
   FList:=aList;
 end;
 
-procedure TClassNameVisitor.Visit(obj: TCSSElement);
+procedure TCSSClassNameVisitor.Visit(obj: TCSSElement);
 begin
   if Obj.CSSType=csstCLASSNAME then
     FList.Add(Obj.AsString);
@@ -126,10 +126,10 @@ end;
 procedure TCSSUtils.ExtractClassNames(const aElement: TCSSElement; aList: TStrings);
 
 Var
-  aVis : TClassNameVisitor;
+  aVis : TCSSClassNameVisitor;
 
 begin
-  aVis:=TClassNameVisitor.Create(aList);
+  aVis:=TCSSClassNameVisitor.Create(aList);
   try
     aElement.Iterate(aVis);
   finally
