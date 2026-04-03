@@ -94,15 +94,15 @@ resourcestring
 Type
   ECSSScanner = Class(ECSSException);
 
-  TLineReader = class
+  TCSSLineReader = class
   public
     function IsEOF: Boolean; virtual; abstract;
     function ReadLine: TCSSString; virtual; abstract;
   end;
 
-  { TStreamLineReader }
+  { TCSSStreamLineReader }
 
-  TStreamLineReader = class(TLineReader)
+  TCSSStreamLineReader = class(TCSSLineReader)
   private
     FStream : TStream;
     Buffer : Array[0..1024] of Byte;
@@ -115,7 +115,7 @@ Type
     function ReadLine: TCSSString; override;
   end;
 
-  TFileLineReader = class(TLineReader)
+  TCSSFileLineReader = class(TCSSLineReader)
   private
     FTextFile: Text;
     FileOpened: Boolean;
@@ -138,7 +138,7 @@ Type
     FPreviousToken: TCSSToken;
     FOnWarn: TCSSScannerWarnEvent;
     FOptions: TCSSScannerOptions;
-    FSourceFile: TLineReader;
+    FSourceFile: TCSSLineReader;
     FSourceFilename: TCSSString;
     FCurRow: Integer;
     FCurToken: TCSSToken;
@@ -170,7 +170,7 @@ Type
     procedure DoError(const Msg: TCSSString); overload;
     function DoFetchToken: TCSSToken; virtual;
   public
-    constructor Create(ALineReader: TLineReader);
+    constructor Create(ALineReader: TCSSLineReader);
     constructor Create(AStream : TStream);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: TCSSString);
@@ -179,7 +179,7 @@ Type
     Property ReturnComments : Boolean Index csoReturnComments Read GetOption Write SetOption;
     Property ReturnWhiteSpace : Boolean Index csoReturnWhiteSpace Read GetOption Write SetOption;
     Property Options : TCSSScannerOptions Read FOptions Write FOptions;
-    property SourceFile: TLineReader read FSourceFile;
+    property SourceFile: TCSSLineReader read FSourceFile;
     property CurFilename: TCSSString read FSourceFilename;
     property CurLine: TCSSString read FCurLine;
     property CurRow: Integer read FCurRow;
@@ -302,7 +302,7 @@ begin
   end;
 end;
 
-constructor TFileLineReader.Create(const AFilename: TCSSString);
+constructor TCSSFileLineReader.Create(const AFilename: TCSSString);
 begin
   inherited Create;
   Assign(FTextFile, AFilename);
@@ -310,24 +310,24 @@ begin
   FileOpened := true;
 end;
 
-destructor TFileLineReader.Destroy;
+destructor TCSSFileLineReader.Destroy;
 begin
   if FileOpened then
     Close(FTextFile);
   inherited Destroy;
 end;
 
-function TFileLineReader.IsEOF: Boolean;
+function TCSSFileLineReader.IsEOF: Boolean;
 begin
   Result := EOF(FTextFile);
 end;
 
-function TFileLineReader.ReadLine: TCSSString;
+function TCSSFileLineReader.ReadLine: TCSSString;
 begin
   ReadLn(FTextFile, Result);
 end;
 
-constructor TCSSScanner.Create(ALineReader: TLineReader);
+constructor TCSSScanner.Create(ALineReader: TCSSLineReader);
 begin
   inherited Create;
   FSourceFile := ALineReader;
@@ -337,7 +337,7 @@ constructor TCSSScanner.Create(AStream: TStream);
 begin
   FSourceStream:=AStream;
   FOwnSourceFile:=True;
-  Create(TStreamLineReader.Create(AStream));
+  Create(TCSSStreamLineReader.Create(AStream));
 end;
 
 destructor TCSSScanner.Destroy;
@@ -349,7 +349,7 @@ end;
 
 procedure TCSSScanner.OpenFile(const AFilename: TCSSString);
 begin
-  FSourceFile := TFileLineReader.Create(AFilename);
+  FSourceFile := TCSSFileLineReader.Create(AFilename);
   FSourceFilename := AFilename;
 end;
 
@@ -1071,16 +1071,16 @@ begin
   Result:=anOption in Options;
 end;
 
-{ TStreamLineReader }
+{ TCSSStreamLineReader }
 
-constructor TStreamLineReader.Create(AStream: TStream);
+constructor TCSSStreamLineReader.Create(AStream: TStream);
 begin
   FStream:=AStream;
   FBufPos:=0;
   FBufLen:=0;
 end;
 
-function TStreamLineReader.IsEOF: Boolean;
+function TCSSStreamLineReader.IsEOF: Boolean;
 begin
   Result:=(FBufPos>=FBufLen);
   If Result then
@@ -1090,7 +1090,7 @@ begin
     end;
 end;
 
-procedure TStreamLineReader.FillBuffer;
+procedure TCSSStreamLineReader.FillBuffer;
 
 begin
   FBufLen:=FStream.Read(Buffer,SizeOf(Buffer)-1);
@@ -1098,7 +1098,7 @@ begin
   FBufPos:=0;
 end;
 
-function TStreamLineReader.ReadLine: TCSSString;
+function TCSSStreamLineReader.ReadLine: TCSSString;
 
 Var
   FPos,OLen,Len: Integer;
