@@ -259,7 +259,7 @@ var
   procedure tglobalstate.restore;
 
     begin
-      set_current_module(old_current_module);
+      compiler.set_current_module(old_current_module);
 
       { restore scanner }
       compiler.globals.current_tokenpos:=oldtokenpos;

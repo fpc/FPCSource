@@ -2369,7 +2369,7 @@ var
 
     procedure tppumodule.restore_state;
       begin
-        set_current_module(self);
+        compiler.set_current_module(self);
         if stored_state<>nil then
           stored_state.restore;
       end;
@@ -2421,7 +2421,7 @@ var
       var
         was_interfaced_compiled: Boolean;
       begin
-        set_current_module(self);
+        compiler.set_current_module(self);
         check_sources_for_recompile;
 
         {$IFDEF DEBUG_PPU_CYCLES}
@@ -2535,12 +2535,12 @@ var
 
         loadedfrommodule:=from_module;
 
-        set_current_module(self);
+        compiler.set_current_module(self);
 
         if check_loadfrompackage then
         begin
           { No need to do anything, restore situation and exit. }
-          set_current_module(from_module);
+          compiler.set_current_module(from_module);
           {$IFDEF DEBUG_PPU_CYCLES}
           writeln('PPUALGO tppumodule.loadppu from package: ',modulename^,' (',statestr,') used by "',from_module.modulename^,'" (',from_module.statestr,')');
           {$ENDIF}
@@ -2573,7 +2573,7 @@ var
 
         Result:=continueloadppu;
 
-        set_current_module(from_module);
+        compiler.set_current_module(from_module);
       end;
 
     function tppumodule.get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
@@ -2624,7 +2624,7 @@ var
             {$ENDIF}
             store_state;
             { loading unfinished or reset, restore compiler.current_module }
-            set_current_module(old_module);
+            compiler.set_current_module(old_module);
             exit;
           end else if state<>ms_compile then
             internalerror(2026020510);
@@ -2645,7 +2645,7 @@ var
         FreeAndNil(stored_state);
 
         { we are back, restore compiler.current_module }
-        set_current_module(old_module);
+        compiler.set_current_module(old_module);
       end;
 
     function tppumodule.canreload(out firstwaiting: tmodule; ignore_do_reload: boolean): boolean;
@@ -2702,7 +2702,7 @@ var
         {$ENDIF}
         compiler.verbose.Message(unit_u_forced_reload);
         do_reload:=false;
-        set_current_module(self);
+        compiler.set_current_module(self);
         re_resolve;
       end;
 

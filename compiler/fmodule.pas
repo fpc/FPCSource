@@ -353,9 +353,6 @@ interface
       end;
 
 
-    procedure set_current_module(p:tmodule);
-
-
 implementation
 
     uses
@@ -368,48 +365,6 @@ implementation
     var
       memsymtable : TMemDebug;
 {$endif}
-
-{*****************************************************************************
-                             Global Functions
-*****************************************************************************}
-
-    procedure set_current_module(p:tmodule);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-
-      begin
-        { save the state of the scanner }
-        if assigned(current_scanner) then
-          current_scanner.tempcloseinputfile;
-        { set new module }
-        tcompiler(compiler).current_module:=p;
-        { restore previous module settings }
-        Fillchar(compiler.globals.current_filepos,sizeof(compiler.globals.current_filepos),0);
-        if assigned(compiler.current_module) then
-          begin
-            current_asmdata:=tasmdata(compiler.current_module.asmdata);
-            current_debuginfo:=tdebuginfo(compiler.current_module.debuginfo);
-            { restore scanner and file positions }
-            set_current_scanner(tscannerfile(compiler.current_module.scanner));
-            if assigned(current_scanner) then
-              begin
-                current_scanner.tempopeninputfile;
-                current_scanner.gettokenpos;
-                compiler.globals.parser_current_file:=current_scanner.inputfile.name;
-              end
-            else
-              begin
-                compiler.globals.current_filepos.moduleindex:=compiler.current_module.moduleid;
-                compiler.globals.parser_current_file:='';
-              end;
-          end
-        else
-          begin
-            current_asmdata:=nil;
-            set_current_scanner(nil);
-            current_debuginfo:=nil;
-          end;
-      end;
 
 
 {****************************************************************************

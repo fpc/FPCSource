@@ -153,7 +153,7 @@ end;
 procedure ttask.SaveState;
 begin
   if module.fromppu then exit;
-  set_current_module(module);
+  compiler.set_current_module(module);
   if State=Nil then
     State:=tglobalstate.Create(true,compiler)
   else
@@ -405,7 +405,7 @@ var
   t : ttask;
 
 begin
-  set_current_module(m);
+  compiler.set_current_module(m);
   t:=findtask(m,true);
   if Assigned(t.state) then
     t.RestoreState;

@@ -1231,7 +1231,7 @@ type
         finalize_procinfo:=nil;
         finishstate:=nil;
 
-        set_current_module(curr);
+        compiler.set_current_module(curr);
 
         { We get here only after used modules were loaded }
         connect_loaded_units(curr,curr.globalsymtable);
@@ -1303,7 +1303,7 @@ type
 
       begin
         result:=true;
-        set_current_module(curr);
+        compiler.set_current_module(curr);
 
         { update the symtable }
         connect_loaded_units(curr,nil);
@@ -1624,7 +1624,7 @@ type
          { curr is now module }
 
          old_module:=compiler.current_module;
-         set_current_module(module);
+         compiler.set_current_module(module);
 
          if not assigned(module.finishstate) then
            internalerror(2012091801);
@@ -1772,7 +1772,7 @@ type
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
-            set_current_module(old_module);
+            compiler.set_current_module(old_module);
             exit(false);
           end;
 
@@ -1847,11 +1847,11 @@ type
               tppumodule(module).getppucrc;
               module.crc_final:=true;
               module.state:=ms_compiled_waitcrc;
-              set_current_module(old_module);
+              compiler.set_current_module(old_module);
               exit(false);
             end;
           end;
-        set_current_module(old_module);
+        compiler.set_current_module(old_module);
 
         result:=finish_unit(module);
       end;
@@ -1877,7 +1877,7 @@ type
         result:=compiler.verbose.ErrorCount=0;
 
         old_module:=compiler.current_module;
-        set_current_module(module);
+        compiler.set_current_module(module);
 
         { Write out the ppufile after the object file has been created }
         store_interface_crc:=module.interface_crc;
@@ -1920,7 +1920,7 @@ type
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
-            set_current_module(old_module);
+            compiler.set_current_module(old_module);
             exit;
           end;
 
@@ -1981,7 +1981,7 @@ type
 
         module.state:=ms_compiled;
 
-        set_current_module(old_module);
+        compiler.set_current_module(old_module);
       end;
 
     function TModulesParser.proc_package(curr: tmodule) : boolean;
@@ -2683,7 +2683,7 @@ type
         init_procinfo:=nil;
         finalize_procinfo:=nil;
 
-        set_current_module(curr);
+        compiler.set_current_module(curr);
 
         { All units are read, now give them a number }
         curr.updatemaps;

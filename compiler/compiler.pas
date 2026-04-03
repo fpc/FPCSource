@@ -242,6 +242,7 @@ type
     procedure InitLinker;
     procedure DoneLinker;
 
+    procedure set_current_module(p:tmodule);
     function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
@@ -452,6 +453,7 @@ type
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
+    procedure set_current_module(p:tmodule);
     function get_module(moduleindex: longint): tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
@@ -994,6 +996,41 @@ end;
 procedure TCompiler.DoneLinker;
 begin
   FreeAndNil(FLinker);
+end;
+
+procedure TCompiler.set_current_module(p: tmodule);
+begin
+  { save the state of the scanner }
+  if assigned(current_scanner) then
+    current_scanner.tempcloseinputfile;
+  { set new module }
+  current_module:=p;
+  { restore previous module settings }
+  Fillchar(globals.current_filepos,sizeof(globals.current_filepos),0);
+  if assigned(current_module) then
+    begin
+      current_asmdata:=tasmdata(current_module.asmdata);
+      current_debuginfo:=tdebuginfo(current_module.debuginfo);
+      { restore scanner and file positions }
+      set_current_scanner(tscannerfile(current_module.scanner));
+      if assigned(current_scanner) then
+        begin
+          current_scanner.tempopeninputfile;
+          current_scanner.gettokenpos;
+          globals.parser_current_file:=current_scanner.inputfile.name;
+        end
+      else
+        begin
+          globals.current_filepos.moduleindex:=current_module.moduleid;
+          globals.parser_current_file:='';
+        end;
+    end
+  else
+    begin
+      current_asmdata:=nil;
+      set_current_scanner(nil);
+      current_debuginfo:=nil;
+    end;
 end;
 
 function TCompiler.get_module(moduleindex: longint): tmodule;
@@ -1725,6 +1762,11 @@ procedure TCompilerHelper.DefaultReplacements(var s: ansistring;
   substitute_env_variables: boolean);
 begin
   tcompiler(self).DefaultReplacements(s,substitute_env_variables);
+end;
+
+procedure TCompilerHelper.set_current_module(p: tmodule);
+begin
+  TCompiler(Self).set_current_module(p);
 end;
 
 function TCompilerHelper.get_module(moduleindex: longint): tmodule;

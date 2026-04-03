@@ -175,7 +175,7 @@ implementation
     procedure TParser.initparser;
       begin
          { Current compiled module/proc }
-         set_current_module(nil);
+         compiler.set_current_module(nil);
          current_asmdata:=nil;
          current_procinfo:=nil;
          current_structdef:=nil;
@@ -310,7 +310,7 @@ implementation
       begin
          { Reset current compiling info, so destroy routines can't
            reference the data that might already be destroyed }
-         set_current_module(nil);
+         compiler.set_current_module(nil);
          current_procinfo:=nil;
          current_asmdata:=nil;
          current_structdef:=nil;
@@ -537,7 +537,7 @@ implementation
          { Load current state from the init values }
          compiler.globals.current_settings.Assign(compiler.globals.init_settings);
 
-         set_current_module(module);
+         compiler.set_current_module(module);
          if not (module.state in [ms_compile]) then
            internalerror(200212281);
 

@@ -736,7 +736,7 @@ implementation
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=compiler.current_module;
-        set_current_module(nil);
+        compiler.set_current_module(nil);
         loadtype('byte',u8inttype);
         loadtype('shortint',s8inttype);
         loadtype('word',u16inttype);
@@ -844,7 +844,7 @@ implementation
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;
         set_default_ptr_types;
-        set_current_module(oldcurrentmodule);
+        compiler.set_current_module(oldcurrentmodule);
       end;
 
 
