@@ -354,7 +354,6 @@ interface
 
 
     procedure set_current_module(p:tmodule);
-    procedure addloadedunit(hp:tmodule);
     function find_module_from_symtable(st:tsymtable):tmodule;
 
 
@@ -418,14 +417,6 @@ implementation
             set_current_scanner(nil);
             current_debuginfo:=nil;
           end;
-      end;
-
-
-    procedure addloadedunit(hp:tmodule);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        compiler.loaded_units.concat(hp);
       end;
 
 

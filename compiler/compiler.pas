@@ -244,6 +244,7 @@ type
 
     function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
+    procedure addloadedunit(hp:tmodule);
 
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
@@ -452,6 +453,7 @@ type
 
     function get_module(moduleindex: longint): tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
+    procedure addloadedunit(hp:tmodule);
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
@@ -1009,6 +1011,11 @@ begin
     get_source_file:=hp.sourcefiles.get_file(fileindex)
   else
     get_source_file:=nil;
+end;
+
+procedure TCompiler.addloadedunit(hp: tmodule);
+begin
+  loaded_units.concat(hp);
 end;
 
 { TCompilerHelper }
@@ -1721,6 +1728,11 @@ end;
 function TCompilerHelper.get_source_file(moduleindex, fileindex: longint): tinputfile;
 begin
   Result := TCompiler(Self).get_source_file(moduleindex,fileindex);
+end;
+
+procedure TCompilerHelper.addloadedunit(hp: tmodule);
+begin
+  TCompiler(Self).addloadedunit(hp);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

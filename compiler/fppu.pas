@@ -2785,7 +2785,7 @@ var
             we create an entry and register the unit }
           compiler.verbose.Message1(unit_u_registering_new_unit,ups);
           hp:=tppumodule.create(callermodule,s,fn,true,compiler);
-          addloadedunit(hp);
+          compiler.addloadedunit(hp);
         end
         else if callermodule.in_interface then
         begin
