@@ -285,7 +285,9 @@ begin
 {$endif}
   toencoding:=iconvname;
   if not assigned(iconvctl) then
-    toencoding:=toencoding+TransLitName+#0;
+    toencoding:=toencoding+TransLitName+#0
+  else
+    toencoding:=toencoding+#0;
   iconvname:=iconvname+#0;
   iconv_wide2ansi:=iconv_open(PAnsiChar(@toencoding[1]),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,PAnsiChar(@iconvname[1]));
