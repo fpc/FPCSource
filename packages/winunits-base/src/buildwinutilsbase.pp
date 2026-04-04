@@ -37,7 +37,7 @@ uses
     imagehlp, wininet, uxtheme, dwmapi, multimon, htmlhelp, winutils,
     comserv, winspool, imm, imm_dyn, nb30, stdole2,
     eventsink, typelib, libkinect10, urlmon, winhttp,
-    shlwapi, httpapi;
+    shlwapi, httpapi, winmanutf8lfn;
 {$ENDIF FPC_DOTTEDUNITS}
 
 implementation
