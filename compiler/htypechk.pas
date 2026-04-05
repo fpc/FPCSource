@@ -1850,9 +1850,14 @@ implementation
                end;
              inlinen :
                begin
+                 { recurse so volatile(non-lvalue):=... gives a proper error instead of IE 200203272 }
+                 if tinlinenode(hp).inlinenumber in [in_unaligned_x,in_aligned_x,in_volatile_x] then
+                   begin
+                     hp:=tcallparanode(tinlinenode(hp).left).left;
+                     continue;
+                   end;
                  if ((valid_const in opts) and
-                     (tinlinenode(hp).inlinenumber in [in_typeof_x])) or
-                    (tinlinenode(hp).inlinenumber in [in_unaligned_x,in_aligned_x,in_volatile_x]) then
+                     (tinlinenode(hp).inlinenumber in [in_typeof_x])) then
                    result:=true
                  else
                    if report_errors then
