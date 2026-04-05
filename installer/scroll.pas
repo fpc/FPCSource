@@ -69,7 +69,7 @@ end;
 constructor TScrollBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds);
-  EventMask:=EventMask or evBroadcast;
+  EventMask:=EventMask or evBroadcast or evMouseWheel;
   HScrollBar:=AHScrollBar; VScrollBar:=AVScrollBar;
   InitBackground;
   if Assigned(Background) then Insert(Background);
@@ -84,6 +84,7 @@ begin
 end;
 
 procedure TScrollBox.HandleEvent(var Event: TEvent);
+var LinesScroll : Sw_Integer;
 begin
   if (Event.What=evBroadcast) and (Event.Command=cmCursorChanged) then
     TrackCursor;
@@ -92,6 +93,22 @@ begin
      Not ScrollFlag AND
      ((Event.InfoPtr = HScrollBar) OR                 { Our scrollbar? }
       (Event.InfoPtr = VScrollBar)) Then ScrollDraw;  { Redraw scroller }
+  If (Event.What = evMouseWheel) Then Begin           { Mouse wheel event }
+    if (Event.Wheel=mwDown) then                      { Mouse scroll down }
+      begin
+        LinesScroll:=1;
+        if Event.Double then LinesScroll:=LinesScroll+4;
+        ScrollTo(Delta.X, Delta.Y + LinesScroll);
+        ClearEvent(Event);                            { Event was handled }
+      end else
+    if (Event.Wheel=mwUp) then                        { Mouse scroll up }
+      begin
+        LinesScroll:=-1;
+        if Event.Double then LinesScroll:=LinesScroll-4;
+        ScrollTo(Delta.X, Delta.Y + LinesScroll);
+        ClearEvent(Event);                            { Event was handled }
+      end;
+  end;
   inherited HandleEvent(Event);
 end;
 
@@ -143,6 +160,8 @@ var DX,DY: sw_integer;
     PrevScrollFlag : boolean;
 begin
   Inc(DrawLock);
+  if Y>(Limit.Y-Size.Y) then Y:=Limit.Y-Size.Y;
+  if Y<0 then Y:=0;
   DX:=Delta.X-X;
   DY:=Delta.Y-Y;
   PrevScrollFlag:=ScrollFlag;
