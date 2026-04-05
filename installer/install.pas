@@ -1201,7 +1201,7 @@ program install;
           begin
             sbsbr.assign(sbr.b.x,sbr.a.y,sbr.b.x+1,sbr.b.y);
             sbsb:=CreateIdScrollBar (sbsbr.a.x, sbsbr.a.y,sbsbr.b.y-sbsbr.a.y,j,false);
-            sbsb^.SetRange(0,cfg.pack[j].packages-(sbsbr.b.y-sbsbr.a.y)-1);
+            sbsb^.SetRange(0,cfg.pack[j].packages-(sbsbr.b.y-sbsbr.a.y));
             sbsb^.SetStep(5,1);
             //New(sbsb, init(sbsbr));
           end
