@@ -188,7 +188,7 @@ unit cpupara;
               ((varspez=vs_const) and
                (
                  (calloption=pocall_mwpascal) or
-                 (compiler.target.info.system=system_aarch64_win64)
+                 (target.info.system=system_aarch64_win64)
                )) or
               (not is_hfa(def,hfabasedef) and
                (def.size>16));
@@ -564,7 +564,7 @@ unit cpupara;
                     all other platforms. }
                  if (paradef.size<4) and is_ordinal(paradef) then
                    begin
-                     if compiler.target.info.abi=abi_aarch64_darwin then
+                     if target.info.abi=abi_aarch64_darwin then
                        begin
                          if side=callerside then
                            begin
@@ -590,7 +590,7 @@ unit cpupara;
                    instructions loading consecutive registers from memory" ->
                    in case of big endian, values in not completely filled
                    registers must be shifted to the top bits }
-                 if (compiler.target.info.endian=endian_big) and
+                 if (target.info.endian=endian_big) and
                     not(paraloc^.size in [OS_64,OS_S64]) and
                     (paradef.typ in [setdef,recorddef,arraydef,objectdef]) then
                    paraloc^.shiftval:=-(8-tcgsize2size[paraloc^.size])*8;
@@ -613,7 +613,7 @@ unit cpupara;
                   { the current stack offset may not be properly aligned in
                     case we're on Darwin and have allocated a non-variadic argument
                     < 8 bytes previously }
-                  if compiler.target.info.abi=abi_aarch64_darwin then
+                  if target.info.abi=abi_aarch64_darwin then
                     begin
                       curstackoffset:=align(curstackoffset,paraloc^.def.alignment);
                       if firstparaloc then
@@ -623,7 +623,7 @@ unit cpupara;
                   { on Darwin, non-variadic arguments take up their actual size
                     on the stack; on other platforms, they take up a multiple of
                     8 bytes }
-                  if (compiler.target.info.abi=abi_aarch64_darwin) and
+                  if (target.info.abi=abi_aarch64_darwin) and
                      not isvariadic then
                     stackslotlen:=paralen
                   else
@@ -633,7 +633,7 @@ unit cpupara;
                     have to occupy the lowest significant bits of a register
                     containing that value which is then stored to memory ->
                     in case of big endian, skip the alignment bytes (if any) }
-                  if compiler.target.info.endian=endian_little then
+                  if target.info.endian=endian_little then
                     paraloc^.reference.offset:=curstackoffset
                   else
                     paraloc^.reference.offset:=curstackoffset+stackslotlen-paralen;
@@ -676,7 +676,7 @@ unit cpupara;
         if p.proccalloption in cstylearrayofconst then
           begin
             { on Darwin, we cannot use any registers for variadic parameters }
-            if compiler.target.info.abi=abi_aarch64_darwin then
+            if target.info.abi=abi_aarch64_darwin then
               begin
                 curintreg:=succ(RS_LAST_INT_PARAM_SUPREG);
                 curmmreg:=succ(RS_LAST_MM_PARAM_SUPREG);

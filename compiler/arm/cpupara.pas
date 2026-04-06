@@ -68,7 +68,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        if (compiler.target.info.system<>system_arm_ios) then
+        if (target.info.system<>system_arm_ios) then
           result:=VOLATILE_INTREGISTERS
         else
           result:=VOLATILE_INTREGISTERS_DARWIN;
@@ -146,7 +146,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if ((compiler.target.info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
+              if ((target.info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
                  (not isvariadic) then
                 getparaloc:=LOC_MMREGISTER
               else if (calloption in cdecl_pocalls) or
@@ -259,7 +259,7 @@ unit cpupara;
                 end;
               result:=def.size>4;
               if not result and
-                 (compiler.target.info.abi in [abi_default,abi_armeb]) then
+                 (target.info.abi in [abi_default,abi_armeb]) then
                 begin
                   { in case of the old ARM abi (APCS), a struct is returned in
                     a register only if it is simple. And what is a (non-)simple
@@ -511,7 +511,7 @@ unit cpupara;
                             internalerror(2005082901);
                         end;
                       { align registers for eabi }
-                      if (compiler.target.info.abi in [abi_eabi,abi_eabihf]) and
+                      if (target.info.abi in [abi_eabi,abi_eabihf]) and
                          firstparaloc and
                          (paradef.alignment=8) then
                         begin
@@ -639,7 +639,7 @@ unit cpupara;
                       else
                         begin
                           { align stack for eabi }
-                          if (compiler.target.info.abi in [abi_eabi,abi_eabihf]) and
+                          if (target.info.abi in [abi_eabi,abi_eabihf]) and
                              firstparaloc and
                              (paradef.alignment=8) then
                             begin
@@ -670,7 +670,7 @@ unit cpupara;
                              framepointer (which is followed only by the saved
                              return address -> framepointer + 4 = stack pointer
                              on entry }
-                           if not(compiler.target.info.system in systems_darwin) then
+                           if not(target.info.system in systems_darwin) then
                              inc(paraloc^.reference.offset,4)
                            else
                              inc(paraloc^.reference.offset,8);
@@ -790,7 +790,7 @@ unit cpupara;
                   OS_F64:
                     begin
                       paraloc^.loc:=LOC_REGISTER;
-                      if compiler.target.info.endian = endian_big then
+                      if target.info.endian = endian_big then
                         paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                       else
                         paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
@@ -798,7 +798,7 @@ unit cpupara;
                       paraloc^.def:=u32inttype;
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
-                      if compiler.target.info.endian = endian_big then
+                      if target.info.endian = endian_big then
                         paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                       else
                         paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
@@ -831,7 +831,7 @@ unit cpupara;
             if retcgsize in [OS_64,OS_S64] then
               begin
                 paraloc^.loc:=LOC_REGISTER;
-                if compiler.target.info.endian = endian_big then
+                if target.info.endian = endian_big then
                   paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                 else
                   paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
@@ -839,7 +839,7 @@ unit cpupara;
                 paraloc^.def:=u32inttype;
                 paraloc:=result.add_location;
                 paraloc^.loc:=LOC_REGISTER;
-                if compiler.target.info.endian = endian_big then
+                if target.info.endian = endian_big then
                   paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                 else
                   paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
@@ -876,7 +876,7 @@ unit cpupara;
     function tcpuparamanager.usemmpararegs(calloption: tproccalloption; variadic: boolean): boolean;
       begin
         result:=
-         ((compiler.target.info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
+         ((target.info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
           (not variadic);
       end;
 

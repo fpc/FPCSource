@@ -178,12 +178,12 @@ implementation
                 else
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.reference.offset:=compiler.target.info.first_parm_offset+cur_stack_offset;
+                    paraloc^.reference.offset:=target.info.first_parm_offset+cur_stack_offset;
                     if side=callerside then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    if (compiler.target.info.endian=endian_big) and
+                    if (target.info.endian=endian_big) and
                        (paralen<tcgsize2size[OS_INT]) and
                        (paradef.typ<>recorddef) then
                       inc(paraloc^.reference.offset,4-paralen);

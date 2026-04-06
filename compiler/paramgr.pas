@@ -29,6 +29,7 @@ unit paramgr;
 
     uses
        globtype,
+       systems,
        compilerbase,
        cpubase,cgbase,cgutils,
        parabase,
@@ -45,8 +46,10 @@ unit paramgr;
        tparamanager = class
          strict private
           FCompiler: TCompilerBase;
+          function GetTarget: TReadOnlyCompilerTarget; inline;
          strict protected
           property Compiler: TCompilerBase read FCompiler;
+          property Target: TReadOnlyCompilerTarget read GetTarget;
          public
           constructor Create(ACompiler: TCompilerBase);
 
@@ -200,12 +203,17 @@ unit paramgr;
 implementation
 
     uses
-       systems,
        globals,compiler,
        cgobj,tgobj,
        defutil,verbose,
        hlcgobj,
        paramgrhelper;
+
+    function tparamanager.GetTarget: TReadOnlyCompilerTarget; inline;
+      begin
+        Result:=Compiler.Target;
+      end;
+
 
     constructor tparamanager.Create(ACompiler: TCompilerBase);
       begin
@@ -650,7 +658,7 @@ implementation
     function tparamanager.use_fixed_stack: boolean;
       begin
 {$ifdef i386}
-        result := compiler.target.info.stackalign > 4;
+        result := target.info.stackalign > 4;
 {$else i386}
 {$ifdef cputargethasfixedstack}
         result := true;
@@ -733,7 +741,7 @@ implementation
           is always returned in param.
           Furthermore, any managed type is returned in param, in order to avoid
           its finalization on exception at callee side. }
-        if ((tf_safecall_exceptions in compiler.target.info.flags) and
+        if ((tf_safecall_exceptions in target.info.flags) and
             (pd.proccalloption=pocall_safecall)) or
            (
              (pd.proctypeoption=potype_constructor) and

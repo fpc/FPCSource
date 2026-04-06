@@ -85,8 +85,8 @@ unit cpupara;
       begin
         { d0 and d1 are considered volatile }
         Result:=VOLATILE_INTREGISTERS;
-        if (compiler.target.info.system in [system_m68k_palmos,system_m68k_macosclassic]) or
-           ((compiler.target.info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
+        if (target.info.system in [system_m68k_palmos,system_m68k_macosclassic]) or
+           ((target.info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_D2);
       end;
 
@@ -95,8 +95,8 @@ unit cpupara;
       begin
         { a0 and a1 are considered volatile }
         Result:=VOLATILE_ADDRESSREGISTERS;
-        if (compiler.target.info.system in [system_m68k_palmos]) or
-           ((compiler.target.info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
+        if (target.info.system in [system_m68k_palmos]) or
+           ((target.info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_A2);
       end;
 
@@ -129,7 +129,7 @@ unit cpupara;
 
     function tcpuparamanager.get_para_align(calloption : tproccalloption):byte;
       begin
-        result:=compiler.target.info.stackalign;
+        result:=target.info.stackalign;
       end;
 
     function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
@@ -277,7 +277,7 @@ unit cpupara;
                  now compiler and platform specific... (KB) }
 
                if (tabstractprocdef(p).proccalloption in [pocall_syscall,pocall_cdecl,pocall_cppdecl]) and
-                  (compiler.target.info.system in [system_m68k_palmos,system_m68k_linux]) and
+                  (target.info.system in [system_m68k_palmos,system_m68k_linux]) and
                   assigned(result.def) and
                   (result.def.typ in [stringdef,pointerdef,classrefdef,objectdef,
                                       procvardef,procdef,arraydef,formaldef]) then
@@ -414,7 +414,7 @@ unit cpupara;
                   switch to support these various ABIs when generating cdecl calls (KB) }
                 if ((vo_is_funcret in hp.varoptions) and
                     (tabstractprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                    (compiler.target.info.system in [system_m68k_linux]) and
+                    (target.info.system in [system_m68k_linux]) and
                     (tabstractprocdef(p).returndef.typ = recorddef)) then
                   begin
                     paraloc^.loc:=LOC_REGISTER;
@@ -430,12 +430,12 @@ unit cpupara;
                 else
                   begin
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                    inc(paraloc^.reference.offset,target.info.first_parm_offset);
                   end;
                 { M68K is a big-endian target }
                 if (paralen<paraalign) then
                   inc(paraloc^.reference.offset,paraalign-paralen);
-                inc(cur_stack_offset,align(paralen,compiler.target.info.stackalign));
+                inc(cur_stack_offset,align(paralen,target.info.stackalign));
                 paralen := 0;
 
                 firstparaloc:=false;
@@ -578,7 +578,7 @@ unit cpupara;
                               if (paralen<paraalign) then
                                 inc(paraloc^.reference.offset,paraalign-paralen);
                               if side=calleeside then
-                                inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                                inc(paraloc^.reference.offset,target.info.first_parm_offset);
                               cur_stack_offset:=align(cur_stack_offset+paralen,varalign);
                             end
                           else
@@ -622,7 +622,7 @@ unit cpupara;
                                   if (paralen<paraalign) then
                                     inc(paraloc^.reference.offset,paraalign-paralen);
                                   if side=calleeside then
-                                    inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                                    inc(paraloc^.reference.offset,target.info.first_parm_offset);
                                   cur_stack_offset:=align(cur_stack_offset+l,varalign);
                                   dec(paralen,l);
                                   firstparaloc:=false;
@@ -648,7 +648,7 @@ unit cpupara;
 
     function tcpuparamanager.parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;
       begin
-        case compiler.target.info.system of
+        case target.info.system of
           system_m68k_amiga:
             result:=parse_loc_string_to_register(p.exp_funcretloc, s);
           else

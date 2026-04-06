@@ -378,7 +378,7 @@ unit cpupara;
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                         inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                         inc(paraloc^.reference.offset,target.info.first_parm_offset);
                        end;
                    end;
                  firstparaloc:=false;

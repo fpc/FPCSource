@@ -144,7 +144,7 @@ unit cpupara;
                 variants are somethings very delphi/windows specific so do it like
                 windows/delphi (FK)
               }
-              if ((compiler.target.info.system=system_i386_win32) and
+              if ((target.info.system=system_i386_win32) and
                  (calloption in [pocall_stdcall,pocall_safecall]) and
                  (varspez=vs_const)) or
                  (calloption=pocall_register) then
@@ -157,7 +157,7 @@ unit cpupara;
           recorddef :
             begin
               { Delphi stdcall passes records on the stack for call by value }
-              if (compiler.target.info.system=system_i386_win32) and
+              if (target.info.system=system_i386_win32) and
                  (calloption=pocall_stdcall) and
                  (varspez=vs_value) then
                 result:=false
@@ -485,7 +485,7 @@ unit cpupara;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then
                   begin
-                    inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                    inc(paraloc^.reference.offset,target.info.first_parm_offset);
                     if is_proc_far(p) then
                       inc(paraloc^.reference.offset,2);
                   end;
@@ -532,7 +532,7 @@ unit cpupara;
                     if side=calleeside then
                       begin
                         if not(po_nostackframe in p.procoptions) then
-                          inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset)
+                          inc(paraloc^.reference.offset,target.info.first_parm_offset)
                         else
                           { return address }
                           inc(paraloc^.reference.offset,2);
@@ -681,7 +681,7 @@ unit cpupara;
                               paraloc^.reference.offset:=parasize;
                               if side=calleeside then
                                 begin
-                                  inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                                  inc(paraloc^.reference.offset,target.info.first_parm_offset);
                                   if is_proc_far(p) then
                                     inc(paraloc^.reference.offset,2);
                                 end;
@@ -726,7 +726,7 @@ unit cpupara;
                                   paraloc^.reference.offset:=parasize;
                                   if side=calleeside then
                                     begin
-                                      inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
+                                      inc(paraloc^.reference.offset,target.info.first_parm_offset);
                                       if is_proc_far(p) then
                                         inc(paraloc^.reference.offset,2);
                                     end;
