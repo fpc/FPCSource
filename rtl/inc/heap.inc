@@ -376,6 +376,9 @@ type
       procedure Remove(c: pFreeVarChunk);
       function Find(binIndex: SizeUint): pFreeVarChunk;
       function FindSmaller(binIndex: SizeUint): pFreeVarChunk;
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      procedure Consume(var prey: VarFreeMap);
+    {$endif FPC_HAS_FEATURE_THREADING}
     end;
 
     ThreadState = object
@@ -388,22 +391,20 @@ type
         Fixed arenas that become completely empty are moved to emptyArenas, completely full are... not present in any list. }
       partialArenas: array[0 .. FixedSizesCount - 1] of pFixedArena;
 
-      { Only to calculate preferable new fixed arena sizes...
-        (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
-      allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
-
       varOS: pVarOSChunk;
       varFree: VarFreeMap;
 
     {$ifdef FPC_HAS_FEATURE_THREADING}
       toFree: pFreeChunk; { Free requests from other threads, atomic. }
       { Note it’s better to physically place toFree on a separate or cold cache line to avoid false sharing.
-        Presently, it physically resides between the last bins of varFree
-        (not exactly and not always the coldest places, but the sheer size of varFree is what separates toFree from the hot, strictly thread-local fields above)
-        and ThreadState.prev... and/or potentially touches the next threadvar ;(.
+        Presently, it physically resides between the last bins of varFree and allocatedByFullArenas, both of which are not the hottest places.
         Ideally 64-byte padding can be added before and after toFree (assuming 64-byte cache lines), but this means using extra 128 bytes.
         Or even more ideally, “toFree: record ... end align 64” could be used, but threadvar alignment is presently broken anyway. }
     {$endif FPC_HAS_FEATURE_THREADING}
+
+      { Only to calculate preferable new fixed arena sizes...
+        (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
+      allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
 
     {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
       prev, next: pThreadState; { For gs.threads. }
@@ -692,6 +693,42 @@ type
       result := bins[binIndex * L0BinSize + BsrDWord(L0[binIndex] or 1)];
     end;
   end;
+
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  procedure HeapInc.VarFreeMap.Consume(var prey: VarFreeMap);
+  var
+    fvFirst, fvLast, fvNext: pFreeVarChunk;
+    l1Left, l0Left: uint32;
+    l0Index, binIndex: SizeUint;
+  begin
+    l1Left := prey.L1;
+    self.L1 := self.L1 or l1Left;
+    prey.L1 := 0;
+    while l1Left <> 0 do
+    begin
+      l0Index := BsfDWord(l1Left or 1 shl (L0BinSize - 1));
+      l0Left := prey.L0[l0Index];
+      self.L0[l0Index] := self.L0[l0Index] or l0Left;
+      prey.L0[l0Index] := 0;
+      repeat
+        binIndex := l0Index * L0BinSize + BsfDWord(l0Left or 1 shl (L0BinSize - 1));
+        { Prepend prey.bins[binIndex] to self.bins[binIndex]. }
+        fvFirst := prey.bins[binIndex];
+        prey.bins[binIndex] := nil;
+        fvLast := fvFirst;
+        while Assigned(fvLast^.next) do
+          fvLast := fvLast^.next;
+        fvNext := self.bins[binIndex];
+        fvLast^.next := fvNext;
+        if Assigned(fvNext) then
+          fvNext^.prev := fvLast;
+        self.bins[binIndex] := fvFirst;
+        l0Left := l0Left and (l0Left - 1);
+      until l0Left = 0;
+      l1Left := l1Left and (l1Left - 1); { Exclude the least significant set bit; same as dec(l1Left, uint32(1) shl l0Index). }
+    end;
+  end;
+{$endif FPC_HAS_FEATURE_THREADING}
 
 {$ifdef DEBUG_HEAP_INC}
   procedure HeapInc.ThreadState.Dump(var f: text);
@@ -1658,8 +1695,6 @@ type
   procedure HeapInc.ThreadState.Orphan;
   var
     vOs: pVarOSChunk;
-    p, vOsEnd: pointer;
-    h: uint32;
   begin
     if gs.lockUse <> 0 then
       EnterCriticalSection(HeapInc.gs.lock);
@@ -1682,21 +1717,10 @@ type
     while Assigned(vOs) do
     begin
       vOs^.threadState := nil;
-      p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
-      vOsEnd := pointer(vOs) + {$ifdef HAS_SYSOSFREE} vOs^.size {$else} pVarHugeHeader(vOs)[-1].size - VarHugeManager.HeaderSize {$endif} + VarHeaderSize;
-      repeat
-        h := pVarHeader(p - VarHeaderSize)^.ch.h;
-        { bail out if the next pointer points outside of the allocated OS chunk,
-          or if the size is zero, so the next block would point to ourselves }
-        if (h and VarSizeMask = 0) or (h and VarSizeMask > uint32(vOsEnd - p)) then
-          RunError(204);
-        if (h and UsedFlag = 0) and (h >= MinSearchableVarHeaderAndPayload) then
-          gs.varFree.Add(p, pFreeVarChunk(p)^.binIndex);
-        inc(p, h and VarSizeMask);
-      until h and LastFlag <> 0;
       vOs := vOs^.next;
     end;
     varOS := nil;
+    gs.varFree.Consume(varFree);
     if gs.lockUse <> 0 then
       LeaveCriticalSection(gs.lock);
 
@@ -2483,6 +2507,7 @@ begin
     DoneCriticalSection(HeapInc.gs.lock);
   end;
 {$else FPC_HAS_FEATURE_THREADING}
+  HeapInc.thisTs.FreeEmptyArenas;
   HeapInc.thisTs.ReplaceFreeOS1(nil);
 {$endif FPC_HAS_FEATURE_THREADING}
 end;
