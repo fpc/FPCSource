@@ -64,7 +64,7 @@ implementation
           begin
             if compiler.target.info.system in [system_i386_win32,system_x86_64_win64] then
               begin
-                paraloc1.init(compiler);
+                paraloc1.init(compiler.target);
                 pd:=search_system_proc('fpc_tls_add');
                 paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                 if not(vo_is_weak_external in gvs.varoptions) then

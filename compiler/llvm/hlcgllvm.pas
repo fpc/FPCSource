@@ -420,9 +420,9 @@ implementation
             pd:=search_system_proc('llvm_dbg_declare')
           else
             pd:=search_system_proc('llvm_dbg_addr');
-          varmetapara.init(compiler);
-          symmetadatapara.init(compiler);
-          exprmetapara.init(compiler);
+          varmetapara.init(compiler.target);
+          symmetadatapara.init(compiler.target);
+          exprmetapara.init(compiler.target);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,varmetapara);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,symmetadatapara);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,exprmetapara);
@@ -1286,11 +1286,11 @@ implementation
           exit;
         end;
       pd:=search_system_proc('llvm_memcpy64_indivalign');
-      sourcepara.init(compiler);
-      destpara.init(compiler);
-      sizepara.init(compiler);
-      alignpara.init(compiler);
-      volatilepara.init(compiler);
+      sourcepara.init(compiler.target);
+      destpara.init(compiler.target);
+      sizepara.init(compiler.target);
+      alignpara.init(compiler.target);
+      volatilepara.init(compiler.target);
       paramanager.getcgtempparaloc(list,pd,1,destpara);
       paramanager.getcgtempparaloc(list,pd,2,sourcepara);
       paramanager.getcgtempparaloc(list,pd,3,sizepara);
@@ -1402,7 +1402,7 @@ implementation
              begin
                { store back an int64 rather than an extended }
                pd:=search_system_proc('fpc_round_real');
-               roundpara.init(compiler);
+               roundpara.init(compiler.target);
                paramanager.getcgtempparaloc(list,pd,1,roundpara);
                a_load_reg_cgpara(list,fromsize,reg,roundpara);
                respara:=g_call_system_proc(list,pd,[@roundpara],nil);
@@ -1456,10 +1456,10 @@ implementation
       tmploc: tlocation;
       pd: tprocdef;
     begin
-      frompara.init(compiler);
+      frompara.init(compiler.target);
       if roundingmode then
-        roundpara.init(compiler);
-      exceptpara.init(compiler);
+        roundpara.init(compiler.target);
+      exceptpara.init(compiler.target);
       pd:=search_system_proc(intrinsic);
 
       paramanager.getcgtempparaloc(list,pd,1,frompara);

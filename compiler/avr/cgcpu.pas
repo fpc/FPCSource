@@ -2322,8 +2322,8 @@ unit cgcpu;
                   name:=name+'_checkoverflow';
 
                 pd:=search_system_proc(name);
-                paraloc1.init(compiler);
-                paraloc2.init(compiler);
+                paraloc1.init(compiler.target);
+                paraloc2.init(compiler.target);
                 paramanager.getcgtempparaloc(list,pd,1,paraloc1);
                 paramanager.getcgtempparaloc(list,pd,2,paraloc2);
                 a_load_reg_cgpara(list,OS_8,src1,paraloc2);
@@ -2419,8 +2419,8 @@ unit cgcpu;
                   name:=name+'_checkoverflow';
 
                 pd:=search_system_proc(name);
-                paraloc1.init(compiler);
-                paraloc2.init(compiler);
+                paraloc1.init(compiler.target);
+                paraloc2.init(compiler.target);
                 paramanager.getcgtempparaloc(list,pd,1,paraloc1);
                 paramanager.getcgtempparaloc(list,pd,2,paraloc2);
                 a_load_reg_cgpara(list,OS_16,src1,paraloc2);

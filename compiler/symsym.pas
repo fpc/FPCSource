@@ -2504,8 +2504,8 @@ implementation
             not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
          paranr:=nr;
-         paraloc[calleeside].init(compiler);
-         paraloc[callerside].init(compiler);
+         paraloc[calleeside].init(compiler.target);
+         paraloc[callerside].init(compiler.target);
       end;
 
 
@@ -2534,8 +2534,8 @@ implementation
          { read usage info }
          refs:=ppufile.getbyte;
 
-         paraloc[calleeside].init(compiler);
-         paraloc[callerside].init(compiler);
+         paraloc[calleeside].init(compiler.target);
+         paraloc[callerside].init(compiler.target);
          if vo_has_explicit_paraloc in varoptions then
            paraloc[callerside].ppuload(ppufile);
 

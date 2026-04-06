@@ -474,7 +474,7 @@ implementation
       var
         paraloc: pcgparalocation;
       begin
-        result.init(compiler);
+        result.init(compiler.target);
         result.def:=ossinttype;
         result.intsize:=result.def.size;
         result.size:=def_cgsize(result.def);
@@ -688,7 +688,7 @@ implementation
         paraloc : pcgparalocation;
       begin
         result:=true;
-        retloc.init(compiler);
+        retloc.init(compiler.target);
         if not assigned(forcetempdef) then
           retloc.def:=p.returndef
         else

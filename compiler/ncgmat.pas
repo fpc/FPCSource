@@ -456,7 +456,7 @@ implementation
                     begin
                       current_asmdata.getjumplabel(hl);
                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
-                      paraloc1.init(compiler);
+                      paraloc1.init(compiler.target);
                       pd:=search_system_proc('fpc_handleerror');
                       paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);

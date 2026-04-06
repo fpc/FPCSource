@@ -306,7 +306,7 @@ implementation
                (sym.typ<>procsym) then
               internalerror(2012010601);
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
-            paraloc1.init(compiler);
+            paraloc1.init(compiler.target);
             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
             hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -345,7 +345,7 @@ implementation
          secondpass(left);
          if compiler.verbose.codegenerror then
            exit;
-         paraloc1.init(compiler);
+         paraloc1.init(compiler.target);
          { several object types must be dereferenced implicitly }
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
@@ -772,8 +772,8 @@ implementation
            typecasted from an array }
          if (ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions) then
            exit;
-         paraloc1.init(compiler);
-         paraloc2.init(compiler);
+         paraloc1.init(compiler.target);
+         paraloc2.init(compiler.target);
          if is_dynamic_array(left.resultdef) then
             begin
                pd:=search_system_proc('fpc_dynarray_rangecheck');
@@ -807,8 +807,8 @@ implementation
         helpername: TIDString;
         pd: tprocdef;
       begin
-        paraloc1.init(compiler);
-        paraloc2.init(compiler);
+        paraloc1.init(compiler.target);
+        paraloc2.init(compiler.target);
         case tstringdef(left.resultdef).stringtype of
           { it's the same for ansi- and wide strings }
           st_unicodestring,
@@ -873,8 +873,8 @@ implementation
          i : Integer;
          {$endif}
       begin
-         paraloc1.init(compiler);
-         paraloc2.init(compiler);
+         paraloc1.init(compiler.target);
+         paraloc2.init(compiler.target);
          mulsize:=get_mul_size;
          if not is_packed_array(left.resultdef) then
            bytemulsize:=mulsize

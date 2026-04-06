@@ -167,7 +167,7 @@ implementation
         indirect: boolean;
         otherunit: boolean;
       begin
-        paraloc1.init(compiler);
+        paraloc1.init(compiler.target);
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
@@ -251,7 +251,7 @@ implementation
         indirect: boolean;
         otherunit: boolean;
       begin
-        paraloc1.init(compiler);
+        paraloc1.init(compiler.target);
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
@@ -334,7 +334,7 @@ implementation
         indirect: boolean;
         otherunit: boolean;
       begin
-        paraloc1.init(compiler);
+        paraloc1.init(compiler.target);
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and

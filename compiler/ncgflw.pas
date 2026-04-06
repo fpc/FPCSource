@@ -883,7 +883,7 @@ implementation
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
         pd:=search_system_proc('fpc_safecallhandler');
-        cgpara.init(compiler);
+        cgpara.init(compiler.target);
         paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin

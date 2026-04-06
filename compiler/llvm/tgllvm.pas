@@ -159,8 +159,8 @@ implementation
            not is_managed_type(temp^.def) then
           begin
             temp_to_ref(temp,ref);
-            sizepara.init(compiler);
-            ptrpara.init(compiler);
+            sizepara.init(compiler.target);
+            ptrpara.init(compiler.target);
             pd:=search_system_proc(procname);
             paramanager.getcgtempparaloc(list,pd,1,sizepara);
             paramanager.getcgtempparaloc(list,pd,2,ptrpara);

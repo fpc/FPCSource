@@ -2745,9 +2745,9 @@ implementation
         pd : tprocdef;
       begin
         pd:=search_system_proc('MOVE');
-        paraloc1.init(compiler);
-        paraloc2.init(compiler);
-        paraloc3.init(compiler);
+        paraloc1.init(compiler.target);
+        paraloc2.init(compiler.target);
+        paraloc3.init(compiler.target);
         paramanager.getcgtempparaloc(list,pd,1,paraloc1);
         paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         paramanager.getcgtempparaloc(list,pd,3,paraloc3);
@@ -3603,8 +3603,8 @@ implementation
       var
         tmplochi,tmploclo: tcgpara;
       begin
-        tmploclo.init(compiler);
-        tmplochi.init(compiler);
+        tmploclo.init(compiler.target);
+        tmplochi.init(compiler.target);
         splitparaloc128(paraloc,tmploclo,tmplochi);
         cg.a_load_reg_cgpara(list,OS_64,reg.reghi,tmplochi);
         cg.a_load_reg_cgpara(list,OS_64,reg.reglo,tmploclo);
@@ -3618,8 +3618,8 @@ implementation
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
       begin
-        tmploclo.init(compiler);
-        tmplochi.init(compiler);
+        tmploclo.init(compiler.target);
+        tmplochi.init(compiler.target);
         splitparaloc128(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;

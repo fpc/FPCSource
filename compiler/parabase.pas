@@ -25,7 +25,7 @@ unit parabase;
   interface
 
     uses
-       cclasses,globtype,compilerbase,
+       cclasses,globtype,systems,
 {$ifdef llvm}
        aasmbase,
 {$endif}
@@ -105,9 +105,9 @@ unit parabase;
 
        TCGPara = object
         private
-          FCompiler: TCompilerBase;
+          FTarget: TReadOnlyCompilerTarget;
         protected
-          property Compiler: TCompilerBase read FCompiler;
+          property Target: TReadOnlyCompilerTarget read FTarget;
         public
           Def       : tdef; { Type of the parameter }
           Location  : PCGParalocation;
@@ -116,7 +116,7 @@ unit parabase;
           Alignment : ShortInt; { in case of LLVM, a negative alignment mean: force write the alignment }
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
-          constructor init(acompiler: TCompilerBase);
+          constructor init(ATarget: TReadOnlyCompilerTarget);
           destructor  done;
           procedure   reset;
           procedure   resetiftemp; { reset if Temporary }
@@ -168,7 +168,7 @@ unit parabase;
 implementation
 
     uses
-      systems,verbose,compiler,
+      verbose,
       symsym,defutil;
 
 
@@ -176,9 +176,9 @@ implementation
                                 TCGPara
 ****************************************************************************}
 
-    constructor tcgpara.init(acompiler: TCompilerBase);
+    constructor tcgpara.init(ATarget: TReadOnlyCompilerTarget);
       begin
-        FCompiler:=acompiler;
+        FTarget:=ATarget;
         alignment:=0;
         size:=OS_NO;
         intsize:=0;
@@ -220,7 +220,7 @@ implementation
       var
         srcloc,hlocation : pcgparalocation;
       begin
-        result.init(compiler);
+        result.init(target);
         srcloc:=location;
         while assigned(srcloc) do
           begin
@@ -285,7 +285,7 @@ implementation
                     internalerror(200408206);
                   if (location^.next^.loc<>LOC_REGISTER) then
                     internalerror(200408207);
-                  if (compiler.target.info.endian = ENDIAN_BIG) then
+                  if (target.info.endian = ENDIAN_BIG) then
                     begin
                       newloc.register64.reghi:=location^.register;
                       newloc.register64.reglo:=location^.next^.register;
