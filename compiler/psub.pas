@@ -197,6 +197,7 @@ implementation
        optconstprop,
        optdeadstore,
        optloadmodifystore,
+       optcall,
        optutils
 {$if defined(arm) or defined(m68k)}
        ,cpuinfo
@@ -1215,8 +1216,12 @@ implementation
       var
         i : integer;
         UserCode : TNode;
+        updated,
         RedoDFA : boolean;
       begin
+       { inlining is a heuristics, so we do this very early }
+       do_optinline(code,updated);
+
        { do this before adding the entry code else the tail recursion recognition won't work,
          if this causes troubles, it must be if'ed
        }
@@ -2047,6 +2052,7 @@ implementation
         { Print out nodes as they appear after the first pass }
         XMLPrintProc(True);
 {$endif DEBUG_NODE_XML}
+
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);

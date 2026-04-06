@@ -1180,6 +1180,9 @@ implementation
          not docheck then
         begin
           inherited a_op_reg_reg_reg_checkoverflow(list,op,size,src1,src2,dst,false,ovloc);
+          location_reset(ovloc,LOC_REGISTER,OS_8);
+          ovloc.register:=getintregister(list,llvmbool1type);
+          a_load_const_reg(list,llvmbool1type,0,ovloc.register);
           exit;
         end;
       { extend values to twice their original width (one bit extra is enough,

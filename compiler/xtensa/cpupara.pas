@@ -239,6 +239,16 @@ unit cpupara;
           end
         else
           begin
+            if (result.def.size = 0) then
+              if (result.def.typ = recorddef) then
+                begin
+                  paraloc^.size:=OS_NO;
+                  paraloc^.def:=result.def;
+                  paraloc^.loc := LOC_VOID;
+                  exit;
+                end
+              else
+                internalerror(200506052);
             paraloc^.loc:=LOC_REGISTER;
             if side=callerside then
               case target.info.abi of

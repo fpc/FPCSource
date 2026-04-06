@@ -698,6 +698,16 @@ implementation
                     hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
                   location_free(current_asmdata.CurrAsmList,location);
                 end;
+              LOC_MMREGISTER :
+                begin
+                  hlcg.a_loadmm_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location,nil);
+                  location_free(current_asmdata.CurrAsmList,location);
+                end;
+              LOC_FPUREGISTER:
+                begin
+                  hlcg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
+                  location_free(current_asmdata.CurrAsmList,location);
+                end;
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
@@ -705,6 +715,9 @@ implementation
                       hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
                       hlcg.g_concatcopy(current_asmdata.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
+                    LOC_CMMREGISTER,
+                    LOC_MMREGISTER:
+                      hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,resultdef,resultdef,funcretnode.location.register,location.reference,nil);
                     else
                       internalerror(200802121);
                   end;

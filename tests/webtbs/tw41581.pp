@@ -1,5 +1,5 @@
 {$mode objfpc}
-program project1;
+program tw41581;
 uses
   Math;
 
@@ -12,4 +12,5 @@ begin
   writeln(Calc);
   if (Calc>0.0100001) or (Calc<0.0099999) then
     halt(1);
+  writeln('ok');
 end.

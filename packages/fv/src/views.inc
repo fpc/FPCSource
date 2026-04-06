@@ -2594,9 +2594,12 @@ BEGIN
    End Else Begin
      SetBounds(Bounds);                               { Set new bounds }
      GetExtent(Clip);                                 { Get new clip extents }
+     LockScreenUpdate;                                { Don't update the screen yet }
      Lock;                                            { Lock drawing }
      ForEach(TCallbackProcParam(@DoCalcChange));      { Change each view }
      UnLock;                                          { Unlock drawing }
+     UnLockScreenUpdate;
+     DrawScreenBuf(false);
    End;
 END;
 
@@ -4724,7 +4727,12 @@ var
     if Mode and dmLimitHiX <> 0 then P.X := Min(P.X, Limits.B.X - S.X);
     if Mode and dmLimitHiY <> 0 then P.Y := Min(P.Y, Limits.B.Y - S.Y);
     R.Assign(P.X, P.Y, P.X + S.X, P.Y + S.Y);
+    LockScreenUpdate; { don't update the screen yet }
+    if Owner<>nil then Owner^.Lock;
     Locate(R);
+    if Owner<>nil then Owner^.UnLock;
+    UnLockScreenUpdate;
+    DrawScreenBuf(false);
   end;
 
   procedure Change(DX, DY: Sw_Integer);

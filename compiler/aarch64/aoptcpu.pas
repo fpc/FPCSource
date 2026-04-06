@@ -166,7 +166,8 @@ Implementation
 
   function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
     var
-      p: taicpu;
+      p: taicpu absolute hp; { Implicit typecast }
+      i: integer;
     begin
       Result := false;
       if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
@@ -179,25 +180,44 @@ Implementation
           LDR/STR with post/pre-indexed operations do not need special treatment
           because post-/preindexed does not mean that a register
           is loaded with a new value, it is only modified }
-        A_STR, A_CMP, A_CMN, A_TST, A_B, A_BL, A_MSR, A_FCMP:
+        A_STR, A_STP, A_CMP, A_CMN, A_TST, A_B, A_BL, A_MSR, A_FCMP:
           exit;
         else
           ;
       end;
 
-      if p.ops=0 then
-        exit;
+      for i:=0 to p.ops-1 do
+        begin
+          case p.spilling_get_operation_type(i) of
+            operand_read,
+            operand_readwrite:
+              if RegInOp(reg,p.oper[i]^) then
+                { Depends on register's previous value }
+                exit;
 
-      case p.oper[0]^.typ of
-        top_reg:
-          Result := SuperRegistersEqual(p.oper[0]^.reg,reg);
-        top_ref:
-          Result :=
-            (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-            (taicpu(p).oper[0]^.ref^.base = reg);
-        else
-          ;
-      end;
+            operand_write:
+              case p.oper[i]^.typ of
+                top_reg,
+                top_indexedreg:
+                  if SuperRegistersEqual(p.oper[i]^.reg,reg) then
+                    Result:=True;
+                top_regset:
+                  if RegInOp(reg,p.oper[i]^) then
+                    Result:=True;
+                top_ref:
+                  { With a reference, if the register is pre- or post-indexed,
+                    it's a modified value, not a new value }
+                  if (taicpu(p).oper[i]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+                    (taicpu(p).oper[i]^.ref^.base=reg) then
+                    begin
+                      Result:=False;
+                      Exit;
+                    end;
+                else
+                  ;
+              end;
+          end;
+        end;
     end;
 
 

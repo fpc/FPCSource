@@ -355,7 +355,7 @@ Unit AoptObj;
 
         { returns true if reg reaches it's end of life at p, this means it is either
           reloaded with a new value or it is deallocated afterwards }
-        function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
+        function RegEndOfLife(reg: TRegister;p: taicpu): boolean; virtual;
 
         { Returns the next ait_tempalloc object with allocation=false
           for Offset which is found in the block of Tai's starting with StartPai

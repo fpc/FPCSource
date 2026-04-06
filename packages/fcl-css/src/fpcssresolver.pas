@@ -1014,7 +1014,7 @@ begin
   begin
     aSelector:=aRule.Selectors[i];
     Specificity:=SelectorMatches(aSelector,FNode,false,aRule);
-    writeln('TCSSResolver.ComputeRule ',i,' ',Fnode.GetCSSID,' ',aSelector.ClassName,' ',Specificity);
+    //writeln('TCSSResolver.ComputeRule ',i,' ',Fnode.GetCSSID,' ',aSelector.ClassName,' ',Specificity);
     if Specificity>BestSpecificity then
       BestSpecificity:=Specificity;
   end;
