@@ -696,8 +696,12 @@ implementation
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
+                    LOC_CREGISTER,
                     LOC_REGISTER:
                       hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
+                    LOC_CFPUREGISTER,
+                    LOC_FPUREGISTER:
+                      hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
                       hlcg.g_concatcopy(current_asmdata.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
                     LOC_CMMREGISTER,
