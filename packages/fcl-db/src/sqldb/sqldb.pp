@@ -391,6 +391,7 @@ type
     procedure SetMacroChar(AValue: AnsiChar);
     procedure SetMacroCheck(AValue: Boolean);
     procedure SetParams(AValue: TParams);
+    procedure SetParamCheck(AValue: Boolean);
     procedure SetMacros(AValue: TParams);
     procedure SetSQL(AValue: TStrings);
     procedure SetTransaction(AValue: TSQLTransaction);
@@ -429,7 +430,7 @@ type
     property MacroChar: AnsiChar read FMacroChar write SetMacroChar default DefaultMacroChar;
     Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
-    Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
+    Property ParamCheck : Boolean Read FParamCheck Write SetParamCheck default true;
     Property MacroCheck : Boolean Read FMacroCheck Write SetMacroCheck default false;
     Property InfoQuery : Boolean Read FInfoQuery Write FInfoQuery;
     Property OnSQLChanged : TNotifyEvent Read FOnSQLChanged Write FOnSQLChanged;
@@ -1060,6 +1061,13 @@ procedure TCustomSQLStatement.CopyParamsFromMaster(CopyBound: Boolean);
 begin
   if Assigned(DataSource) and Assigned(DataSource.Dataset) then
     FParams.CopyParamValuesFromDataset(DataSource.Dataset,CopyBound);
+end;
+
+procedure TCustomSQLStatement.SetParamCheck(AValue: Boolean);
+begin  
+  if aValue=FParamCheck then Exit;
+  FParamCheck:=aValue;
+  FParams.Clear;
 end;
 
 procedure TCustomSQLStatement.SetParams(AValue: TParams);
@@ -3582,6 +3590,7 @@ end;
 
 procedure TCustomSQLQuery.SetParamCheck(AValue: Boolean);
 begin
+  // Will clear params when changed.
   FStatement.ParamCheck:=AValue;
 end;
 

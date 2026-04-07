@@ -584,7 +584,7 @@ function TCustomApplication.CheckOptions(const ShortOptions: String;
 Var
   I,J,L,P : Integer;
   O,OV,SO : String;
-  UsedArg,HaveArg : Boolean;
+  UsedArg,HaveArg,OptionsTerminated : Boolean;
 
   Function FindLongOpt(S : String) : boolean;
 
@@ -626,10 +626,17 @@ begin
     SO:=LowerCase(Shortoptions);
   Result:='';
   I:=1;
+  OptionsTerminated:=False;
   While (I<=ParamCount) and ((Result='') or AllErrors) do
     begin
     O:=Params[I];
-    If (Length(O)=0) or (O[1]<>FOptionChar) then
+    if (O=FOptionChar+FOptionChar) then
+      begin
+      OptionsTerminated:=True;
+      Inc(i);
+      Continue;
+      end;
+    If OptionsTerminated or (Length(O)=0) or (O[1]<>FOptionChar) then
       begin
       If Assigned(NonOpts) then
         NonOpts.Add(O);
