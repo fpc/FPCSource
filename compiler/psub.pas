@@ -1220,7 +1220,7 @@ implementation
         RedoDFA : boolean;
       begin
        { inlining is a heuristics, so we do this very early }
-       do_optinline(code,updated);
+       compiler.opt.call.do_optinline(code,updated);
 
        { do this before adding the entry code else the tail recursion recognition won't work,
          if this causes troubles, it must be if'ed

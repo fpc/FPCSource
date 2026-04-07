@@ -30,9 +30,27 @@ unit optcall;
 
     uses
       node,
+      nutils,
       compilerbase;
 
+type
+
+  { TCallOptimizer }
+
+  TCallOptimizer = class
+  private
+    FCompiler: TCompilerBase;
+    function doinline(var _n: tnode; arg: pointer): foreachnoderesult;
+    function importglobalsyms(var n: tnode; arg: pointer): foreachnoderesult;
+    function redoalinaparams(var n: tnode; arg: pointer): foreachnoderesult;
+    function removeusercodeflag(var n: tnode; arg: pointer): foreachnoderesult;
+    function setinlinelevel(var n: tnode; arg: pointer): foreachnoderesult;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     procedure do_optinline(var rootnode : tnode;out changed: boolean);
+  end;
 
   implementation
 
@@ -42,14 +60,19 @@ unit optcall;
       defutil,defcmp,
       symconst,symtype,symdef,symsym,
       procinfo,
-      nutils,
       fmodule,
       pass_1,
       nbas,ncal,nld,
       compiler;
 
+    constructor TCallOptimizer.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
     { this procedure removes the user code flag because it prevents optimizations }
-    function removeusercodeflag(var n : tnode; arg : pointer) : foreachnoderesult;
+    function TCallOptimizer.removeusercodeflag(var n : tnode; arg : pointer) : foreachnoderesult;
       begin
         result:=fen_false;
         if nf_usercode_entry in n.flags then
@@ -60,7 +83,7 @@ unit optcall;
       end;
 
 
-    function setinlinelevel(var n:tnode; arg:pointer):foreachnoderesult;
+    function TCallOptimizer.setinlinelevel(var n:tnode; arg:pointer):foreachnoderesult;
       begin
         if n.nodetype=calln then
           tcallnode(n).inlinelevel:=PtrUInt(arg);
@@ -69,9 +92,7 @@ unit optcall;
 
 
     { reference symbols that are imported from another unit }
-    function importglobalsyms(var n:tnode; arg:pointer):foreachnoderesult;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TCallOptimizer.importglobalsyms(var n:tnode; arg:pointer):foreachnoderesult;
       var
         sym : tsym;
       begin
@@ -100,7 +121,7 @@ unit optcall;
       end;
 
 
-    function redoalinaparams(var n: tnode; arg: pointer): foreachnoderesult;
+    function TCallOptimizer.redoalinaparams(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         result:=fen_false;
         if n.nodetype=calln then
@@ -108,9 +129,7 @@ unit optcall;
       end;
 
 
-    function doinline(var _n: tnode; arg: pointer): foreachnoderesult;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TCallOptimizer.doinline(var _n: tnode; arg: pointer): foreachnoderesult;
       var
         n,
         body : tnode;
@@ -157,9 +176,9 @@ unit optcall;
 
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(callnode.procdefinition).inlininginfo^.code.getcopy;
-        foreachnodestatic(pm_postprocess,body,@ removeusercodeflag,nil);
-        foreachnodestatic(pm_postprocess,body,@importglobalsyms,nil);
-        foreachnodestatic(pm_postprocess,body,@setinlinelevel,pointer(callnode.inlinelevel+1));
+        foreachnode(pm_postprocess,body,@ removeusercodeflag,nil);
+        foreachnode(pm_postprocess,body,@importglobalsyms,nil);
+        foreachnode(pm_postprocess,body,@setinlinelevel,pointer(callnode.inlinelevel+1));
         foreachnode(pm_preprocess,body,@callnode.replaceparaload,@callnode.fileinfo);
 
         { Concat the body and finalization parts }
@@ -231,7 +250,7 @@ unit optcall;
       end;
 
 
-    procedure do_optinline(var rootnode: tnode;out changed: boolean);
+    procedure TCallOptimizer.do_optinline(var rootnode: tnode;out changed: boolean);
       begin
         changed:=false;
 {$ifdef EXTDEBUG_INLINE}
@@ -239,7 +258,7 @@ unit optcall;
         printnode(rootnode);
         writeln('****************************************************************************');
 {$endif EXTDEBUG_INLINE}
-        foreachnodestatic(pm_postprocess, rootnode, @doinline, @changed);
+        foreachnode(pm_postprocess, rootnode, @doinline, @changed);
         if changed then
           begin
             doinlinesimplify(rootnode);
@@ -249,7 +268,7 @@ unit optcall;
               parameter analysis redone to recalculate parameter ordering and
               stack tainting info, otherwise parameters may be evaluated in the
               wrong order corrupting already pushed stack parameters }
-            foreachnodestatic(pm_postprocess,rootnode,@redoalinaparams,nil);
+            foreachnode(pm_postprocess,rootnode,@redoalinaparams,nil);
 {$ifdef EXTDEBUG_INLINE}
             writeln('************************ Tree after inlining ******************************');
             printnode(rootnode);

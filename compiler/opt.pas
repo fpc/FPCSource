@@ -28,7 +28,7 @@ interface
 uses
   sysutils,
   compilerbase,
-  optconstprop,optcse,optdeadstore,optdfa,optloop,opttail,opttree;
+  optcall,optconstprop,optcse,optdeadstore,optdfa,optloop,opttail,opttree;
 
 type
 
@@ -36,6 +36,7 @@ type
 
   TOptimizers = class
   private
+    FCall: TCallOptimizer;
     FConstProp: TConstPropOptimizer;
     FCSE: TCSEOptimizer;
     FDeadStore: TDeadStoreEliminationOptimization;
@@ -46,6 +47,7 @@ type
   public
     constructor Create(ACompiler: TCompilerBase);
     destructor Destroy; override;
+    property Call: TCallOptimizer read FCall;
     property ConstProp: TConstPropOptimizer read FConstProp;
     property CSE: TCSEOptimizer read FCSE;
     property DeadStore: TDeadStoreEliminationOptimization read FDeadStore;
@@ -61,6 +63,7 @@ implementation
 
 constructor TOptimizers.Create(ACompiler: TCompilerBase);
 begin
+  FCall:=TCallOptimizer.Create(ACompiler);
   FConstProp:=TConstPropOptimizer.Create(ACompiler);
   FCSE:=TCSEOptimizer.Create(ACompiler);
   FDeadStore:=TDeadStoreEliminationOptimization.Create(ACompiler);
@@ -79,6 +82,7 @@ begin
   FreeAndNil(FDeadStore);
   FreeAndNil(FCSE);
   FreeAndNil(FConstProp);
+  FreeAndNil(FCall);
   inherited Destroy;
 end;
 
