@@ -72,7 +72,9 @@ TYPE
                notsym,nilsym,orsym,setsym,tosym,virtualsym,usessym,
                casevarsym,ofobjectsym,
                { other symbols }
-               becomes,notequal,lessorequal,greaterorequal,delphicomment,dopencomment,dclosecomment,opencomment,closecomment,semicolon,colon,equals,
+               becomes,notequal,lessorequal,greaterorequal,
+               plusequals, minusequals, divideequals, timesequals, exponential,
+               delphicomment,dopencomment,dclosecomment,opencomment,closecomment,semicolon,colon,equals,
                openparen,closeparen,period,endoffile,othersym);
 
   { Formatting options }
@@ -252,7 +254,9 @@ CONST
                'and','arr','div','down','file','goto',
                'in','mod','not','nil','or','set','to','virtual','uses',
                'casevar','ofobject',
-               'becomes','notequal','lessorequal','greaterorequal','delphicomment','dopencomment','dclosecomment',
+               'becomes','notequal','lessorequal','greaterorequal',
+               'plusequals', 'minusequals', 'divideequals', 'timesequals', 'exponential',
+               'delphicomment','dopencomment','dclosecomment',
                'opencomment','closecomment','semicolon',
                'colon','equals',
                'openparen','closeparen','period','endoffile','other');
@@ -265,7 +269,7 @@ CONST
 
 
   DblChar : DblCharTable =
-     ( ':=', '<>', '<=', '>=',  '//','(*','*)' );
+     ( ':=', '<>', '<=', '>=', '+=', '-=', '/=', '*=', '**', '//', '(*', '*)' );
 
   SglChar : SglCharTable =
     ('{', '}', ';', ':', '=', '(', ')', '.' );
@@ -1411,5 +1415,7 @@ End;
 
 
 Begin
-  dblch := [becomes, notequal, lessorequal, greaterorequal, opencomment];
+  dblch := [becomes, notequal, lessorequal, greaterorequal,
+            plusequals, minusequals, divideequals, timesequals, exponential,
+            opencomment];
 end.
