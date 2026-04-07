@@ -1079,7 +1079,7 @@ implementation
           begin
             toloc:=fromloc;
             if (fromloc.reference.base<>NR_NO) and
-               (fromloc.reference.base<>current_procinfo.framepointer) and
+               (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
               g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
           end;
@@ -2039,9 +2039,9 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      if (l=current_procinfo.CurrBreakLabel) or
-         (l=current_procinfo.CurrContinueLabel) or
-         (l=current_procinfo.CurrExitLabel) then
+      if (l=compiler.current_procinfo.CurrBreakLabel) or
+         (l=compiler.current_procinfo.CurrContinueLabel) or
+         (l=compiler.current_procinfo.CurrExitLabel) then
         list.concat(taicpu.op_sym(a_br,l))
       else
         begin
@@ -2160,7 +2160,7 @@ implementation
     var
       pd: tcpuprocdef;
     begin
-      pd:=tcpuprocdef(current_procinfo.procdef);
+      pd:=tcpuprocdef(compiler.current_procinfo.procdef);
       g_procdef(list,pd,false);
 
       if not nostackframe then
@@ -2196,7 +2196,7 @@ implementation
     var
       pd: tcpuprocdef;
     begin
-      pd:=tcpuprocdef(current_procinfo.procdef);
+      pd:=tcpuprocdef(compiler.current_procinfo.procdef);
       if not nostackframe then
         begin
           list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
@@ -2454,7 +2454,7 @@ implementation
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
     begin
       inherited;
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           list.concat(taicpu.op_none(a_block));
           list.concat(taicpu.op_none(a_block));
@@ -2463,11 +2463,11 @@ implementation
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           list.concat(taicpu.op_none(a_end_block));
           if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
-            a_label(list,tcpuprocinfo(current_procinfo).CurrRaiseLabel);
+            a_label(list,tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel);
           if fevalstackheight<>0 then
 {$ifdef DEBUG_WASMSTACK}
             list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
@@ -2486,7 +2486,7 @@ implementation
         workaround this by generating a const instruction without calling
         incstack, and instead we call incstack before the call, in
         gen_stack_check_call. }
-      list.concat(taicpu.op_const(a_i32_const,current_procinfo.calc_stackframe_size));
+      list.concat(taicpu.op_const(a_i32_const,compiler.current_procinfo.calc_stackframe_size));
     end;
 
   procedure thlcgwasm.gen_stack_check_call(list: TAsmList);
@@ -2573,7 +2573,7 @@ implementation
 
           decstack(current_asmdata.CurrAsmList,1);
 
-          list.concat(taicpu.op_sym(a_br_if,tcpuprocinfo(current_procinfo).CurrRaiseLabel));
+          list.concat(taicpu.op_sym(a_br_if,tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel));
       end;
     end;
 
@@ -2592,9 +2592,9 @@ implementation
          (ref.index=NR_STACK_POINTER_REG) or
          (ref.base=NR_EVAL_STACK_BASE) or
          (ref.index=NR_EVAL_STACK_BASE) or
-         (assigned(current_procinfo) and
-          ((ref.base=current_procinfo.framepointer) or
-           (ref.index=current_procinfo.framepointer))) then
+         (assigned(compiler.current_procinfo) and
+          ((ref.base=compiler.current_procinfo.framepointer) or
+           (ref.index=compiler.current_procinfo.framepointer))) then
         exit;
       if assigned(ref.symbol) or
          (ref.offset<>0) or

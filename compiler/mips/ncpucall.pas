@@ -46,10 +46,10 @@ uses
 function TMIPSELcallnode.pass_1 : tnode;
 begin
   pass_1 := inherited pass_1;
-  if assigned(current_procinfo) and
+  if assigned(compiler.current_procinfo) and
      assigned(procdefinition) and
      (procdefinition.proccalloption in cdecl_pocalls) then
-    include(current_procinfo.flags,pi_needs_got);
+    include(compiler.current_procinfo.flags,pi_needs_got);
 end;
 
 

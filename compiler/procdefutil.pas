@@ -191,9 +191,9 @@ implementation
         begin
           intfdef.defoptions:=intfdef.defoptions+current_structdef.defoptions*[df_generic,df_specialization];
         end
-      else if assigned(current_procinfo) then
+      else if assigned(compiler.current_procinfo) then
         begin
-          intfdef.defoptions:=intfdef.defoptions+current_procinfo.procdef.defoptions*[df_generic,df_specialization];
+          intfdef.defoptions:=intfdef.defoptions+compiler.current_procinfo.procdef.defoptions*[df_generic,df_specialization];
         end;
 
       if cs_generate_rtti in compiler.globals.current_settings.localswitches then
@@ -1017,7 +1017,7 @@ implementation
       pd.procoptions:=[];
       ps.ProcdefList.Add(pd);
       pd.forwarddef:=false;
-      { set procinfo and current_procinfo.procdef }
+      { set procinfo and compiler.current_procinfo.procdef }
       pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
       pi.procdef:=pd;
       if not assigned(pinested) then
@@ -1164,10 +1164,10 @@ implementation
           if (n.resultdef.typ=procdef) and
               assigned(tprocdef(n.resultdef).struct) and
               not (po_staticmethod in tprocdef(n.resultdef).procoptions) and
-              assigned(current_procinfo.procdef.struct) and
-              def_is_related(current_procinfo.procdef.struct,tprocdef(n.resultdef).struct) then
+              assigned(compiler.current_procinfo.procdef.struct) and
+              def_is_related(compiler.current_procinfo.procdef.struct,tprocdef(n.resultdef).struct) then
             begin
-              selfinfo.selfsym:=tsym(current_procinfo.procdef.parast.find('self'));
+              selfinfo.selfsym:=tsym(compiler.current_procinfo.procdef.parast.find('self'));
               if not assigned(selfinfo.selfsym) then
                 internalerror(2022110601);
             end

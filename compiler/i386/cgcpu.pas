@@ -86,7 +86,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
 
-        if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
+        if assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer<>NR_EBP) then
           begin
             { Sometimes, whole program optimization will forego a frame pointer on leaf functions }
             if (cs_useebp in compiler.globals.current_settings.optimizerswitches) then
@@ -272,8 +272,8 @@ unit cgcpu;
                               begin
                                 reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                                 tmpref.refaddr:=addr_pic;
-                                tmpref.base:=current_procinfo.got;
-                                include(current_procinfo.flags,pi_needs_got);
+                                tmpref.base:=compiler.current_procinfo.got;
+                                include(compiler.current_procinfo.flags,pi_needs_got);
                                 list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
                               end
                           end
@@ -327,38 +327,38 @@ unit cgcpu;
             * the entry stack frame must be normally generated because the subroutine could be still left by
               an exception and then the unwinding code might need to restore the registers stored by the entry code
           }
-          not(po_noreturn in current_procinfo.procdef.procoptions) then
+          not(po_noreturn in compiler.current_procinfo.procdef.procoptions) then
           begin
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
-               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+            if (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
-                if current_procinfo.final_localsize<>0 then
-                  increase_sp(current_procinfo.final_localsize);
+                if compiler.current_procinfo.final_localsize<>0 then
+                  increase_sp(compiler.current_procinfo.final_localsize);
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,true);
-                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                if (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
               end
             else
               begin
                 if (not paramanager.use_fixed_stack) then
-                  internal_restore_regs(list,not (pi_has_stack_allocs in current_procinfo.flags));
+                  internal_restore_regs(list,not (pi_has_stack_allocs in compiler.current_procinfo.flags));
                 generate_leave(list);
               end;
-            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+            list.concat(tai_regalloc.dealloc(compiler.current_procinfo.framepointer,nil));
           end;
 
-        if pi_uses_ymm in current_procinfo.flags then
+        if pi_uses_ymm in compiler.current_procinfo.flags then
           list.Concat(taicpu.op_none(A_VZEROUPPER));
 
         { return from proc }
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if po_interrupt in compiler.current_procinfo.procdef.procoptions then
           begin
-            if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
-               (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
+            if assigned(compiler.current_procinfo.procdef.funcretloc[calleeside].location) and
+               (compiler.current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
               begin
-                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.register)=RS_EAX) then
+                if (getsupreg(compiler.current_procinfo.procdef.funcretloc[calleeside].location^.register)=RS_EAX) then
                   list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
                 else
                   internalerror(2010053001);
@@ -368,12 +368,12 @@ unit cgcpu;
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
 
-            if (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) and
-               assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
-               assigned(current_procinfo.procdef.funcretloc[calleeside].location^.next) and
-               (current_procinfo.procdef.funcretloc[calleeside].location^.next^.loc=LOC_REGISTER) then
+            if (compiler.current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) and
+               assigned(compiler.current_procinfo.procdef.funcretloc[calleeside].location) and
+               assigned(compiler.current_procinfo.procdef.funcretloc[calleeside].location^.next) and
+               (compiler.current_procinfo.procdef.funcretloc[calleeside].location^.next^.loc=LOC_REGISTER) then
               begin
-                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.next^.register)=RS_EDX) then
+                if (getsupreg(compiler.current_procinfo.procdef.funcretloc[calleeside].location^.next^.register)=RS_EDX) then
                   list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
                 else
                   internalerror(2010053002);
@@ -390,28 +390,28 @@ unit cgcpu;
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_GS));
             { this restores the flags }
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
             list.concat(Taicpu.Op_none(A_IRET,S_NO));
           end
         { Routines with the poclearstack flag set use only a ret }
-        else if (current_procinfo.procdef.proccalloption in clearstack_pocalls) and
+        else if (compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls) and
                 (not paramanager.use_fixed_stack)  then
          begin
            { complex return values are removed from stack in C code PM }
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
            { which contains the exception is passed in EAX }
-           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+           if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
            if ((compiler.target.info.system <> system_i386_win32) or
                (compiler.target.info.abi=abi_old_win32_gnu)) and
-              not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
+              not ((compiler.current_procinfo.procdef.proccalloption = pocall_safecall) and
                (tf_safecall_exceptions in compiler.target.info.flags)) and
-              paramanager.ret_in_param(current_procinfo.procdef.returndef,
-                                       current_procinfo.procdef) then
+              paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,
+                                       compiler.current_procinfo.procdef) then
              list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -420,7 +420,7 @@ unit cgcpu;
         { ... also routines with parasize=0 }
         else if (parasize=0) then
          begin
-           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+           if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
            list.concat(Taicpu.Op_none(A_RET,S_NO))
@@ -431,7 +431,7 @@ unit cgcpu;
            if (parasize>65535) then
              compiler.verbose.CGMessage(cg_e_parasize_too_big);
 
-           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+           if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
            list.concat(Taicpu.Op_const(A_RET,S_W,parasize));
@@ -564,7 +564,7 @@ unit cgcpu;
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,destreg));
-        include(current_procinfo.flags,pi_has_stack_allocs);
+        include(compiler.current_procinfo.flags,pi_has_stack_allocs);
       end;
 
 
@@ -581,19 +581,19 @@ unit cgcpu;
       begin
         { allocate PIC register }
         if (tf_pic_uses_got in compiler.target.info.flags) and
-          (pi_needs_got in current_procinfo.flags) then
+          (pi_needs_got in compiler.current_procinfo.flags) then
           begin
             if not (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
                 { Use ECX as a temp register by default }
-                if current_procinfo.got = NR_EBX then
+                if compiler.current_procinfo.got = NR_EBX then
                   tmpreg:=NR_EBX
                 else
                   tmpreg:=NR_ECX;
                 { Allocate registers used for parameters to make sure they
                   never allocated during this PIC init code }
-                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
-                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                for i:=0 to compiler.current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(compiler.current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
                     if Loc in [LOC_REGISTER, LOC_CREGISTER] then begin
                       a_reg_alloc(list, register);
                       { If ECX is used for a parameter, use EBX as temp }
@@ -614,11 +614,11 @@ unit cgcpu;
                     a_call_name_static(list,'fpc_geteipasecx');
                   end;
                 list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));
-                list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,current_procinfo.got));
+                list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,compiler.current_procinfo.got));
 
                 { Deallocate parameter registers }
-                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
-                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                for i:=0 to compiler.current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(compiler.current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
                     if Loc in [LOC_REGISTER, LOC_CREGISTER] then
                       a_reg_dealloc(list, register);
               end
@@ -628,9 +628,9 @@ unit cgcpu;
                   according to Apple's benchmarking -- and all Intel Macs
                   have at least a Core Solo (furthermore, the i386 - Pentium 1
                   don't have a return stack buffer) }
-                a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
-                a_label(list,current_procinfo.CurrGotLabel);
-                list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
+                a_call_name_static(list,compiler.current_procinfo.CurrGOTLabel.name);
+                a_label(list,compiler.current_procinfo.CurrGotLabel);
+                list.concat(taicpu.op_reg(A_POP,S_L,compiler.current_procinfo.got))
               end;
           end;
       end;

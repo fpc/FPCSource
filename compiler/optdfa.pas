@@ -652,11 +652,11 @@ unit optdfa;
           nodemap:=TIndexedNodeSet.Create;
 
         { create a fake node using the result which will be the last node }
-        if not(is_void(current_procinfo.procdef.returndef)) then
+        if not(is_void(compiler.current_procinfo.procdef.returndef)) then
           begin
-            if current_procinfo.procdef.proctypeoption=potype_constructor then
+            if compiler.current_procinfo.procdef.proctypeoption=potype_constructor then
               resultnode:=load_self_node
-            else if (current_procinfo.procdef.proccalloption=pocall_safecall) and
+            else if (compiler.current_procinfo.procdef.proccalloption=pocall_safecall) and
               (tf_safecall_exceptions in compiler.target.info.flags) then
               resultnode:=load_safecallresult_node
             else
@@ -686,7 +686,7 @@ unit optdfa;
       begin
         resetdfainfo(node);
         createdfainfo(node);
-        include(current_procinfo.flags,pi_dfaavailable);
+        include(compiler.current_procinfo.flags,pi_dfaavailable);
       end;
 
 
@@ -741,17 +741,17 @@ unit optdfa;
         symtables }
       function SymbolCandidateForWarningOrHint(sym : tabstractnormalvarsym) : Boolean;
         begin
-          Result:=(((sym.owner=current_procinfo.procdef.localst) and
-                    (current_procinfo.procdef.localst.symtablelevel=sym.owner.symtablelevel)
+          Result:=(((sym.owner=compiler.current_procinfo.procdef.localst) and
+                    (compiler.current_procinfo.procdef.localst.symtablelevel=sym.owner.symtablelevel)
                    ) or
-                   ((sym.owner=current_procinfo.procdef.parast) and
+                   ((sym.owner=compiler.current_procinfo.procdef.parast) and
                     (sym.typ=paravarsym) and
-                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel) and
+                    (compiler.current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel) and
                     { all parameters except out parameters are initialized by the caller }
                     (tparavarsym(sym).varspez=vs_out)
                    ) or
                    ((vo_is_funcret in sym.varoptions) and
-                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel)
+                    (compiler.current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel)
                    )
                   ) and
                   not(vo_is_external in sym.varoptions) and
@@ -867,9 +867,9 @@ unit optdfa;
 {$ifdef dummy}
                   { if a the variable we are looking for is passed as a var parameter, we stop searching }
                   else if assigned(varsym.owner) and
-                     (varsym.owner=current_procinfo.procdef.parast) and
+                     (varsym.owner=compiler.current_procinfo.procdef.parast) and
                      (varsym.typ=paravarsym) and
-                     (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
+                     (compiler.current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
                      (tparavarsym(varsym).varspez=vs_var) then
                     result:=fen_norecurse_true;
 {$endif dummy}
@@ -976,12 +976,12 @@ unit optdfa;
 
                   successor might be assigned in case of an inlined exit node, in this case we do not warn about an unassigned
                   result as this had happened already when the routine has been compiled }
-                if not(assigned(node.successor)) and not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
+                if not(assigned(node.successor)) and not(Result) and not(is_void(compiler.current_procinfo.procdef.returndef)) and
                   not(assigned(texitnode(node).resultexpr)) and
                   { don't warn about constructors }
-                  not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
+                  not(compiler.current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
                   begin
-                    if is_managed_type(current_procinfo.procdef.returndef) then
+                    if is_managed_type(compiler.current_procinfo.procdef.returndef) then
                       compiler.verbose.MessagePos(node.fileinfo,sym_w_managed_function_result_uninitialized)
                     else
                       compiler.verbose.MessagePos(node.fileinfo,sym_w_function_result_uninitialized);

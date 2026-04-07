@@ -260,11 +260,11 @@ implementation
        begin
          if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
            begin
-             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+             if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                internalerror(2014030201);
              location_reset(location,LOC_REGISTER,OS_32);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-             emit_reg_reg(A_MOV,S_W,current_procinfo.framepointer,location.register);
+             emit_reg_reg(A_MOV,S_W,compiler.current_procinfo.framepointer,location.register);
              current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,cg.GetNextReg(location.register)));
            end
          else

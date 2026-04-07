@@ -727,13 +727,13 @@ function TOperand.SetupResult:boolean;
 begin
   SetupResult:=false;
   { replace by correct offset. }
-  with current_procinfo.procdef do
+  with compiler.current_procinfo.procdef do
     if (not is_void(returndef)) then
       begin
         if (m_tp7 in compiler.globals.current_settings.modeswitches) and
           not (df_generic in defoptions) and
           (po_assembler in procoptions) and
-          (not paramanager.ret_in_param(returndef,current_procinfo.procdef)) then
+          (not paramanager.ret_in_param(returndef,compiler.current_procinfo.procdef)) then
           begin
             compiler.verbose.Message(asmr_e_cannot_use_RESULT_here);
             exit;
@@ -758,7 +758,7 @@ end;
 function TOperand.SetupOldEBP: boolean;
 Begin
   SetupOldEBP:=false;
-  if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
+  if compiler.current_procinfo.procdef.parast.symtablelevel>normal_function_level then
     SetupOldEBP:=setupvar('parentframe',false)
   else
     compiler.verbose.Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
@@ -997,7 +997,7 @@ Begin
           paravarsym,
           localvarsym :
             begin
-              tmpprocinfo:=current_procinfo;
+              tmpprocinfo:=compiler.current_procinfo;
               while assigned(tmpprocinfo) do
                 begin
                   if (sym.owner=tmpprocinfo.procdef.localst) or
@@ -1030,12 +1030,12 @@ Begin
                   indexreg:=NR_NO;
                 end;
               opr.typ:=OPR_LOCAL;
-              if assigned(current_procinfo.parent) and
-                 not(po_inline in current_procinfo.procdef.procoptions) and
-                 (sym.owner<>current_procinfo.procdef.localst) and
-                 (sym.owner<>current_procinfo.procdef.parast) and
-                 (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
-                 symtable_has_localvarsyms(current_procinfo.procdef.localst) then
+              if assigned(compiler.current_procinfo.parent) and
+                 not(po_inline in compiler.current_procinfo.procdef.procoptions) and
+                 (sym.owner<>compiler.current_procinfo.procdef.localst) and
+                 (sym.owner<>compiler.current_procinfo.procdef.parast) and
+                 (compiler.current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
+                 symtable_has_localvarsyms(compiler.current_procinfo.procdef.localst) then
                 compiler.verbose.Message1(asmr_e_local_para_unreachable,s);
               opr.localsym:=tabstractnormalvarsym(sym);
               opr.localsymofs:=absoffset;
@@ -1045,7 +1045,7 @@ Begin
               opr.localindexreg:=indexreg;
               opr.localscale:=0;
               opr.localgetoffset:=GetOffset;
-              if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,current_procinfo.procdef.proccalloption) then
+              if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,compiler.current_procinfo.procdef.proccalloption) then
                 SetSize(sizeof(pint),false);
             end;
           else
@@ -1631,9 +1631,11 @@ end;
 
 
 function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   result:=
-    (po_assembler in current_procinfo.procdef.procoptions) and
+    (po_assembler in compiler.current_procinfo.procdef.procoptions) and
     (sym.typ=paravarsym) and
     (tparavarsym(sym).paraloc[calleeside].Location^.Loc=LOC_REGISTER);
 end;
@@ -1823,7 +1825,7 @@ Begin
 {$endif LLVM}
               Tlabelsym(sym).nonlocal:=true;
             if emit then
-              include(current_procinfo.flags,pi_has_interproclabel);
+              include(compiler.current_procinfo.flags,pi_has_interproclabel);
           end;
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
           if Tlabelsym(sym).nonlocal then

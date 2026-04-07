@@ -480,18 +480,20 @@ implementation
 
     function get_local_or_para_sym(const aname: string): tabstractvarsym;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pd: tprocdef;
         ressym: tsym;
       begin
         ressym:=nil;
         result:=nil;
         { is not assigned while parsing a property }
-        if not assigned(current_procinfo) then
+        if not assigned(compiler.current_procinfo) then
           exit;
         { we can't use searchsym here, because the
           symtablestack is not fully setup when pass1
           is run for nested procedures }
-        pd:=current_procinfo.procdef;
+        pd:=compiler.current_procinfo.procdef;
         repeat
           ressym:=tsym(pd.localst.Find(aname));
           if assigned(ressym) then
@@ -1276,9 +1278,9 @@ implementation
                   if df_generic in tmp.defoptions then
                     begin
                       p1.free;
-                      if assigned(current_procinfo) then
+                      if assigned(compiler.current_procinfo) then
                         begin
-                          pd:=current_procinfo.get_normal_proc.procdef;
+                          pd:=compiler.current_procinfo.get_normal_proc.procdef;
                           if assigned(pd) and pd.no_self_node then
                             p1:=compiler.cloadvmtaddrnode(compiler.ctypenode(pd.struct))
                           else

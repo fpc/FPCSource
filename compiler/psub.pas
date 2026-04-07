@@ -246,25 +246,25 @@ implementation
         { this code will never be used (only specialisations can be inlined),
           and moreover contains references to defs that are not stored in the
           ppu file }
-        if df_generic in current_procinfo.procdef.defoptions then
+        if df_generic in compiler.current_procinfo.procdef.defoptions then
           exit;
-        if pi_has_assembler_block in current_procinfo.flags then
+        if pi_has_assembler_block in compiler.current_procinfo.flags then
           begin
             _no_inline('assembler');
             exit;
           end;
-        if (pi_has_global_goto in current_procinfo.flags) or
-           (pi_has_interproclabel in current_procinfo.flags) then
+        if (pi_has_global_goto in compiler.current_procinfo.flags) or
+           (pi_has_interproclabel in compiler.current_procinfo.flags) then
           begin
             _no_inline('global goto');
             exit;
           end;
-        if pi_has_nested_exit in current_procinfo.flags then
+        if pi_has_nested_exit in compiler.current_procinfo.flags then
           begin
             _no_inline('nested exit');
             exit;
           end;
-        if pi_calls_c_varargs in current_procinfo.flags then
+        if pi_calls_c_varargs in compiler.current_procinfo.flags then
           begin
             _no_inline('called C-style varargs functions');
             exit;
@@ -272,7 +272,7 @@ implementation
         { the compiler cannot handle inherited in inlined subroutines because
           it tries to search for self in the symtable, however, the symtable
           is not available }
-        if pi_has_inherited in current_procinfo.flags then
+        if pi_has_inherited in compiler.current_procinfo.flags then
           begin
             _no_inline('inherited');
             exit;
@@ -285,18 +285,18 @@ implementation
         { We can't support inlining for procedures that have nested
           procedures because the nested procedures use a fixed offset
           for accessing locals in the parent procedure (PFV) }
-        if current_procinfo.has_nestedprocs then
+        if compiler.current_procinfo.has_nestedprocs then
           begin
             _no_inline('nested procedures');
             exit;
           end;
 
-        if pi_uses_get_frame in current_procinfo.flags then
+        if pi_uses_get_frame in compiler.current_procinfo.flags then
           begin
             _no_inline('get_frame');
             { for LLVM: it can inline things that FPC can't, but it mustn't
               inline this one }
-            include(current_procinfo.procdef.implprocoptions,pio_inline_forbidden);
+            include(compiler.current_procinfo.procdef.implprocoptions,pio_inline_forbidden);
             exit;
           end;
 
@@ -355,19 +355,23 @@ implementation
 
 
     procedure check_finalize_paras(p:TObject;arg:pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (tsym(p).typ=paravarsym) then
           begin
             if tparavarsym(p).needs_finalization then
               begin
-                include(current_procinfo.flags,pi_needs_implicit_finally);
-                include(current_procinfo.flags,pi_do_call);
+                include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
+                include(compiler.current_procinfo.flags,pi_do_call);
               end;
           end;
       end;
 
 
     procedure check_finalize_locals(p:TObject;arg:pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { include the result: it needs to be finalized in case an exception }
         { occurs                                                            }
@@ -375,8 +379,8 @@ implementation
            (tlocalvarsym(p).refs>0) and
            is_managed_type(tlocalvarsym(p).vardef) then
           begin
-            include(current_procinfo.flags,pi_needs_implicit_finally);
-            include(current_procinfo.flags,pi_do_call);
+            include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
+            include(compiler.current_procinfo.flags,pi_do_call);
           end;
       end;
 
@@ -385,20 +389,20 @@ implementation
          oldfilepos: tfileposinfo;
       begin
         { initialized variables }
-        if current_procinfo.procdef.localst.symtabletype=localsymtable then
+        if compiler.current_procinfo.procdef.localst.symtabletype=localsymtable then
          begin
            { initialization of local variables with their initial
              values: part of function entry }
            oldfilepos:=compiler.globals.current_filepos;
-           compiler.globals.current_filepos:=current_procinfo.entrypos;
-           current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,ablock);
+           compiler.globals.current_filepos:=compiler.current_procinfo.entrypos;
+           compiler.current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,ablock);
            compiler.globals.current_filepos:=oldfilepos;
          end;
 
-        if assigned(current_procinfo.procdef.parentfpstruct) then
+        if assigned(compiler.current_procinfo.procdef.parentfpstruct) then
          begin
            { finish the parentfpstruct (add padding, ...) }
-           finish_parentfpstruct(current_procinfo.procdef);
+           finish_parentfpstruct(compiler.current_procinfo.procdef);
          end;
       end;
 
@@ -410,10 +414,10 @@ implementation
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (current_scanner.token=_ASM) and (m_delphi in compiler.globals.current_settings.modeswitches) then
-           include(current_procinfo.procdef.procoptions,po_assembler);
+           include(compiler.current_procinfo.procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
-         if (po_assembler in current_procinfo.procdef.procoptions) then
+         if (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             block:=compiler.parser.pstatmnt.assembler_block;
             exit;
@@ -421,8 +425,8 @@ implementation
 
          {Unit initialization?.}
          if (
-             assigned(current_procinfo.procdef.localst) and
-             (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
+             assigned(compiler.current_procinfo.procdef.localst) and
+             (compiler.current_procinfo.procdef.localst.symtablelevel=main_program_level) and
              (compiler.current_module.is_unit or islibrary)
             ) then
            begin
@@ -450,7 +454,7 @@ implementation
                        { when a unit has only a finalization section, we can come to this
                          point when we try to read the nonh existing initialization section
                          so we've to check if we are really try to parse the finalization }
-                       if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
+                       if compiler.current_procinfo.procdef.proctypeoption=potype_unitfinalize then
                          block:=compiler.parser.pstatmnt.statement_block(_FINALIZATION)
                        else
                          block:=nil;
@@ -500,7 +504,7 @@ implementation
         if assigned(current_structdef) then
           begin
             { a constructor needs a help procedure }
-            if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+            if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
                 if is_class(current_structdef) or
                     (
@@ -568,8 +572,8 @@ implementation
                      ((compiler.target.info.system in systems_jvm) and
                       is_record(current_structdef)) then
                     begin
-                      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-                         not current_procinfo.ConstructorCallingConstructor then
+                      if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
+                         not compiler.current_procinfo.ConstructorCallingConstructor then
                        begin
                          { call inherited constructor }
                          if is_javaclass(current_structdef) then
@@ -607,7 +611,7 @@ implementation
               end;
 
             { maybe call BeforeDestruction for classes }
-            if (current_procinfo.procdef.proctypeoption=potype_destructor) and
+            if (compiler.current_procinfo.procdef.proctypeoption=potype_destructor) and
                is_class(current_structdef) then
               begin
                 srsym:=search_struct_member(current_structdef,'BEFOREDESTRUCTION');
@@ -629,9 +633,9 @@ implementation
               end;
           end;
         if m_non_local_goto in compiler.globals.current_settings.modeswitches then
-          tsymtable(current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
+          tsymtable(compiler.current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
 
-        compiler.procdefutil.initialize_capturer(current_procinfo,newstatement);
+        compiler.procdefutil.initialize_capturer(compiler.current_procinfo,newstatement);
       end;
 
 
@@ -655,7 +659,7 @@ implementation
             compiler.globals.current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
 
             { a destructor needs a help procedure }
-            if (current_procinfo.procdef.proctypeoption=potype_destructor) then
+            if (compiler.current_procinfo.procdef.proctypeoption=potype_destructor) then
               begin
                 if is_class(current_structdef) then
                   begin
@@ -1157,9 +1161,9 @@ implementation
                    not(has_assembler_child)
                   { parasize must be really zero, this means also that no result may be returned
                     in a parameter }
-                  and not((current_procinfo.procdef.proccalloption in clearstack_pocalls) and
-                  not(current_procinfo.procdef.generate_safecall_wrapper) and
-                  paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
+                  and not((compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls) and
+                  not(compiler.current_procinfo.procdef.generate_safecall_wrapper) and
+                  paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef)) then
                   begin
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
@@ -1795,8 +1799,8 @@ implementation
         { do the conversion only if there haven't been any errors so far }
         if compiler.verbose.ErrorCount<>0 then
           exit;
-        old_current_procinfo:=current_procinfo;
-        current_procinfo:=self;
+        old_current_procinfo:=compiler.current_procinfo;
+        tcompiler(compiler).current_procinfo:=self;
         { process nested procedures }
         hpi:=tcgprocinfo(get_first_nestedproc);
         while assigned(hpi) do
@@ -1807,7 +1811,7 @@ implementation
         { convert the captured symbols for this routine }
         if assigned(code) then
           compiler.procdefutil.convert_captured_syms(procdef,code);
-        current_procinfo:=old_current_procinfo;
+        tcompiler(compiler).current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -1825,6 +1829,8 @@ implementation
        end;
 
     procedure searchthreadvar(p: TObject; arg: pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         pd : tprocdef;
@@ -1848,7 +1854,7 @@ implementation
                  not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                  not(vo_is_external in tstaticvarsym(p).varoptions) and
                  is_managed_type(tstaticvarsym(p).vardef) then
-                include(current_procinfo.flags,pi_uses_threadvar);
+                include(compiler.current_procinfo.flags,pi_uses_threadvar);
             end;
           procsym :
             begin
@@ -1895,7 +1901,7 @@ implementation
 
        procedure check_for_threadvars_in_initfinal;
          begin
-           if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
+           if compiler.current_procinfo.procdef.proctypeoption=potype_unitfinalize then
              begin
                 { this is also used for initialization of variables in a
                   program which does not have a globalsymtable }
@@ -1975,12 +1981,12 @@ implementation
         if assigned(tg)<>(procdef.proctypeoption=potype_exceptfilter) then
           internalerror(200309201);
 
-        old_current_procinfo:=current_procinfo;
+        old_current_procinfo:=compiler.current_procinfo;
         oldfilepos:=compiler.globals.current_filepos;
         old_current_structdef:=current_structdef;
         oldmaxfpuregisters:=compiler.globals.current_settings.maxfpuregisters;
 
-        current_procinfo:=self;
+        tcompiler(compiler).current_procinfo:=self;
         compiler.globals.current_filepos:=entrypos;
         current_structdef:=procdef.struct;
 
@@ -1993,7 +1999,7 @@ implementation
           trashing values, ...) }
         { init/final code must be wrapped later (after code for main proc body
           has been generated) }
-        if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+        if not(compiler.current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
           code:=compiler.nodeutils.wrap_proc_body(procdef,code);
 
         { automatic inlining? }
@@ -2036,7 +2042,7 @@ implementation
           end;
 
         { set implicit_finally flag when there are locals/paras to be finalized }
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
             procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
@@ -2307,7 +2313,7 @@ implementation
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
 
-            current_procinfo.set_eh_info;
+            compiler.current_procinfo.set_eh_info;
 
             { Add entry code (stack allocation) after header }
             compiler.globals.current_filepos:=entrypos;
@@ -2335,7 +2341,7 @@ implementation
              internalerror(200405231);
 
              { sanity check }
-             if not(assigned(current_procinfo.procdef.personality)) and
+             if not(assigned(compiler.current_procinfo.procdef.personality)) and
                 (tf_use_psabieh in compiler.target.info.flags) and
                 ((pi_uses_exceptions in flags) or
                  ((cs_implicit_exceptions in compiler.globals.current_settings.moduleswitches) and
@@ -2393,14 +2399,14 @@ implementation
                  do it nevertheless to to assist debug info generation
                  (hide original symbols, add absolutevarsyms that redirect
                   to their new locations in the parentfpstruct) }
-              if assigned(current_procinfo.procdef.parentfpstruct) then
-                redirect_parentfpstruct_local_syms(current_procinfo.procdef);
+              if assigned(compiler.current_procinfo.procdef.parentfpstruct) then
+                redirect_parentfpstruct_local_syms(compiler.current_procinfo.procdef);
               current_debuginfo.insertlineinfo(aktproccode);
              end;
 
             finish_eh;
 
-            hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
+            hlcg.record_generated_code_for_procdef(compiler.current_procinfo.procdef,aktproccode,aktlocaldata);
 
             { now generate code for any exception filters (they need the tempgen) }
             generate_code_exceptfilters;
@@ -2429,7 +2435,7 @@ implementation
         compiler.globals.current_settings.maxfpuregisters:=oldmaxfpuregisters;
         compiler.globals.current_filepos:=oldfilepos;
         current_structdef:=old_current_structdef;
-        current_procinfo:=old_current_procinfo;
+        tcompiler(compiler).current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -2499,14 +2505,14 @@ implementation
          old_parse_generic: boolean;
          recordtokens : boolean;
       begin
-         old_current_procinfo:=current_procinfo;
+         old_current_procinfo:=compiler.current_procinfo;
          old_block_type:=compiler.globals.block_type;
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
          old_parse_generic:=compiler.parser.pbase.parse_generic;
 
-         current_procinfo:=self;
+         tcompiler(compiler).current_procinfo:=self;
          current_structdef:=procdef.struct;
 
 
@@ -2662,7 +2668,7 @@ implementation
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
-         current_procinfo:=old_current_procinfo;
+         tcompiler(compiler).current_procinfo:=old_current_procinfo;
          compiler.parser.pbase.parse_generic:=old_parse_generic;
 
          { Restore old state }
@@ -2676,6 +2682,8 @@ implementation
 
 
     procedure check_init_paras(p:TObject;arg:pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if tsym(p).typ<>paravarsym then
          exit;
@@ -2684,7 +2692,7 @@ implementation
              (varspez in [vs_value,vs_out])) or
              (is_shortstring(vardef) and
              (varspez=vs_value)) then
-            include(current_procinfo.flags,pi_do_call);
+            include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -2702,14 +2710,14 @@ implementation
         oldfailtokenmode:=[];
 
         { create a new procedure }
-        current_procinfo:=cprocinfo.create(old_current_procinfo,compiler);
-        compiler.current_module.procinfo:=current_procinfo;
-        current_procinfo.procdef:=pd;
-        isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
+        tcompiler(compiler).current_procinfo:=cprocinfo.create(old_current_procinfo,compiler);
+        compiler.current_module.procinfo:=compiler.current_procinfo;
+        compiler.current_procinfo.procdef:=pd;
+        isnestedproc:=(compiler.current_procinfo.procdef.parast.symtablelevel>normal_function_level);
         { an anonymous function is always considered as nested }
         if po_anonymous in pd.procoptions then
           begin
-            current_procinfo.force_nested;
+            compiler.current_procinfo.force_nested;
             isnestedproc:=true;
           end;
 
@@ -2730,7 +2738,7 @@ implementation
 
         { check if there are para's which require initing -> set }
         { pi_do_call (if not yet set)                            }
-        if not(pi_do_call in current_procinfo.flags) then
+        if not(pi_do_call in compiler.current_procinfo.flags) then
           pd.parast.SymList.ForEachCall(@check_init_paras,nil);
 
         { set _FAIL as keyword if constructor }
@@ -2740,7 +2748,7 @@ implementation
            tokeninfo^[_FAIL].keyword:=alllanguagemodes;
          end;
 
-        tcgprocinfo(current_procinfo).parse_body;
+        tcgprocinfo(compiler.current_procinfo).parse_body;
 
         { reset _FAIL as _SELF normal }
         if (pd.proctypeoption=potype_constructor) then
@@ -2751,41 +2759,44 @@ implementation
           for all deferred nested procedures and the current procedure }
         if not isnestedproc then
           begin
-            if not(df_generic in current_procinfo.procdef.defoptions) then
+            if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
               begin
                 { also generate the bodies for all previously done
                   specializations so that we might inline them }
                 parser.pgenutil.generate_specialization_procs;
                 { convert all load nodes that might have been captured by a
                   capture object }
-                tcgprocinfo(current_procinfo).convert_captured_syms;
-                tcgprocinfo(current_procinfo).generate_code_tree;
+                tcgprocinfo(compiler.current_procinfo).convert_captured_syms;
+                tcgprocinfo(compiler.current_procinfo).generate_code_tree;
               end;
           end;
 
         { release procinfo }
-        if tprocinfo(compiler.current_module.procinfo)<>current_procinfo then
+        if tprocinfo(compiler.current_module.procinfo)<>compiler.current_procinfo then
           internalerror(200304274);
-        compiler.current_module.procinfo:=current_procinfo.parent;
+        compiler.current_module.procinfo:=compiler.current_procinfo.parent;
 
         { For specialization we didn't record the last semicolon. Moving this parsing
           into the parse_body routine is not done because of having better file position
           information available }
-        if not current_procinfo.procdef.is_specialization and
-            not (po_anonymous in current_procinfo.procdef.procoptions) and
+        if not compiler.current_procinfo.procdef.is_specialization and
+            not (po_anonymous in compiler.current_procinfo.procdef.procoptions) and
             (
-              not assigned(current_procinfo.procdef.struct) or
-              not (df_specialization in current_procinfo.procdef.struct.defoptions)
+              not assigned(compiler.current_procinfo.procdef.struct) or
+              not (df_specialization in compiler.current_procinfo.procdef.struct.defoptions)
               or not (
-                assigned(current_procinfo.procdef.owner) and
-                (current_procinfo.procdef.owner.defowner=current_procinfo.procdef.struct)
+                assigned(compiler.current_procinfo.procdef.owner) and
+                (compiler.current_procinfo.procdef.owner.defowner=compiler.current_procinfo.procdef.struct)
               )
             ) then
           parser.pbase.consume(_SEMICOLON);
 
         if not isnestedproc then
-          { current_procinfo is checked for nil later on }
-          freeandnil(current_procinfo);
+          begin
+            { compiler.current_procinfo is checked for nil later on }
+            tcompiler(compiler).current_procinfo.free;
+            tcompiler(compiler).current_procinfo:=nil;
+          end;
       end;
 
 
@@ -2794,12 +2805,12 @@ implementation
         old_module_procinfo : tobject;
         old_current_procinfo : tprocinfo;
       begin
-        old_current_procinfo:=current_procinfo;
+        old_current_procinfo:=compiler.current_procinfo;
         old_module_procinfo:=compiler.current_module.procinfo;
-        current_procinfo:=nil;
+        tcompiler(compiler).current_procinfo:=nil;
         compiler.current_module.procinfo:=nil;
         read_proc_body(nil,pd);
-        current_procinfo:=old_current_procinfo;
+        tcompiler(compiler).current_procinfo:=old_current_procinfo;
         compiler.current_module.procinfo:=old_module_procinfo;
       end;
 
@@ -2835,14 +2846,14 @@ implementation
 {$endif genericdef_for_nested}
       begin
          { save old state }
-         old_current_procinfo:=current_procinfo;
+         old_current_procinfo:=compiler.current_procinfo;
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
 
-         { reset current_procinfo.procdef to nil to be sure that nothing is writing
+         { reset compiler.current_procinfo.procdef to nil to be sure that nothing is writing
            to another procdef }
-         current_procinfo:=nil;
+         tcompiler(compiler).current_procinfo:=nil;
          current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
@@ -2953,9 +2964,9 @@ implementation
                    stream, thus access to their genericdef is not required }
                  {$ifdef genericdef_for_nested}
                  { find the corresponding routine in the generic routine }
-                 if not assigned(old_current_procinfo.procdef.genericdef) then
+                 if not assigned(old_compiler.current_procinfo.procdef.genericdef) then
                    internalerror(2016121701);
-                 srsym:=tsym(tprocdef(old_current_procinfo.procdef.genericdef).getsymtable(gs_local).find(result.procsym.name));
+                 srsym:=tsym(tprocdef(old_compiler.current_procinfo.procdef.genericdef).getsymtable(gs_local).find(result.procsym.name));
                  if not assigned(srsym) or (srsym.typ<>procsym) then
                    internalerror(2016121702);
                  { in practice the generic procdef should be at the same index
@@ -3044,7 +3055,7 @@ implementation
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
-         current_procinfo:=old_current_procinfo;
+         tcompiler(compiler).current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -3158,7 +3169,7 @@ implementation
         is_classdef:=false;
         hadgeneric:=false;
         repeat
-           if not assigned(current_procinfo) then
+           if not assigned(compiler.current_procinfo) then
              internalerror(200304251);
            case current_scanner.token of
               _LABEL:
@@ -3227,7 +3238,7 @@ implementation
               _EXPORTS:
                 begin
                    handle_unexpected_had_generic;
-                   if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
+                   if (compiler.current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         compiler.verbose.Message(parser_e_syntax_error);
                         parser.pbase.consume_all_until(_SEMICOLON);
@@ -3294,7 +3305,7 @@ implementation
          { add implementations for synthetic method declarations added by
            the compiler (not for unit/program init functions, their localst
            is the statistic -> would duplicate the work done in pmodules) }
-         if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
+         if (compiler.current_procinfo.procdef.localst.symtabletype=localsymtable) and
            { we cannot call add_synthetic_method_implementations as it throws an internalerror if
              the token is a string/char. As this is a syntax error and compilation will abort anyways,
              skipping the call does not matter
@@ -3302,12 +3313,12 @@ implementation
            (current_scanner.token<>_CSTRING) and
            (current_scanner.token<>_CWCHAR) and
            (current_scanner.token<>_CWSTRING) then
-           add_synthetic_method_implementations(current_procinfo.procdef.localst);
+           add_synthetic_method_implementations(compiler.current_procinfo.procdef.localst);
 
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in compiler.globals.current_settings.modeswitches) then
-           current_procinfo.procdef.localst.SymList.ForEachCall(@check_forward_class,nil);
+           compiler.current_procinfo.procdef.localst.SymList.ForEachCall(@check_forward_class,nil);
       end;
 
 

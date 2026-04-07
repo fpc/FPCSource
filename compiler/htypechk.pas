@@ -1304,8 +1304,8 @@ implementation
                          if assigned(hsym.owner) and
                             not(vo_is_external in hsym.varoptions) and
                             (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
-                            ((hsym.owner=current_procinfo.procdef.localst) or
-                             (hsym.owner=current_procinfo.procdef.parast)) then
+                            ((hsym.owner=compiler.current_procinfo.procdef.localst) or
+                             (hsym.owner=compiler.current_procinfo.procdef.parast)) then
                            begin
                              if vsf_use_hints in varstateflags then
                                include(tloadnode(p).loadnodeflags,loadnf_only_uninitialized_hint);
@@ -1430,11 +1430,11 @@ implementation
               class in which they have been declared (not in descendent constructors) }
             else if vs.varspez=vs_final then
               begin
-                if (current_procinfo.procdef.owner=vs.owner) then
+                if (compiler.current_procinfo.procdef.owner=vs.owner) then
                   if vs.typ=staticvarsym then
-                    result:=current_procinfo.procdef.proctypeoption=potype_class_constructor
+                    result:=compiler.current_procinfo.procdef.proctypeoption=potype_class_constructor
                   else
-                    result:=current_procinfo.procdef.proctypeoption=potype_constructor;
+                    result:=compiler.current_procinfo.procdef.proctypeoption=potype_constructor;
                 if not result and
                    report_errors then
                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_invalid_final_assignment);
@@ -1888,7 +1888,7 @@ implementation
              nothingn :
                begin
                  { generics can generate nothing nodes, just allow everything }
-                 if df_generic in current_procinfo.procdef.defoptions then
+                 if df_generic in compiler.current_procinfo.procdef.defoptions then
                    result:=true
                  else if report_errors then
                    compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
@@ -2310,19 +2310,19 @@ implementation
                 the presence of a messagestr/int, in which case those have to
                 match exactly }
               if cc_anoninherited in flags then
-                if po_msgint in current_procinfo.procdef.procoptions then
+                if po_msgint in compiler.current_procinfo.procdef.procoptions then
                   begin
                     if not(po_msgint in pd.procoptions) or
-                       (pd.messageinf.i<>current_procinfo.procdef.messageinf.i) then
+                       (pd.messageinf.i<>compiler.current_procinfo.procdef.messageinf.i) then
                       continue
                   end
-                else if po_msgstr in current_procinfo.procdef.procoptions then
+                else if po_msgstr in compiler.current_procinfo.procdef.procoptions then
                   begin
                     if not(po_msgstr in pd.procoptions) or
-                       (pd.messageinf.str^<>current_procinfo.procdef.messageinf.str^) then
+                       (pd.messageinf.str^<>compiler.current_procinfo.procdef.messageinf.str^) then
                       continue
                   end
-                else if (compare_paras(current_procinfo.procdef.paras,pd.paras,cp_all,[cpo_ignorehidden])<te_equal) then
+                else if (compare_paras(compiler.current_procinfo.procdef.paras,pd.paras,cp_all,[cpo_ignorehidden])<te_equal) then
                   continue;
               foundanything:=true;
               { Store first procsym found }

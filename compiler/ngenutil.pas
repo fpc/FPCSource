@@ -469,7 +469,7 @@ implementation
     var
       hp: tnode;
     begin
-      include(current_procinfo.flags,pi_needs_implicit_finally);
+      include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
       hp:=compiler.cloadnode(sym,sym.owner);
       if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
         include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
@@ -541,7 +541,7 @@ implementation
          { program init/final is generated in separate procedure }
          potype_proginit: ;
          else
-           current_procinfo.procdef.localst.SymList.ForEachCall(@sym_maybe_initialize,@stat);
+           compiler.current_procinfo.procdef.localst.SymList.ForEachCall(@sym_maybe_initialize,@stat);
       end;
     end;
 
@@ -549,11 +549,11 @@ implementation
   procedure tnodeutils.procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
     begin
       { no finalization in exceptfilters, they /are/ the finalization code }
-      if current_procinfo.procdef.proctypeoption=potype_exceptfilter then
+      if compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter then
           exit;
 
       { finalize local data like ansistrings}
-      case current_procinfo.procdef.proctypeoption of
+      case compiler.current_procinfo.procdef.proctypeoption of
          potype_unitfinalize:
            begin
              { insert class destructors  }
@@ -570,7 +570,7 @@ implementation
          { program init/final is generated in separate procedure }
          potype_proginit: ;
          else
-           current_procinfo.procdef.localst.SymList.ForEachCall(@local_varsyms_finalize,@stat);
+           compiler.current_procinfo.procdef.localst.SymList.ForEachCall(@local_varsyms_finalize,@stat);
       end;
     end;
 

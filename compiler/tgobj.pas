@@ -269,7 +269,7 @@ implementation
          bestslot:=nil;
          tl:=nil;
          bestatend:=false;
-         current_procinfo.updatestackalignment(alignment);
+         compiler.current_procinfo.updatestackalignment(alignment);
 
          if size=0 then
           begin
@@ -733,7 +733,7 @@ implementation
         t: treftemppos;
       begin
         t.val:=p^.pos;
-        reference_reset_base(ref,current_procinfo.framepointer,p^.pos,t,p^.alignment,[]);
+        reference_reset_base(ref,compiler.current_procinfo.framepointer,p^.pos,t,p^.alignment,[]);
       end;
 
 

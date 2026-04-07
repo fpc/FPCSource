@@ -570,14 +570,14 @@ implementation
                   { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
                   paraloc^.reference.index := NR_FRAME_POINTER_REG;
                   { create_paraloc_info_intern might be also called when being outside of
-                    code generation so current_procinfo might be not set }
+                    code generation so compiler.current_procinfo might be not set }
 {$ifdef RISCV64}
-                  if assigned(current_procinfo) then
-                    trv64procinfo(current_procinfo).needs_frame_pointer := true;
+                  if assigned(compiler.current_procinfo) then
+                    trv64procinfo(compiler.current_procinfo).needs_frame_pointer := true;
 {$endif RISCV64}
 {$ifdef RISCV32}
-                  if assigned(current_procinfo) then
-                    trv32procinfo(current_procinfo).needs_frame_pointer := true;
+                  if assigned(compiler.current_procinfo) then
+                    trv32procinfo(compiler.current_procinfo).needs_frame_pointer := true;
 {$endif RISCV32}
                 end;
               paraloc^.reference.offset := stack_offset;

@@ -360,7 +360,7 @@ interface
               expectloc:=LOC_FPUREGISTER;
 
             if compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
           end
         else
           result:=first_addfloat_soft;

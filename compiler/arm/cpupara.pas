@@ -336,7 +336,7 @@ unit cpupara;
         curfloatreg:=RS_F0;
         curmmreg:=RS_D0;
 
-        if (side=calleeside) and (GenerateThumbCode or (pi_estimatestacksize in current_procinfo.flags)) then
+        if (side=calleeside) and (GenerateThumbCode or (pi_estimatestacksize in compiler.current_procinfo.flags)) then
           cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size
         else
           cur_stack_offset:=0;
@@ -661,8 +661,8 @@ unit cpupara;
                  begin
                    if paraloc^.loc=LOC_REFERENCE then
                      begin
-                       paraloc^.reference.index:=current_procinfo.framepointer;
-                       if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+                       paraloc^.reference.index:=compiler.current_procinfo.framepointer;
+                       if compiler.current_procinfo.framepointer=NR_FRAME_POINTER_REG then
                          begin
                            { on non-Darwin, the framepointer contains the value
                              of the stack pointer on entry. On Darwin, the

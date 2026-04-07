@@ -97,8 +97,8 @@ unit cpupi;
           end
         else
           begin
-            if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
-               (tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0) then
+            if (compiler.current_procinfo.procdef.localst.symtabletype=localsymtable) and
+               (tabstractlocalsymtable(compiler.current_procinfo.procdef.localst).count_locals <> 0) then
               begin
                 { at 0(r1), the previous value of r1 will be stored }
                 tg.setfirsttemp(4);

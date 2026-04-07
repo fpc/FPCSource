@@ -1100,7 +1100,7 @@ Unit rawasmtext;
 
         { we might need to know which parameters are passed in registers }
         if not compiler.parser.pbase.parse_generic then
-          current_procinfo.generate_parameter_info;
+          compiler.current_procinfo.generate_parameter_info;
 
         { start tokenizer }
         gettoken;

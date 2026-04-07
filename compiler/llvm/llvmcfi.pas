@@ -83,49 +83,49 @@ unit llvmcfi;
 
     procedure tllvmcfi.start_frame(list: TAsmList);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.start_frame(list);
       end;
 
 
     procedure tllvmcfi.end_frame(list: TAsmList);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.end_frame(list);
       end;
 
 
     procedure tllvmcfi.outmost_frame(list: TAsmList);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.outmost_frame(list);
       end;
 
 
     procedure tllvmcfi.cfa_offset(list: TAsmList; reg: tregister; ofs: longint);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.cfa_offset(list, reg, ofs);
       end;
 
 
     procedure tllvmcfi.cfa_restore(list: TAsmList; reg: tregister);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.cfa_restore(list, reg);
       end;
 
 
     procedure tllvmcfi.cfa_def_cfa_register(list: TAsmList; reg: tregister);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.cfa_def_cfa_register(list, reg);
       end;
 
 
     procedure tllvmcfi.cfa_def_cfa_offset(list: TAsmList; ofs: longint);
       begin
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           fnativecfi.cfa_def_cfa_offset(list, ofs);
       end;
 

@@ -298,12 +298,14 @@ type
 
 
     function is_loop_invariant(loop : tnode;expr : tnode) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=is_constnode(expr);
         case expr.nodetype of
           loadn:
             begin
-              if (pi_dfaavailable in current_procinfo.flags) and
+              if (pi_dfaavailable in compiler.current_procinfo.flags) and
                 assigned(loop.optinfo) and
                 assigned(expr.optinfo) and
                 not(expr.isequal(tfornode(loop).left)) then
@@ -592,7 +594,7 @@ type
         newfor,oldn : tnode;
       begin
         { do we have DFA available? }
-        if pi_dfaavailable in current_procinfo.flags then
+        if pi_dfaavailable in compiler.current_procinfo.flags then
           begin
             CalcDefSum(tfornode(n).t2);
           end;
@@ -662,7 +664,7 @@ type
         ctx : toptimizeinductionvariablescontext;
       begin
         Result:=false;
-        if not(pi_dfaavailable in current_procinfo.flags) then
+        if not(pi_dfaavailable in compiler.current_procinfo.flags) then
           exit;
         ctx.Compiler:=Compiler;
         ctx.changedforloop:=false;
@@ -899,13 +901,13 @@ type
             RecordData.Fields:=nil;
             { Check to see if local record-types can have individual fields
               promoted to registers }
-            if current_procinfo.procdef.localst.symtabletype = localsymtable then
+            if compiler.current_procinfo.procdef.localst.symtabletype = localsymtable then
               begin
                 RecordData.Fields:=TLinkedList.Create;
-                SymCount:=current_procinfo.procdef.localst.SymList.Count-1;
+                SymCount:=compiler.current_procinfo.procdef.localst.SymList.Count-1;
                 for X:=0 to SymCount do
                   begin
-                    CurrentSym:=TSym(current_procinfo.procdef.localst.SymList[X]);
+                    CurrentSym:=TSym(compiler.current_procinfo.procdef.localst.SymList[X]);
                     if (CurrentSym.typ=localvarsym) and
                       { Don't optimise records whose address has been taken,
                         since there may be some multithreaded access going on }
@@ -930,10 +932,10 @@ type
                             { Make sure an absolute variable doesn't alias to it }
                             for Y:=0 to SymCount do
                               if (X<>Y) and
-                                (TSym(current_procinfo.procdef.localst.SymList[X]).typ=absolutevarsym) and
-                                (TAbsoluteVarSym(current_procinfo.procdef.localst.SymList[X]).abstyp=tovar) and
-                                (TAbsoluteVarSym(current_procinfo.procdef.localst.SymList[X]).ref.firstsym^.sltype=sl_load) and
-                                (TAbsoluteVarSym(current_procinfo.procdef.localst.SymList[X]).ref.firstsym^.sym=CurrentSym) then
+                                (TSym(compiler.current_procinfo.procdef.localst.SymList[X]).typ=absolutevarsym) and
+                                (TAbsoluteVarSym(compiler.current_procinfo.procdef.localst.SymList[X]).abstyp=tovar) and
+                                (TAbsoluteVarSym(compiler.current_procinfo.procdef.localst.SymList[X]).ref.firstsym^.sltype=sl_load) and
+                                (TAbsoluteVarSym(compiler.current_procinfo.procdef.localst.SymList[X]).ref.firstsym^.sym=CurrentSym) then
                                 begin
                                   { Don't take any chances }
                                   AbortRecord:=True;
@@ -1025,7 +1027,7 @@ type
                                   ),
                                   compiler.csubscriptnode(
                                     ThisTemp.Field,
-                                    compiler.cloadnode(ThisTemp.BaseSymbol,current_procinfo.procdef.localst)
+                                    compiler.cloadnode(ThisTemp.BaseSymbol,compiler.current_procinfo.procdef.localst)
                                   )
                                 );
                                 NewNode.fileinfo:=n.fileinfo;
@@ -1053,7 +1055,7 @@ type
                                 NewNode:=compiler.cassignmentnode(
                                   compiler.csubscriptnode(
                                     ThisTemp.Field,
-                                    compiler.cloadnode(ThisTemp.BaseSymbol,current_procinfo.procdef.localst)
+                                    compiler.cloadnode(ThisTemp.BaseSymbol,compiler.current_procinfo.procdef.localst)
                                   ),
                                   compiler.ctemprefnode(
                                     ThisTemp.TempCreate
@@ -1117,7 +1119,7 @@ type
             not(tabstractvarsym(tloadnode(tfornode(n).left).symtableentry).different_scope)) then
           begin
             { do we have DFA available? }
-            if pi_dfaavailable in current_procinfo.flags then
+            if pi_dfaavailable in compiler.current_procinfo.flags then
               begin
                 CalcUseSum(tfornode(n).t2);
                 CalcDefSum(tfornode(n).t2);
@@ -1164,7 +1166,7 @@ type
       begin
         ctx.compiler:=compiler;
         ctx.changedforloop:=false;
-        if pi_dfaavailable in current_procinfo.flags then
+        if pi_dfaavailable in compiler.current_procinfo.flags then
           foreachnodestatic(pm_postprocess,node,@OptimizeForLoop_iterforloops,@ctx);
         Result:=ctx.changedforloop;
       end;

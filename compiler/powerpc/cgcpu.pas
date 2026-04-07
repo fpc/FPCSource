@@ -127,9 +127,9 @@ const
         if compiler.target.info.system=system_powerpc_darwin then
           begin
 {
-            if pi_needs_got in current_procinfo.flags then
+            if pi_needs_got in compiler.current_procinfo.flags then
               begin
-                current_procinfo.got:=NR_R31;
+                compiler.current_procinfo.got:=NR_R31;
                 rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
                   [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                    RS_R9,RS_R10,RS_R11,RS_R12,RS_R30,RS_R29,
@@ -202,12 +202,12 @@ const
 {
        the compiler does not properly set this flag anymore in pass 1, and
        for now we only need it after pass 2 (I hope) (JM)
-         if not(pi_do_call in current_procinfo.flags) then
+         if not(pi_do_call in compiler.current_procinfo.flags) then
            internalerror(2003060703);
 }
        { not assigned while generating external wrappers }
-       if assigned(current_procinfo) then
-         include(current_procinfo.flags,pi_do_call);
+       if assigned(compiler.current_procinfo) then
+         include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
     { calling a procedure by address }
@@ -798,7 +798,7 @@ const
         firstregint := RS_NO;
         firstregfpu := RS_NO;
 
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             { save link register? }
             if save_lr_in_prologue then
@@ -837,12 +837,12 @@ const
                 end;
 *)
 
-            firstregfpu := tcpuprocinfo(current_procinfo).get_first_save_fpu_reg;
-            firstregint := tcpuprocinfo(current_procinfo).get_first_save_int_reg;
+            firstregfpu := tcpuprocinfo(compiler.current_procinfo).get_first_save_fpu_reg;
+            firstregint := tcpuprocinfo(compiler.current_procinfo).get_first_save_int_reg;
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
 
-             if tcpuprocinfo(current_procinfo).needs_frame_pointer then
+             if tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer then
                list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
         current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
@@ -895,11 +895,11 @@ const
 
 {        done in ncgutil because it may only be released after the parameters }
 {        have been moved to their final resting place                         }
-{        if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then }
+{        if (tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer) then }
 {          a_reg_dealloc(list,NR_R12); }
 
         if (not nostackframe) and
-           tcpuprocinfo(current_procinfo).needstackframe and
+           tcpuprocinfo(compiler.current_procinfo).needstackframe and
            (localsize <> 0) then
           begin
             if (localsize <= high(smallint)) then
@@ -931,7 +931,7 @@ const
           end;
 
         { save current RTOC for restoration after calls if necessary }
-        if (pi_do_call in current_procinfo.flags) and
+        if (pi_do_call in compiler.current_procinfo.flags) and
            (compiler.target.info.abi in abis_ppc_toc) then
           begin
             reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
@@ -969,22 +969,22 @@ const
 
         usesfpr:=false;
         usesgpr:=false;
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
+        if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
-            firstregfpu := tcpuprocinfo(current_procinfo).get_first_save_fpu_reg;
-            firstregint := tcpuprocinfo(current_procinfo).get_first_save_int_reg;
+            firstregfpu := tcpuprocinfo(compiler.current_procinfo).get_first_save_fpu_reg;
+            firstregint := tcpuprocinfo(compiler.current_procinfo).get_first_save_int_reg;
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
           end;
 
-        localsize:= tcpuprocinfo(current_procinfo).calc_stackframe_size;
+        localsize:= tcpuprocinfo(compiler.current_procinfo).calc_stackframe_size;
 
         { adjust r1 }
         { (register allocator is no longer valid at this time and an add of 0   }
         { is translated into a move, which is then registered with the register }
         { allocator, causing a crash                                            }
         if (not nostackframe) and
-           tcpuprocinfo(current_procinfo).needstackframe and
+           tcpuprocinfo(compiler.current_procinfo).needstackframe and
            (localsize <> 0) then
           a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
 
@@ -1030,7 +1030,7 @@ const
              r:=NR_R12;
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
-             if (pi_do_call in current_procinfo.flags) then
+             if (pi_do_call in compiler.current_procinfo.flags) then
                a_call_name(current_asmdata.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x',AT_FUNCTION))
              else
                { leaf node => lr haven't to be restored }
@@ -1044,9 +1044,9 @@ const
         if genret then
           begin
             { load link register? }
-            if not (po_assembler in current_procinfo.procdef.procoptions) then
+            if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
               begin
-                if (pi_do_call in current_procinfo.flags) then
+                if (pi_do_call in compiler.current_procinfo.flags) then
                   begin
                     case compiler.target.info.abi of
                       abi_powerpc_aix,
@@ -1095,7 +1095,7 @@ const
       usesfpr:=false;
       firstreggpr:=RS_NO;
       firstregfpu:=RS_NO;
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
             case compiler.target.info.abi of
@@ -1118,7 +1118,7 @@ const
            end;
         end;
       usesgpr:=false;
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
             if regcounter2 in rg[R_INTREGISTER].used_in_proc then
@@ -1179,7 +1179,7 @@ const
       firstreggpr:=RS_NO;
       firstregfpu:=RS_NO;
 
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
           case compiler.target.info.abi of
@@ -1203,7 +1203,7 @@ const
         end;
 
       usesgpr:=false;
-      if not (po_assembler in current_procinfo.procdef.procoptions) then
+      if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
             if regcounter2 in rg[R_INTREGISTER].used_in_proc then
@@ -1315,7 +1315,7 @@ const
         localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaSize, 16);
         inc(localsize,tg.lasttemp);
         localsize:=align(localsize,16);
-        //tcpuprocinfo(current_procinfo).localsize:=localsize;
+        //tcpuprocinfo(compiler.current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin
@@ -1336,7 +1336,7 @@ const
           end;
 
         { save current RTOC for restoration after calls if necessary }
-        if pi_do_call in current_procinfo.flags then
+        if pi_do_call in compiler.current_procinfo.flags then
           begin
             reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);

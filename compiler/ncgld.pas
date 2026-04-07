@@ -202,12 +202,12 @@ implementation
         rr.new := @newref;
         rr.ressym := nil;
 
-        if assigned(current_procinfo.procdef.funcretsym) and
-           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
-          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
+        if assigned(compiler.current_procinfo.procdef.funcretsym) and
+           (tabstractvarsym(compiler.current_procinfo.procdef.funcretsym).refs <> 0) then
+          if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
+            rr.ressym:=tsym(compiler.current_procinfo.procdef.parast.Find('self'))
          else
-            rr.ressym:=current_procinfo.procdef.funcretsym;
+            rr.ressym:=compiler.current_procinfo.procdef.funcretsym;
 
         { if source not found, don't do anything }
         if not foreachnodestatic(n,@doreplaceref,@rr) then
@@ -619,8 +619,8 @@ implementation
                         not(loadnf_inherited in loadnodeflags) and
                         not is_objectpascal_helper(procdef.struct) then
                        begin
-                         if (not assigned(current_procinfo) or
-                             compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                         if (not assigned(compiler.current_procinfo) or
+                             compiler.wpoinfomanager.symbol_live(compiler.current_procinfo.procdef.mangledname)) then
                            tobjectdef(procdef.struct).register_vmt_call(procdef.extnumber);
             {$ifdef vtentry}
                          if not is_interface(procdef.struct) then

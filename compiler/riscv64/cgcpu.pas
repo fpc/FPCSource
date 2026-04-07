@@ -180,10 +180,10 @@ implementation
                 reference_reset(hr,8,[]);
 
                 current_asmdata.getjumplabel(l);
-                current_procinfo.aktlocaldata.Concat(cai_align.Create(8));
-                a_label(current_procinfo.aktlocaldata,l);
-                hr.symboldata:=current_procinfo.aktlocaldata.last;
-                current_procinfo.aktlocaldata.concat(tai_const.Create_64bit(a));
+                compiler.current_procinfo.aktlocaldata.Concat(cai_align.Create(8));
+                a_label(compiler.current_procinfo.aktlocaldata,l);
+                hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_64bit(a));
 
                 hr.symbol:=l;
                 hr.refaddr:=addr_pcrel_hi20;
@@ -225,8 +225,8 @@ implementation
 
         { anybody wants to determine a good value here :)? }
         if (len > 100) and
-           assigned(current_procinfo) and
-           (pi_do_call in current_procinfo.flags) then
+           assigned(compiler.current_procinfo) and
+           (pi_do_call in compiler.current_procinfo.flags) then
           g_concatcopy_move(list, src2, dst2, len)
         else
         begin

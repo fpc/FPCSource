@@ -145,7 +145,7 @@ begin
   pass_1 := nil;
   expectloc:= LOC_REFERENCE;
   { here we call STRCONCAT or STRCMP or STRCOPY }
-  include(current_procinfo.flags,pi_do_call);
+  include(compiler.current_procinfo.flags,pi_do_call);
 end;
 
 function taddsstringoptnode.dogetcopy: tnode;

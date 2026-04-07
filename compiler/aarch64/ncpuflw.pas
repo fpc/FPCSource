@@ -166,9 +166,9 @@ constructor taarch64tryfinallynode.create(l, r: TNode;acompiler:TCompilerBase);
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-       not (df_generic in current_procinfo.procdef.defoptions) then
+       not (df_generic in compiler.current_procinfo.procdef.defoptions) then
       begin
-        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
+        finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
         { Regvar optimization for symbols is suppressed when using exceptions, but
@@ -182,10 +182,10 @@ constructor taarch64tryfinallynode.create_implicit(l, r: TNode;acompiler:TCompil
     inherited;
     if (compiler.target.info.system=system_aarch64_win64) then
       begin
-        if df_generic in current_procinfo.procdef.defoptions then
+        if df_generic in compiler.current_procinfo.procdef.defoptions then
           InternalError(2020033101);
 
-        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
+        finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         include(finalizepi.flags,pi_do_call);
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
@@ -211,7 +211,7 @@ function taarch64tryfinallynode.simplify(forinline: boolean): tnode;
               for later use. }
             if implicitframe then
               begin
-                current_procinfo.finalize_procinfo:=finalizepi;
+                compiler.current_procinfo.finalize_procinfo:=finalizepi;
               end;
           end;
       end;
@@ -255,7 +255,7 @@ procedure taarch64tryfinallynode.pass_generate_code;
       would be reraising it. Doing so is extremely inefficient with SEH
       (in contrast with setjmp/longjmp exception handling) }
     catch_frame:=implicitframe and
-      (current_procinfo.procdef.proccalloption=pocall_safecall);
+      (compiler.current_procinfo.procdef.proccalloption=pocall_safecall);
 
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
@@ -265,9 +265,9 @@ procedure taarch64tryfinallynode.pass_generate_code;
     current_asmdata.getjumplabel(endtrylabel);
     current_asmdata.getjumplabel(finallylabel);
     current_asmdata.getjumplabel(endfinallylabel);
-    oldexitlabel:=current_procinfo.CurrExitLabel;
+    oldexitlabel:=compiler.current_procinfo.CurrExitLabel;
     if implicitframe then
-      current_procinfo.CurrExitLabel:=finallylabel;
+      compiler.current_procinfo.CurrExitLabel:=finallylabel;
 
     { Start of scope }
     { Padding with NOP is necessary here because exceptions in called
@@ -314,7 +314,7 @@ procedure taarch64tryfinallynode.pass_generate_code;
           as end of scope and as unwind target. This way it is possible to
           encode everything into a single scope record. }
         cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
-        if (current_procinfo.procdef.proccalloption=pocall_safecall) then
+        if (compiler.current_procinfo.procdef.proccalloption=pocall_safecall) then
           begin
             handle_safecall_exception;
             cg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
@@ -350,17 +350,17 @@ procedure taarch64tryfinallynode.pass_generate_code;
       exit;
 
     { normal exit from safecall proc must zero the result register }
-    if implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall) then
+    if implicitframe and (compiler.current_procinfo.procdef.proccalloption=pocall_safecall) then
       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,NR_FUNCTION_RESULT_REG);
 
     cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { generate the scope record in .xdata }
-    tcpuprocinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
+    tcpuprocinfo(compiler.current_procinfo).add_finally_scope(trylabel,endtrylabel,
       current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
-      current_procinfo.CurrExitLabel:=oldexitlabel;
+      compiler.current_procinfo.CurrExitLabel:=oldexitlabel;
     flowcontrol:=oldflowcontrol;
   end;
 
@@ -373,7 +373,7 @@ function taarch64tryfinallynode.dogetcopy: tnode;
       begin
         n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
         n.finalizepi.force_nested;
-        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;
         n.finalizepi.entryswitches:=finalizepi.entryswitches;
         n.finalizepi.exitpos:=finalizepi.exitpos;
@@ -434,12 +434,12 @@ procedure taarch64tryexceptnode.pass_generate_code;
     oldendexceptlabel:=endexceptlabel;
 
     { save the old labels for control flow statements }
-    oldCurrExitLabel:=current_procinfo.CurrExitLabel;
+    oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
     current_asmdata.getjumplabel(exitexceptlabel);
-    if assigned(current_procinfo.CurrBreakLabel) then
+    if assigned(compiler.current_procinfo.CurrBreakLabel) then
       begin
-        oldContinueLabel:=current_procinfo.CurrContinueLabel;
-        oldBreakLabel:=current_procinfo.CurrBreakLabel;
+        oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
+        oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
         current_asmdata.getjumplabel(breakexceptlabel);
         current_asmdata.getjumplabel(continueexceptlabel);
       end;
@@ -469,11 +469,11 @@ procedure taarch64tryexceptnode.pass_generate_code;
 
     { set control flow labels for the except block }
     { and the on statements                        }
-    current_procinfo.CurrExitLabel:=exitexceptlabel;
+    compiler.current_procinfo.CurrExitLabel:=exitexceptlabel;
     if assigned(oldBreakLabel) then
       begin
-        current_procinfo.CurrContinueLabel:=continueexceptlabel;
-        current_procinfo.CurrBreakLabel:=breakexceptlabel;
+        compiler.current_procinfo.CurrContinueLabel:=continueexceptlabel;
+        compiler.current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
     flowcontrol:=[fc_inflowcontrol];
@@ -511,7 +511,7 @@ procedure taarch64tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
           end;
         { now move filter table to permanent list all at once }
-        current_procinfo.aktlocaldata.concatlist(hlist);
+        compiler.current_procinfo.aktlocaldata.concatlist(hlist);
         hlist.free;
       end;
 
@@ -560,18 +560,18 @@ procedure taarch64tryexceptnode.pass_generate_code;
 
     emit_nop;
     cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
-    tcpuprocinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
+    tcpuprocinfo(compiler.current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
 
 errorexit:
     { restore all saved labels }
     endexceptlabel:=oldendexceptlabel;
 
     { restore the control flow labels }
-    current_procinfo.CurrExitLabel:=oldCurrExitLabel;
+    compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
     if assigned(oldBreakLabel) then
       begin
-        current_procinfo.CurrContinueLabel:=oldContinueLabel;
-        current_procinfo.CurrBreakLabel:=oldBreakLabel;
+        compiler.current_procinfo.CurrContinueLabel:=oldContinueLabel;
+        compiler.current_procinfo.CurrBreakLabel:=oldBreakLabel;
       end;
 
     { return all used control flow statements }

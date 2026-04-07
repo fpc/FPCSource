@@ -285,7 +285,7 @@ begin
     else
       begin
         list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 end;
 
@@ -302,8 +302,8 @@ begin
     list.concat(taicpu.op_none(A_NOP));
 
   if (includeCall) and
-    assigned(current_procinfo) then
-    include(current_procinfo.flags, pi_do_call);
+    assigned(compiler.current_procinfo) then
+    include(compiler.current_procinfo.flags, pi_do_call);
 end;
 
 
@@ -354,7 +354,7 @@ begin
     reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
   end;
-  include(current_procinfo.flags, pi_do_call);
+  include(compiler.current_procinfo.flags, pi_do_call);
 end;
 
 {********************** load instructions ********************}
@@ -996,7 +996,7 @@ var
 begin
   fprcount := 0;
   firstfpr := RS_F31;
-  if not (po_assembler in current_procinfo.procdef.procoptions) then
+  if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
     for reg := RS_F14 to RS_F31 do
       if reg in rg[R_FPUREGISTER].used_in_proc then begin
         fprcount := ord(RS_F31)-ord(reg)+1;
@@ -1011,7 +1011,7 @@ var
 begin
   gprcount := 0;
   firstgpr := RS_R31;
-  if not (po_assembler in current_procinfo.procdef.procoptions) then
+  if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
     for reg := RS_R14 to RS_R31 do
       if reg in rg[R_INTREGISTER].used_in_proc then begin
         gprcount := ord(RS_R31)-ord(reg)+1;
@@ -1090,11 +1090,11 @@ end;
 
 procedure tcgppc.g_profilecode(list: TAsmList);
 begin
-  current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
+  compiler.current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
 
   a_call_name_direct(list, A_BL, '_mcount', false, false, true);
 
-  current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
+  compiler.current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
 end;
 
 { Generates the entry code of a procedure/function.
@@ -1188,7 +1188,7 @@ begin
     can do easily because R12 is guaranteed to hold the address of this function
     on entry. }
   if (compiler.target.info.abi=abi_powerpc_elfv2) and
-     (pi_needs_got in current_procinfo.flags) and
+     (pi_needs_got in compiler.current_procinfo.flags) and
      not nostackframe then
     begin
       current_asmdata.getlabel(lab,alt_addr);
@@ -1201,14 +1201,14 @@ begin
       list.concat(taicpu.op_reg_reg_ref(a_addis,NR_R2,NR_R12,href));
       href.refaddr:=addr_low;
       list.concat(taicpu.op_reg_reg_ref(a_addi,NR_R2,NR_R2,href));
-      procmangledname:=current_procinfo.procdef.mangledname;
+      procmangledname:=compiler.current_procinfo.procdef.mangledname;
       list.concat(tai_symbolpair.create(spk_localentry,procmangledname,procmangledname));
     end;
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
 
   { calculate real stack frame size }
-  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(compiler.current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
 
   { determine whether we need to save the link register }
@@ -1229,13 +1229,13 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
+  if (tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
   current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and
-     tcpuprocinfo(current_procinfo).needstackframe then begin
+     tcpuprocinfo(compiler.current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, ctempposinvalid, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
@@ -1267,7 +1267,7 @@ begin
   end;
 
   { save current RTOC for restoration after calls if necessary }
-  if (pi_do_call in current_procinfo.flags) and
+  if (pi_do_call in compiler.current_procinfo.flags) and
      (compiler.target.info.abi in abis_ppc_toc) and
      not nostackframe then
     begin
@@ -1376,19 +1376,19 @@ begin
   { determine whether we need to restore the link register }
   needslinkreg :=
     not(nostackframe) and
-    (((not (po_assembler in current_procinfo.procdef.procoptions)) and
-       ((pi_do_call in current_procinfo.flags) or (cs_profile in compiler.globals.init_settings.moduleswitches))) or
+    (((not (po_assembler in compiler.current_procinfo.procdef.procoptions)) and
+       ((pi_do_call in compiler.current_procinfo.flags) or (cs_profile in compiler.globals.init_settings.moduleswitches))) or
      ((cs_opt_size in compiler.globals.current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
      ([cs_lineinfo, cs_debuginfo] * compiler.globals.current_settings.moduleswitches <> []));
 
   { calculate stack frame }
-  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(compiler.current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
   { CR register not supported }
 
   { restore stack pointer }
   if (not nostackframe) and (localsize > 0) and
-    tcpuprocinfo(current_procinfo).needstackframe then begin
+    tcpuprocinfo(compiler.current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, localsize));
     end else begin

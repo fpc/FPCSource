@@ -105,30 +105,30 @@ interface
               begin
                 current_asmdata.getjumplabel(lastlabel);
                 lab_real:=lastlabel;
-                current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
-                location.reference.symboldata:=current_procinfo.aktlocaldata.last;
+                compiler.current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
+                location.reference.symboldata:=compiler.current_procinfo.aktlocaldata.last;
                 case realait of
                   aitrealconst_s32bit :
                     begin
-                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s32real(ts32real(value_real)));
+                      compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s32real(ts32real(value_real)));
                     end;
 
                   aitrealconst_s64bit :
                     begin
                       if hiloswapped then
-                        current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
+                        compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
                       else
-                        current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real(ts64real(value_real)));
+                        compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real(ts64real(value_real)));
                    end;
 
                   aitrealconst_s80bit :
                     begin
-                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
+                      compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
                     end;
 {$ifdef cpufloat128}
                   aitrealconst_s128bit :
                     begin
-                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s128real(value_real));
+                      compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s128real(value_real));
                     end;
 {$endif cpufloat128}
 
@@ -137,7 +137,7 @@ interface
                     if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
                       compiler.verbose.Message(parser_e_range_check_error)
                     else
-                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s64compreal(round(value_real)));
+                      compiler.current_procinfo.aktlocaldata.concat(tai_realconst.create_s64compreal(round(value_real)));
                 else
                   internalerror(2005092401);
                 end;

@@ -1915,10 +1915,10 @@ uses
                 the routine's local- or parasymtable so that they are correctly
                 registered should the specialization be finalized }
               specializest:=srsymtable
-            else if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+            else if assigned(compiler.current_procinfo) and (df_generic in compiler.current_procinfo.procdef.defoptions) then
               { if we are parsing the definition of a method we specialize into
                 the local symtable of it }
-              specializest:=current_procinfo.procdef.getsymtable(gs_local)
+              specializest:=compiler.current_procinfo.procdef.getsymtable(gs_local)
             else
               begin
                 if not assigned(current_genericdef) then
@@ -2027,10 +2027,10 @@ uses
                 old_current_specializedef:=nil;
                 old_current_genericdef:=nil;
                 old_current_structdef:=nil;
-                old_current_procinfo:=current_procinfo;
+                old_current_procinfo:=compiler.current_procinfo;
                 old_module_procinfo:=compiler.current_module.procinfo;
 
-                current_procinfo:=nil;
+                tcompiler(compiler).current_procinfo:=nil;
                 compiler.current_module.procinfo:=nil;
 
                 if parse_class_parent then
@@ -2240,7 +2240,7 @@ uses
                   end;
 
                 compiler.globals.block_type:=old_block_type;
-                current_procinfo:=old_current_procinfo;
+                tcompiler(compiler).current_procinfo:=old_current_procinfo;
                 compiler.current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
                   begin

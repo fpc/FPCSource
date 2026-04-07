@@ -1619,11 +1619,11 @@ implementation
          intrinsiccode:=Default(TInlineNumber);
          if assigned(current_structdef) and
             assigned(mp) and
-            assigned(current_procinfo) then
+            assigned(compiler.current_procinfo) then
            begin
             { only needed when calling a destructor from an exception block in a
               constructor of a TP-style object }
-            if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+            if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                (cnf_create_failed in callflags) then
               if is_object(current_structdef) then
                 call_vmt_node:=load_vmt_pointer_node
@@ -3350,11 +3350,11 @@ implementation
                       else
                         call afterconstruction but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
-                    if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
+                    if (compiler.current_procinfo.procdef.proctypeoption<>potype_constructor) then
                       vmttree:=compiler.cpointerconstnode(1,voidpointertype)
                     else
                       vmttree:=compiler.cpointerconstnode(0,voidpointertype)
-                  else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                  else if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
                     vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                   else
@@ -3384,7 +3384,7 @@ implementation
                     vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype)
                 else
                   begin
-                    if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                    if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
                        (methodpointer.nodetype=loadn) and
                        (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
@@ -3970,13 +3970,13 @@ implementation
                           else
                             begin
                               hiddentree:=compiler.cloadparentfpnode(tprocdef(procdefinition.owner.defowner),lpf_forpara);
-                              if is_nested_pd(current_procinfo.procdef) then
-                                current_procinfo.set_needs_parentfp(tprocdef(procdefinition.owner.defowner).parast.symtablelevel);
+                              if is_nested_pd(compiler.current_procinfo.procdef) then
+                                compiler.current_procinfo.set_needs_parentfp(tprocdef(procdefinition.owner.defowner).parast.symtablelevel);
                            end;
                         end
                       { exceptfilters called from main level are not owned }
                       else if procdefinition.proctypeoption=potype_exceptfilter then
-                        hiddentree:=compiler.cloadparentfpnode(current_procinfo.procdef,lpf_forpara)
+                        hiddentree:=compiler.cloadparentfpnode(compiler.current_procinfo.procdef,lpf_forpara)
                       else
                         internalerror(200309287);
                     end
@@ -4013,7 +4013,7 @@ implementation
           end;
         if (i>0) then
           begin
-            include(current_procinfo.flags,pi_calls_c_varargs);
+            include(compiler.current_procinfo.flags,pi_calls_c_varargs);
             varargsparas:=tvarargsparalist.create;
             pt:=tcallparanode(left);
             while assigned(pt) do
@@ -4296,7 +4296,7 @@ implementation
                         with generic types as arguments we don't complain in
                         the generic, but only during the specialization }
                       ignoregenericparacall:=false;
-                      if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+                      if assigned(compiler.current_procinfo) and (df_generic in compiler.current_procinfo.procdef.defoptions) then
                         begin
                           pt:=tcallparanode(left);
                           while assigned(pt) do
@@ -4414,9 +4414,9 @@ implementation
           end;
 
          { recursive call? }
-         if assigned(current_procinfo) and
-            (procdefinition=current_procinfo.procdef) then
-           include(current_procinfo.flags,pi_is_recursive);
+         if assigned(compiler.current_procinfo) and
+            (procdefinition=compiler.current_procinfo.procdef) then
+           include(compiler.current_procinfo.flags,pi_is_recursive);
 
          { handle predefined procedures }
          is_const:=(po_internconst in procdefinition.procoptions) and
@@ -4541,7 +4541,7 @@ implementation
            if (cnf_inherited in callnodeflags) and
               (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
               is_object(methodpointer.resultdef) and
-              not(current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) then
+              not(compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) then
             compiler.verbose.CGMessage(cg_w_member_cd_call_from_method);
 
            if methodpointer.nodetype<>typen then
@@ -4666,12 +4666,12 @@ implementation
         if assigned(call_vmt_node) then
           typecheckpass(call_vmt_node);
 
-        if assigned(current_procinfo) and
+        if assigned(compiler.current_procinfo) and
             (procdefinition.typ=procdef) and
-            (procdefinition.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
+            (procdefinition.parast.symtablelevel<=compiler.current_procinfo.procdef.parast.symtablelevel) and
             (procdefinition.parast.symtablelevel>normal_function_level) and
-            (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-          current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,procdefinition,fileinfo);
+            (compiler.current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
+          compiler.current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,procdefinition,fileinfo);
         maybe_reset_para_callnode;
       end;
 
@@ -4859,7 +4859,7 @@ implementation
                   begin
                     if loc^.loc=LOC_REFERENCE then
                       begin
-                        include(current_procinfo.flags,pi_has_stackparameter);
+                        include(compiler.current_procinfo.flags,pi_has_stackparameter);
                         exit;
                        end;
                       loc:=loc^.next;
@@ -5081,7 +5081,7 @@ implementation
 
          { the return value might be stored on the current stack by allocating a temp. }
          if not(paramanager.ret_in_param(procdefinition.returndef,procdefinition)) then
-           inc(current_procinfo.estimatedtempsize,procdefinition.returndef.size);
+           inc(compiler.current_procinfo.estimatedtempsize,procdefinition.returndef.size);
 
          { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
          maybe_create_funcret_node;
@@ -5105,11 +5105,11 @@ implementation
          { If a constructor calls another constructor of the same or of an
            inherited class, some targets (jvm) have to generate different
            entry code for the constructor. }
-         if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+         if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
             (procdefinition.typ=procdef) and
             (tprocdef(procdefinition).proctypeoption=potype_constructor) and
             ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
-           current_procinfo.ConstructorCallingConstructor:=true;
+           compiler.current_procinfo.ConstructorCallingConstructor:=true;
 
          mark_unregable_parameters;
 
@@ -5123,7 +5123,7 @@ implementation
            pushedparasize:=procdefinition.callerargareasize;
 
          { record maximum parameter size used in this proc }
-         current_procinfo.allocate_push_parasize(pushedparasize);
+         compiler.current_procinfo.allocate_push_parasize(pushedparasize);
 
          { check for stacked parameters }
          if assigned(left) and
@@ -5153,7 +5153,7 @@ implementation
            firstpass(tnode(callcleanupblock));
 
          if not (compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
-           include(current_procinfo.flags,pi_do_call);
+           include(compiler.current_procinfo.flags,pi_do_call);
 
          { order parameters }
          order_parameters;

@@ -79,7 +79,7 @@ function tppccallnode.pass_1: tnode;
       call an external routine (because the lookup of the target address is
       TOC-based). Maybe needs to be extended to non-ELFv2 too }
     if compiler.target.info.abi=abi_powerpc_elfv2 then
-      include(current_procinfo.flags,pi_needs_got);
+      include(compiler.current_procinfo.flags,pi_needs_got);
   end;
 
 

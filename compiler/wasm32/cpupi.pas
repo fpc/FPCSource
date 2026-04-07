@@ -168,7 +168,7 @@ implementation
         otherunit: boolean;
       begin
         paraloc1.init(compiler.target);
-        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
                     (cs_imported_data in compiler.globals.current_settings.localswitches) and
@@ -252,7 +252,7 @@ implementation
         otherunit: boolean;
       begin
         paraloc1.init(compiler.target);
-        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
                     (cs_imported_data in compiler.globals.current_settings.localswitches) and
@@ -335,7 +335,7 @@ implementation
         otherunit: boolean;
       begin
         paraloc1.init(compiler.target);
-        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
                     (cs_imported_data in compiler.globals.current_settings.localswitches) and
@@ -527,7 +527,7 @@ implementation
 
     procedure tcpuprocinfo.generate_exit_label(list: tasmlist);
       begin
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
+        if not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           list.concat(taicpu.op_none(a_end_block));
         inherited generate_exit_label(list);
       end;
@@ -569,7 +569,7 @@ implementation
                   instr:=taicpu(hp);
                   for l:=0 to instr.ops-1 do
                     if (instr.oper[l]^.typ=top_reg) and (instr.oper[l]^.reg=NR_LOCAL_FRAME_POINTER_REG) then
-                      instr.loadref(l,tcpuprocdef(current_procinfo.procdef).frame_pointer_ref);
+                      instr.loadref(l,tcpuprocdef(compiler.current_procinfo.procdef).frame_pointer_ref);
                 end;
               hp:=tai(hp.Next);
             end;

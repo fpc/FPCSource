@@ -228,8 +228,6 @@ unit procinfo;
 
     var
        cprocinfo : tcprocinfo;
-       { information about the current sub routine being parsed (@var(pprocinfo))}
-       current_procinfo : tprocinfo;
 
 implementation
 

@@ -2283,7 +2283,7 @@ implementation
           pd.forwarddef:=false;
           pd.aliasnames.insert(pd.mangledname);
           compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_impl);
-          { set procinfo and current_procinfo.procdef }
+          { set procinfo and compiler.current_procinfo.procdef }
           pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
           pi.procdef:=pd;
           { we always do a call, namely to the constructor }

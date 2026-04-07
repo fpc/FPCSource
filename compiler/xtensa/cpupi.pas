@@ -158,7 +158,7 @@ unit cpupi;
             inc(stackframesize,4*4);
 
             { additional spill area? }
-            if pi_do_call in current_procinfo.flags then
+            if pi_do_call in compiler.current_procinfo.flags then
               inc(stackframesize,maxcall*4);
 
             stackframesize:=Align(stackframesize,compiler.target.info.alignment.localalignmax);
@@ -173,7 +173,7 @@ unit cpupi;
       begin
         if pi_estimatestacksize in flags then
           begin
-            if pi_do_call in current_procinfo.flags then
+            if pi_do_call in compiler.current_procinfo.flags then
               extra:=maxcall*4+4*4
             else
               extra:=4*4;

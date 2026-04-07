@@ -643,7 +643,7 @@ unit rgobj;
         generate_interference_graph(list,headertai);
 {$ifdef DEBUG_SPILLCOALESCE}
         if maxreg>first_imaginary then
-          writeln(current_procinfo.procdef.mangledname, ': register allocation [',regtype,']');
+          writeln(compiler.current_procinfo.procdef.mangledname, ': register allocation [',regtype,']');
 {$endif DEBUG_SPILLCOALESCE}
 {$ifdef DEBUG_REGALLOC}
         if maxreg>first_imaginary then
@@ -781,9 +781,9 @@ unit rgobj;
     var f:text;
         i,j:cardinal;
     begin
-      assign(f,compiler.globals.outputunitdir+current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
+      assign(f,compiler.globals.outputunitdir+compiler.current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
       rewrite(f);
-      writeln(f,'Interference graph of ',current_procinfo.procdef.fullprocname(true));
+      writeln(f,'Interference graph of ',compiler.current_procinfo.procdef.fullprocname(true));
       writeln(f,'Register type: ',regtype,', First imaginary register is ',first_imaginary,' ($',hexstr(first_imaginary,2),')');
       writeln(f);
       write(f,'                                   ');
@@ -2468,7 +2468,7 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
-        compiler.globals.current_filepos:=current_procinfo.exitpos;
+        compiler.globals.current_filepos:=compiler.current_procinfo.exitpos;
       end;
 
 
@@ -2638,7 +2638,7 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
-        compiler.globals.current_filepos:=current_procinfo.exitpos;
+        compiler.globals.current_filepos:=compiler.current_procinfo.exitpos;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do
@@ -3121,7 +3121,7 @@ unit rgobj;
         if spillingcounter>0 then
           begin
             d:=(1.0-spill_weight/all_weight)*100.0;
-            writeln(current_procinfo.procdef.mangledname,' [',regtype,']: spill stats: NUM: ',spillingcounter, ', EFF: ',d:4:1,'%');
+            writeln(compiler.current_procinfo.procdef.mangledname,' [',regtype,']: spill stats: NUM: ',spillingcounter, ', EFF: ',d:4:1,'%');
           end;
       end;
 {$endif DEBUG_SPILLCOALESCE}

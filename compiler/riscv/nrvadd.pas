@@ -307,7 +307,7 @@ implementation
           begin
             if left.resultdef.typ=floatdef then
               if compiler.globals.needs_check_for_fpu_exceptions then
-                Include(current_procinfo.flags,pi_do_call);
+                Include(compiler.current_procinfo.flags,pi_do_call);
           end;
 
         if expectloc=LOC_FLAGS then

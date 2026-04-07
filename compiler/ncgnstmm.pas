@@ -62,11 +62,11 @@ implementation
       begin
         result:=inherited;
         if assigned(result) or
-           (assigned(current_procinfo) and
-            (df_generic in current_procinfo.procdef.defoptions)) then
+           (assigned(compiler.current_procinfo) and
+            (df_generic in compiler.current_procinfo.procdef.defoptions)) then
           exit;
-        currpi:=current_procinfo.parent;
-        { current_procinfo.parent is not assigned for specialised generic routines in the
+        currpi:=compiler.current_procinfo.parent;
+        { compiler.current_procinfo.parent is not assigned for specialised generic routines in the
           top-level scope }
         while assigned(currpi) and
               (currpi.procdef.parast.symtablelevel>=parentpd.parast.symtablelevel) do
@@ -77,7 +77,7 @@ implementation
           end;
         { mark all parent parentfp parameters for inclusion in the struct that
           holds all locals accessed from nested routines }
-        currpi:=current_procinfo.parent;
+        currpi:=compiler.current_procinfo.parent;
         if assigned(currpi) then
           begin
             nextpi:=currpi.parent;
@@ -105,22 +105,22 @@ implementation
           nested routine does nothing for which it needs the nestedfp pointer
           of the current routine (and hence it has not been moved into the
           nestedfp struct), get the original nestedfp parameter }
-        useparentfppara:=not assigned(current_procinfo.procdef.parentfpstruct);
-        hsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
-        if current_procinfo.procdef.parast.symtablelevel>parentpd.parast.symtablelevel then
+        useparentfppara:=not assigned(compiler.current_procinfo.procdef.parentfpstruct);
+        hsym:=tparavarsym(compiler.current_procinfo.procdef.parast.Find('parentfp'));
+        if compiler.current_procinfo.procdef.parast.symtablelevel>parentpd.parast.symtablelevel then
           useparentfppara:=
             useparentfppara or
-            (find_sym_in_parentfpstruct(current_procinfo.procdef,hsym)=nil);
+            (find_sym_in_parentfpstruct(compiler.current_procinfo.procdef,hsym)=nil);
         if useparentfppara then
           begin
             result:=compiler.cloadnode(hsym,hsym.owner);
-            currpi:=current_procinfo.parent;
+            currpi:=compiler.current_procinfo.parent;
           end
         else
           begin
-            result:=compiler.caddrnode_internal(compiler.cloadnode(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
+            result:=compiler.caddrnode_internal(compiler.cloadnode(compiler.current_procinfo.procdef.parentfpstruct,compiler.current_procinfo.procdef.parentfpstruct.owner));
             include(taddrnode(result).addrnodeflags,anf_typedaddr);
-            currpi:=current_procinfo;
+            currpi:=compiler.current_procinfo;
           end;
         { follow the chain of parentfpstructs until we arrive at the one we
           need }

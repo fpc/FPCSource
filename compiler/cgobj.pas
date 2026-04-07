@@ -2805,9 +2805,9 @@ implementation
         regs_to_save_address,
         regs_to_save_mm : tcpuregisterarray;
       begin
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
-        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption);
         { calculate temp. size }
         size:=0;
         for r:=low(regs_to_save_int) to high(regs_to_save_int) do
@@ -2833,11 +2833,11 @@ implementation
 
         if size>0 then
           begin
-            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
-            include(current_procinfo.flags,pi_has_saved_regs);
+            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,compiler.current_procinfo.save_regs_ref);
+            include(compiler.current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
-            href:=current_procinfo.save_regs_ref;
+            href:=compiler.current_procinfo.save_regs_ref;
             for r:=low(regs_to_save_int) to high(regs_to_save_int) do
               begin
                 if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
@@ -2847,7 +2847,7 @@ implementation
                     include(rg[R_INTREGISTER].preserved_by_proc,regs_to_save_int[r]);
                   end;
               end;
-            current_procinfo.saved_regs_int := rg[R_INTREGISTER].preserved_by_proc;
+            compiler.current_procinfo.saved_regs_int := rg[R_INTREGISTER].preserved_by_proc;
 
             if uses_registers(R_ADDRESSREGISTER) then
               begin
@@ -2861,7 +2861,7 @@ implementation
                       end;
                   end;
 
-                current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
+                compiler.current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
               end;
 
             if uses_registers(R_MMREGISTER) then
@@ -2886,7 +2886,7 @@ implementation
                       end;
                   end;
 
-                current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
+                compiler.current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
               end;
           end;
       end;
@@ -2901,13 +2901,13 @@ implementation
         regs_to_save_address,
         regs_to_save_mm : tcpuregisterarray;
       begin
-        if not(pi_has_saved_regs in current_procinfo.flags) then
+        if not(pi_has_saved_regs in compiler.current_procinfo.flags) then
           exit;
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
-        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption);
         { Copy registers from temp }
-        href:=current_procinfo.save_regs_ref;
+        href:=compiler.current_procinfo.save_regs_ref;
         for r:=low(regs_to_save_int) to high(regs_to_save_int) do
           if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -2946,7 +2946,7 @@ implementation
                   end;
               end;
           end;
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+        tg.UnGetTemp(list,compiler.current_procinfo.save_regs_ref);
       end;
 
 
@@ -3180,7 +3180,7 @@ implementation
 
     procedure tcg.maybe_check_for_fpu_exception(list: TAsmList);
       begin
-        current_procinfo.FPUExceptionCheckNeeded:=true;
+        compiler.current_procinfo.FPUExceptionCheckNeeded:=true;
         g_check_for_fpu_exception(list,false,true);
       end;
 

@@ -188,7 +188,7 @@ implementation
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
             first_abs_real:=nil;
           end;
       end;
@@ -219,7 +219,7 @@ implementation
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
             first_sqr_real:=nil;
           end;
       end;
@@ -250,7 +250,7 @@ implementation
             end;
             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
             first_sqrt_real := nil;
           end;
       end;
@@ -264,7 +264,7 @@ implementation
              Result:=nil;
              if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
                compiler.globals.needs_check_for_fpu_exceptions then
-               Include(current_procinfo.flags,pi_do_call);
+               Include(compiler.current_procinfo.flags,pi_do_call);
            end
          else
            Result:=inherited first_fma;

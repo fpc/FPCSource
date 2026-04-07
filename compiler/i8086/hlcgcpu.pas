@@ -302,7 +302,7 @@ implementation
               ref.segment:=cg.GetNextReg(reg)
             else
               if reg<>NR_NO then
-                if (reg=current_procinfo.framepointer) or (reg=NR_SP) then
+                if (reg=compiler.current_procinfo.framepointer) or (reg=NR_SP) then
                   ref.segment:=NR_SS
                 else
                   internalerror(2020072401);

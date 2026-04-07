@@ -1690,8 +1690,8 @@ Implementation
     begin
       Result := NR_NO;
       RegSet :=
-        paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption) +
-        current_procinfo.saved_regs_int;
+        paramanager.get_volatile_registers_int(compiler.current_procinfo.procdef.proccalloption) +
+        compiler.current_procinfo.saved_regs_int;
 (*
       { Don't use the frame register unless explicitly allowed (fixes i40111) }
       if ([cs_useebp, cs_userbp] * compiler.globals.current_settings.optimizerswitches) = [] then

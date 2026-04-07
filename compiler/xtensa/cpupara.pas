@@ -157,7 +157,7 @@ unit cpupara;
                 begin
                   curintreg:=RS_A2;
                   maxintreg:=RS_A7;
-                  if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                  if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                     cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size;
                 end
               else
@@ -171,7 +171,7 @@ unit cpupara;
             begin
               curintreg:=RS_A2;
               maxintreg:=RS_A7;
-              if (side=calleeside) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              if (side=calleeside) and (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) then
                 cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size;
             end;
           else
@@ -445,7 +445,7 @@ unit cpupara;
                  if side = callerside then
                    paraloc^.reference.index:=NR_STACK_POINTER_REG
                  else
-                   paraloc^.reference.index:=current_procinfo.framepointer;
+                   paraloc^.reference.index:=compiler.current_procinfo.framepointer;
 
                  cur_stack_offset:=align(cur_stack_offset,paradef.alignment);
                  paraloc^.reference.offset:=cur_stack_offset;

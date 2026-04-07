@@ -628,7 +628,7 @@ implementation
           begin
             toloc:=fromloc;
             if (fromloc.reference.base<>NR_NO) and
-               (fromloc.reference.base<>current_procinfo.framepointer) and
+               (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
               g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
             case fromloc.reference.arrayreftype of
@@ -1584,7 +1584,7 @@ implementation
       list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
       { we insert the unit initialisation code afterwards in the proginit code,
         and it uses one stack slot }
-      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+      if (compiler.current_procinfo.procdef.proctypeoption=potype_proginit) then
         fmaxevalstackheight:=max(1,fmaxevalstackheight);
       list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
     end;
@@ -1594,10 +1594,10 @@ implementation
       retdef: tdef;
       opc: tasmop;
     begin
-      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
+      if compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
         retdef:=voidtype
       else
-        retdef:=current_procinfo.procdef.returndef;
+        retdef:=compiler.current_procinfo.procdef.returndef;
       case retdef.typ of
         orddef:
           case torddef(retdef).ordtype of
@@ -1630,7 +1630,7 @@ implementation
   procedure thlcgjvm.gen_load_return_value(list: TAsmList);
     begin
       { constructors don't return anything in the jvm }
-      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
+      if compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
         exit;
       inherited gen_load_return_value(list);
     end;
@@ -1868,7 +1868,7 @@ implementation
       ref: treference;
     begin
       { create globals with wrapped types such as arrays/records  }
-      case current_procinfo.procdef.proctypeoption of
+      case compiler.current_procinfo.procdef.proctypeoption of
         potype_unitinit:
           begin
             cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
@@ -1882,7 +1882,7 @@ implementation
             inherited;
             { initialise class fields }
             cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
-            allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
+            allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(compiler.current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
           end
         else
           inherited
@@ -2414,7 +2414,7 @@ implementation
       i: longint;
       needinit: boolean;
     begin
-      obj:=tabstractrecorddef(current_procinfo.procdef.owner.defowner);
+      obj:=tabstractrecorddef(compiler.current_procinfo.procdef.owner.defowner);
       { check whether there are any fields that need initialisation }
       needinit:=false;
       for i:=0 to obj.symtable.symlist.count-1 do
@@ -2432,7 +2432,7 @@ implementation
         end;
       if not needinit then
         exit;
-      selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));
+      selfpara:=tparavarsym(compiler.current_procinfo.procdef.parast.find('self'));
       if not assigned(selfpara) then
         internalerror(2011033002);
       selfreg:=getaddressregister(list,selfpara.vardef);

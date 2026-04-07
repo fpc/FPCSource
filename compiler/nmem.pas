@@ -339,7 +339,7 @@ implementation
         inherited create(loadparentfpn,nil,acompiler);
         if not assigned(pd) then
           internalerror(200309288);
-        if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
+        if (pd.parast.symtablelevel>compiler.current_procinfo.procdef.parast.symtablelevel) then
           internalerror(200309284);
         parentpd:=pd;
         kind:=fpkind;

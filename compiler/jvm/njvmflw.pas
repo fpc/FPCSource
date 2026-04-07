@@ -371,17 +371,17 @@ implementation
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
-         oldCurrExitLabel:=current_procinfo.CurrExitLabel;
+         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
          current_asmdata.getjumplabel(exitfinallylabel);
-         current_procinfo.CurrExitLabel:=exitfinallylabel;
-         if assigned(current_procinfo.CurrBreakLabel) then
+         compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
+         if assigned(compiler.current_procinfo.CurrBreakLabel) then
           begin
-            oldContinueLabel:=current_procinfo.CurrContinueLabel;
-            oldBreakLabel:=current_procinfo.CurrBreakLabel;
+            oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
+            oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
             current_asmdata.getjumplabel(breakfinallylabel);
             current_asmdata.getjumplabel(continuefinallylabel);
-            current_procinfo.CurrContinueLabel:=continuefinallylabel;
-            current_procinfo.CurrBreakLabel:=breakfinallylabel;
+            compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
+            compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
 
          { allocate reg to store the reason why the finally block was entered
@@ -500,11 +500,11 @@ implementation
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
-         current_procinfo.CurrExitLabel:=oldCurrExitLabel;
-         if assigned(current_procinfo.CurrBreakLabel) then
+         compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
+         if assigned(compiler.current_procinfo.CurrBreakLabel) then
           begin
-            current_procinfo.CurrContinueLabel:=oldContinueLabel;
-            current_procinfo.CurrBreakLabel:=oldBreakLabel;
+            compiler.current_procinfo.CurrContinueLabel:=oldContinueLabel;
+            compiler.current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
          flowcontrol:=oldflowcontrol+(tryflowcontrol-[fc_inflowcontrol]);
       end;

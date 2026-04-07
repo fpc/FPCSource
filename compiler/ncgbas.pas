@@ -303,7 +303,7 @@ interface
          if not (asmnf_has_registerlist in asmnodeflags) then
            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
 
-         if (po_inline in current_procinfo.procdef.procoptions) then
+         if (po_inline in compiler.current_procinfo.procdef.procoptions) then
            begin
              hp:=tai(p_asm.first);
              while assigned(hp) do
@@ -409,9 +409,9 @@ interface
                       { Handle references to locals from TP-style INLINE(). }
                       if assigned(sym) and (sym.bind=AB_NONE) then
                         begin
-                          vs:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find(sym.Name));
+                          vs:=tabstractnormalvarsym(compiler.current_procinfo.procdef.parast.Find(sym.Name));
                           if not assigned(vs) then
-                            vs:=tabstractnormalvarsym(current_procinfo.procdef.localst.Find(sym.Name));
+                            vs:=tabstractnormalvarsym(compiler.current_procinfo.procdef.localst.Find(sym.Name));
                           if not assigned(vs) then
                             Internalerror(2021081401);
                           if vs.localloc.loc<>LOC_REFERENCE then
@@ -456,8 +456,8 @@ interface
         { replace exitlabel? }
         if nf_block_with_exit in flags then
           begin
-            oldexitlabel:=current_procinfo.CurrExitLabel;
-            current_asmdata.getjumplabel(current_procinfo.CurrExitLabel);
+            oldexitlabel:=compiler.current_procinfo.CurrExitLabel;
+            current_asmdata.getjumplabel(compiler.current_procinfo.CurrExitLabel);
             oldflowcontrol:=flowcontrol;
             { the nested block will not span an exit statement of the parent }
             exclude(flowcontrol,fc_exit);
@@ -483,8 +483,8 @@ interface
         { write exitlabel }
         if nf_block_with_exit in flags then
           begin
-            cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
-            current_procinfo.CurrExitLabel:=oldexitlabel;
+            cg.a_label(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel);
+            compiler.current_procinfo.CurrExitLabel:=oldexitlabel;
             { the exit statements inside this block are not exit statements }
             { out of the parent                                             }
             flowcontrol:=oldflowcontrol+(flowcontrol - [fc_exit,fc_no_direct_exit]);
@@ -658,7 +658,7 @@ interface
           LOC_REGISTER:
             begin
               if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
+                 (pi_has_label in compiler.current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
@@ -723,7 +723,7 @@ interface
           LOC_FPUREGISTER:
             begin
               if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
+                 (pi_has_label in compiler.current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
@@ -738,7 +738,7 @@ interface
           LOC_MMREGISTER:
             begin
               if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
+                 (pi_has_label in compiler.current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }

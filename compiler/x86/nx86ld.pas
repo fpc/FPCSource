@@ -101,9 +101,9 @@ implementation
                       end;
                     tlsm_global_dynamic:
                       begin
-                        include(current_procinfo.flags,pi_needs_got);
+                        include(compiler.current_procinfo.flags,pi_needs_got);
                         reference_reset(href,0,[]);
-                        location.reference.index:=current_procinfo.got;
+                        location.reference.index:=compiler.current_procinfo.got;
                         location.reference.scalefactor:=1;
                         location.reference.refaddr:=addr_tlsgd;
                         cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);

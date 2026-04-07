@@ -142,7 +142,7 @@ unit cgcpu;
         if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI],first_int_imreg,[RS_BP],compiler)
         else
-          if (cs_useebp in compiler.globals.current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_BP) then
+          if (cs_useebp in compiler.globals.current_settings.optimizerswitches) and assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer<>NR_BP) then
             rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_BX,RS_SI,RS_DI,RS_BP],first_int_imreg,[],compiler)
           else
             rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_BX,RS_SI,RS_DI],first_int_imreg,[RS_BP],compiler);
@@ -153,10 +153,10 @@ unit cgcpu;
 
     procedure tcg8086.do_register_allocation(list:TAsmList;headertai:tai);
       begin
-        if (tf_pic_uses_got in compiler.target.info.flags) and (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in compiler.target.info.flags) and (pi_needs_got in compiler.current_procinfo.flags) then
           begin
-            if getsupreg(current_procinfo.got) < first_int_imreg then
-              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+            if getsupreg(compiler.current_procinfo.got) < first_int_imreg then
+              include(rg[R_INTREGISTER].used_in_proc,getsupreg(compiler.current_procinfo.got));
           end;
         inherited do_register_allocation(list,headertai);
       end;
@@ -1759,7 +1759,7 @@ unit cgcpu;
           begin
             { Notify the register allocator that we have written a move instruction so
               it can try to eliminate it. }
-            if (instr.oper[0]^.reg<>current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
+            if (instr.oper[0]^.reg<>compiler.current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
               add_move_instruction(instr);
             list.concat(instr);
           end;
@@ -1901,7 +1901,7 @@ unit cgcpu;
           begin
             { Notify the register allocator that we have written a move instruction so
               it can try to eliminate it. }
-            if (instr.oper[0]^.reg<>current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
+            if (instr.oper[0]^.reg<>compiler.current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
               add_move_instruction(instr);
             list.concat(instr);
           end;
@@ -2400,7 +2400,7 @@ unit cgcpu;
         begin
           if sp_moved then
             exit;
-          if not(pi_has_open_array_parameter in current_procinfo.flags) then
+          if not(pi_has_open_array_parameter in compiler.current_procinfo.flags) then
             exit;
           { Restore SP position before SP change }
           if compiler.globals.current_settings.x86memorymodel=mm_huge then
@@ -2411,7 +2411,7 @@ unit cgcpu;
         end;
 
       begin
-        if is_proc_far(current_procinfo.procdef) then
+        if is_proc_far(compiler.current_procinfo.procdef) then
           ret_instr:=A_RETF
         else
           ret_instr:=A_RET;
@@ -2424,15 +2424,15 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
-            stacksize:=current_procinfo.calc_stackframe_size;
+            stacksize:=compiler.current_procinfo.calc_stackframe_size;
             if (compiler.target.info.stackalign>4) and
                ((stacksize <> 0) or
-                (pi_do_call in current_procinfo.flags) or
+                (pi_do_call in compiler.current_procinfo.flags) or
                 { can't detect if a call in this case -> use nostackframe }
                 { if you (think you) know what you are doing              }
-                (po_assembler in current_procinfo.procdef.procoptions)) then
+                (po_assembler in compiler.current_procinfo.procdef.procoptions)) then
               stacksize := align(stacksize+sizeof(aint),compiler.target.info.stackalign) - sizeof(aint);
-            if (po_exports in current_procinfo.procdef.procoptions) and
+            if (po_exports in compiler.current_procinfo.procdef.procoptions) and
                (compiler.target.info.system=system_i8086_win16) then
               begin
                 maybe_move_sp;
@@ -2440,32 +2440,32 @@ unit cgcpu;
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
               end;
             if ((compiler.globals.current_settings.x86memorymodel=mm_huge) and
-                not (po_interrupt in current_procinfo.procdef.procoptions)) or
-               ((po_exports in current_procinfo.procdef.procoptions) and
+                not (po_interrupt in compiler.current_procinfo.procdef.procoptions)) or
+               ((po_exports in compiler.current_procinfo.procdef.procoptions) and
                 (compiler.target.info.system=system_i8086_win16)) then
               begin
                 maybe_move_sp;
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
               end;
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 if (stacksize<>0) then
-                  a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,compiler.current_procinfo.framepointer);
               end
             else
               begin
                 generate_leave(list);
                 if ((ts_x86_far_procs_push_odd_bp in compiler.globals.current_settings.targetswitches) or
-                    ((po_exports in current_procinfo.procdef.procoptions) and
+                    ((po_exports in compiler.current_procinfo.procdef.procoptions) and
                      (compiler.target.info.system=system_i8086_win16))) and
-                    is_proc_far(current_procinfo.procdef) then
-                  a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
+                    is_proc_far(compiler.current_procinfo.procdef) then
+                  a_op_const_reg(list,OP_SUB,OS_ADDR,1,compiler.current_procinfo.framepointer);
               end;
-            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+            list.concat(tai_regalloc.dealloc(compiler.current_procinfo.framepointer,nil));
           end;
 
         { return from interrupt }
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if po_interrupt in compiler.current_procinfo.procdef.procoptions then
           begin
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_ES));
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
@@ -2478,7 +2478,7 @@ unit cgcpu;
             list.concat(Taicpu.Op_none(A_IRET,S_NO));
           end
         { Routines with the poclearstack flag set use only a ret }
-        else if (current_procinfo.procdef.proccalloption in clearstack_pocalls) and
+        else if (compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls) and
                 (not paramanager.use_fixed_stack)  then
          begin
            { complex return values are removed from stack in C code PM }
@@ -2486,10 +2486,10 @@ unit cgcpu;
            { and not for safecall with hidden exceptions, because the result }
            { which contains the exception is passed in EAX }
            if (compiler.target.info.system <> system_i386_win32) and
-              not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
+              not ((compiler.current_procinfo.procdef.proccalloption = pocall_safecall) and
                (tf_safecall_exceptions in compiler.target.info.flags)) and
-              paramanager.ret_in_param(current_procinfo.procdef.returndef,
-                                       current_procinfo.procdef) then
+              paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,
+                                       compiler.current_procinfo.procdef) then
              list.concat(Taicpu.Op_const(ret_instr,S_W,sizeof(aint)))
            else
              list.concat(Taicpu.Op_none(ret_instr,S_NO));
@@ -2519,7 +2519,7 @@ unit cgcpu;
         list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
         { Now DI contains (high+1). }
 
-        include(current_procinfo.flags, pi_has_open_array_parameter);
+        include(compiler.current_procinfo.flags, pi_has_open_array_parameter);
 
         { special case handling for elesize=2:
           set CX = (high+1) instead of CX = (high+1)*elesize.

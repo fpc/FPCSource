@@ -148,7 +148,7 @@ unit cgexcept;
         result:=
           (exceptframekind=tek_implicitfinally) and
           not((tf_safecall_exceptions in compiler.target.info.flags) and
-             (current_procinfo.procdef.proccalloption=pocall_safecall));
+             (compiler.current_procinfo.procdef.proccalloption=pocall_safecall));
       end;
 
     {  Allocate the buffers for exception management and setjmp environment.
@@ -328,7 +328,7 @@ unit cgexcept;
         otherunit: boolean;
       begin
         paraloc1.init(compiler.target);
-        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
                     (cs_imported_data in compiler.globals.current_settings.localswitches) and

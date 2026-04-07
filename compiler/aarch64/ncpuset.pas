@@ -286,7 +286,7 @@ implementation
               will occur, but also full 64-bit references to avoid problems with
               relative references }
             sectype:=sec_rodata;
-            new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),sizeof(aint));
+            new_section(compiler.current_procinfo.aktlocaldata,sectype,lower(compiler.current_procinfo.procdef.mangledname),sizeof(aint));
           end
         else
           begin
@@ -307,18 +307,18 @@ implementation
                   same subsection that contains the routine's code }
                 sectype:=sec_code;
               end;
-            new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
+            new_section(compiler.current_procinfo.aktlocaldata,sectype,compiler.current_procinfo.procdef.mangledname,4);
           end;
         if compiler.target.info.system in systems_darwin then
           begin
             { additionally, these tables are now marked via ".data_region jt32"
               and ".end_data_region" }
-            current_procinfo.aktlocaldata.concat(tai_directive.Create(asd_data_region,'jt32'));
+            compiler.current_procinfo.aktlocaldata.concat(tai_directive.Create(asd_data_region,'jt32'));
           end;
-        current_procinfo.aktlocaldata.concat(Tai_label.Create(tablelabel));
-        genitem(current_procinfo.aktlocaldata,hp);
+        compiler.current_procinfo.aktlocaldata.concat(Tai_label.Create(tablelabel));
+        genitem(compiler.current_procinfo.aktlocaldata,hp);
         if compiler.target.info.system in systems_darwin then
-          current_procinfo.aktlocaldata.concat(tai_directive.Create(asd_end_data_region,''));
+          compiler.current_procinfo.aktlocaldata.concat(tai_directive.Create(asd_end_data_region,''));
       end;
 
 

@@ -117,16 +117,16 @@ implementation
         inc(lasttemp);
         { allocation for the temp -- should have lineinfo of the start of the
           routine }
-        if assigned(current_procinfo) then
+        if assigned(compiler.current_procinfo) then
           begin
             oldfileinfo:=compiler.globals.current_filepos;
-            compiler.globals.current_filepos:=current_procinfo.entrypos;
+            compiler.globals.current_filepos:=compiler.current_procinfo.entrypos;
           end
         else
           { avoid uninitialised warning later }
           oldfileinfo.line:=0;
         alloclist.concat(taillvm.op_ref_size(la_alloca,ref,def));
-        if assigned(current_procinfo) then
+        if assigned(compiler.current_procinfo) then
           compiler.globals.current_filepos:=oldfileinfo;
       end;
 

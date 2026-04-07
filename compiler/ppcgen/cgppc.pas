@@ -174,8 +174,8 @@ unit cgppc;
     function tcgppcgen.save_lr_in_prologue: boolean;
       begin
         result:=
-        (not (po_assembler in current_procinfo.procdef.procoptions) and
-         ((pi_do_call in current_procinfo.flags) or
+        (not (po_assembler in compiler.current_procinfo.procdef.procoptions) and
+         ((pi_do_call in compiler.current_procinfo.flags) or
           (cs_profile in compiler.globals.init_settings.moduleswitches)))  or
         ([cs_lineinfo,cs_debuginfo] * compiler.globals.current_settings.moduleswitches <> []);
       end;
@@ -261,10 +261,10 @@ unit cgppc;
          cond: tasmcond;
         savedlr: boolean;
       begin
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
-               (pi_needs_got in current_procinfo.flags) then
+               (pi_needs_got in compiler.current_procinfo.flags) then
               case compiler.target.info.system of
                 system_powerpc_darwin,
                 system_powerpc64_darwin:
@@ -276,17 +276,17 @@ unit cgppc;
                     cond.simple:=false;
                     cond.bo:=20;
                     cond.bi:=31;
-                    instr:=taicpu.op_sym(A_BCL,current_procinfo.CurrGOTLabel);
+                    instr:=taicpu.op_sym(A_BCL,compiler.current_procinfo.CurrGOTLabel);
                     instr.setcondition(cond);
                     list.concat(instr);
-                    a_label(list,current_procinfo.CurrGOTLabel);
-                    a_reg_alloc(list,current_procinfo.got);
-                    list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
+                    a_label(list,compiler.current_procinfo.CurrGOTLabel);
+                    a_reg_alloc(list,compiler.current_procinfo.got);
+                    list.concat(taicpu.op_reg_reg(A_MFSPR,compiler.current_procinfo.got,NR_LR));
                     if not savedlr or
                        { in the following case lr is saved, but not restored }
                        { (happens e.g. when generating debug info for leaf   }
                        { procedures)                                         }
-                       not(pi_do_call in current_procinfo.flags) then
+                       not(pi_do_call in compiler.current_procinfo.flags) then
                       list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
                   end;
                 else
@@ -507,7 +507,7 @@ unit cgppc;
             reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,ctempposinvalid,sizeof(pint),[]);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
           end;
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -898,9 +898,9 @@ unit cgppc;
         exit;
       if (ref.base=NR_STACK_POINTER_REG) or
          (ref.index=NR_STACK_POINTER_REG) or
-         (assigned(current_procinfo) and
-          ((ref.base=current_procinfo.framepointer) or
-           (ref.index=current_procinfo.framepointer))) then
+         (assigned(compiler.current_procinfo) and
+          ((ref.base=compiler.current_procinfo.framepointer) or
+           (ref.index=compiler.current_procinfo.framepointer))) then
         exit;
       if assigned(ref.symbol) or
          (ref.offset<>0) or
@@ -1017,12 +1017,12 @@ unit cgppc;
               end
             else
               begin
-                include(current_procinfo.flags,pi_needs_got);
+                include(compiler.current_procinfo.flags,pi_needs_got);
                 tmpreg := getaddressregister(list);
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,tmpreg);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,compiler.current_procinfo.got,tmpreg);
                 if assigned(ref.relsymbol) then
                   internalerror(2007093501);
-                ref.relsymbol := current_procinfo.CurrGOTLabel;
+                ref.relsymbol := compiler.current_procinfo.CurrGOTLabel;
               end;
             if (ref.base = NR_NO) then
               ref.base := tmpreg
@@ -1042,7 +1042,7 @@ unit cgppc;
            (assigned(ref.symbol) and
             not assigned(ref.relsymbol)) then
           begin
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
             tmpreg := load_got_symbol(list, ref.symbol.name, asmsym2indsymflags(ref.symbol));
             if (ref.base = NR_NO) then
               ref.base := tmpreg

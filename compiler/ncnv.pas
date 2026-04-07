@@ -2576,7 +2576,7 @@ implementation
                               { we can't use the captured symbol for the struct as that
                                 might be the self of a type helper, thus we need to find
                                 the parent procinfo that provides the Self }
-                              tprocdef(pd).struct:=current_procinfo.get_normal_proc.procdef.struct;
+                              tprocdef(pd).struct:=compiler.current_procinfo.get_normal_proc.procdef.struct;
                             if not assigned(tprocdef(pd).struct) then
                               internalerror(2021062204);
 
@@ -2601,8 +2601,8 @@ implementation
                               internalerror(2021062202);
 
                             { the anonymous function can only be a direct child of the
-                              current_procinfo }
-                            pi:=current_procinfo.get_first_nestedproc;
+                              compiler.current_procinfo }
+                            pi:=compiler.current_procinfo.get_first_nestedproc;
                             while assigned(pi) do
                               begin
                                 if pi.procdef=pd then
@@ -2676,7 +2676,7 @@ implementation
                         tloadnode(left).left:=compiler.cloadparentfpnode(tprocdef(tloadnode(left).symtable.defowner),lpf_forload);
                         typecheckpass(tloadnode(left).left);
 
-                        pi:=current_procinfo.get_first_nestedproc;
+                        pi:=compiler.current_procinfo.get_first_nestedproc;
                         while assigned(pi) do
                           begin
                             if pi.procdef=pd then
@@ -2738,7 +2738,7 @@ implementation
             hp := nil;
           end;
 
-        intfdef:=compiler.procdefutil.capturer_add_procvar_or_proc(current_procinfo,left,capturer,hp);
+        intfdef:=compiler.procdefutil.capturer_add_procvar_or_proc(compiler.current_procinfo,left,capturer,hp);
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
@@ -2770,7 +2770,7 @@ implementation
         intfdef : tdef;
         ldnode : tnode;
       begin
-        intfdef:=compiler.procdefutil.capturer_add_anonymous_proc(current_procinfo,tprocdef(left.resultdef),capturer);
+        intfdef:=compiler.procdefutil.capturer_add_anonymous_proc(compiler.current_procinfo,tprocdef(left.resultdef),capturer);
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
@@ -2983,7 +2983,7 @@ implementation
 
               te_convert_operator :
                 begin
-                  include(current_procinfo.flags,pi_do_call);
+                  include(compiler.current_procinfo.flags,pi_do_call);
                   addsymref(aprocdef.procsym,aprocdef);
                   hp:=compiler.ccallnode(compiler.ccallparanode(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
                   { tell explicitly which def we must use !! (PM) }
@@ -3933,7 +3933,7 @@ implementation
       begin
          first_char_to_string:=nil;
          if tstringdef(resultdef).stringtype=st_shortstring then
-           inc(current_procinfo.estimatedtempsize,256);
+           inc(compiler.current_procinfo.estimatedtempsize,256);
          expectloc:=LOC_REFERENCE;
       end;
 
@@ -4249,7 +4249,7 @@ implementation
               not (po_anonymous in tprocdef(left.resultdef).procoptions) or
               (po_delphi_nested_cc in tprocvardef(resultdef).procoptions)
             ) then
-           include(current_procinfo.flags,pi_needs_stackframe);
+           include(compiler.current_procinfo.flags,pi_needs_stackframe);
          if tabstractprocdef(resultdef).is_addressonly then
            expectloc:=LOC_REGISTER
          else

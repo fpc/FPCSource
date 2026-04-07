@@ -1666,7 +1666,7 @@ Unit raz80asm;
                     end;
                    if GotOffset then
                     begin
-                      if oper.hasvar and (oper.opr.ref.base=current_procinfo.framepointer) then
+                      if oper.hasvar and (oper.opr.ref.base=compiler.current_procinfo.framepointer) then
                        begin
                          if (oper.opr.typ=OPR_REFERENCE) then
                            oper.opr.ref.base:=NR_NO;
@@ -2376,7 +2376,7 @@ Unit raz80asm;
 
         { we might need to know which parameters are passed in registers }
         if not compiler.parser.pbase.parse_generic then
-          current_procinfo.generate_parameter_info;
+          compiler.current_procinfo.generate_parameter_info;
 
         { start tokenizer }
         gettoken;
@@ -2509,7 +2509,7 @@ Unit raz80asm;
         if lastsectype<>sec_code then
           begin
             //compiler.verbose.Message(asmr_w_assembler_code_not_returned_to_text);
-            new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
+            new_section(curList,sec_code,lower(compiler.current_procinfo.procdef.mangledname),0);
           end;
         { check that all referenced local labels are defined }
         checklocallabels;

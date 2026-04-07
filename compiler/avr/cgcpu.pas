@@ -375,7 +375,7 @@ unit cgcpu;
         else
           list.concat(taicpu.op_sym(A_RCALL,sym));
 
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -389,7 +389,7 @@ unit cgcpu;
         a_reg_dealloc(list,NR_ZHI);
         a_reg_dealloc(list,NR_ZLO);
 
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -2450,29 +2450,29 @@ unit cgcpu;
          regs : tcpuregisterset;
          reg : tsuperregister;
       begin
-        if current_procinfo.procdef.isempty then
+        if compiler.current_procinfo.procdef.isempty then
           exit;
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
+        if (po_interrupt in compiler.current_procinfo.procdef.procoptions) and
           (not nostackframe) then
           begin
             { check if the framepointer is actually used, this is done here because
               we have to know the size of the locals (must be 0), avr does not know
               an sp based stack }
 
-            if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
+            if not(compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
               (localsize=0) then
-              current_procinfo.framepointer:=NR_NO;
+              compiler.current_procinfo.framepointer:=NR_NO;
 
             { save int registers,
               but only if the procedure returns }
-            if not(po_noreturn in current_procinfo.procdef.procoptions) then
+            if not(po_noreturn in compiler.current_procinfo.procdef.procoptions) then
               regs:=rg[R_INTREGISTER].used_in_proc
             else
               regs:=[];
             { if the framepointer is potentially used, save it always because we need a proper stack frame,
               even if the procedure never returns, the procedure could be e.g. a nested one accessing
               an outer stackframe }
-            if current_procinfo.framepointer<>NR_NO then
+            if compiler.current_procinfo.framepointer<>NR_NO then
               regs:=regs+[RS_R28,RS_R29];
 
             { we clear r1 }
@@ -2481,7 +2481,7 @@ unit cgcpu;
             regs:=regs+[getsupreg(GetDefaultTmpReg)];
 
             if compiler.globals.current_settings.cputype=cpu_avr1 then
-              compiler.verbose.Message1(cg_w_interrupt_does_not_save_registers,current_procinfo.procdef.fullprocname(false))
+              compiler.verbose.Message1(cg_w_interrupt_does_not_save_registers,compiler.current_procinfo.procdef.fullprocname(false))
             else
               begin
                 for reg:=RS_R31 downto RS_R0 do
@@ -2497,7 +2497,7 @@ unit cgcpu;
 
             list.concat(taicpu.op_reg(A_CLR,GetDefaultZeroReg));
 
-            if current_procinfo.framepointer<>NR_NO then
+            if compiler.current_procinfo.framepointer<>NR_NO then
               begin
                 getcpuregister(list,NR_R28);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
@@ -2512,27 +2512,27 @@ unit cgcpu;
               we have to know the size of the locals (must be 0), avr does not know
               an sp based stack }
 
-            if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
+            if not(compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
               (localsize=0) then
-              current_procinfo.framepointer:=NR_NO;
+              compiler.current_procinfo.framepointer:=NR_NO;
 
             { save int registers,
               but only if the procedure returns }
-            if not(po_noreturn in current_procinfo.procdef.procoptions) then
+            if not(po_noreturn in compiler.current_procinfo.procdef.procoptions) then
               regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)
             else
               regs:=[];
             { if the framepointer is potentially used, save it always because we need a proper stack frame,
               even if the procedure never returns, the procedure could be e.g. a nested one accessing
               an outer stackframe }
-            if current_procinfo.framepointer<>NR_NO then
+            if compiler.current_procinfo.framepointer<>NR_NO then
               regs:=regs+[RS_R28,RS_R29];
 
             for reg:=RS_R31 downto RS_R0 do
               if reg in regs then
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
-            if current_procinfo.framepointer<>NR_NO then
+            if compiler.current_procinfo.framepointer<>NR_NO then
               begin
                 getcpuregister(list,NR_R28);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
@@ -2553,18 +2553,18 @@ unit cgcpu;
         { every byte counts for avr, so if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
         }
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if po_interrupt in compiler.current_procinfo.procdef.procoptions then
           begin
-            if not(current_procinfo.procdef.isempty) and
+            if not(compiler.current_procinfo.procdef.isempty) and
               (not nostackframe) then
               begin
                 regs:=rg[R_INTREGISTER].used_in_proc;
-                if current_procinfo.framepointer<>NR_NO then
+                if compiler.current_procinfo.framepointer<>NR_NO then
                   begin
                     regs:=regs+[RS_R28,RS_R29];
-                    LocalSize:=current_procinfo.calc_stackframe_size;
+                    LocalSize:=compiler.current_procinfo.calc_stackframe_size;
                     a_adjust_sp(list,LocalSize);
                   end;
 
@@ -2589,13 +2589,13 @@ unit cgcpu;
               end;
             list.concat(taicpu.op_none(A_RETI));
           end
-        else if not(nostackframe) and not(current_procinfo.procdef.isempty) then
+        else if not(nostackframe) and not(compiler.current_procinfo.procdef.isempty) then
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            if current_procinfo.framepointer<>NR_NO then
+            if compiler.current_procinfo.framepointer<>NR_NO then
               begin
                 regs:=regs+[RS_R28,RS_R29];
-                LocalSize:=current_procinfo.calc_stackframe_size;
+                LocalSize:=compiler.current_procinfo.calc_stackframe_size;
                 a_adjust_sp(list,LocalSize);
               end;
             for reg:=RS_R0 to RS_R31 do

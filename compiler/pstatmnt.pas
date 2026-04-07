@@ -491,7 +491,7 @@ implementation
                        }
                        if (
                            (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                           (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                           (tloadnode(hp).symtable.symtablelevel=compiler.current_procinfo.procdef.parast.symtablelevel)
                           ) and
                           (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
                           ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
@@ -681,7 +681,7 @@ implementation
          maybe_call_procvar(p,false);
 
          if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) or
-           ((p.resultdef.typ=undefineddef) and (df_generic in current_procinfo.procdef.defoptions)) then
+           ((p.resultdef.typ=undefineddef) and (df_generic in compiler.current_procinfo.procdef.defoptions)) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -690,8 +690,8 @@ implementation
             hp:=skip_nodes_before_load(p);
             if (hp.nodetype=loadn) and
                (
-                (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
-                (tloadnode(hp).symtable=current_procinfo.procdef.parast) or
+                (tloadnode(hp).symtable=compiler.current_procinfo.procdef.localst) or
+                (tloadnode(hp).symtable=compiler.current_procinfo.procdef.parast) or
                 (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
                ) and
                { MacPas objects are mapped to classes, and the MacPas compilers
@@ -805,7 +805,7 @@ implementation
                 end;
               undefineddef :
                 begin
-                   if not(df_generic in current_procinfo.procdef.defoptions) then
+                   if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                      internalerror(2012122802);
                    helperdef:=nil;
                    { push record symtable }
@@ -908,7 +908,7 @@ implementation
               if (compiler.globals.block_type<>bt_except) then
                 compiler.verbose.Message(parser_e_no_reraise_possible);
            end;
-         if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
+         if (po_noreturn in compiler.current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
            compiler.verbose.Message(parser_e_raise_with_noreturn_not_allowed);
          p:=compiler.craisenode(pobj,paddr,pframe);
          raise_statement:=p;
@@ -1046,7 +1046,7 @@ implementation
                                sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create(compiler);
-                          excepTSymtable.defowner:=current_procinfo.procdef;
+                          excepTSymtable.defowner:=compiler.current_procinfo.procdef;
                           excepTSymtable.insertsym(sym);
                           compiler.symtablestack.push(excepTSymtable);
                        end
@@ -1147,20 +1147,20 @@ implementation
            compiler.verbose.Message(parser_f_assembler_reader_not_supported);
 
          { Mark procedure that it has assembler blocks }
-         include(current_procinfo.flags,pi_has_assembler_block);
+         include(compiler.current_procinfo.flags,pi_has_assembler_block);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
          { We assume the function result is always used in the TP mode }
          if (m_tp7 in compiler.globals.current_settings.modeswitches) and
-            not (po_assembler in current_procinfo.procdef.procoptions) and
-            assigned(current_procinfo.procdef.funcretsym) then
-           current_procinfo.procdef.funcretsym.IncRefCount;
+            not (po_assembler in compiler.current_procinfo.procdef.procoptions) and
+            assigned(compiler.current_procinfo.procdef.funcretsym) then
+           compiler.current_procinfo.procdef.funcretsym.IncRefCount;
 {$endif}
          { Read first the _ASM statement }
          parser.pbase.consume(_ASM);
 
          { Force an empty register list for pure assembler routines,
            so that pass2 won't allocate volatile registers for them. }
-         if (po_assembler in current_procinfo.procdef.procoptions) then
+         if (po_assembler in compiler.current_procinfo.procdef.procoptions) then
            Include(asmstat.asmnodeflags,asmnf_has_registerlist);
 
          { END is read, got a list of changed registers? }
@@ -1168,7 +1168,7 @@ implementation
            begin
              if current_scanner.token<>_RECKKLAMMER then
               begin
-                if po_assembler in current_procinfo.procdef.procoptions then
+                if po_assembler in compiler.current_procinfo.procdef.procoptions then
                   compiler.verbose.Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
@@ -1185,7 +1185,7 @@ implementation
 {$endif defined(RISCV)}
                   if reg<>NR_NO then
                     begin
-                      if not(po_assembler in current_procinfo.procdef.procoptions) and assigned(hl) then
+                      if not(po_assembler in compiler.current_procinfo.procdef.procoptions) and assigned(hl) then
                         begin
                           hl.Insert(tai_regalloc.alloc(reg,nil));
                           hl.Insert(tai_regalloc.markused(reg));
@@ -1370,10 +1370,10 @@ implementation
         hl.insert(tai_marker.create(mark_asmblockstart));
         hl.concat(tai_marker.create(mark_asmblockend));
         { Mark procedure that it has assembler blocks }
-        include(current_procinfo.flags,pi_has_assembler_block);
+        include(compiler.current_procinfo.flags,pi_has_assembler_block);
         { Assume the function result is always used }
-        if assigned(current_procinfo.procdef.funcretsym) then
-          current_procinfo.procdef.funcretsym.IncRefCount;
+        if assigned(compiler.current_procinfo.procdef.funcretsym) then
+          compiler.current_procinfo.procdef.funcretsym.IncRefCount;
         result:=asmstat;
       end;
 
@@ -1446,14 +1446,14 @@ implementation
                      else
                        begin
                          { goto outside the current scope? }
-                         if srsym.owner<>current_procinfo.procdef.localst then
+                         if srsym.owner<>compiler.current_procinfo.procdef.localst then
                            begin
                              { allowed? }
                              if not(m_non_local_goto in compiler.globals.current_settings.modeswitches) then
                                compiler.verbose.Message(parser_e_goto_outside_proc);
-                             include(current_procinfo.flags,pi_has_global_goto);
-                             if is_nested_pd(current_procinfo.procdef) then
-                               current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
+                             include(compiler.current_procinfo.flags,pi_has_global_goto);
+                             if is_nested_pd(compiler.current_procinfo.procdef) then
+                               compiler.current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
                            end;
                          code:=compiler.cgotonode(tlabelsym(srsym),compiler.globals.current_exceptblock);
                          tgotonode(code).labelsym:=tlabelsym(srsym);
@@ -1491,7 +1491,7 @@ implementation
              code:=compiler.cnothingnode;
            _FAIL :
              begin
-                if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
+                if (compiler.current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   compiler.verbose.Message(parser_e_fail_only_in_constructor);
                 parser.pbase.consume(_FAIL);
                 code:=compiler.nodeutils.call_fail_node;
@@ -1551,8 +1551,8 @@ implementation
                      compiler.verbose.Message(sym_e_label_already_defined);
                    if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
-                       include(current_procinfo.flags,pi_has_interproclabel);
-                       if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                       include(compiler.current_procinfo.flags,pi_has_interproclabel);
+                       if (compiler.current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
                          compiler.verbose.Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                      end;
 
@@ -1702,27 +1702,27 @@ implementation
            compiler.verbose.Message(parser_e_no_assembler_in_generic);
 
          { Rename the funcret so that recursive calls are possible }
-         if not is_void(current_procinfo.procdef.returndef) then
+         if not is_void(compiler.current_procinfo.procdef.returndef) then
            begin
-             srsym:=TSym(current_procinfo.procdef.localst.Find(current_procinfo.procdef.procsym.name));
+             srsym:=TSym(compiler.current_procinfo.procdef.localst.Find(compiler.current_procinfo.procdef.procsym.name));
              if assigned(srsym) then
                srsym.realname:='$hiddenresult';
            end;
 
          { delphi uses register calling for assembler methods }
          if (m_delphi in compiler.globals.current_settings.modeswitches) and
-            (po_assembler in current_procinfo.procdef.procoptions) and
-            not(po_hascallingconvention in current_procinfo.procdef.procoptions) then
-           current_procinfo.procdef.proccalloption:=pocall_register;
+            (po_assembler in compiler.current_procinfo.procdef.procoptions) and
+            not(po_hascallingconvention in compiler.current_procinfo.procdef.procoptions) then
+           compiler.current_procinfo.procdef.proccalloption:=pocall_register;
 
          { force the asm statement }
          if current_scanner.token<>_ASM then
            parser.pbase.consume(_ASM);
-         include(current_procinfo.flags,pi_is_assembler);
+         include(compiler.current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
 {$if not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
-         if (po_assembler in current_procinfo.procdef.procoptions) then
+         if (po_assembler in compiler.current_procinfo.procdef.procoptions) then
            begin
              { set the framepointer to esp for assembler functions when the
                following conditions are met:
@@ -1732,19 +1732,19 @@ implementation
                - target processor has optional frame pointer save
                  (vm, i386, vm only currently)
              }
-             locals:=tabstractlocalsymtable(current_procinfo.procdef.parast).count_locals;
-             if (current_procinfo.procdef.localst.symtabletype=localsymtable) then
-               inc(locals,tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals);
+             locals:=tabstractlocalsymtable(compiler.current_procinfo.procdef.parast).count_locals;
+             if (compiler.current_procinfo.procdef.localst.symtabletype=localsymtable) then
+               inc(locals,tabstractlocalsymtable(compiler.current_procinfo.procdef.localst).count_locals);
              if (locals=0) and
-                not (current_procinfo.procdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                (not assigned(current_procinfo.procdef.funcretsym) or
-                 (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
-                not (df_generic in current_procinfo.procdef.defoptions) and
-                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
+                not (compiler.current_procinfo.procdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                (not assigned(compiler.current_procinfo.procdef.funcretsym) or
+                 (tabstractvarsym(compiler.current_procinfo.procdef.funcretsym).refs<=1)) and
+                not (df_generic in compiler.current_procinfo.procdef.defoptions) and
+                not(paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef)) then
                begin
                  { Only need to set the framepointer, the locals will
                    be inserted with the correct reference in tcgasmnode.pass_generate_code }
-                 current_procinfo.framepointer:=NR_STACK_POINTER_REG;
+                 compiler.current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
 {$endif not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) not(defined(mipsel))}
@@ -1752,10 +1752,10 @@ implementation
         { Flag the result as assigned when it is returned in a
           register.
         }
-        if assigned(current_procinfo.procdef.funcretsym) and
-            not (df_generic in current_procinfo.procdef.defoptions) and
-           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
-          tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
+        if assigned(compiler.current_procinfo.procdef.funcretsym) and
+            not (df_generic in compiler.current_procinfo.procdef.defoptions) and
+           (not paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef)) then
+          tabstractvarsym(compiler.current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }

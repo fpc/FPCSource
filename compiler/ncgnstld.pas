@@ -93,8 +93,8 @@ implementation
       begin
         result:=inherited pass_typecheck;
         if assigned(result) or
-           (assigned(current_procinfo) and
-            (df_generic in current_procinfo.procdef.defoptions)) then
+           (assigned(compiler.current_procinfo) and
+            (df_generic in compiler.current_procinfo.procdef.defoptions)) then
           exit;
         case symtableentry.typ of
           paravarsym,
@@ -102,9 +102,9 @@ implementation
             begin
               { Nested variable? Then we have to move it to a structure that
                 can be passed by reference to nested routines }
-              if assigned(current_procinfo) and
+              if assigned(compiler.current_procinfo) and
                  (symtable.symtabletype in [localsymtable,parasymtable]) and
-                 ((symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) or
+                 ((symtable.symtablelevel<>compiler.current_procinfo.procdef.parast.symtablelevel) or
                   { also redirect loads of locals/paras that have been moved to
                      the parentfpstruct inside the routine in which they were
                      originally declared, except in the initialisation code for

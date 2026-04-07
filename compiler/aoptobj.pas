@@ -1537,7 +1537,7 @@ Unit AoptObj;
 
         start := p1;
         if (reg = NR_STACK_POINTER_REG) or
-          (reg = current_procinfo.framepointer) or
+          (reg = compiler.current_procinfo.framepointer) or
            not(assigned(p1)) then
           { this happens with registers which are loaded implicitly, outside the  }
           { current block (e.g. esi with self)                                    }

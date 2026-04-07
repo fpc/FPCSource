@@ -65,7 +65,7 @@ implementation
       begin
         result:=inherited pass_1;
         if not assigned(result) and not(node_not_zero(right)) then
-          include(current_procinfo.flags,pi_do_call);
+          include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -497,7 +497,7 @@ implementation
         Result:=inherited pass_1;
         if Result=nil then
           if compiler.globals.needs_check_for_fpu_exceptions then
-            Include(current_procinfo.flags,pi_do_call);
+            Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 

@@ -384,11 +384,11 @@ implementation
                  variable needs to be in memory.
                  It is too hard and the benefit is too small to detect whether a
                  variable is only used in the finalization to add support for it (PFV) }
-               if assigned(current_procinfo) and
+               if assigned(compiler.current_procinfo) and
                   (symtable.symtabletype=staticsymtable) and
                   (
-                    (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
-                    (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
+                    (symtable.symtablelevel<>compiler.current_procinfo.procdef.localst.symtablelevel) or
+                    (compiler.current_procinfo.procdef.proctypeoption=potype_unitfinalize)
                   ) then
                  make_not_regable(self,[ra_different_scope]);
                resultdef:=tabstractvarsym(symtableentry).vardef;
@@ -402,26 +402,26 @@ implementation
                resultdef:=tabstractvarsym(symtableentry).vardef;
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
-               if assigned(current_procinfo) and
+               if assigned(compiler.current_procinfo) and
                   (symtable.symtabletype in [localsymtable,parasymtable]) and
-                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+                  (symtable.symtablelevel<>compiler.current_procinfo.procdef.parast.symtablelevel) then
                  begin
                    if assigned(left) then
                      internalerror(200309289);
                    left:=compiler.cloadparentfpnode(tprocdef(symtable.defowner),lpf_forload);
-                   current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
+                   compiler.current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
                    { reference this as a captured symbol }
-                   current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
+                   compiler.current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);
                  end
                { if this is a nested function and it uses the Self parameter then
                  consider this as captured as well (needed for anonymous functions) }
-               else if assigned(current_procinfo) and
+               else if assigned(compiler.current_procinfo) and
                    (vo_is_self in tabstractvarsym(symtableentry).varoptions) and
                    (symtable.symtablelevel>normal_function_level) then
-                 current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
+                 compiler.current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
 
                { e.g. self for objects is passed as var-parameter on the caller
                  side, but on the callee-side we use it as a pointer ->
@@ -449,8 +449,8 @@ implementation
                  that the address needs to be returned }
                resultdef:=fprocdef;
 
-               if is_nested_pd(fprocdef) and is_nested_pd(current_procinfo.procdef) then
-                 current_procinfo.set_needs_parentfp(tprocdef(fprocdef.owner.defowner).parast.symtablelevel);
+               if is_nested_pd(fprocdef) and is_nested_pd(compiler.current_procinfo.procdef) then
+                 compiler.current_procinfo.set_needs_parentfp(tprocdef(fprocdef.owner.defowner).parast.symtablelevel);
 
                { process methodpointer/framepointer }
                if assigned(left) then
@@ -523,8 +523,8 @@ implementation
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                   begin
-                    include(current_procinfo.flags,pi_do_call);
-                    include(current_procinfo.flags,pi_uses_threadvar);
+                    include(compiler.current_procinfo.flags,pi_do_call);
+                    include(compiler.current_procinfo.flags,pi_uses_threadvar);
                   end;
               end;
             procsym :
@@ -984,7 +984,7 @@ implementation
 
          { assignment to refcounted variable -> inc/decref }
          if is_managed_type(left.resultdef) then
-           include(current_procinfo.flags,pi_do_call);
+           include(compiler.current_procinfo.flags,pi_do_call);
 
          needrtti:=false;
 
@@ -1427,7 +1427,7 @@ implementation
                      on the location in which the elements will be found in
                      pass 2.}
                     if not do_variant then
-                      include(current_procinfo.flags,pi_do_call);
+                      include(compiler.current_procinfo.flags,pi_do_call);
                     firstpass(hp.left);
                     if do_managed_variant then
                       wrapmanagedvarrec(hp.left);
@@ -1440,7 +1440,7 @@ implementation
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
 
-        inc(current_procinfo.estimatedtempsize,(tarraydef(resultdef).highrange+1)*tarraydef(resultdef).elementdef.size);
+        inc(compiler.current_procinfo.estimatedtempsize,(tarraydef(resultdef).highrange+1)*tarraydef(resultdef).elementdef.size);
       end;
 
 

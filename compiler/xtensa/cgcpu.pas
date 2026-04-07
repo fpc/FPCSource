@@ -618,15 +618,15 @@ implementation
       weak : boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(txtensaprocinfo(current_procinfo).callins,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(txtensaprocinfo(current_procinfo).callins,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
       end;
 
 
     procedure tcgcpu.a_call_reg(list : TAsmList; Reg : tregister);
       begin
-        list.concat(taicpu.op_reg(txtensaprocinfo(current_procinfo).callxins,reg));
+        list.concat(taicpu.op_reg(txtensaprocinfo(compiler.current_procinfo).callxins,reg));
       end;
 
 
@@ -672,7 +672,7 @@ implementation
          l : TAsmLabel;
       begin
         LocalSize:=align(LocalSize,4);
-        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+        stack_parameters:=compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside);
 
         { call instruction does not put anything on the stack }
         registerarea:=0;
@@ -684,9 +684,9 @@ implementation
               abi_xtensa_call0:
                 begin
                   list.concat(tai_comment.Create(strpnew('  Start of abi_call0 entry localsize='+tostr(localsize))));
-                  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                     Include(regs,RS_A15);
-                  if pi_do_call in current_procinfo.flags then
+                  if pi_do_call in compiler.current_procinfo.flags then
                     Include(regs,RS_A0);
                   if regs<>[] then
                      begin
@@ -695,18 +695,18 @@ implementation
                            inc(registerarea,4);
                      end;
 
-                  if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                  if stack_parameters and (pi_estimatestacksize in compiler.current_procinfo.flags) then
                     begin
                       list.concat(tai_comment.Create(strpnew('Stackframe size was estimated before code generation due to stack parameters')));
-                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(current_procinfo).stackframesize))));
-                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(current_procinfo).maxpushedparasize))));
+                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(compiler.current_procinfo).stackframesize))));
+                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(compiler.current_procinfo).maxpushedparasize))));
                       list.concat(tai_comment.Create(strpnew('  End of last temporary location: '+tostr(tg.lasttemp))));
                       list.concat(tai_comment.Create(strpnew('  Size of register area: '+tostr(registerarea))));
                       list.concat(tai_comment.Create(strpnew('  Required size after code generation: '+tostr(localsize))));
 
-                      if localsize>txtensaprocinfo(current_procinfo).stackframesize then
+                      if localsize>txtensaprocinfo(compiler.current_procinfo).stackframesize then
                         internalerror(2020091001);
-                      localsize:=txtensaprocinfo(current_procinfo).stackframesize;
+                      localsize:=txtensaprocinfo(compiler.current_procinfo).stackframesize;
                     end
                   else
                     begin
@@ -758,7 +758,7 @@ implementation
                         end;
                     end;
 
-                  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                     begin
                       dec(ref.offset,4);
                       list.concat(tai_comment.Create(strpnew(' Storing reg A15 at offset='+tostr(ref.offset))));
@@ -781,27 +781,27 @@ implementation
               abi_xtensa_windowed:
                 begin
                   list.concat(tai_comment.Create(strpnew('  Start of abi_windowed entry localsize='+tostr(localsize))));
-                  if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                  if stack_parameters and (pi_estimatestacksize in compiler.current_procinfo.flags) then
                     begin
                       list.concat(tai_comment.Create(strpnew('Stackframe size was estimated before code generation due to stack parameters')));
-                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(current_procinfo).stackframesize))));
-                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(current_procinfo).maxpushedparasize))));
+                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(compiler.current_procinfo).stackframesize))));
+                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(compiler.current_procinfo).maxpushedparasize))));
                       list.concat(tai_comment.Create(strpnew('  End of last temporary location: '+tostr(tg.lasttemp))));
-                      list.concat(tai_comment.Create(strpnew('  Max. window rotation in bytes: '+tostr(txtensaprocinfo(current_procinfo).maxcall*4))));
+                      list.concat(tai_comment.Create(strpnew('  Max. window rotation in bytes: '+tostr(txtensaprocinfo(compiler.current_procinfo).maxcall*4))));
                       list.concat(tai_comment.Create(strpnew('  Required size after code generation: '+tostr(localsize))));
 
                       { should never happen as localsize is derived from
-                        txtensaprocinfo(current_procinfo).stackframesize }
-                      if localsize>txtensaprocinfo(current_procinfo).stackframesize then
+                        txtensaprocinfo(compiler.current_procinfo).stackframesize }
+                      if localsize>txtensaprocinfo(compiler.current_procinfo).stackframesize then
                         internalerror(2020031402);
-                      localsize:=txtensaprocinfo(current_procinfo).stackframesize;
+                      localsize:=txtensaprocinfo(compiler.current_procinfo).stackframesize;
                     end
                   else
                     begin
                       localsize:=align(localsize,compiler.globals.current_settings.alignment.localalignmax);
                       inc(localsize,4*4);
-                      if pi_do_call in current_procinfo.flags then
-                        inc(localsize,txtensaprocinfo(current_procinfo).maxcall*4);
+                      if pi_do_call in compiler.current_procinfo.flags then
+                        inc(localsize,txtensaprocinfo(compiler.current_procinfo).maxcall*4);
                     end;
 
                   if localsize<0 then
@@ -847,14 +847,14 @@ implementation
             begin
               if not(nostackframe) then
                 begin
-                  LocalSize:=current_procinfo.calc_stackframe_size;
+                  LocalSize:=compiler.current_procinfo.calc_stackframe_size;
                   LocalSize:=align(LocalSize,4);
-                  stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+                  stack_parameters:=compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside);
                   registerarea:=0;
                   regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-                  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                     Include(regs,RS_A15);
-                  if pi_do_call in current_procinfo.flags then
+                  if pi_do_call in compiler.current_procinfo.flags then
                     Include(regs,RS_A0);
                   if regs<>[] then
                      begin
@@ -864,7 +864,7 @@ implementation
                      end;
 
                   { do we use then estimated stack size? }
-                  if not(stack_parameters and (pi_estimatestacksize in current_procinfo.flags)) then
+                  if not(stack_parameters and (pi_estimatestacksize in compiler.current_procinfo.flags)) then
                     begin
                       inc(localsize,registerarea);
                       localsize:=align(localsize,compiler.globals.current_settings.alignment.localalignmax);
@@ -897,7 +897,7 @@ implementation
                         end;
 
                       // restore a15 if used
-                      if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                      if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                         begin
                           dec(ref.offset,4);
                           list.concat(tai_comment.Create(strpnew(' Restoring reg A15 from offset='+tostr(ref.offset))));
@@ -1104,8 +1104,8 @@ implementation
 
         { anybody wants to determine a good value here :)? }
         if (len > 100) and
-           assigned(current_procinfo) and
-           (pi_do_call in current_procinfo.flags) then
+           assigned(compiler.current_procinfo) and
+           (pi_do_call in compiler.current_procinfo.flags) then
           g_concatcopy_move(list, src2, dst2, len)
         else
         begin
@@ -1294,7 +1294,7 @@ implementation
       var
         hp: tai;
       begin
-        hp:=tai(current_procinfo.aktlocaldata.first);
+        hp:=tai(compiler.current_procinfo.aktlocaldata.first);
         while assigned(hp) do
           begin
             if (hp.typ=ait_label) and assigned(hp.Next) and
@@ -1313,12 +1313,12 @@ implementation
           end;
 
         current_asmdata.getjumplabel(Result);
-        a_label(current_procinfo.aktlocaldata,Result);
+        a_label(compiler.current_procinfo.aktlocaldata,Result);
 
         if assigned(symbol) then
-          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
+          compiler.current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
         else
-          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(offset));
+          compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(offset));
       end;
 
 

@@ -1031,8 +1031,8 @@ implementation
         ps  : tprocsym;
         pd  : tprocdef;
       begin
-        { there should be no current_procinfo available }
-        if assigned(current_procinfo) then
+        { there should be no compiler.current_procinfo available }
+        if assigned(compiler.current_procinfo) then
          internalerror(200304275);
         {Generate a procsym for main}
         ps:=cprocsym.create('$'+name);
@@ -1054,7 +1054,7 @@ implementation
         else
           pd.proccalloption:=pocall_cdecl;
         parser.pparautl.handle_calling_convention(pd,hcc_default_actions_impl);
-        { set procinfo and current_procinfo.procdef }
+        { set procinfo and compiler.current_procinfo.procdef }
         result:=tcgprocinfo(cprocinfo.create(nil,compiler));
         result.procdef:=pd;
         { main proc does always a call e.g. to init system unit }

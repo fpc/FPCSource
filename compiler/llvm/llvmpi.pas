@@ -99,7 +99,7 @@ implementation
       procedure tllvmexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
         begin
           tg.ungettemp(list,t.reasonbuf);
-          tllvmprocinfo(current_procinfo).poppad;
+          tllvmprocinfo(compiler.current_procinfo).poppad;
         end;
 
 
@@ -120,7 +120,7 @@ implementation
           }
           current_asmdata.getjumplabel(exceptstate.exceptionlabel);
           { for consistency checking when popping }
-          tllvmprocinfo(current_procinfo).pushexceptlabel(exceptstate.exceptionlabel);
+          tllvmprocinfo(compiler.current_procinfo).pushexceptlabel(exceptstate.exceptionlabel);
           flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
           { the reasonbuf is set to 1 by the generic code if we got in
             the exception block by catching an exception -> do the same here, so
@@ -168,8 +168,8 @@ implementation
               exceptionstate.finallycodelabel:=nil;
             end;
           { consistency check }
-          tllvmprocinfo(current_procinfo).popexceptlabel(exceptionstate.exceptionlabel);
-          tllvmprocinfo(current_procinfo).pushlandingpad(landingpad);
+          tllvmprocinfo(compiler.current_procinfo).popexceptlabel(exceptionstate.exceptionlabel);
+          tllvmprocinfo(compiler.current_procinfo).pushlandingpad(landingpad);
         end;
 
 
@@ -199,7 +199,7 @@ implementation
           landingpad: taillvm;
         begin
           { if not a single catch block added -> catch all }
-          landingpad:=tllvmprocinfo(current_procinfo).currlandingpad;
+          landingpad:=tllvmprocinfo(compiler.current_procinfo).currlandingpad;
           if assigned(landingpad) and
              not assigned(landingpad.oper[2]^.ai) then
             begin
@@ -230,7 +230,7 @@ implementation
              use_cleanup(exceptframekind) then
             begin
               { resume <result from catchpad> }
-              landingpad:=tllvmprocinfo(current_procinfo).currlandingpad;
+              landingpad:=tllvmprocinfo(compiler.current_procinfo).currlandingpad;
               landingpadres:=landingpad.oper[0]^.reg;
               landingpadresdef:=landingpad.oper[1]^.def;
               list.concat(taillvm.op_size_reg(la_resume,landingpadresdef,landingpadres));
@@ -293,14 +293,14 @@ implementation
           otherunit: boolean;
         begin
           paraloc1.init(compiler.target);
-          landingpad:=tllvmprocinfo(current_procinfo).currlandingpad;
+          landingpad:=tllvmprocinfo(compiler.current_procinfo).currlandingpad;
           rttidef:=nil;
           rttisym:=nil;
           if add_catch then
             begin
               if assigned(excepttype) then
                 begin
-                  otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+                  otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
                   indirect:=(tf_supports_packages in compiler.target.info.flags) and
                           (compiler.target.info.system in systems_indirect_var_imports) and
                           (cs_imported_data in compiler.globals.current_settings.localswitches) and

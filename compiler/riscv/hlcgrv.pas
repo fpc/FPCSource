@@ -158,7 +158,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      current_procinfo:=cprocinfo.create(nil,compiler);
+      compiler.current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);
@@ -211,10 +211,10 @@ implementation
 
           //list.concat(taicpu.op_reg_sym(A_JAL,NR_X0,current_asmdata.RefAsmSymbol(procdef.mangledname)));
         end;
-      list.concatlist(current_procinfo.aktlocaldata);
+      list.concatlist(compiler.current_procinfo.aktlocaldata);
 
-      current_procinfo.Free;
-      current_procinfo:=nil;
+      compiler.current_procinfo.Free;
+      compiler.current_procinfo:=nil;
 
       list.concat(Tai_symbol_end.Createname(labelname));
     end;

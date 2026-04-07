@@ -1910,7 +1910,7 @@ Unit Rax86int;
                     end;
                    if GotOffset then
                     begin
-                      if oper.hasvar and (oper.opr.ref.base=current_procinfo.framepointer) then
+                      if oper.hasvar and (oper.opr.ref.base=compiler.current_procinfo.framepointer) then
                        begin
                          if (oper.opr.typ=OPR_REFERENCE) then
                            oper.opr.ref.base:=NR_NO;
@@ -2860,8 +2860,8 @@ Unit Rax86int;
           current procedure (BP7 compatible) }
         else if (instr.opcode=A_RET) then
           begin
-            if is_proc_far(current_procinfo.procdef) and
-               not (po_interrupt in current_procinfo.procdef.procoptions) then
+            if is_proc_far(compiler.current_procinfo.procdef) and
+               not (po_interrupt in compiler.current_procinfo.procdef.procoptions) then
               instr.opcode:=A_RETF
             else
               instr.opcode:=A_RETN;
@@ -3157,7 +3157,7 @@ Unit Rax86int;
                          compiler.verbose.Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
-                       curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
+                       curlist.concat(Tai_const.Create_seg_name(compiler.current_procinfo.procdef.mangledname));
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
@@ -3220,7 +3220,7 @@ Unit Rax86int;
       curlist:=TAsmList.Create;
       { we might need to know which parameters are passed in registers }
       if not compiler.parser.pbase.parse_generic then
-        current_procinfo.generate_parameter_info;
+        compiler.current_procinfo.generate_parameter_info;
       { start tokenizer }
       gettoken;
       { main loop }

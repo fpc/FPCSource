@@ -391,7 +391,7 @@ interface
 
       { this node is the ancestor for all nodes with at least    }
       { one child, you have to use it if you want to use         }
-      { true- and current_procinfo.CurrFalseLabel                                     }
+      { true- and compiler.current_procinfo.CurrFalseLabel                                     }
       //punarynode = ^tunarynode;
       tunarynode = class(tnode)
          left : tnode;

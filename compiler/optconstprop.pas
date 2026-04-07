@@ -150,7 +150,7 @@ type
                 { play safe and set the result which is check below }
                 result:=replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
                 tree_modified:=tree_modified or tree_modified2;
-                if result and (pi_dfaavailable in current_procinfo.flags) and
+                if result and (pi_dfaavailable in compiler.current_procinfo.flags) and
                   { play safe }
                   assigned(tfornode(n).t2.optinfo) and assigned(tassignmentnode(arg).left.optinfo) then
                   begin
@@ -348,10 +348,10 @@ type
                          not(tabstractvarsym(tloadnode(l).symtableentry).addr_taken)) and
                          ((
                            (tloadnode(l).symtableentry.typ=localvarsym) and
-                           (tloadnode(l).symtable=current_procinfo.procdef.localst)
+                           (tloadnode(l).symtable=compiler.current_procinfo.procdef.localst)
                           ) or
                           ((tloadnode(l).symtableentry.typ=paravarsym) and
-                           (tloadnode(l).symtable=current_procinfo.procdef.parast)
+                           (tloadnode(l).symtable=compiler.current_procinfo.procdef.parast)
                           ) or
                           ((tloadnode(l).symtableentry.typ=staticvarsym) and
                            (tloadnode(l).symtable.symtabletype=staticsymtable)

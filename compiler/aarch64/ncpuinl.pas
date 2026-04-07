@@ -127,7 +127,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -136,7 +136,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -145,7 +145,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -154,7 +154,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -163,7 +163,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -172,7 +172,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -181,7 +181,7 @@ implementation
         expectloc:=LOC_MMREGISTER;
         result:=nil;
         if compiler.globals.needs_check_for_fpu_exceptions then
-          Include(current_procinfo.flags,pi_do_call);
+          Include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -306,7 +306,7 @@ implementation
       begin
         location_reset(location,LOC_CREGISTER,OS_ADDR);
         { this routine is used to get the frame pointer for backtracing
-          purposes. current_procinfo.framepointer is set to SP because that one
+          purposes. compiler.current_procinfo.framepointer is set to SP because that one
           is used to access temps. On most platforms these two frame pointers
           are the same, but not on AArch64. }
         location.register:=NR_FRAME_POINTER_REG;
@@ -423,7 +423,7 @@ implementation
             expectloc:=LOC_MMREGISTER;
             Result:=nil;
             if compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
           end
         else if is_32bitint(resultdef) or is_64bitint(resultdef) then
           begin

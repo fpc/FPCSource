@@ -103,7 +103,7 @@ var
 begin
   opcgsize:=def_cgsize(opsize);
   last:=min_;
-  jumpsegment := current_procinfo.aktlocaldata;
+  jumpsegment := compiler.current_procinfo.aktlocaldata;
   if not (jumptable_no_range) then
     begin
       { a <= x <= b <-> unsigned(x-a) <= (b-a) }
@@ -134,7 +134,7 @@ begin
   { Delay slot }
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   { generate jump table }
-  new_section(jumpSegment,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
+  new_section(jumpSegment,sec_rodata,compiler.current_procinfo.procdef.mangledname,sizeof(aint));
   jumpSegment.concat(Tai_label.Create(table));
   genitem(hp);
 end;

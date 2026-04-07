@@ -192,8 +192,8 @@ implementation
             same subsection that contains the routine's code }
           sectype:=sec_code;
 
-        jtlist := current_procinfo.aktlocaldata;
-        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,4);
+        jtlist := compiler.current_procinfo.aktlocaldata;
+        new_section(jtlist,sectype,compiler.current_procinfo.procdef.mangledname,4);
         jtlist.concat(Tai_label.Create(tablelabel));
 
         if AlmostExhaustive then

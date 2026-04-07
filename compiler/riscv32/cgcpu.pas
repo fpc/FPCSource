@@ -221,8 +221,8 @@ unit cgcpu;
 
         { anybody wants to determine a good value here :)? }
         if (len > 100) and
-           assigned(current_procinfo) and
-           (pi_do_call in current_procinfo.flags) then
+           assigned(compiler.current_procinfo) and
+           (pi_do_call in compiler.current_procinfo.flags) then
           g_concatcopy_move(list, src2, dst2, len)
         else
         begin

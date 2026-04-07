@@ -398,7 +398,7 @@ implementation
         { in case of an inherited constructor call in a class, the methodpointer
           is an objectdef rather than a classrefdef. That's not true in case
           of records though, so we need an extra check }
-        if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+        if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
           exit;
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true),AT_METADATA)));
@@ -425,7 +425,7 @@ implementation
     procedure tjvmcallnode.do_release_unused_return_value;
       begin
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
-           (current_procinfo.procdef.proctypeoption=potype_constructor) then
+           (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
           exit;
         if is_void(resultdef) then
           exit;
@@ -528,7 +528,7 @@ implementation
         that purpose to Pascal classes, but that scheme breaks when a class
         inherits from a JDK class other than JLObject).
       }
-      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+      if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
          not(cnf_inherited in callnodeflags) and
          (procdefinition.proctypeoption=potype_constructor) and
          (po_virtualmethod in procdefinition.procoptions) and
@@ -577,7 +577,7 @@ implementation
             be indirect; make sure we don't replace the callthrough to the
             original constructor with another call to the wrapper }
           if (procdefinition.typ=procdef) and
-             not(current_procinfo.procdef.synthetickind in [tsk_callthrough,tsk_callthrough_nonabstract]) and
+             not(compiler.current_procinfo.procdef.synthetickind in [tsk_callthrough,tsk_callthrough_nonabstract]) and
              not(cnf_inherited in callnodeflags) and
              ((procdefinition.proctypeoption=potype_constructor) or
               (po_classmethod in procdefinition.procoptions)) and

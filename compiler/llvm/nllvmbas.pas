@@ -88,7 +88,7 @@ interface
           begin
             paradef:=cpointerdef.getreusable(sym.vardef,compiler);
             if (sym.typ=paravarsym) and
-               paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption) then
+               paramanager.push_addr_param(sym.varspez,sym.vardef,compiler.current_procinfo.procdef.proccalloption) then
               paradef:=cpointerdef.getreusable(paradef,compiler);
             new(callpara,init(paradef,std_param_align,lve_none,[]));
             { address must be a temp register }
@@ -128,7 +128,7 @@ interface
 {$endif x86}
       begin
         { pure assembler routines are handled by the regular code generator }
-        if po_assembler in current_procinfo.procdef.procoptions then
+        if po_assembler in compiler.current_procinfo.procdef.procoptions then
           begin
             inherited;
             exit;
@@ -202,7 +202,7 @@ interface
         asmai: tai;
       begin
         oldasmlist:=nil;
-        if not(po_assembler in current_procinfo.procdef.procoptions) and
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) and
            not(asmnf_get_asm_position in asmnodeflags) then
           begin
             { store the assembler code in a separate list, so we can make it
@@ -215,7 +215,7 @@ interface
             fsymbollookup:=THashSet.Create(8,True,False);
           end;
         inherited;
-        if not(po_assembler in current_procinfo.procdef.procoptions) and
+        if not(po_assembler in compiler.current_procinfo.procdef.procoptions) and
            not(asmnf_get_asm_position in asmnodeflags) then
           begin
             asmai:=taillvm.asm_paras(current_asmdata.CurrAsmList,fsymboldata);

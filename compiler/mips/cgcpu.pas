@@ -172,7 +172,7 @@ begin
       reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment,ref.volatility);
       if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
-          if not (pi_needs_got in current_procinfo.flags) then
+          if not (pi_needs_got in compiler.current_procinfo.flags) then
             InternalError(2013060102);
           { For PIC global symbols offset must be handled separately.
             Otherwise (non-PIC or local symbols) offset can be encoded
@@ -265,10 +265,10 @@ begin
   inherited init_register_allocators;
 
   { Keep RS_R25, i.e. $t9 for PIC call }
-  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and assigned(current_procinfo) and
-    (pi_needs_got in current_procinfo.flags) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and assigned(compiler.current_procinfo) and
+    (pi_needs_got in compiler.current_procinfo.flags) then
     begin
-      current_procinfo.got := NR_GP;
+      compiler.current_procinfo.got := NR_GP;
       rg[R_INTREGISTER]    := Trgintcpu.Create(R_INTREGISTER, R_SUBD,
         [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
        RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
@@ -379,9 +379,9 @@ begin
   { Restore GP if in PIC mode }
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
-      if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
+      if tcpuprocinfo(compiler.current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071001);
-      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(current_procinfo).save_gp_ref));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(compiler.current_procinfo).save_gp_ref));
     end;
 end;
 
@@ -390,8 +390,8 @@ procedure TCGMIPS.a_call_name(list: tasmlist; const s: string; weak: boolean);
 var
   sym: tasmsymbol;
 begin
-  if assigned(current_procinfo) and
-     not (pi_do_call in current_procinfo.flags) then
+  if assigned(compiler.current_procinfo) and
+     not (pi_do_call in compiler.current_procinfo.flags) then
     InternalError(2013022101);
 
   if weak then
@@ -412,8 +412,8 @@ end;
 
 procedure TCGMIPS.a_call_reg(list: tasmlist; Reg: TRegister);
 begin
-  if assigned(current_procinfo) and
-     not (pi_do_call in current_procinfo.flags) then
+  if assigned(compiler.current_procinfo) and
+     not (pi_do_call in compiler.current_procinfo.flags) then
     InternalError(2013022102);
 
   if (Reg <> NR_PIC_FUNC) then
@@ -424,9 +424,9 @@ begin
   { Restore GP if in PIC mode }
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
-      if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
+      if tcpuprocinfo(compiler.current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071002);
-      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(current_procinfo).save_gp_ref));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(compiler.current_procinfo).save_gp_ref));
     end;
 end;
 
@@ -655,7 +655,7 @@ begin
   reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
-      if not (pi_needs_got in current_procinfo.flags) then
+      if not (pi_needs_got in compiler.current_procinfo.flags) then
         InternalError(2013060104);
       { For PIC global symbols offset must be handled separately.
         Otherwise (non-PIC or local symbols) offset can be encoded
@@ -1320,7 +1320,7 @@ var
   helplist : TAsmList;
   largeoffs : boolean;
 begin
-  list.concat(tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
+  list.concat(tai_directive.create(asd_ent,compiler.current_procinfo.procdef.mangledname));
 
   if nostackframe then
     begin
@@ -1335,7 +1335,7 @@ begin
   href.base:=NR_STACK_POINTER_REG;
 
   fmask:=0;
-  nextoffset:=tcpuprocinfo(current_procinfo).floatregstart;
+  nextoffset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
   lastfpuoffset:=LocalSize;
   for reg := RS_F0 to RS_F31 do { to check: what if F30 is double? }
     begin
@@ -1357,11 +1357,11 @@ begin
     end;
 
   mask:=0;
-  nextoffset:=tcpuprocinfo(current_procinfo).intregstart;
+  nextoffset:=tcpuprocinfo(compiler.current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-  if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
+  if (compiler.current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
     include(saveregs,RS_R31);
-  if (pi_needs_stackframe in current_procinfo.flags) then
+  if (pi_needs_stackframe in compiler.current_procinfo.flags) then
     include(saveregs,RS_FRAME_POINTER_REG);
   lastintoffset:=LocalSize;
   framesave:=nil;
@@ -1384,16 +1384,16 @@ begin
         end;
     end;
 
-  //list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,current_procinfo.para_stack_size));
+  //list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,compiler.current_procinfo.para_stack_size));
   list.concat(Taicpu.op_none(A_P_SET_NOMIPS16));
-  list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,current_procinfo.framepointer,LocalSize,NR_R31));
+  list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,compiler.current_procinfo.framepointer,LocalSize,NR_R31));
   list.concat(Taicpu.op_const_const(A_P_MASK,aint(mask),-(LocalSize-lastintoffset)));
   list.concat(Taicpu.op_const_const(A_P_FMASK,aint(Fmask),-(LocalSize-lastfpuoffset)));
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
-  if tcpuprocinfo(current_procinfo).setnoat then
+  if tcpuprocinfo(compiler.current_procinfo).setnoat then
     list.concat(Taicpu.op_none(A_P_SET_NOAT));
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
-     (pi_needs_got in current_procinfo.flags) then
+     (pi_needs_got in compiler.current_procinfo.flags) then
     begin
       list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
     end;
@@ -1430,12 +1430,12 @@ begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
-     (pi_needs_got in current_procinfo.flags) then
+     (pi_needs_got in compiler.current_procinfo.flags) then
     begin
-      largeoffs:=(tcpuprocinfo(current_procinfo).save_gp_ref.offset>simm16hi);
+      largeoffs:=(tcpuprocinfo(compiler.current_procinfo).save_gp_ref.offset>simm16hi);
       if largeoffs then
         list.concat(Taicpu.op_none(A_P_SET_MACRO));
-      list.concat(Taicpu.op_const(A_P_CPRESTORE,tcpuprocinfo(current_procinfo).save_gp_ref.offset));
+      list.concat(Taicpu.op_const(A_P_CPRESTORE,tcpuprocinfo(compiler.current_procinfo).save_gp_ref.offset));
       if largeoffs then
         list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
@@ -1443,7 +1443,7 @@ begin
   href.base:=NR_STACK_POINTER_REG;
 
   for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
-    if tcpuprocinfo(current_procinfo).register_used[i] then
+    if tcpuprocinfo(compiler.current_procinfo).register_used[i] then
       begin
         reg:=parasupregs[i];
         href.offset:=i*sizeof(aint)+LocalSize;
@@ -1452,8 +1452,8 @@ begin
 
   list.concatList(helplist);
   helplist.Free;
-  if current_procinfo.has_nestedprocs then
-    current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@LocalSize);
+  if compiler.current_procinfo.has_nestedprocs then
+    compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@LocalSize);
 end;
 
 
@@ -1465,7 +1465,7 @@ var
   nextoffset : aint;
   reg : Tsuperregister;
 begin
-  stacksize:=current_procinfo.calc_stackframe_size;
+  stacksize:=compiler.current_procinfo.calc_stackframe_size;
    if nostackframe then
      begin
        list.concat(taicpu.op_reg(A_JR, NR_R31));
@@ -1475,12 +1475,12 @@ begin
      end
    else
      begin
-       if tcpuprocinfo(current_procinfo).save_gp_ref.offset<>0 then
-         tg.ungettemp(list,tcpuprocinfo(current_procinfo).save_gp_ref);
+       if tcpuprocinfo(compiler.current_procinfo).save_gp_ref.offset<>0 then
+         tg.ungettemp(list,tcpuprocinfo(compiler.current_procinfo).save_gp_ref);
        reference_reset(href,0,[]);
        href.base:=NR_STACK_POINTER_REG;
 
-       nextoffset:=tcpuprocinfo(current_procinfo).floatregstart;
+       nextoffset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
        for reg := RS_F0 to RS_F31 do
          begin
            if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
@@ -1491,11 +1491,11 @@ begin
              end;
          end;
 
-       nextoffset:=tcpuprocinfo(current_procinfo).intregstart;
+       nextoffset:=tcpuprocinfo(compiler.current_procinfo).intregstart;
        saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-       if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
+       if (compiler.current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
          include(saveregs,RS_R31);
-       if (pi_needs_stackframe in current_procinfo.flags) then
+       if (pi_needs_stackframe in compiler.current_procinfo.flags) then
          include(saveregs,RS_FRAME_POINTER_REG);
        // GP does not need to be restored on exit
        for reg:=RS_R1 to RS_R31 do
@@ -1520,12 +1520,12 @@ begin
            list.concat(taicpu.op_reg(A_JR, NR_R31));
            { correct stack pointer in the delay slot }
            list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
-           tcpuprocinfo(current_procinfo).setnoat:=true;
+           tcpuprocinfo(compiler.current_procinfo).setnoat:=true;
          end;
        list.concat(Taicpu.op_none(A_P_SET_MACRO));
        list.concat(Taicpu.op_none(A_P_SET_REORDER));
     end;
-  list.concat(tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
+  list.concat(tai_directive.create(asd_ent_end,compiler.current_procinfo.procdef.mangledname));
 end;
 
 
@@ -1554,8 +1554,8 @@ begin
 
   { anybody wants to determine a good value here :)? }
   if (len > 100) and
-     assigned(current_procinfo) and
-     (pi_do_call in current_procinfo.flags) then
+     assigned(compiler.current_procinfo) and
+     (pi_do_call in compiler.current_procinfo.flags) then
     g_concatcopy_move(list, Source, dest, len)
   else if ((source.alignment<>0) and (source.alignment<4)) or
     ((dest.alignment<>0) and (dest.alignment<4)) then
@@ -1649,8 +1649,8 @@ var
 begin
   if (len > 31) and
     { see comment in g_concatcopy }
-     assigned(current_procinfo) and
-     (pi_do_call in current_procinfo.flags) then
+     assigned(compiler.current_procinfo) and
+     (pi_do_call in compiler.current_procinfo.flags) then
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
@@ -1707,7 +1707,7 @@ procedure TCGMIPS.g_profilecode(list:TAsmList);
     list.concat(taicpu.op_reg_reg(A_MOVE,NR_R1,NR_RA));
     list.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_SP,NR_SP,-8));
     a_call_sym_pic(list,current_asmdata.RefAsmSymbol('_mcount',AT_FUNCTION));
-    tcpuprocinfo(current_procinfo).setnoat:=true;
+    tcpuprocinfo(compiler.current_procinfo).setnoat:=true;
   end;
 
 

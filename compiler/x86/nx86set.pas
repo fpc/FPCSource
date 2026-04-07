@@ -174,9 +174,9 @@ implementation
             labeltyp:=aitconst_gotoff_symbol;
             jumpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
-            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,current_procinfo.got,jumpreg);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,compiler.current_procinfo.got,jumpreg);
             emit_reg(A_JMP,S_NO,jumpreg);
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
           end
         else
           emit_ref(A_JMP,S_NO,href);
@@ -184,8 +184,8 @@ implementation
         if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
           jtlist:=current_asmdata.asmlists[al_const]
         else
-          jtlist:=current_procinfo.aktlocaldata;
-        new_section(jtlist,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
+          jtlist:=compiler.current_procinfo.aktlocaldata;
+        new_section(jtlist,sec_rodata,compiler.current_procinfo.procdef.mangledname,sizeof(aint));
         jtlist.concat(Tai_label.Create(table));
 
         if AlmostExhaustive then

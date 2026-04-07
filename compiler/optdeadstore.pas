@@ -79,13 +79,13 @@ type
                    not(tabstractvarsym(tloadnode(a.left).symtableentry).addr_taken) and
                    ((
                      (tloadnode(a.left).symtableentry.typ=localvarsym) and
-                     (tloadnode(a.left).symtable=current_procinfo.procdef.localst)) or
+                     (tloadnode(a.left).symtable=compiler.current_procinfo.procdef.localst)) or
                     ((tloadnode(a.left).symtableentry.typ=paravarsym) and
-                     (tloadnode(a.left).symtable=current_procinfo.procdef.parast) and
+                     (tloadnode(a.left).symtable=compiler.current_procinfo.procdef.parast) and
                      (tparavarsym(tloadnode(a.left).symtableentry).varspez in [vs_const,vs_value])) or
                     ((tloadnode(a.left).symtableentry.typ=staticvarsym) and
                      (tloadnode(a.left).symtable.symtabletype=staticsymtable) and
-                     (current_procinfo.procdef.proctypeoption<>potype_unitinit) and
+                     (compiler.current_procinfo.procdef.proctypeoption<>potype_unitinit) and
                      not(vsa_different_scope in tstaticvarsym(tloadnode(a.left).symtableentry).varsymaccess)
                     )
                    ) and
@@ -127,9 +127,9 @@ type
         printnode(rootnode);
         writeln('****************************************************************************');
 {$endif EXTDEBUG_DEADSTORE}
-        if not(pi_dfaavailable in current_procinfo.flags) then
+        if not(pi_dfaavailable in compiler.current_procinfo.flags) then
           internalerror(2013110201);
-        if not current_procinfo.has_nestedprocs then
+        if not compiler.current_procinfo.has_nestedprocs then
           foreachnode(pm_postprocess, rootnode, @deadstoreelim, @changed);
 {$ifdef DEBUG_DEADSTORE}
         if changed then

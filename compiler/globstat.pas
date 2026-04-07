@@ -176,7 +176,7 @@ var
           if for_module_switch then
             save_symtable_stack(oldmacrosymtablestack,stsk_macro);
         end;
-      oldcurrent_procinfo:=current_procinfo;
+      oldcurrent_procinfo:=compiler.current_procinfo;
 
       { save scanner state }
       old_block_type:=compiler.globals.block_type;
@@ -277,7 +277,7 @@ var
       tcompiler(compiler).macrosymtablestack:=oldmacrosymtablestack;
       if reload then
         reload_symtable_stack(compiler.macrosymtablestack,stsk_macro);
-      current_procinfo:=oldcurrent_procinfo;
+      tcompiler(compiler).current_procinfo:=oldcurrent_procinfo;
       compiler.globals.current_filepos:=oldcurrent_filepos;
       compiler.globals.current_settings.CreateFromRecord(old_settings);
       status.verbosity:=old_verbosity;
@@ -329,7 +329,7 @@ var
     begin
       tcompiler(_compiler).symtablestack:=nil;
       tcompiler(_compiler).macrosymtablestack:=nil;
-      current_procinfo:=nil;
+      tcompiler(_compiler).current_procinfo:=nil;
 
       _compiler.globals.block_type:=bt_none;
       _compiler.switches.flushpendingswitchesstate;

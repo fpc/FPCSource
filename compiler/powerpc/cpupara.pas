@@ -597,9 +597,9 @@ unit cpupara;
                            paraloc^.reference.index:=NR_R12;
 
                            { create_paraloc_info_intern might be also called when being outside of
-                             code generation so current_procinfo might be not set }
-                           if assigned(current_procinfo) then
-                             tcpuprocinfo(current_procinfo).needs_frame_pointer := true;
+                             code generation so compiler.current_procinfo might be not set }
+                           if assigned(compiler.current_procinfo) then
+                             tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer := true;
                          end;
 
                        if not((target.info.system in systems_aix) and

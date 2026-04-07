@@ -146,7 +146,7 @@ implementation
 
     procedure tcgwasm.a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);
       begin
-        tcpuprocinfo(current_procinfo).add_goto_target(l);
+        tcpuprocinfo(compiler.current_procinfo).add_goto_target(l);
         inherited;
       end;
 

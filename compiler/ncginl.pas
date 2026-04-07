@@ -819,7 +819,7 @@ implementation
 
     begin
 {$if defined(x86) or defined(arm)}
-      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+      if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
         begin
           location_reset(location,LOC_CONSTANT,OS_ADDR);
           location.value:=0;
@@ -828,7 +828,7 @@ implementation
 {$endif defined(x86) or defined(arm)}
         begin
           location_reset(location,LOC_CREGISTER,OS_ADDR);
-          location.register:=current_procinfo.framepointer;
+          location.register:=compiler.current_procinfo.framepointer;
         end;
     end;
 
@@ -855,8 +855,8 @@ implementation
         end
       else
         begin
-          use_frame_pointer:=current_procinfo.framepointer=NR_STACK_POINTER_REG;
-          frame_reg:=current_procinfo.framepointer;
+          use_frame_pointer:=compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG;
+          frame_reg:=compiler.current_procinfo.framepointer;
         end;
 
       if use_frame_pointer then
@@ -875,18 +875,18 @@ implementation
       var
         frame_ref:Treference;
       begin
-        if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+        if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp,ctempposinvalid,sizeof(pint),[]);
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{compiler.current_procinfo.calc_stackframe_size}tg.lasttemp,ctempposinvalid,sizeof(pint),[]);
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,current_procinfo.framepointer,sizeof(pint),ctempposinvalid,sizeof(pint),[]);
+            reference_reset_base(frame_ref,compiler.current_procinfo.framepointer,sizeof(pint),ctempposinvalid,sizeof(pint),[]);
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end;
       end;

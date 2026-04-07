@@ -71,7 +71,7 @@ implementation
       begin
         result := inherited pass_1;
         if not assigned(result) then
-          include(current_procinfo.flags,pi_do_call);
+          include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 

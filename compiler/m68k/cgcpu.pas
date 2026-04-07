@@ -271,7 +271,7 @@ unit cgcpu;
         for reg:=RS_A0 to RS_A6 do
           begin
             { don't hardwire the frame pointer register, because it can vary between target OS }
-            if (assigned(current_procinfo) and (current_procinfo.framepointer = NR_FRAME_POINTER_REG)
+            if (assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer = NR_FRAME_POINTER_REG)
                and (reg = RS_FRAME_POINTER_REG))
                or ((reg = RS_PIC_OFFSET_REG) and (tf_static_reg_based in compiler.target.info.flags)) then
               continue;
@@ -1934,7 +1934,7 @@ unit cgcpu;
           begin
             localsize:=align(localsize,4);
 
-            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+            if compiler.current_procinfo.framepointer=NR_FRAME_POINTER_REG then
               begin
                 if (localsize > high(smallint)) then
                   begin
@@ -1948,7 +1948,7 @@ unit cgcpu;
               begin
                 if localsize<>0 then
                   list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
-                current_procinfo.final_localsize:=localsize;
+                compiler.current_procinfo.final_localsize:=localsize;
               end;
           end;
       end;
@@ -1962,11 +1962,11 @@ unit cgcpu;
         { if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
         }
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
         if not nostackframe then
           begin
-            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+            if compiler.current_procinfo.framepointer=NR_FRAME_POINTER_REG then
               begin
                 list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
 
@@ -1977,7 +1977,7 @@ unit cgcpu;
                   caller side free, which looks like a PITA to support. We have to figure this
                   out later. More info welcomed. (KB) }
 
-                if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
+                if (parasize > 0) and not (compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls) then
                   begin
                     if CPUM68K_HAS_RTD in cpu_capabilities[compiler.globals.current_settings.cputype] then
                       list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
@@ -2024,8 +2024,8 @@ unit cgcpu;
               begin
                 if parasize<>0 then
                   Internalerror(2020112901);
-                if  current_procinfo.final_localsize<>0 then
-                  list.concat(taicpu.op_const_reg(A_ADDA,S_L,current_procinfo.final_localsize,NR_STACK_POINTER_REG));
+                if  compiler.current_procinfo.final_localsize<>0 then
+                  list.concat(taicpu.op_const_reg(A_ADDA,S_L,compiler.current_procinfo.final_localsize,NR_STACK_POINTER_REG));
                 list.concat(taicpu.op_none(A_RTS,S_NO));
               end;
           end
@@ -2038,10 +2038,10 @@ unit cgcpu;
            also  routines with parasize=0 }
          { TODO: figure out if these are still relevant to us (KB) }
            (*
-         if current_procinfo.procdef.proccalloption in clearstack_pocalls then
+         if compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls then
            begin
              { complex return values are removed from stack in C code PM }
-             if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+             if paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef) then
                list.concat(taicpu.op_const(A_RTD,S_NO,4))
              else
                list.concat(taicpu.op_none(A_RTS,S_NO));
@@ -2080,9 +2080,9 @@ unit cgcpu;
         addrregs:=[];
         fpuregs:=[];
 
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
-        regs_to_save_fpu:=paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_fpu:=paramanager.get_saved_registers_fpu(compiler.current_procinfo.procdef.proccalloption);
         { calculate temp. size }
         size:=0;
         fsize:=0;
@@ -2118,18 +2118,18 @@ unit cgcpu;
 
         if (size+fsize) > 0 then
           begin
-            tg.GetTemp(list,size+fsize,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
-            include(current_procinfo.flags,pi_has_saved_regs);
+            tg.GetTemp(list,size+fsize,sizeof(aint),tt_noreuse,compiler.current_procinfo.save_regs_ref);
+            include(compiler.current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
             { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
-            href:=current_procinfo.save_regs_ref;
-            if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+            href:=compiler.current_procinfo.save_regs_ref;
+            if (abs(compiler.current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
                not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
                 href.offset:=0;
                 //list.concat(tai_comment.create(strpnew('g_save_registers: large offset')));
-                list.concat(taicpu.op_const_reg(A_SUBA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
+                list.concat(taicpu.op_const_reg(A_SUBA,S_L,-compiler.current_procinfo.save_regs_ref.offset,href.base));
               end;
 
             if size > 0 then
@@ -2148,10 +2148,10 @@ unit cgcpu;
                   list.concat(taicpu.op_regset_ref(A_FMOVEM,fpuregopsize,[],[],fpuregs,href));
               end;
 
-            if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+            if (abs(compiler.current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
                not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
-                list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
+                list.concat(taicpu.op_const_reg(A_ADDA,S_L,-compiler.current_procinfo.save_regs_ref.offset,href.base));
               end;
           end;
       end;
@@ -2177,11 +2177,11 @@ unit cgcpu;
         addrregs:=[];
         fpuregs:=[];
 
-        if not(pi_has_saved_regs in current_procinfo.flags) then
+        if not(pi_has_saved_regs in compiler.current_procinfo.flags) then
           exit;
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
-        regs_to_save_fpu:=paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_fpu:=paramanager.get_saved_registers_fpu(compiler.current_procinfo.procdef.proccalloption);
         { Copy registers from temp }
         size:=0;
         fsize:=0;
@@ -2224,13 +2224,13 @@ unit cgcpu;
           internalerror(2014030202);
 
         { Restore registers from temp }
-        href:=current_procinfo.save_regs_ref;
-        if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+        href:=compiler.current_procinfo.save_regs_ref;
+        if (abs(compiler.current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
            not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             href.offset:=0;
             //list.concat(tai_comment.create(strpnew('g_restore_registers: large offset')));
-            list.concat(taicpu.op_const_reg(A_SUBA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
+            list.concat(taicpu.op_const_reg(A_SUBA,S_L,-compiler.current_procinfo.save_regs_ref.offset,href.base));
           end;
 
         if size > 0 then
@@ -2249,13 +2249,13 @@ unit cgcpu;
               list.concat(taicpu.op_ref_regset(A_FMOVEM,fpuregopsize,href,[],[],fpuregs));
           end;
 
-        if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+        if (abs(compiler.current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
            not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
+            list.concat(taicpu.op_const_reg(A_ADDA,S_L,-compiler.current_procinfo.save_regs_ref.offset,href.base));
           end;
 
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+        tg.UnGetTemp(list,compiler.current_procinfo.save_regs_ref);
       end;
 
     procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);

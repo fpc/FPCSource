@@ -374,9 +374,9 @@ implementation
                         begin
                           p1:=comp_expr([ef_accept_equal]);
                           parser.pbase.consume(_RKLAMMER);
-                          if not assigned(current_procinfo) or
-                             (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
-                             is_void(current_procinfo.procdef.returndef) then
+                          if not assigned(compiler.current_procinfo) or
+                             (compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                             is_void(compiler.current_procinfo.procdef.returndef) then
                             begin
                               compiler.verbose.Message(parser_e_void_function);
                               { recovery }
@@ -390,9 +390,9 @@ implementation
                   else
                     begin
                       { non local exit ? }
-                      if current_procinfo.procdef.procsym.name<>current_scanner.pattern then
+                      if compiler.current_procinfo.procdef.procsym.name<>current_scanner.pattern then
                         begin
-                          exit_procinfo:=current_procinfo.parent;
+                          exit_procinfo:=compiler.current_procinfo.parent;
                           while assigned(exit_procinfo) do
                             begin
                               if exit_procinfo.procdef.procsym.name=current_scanner.pattern then
@@ -403,10 +403,10 @@ implementation
                             begin
                               if not(assigned(exit_procinfo.nestedexitlabel)) then
                                 begin
-                                  include(current_procinfo.flags,pi_has_nested_exit);
-                                  exclude(current_procinfo.procdef.procoptions,po_inline);
-                                  if is_nested_pd(current_procinfo.procdef) then
-                                    current_procinfo.set_needs_parentfp(exit_procinfo.procdef.parast.symtablelevel);
+                                  include(compiler.current_procinfo.flags,pi_has_nested_exit);
+                                  exclude(compiler.current_procinfo.procdef.procoptions,po_inline);
+                                  if is_nested_pd(compiler.current_procinfo.procdef) then
+                                    compiler.current_procinfo.set_needs_parentfp(exit_procinfo.procdef.parast.symtablelevel);
 
                                   exit_procinfo.nestedexitlabel:=clabelsym.create('$nestedexit');
 
@@ -481,9 +481,9 @@ implementation
               if not(is_objc_class_or_protocol(p1.resultdef)) and
                  not(is_java_class_or_interface(p1.resultdef)) and
                  ((p1.resultdef.typ = objectdef) or
-                  (assigned(current_procinfo) and
-                   ((po_classmethod in current_procinfo.procdef.procoptions) or
-                    (po_staticmethod in current_procinfo.procdef.procoptions)) and
+                  (assigned(compiler.current_procinfo) and
+                   ((po_classmethod in compiler.current_procinfo.procdef.procoptions) or
+                    (po_staticmethod in compiler.current_procinfo.procdef.procoptions)) and
                    (p1.resultdef.typ=classrefdef))) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1,compiler)
               else
@@ -1091,9 +1091,9 @@ implementation
              recordsymtable:
                begin
                  { Escape nested procedures }
-                 if assigned(current_procinfo) then
+                 if assigned(compiler.current_procinfo) then
                    begin
-                     pd:=current_procinfo.get_normal_proc.procdef;
+                     pd:=compiler.current_procinfo.get_normal_proc.procdef;
                      { We are calling from the static class method which has no self node }
                      if assigned(pd) and pd.no_self_node then
                        if st.symtabletype=recordsymtable then
@@ -1192,12 +1192,12 @@ implementation
                aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef);
 
              { ensure that the correct function is considered as captured }
-             if assigned(current_procinfo) and
+             if assigned(compiler.current_procinfo) and
                  assigned(aprocdef) and
-                 (aprocdef.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
+                 (aprocdef.parast.symtablelevel<=compiler.current_procinfo.procdef.parast.symtablelevel) and
                  (aprocdef.parast.symtablelevel>normal_function_level) and
-                 (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-               current_procinfo.add_captured_sym(sym,aprocdef,compiler.globals.current_filepos);
+                 (compiler.current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
+               compiler.current_procinfo.add_captured_sym(sym,aprocdef,compiler.globals.current_filepos);
 
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
@@ -1245,11 +1245,11 @@ implementation
              para:=nil;
              if anon_inherited then
               begin
-                if not assigned(current_procinfo) then
+                if not assigned(compiler.current_procinfo) then
                   internalerror(200305054);
-                for i:=0 to current_procinfo.procdef.paras.count-1 do
+                for i:=0 to compiler.current_procinfo.procdef.paras.count-1 do
                   begin
-                    currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+                    currpara:=tparavarsym(compiler.current_procinfo.procdef.paras[i]);
                     if not(vo_is_hidden_para in currpara.varoptions) then
                       begin
                         { inheritance by msgint? }
@@ -1670,8 +1670,8 @@ implementation
                             if assigned(p1) and
                               (
                                 is_self_node(p1) or
-                                (assigned(current_procinfo) and (current_procinfo.get_normal_proc.procdef.no_self_node) and
-                                (current_procinfo.procdef.struct=structh))) then
+                                (assigned(compiler.current_procinfo) and (compiler.current_procinfo.get_normal_proc.procdef.no_self_node) and
+                                (compiler.current_procinfo.procdef.struct=structh))) then
                               compiler.verbose.Message(parser_e_only_class_members)
                             else
                               compiler.verbose.Message(parser_e_only_class_members_via_class_ref);
@@ -3158,9 +3158,9 @@ implementation
                         result:=compiler.cloadvmtaddrnode(compiler.ctypenode(hdef))
                     else
                       begin
-                        if assigned(current_procinfo) then
+                        if assigned(compiler.current_procinfo) then
                           begin
-                            pd:=current_procinfo.get_normal_proc.procdef;
+                            pd:=compiler.current_procinfo.get_normal_proc.procdef;
                             if assigned(pd) and pd.no_self_node then
                               result:=compiler.cloadvmtaddrnode(compiler.ctypenode(pd.struct))
                             else
@@ -3315,7 +3315,7 @@ implementation
                     { class or from a static class method we need to call }
                     { it as a class member                                }
                     if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
-                       (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
+                       (assigned(compiler.current_procinfo) and compiler.current_procinfo.get_normal_proc.procdef.no_self_node) then
                       begin
                         result:=compiler.ctypenode(hdef);
                         if not is_record(hdef) then
@@ -3343,7 +3343,7 @@ implementation
               { Support @label }
               if getaddr then
                 begin
-                  if srsym.owner<>current_procinfo.procdef.localst then
+                  if srsym.owner<>compiler.current_procinfo.procdef.localst then
                     compiler.verbose.CGMessage(parser_e_label_outside_proc);
                   result:=compiler.cloadnode(srsym,srsym.owner)
                 end
@@ -3354,8 +3354,8 @@ implementation
                     compiler.verbose.Message(sym_e_label_already_defined);
                   if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                     begin
-                      include(current_procinfo.flags,pi_has_interproclabel);
-                      if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                      include(compiler.current_procinfo.flags,pi_has_interproclabel);
+                      if (compiler.current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
                         compiler.verbose.Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                     end;
                   tlabelsym(srsym).defined:=true;
@@ -3691,7 +3691,7 @@ implementation
                  begin
                    { if a generic is parsed and when we are inside an with block,
                      a symbol might not be defined }
-                   if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) and
+                   if assigned(compiler.current_procinfo) and (df_generic in compiler.current_procinfo.procdef.defoptions) and
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
@@ -3794,9 +3794,9 @@ implementation
            result:=false;
            if (compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
               not assigned(current_structdef) or
-              not assigned(current_procinfo) then
+              not assigned(compiler.current_procinfo) then
              exit;
-           result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
+           result:=not compiler.current_procinfo.get_normal_proc.procdef.no_self_node;
          end;
 
 
@@ -3908,9 +3908,9 @@ implementation
                   if not(current_scanner.token in [_SEMICOLON,_ELSE,_END]) then
                     begin
                       p1:=comp_expr([ef_accept_equal]);
-                      if not assigned(current_procinfo) or
-                         (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
-                         is_void(current_procinfo.procdef.returndef) then
+                      if not assigned(compiler.current_procinfo) or
+                         (compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                         is_void(compiler.current_procinfo.procdef.returndef) then
                         begin
                           compiler.verbose.Message(parser_e_void_function);
                           { recovery }
@@ -3924,7 +3924,7 @@ implementation
                begin
                  again:=true;
                  parser.pbase.consume(_INHERITED);
-                 if assigned(current_procinfo) and
+                 if assigned(compiler.current_procinfo) and
                     assigned(current_structdef) and
                     ((current_structdef.typ=objectdef) or
                      ((compiler.target.info.system in systems_jvm) and
@@ -3955,12 +3955,12 @@ implementation
                       the same name }
                     if current_scanner.token <> _ID then
                      begin
-                       hs:=current_procinfo.procdef.procsym.name;
-                       hsorg:=current_procinfo.procdef.procsym.realname;
+                       hs:=compiler.current_procinfo.procdef.procsym.name;
+                       hsorg:=compiler.current_procinfo.procdef.procsym.realname;
                        anon_inherited:=true;
                        { For message methods we need to search using the message
                          number or string }
-                       pd:=tprocdef(tprocsym(current_procinfo.procdef.procsym).ProcdefList[0]);
+                       pd:=tprocdef(tprocsym(compiler.current_procinfo.procdef.procsym).ProcdefList[0]);
                        srdef:=nil;
                        if (po_msgint in pd.procoptions) then
                          searchsym_in_class_by_msgint(hclassdef,pd.messageinf.i,srdef,srsym,srsymtable)
@@ -4049,8 +4049,8 @@ implementation
                                    end
                                  else
                                    hdef:=hclassdef;
-                                 if (po_classmethod in current_procinfo.procdef.procoptions) or
-                                    (po_staticmethod in current_procinfo.procdef.procoptions) then
+                                 if (po_classmethod in compiler.current_procinfo.procdef.procoptions) or
+                                    (po_staticmethod in compiler.current_procinfo.procdef.procoptions) then
                                    hdef:=cclassrefdef.create(hdef,compiler);
                                  if useself then
                                    begin
@@ -4081,7 +4081,7 @@ implementation
                            if not isspecialize then
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                            callflags:=[cnf_inherited];
-                           include(current_procinfo.flags,pi_has_inherited);
+                           include(compiler.current_procinfo.flags,pi_has_inherited);
                            if anon_inherited then
                              include(callflags,cnf_anon_inherited);
                            do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,spezcontext);
@@ -4695,7 +4695,7 @@ implementation
               if assigned(inheriteddef) then
                 begin
                   callflags:=[cnf_inherited];
-                  include(current_procinfo.flags,pi_has_inherited);
+                  include(compiler.current_procinfo.flags,pi_has_inherited);
                 end
               else
                 callflags:=[];

@@ -671,7 +671,7 @@ implementation
       else
         begin
           current_asmdata.getjumplabel(nextinslab);
-          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          exceptlab:=tllvmprocinfo(compiler.current_procinfo).CurrExceptLabel;
           list.concat(taillvm.invoke_size_name_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas,nextinslab,exceptlab));
           a_label(list,nextinslab);
         end;
@@ -695,7 +695,7 @@ implementation
       else
         begin
           current_asmdata.getjumplabel(nextinslab);
-          exceptlab:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
+          exceptlab:=tllvmprocinfo(compiler.current_procinfo).CurrExceptLabel;
           list.concat(taillvm.invoke_size_reg_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,reg,callparas,nextinslab,exceptlab));
           a_label(list,nextinslab);
         end;
@@ -1503,25 +1503,25 @@ implementation
       mangledname: TSymStr;
       asmsym: tasmsymbol;
     begin
-      if po_external in current_procinfo.procdef.procoptions then
+      if po_external in compiler.current_procinfo.procdef.procoptions then
         exit;
-      item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
-      mangledname:=current_procinfo.procdef.mangledname;
+      item:=TCmdStrListItem(compiler.current_procinfo.procdef.aliasnames.first);
+      mangledname:=compiler.current_procinfo.procdef.mangledname;
       { predefine the real function name as local/global, so the aliases can
         refer to the symbol and get the binding correct }
       if (cs_profile in compiler.globals.current_settings.moduleswitches) or
-         (po_global in current_procinfo.procdef.procoptions) then
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef)
+         (po_global in compiler.current_procinfo.procdef.procoptions) then
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,compiler.current_procinfo.procdef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,compiler.current_procinfo.procdef);
       while assigned(item) do
         begin
           if mangledname<>item.Str then
-            list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,asmsym.bind));
+            list.concat(taillvmalias.create(asmsym,item.str,compiler.current_procinfo.procdef,asmsym.bind));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef.procsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
-      current_procinfo.procdef.procstarttai:=tai(list.last);
+      list.concat(taillvmdecl.createdef(asmsym,compiler.current_procinfo.procdef.procsym,compiler.current_procinfo.procdef,nil,sec_code,compiler.current_procinfo.procdef.alignment));
+      compiler.current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
 
@@ -1554,14 +1554,14 @@ implementation
         differ from the real result type (e.g. int64 for a record consisting of
         two longint fields on x86-64 -- we are responsible for lowering the
         result types like that) }
-      retpara:=get_call_result_cgpara(current_procinfo.procdef,nil);
+      retpara:=get_call_result_cgpara(compiler.current_procinfo.procdef,nil);
       retpara.check_simple_location;
       retdef:=retpara.location^.def;
       if (is_void(retdef) or
           { don't check retdef here, it is e.g. a pshortstring in case it's
             shortstring that's returned in a parameter }
-          paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
-         not current_procinfo.procdef.generate_safecall_wrapper then
+          paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef)) and
+         not compiler.current_procinfo.procdef.generate_safecall_wrapper then
         list.concat(taillvm.op_size(la_ret,voidtype))
       else
         begin
@@ -1574,16 +1574,16 @@ implementation
                   via the signext/zeroext modifiers of the result, rather than
                   in the code generator -> remove any explicit extensions here }
                 retreg:=retpara.location^.register;
-                if (current_procinfo.procdef.returndef.typ in [orddef,enumdef]) and
+                if (compiler.current_procinfo.procdef.returndef.typ in [orddef,enumdef]) and
                    (retdef.typ in [orddef,enumdef]) and
-                   not current_procinfo.procdef.generate_safecall_wrapper then
+                   not compiler.current_procinfo.procdef.generate_safecall_wrapper then
                   begin
-                    if (current_procinfo.procdef.returndef.size<retpara.location^.def.size) then
+                    if (compiler.current_procinfo.procdef.returndef.size<retpara.location^.def.size) then
                       begin
-                        hreg:=getintregister(list,current_procinfo.procdef.returndef);
-                        a_load_reg_reg(list,retdef,current_procinfo.procdef.returndef,retreg,hreg);
+                        hreg:=getintregister(list,compiler.current_procinfo.procdef.returndef);
+                        a_load_reg_reg(list,retdef,compiler.current_procinfo.procdef.returndef,retreg,hreg);
                         retreg:=hreg;
-                        retdef:=current_procinfo.procdef.returndef;
+                        retdef:=compiler.current_procinfo.procdef.returndef;
                       end;
                    end;
                 list.concat(taillvm.op_size_reg(la_ret,retdef,retreg))
@@ -1897,7 +1897,7 @@ implementation
     var
       retlocpara: tcgpara;
     begin
-      retlocpara:=get_call_result_cgpara(current_procinfo.procdef,nil);
+      retlocpara:=get_call_result_cgpara(compiler.current_procinfo.procdef,nil);
       gen_load_loc_cgpara(list,vardef,l,retlocpara);
       retlocpara.resetiftemp;
     end;
@@ -2288,8 +2288,8 @@ implementation
 
   procedure create_hlcodegen_llvm(compiler: TCompilerBase);
     begin
-      if not assigned(current_procinfo) or
-         not(po_assembler in current_procinfo.procdef.procoptions) then
+      if not assigned(compiler.current_procinfo) or
+         not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           tgobjclass:=ttgllvm;
           tcompiler(compiler).hlcg:=thlcgllvm.create(compiler);

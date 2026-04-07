@@ -166,7 +166,7 @@ implementation
     procedure tcgloongarch64.a_call_reg(list : TAsmList;reg: tregister);
       begin
         list.concat(taicpu.op_reg_reg_const(A_JIRL,NR_RETURN_ADDRESS_REG,reg,0));
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -193,8 +193,8 @@ implementation
             list.concat(taicpu.op_ref(A_BL,href));
           end;
         { not assigned while generating external wrappers }
-        if assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_do_call);
+        if assigned(compiler.current_procinfo) then
+          include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -966,7 +966,7 @@ implementation
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             regs:=regs+[RS_FRAME_POINTER_REG];
             { Does it call another function? }
-            if (pi_do_call in current_procinfo.flags) or
+            if (pi_do_call in compiler.current_procinfo.flags) or
                (RS_R1 in rg[R_INTREGISTER].used_in_proc) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
             { Float registers }
@@ -1066,11 +1066,11 @@ implementation
       begin
         if not(nostackframe) then
           begin
-            localsize:=current_procinfo.calc_stackframe_size;
+            localsize:=compiler.current_procinfo.calc_stackframe_size;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
             regs:=regs+[RS_FRAME_POINTER_REG];
-            if (pi_do_call in current_procinfo.flags) or
+            if (pi_do_call in compiler.current_procinfo.flags) or
                (RS_R1 in rg[R_INTREGISTER].used_in_proc) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
             stackcount:=16;

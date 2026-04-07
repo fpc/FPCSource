@@ -280,7 +280,7 @@ unit cgcpu;
         { currently, we always save R14, so we can use it }
         if (compiler.target.info.system<>system_arm_ios) then
             begin
-              if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
+              if assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer<>NR_R11) then
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
                     [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                      RS_R9,RS_R10,RS_R11,RS_R14],first_int_imreg,[],compiler)
@@ -343,9 +343,9 @@ unit cgcpu;
                reference_reset(hr,4,[]);
 
                current_asmdata.getjumplabel(l);
-               a_label(current_procinfo.aktlocaldata,l);
-               hr.symboldata:=current_procinfo.aktlocaldata.last;
-               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
+               a_label(compiler.current_procinfo.aktlocaldata,l);
+               hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+               compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
                hr.base:=NR_PC;
@@ -659,10 +659,10 @@ unit cgcpu;
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
-          if not(pi_do_call in current_procinfo.flags) then
+          if not(pi_do_call in compiler.current_procinfo.flags) then
             internalerror(2003060703);
 }
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -679,10 +679,10 @@ unit cgcpu;
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
-          if not(pi_do_call in current_procinfo.flags) then
+          if not(pi_do_call in compiler.current_procinfo.flags) then
             internalerror(2003060703);
 }
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -1783,7 +1783,7 @@ unit cgcpu;
       begin
         if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           compiler.globals.needs_check_for_fpu_exceptions and
-          (force or current_procinfo.FPUExceptionCheckNeeded) then
+          (force or compiler.current_procinfo.FPUExceptionCheckNeeded) then
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
@@ -1798,7 +1798,7 @@ unit cgcpu;
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
             if clear then
-              current_procinfo.FPUExceptionCheckNeeded:=false;
+              compiler.current_procinfo.FPUExceptionCheckNeeded:=false;
           end;
       end;
 
@@ -1952,11 +1952,11 @@ unit cgcpu;
          stack_parameters : Boolean;
       begin
         LocalSize:=align(LocalSize,4);
-        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+        stack_parameters:=compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside);
 
         { call instruction does not put anything on the stack }
         registerarea:=0;
-        tcpuprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
+        tcpuprocinfo(compiler.current_procinfo).stackpaddingreg:=High(TSuperRegister);
         lastfloatreg:=RS_NO;
         if not(nostackframe) then
           begin
@@ -2000,7 +2000,7 @@ unit cgcpu;
                 internalerror(2019050924);
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               a_reg_alloc(list,NR_FRAME_POINTER_REG);
             { save int registers }
             reference_reset(ref,4,[]);
@@ -2010,7 +2010,7 @@ unit cgcpu;
             if not(compiler.target.info.system in systems_darwin) then
               begin
                 a_reg_alloc(list,NR_STACK_POINTER_REG);
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   begin
                     a_reg_alloc(list,NR_R12);
                     list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
@@ -2020,10 +2020,10 @@ unit cgcpu;
                   stack frame belongs to) -> also save R12 (= copy of R13 on entry)
                   and R15 -- still needs updating for EABI and Darwin, they don't
                   need that }
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   regs:=regs+[RS_FRAME_POINTER_REG,RS_R12,RS_R14,RS_R15]
                 else
-                  if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+                  if (regs<>[]) or (pi_do_call in compiler.current_procinfo.flags) then
                     include(regs,RS_R14);
                 if regs<>[] then
                    begin
@@ -2039,14 +2039,14 @@ unit cgcpu;
                            begin
                              regs:=regs+[r];
                              inc(registerarea,4);
-                             tcpuprocinfo(current_procinfo).stackpaddingreg:=r;
+                             tcpuprocinfo(compiler.current_procinfo).stackpaddingreg:=r;
                              break;
                            end;
                      list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
                      current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea);
                    end;
 
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   begin
                     offset:=-4;
                     for r:=RS_R15 downto RS_R0 do
@@ -2059,7 +2059,7 @@ unit cgcpu;
                       framepointer is at R11-12 (for get_caller_frame) }
                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
                     a_reg_dealloc(list,NR_R12);
-                    current_asmdata.asmcfi.cfa_def_cfa_register(list,current_procinfo.framepointer);
+                    current_asmdata.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
                     current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
                   end;
               end
@@ -2069,9 +2069,9 @@ unit cgcpu;
                   the parameter offsets are hardcoded in advance and always
                   assume that r14 sits on the stack right behind the saved r7
                 }
-                if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+                if compiler.current_procinfo.framepointer=NR_FRAME_POINTER_REG then
                   include(regs,RS_FRAME_POINTER_REG);
-                if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+                if (regs<>[]) or (pi_do_call in compiler.current_procinfo.flags) then
                     include(regs,RS_R14);
                 if regs<>[] then
                   begin
@@ -2113,16 +2113,16 @@ unit cgcpu;
             stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
-                if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                if stack_parameters and (pi_estimatestacksize in compiler.current_procinfo.flags) then
                   begin
-                    if localsize>tcpuprocinfo(current_procinfo).stackframesize then
+                    if localsize>tcpuprocinfo(compiler.current_procinfo).stackframesize then
                       internalerror(2014030901)
                     else
-                      localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea;
+                      localsize:=tcpuprocinfo(compiler.current_procinfo).stackframesize-registerarea;
                   end;
                 if is_shifter_const(localsize,shift) then
                   begin
@@ -2137,13 +2137,13 @@ unit cgcpu;
                   end
                 else
                   begin
-                    if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                    if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                       a_reg_alloc(list,NR_R12);
                     a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                     a_reg_dealloc(list,NR_R12);
                   end;
-                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
               end;
 
@@ -2151,24 +2151,24 @@ unit cgcpu;
                (firstfloatreg<>RS_NO) then
              begin
                reference_reset(ref,4,[]);
-               if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
+               if (tg.direction*tcpuprocinfo(compiler.current_procinfo).floatregstart>=1023) or
                  (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                  begin
-                   if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
+                   if not is_shifter_const(tcpuprocinfo(compiler.current_procinfo).floatregstart,shift) then
                      begin
                        a_reg_alloc(list,NR_R12);
-                       a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                       list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                       a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(compiler.current_procinfo).floatregstart,NR_R12);
+                       list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,compiler.current_procinfo.framepointer,NR_R12));
                        a_reg_dealloc(list,NR_R12);
                      end
                    else
-                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tcpuprocinfo(current_procinfo).floatregstart));
+                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,compiler.current_procinfo.framepointer,-tcpuprocinfo(compiler.current_procinfo).floatregstart));
                    ref.base:=NR_R12;
                  end
                else
                  begin
-                   ref.base:=current_procinfo.framepointer;
-                   ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                   ref.base:=compiler.current_procinfo.framepointer;
+                   ref.offset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
                  end;
 
                case compiler.globals.current_settings.fputype of
@@ -2262,24 +2262,24 @@ unit cgcpu;
                (mmregs<>[]) then
               begin
                 reference_reset(ref,4,[]);
-                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
+                if (tg.direction*tcpuprocinfo(compiler.current_procinfo).floatregstart>=1023) or
                    (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                   begin
-                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
+                    if not is_shifter_const(tcpuprocinfo(compiler.current_procinfo).floatregstart,shift) then
                       begin
                         a_reg_alloc(list,NR_R12);
-                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(compiler.current_procinfo).floatregstart,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,compiler.current_procinfo.framepointer,NR_R12));
                         a_reg_dealloc(list,NR_R12);
                       end
                     else
-                      list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tcpuprocinfo(current_procinfo).floatregstart));
+                      list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,compiler.current_procinfo.framepointer,-tcpuprocinfo(compiler.current_procinfo).floatregstart));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
-                    ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                    ref.base:=compiler.current_procinfo.framepointer;
+                    ref.offset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
                   end;
                 case compiler.globals.current_settings.fputype of
                   fpu_fpa,
@@ -2309,10 +2309,10 @@ unit cgcpu;
               end;
 
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            if (pi_do_call in current_procinfo.flags) or
+            if (pi_do_call in compiler.current_procinfo.flags) or
                (regs<>[]) or
                ((compiler.target.info.system in systems_darwin) and
-                (current_procinfo.framepointer<>NR_STACK_POINTER_REG)) then
+                (compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG)) then
               begin
                 exclude(regs,RS_R14);
                 include(regs,RS_R15);
@@ -2325,7 +2325,7 @@ unit cgcpu;
                 { restore saved stack pointer to SP (R13) and saved lr to PC (R15).
                   The saved PC came after that but is discarded, since we restore
                   the stack pointer }
-                if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+                if (compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
                   regs:=regs+[RS_FRAME_POINTER_REG,RS_R13,RS_R15];
               end
             else
@@ -2350,7 +2350,7 @@ unit cgcpu;
 
             { reapply the stack padding reg, in case there was one, see the complimentary
               comment in g_proc_entry() (KB) }
-            paddingreg:=tcpuprocinfo(current_procinfo).stackpaddingreg;
+            paddingreg:=tcpuprocinfo(compiler.current_procinfo).stackpaddingreg;
             if paddingreg < RS_R4 then
               if paddingreg in regs then
                 internalerror(201306190)
@@ -2360,17 +2360,17 @@ unit cgcpu;
                   inc(registerarea,4);
                 end;
             stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+            if (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (compiler.target.info.system in systems_darwin) then
               begin
-                LocalSize:=current_procinfo.calc_stackframe_size;
+                LocalSize:=compiler.current_procinfo.calc_stackframe_size;
                 if (LocalSize<>0) or
                    ((stackmisalignment<>0) and
-                    ((pi_do_call in current_procinfo.flags) or
-                     (po_assembler in current_procinfo.procdef.procoptions))) then
+                    ((pi_do_call in compiler.current_procinfo.flags) or
+                     (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
                   begin
-                    if pi_estimatestacksize in current_procinfo.flags then
-                      LocalSize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
+                    if pi_estimatestacksize in compiler.current_procinfo.flags then
+                      LocalSize:=tcpuprocinfo(compiler.current_procinfo).stackframesize-registerarea
                     else
                       localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
 
@@ -2432,7 +2432,7 @@ unit cgcpu;
         r: byte;
       begin
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
-           (pi_needs_got in current_procinfo.flags) and
+           (pi_needs_got in compiler.current_procinfo.flags) and
            (tf_pic_uses_got in compiler.target.info.flags) then
           begin
             { Procedure parametrs are not initialized at this stage.
@@ -2449,16 +2449,16 @@ unit cgcpu;
 
             reference_reset(ref,4,[]);
             current_asmdata.getglobaldatalabel(l);
-            a_label(current_procinfo.aktlocaldata,l);
+            a_label(compiler.current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
-            ref.symboldata:=current_procinfo.aktlocaldata.last;
+            ref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
             list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
-            current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
+            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
             a_label(list,l);
             list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
-            list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
+            list.concat(Taicpu.op_reg_reg(A_MOV,compiler.current_procinfo.got,NR_R12));
 
             { Deallocate registers }
             a_reg_dealloc(list,NR_R12);
@@ -2547,8 +2547,8 @@ unit cgcpu;
         { create consts entry }
         reference_reset(tmpref,4,[]);
         current_asmdata.getjumplabel(l);
-        a_label(current_procinfo.aktlocaldata,l);
-        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+        a_label(compiler.current_procinfo.aktlocaldata,l);
+        tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
         piclabel:=nil;
         tmpreg:=NR_NO;
 
@@ -2564,21 +2564,21 @@ unit cgcpu;
                 indirection_done:=true;
               end
             else if ref.refaddr=addr_gottpoff then
-              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+              compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
             else if ref.refaddr=addr_tlsgd then
-              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+              compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
             else if ref.refaddr=addr_tlsdesc then
-              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+              compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
             else if ref.refaddr=addr_tpoff then
               begin
                 if assigned(ref.relsymbol) or (ref.offset<>0) then
                   Internalerror(2019092804);
 
-                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
               end
             else if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
               if (tf_pic_uses_got in compiler.target.info.flags) then
-                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
+                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
               else
                 begin
                   { ideally, we would want to generate
@@ -2596,13 +2596,13 @@ unit cgcpu;
                     complete address already in a register.
                   }
                   current_asmdata.getaddrlabel(piclabel);
-                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,ref.symbol,ref.offset-8));
+                  compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,ref.symbol,ref.offset-8));
                 end
             else
-              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+              compiler.current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
           end
         else
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
         if not indirection_done then
@@ -2617,12 +2617,12 @@ unit cgcpu;
                assigned(ref.symbol) then
               begin
                 {$ifdef EXTDEBUG}
-                if not (pi_needs_got in current_procinfo.flags) then
+                if not (pi_needs_got in compiler.current_procinfo.flags) then
                 	compiler.verbose.Comment(V_warning,'pi_needs_got not included');
                 {$endif EXTDEBUG}
-                Include(current_procinfo.flags,pi_needs_got);
+                Include(compiler.current_procinfo.flags,pi_needs_got);
                 reference_reset(tmpref,4,[]);
-                tmpref.base:=current_procinfo.got;
+                tmpref.base:=compiler.current_procinfo.got;
                 tmpref.index:=tmpreg;
                 list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
                 if ref.offset<>0 then
@@ -3392,11 +3392,11 @@ unit cgcpu;
 
     procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
       begin
-        if pi_needs_tls in current_procinfo.flags then
+        if pi_needs_tls in compiler.current_procinfo.flags then
           begin
             list.concat(tai_regalloc.alloc(NR_R0,nil));
             a_call_name(list,'fpc_read_tp',false);
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,compiler.current_procinfo.tlsoffset);
             list.concat(tai_regalloc.dealloc(NR_R0,nil));
           end;
       end;
@@ -3687,7 +3687,7 @@ unit cgcpu;
     procedure tthumbcgarm.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if assigned(current_procinfo) and (current_procinfo.framepointer=NR_R7) then
+        if assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer=NR_R7) then
           rg[R_INTREGISTER]:=trgintcputhumb.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6],first_int_imreg,[],compiler)
         else
@@ -3714,14 +3714,14 @@ unit cgcpu;
          registerarea: DWord;
          stack_parameters: Boolean;
       begin
-        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+        stack_parameters:=compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside);
         LocalSize:=align(LocalSize,4);
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
         if not(nostackframe) then
           begin
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               a_reg_alloc(list,NR_FRAME_POINTER_REG);
             { save int registers }
             reference_reset(ref,4,[]);
@@ -3729,7 +3729,7 @@ unit cgcpu;
             ref.addressmode:=AM_PREINDEXED;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 //!!!! a_reg_alloc(list,NR_R12);
                 //!!!! list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
@@ -3739,10 +3739,10 @@ unit cgcpu;
               stack frame belongs to) -> also save R12 (= copy of R13 on entry)
               and R15 -- still needs updating for EABI and Darwin, they don't
               need that }
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_R7,RS_R14]
             else
-              // if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+              // if (regs<>[]) or (pi_do_call in compiler.current_procinfo.flags) then
               include(regs,RS_R14);
 
             { safely estimate stack size }
@@ -3754,7 +3754,7 @@ unit cgcpu;
 
             registerarea:=0;
             { do not save integer registers if the procedure does not return }
-            if po_noreturn in current_procinfo.procdef.procoptions then
+            if po_noreturn in compiler.current_procinfo.procdef.procoptions then
               regs:=[];
 
             if regs<>[] then
@@ -3778,21 +3778,21 @@ unit cgcpu;
 
             if stack_parameters or (LocalSize<>0) or
                ((stackmisalignment<>0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 { do we access stack parameters?
                   if yes, the previously estimated stacksize must be used }
                 if stack_parameters then
                   begin
-                    if localsize>tcpuprocinfo(current_procinfo).stackframesize then
+                    if localsize>tcpuprocinfo(compiler.current_procinfo).stackframesize then
                       begin
                         writeln(localsize);
-                        writeln(tcpuprocinfo(current_procinfo).stackframesize);
+                        writeln(tcpuprocinfo(compiler.current_procinfo).stackframesize);
                         internalerror(2013040601);
                       end
                     else
-                      localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea;
+                      localsize:=tcpuprocinfo(compiler.current_procinfo).stackframesize-registerarea;
                   end
                 else
                   localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
@@ -3815,10 +3815,10 @@ unit cgcpu;
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
               end;
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
-                list.concat(taicpu.op_reg_reg_const(A_ADD,current_procinfo.framepointer,NR_STACK_POINTER_REG,0));
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,current_procinfo.framepointer);
+                list.concat(taicpu.op_reg_reg_const(A_ADD,compiler.current_procinfo.framepointer,NR_STACK_POINTER_REG,0));
+                current_asmdata.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
               end;
           end;
       end;
@@ -3835,17 +3835,17 @@ unit cgcpu;
       begin
         { a routine not returning needs no exit code,
           we trust this directive as arm thumb is normally used if small code shall be generated }
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
         if not(nostackframe) then
           begin
-            stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+            stack_parameters:=compiler.current_procinfo.procdef.stack_tainting_parameter(calleeside);
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
             include(regs,RS_R15);
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              include(regs,getsupreg(current_procinfo.framepointer));
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              include(regs,getsupreg(compiler.current_procinfo.framepointer));
 
             registerarea:=0;
             for r:=RS_R0 to RS_R15 do
@@ -3854,19 +3854,19 @@ unit cgcpu;
 
             stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
 
-            LocalSize:=current_procinfo.calc_stackframe_size;
+            LocalSize:=compiler.current_procinfo.calc_stackframe_size;
             if stack_parameters then
-              localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
+              localsize:=tcpuprocinfo(compiler.current_procinfo).stackframesize-registerarea
             else
               localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
 
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+            if (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (compiler.target.info.system in systems_darwin) then
               begin
                 if (LocalSize<>0) or
                    ((stackmisalignment<>0) and
-                    ((pi_do_call in current_procinfo.flags) or
-                     (po_assembler in current_procinfo.procdef.procoptions))) then
+                    ((pi_do_call in compiler.current_procinfo.flags) or
+                     (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
                   begin
                     if LocalSize=0 then
                     else if LocalSize<=508 then
@@ -4041,9 +4041,9 @@ unit cgcpu;
               reference_reset(hr,4,[]);
 
               current_asmdata.getjumplabel(l);
-              a_label(current_procinfo.aktlocaldata,l);
-              hr.symboldata:=current_procinfo.aktlocaldata.last;
-              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
+              a_label(compiler.current_procinfo.aktlocaldata,l);
+              hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+              compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
               hr.symbol:=l;
               hr.base:=NR_PC;
@@ -4080,10 +4080,10 @@ unit cgcpu;
                         list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
                         reference_reset(tmpref,4,[]);
                         current_asmdata.getjumplabel(l);
-                        current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                        a_label(current_procinfo.aktlocaldata,l);
-                        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-                        current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
+                        compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                        a_label(compiler.current_procinfo.aktlocaldata,l);
+                        tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+                        compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
                         tmpref.symbol:=l;
                         tmpref.base:=NR_PC;
                         list.concat(taicpu.op_reg_ref(A_LDR,NR_R4,tmpref));
@@ -4103,10 +4103,10 @@ unit cgcpu;
                         list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
                         reference_reset(tmpref,4,[]);
                         current_asmdata.getjumplabel(l);
-                        current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                        a_label(current_procinfo.aktlocaldata,l);
-                        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-                        current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
+                        compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                        a_label(compiler.current_procinfo.aktlocaldata,l);
+                        tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+                        compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
                         tmpref.symbol:=l;
                         tmpref.base:=NR_PC;
                         list.concat(taicpu.op_reg_ref(A_LDR,NR_R4,tmpref));
@@ -4409,10 +4409,10 @@ unit cgcpu;
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
-          if not(pi_do_call in current_procinfo.flags) then
+          if not(pi_do_call in compiler.current_procinfo.flags) then
             internalerror(2003060703);
 }
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -4434,9 +4434,9 @@ unit cgcpu;
                reference_reset(hr,4,[]);
 
                current_asmdata.getjumplabel(l);
-               a_label(current_procinfo.aktlocaldata,l);
-               hr.symboldata:=current_procinfo.aktlocaldata.last;
-               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
+               a_label(compiler.current_procinfo.aktlocaldata,l);
+               hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+               compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
                hr.base:=NR_PC;
@@ -4949,7 +4949,7 @@ unit cgcpu;
               end;
 
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 a_reg_alloc(list,NR_FRAME_POINTER_REG);
                 a_reg_alloc(list,NR_R12);
@@ -4963,9 +4963,9 @@ unit cgcpu;
 
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_FRAME_POINTER_REG,RS_R14]
-            else if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+            else if (regs<>[]) or (pi_do_call in compiler.current_procinfo.flags) then
               include(regs,RS_R14);
 
             if regs<>[] then
@@ -4976,7 +4976,7 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
               end;
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 { the framepointer now points to the saved R15, so the saved
                   framepointer is at R11-12 (for get_caller_frame) }
@@ -4987,13 +4987,13 @@ unit cgcpu;
             stackmisalignment:=stackmisalignment mod compiler.globals.current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
                 if not(is_shifter_const(localsize,shift)) then
                   begin
-                    if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                    if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                       a_reg_alloc(list,NR_R12);
                     a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
@@ -5011,16 +5011,16 @@ unit cgcpu;
                 if firstfloatreg<>RS_NO then
                   begin
                     reference_reset(ref,4,[]);
-                    if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                    if tg.direction*tcpuprocinfo(compiler.current_procinfo).floatregstart>=1023 then
                       begin
-                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(compiler.current_procinfo).floatregstart,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,compiler.current_procinfo.framepointer,NR_R12));
                         ref.base:=NR_R12;
                       end
                     else
                       begin
-                        ref.base:=current_procinfo.framepointer;
-                        ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                        ref.base:=compiler.current_procinfo.framepointer;
+                        ref.offset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
                       end;
                     list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                       lastfloatreg-firstfloatreg+1,ref));
@@ -5042,7 +5042,7 @@ unit cgcpu;
       begin
         { a routine not returning needs no exit code,
           we trust this directive as arm thumb is normally used if small code shall be generated }
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
         if not(nostackframe) then
           begin
@@ -5068,16 +5068,16 @@ unit cgcpu;
                 if firstfloatreg<>RS_NO then
                   begin
                     reference_reset(ref,4,[]);
-                    if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                    if tg.direction*tcpuprocinfo(compiler.current_procinfo).floatregstart>=1023 then
                       begin
-                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(compiler.current_procinfo).floatregstart,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,compiler.current_procinfo.framepointer,NR_R12));
                         ref.base:=NR_R12;
                       end
                     else
                       begin
-                        ref.base:=current_procinfo.framepointer;
-                        ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                        ref.base:=compiler.current_procinfo.framepointer;
+                        ref.offset:=tcpuprocinfo(compiler.current_procinfo).floatregstart;
                       end;
                     list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                       lastfloatreg-firstfloatreg+1,ref));
@@ -5085,12 +5085,12 @@ unit cgcpu;
               end;
 
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
+            if (pi_do_call in compiler.current_procinfo.flags) or (regs<>[]) then
               begin
                 exclude(regs,RS_R14);
                 include(regs,RS_R15);
               end;
-            if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+            if (compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
               regs:=regs+[RS_FRAME_POINTER_REG,RS_R15];
 
             for r:=RS_R0 to RS_R15 do
@@ -5099,11 +5099,11 @@ unit cgcpu;
 
             stackmisalignment:=stackmisalignment mod compiler.globals.current_settings.alignment.localalignmax;
 
-            LocalSize:=current_procinfo.calc_stackframe_size;
+            LocalSize:=compiler.current_procinfo.calc_stackframe_size;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
                 if not(is_shifter_const(LocalSize,shift)) then
@@ -5193,24 +5193,24 @@ unit cgcpu;
             if assigned(ref.symbol) then
               begin
                 current_asmdata.getjumplabel(l);
-                a_label(current_procinfo.aktlocaldata,l);
-                tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+                a_label(compiler.current_procinfo.aktlocaldata,l);
+                tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
                 if ref.refaddr=addr_gottpoff then
-                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                  compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
                 else if ref.refaddr=addr_tlsgd then
-                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+                  compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
                 else if ref.refaddr=addr_tlsdesc then
-                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+                  compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
                 else if ref.refaddr=addr_tpoff then
                   begin
                     if assigned(ref.relsymbol) or (ref.offset<>0) then
                       Internalerror(2019092807);
 
-                    current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+                    compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
                   end
                 else
-                  current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
+                  compiler.current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 
                 { load consts entry }
                 tmpref.symbol:=l;

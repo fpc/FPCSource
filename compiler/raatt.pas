@@ -1139,7 +1139,7 @@ unit raatt;
 
        { we might need to know which parameters are passed in registers }
        if not compiler.parser.pbase.parse_generic then
-         current_procinfo.generate_parameter_info;
+         compiler.current_procinfo.generate_parameter_info;
 
        lasTSec:=sec_code;
        { start tokenizer }
@@ -1175,28 +1175,28 @@ unit raatt;
 
            AS_DATA:
              Begin
-               new_section(curList,sec_data,lower(current_procinfo.procdef.mangledname),0);
+               new_section(curList,sec_data,lower(compiler.current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_data;
                Consume(AS_DATA);
              end;
 
            AS_TEXT:
              Begin
-               new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
+               new_section(curList,sec_code,lower(compiler.current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_code;
                Consume(AS_TEXT);
              end;
 
            AS_INIT:
              Begin
-               new_section(curList,sec_init,lower(current_procinfo.procdef.mangledname),0);
+               new_section(curList,sec_init,lower(compiler.current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_init;
                Consume(AS_INIT);
              end;
 
            AS_FINI:
              Begin
-               new_section(curList,sec_fini,lower(current_procinfo.procdef.mangledname),0);
+               new_section(curList,sec_fini,lower(compiler.current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_fini;
                Consume(AS_FINI);
              end;
@@ -1486,7 +1486,7 @@ unit raatt;
        if lasTSec<>sec_code then
         begin
           compiler.verbose.Message(asmr_w_assembler_code_not_returned_to_text);
-          new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
+          new_section(curList,sec_code,lower(compiler.current_procinfo.procdef.mangledname),0);
         end;
        { Return the list in an asmnode }
        assemble:=curlist;

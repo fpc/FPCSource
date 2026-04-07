@@ -255,11 +255,11 @@ implementation
       { get the register that contains the stack pointer before the procedure
         entry, which is used to access the parameters in their original
         callee-side location }
-      if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
+      if (tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer) then
         getcpuregister(list,NR_OLD_STACK_POINTER_REG);
       inherited;
       { free it again }
-      if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
+      if (tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer) then
         ungetcpuregister(list,NR_OLD_STACK_POINTER_REG);
     end;
 

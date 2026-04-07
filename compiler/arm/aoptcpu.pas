@@ -177,7 +177,7 @@ Implementation
        ((ref.offset<=0) and
         { when using NR_R11, it has always a value of <qword align>+4 }
         ((abs(ref.offset+4) mod 8)=0) and
-        (current_procinfo.framepointer=NR_R11) and
+        (compiler.current_procinfo.framepointer=NR_R11) and
         ((ref.base=NR_R11) or
          (ref.index=NR_R11))
        )

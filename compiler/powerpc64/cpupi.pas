@@ -100,8 +100,8 @@ begin
     end;
     tg.setfirsttemp(ofs);
   end else begin
-    if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
-       (tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0) then
+    if (compiler.current_procinfo.procdef.localst.symtabletype=localsymtable) and
+       (tabstractlocalsymtable(compiler.current_procinfo.procdef.localst).count_locals <> 0) then
       { at 0(r1), the previous value of r1 will be stored; also make sure
         there's room to store lr etc by potential callees}
       tg.setfirsttemp(lasize);

@@ -284,7 +284,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.allocate_tls_register(list: TAsmList);
       begin
-        current_procinfo.tlsoffset:=cg.getaddressregister(list);
+        compiler.current_procinfo.tlsoffset:=cg.getaddressregister(list);
       end;
 
 begin

@@ -128,7 +128,7 @@ implementation
              expectloc:=LOC_FPUREGISTER;
              first_sqrt_real := nil;
              if compiler.globals.needs_check_for_fpu_exceptions then
-               Include(current_procinfo.flags,pi_do_call);
+               Include(compiler.current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_sqrt_real;
@@ -154,7 +154,7 @@ implementation
              expectloc:=LOC_FPUREGISTER;
              first_sqr_real := nil;
              if compiler.globals.needs_check_for_fpu_exceptions then
-               Include(current_procinfo.flags,pi_do_call);
+               Include(compiler.current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_sqr_real;
@@ -172,7 +172,7 @@ implementation
              expectloc:=LOC_FPUREGISTER;
              first_round_real := nil;
              if compiler.globals.needs_check_for_fpu_exceptions then
-               Include(current_procinfo.flags,pi_do_call);
+               Include(compiler.current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_round_real;
@@ -190,7 +190,7 @@ implementation
              expectloc:=LOC_FPUREGISTER;
              first_trunc_real := nil;
              if compiler.globals.needs_check_for_fpu_exceptions then
-               Include(current_procinfo.flags,pi_do_call);
+               Include(compiler.current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_trunc_real;
@@ -200,7 +200,7 @@ implementation
      function trvinlinenode.first_fma: tnode;
        begin
          if compiler.globals.needs_check_for_fpu_exceptions then
-           Include(current_procinfo.flags,pi_do_call);
+           Include(compiler.current_procinfo.flags,pi_do_call);
          Result:=nil;
        end;
 
@@ -212,7 +212,7 @@ implementation
             expectloc:=LOC_FPUREGISTER;
             Result:=nil;
             if compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
           end
         else
           Result:=inherited first_minmax;

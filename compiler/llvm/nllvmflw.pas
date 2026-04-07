@@ -122,14 +122,14 @@ implementation
         { a reraise must raise the exception to the parent exception frame }
         if fc_catching_exceptions in flowcontrol then
           begin
-            currexceptlabel:=tllvmprocinfo(current_procinfo).CurrExceptLabel;
-            if tllvmprocinfo(current_procinfo).popexceptlabel(currexceptlabel) then
+            currexceptlabel:=tllvmprocinfo(compiler.current_procinfo).CurrExceptLabel;
+            if tllvmprocinfo(compiler.current_procinfo).popexceptlabel(currexceptlabel) then
               exclude(flowcontrol,fc_catching_exceptions);
           end;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(currexceptlabel) then
           begin
-            tllvmprocinfo(current_procinfo).pushexceptlabel(currexceptlabel);
+            tllvmprocinfo(compiler.current_procinfo).pushexceptlabel(currexceptlabel);
             include(flowcontrol,fc_catching_exceptions);
           end;
       end;

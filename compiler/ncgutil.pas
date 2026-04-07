@@ -537,12 +537,12 @@ implementation
                  { variants are already handled by the call to fpc_variant_copy_overwrite if
                    they are passed by reference }
                  if not((tparavarsym(p).vardef.typ=variantdef) and
-                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption)) then
                    begin
                      hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
                        is_open_array(tparavarsym(p).vardef) or
                        ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
-                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption)),
                         sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
@@ -715,7 +715,7 @@ implementation
               usedef:=sym.vardef;
             gen_alloc_regloc(list,sym.initialloc,usedef);
           end;
-        if (pi_has_label in current_procinfo.flags) then
+        if (pi_has_label in compiler.current_procinfo.flags) then
           begin
             { Allocate register already, to prevent first allocation to be
               inside a loop }
@@ -845,36 +845,36 @@ implementation
         current_asmdata.asmcfi.start_frame(list);
 
         { labels etc. for exception frames are inserted here }
-        current_procinfo.start_eh(list);
+        compiler.current_procinfo.start_eh(list);
 
-        if current_procinfo.procdef.proctypeoption=potype_proginit then
+        if compiler.current_procinfo.procdef.proctypeoption=potype_proginit then
           current_asmdata.asmcfi.outmost_frame(list);
 
         { All temps are know, write offsets used for information }
         if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
-           (current_procinfo.tempstart<>tg.lasttemp) then
+           (compiler.current_procinfo.tempstart<>tg.lasttemp) then
           begin
             if tg.direction>0 then
               begin
-                lotemp:=current_procinfo.tempstart;
+                lotemp:=compiler.current_procinfo.tempstart;
                 hitemp:=tg.lasttemp;
               end
             else
               begin
                 lotemp:=tg.lasttemp;
-                hitemp:=current_procinfo.tempstart;
+                hitemp:=compiler.current_procinfo.tempstart;
               end;
-            list.concat(Tai_comment.Create(strpnew('Temps allocated between '+std_regname(current_procinfo.framepointer)+
-              tostr_with_plus(lotemp)+' and '+std_regname(current_procinfo.framepointer)+tostr_with_plus(hitemp))));
+            list.concat(Tai_comment.Create(strpnew('Temps allocated between '+std_regname(compiler.current_procinfo.framepointer)+
+              tostr_with_plus(lotemp)+' and '+std_regname(compiler.current_procinfo.framepointer)+tostr_with_plus(hitemp))));
           end;
 
          { generate target specific proc entry code }
-         stack_frame_size := current_procinfo.calc_stackframe_size;
+         stack_frame_size := compiler.current_procinfo.calc_stackframe_size;
          if (stack_frame_size <> 0) and
-            (po_nostackframe in current_procinfo.procdef.procoptions) then
+            (po_nostackframe in compiler.current_procinfo.procdef.procoptions) then
            compiler.verbose.Message1(parser_e_nostackframe_with_locals,tostr(stack_frame_size));
 
-         hlcg.g_proc_entry(list,stack_frame_size,(po_nostackframe in current_procinfo.procdef.procoptions));
+         hlcg.g_proc_entry(list,stack_frame_size,(po_nostackframe in compiler.current_procinfo.procdef.procoptions));
       end;
 
 
@@ -890,34 +890,34 @@ implementation
         paramanager:=compiler.paramanager;
         { c style clearstack does not need to remove parameters from the stack, only the
           return value when it was pushed by arguments }
-        if current_procinfo.procdef.proccalloption in clearstack_pocalls then
+        if compiler.current_procinfo.procdef.proccalloption in clearstack_pocalls then
           begin
             parasize:=0;
             { For safecall functions with safecall-exceptions enabled the funcret is always returned as a para
               which is considered a normal para on the c-side, so the funcret has to be pop'ed normally. }
-            if not current_procinfo.procdef.generate_safecall_wrapper and
-               paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+            if not compiler.current_procinfo.procdef.generate_safecall_wrapper and
+               paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef) then
               inc(parasize,sizeof(pint));
           end
         else
           begin
-            parasize:=current_procinfo.para_stack_size;
+            parasize:=compiler.current_procinfo.para_stack_size;
             { the parent frame pointer para has to be removed always by the caller in
               case of Delphi-style parent frame pointer passing }
             if (not(paramanager.use_fixed_stack) or (compiler.target.info.abi=abi_i386_dynalignedstack)) and
-               (po_delphi_nested_cc in current_procinfo.procdef.procoptions) then
+               (po_delphi_nested_cc in compiler.current_procinfo.procdef.procoptions) then
               dec(parasize,sizeof(pint));
           end;
 
         { generate target specific proc exit code }
-        hlcg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+        hlcg.g_proc_exit(list,parasize,(po_nostackframe in compiler.current_procinfo.procdef.procoptions));
 
         { labels etc. for exception frames are inserted here }
-        current_procinfo.end_eh(list);
+        compiler.current_procinfo.end_eh(list);
 
         { release return registers, needed for optimizer }
-        if not is_void(current_procinfo.procdef.returndef) then
-          paramanager.freecgpara(list,current_procinfo.procdef.funcretloc[calleeside]);
+        if not is_void(compiler.current_procinfo.procdef.returndef) then
+          paramanager.freecgpara(list,compiler.current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
         current_asmdata.asmcfi.end_frame(list);
@@ -930,10 +930,10 @@ implementation
         cg: tcg;
       begin
         cg:=compiler.cg;
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
         { Pure assembler routines need to save the registers themselves }
-        if (po_assembler in current_procinfo.procdef.procoptions) then
+        if (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           exit;
 
         cg.g_save_registers(list);
@@ -946,10 +946,10 @@ implementation
         cg: tcg;
       begin
         cg:=compiler.cg;
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
         { Pure assembler routines need to save the registers themselves }
-        if (po_assembler in current_procinfo.procdef.procoptions) then
+        if (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           exit;
 
         cg.g_restore_registers(list);
@@ -1213,15 +1213,15 @@ implementation
             if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
           loadparentfpn:
-            if current_procinfo.procdef.parast.symtablelevel>tloadparentfpnode(n).parentpd.parast.symtablelevel then
-              add_regvars(rv^,tparavarsym(current_procinfo.procdef.parentfpsym).localloc);
+            if compiler.current_procinfo.procdef.parast.symtablelevel>tloadparentfpnode(n).parentpd.parast.symtablelevel then
+              add_regvars(rv^,tparavarsym(compiler.current_procinfo.procdef.parentfpsym).localloc);
           vecn:
             begin
               { range checks sometimes need the high parameter }
               if (cs_check_range in compiler.globals.current_settings.localswitches) and
                  (is_open_array(tvecnode(n).left.resultdef) or
                   is_array_of_const(tvecnode(n).left.resultdef)) and
-                 not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+                 not(compiler.current_procinfo.procdef.proccalloption in cdecl_pocalls) then
                 add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
             end;
           else
@@ -1318,7 +1318,7 @@ implementation
                       in the parent procedures }
                     case localloc.loc of
                       LOC_CREGISTER :
-                        if (pi_has_label in current_procinfo.flags) then
+                        if (pi_has_label in compiler.current_procinfo.flags) then
 {$if defined(cpu64bitalu)}
                           if localloc.size in [OS_128,OS_S128] then
                             begin
@@ -1380,7 +1380,7 @@ implementation
                       LOC_CFPUREGISTER,
                       LOC_CMMREGISTER,
                       LOC_CMMXREGISTER:
-                        if (pi_has_label in current_procinfo.flags) then
+                        if (pi_has_label in compiler.current_procinfo.flags) then
                           cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
@@ -1389,7 +1389,7 @@ implementation
                             (gets freed in thlcgobj.gen_load_return_value();) }
                           if (typ in [localvarsym,paravarsym]) and
                              (([vo_is_funcret,vo_is_result]*varoptions)=[]) and
-                             ((current_procinfo.procdef.proctypeoption<>potype_constructor) or
+                             ((compiler.current_procinfo.procdef.proctypeoption<>potype_constructor) or
                               not(vo_is_self in varoptions)) then
                             tg.Ungetlocal(list,localloc.reference);
                         end;
@@ -1432,7 +1432,7 @@ implementation
         para: tparavarsym;
       begin
         cg:=compiler.cg;
-        para:=tparavarsym(current_procinfo.procdef.paras[0]);
+        para:=tparavarsym(compiler.current_procinfo.procdef.paras[0]);
         if not (vo_is_parentfp in para.varoptions) then
           InternalError(201201142);
         if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or

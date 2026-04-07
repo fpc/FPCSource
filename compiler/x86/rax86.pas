@@ -295,7 +295,7 @@ begin
                       internalerror(2019061002);
                   end;
                 end;
-              if current_procinfo.procdef.proccalloption=pocall_register then
+              if compiler.current_procinfo.procdef.proccalloption=pocall_register then
                 compiler.verbose.Message1(asmr_w_no_direct_ebp_for_parameter,ErrorRefStr)
               else
                 compiler.verbose.Message1(asmr_w_direct_ebp_for_parameter_regcall,ErrorRefStr);
@@ -396,7 +396,7 @@ begin
 {$ifdef i8086}
   opr.typ:=OPR_SYMBOL;
   opr.symofs:=0;
-  opr.symbol:=current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION);
+  opr.symbol:=current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION);
   opr.symseg:=true;
   opr.sym_farproc_entry:=false;
 {$else i8086}

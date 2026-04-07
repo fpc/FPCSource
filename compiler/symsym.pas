@@ -1986,9 +1986,9 @@ implementation
            - it has a local copy
            - the value needs to be in memory (i.e. reference counted) }
         result:=(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) and
-                not(pi_has_assembler_block in current_procinfo.flags) and
-                not(pi_uses_exceptions in current_procinfo.flags) and
-                not(pi_has_interproclabel in current_procinfo.flags) and
+                not(pi_has_assembler_block in compiler.current_procinfo.flags) and
+                not(pi_uses_exceptions in compiler.current_procinfo.flags) and
+                not(pi_has_interproclabel in compiler.current_procinfo.flags) and
                 ((refpara and
                   (varregable <> vr_none)) or
                  (not refpara and
@@ -2232,12 +2232,12 @@ implementation
           (compiler.globals.create_smartlink and
            not(tf_smartlink_sections in compiler.target.info.flags)) or
           compiler.current_module.islibrary or
-          (assigned(current_procinfo) and
-           ((po_inline in current_procinfo.procdef.procoptions) or
+          (assigned(compiler.current_procinfo) and
+           ((po_inline in compiler.current_procinfo.procdef.procoptions) or
             { globalasmsym is called normally before the body of a subroutine is parsed
               so we cannot know if it will be auto inlined, so make all symbols of it
               global if asked }
-            (not(po_noinline in current_procinfo.procdef.procoptions) and
+            (not(po_noinline in compiler.current_procinfo.procdef.procoptions) and
              (cs_opt_autoinline in compiler.globals.current_settings.optimizerswitches)))
           ) or
           (vo_is_public in varoptions);

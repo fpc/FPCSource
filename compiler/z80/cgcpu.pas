@@ -613,7 +613,7 @@ unit cgcpu;
 
         list.concat(taicpu.op_sym(A_CALL,sym));
 
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -644,7 +644,7 @@ unit cgcpu;
         list.concat(tai_const.Create_8bit($CD));  { $CD is the opcode of the call instruction }
         list.concat(tai_label.Create(l));
         list.concat(tai_const.Create_16bit(0));
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -2184,8 +2184,8 @@ unit cgcpu;
           begin
             { return address }
             inc(stackmisalignment,2);
-            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
-            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+            list.concat(tai_regalloc.alloc(compiler.current_procinfo.framepointer,nil));
+            if compiler.current_procinfo.framepointer=NR_FRAME_POINTER_REG then
               begin
                 { push <frame_pointer> }
                 inc(stackmisalignment,2);
@@ -2194,7 +2194,7 @@ unit cgcpu;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*2);
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*2));
-                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   begin
                     list.concat(Taicpu.op_reg_const(A_LD,NR_FRAME_POINTER_REG,0));
                     list.concat(Taicpu.op_reg_reg(A_ADD,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG))
@@ -2208,7 +2208,7 @@ unit cgcpu;
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.
                       maxpushedparasize is already aligned at least on x86_64. }
-                    localsize:=current_procinfo.maxpushedparasize;*)
+                    localsize:=compiler.current_procinfo.maxpushedparasize;*)
                   end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end
@@ -2221,15 +2221,15 @@ unit cgcpu;
             if (localsize<>0) or
                ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 if compiler.target.info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
-                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
-                current_procinfo.final_localsize:=localsize;
+                compiler.current_procinfo.final_localsize:=localsize;
               end
           end;
       end;
@@ -2245,21 +2245,21 @@ unit cgcpu;
         { every byte counts for Z80, so if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
         }
-        if po_noreturn in current_procinfo.procdef.procoptions then
+        if po_noreturn in compiler.current_procinfo.procdef.procoptions then
           exit;
 
         { remove stackframe }
         if not nostackframe then
           begin
-            stacksize:=current_procinfo.calc_stackframe_size;
+            stacksize:=compiler.current_procinfo.calc_stackframe_size;
             if (compiler.target.info.stackalign>4) and
                ((stacksize <> 0) or
-                (pi_do_call in current_procinfo.flags) or
+                (pi_do_call in compiler.current_procinfo.flags) or
                 { can't detect if a call in this case -> use nostackframe }
                 { if you (think you) know what you are doing              }
-                (po_assembler in current_procinfo.procdef.procoptions)) then
+                (po_assembler in compiler.current_procinfo.procdef.procoptions)) then
               stacksize := align(stacksize+sizeof(aint),compiler.target.info.stackalign) - sizeof(aint);
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 if stacksize<>0 then
                   a_adjust_sp(list,stacksize);
@@ -2269,7 +2269,7 @@ unit cgcpu;
                 list.Concat(taicpu.op_reg_reg(A_LD,NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
                 list.Concat(taicpu.op_reg(A_POP,NR_FRAME_POINTER_REG));
               end;
-            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+            list.concat(tai_regalloc.dealloc(compiler.current_procinfo.framepointer,nil));
           end;
 
         list.concat(taicpu.op_none(A_RET));

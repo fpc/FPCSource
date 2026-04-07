@@ -4188,7 +4188,7 @@ implementation
       { because some abis don't support dynamic stack allocation properly
         open array value parameters are copied onto the heap
       }
-      include(current_procinfo.flags, pi_has_open_array_parameter);
+      include(compiler.current_procinfo.flags, pi_has_open_array_parameter);
 
       { calculate necessary memory }
 
@@ -4355,11 +4355,11 @@ implementation
         LOC_REFERENCE:
           begin
             if (fromloc.reference.base<>NR_NO) and
-               (fromloc.reference.base<>current_procinfo.framepointer) and
+               (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
               handle_reg_move(voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
             if (fromloc.reference.index<>NR_NO) and
-               (fromloc.reference.index<>current_procinfo.framepointer) and
+               (fromloc.reference.index<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.index<>NR_STACK_POINTER_REG) then
               handle_reg_move(voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
           end;
@@ -4824,12 +4824,12 @@ implementation
       { self is implicitly returned from constructors, even if there are no
         references to it; additionally, funcretsym is not set for constructor
         procdefs }
-      if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-        rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
-      else if not is_void(current_procinfo.procdef.returndef) and
-         assigned(current_procinfo.procdef.funcretsym) and
-         (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
-        rr.ressym:=current_procinfo.procdef.funcretsym;
+      if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
+        rr.ressym:=tsym(compiler.current_procinfo.procdef.parast.Find('self'))
+      else if not is_void(compiler.current_procinfo.procdef.returndef) and
+         assigned(compiler.current_procinfo.procdef.funcretsym) and
+         (tabstractvarsym(compiler.current_procinfo.procdef.funcretsym).refs <> 0) then
+        rr.ressym:=compiler.current_procinfo.procdef.funcretsym;
 
       if not foreachnode(n,@do_replace_node_regs,@rr) then
         exit;
@@ -4993,9 +4993,9 @@ implementation
       item: TCmdStrListItem;
       global: boolean;
     begin
-      item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+      item:=TCmdStrListItem(compiler.current_procinfo.procdef.aliasnames.first);
       firstitem:=item;
-      global:=current_procinfo.procdef.needsglobalasmsym;
+      global:=compiler.current_procinfo.procdef.needsglobalasmsym;
       while assigned(item) do
         begin
 {$ifdef arm}
@@ -5021,21 +5021,21 @@ implementation
           else
             begin
               if global then
-                list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
+                list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,compiler.current_procinfo.procdef))
               else
-                list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,current_procinfo.procdef));
+                list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,compiler.current_procinfo.procdef));
               if not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then
                 list.concat(Tai_function_name.create(item.str));
             end;
           item:=TCmdStrListItem(item.next);
         end;
-      current_procinfo.procdef.procstarttai:=tai(list.last);
+      compiler.current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
-      current_procinfo.procdef.procendtai:=tai(list.last);
+      list.concat(Tai_symbol_end.Createname(compiler.current_procinfo.procdef.mangledname));
+      compiler.current_procinfo.procdef.procendtai:=tai(list.last);
     end;
 
 
@@ -5068,7 +5068,7 @@ implementation
   procedure thlcgobj.gen_initialize_code(list: TAsmList);
     begin
       { initialize global register variables }
-      case current_procinfo.procdef.proctypeoption of
+      case compiler.current_procinfo.procdef.proctypeoption of
         potype_unitinit,
         potype_proginit:
           TSymtable(compiler.current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
@@ -5077,7 +5077,7 @@ implementation
       end;
 
       { initialises temp. ansi/wide string data }
-      if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
+      if (compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
         inittempvariables(list);
     end;
 
@@ -5085,23 +5085,23 @@ implementation
     var
       old_current_procinfo: tprocinfo;
     begin
-      old_current_procinfo:=current_procinfo;
-      if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+      old_current_procinfo:=compiler.current_procinfo;
+      if (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
         begin
-          if (current_procinfo.parent.finalize_procinfo<>current_procinfo) then
+          if (compiler.current_procinfo.parent.finalize_procinfo<>compiler.current_procinfo) then
             exit;
-          current_procinfo:=current_procinfo.parent;
+          tcompiler(compiler).current_procinfo:=compiler.current_procinfo.parent;
         end;
 
       { finalize paras data }
-      if assigned(current_procinfo.procdef.parast) and
-         not(po_assembler in current_procinfo.procdef.procoptions) then
-        current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+      if assigned(compiler.current_procinfo.procdef.parast) and
+         not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
+        compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
 
       { finalize temporary data }
       finalizetempvariables(list);
 
-      current_procinfo:=old_current_procinfo;
+      tcompiler(compiler).current_procinfo:=old_current_procinfo;
     end;
 
   procedure thlcgobj.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
@@ -5137,18 +5137,18 @@ implementation
         the actual call to the profile code
       }
       if (cs_profile in compiler.globals.current_settings.moduleswitches) and
-         not(po_assembler in current_procinfo.procdef.procoptions) then
+         not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           { non-win32 can call mcout even in main }
           if not (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) or
-             not (current_procinfo.procdef.proctypeoption=potype_proginit) then
+             not (compiler.current_procinfo.procdef.proctypeoption=potype_proginit) then
             begin
               g_profilecode(list);
             end;
         end;
 
       { call startup helpers from main program }
-      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+      if (compiler.current_procinfo.procdef.proctypeoption=potype_proginit) then
        begin
          { initialize units }
          if not(compiler.current_module.islibrary) then
@@ -5176,7 +5176,7 @@ implementation
 
       { call __EXIT for main program }
       if (not compiler.current_module.islibrary) and
-         (current_procinfo.procdef.proctypeoption=potype_proginit) then
+         (compiler.current_procinfo.procdef.proctypeoption=potype_proginit) then
         g_call_system_proc(list,'fpc_do_exit',[],nil).resetiftemp;
     end;
 
@@ -5211,7 +5211,7 @@ implementation
             assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
-            include(current_procinfo.flags,pi_needs_implicit_finally);
+            include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
             tg.temp_to_ref(hp,href);
             g_finalize(list,hp^.def,href);
           end;
@@ -5288,15 +5288,15 @@ implementation
        begin
          if (tparavarsym(p).varspez=vs_value) then
           begin
-            include(current_procinfo.flags,pi_needs_implicit_finally);
+            include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
             location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,
               is_open_array(tparavarsym(p).vardef) or
               ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
-               paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+               paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption)),
               sizeof(pint));
             if is_open_array(tparavarsym(p).vardef) then
               begin
-                if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption) then
                   begin
                     hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
@@ -5321,7 +5321,7 @@ implementation
         begin
           { cdecl functions don't have a high pointer so it is not possible to generate
             a local copy }
-          if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+          if not(compiler.current_procinfo.procdef.proccalloption in cdecl_pocalls) then
             g_releasevaluepara_openarray(list,tarraydef(tparavarsym(p).vardef),tparavarsym(p).localloc);
         end;
     end;
@@ -5351,16 +5351,16 @@ implementation
                  { variants are already handled by the call to fpc_variant_copy_overwrite if
                    they are passed by reference }
                  if not((tparavarsym(p).vardef.typ=variantdef) and
-                   paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                   paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption)) then
                    begin
                      location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
                        is_open_array(tparavarsym(p).vardef) or
                        ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
-                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption)),
                        sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
-                         if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                         if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption) then
                            begin
                              hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                              if not assigned(hsym) then
@@ -5391,7 +5391,7 @@ implementation
                      begin
                        if is_open_array(tparavarsym(p).vardef) then
                          begin
-                           if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                           if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption) then
                              begin
                                hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                                if not assigned(hsym) then
@@ -5420,16 +5420,16 @@ implementation
       i: longint;
       currpara: tparavarsym;
     begin
-      if (po_assembler in current_procinfo.procdef.procoptions) or
+      if (po_assembler in compiler.current_procinfo.procdef.procoptions) or
       { exceptfilters have a single hidden 'parentfp' parameter, which
         is handled by tcg.g_proc_entry. }
-         (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+         (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
         exit;
 
       { Copy parameters to local references/registers }
-      for i:=0 to current_procinfo.procdef.paras.count-1 do
+      for i:=0 to compiler.current_procinfo.procdef.paras.count-1 do
         begin
-          currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+          currpara:=tparavarsym(compiler.current_procinfo.procdef.paras[i]);
           if not currpara.is_used then
             continue;
           { don't use currpara.vardef, as this will be wrong in case of
@@ -5440,9 +5440,9 @@ implementation
       { generate copies of call by value parameters, must be done before
         the initialization and body is parsed because the refcounts are
         incremented using the local copies }
-      current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
+      compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
 
-      if not(po_assembler in current_procinfo.procdef.procoptions) then
+      if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
         begin
           { initialize refcounted paras, and trash others. Needed here
             instead of in gen_initialize_code, because when a reference is
@@ -5450,7 +5450,7 @@ implementation
             in a regvar, we add a register move and that one again has to
             come after the parameter loading code as far as the register
             allocator is concerned }
-          current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
+          compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
         end;
     end;
 
@@ -5480,9 +5480,9 @@ implementation
             begin
               { cdecl functions don't have a high pointer so it is not possible to generate
                 a local copy }
-              if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+              if not(compiler.current_procinfo.procdef.proccalloption in cdecl_pocalls) then
                 begin
-                  if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                  if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,compiler.current_procinfo.procdef.proccalloption) then
                     begin
                       hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                       if not assigned(hsym) then
@@ -5513,7 +5513,7 @@ implementation
                   { this code is only executed before the code for the body and the entry/exit code is generated
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
-                  include(current_procinfo.flags,pi_do_call);
+                  include(compiler.current_procinfo.flags,pi_do_call);
                   g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef))
                 end
               else if tparavarsym(p).vardef.typ=variantdef then
@@ -5521,7 +5521,7 @@ implementation
                   { this code is only executed before the code for the body and the entry/exit code is generated
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
-                  include(current_procinfo.flags,pi_do_call);
+                  include(compiler.current_procinfo.flags,pi_do_call);
                   g_copyvariant(list,href,localcopyloc.reference,tvariantdef(tparavarsym(p).vardef))
                 end
               else
@@ -5636,11 +5636,11 @@ implementation
     var
       safecallretpara: tcgpara;
     begin
-      if not current_procinfo.procdef.generate_safecall_wrapper then
-        gen_load_loc_cgpara(list,vardef,l,current_procinfo.procdef.funcretloc[calleeside])
+      if not compiler.current_procinfo.procdef.generate_safecall_wrapper then
+        gen_load_loc_cgpara(list,vardef,l,compiler.current_procinfo.procdef.funcretloc[calleeside])
       else
         begin
-          safecallretpara:=paramanager.get_safecallresult_funcretloc(current_procinfo.procdef,calleeside);
+          safecallretpara:=paramanager.get_safecallresult_funcretloc(compiler.current_procinfo.procdef,calleeside);
           gen_load_loc_cgpara(list,vardef,l,safecallretpara);
           safecallretpara.resetiftemp;
         end;
@@ -5744,43 +5744,43 @@ implementation
       retdef : tdef;
     begin
       { Is the loading needed? }
-      if (is_void(current_procinfo.procdef.returndef) and
-          not current_procinfo.procdef.generate_safecall_wrapper) or
+      if (is_void(compiler.current_procinfo.procdef.returndef) and
+          not compiler.current_procinfo.procdef.generate_safecall_wrapper) or
          (
-          (po_assembler in current_procinfo.procdef.procoptions) and
-          (current_procinfo.procdef.generate_safecall_wrapper or
-           not assigned(current_procinfo.procdef.funcretsym) or
-           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0) or
-           (po_nostackframe in current_procinfo.procdef.procoptions)
+          (po_assembler in compiler.current_procinfo.procdef.procoptions) and
+          (compiler.current_procinfo.procdef.generate_safecall_wrapper or
+           not assigned(compiler.current_procinfo.procdef.funcretsym) or
+           (tabstractvarsym(compiler.current_procinfo.procdef.funcretsym).refs=0) or
+           (po_nostackframe in compiler.current_procinfo.procdef.procoptions)
           )
          ) then
         begin
-          ressym:=current_procinfo.procdef.funcretsym;
+          ressym:=compiler.current_procinfo.procdef.funcretsym;
           if not assigned(ressym) then
             exit;
         end
       else
         begin
           { constructors return self }
-          if current_procinfo.procdef.generate_safecall_wrapper then
+          if compiler.current_procinfo.procdef.generate_safecall_wrapper then
             begin
-              if not current_procinfo.procdef.get_safecall_funcretsym_info(ressym,retdef) then
+              if not compiler.current_procinfo.procdef.get_safecall_funcretsym_info(ressym,retdef) then
                 internalerror(2019112402);
               gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
             end
           else
             begin
-              if not current_procinfo.procdef.get_funcretsym_info(ressym,retdef) then
+              if not compiler.current_procinfo.procdef.get_funcretsym_info(ressym,retdef) then
                 internalerror(2018122501);
               if (ressym.refs>0) or
                  is_managed_type(retdef) then
                 begin
                   { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
-                  if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+                  if not paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef) then
                     gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
                 end
               else
-                gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
+                gen_load_uninitialized_function_result(list,compiler.current_procinfo.procdef,retdef,compiler.current_procinfo.procdef.funcretloc[calleeside]);
             end;
         end;
 
@@ -5796,7 +5796,7 @@ implementation
       pd:=search_system_proc('fpc_stackcheck');
       paraloc1.init(compiler.target);
       paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-      a_load_const_cgpara(list,paraloc1.def,current_procinfo.calc_stackframe_size,paraloc1);
+      a_load_const_cgpara(list,paraloc1.def,compiler.current_procinfo.calc_stackframe_size,paraloc1);
       paramanager.freecgpara(list,paraloc1);
       paraloc1.done;
     end;

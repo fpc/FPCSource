@@ -111,7 +111,7 @@ begin
         begin
           inserttypeconv(left,u32inttype,compiler);
           if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
         end;
       firstpass(left);
     end;

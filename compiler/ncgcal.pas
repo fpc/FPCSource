@@ -1090,8 +1090,8 @@ implementation
                 not is_objectpascal_helper(tprocdef(procdefinition).struct) and
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
-                (not assigned(current_procinfo) or
-                 compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                (not assigned(compiler.current_procinfo) or
+                 compiler.wpoinfomanager.symbol_live(compiler.current_procinfo.procdef.mangledname)) then
                tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifdef vtentry}
              if not is_interface(tprocdef(procdefinition)._class) then
@@ -1119,8 +1119,8 @@ implementation
                  secondpass(vmt_entry);
 
                  { register call for WPO }
-                 if (not assigned(current_procinfo) or
-                     compiler.wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                 if (not assigned(compiler.current_procinfo) or
+                     compiler.wpoinfomanager.symbol_live(compiler.current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 
                  if not(vmt_entry.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -1208,7 +1208,7 @@ implementation
                       if cnf_inherited in callnodeflags then
                         retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
                       { under certain conditions, a static call (i.e. without PIC) can be generated }
-                      else if ((procdefinition.owner=current_procinfo.procdef.owner) or
+                      else if ((procdefinition.owner=compiler.current_procinfo.procdef.owner) or
                          (procdefinition.owner.symtabletype in [localsymtable,staticsymtable])
                         ) and ((procdefinition.procoptions*[po_weakexternal,po_external])=[]) then
                         retloc:=hlcg.a_call_name_static(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
@@ -1403,7 +1403,7 @@ implementation
          { perhaps i/o check ? }
          if (cs_check_io in compiler.globals.current_settings.localswitches) and
             (po_iocheck in procdefinition.procoptions) and
-            not(po_iocheck in current_procinfo.procdef.procoptions) and
+            not(po_iocheck in compiler.current_procinfo.procdef.procoptions) and
             { no IO check for methods and procedure variables }
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then

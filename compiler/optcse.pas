@@ -689,7 +689,7 @@ type
                 with consts^[high(consts^)] do
                   begin
                     valuenode:=n.getcopy;
-                    valuenode.fileinfo:=current_procinfo.entrypos;
+                    valuenode.fileinfo:=compiler.current_procinfo.entrypos;
                     weight:=1;
                   end;
               end;
@@ -782,8 +782,8 @@ type
         deleteblock:=nil;
         rootblock:=nil;
         { estimate how many int registers can be used }
-        if pi_do_call in current_procinfo.flags then
-          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption))
+        if pi_do_call in compiler.current_procinfo.flags then
+          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption))
           { we store only addresses, so take care of the relation between address sizes and register sizes }
             div max(sizeof(PtrUInt) div sizeof(ALUUInt),1)
           { heuristics, just use a quarter of all registers at maximum }
@@ -792,15 +792,15 @@ type
           max_int_regs_assigned:=max(first_int_imreg div 4,1);
 {$if defined(x86) or defined(aarch64) or defined(arm)}
         { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
-        if pi_do_call in current_procinfo.flags then
+        if pi_do_call in compiler.current_procinfo.flags then
           { heuristics, just use a fifth of all registers at maximum }
-          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 5
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption)) div 5
         else
           max_fpu_regs_assigned:=max(first_mm_imreg div 5,1);
 {$else defined(x86) or defined(aarch64) or defined(arm)}
-        if pi_do_call in current_procinfo.flags then
+        if pi_do_call in compiler.current_procinfo.flags then
           { heuristics, just use a fifth of all registers at maximum }
-          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 5
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(compiler.current_procinfo.procdef.proccalloption)) div 5
         else
           max_fpu_regs_assigned:=max(first_fpu_imreg div 5,1);
 {$endif defined(x86) or defined(aarch64) or defined(arm)}
@@ -816,13 +816,13 @@ type
                 if (constentries[i].valuenode.nodetype=realconstn) and
                    { if there is a call, we need most likely to save/restore a register }
                   ((constentries[i].weight>3) or
-                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                  ((constentries[i].weight>1) and not(pi_do_call in compiler.current_procinfo.flags)))
                 then
                   begin
                     if fpu_regs_assigned>=max_fpu_regs_assigned then
                       break;
                     old_current_filepos:=compiler.globals.current_filepos;
-                    compiler.globals.current_filepos:=current_procinfo.entrypos;
+                    compiler.globals.current_filepos:=compiler.current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
                         rootblock:=internalstatements(compiler,statements);
@@ -840,13 +840,13 @@ type
                 else if CSEOnReference(constentries[i].valuenode) and
                    { if there is a call, we need most likely to save/restore a register }
                   ((constentries[i].weight>2) or
-                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                  ((constentries[i].weight>1) and not(pi_do_call in compiler.current_procinfo.flags)))
                 then
                   begin
                     if int_regs_assigned>=max_int_regs_assigned then
                       break;
                     old_current_filepos:=compiler.globals.current_filepos;
-                    compiler.globals.current_filepos:=current_procinfo.entrypos;
+                    compiler.globals.current_filepos:=compiler.current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
                         rootblock:=internalstatements(compiler,statements);

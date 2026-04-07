@@ -177,7 +177,7 @@ implementation
          { Current compiled module/proc }
          compiler.set_current_module(nil);
          current_asmdata:=nil;
-         current_procinfo:=nil;
+         tcompiler(compiler).current_procinfo:=nil;
          current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
@@ -311,7 +311,7 @@ implementation
          { Reset current compiling info, so destroy routines can't
            reference the data that might already be destroyed }
          compiler.set_current_module(nil);
-         current_procinfo:=nil;
+         tcompiler(compiler).current_procinfo:=nil;
          current_asmdata:=nil;
          current_structdef:=nil;
          current_genericdef:=nil;
@@ -510,7 +510,7 @@ implementation
          Result:=True;
 
          { parsing a procedure or declaration should be finished }
-         if assigned(current_procinfo) then
+         if assigned(compiler.current_procinfo) then
            internalerror(200811121);
          if assigned(current_structdef) then
            internalerror(200811122);

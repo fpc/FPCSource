@@ -78,7 +78,7 @@ unit cgcpu;
         ms_abi:=use_ms_abi(compiler.target);
         if ms_abi then
           begin
-            if (cs_userbp in compiler.globals.current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (cs_userbp in compiler.globals.current_settings.optimizerswitches) and assigned(compiler.current_procinfo) and (compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
                   RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP],first_int_imreg,[],compiler);
@@ -128,8 +128,8 @@ unit cgcpu;
 
     function tcgx86_64.use_push: boolean;
       begin
-        result:=(current_procinfo.framepointer=NR_STACK_POINTER_REG) or
-          (current_procinfo.procdef.proctypeoption=potype_exceptfilter);
+        result:=(compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+          (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter);
       end;
 
 
@@ -142,7 +142,7 @@ unit cgcpu;
         if (compiler.target.info.system<>system_x86_64_win64) or
            (not uses_registers(R_MMREGISTER)) then
           exit;
-        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption);
         for i:=low(regs_to_save_mm) to high(regs_to_save_mm) do
           begin
             if (regs_to_save_mm[i] in rg[R_MMREGISTER].used_in_proc) then
@@ -172,7 +172,7 @@ unit cgcpu;
           if (compiler.target.info.system=system_x86_64_win64) then
             begin
               list.concat(cai_seh_directive.create_reg(ash_pushreg,reg));
-              include(current_procinfo.flags,pi_has_unwind_info);
+              include(compiler.current_procinfo.flags,pi_has_unwind_info);
             end;
         end;
 
@@ -182,7 +182,7 @@ unit cgcpu;
           usedregs: tcpuregisterset;
           hreg: TRegister;
         begin
-          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
+          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(compiler.current_procinfo.procdef.proccalloption);
           for r := low(regs_to_save_int) to high(regs_to_save_int) do
             if regs_to_save_int[r] in usedregs then
               begin
@@ -190,7 +190,7 @@ unit cgcpu;
                 inc(stackmisalignment,sizeof(aint));
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
                 push_one_reg(hreg);
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
                   begin
@@ -202,13 +202,13 @@ unit cgcpu;
 
       begin
         regsize:=0;
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption);
         hitem:=list.last;
         { pi_has_unwind_info may already be set at this point if there are
           SEH directives in assembler body. In this case, .seh_endprologue
           is expected to be one of those directives, and not generated here. }
-        suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
+        suppress_endprologue:=(pi_has_unwind_info in compiler.current_procinfo.flags);
 
         list.concat(tai_regalloc.alloc(NR_STACK_POINTER_REG,nil));
 
@@ -217,21 +217,21 @@ unit cgcpu;
           begin
             { return address }
             stackmisalignment := sizeof(pint);
-            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
                 push_regs;
                 compiler.verbose.CGMessage(cg_d_stackframe_omited);
               end
             else
               begin
-                list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
+                list.concat(tai_regalloc.alloc(compiler.current_procinfo.framepointer,nil));
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(NR_FRAME_POINTER_REG);
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
                 else
                   begin
@@ -241,7 +241,7 @@ unit cgcpu;
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.
                       maxpushedparasize is already aligned at least on x86_64. }
-                    localsize:=current_procinfo.maxpushedparasize;
+                    localsize:=compiler.current_procinfo.maxpushedparasize;
                   end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
                 {
@@ -257,7 +257,7 @@ unit cgcpu;
             if use_push and (xmmsize<>0) then
               begin
                 localsize:=align(localsize,compiler.target.info.stackalign)+xmmsize;
-                reference_reset_base(current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
+                reference_reset_base(compiler.current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
                   localsize-xmmsize,ctempposinvalid,tcgsize2size[OS_VECTOR],[]);
               end;
 
@@ -265,23 +265,23 @@ unit cgcpu;
             if (localsize<>0) or
                ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 if compiler.target.info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
-                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
-                current_procinfo.final_localsize:=localsize;
+                compiler.current_procinfo.final_localsize:=localsize;
                 if (compiler.target.info.system=system_x86_64_win64) then
                   begin
                     if localsize<>0 then
                       list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
-                    include(current_procinfo.flags,pi_has_unwind_info);
+                    include(compiler.current_procinfo.flags,pi_has_unwind_info);
                     if use_push and (xmmsize<>0) then
                       begin
-                        href:=current_procinfo.save_regs_ref;
+                        href:=compiler.current_procinfo.save_regs_ref;
                         for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
                           if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
                             begin
@@ -293,10 +293,10 @@ unit cgcpu;
                end;
           end;
 
-        if not (pi_has_unwind_info in current_procinfo.flags) then
+        if not (pi_has_unwind_info in compiler.current_procinfo.flags) then
           exit;
         { Generate unwind data for x86_64-win64 }
-        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
+        seh_proc:=cai_seh_directive.create_name(ash_proc,compiler.current_procinfo.procdef.mangledname);
         if assigned(hitem) then
           list.insertafter(seh_proc,hitem)
         else
@@ -308,14 +308,14 @@ unit cgcpu;
         { We need to record positive offsets from RSP; if registers are saved
           at negative offsets from RBP we need to account for it. }
         if (not use_push) then
-          frame_offset:=current_procinfo.final_localsize
+          frame_offset:=compiler.current_procinfo.final_localsize
         else
           frame_offset:=0;
 
         { There's no need to describe position of register saves precisely;
           since registers are not modified before they are saved, and saves do not
           change RSP, 'logically' all saves can happen at the end of prologue. }
-        href:=current_procinfo.save_regs_ref;
+        href:=compiler.current_procinfo.save_regs_ref;
         if (not use_push) then
           begin
             for r:=low(regs_to_save_int) to high(regs_to_save_int) do
@@ -345,8 +345,8 @@ unit cgcpu;
           end;
         if not suppress_endprologue then
           templist.concat(cai_seh_directive.create(ash_endprologue));
-        if assigned(current_procinfo.endprologue_ai) then
-          current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
+        if assigned(compiler.current_procinfo.endprologue_ai) then
+          compiler.current_procinfo.aktproccode.insertlistafter(compiler.current_procinfo.endprologue_ai,templist)
         else
           list.concatlist(templist);
         templist.free;
@@ -380,12 +380,12 @@ unit cgcpu;
                 * the entry stack frame must be normally generated because the subroutine could be still left by
                   an exception and then the unwinding code might need to restore the registers stored by the entry code
         }
-        if not(po_noreturn in current_procinfo.procdef.procoptions) then
+        if not(po_noreturn in compiler.current_procinfo.procdef.procoptions) then
           begin
-            regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+            regs_to_save_mm:=paramanager.get_saved_registers_mm(compiler.current_procinfo.procdef.proccalloption);
             { Prevent return address from a possible call from ending up in the epilogue }
             { (restoring registers happens before epilogue, providing necessary padding) }
-            if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
+            if (compiler.current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
               list.concat(Taicpu.op_none(A_NOP));
             { remove stackframe }
             if not(nostackframe) then
@@ -394,7 +394,7 @@ unit cgcpu;
                   begin
                     if (saved_xmm_reg_size<>0) then
                       begin
-                        href:=current_procinfo.save_regs_ref;
+                        href:=compiler.current_procinfo.save_regs_ref;
                         for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
                           if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
                             begin
@@ -406,11 +406,11 @@ unit cgcpu;
                             end;
                       end;
 
-                    if (current_procinfo.final_localsize<>0) then
-                      increase_sp(current_procinfo.final_localsize);
+                    if (compiler.current_procinfo.final_localsize<>0) then
+                      increase_sp(compiler.current_procinfo.final_localsize);
                     internal_restore_regs(list,true);
 
-                    if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                    if (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                       list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                     current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
                   end
@@ -420,27 +420,27 @@ unit cgcpu;
                       'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
                       the function epilog.
                       Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
-                    reference_reset_base(href,current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
+                    reference_reset_base(href,compiler.current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
                     list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
-                    list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
+                    list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],compiler.current_procinfo.framepointer));
                   end
                 else
                   generate_leave(list);
-                list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+                list.concat(tai_regalloc.dealloc(compiler.current_procinfo.framepointer,nil));
               end;
 
-            if pi_uses_ymm in current_procinfo.flags then
+            if pi_uses_ymm in compiler.current_procinfo.flags then
               list.Concat(taicpu.op_none(A_VZEROUPPER));
           end;
 
-        if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+        if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
           list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
 
-        if (pi_has_unwind_info in current_procinfo.flags) then
+        if (pi_has_unwind_info in compiler.current_procinfo.flags) then
           begin
-            tcpuprocinfo(current_procinfo).dump_scopes(list);
+            tcpuprocinfo(compiler.current_procinfo).dump_scopes(list);
             list.concat(cai_seh_directive.create(ash_endproc));
           end;
       end;
@@ -549,9 +549,11 @@ unit cgcpu;
 
 
     class function tcgx86_64.use_ms_abi(target: TReadOnlyCompilerTarget): boolean;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if assigned(current_procinfo) then
-          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption,target)
+        if assigned(_compiler.current_procinfo) then
+          use_ms_abi:=x86_64_use_ms_abi(_compiler.current_procinfo.procdef.proccalloption,target)
         else
           use_ms_abi:=target.info.system=system_x86_64_win64;
       end;

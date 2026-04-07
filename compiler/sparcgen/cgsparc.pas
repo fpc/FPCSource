@@ -205,7 +205,7 @@ implementation
           end
         else
           begin
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
             href.offset:=0;
             if use_unlimited_pic_mode then
               begin
@@ -214,11 +214,11 @@ implementation
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,href,hreg));
                 reference_reset_base(href,hreg,0,href.temppos,sizeof(pint),[]);
-                href.index:=current_procinfo.got;
+                href.index:=compiler.current_procinfo.got;
               end
             else
               begin
-                href.base:=current_procinfo.got;
+                href.base:=compiler.current_procinfo.got;
                 href.refaddr:=addr_pic;
               end;
             list.concat(taicpu.op_ref_reg(A_LD_R,href,hreg));
@@ -531,7 +531,7 @@ implementation
         reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
             href.offset:=0;
             if use_unlimited_pic_mode then
               begin
@@ -540,11 +540,11 @@ implementation
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,r,href,r));
                 reference_reset_base(href,r,0,ctempposinvalid,sizeof(pint),[]);
-                href.index:=current_procinfo.got;
+                href.index:=compiler.current_procinfo.got;
               end
             else
               begin
-                href.base:=current_procinfo.got;
+                href.base:=compiler.current_procinfo.got;
                 href.refaddr:=addr_pic;            { should it be done THAT way?? }
               end;
             { load contents of GOT slot }
@@ -1022,8 +1022,8 @@ implementation
         hl : tasmlabel;
       begin
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
-           ((pi_needs_got in current_procinfo.flags) or
-           (current_procinfo.procdef.proctypeoption=potype_unitfinalize)) then
+           ((pi_needs_got in compiler.current_procinfo.flags) or
+           (compiler.current_procinfo.procdef.proctypeoption=potype_unitfinalize)) then
           begin
             current_asmdata.getjumplabel(hl);
             list.concat(taicpu.op_sym(A_CALL,hl));
@@ -1057,7 +1057,7 @@ implementation
         hr : treference;
       begin
 {$ifdef SPARC}
-        if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+        if paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef) then
           begin
             reference_reset(hr,sizeof(pint),[]);
             hr.offset:=12;

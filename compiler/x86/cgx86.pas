@@ -231,7 +231,7 @@ unit cgx86;
       begin
 {$ifdef x86_64}
         { The stack pointer and base pointer will be aligned to 16-byte boundaries if the machine code is well-behaved }
-        if (ref.base = NR_STACK_POINTER_REG) or (ref.base = current_procinfo.framepointer) then
+        if (ref.base = NR_STACK_POINTER_REG) or (ref.base = compiler.current_procinfo.framepointer) then
           begin
             if (ref.index = NR_NO) and ((ref.offset mod compiler.target.info.stackalign) = 0) then
               Result := compiler.target.info.stackalign
@@ -620,11 +620,11 @@ unit cgx86;
                  end
                else
                  begin
-                   include(current_procinfo.flags,pi_needs_got);
+                   include(compiler.current_procinfo.flags,pi_needs_got);
                    { make a copy of the got register, hreg can get modified }
                    hreg:=getaddressregister(list);
-                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,hreg);
-                   ref.relsymbol:=current_procinfo.CurrGOTLabel;
+                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,compiler.current_procinfo.got,hreg);
+                   ref.relsymbol:=compiler.current_procinfo.CurrGOTLabel;
                  end;
                add_hreg:=true
              end
@@ -633,9 +633,9 @@ unit cgx86;
            assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint),[]);
-            href.base:=current_procinfo.got;
+            href.base:=compiler.current_procinfo.got;
             href.refaddr:=addr_pic;
-            include(current_procinfo.flags,pi_needs_got);
+            include(compiler.current_procinfo.flags,pi_needs_got);
             hreg:=getaddressregister(list);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
             ref.symbol:=nil;
@@ -1080,7 +1080,7 @@ unit cgx86;
             instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
             { Notify the register allocator that we have written a move instruction so
               it can try to eliminate it. }
-            if (reg1<>current_procinfo.framepointer) and (reg1<>NR_STACK_POINTER_REG) then
+            if (reg1<>compiler.current_procinfo.framepointer) and (reg1<>NR_STACK_POINTER_REG) then
               add_move_instruction(instr);
             list.concat(instr);
           end;
@@ -1190,10 +1190,10 @@ unit cgx86;
                           end
                        else
                          begin
-                           include(current_procinfo.flags,pi_needs_got);
-                           reference_reset_base(tmpref,current_procinfo.got,offset,dirref.temppos,dirref.alignment,[]);
+                           include(compiler.current_procinfo.flags,pi_needs_got);
+                           reference_reset_base(tmpref,compiler.current_procinfo.got,offset,dirref.temppos,dirref.alignment,[]);
                            tmpref.symbol:=symbol;
-                           tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
+                           tmpref.relsymbol:=compiler.current_procinfo.CurrGOTLabel;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
                          end;
                       end
@@ -1211,8 +1211,8 @@ unit cgx86;
 {$else x86_64}
                         reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                         tmpref.refaddr:=addr_pic;
-                        tmpref.base:=current_procinfo.got;
-                        include(current_procinfo.flags,pi_needs_got);
+                        tmpref.base:=compiler.current_procinfo.got;
+                        include(compiler.current_procinfo.flags,pi_needs_got);
                         list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
 {$endif x86_64}
                         if offset<>0 then
@@ -1923,7 +1923,7 @@ unit cgx86;
                   asmop:=A_VPXORD;
 {$endif x86_64}
                 if size in [OS_M256,OS_M512] then
-                  Include(current_procinfo.flags,pi_uses_ymm);
+                  Include(compiler.current_procinfo.flags,pi_uses_ymm);
               end
             else if size in [OS_F32,OS_F64] then
               asmop:=opmm2asmop[0,size,op]
@@ -1936,7 +1936,7 @@ unit cgx86;
               begin
                 asmop:=opmm2asmop_avx[0,size,op];
                 if size in [OS_M256,OS_M512] then
-                  Include(current_procinfo.flags,pi_uses_ymm);
+                  Include(compiler.current_procinfo.flags,pi_uses_ymm);
               end
             else
               asmop:=opmm2asmop[0,size,op];
@@ -2821,7 +2821,7 @@ unit cgx86;
         else
   {$endif i8086}
         if (cs_mmx in _compiler.globals.current_settings.localswitches) and
-           not(pi_uses_fpu in current_procinfo.flags) and
+           not(pi_uses_fpu in _compiler.current_procinfo.flags) and
            ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32)) then
           result:=copy_mmx
         else
@@ -2830,7 +2830,7 @@ unit cgx86;
 
         if (result=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) and
           { we can use the move variant only if the subroutine does another call }
-          (pi_do_call in current_procinfo.flags) then
+          (pi_do_call in _compiler.current_procinfo.flags) then
           result:=copy_fpc_move;
 
         if (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) and
@@ -3069,7 +3069,7 @@ unit cgx86;
                   inc(srcref.offset,64);
                   inc(dstref.offset,64);
                   dec(len,64);
-                  Include(current_procinfo.flags,pi_uses_ymm);
+                  Include(compiler.current_procinfo.flags,pi_uses_ymm);
                 end;
             while len>=32 do
               begin
@@ -3079,7 +3079,7 @@ unit cgx86;
                 inc(srcref.offset,32);
                 inc(dstref.offset,32);
                 dec(len,32);
-                Include(current_procinfo.flags,pi_uses_ymm);
+                Include(compiler.current_procinfo.flags,pi_uses_ymm);
               end;
             while len>=16 do
               begin
@@ -3265,10 +3265,10 @@ unit cgx86;
                  mcountPrefix:='';
                 end;
                 current_asmdata.getaddrlabel(pl);
-                new_section(list,sec_data,lower(current_procinfo.procdef.mangledname),sizeof(pint));
+                new_section(list,sec_data,lower(compiler.current_procinfo.procdef.mangledname),sizeof(pint));
                 list.concat(Tai_label.Create(pl));
                 list.concat(Tai_const.Create_32bit(0));
-                new_section(list,sec_code,lower(current_procinfo.procdef.mangledname),0);
+                new_section(list,sec_code,lower(compiler.current_procinfo.procdef.mangledname),0);
                 list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EDX));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
                 a_call_name(list,compiler.target.info.Cprefix+mcountprefix+'mcount',false);
@@ -3435,15 +3435,15 @@ unit cgx86;
           hreg: TRegister;
         begin
           regsize:=0;
-          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-          regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(compiler.current_procinfo.procdef.proccalloption);
+          regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
           for r := low(regs_to_save_int) to high(regs_to_save_int) do
             if regs_to_save_int[r] in usedregs then
               begin
                 inc(regsize,sizeof(aint));
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],hreg));
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
                   begin
@@ -3502,7 +3502,7 @@ unit cgx86;
 
           Additional details here: http://www.geary.com/fixds.html }
         if (compiler.globals.current_settings.x86memorymodel<>mm_huge) and
-           (po_exports in current_procinfo.procdef.procoptions) and
+           (po_exports in compiler.current_procinfo.procdef.procoptions) and
            (compiler.target.info.system=system_i8086_win16) then
           begin
             if cs_win16_smartcallbacks in compiler.globals.current_settings.moduleswitches then
@@ -3512,7 +3512,7 @@ unit cgx86;
             list.concat(Taicpu.op_none(A_NOP));
           end
         { interrupt support for i8086 }
-        else if po_interrupt in current_procinfo.procdef.procoptions then
+        else if po_interrupt in compiler.current_procinfo.procdef.procoptions then
           begin
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_AX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_BX));
@@ -3557,7 +3557,7 @@ unit cgx86;
 {$endif i8086}
 {$ifdef i386}
         { interrupt support for i386 }
-        if (po_interrupt in current_procinfo.procdef.procoptions) then
+        if (po_interrupt in compiler.current_procinfo.procdef.procoptions) then
           begin
             { .... also the segment registers }
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_GS));
@@ -3581,7 +3581,7 @@ unit cgx86;
           begin
             { return address }
             inc(stackmisalignment,sizeof(pint));
-            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
 {$ifdef i386}
                 if (not paramanager.use_fixed_stack) then
@@ -3591,13 +3591,13 @@ unit cgx86;
               end
             else
               begin
-                list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
+                list.concat(tai_regalloc.alloc(compiler.current_procinfo.framepointer,nil));
 {$ifdef i8086}
                 if ((ts_x86_far_procs_push_odd_bp in compiler.globals.current_settings.targetswitches) or
-                    ((po_exports in current_procinfo.procdef.procoptions) and
+                    ((po_exports in compiler.current_procinfo.procdef.procoptions) and
                      (compiler.target.info.system=system_i8086_win16))) and
-                    is_proc_far(current_procinfo.procdef) then
-                  a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
+                    is_proc_far(compiler.current_procinfo.procdef) then
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,1,compiler.current_procinfo.framepointer);
 {$endif i8086}
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
@@ -3606,7 +3606,7 @@ unit cgx86;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
                 else
                   begin
@@ -3616,7 +3616,7 @@ unit cgx86;
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.
                       maxpushedparasize is already aligned at least on x86_64. }
-                    localsize:=current_procinfo.maxpushedparasize;
+                    localsize:=compiler.current_procinfo.maxpushedparasize;
                   end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
@@ -3625,15 +3625,15 @@ unit cgx86;
             if (localsize<>0) or
                ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
-                ((pi_do_call in current_procinfo.flags) or
-                 (po_assembler in current_procinfo.procdef.procoptions))) then
+                ((pi_do_call in compiler.current_procinfo.flags) or
+                 (po_assembler in compiler.current_procinfo.procdef.procoptions))) then
               begin
                 if compiler.target.info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
-                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
-                current_procinfo.final_localsize:=localsize;
+                compiler.current_procinfo.final_localsize:=localsize;
               end
 {$ifdef i8086}
             else
@@ -3646,19 +3646,19 @@ unit cgx86;
 {$ifdef i8086}
               { win16 exported proc prologue follow-up (see the huge comment above for details) }
               if (compiler.globals.current_settings.x86memorymodel<>mm_huge) and
-                 (po_exports in current_procinfo.procdef.procoptions) and
+                 (po_exports in compiler.current_procinfo.procdef.procoptions) and
                  (compiler.target.info.system=system_i8086_win16) then
                 begin
                   list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
                   list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
                 end
               else if (compiler.globals.current_settings.x86memorymodel=mm_huge) and
-                      not (po_interrupt in current_procinfo.procdef.procoptions) then
+                      not (po_interrupt in compiler.current_procinfo.procdef.procoptions) then
                 begin
                   list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
                   reference_reset(fardataseg,0,[]);
                   fardataseg.refaddr:=addr_fardataseg;
-                  if current_procinfo.procdef.proccalloption=pocall_register then
+                  if compiler.current_procinfo.procdef.proccalloption=pocall_register then
                     begin
                       { Use CX register if using register convention
                         as it is not a register used to store parameters }
@@ -3675,7 +3675,7 @@ unit cgx86;
               but must be preserved in Microsoft C's pascal calling convention, and
               since Windows is compiled with Microsoft compilers, these registers
               must be saved for exported procedures (BP7 for Win16 also does this). }
-            if (po_exports in current_procinfo.procdef.procoptions) and
+            if (po_exports in compiler.current_procinfo.procdef.procoptions) and
                (compiler.target.info.system=system_i8086_win16) then
               begin
                 list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_SI));
@@ -3685,13 +3685,13 @@ unit cgx86;
 
 {$ifdef i386}
             if (not paramanager.use_fixed_stack) and
-               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
-               (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
+               (compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
+               (compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
               begin
                 regsize:=0;
                 push_regs;
-                reference_reset_base(current_procinfo.save_regs_ref,
-                  current_procinfo.framepointer,
+                reference_reset_base(compiler.current_procinfo.save_regs_ref,
+                  compiler.current_procinfo.framepointer,
                   -(localsize+regsize),ctempposinvalid,sizeof(aint),[]);
               end;
 {$endif i386}
@@ -3725,9 +3725,9 @@ unit cgx86;
         usedregs: tcpuregisterset;
         regs_to_save_int: tcpuregisterarray;
       begin
-        href:=current_procinfo.save_regs_ref;
-        usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+        href:=compiler.current_procinfo.save_regs_ref;
+        usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(compiler.current_procinfo.procdef.proccalloption);
+        regs_to_save_int:=paramanager.get_saved_registers_int(compiler.current_procinfo.procdef.proccalloption);
         for r:=high(regs_to_save_int) downto low(regs_to_save_int) do
           if regs_to_save_int[r] in usedregs then
             begin

@@ -1157,7 +1157,7 @@ implementation
         result:=nil;
         resultdef:=voidtype;
         if not(asmnf_get_asm_position in asmnodeflags) then
-          include(current_procinfo.flags,pi_has_assembler_block);
+          include(compiler.current_procinfo.flags,pi_has_assembler_block);
       end;
 
 
@@ -1521,12 +1521,12 @@ implementation
         expectloc:=LOC_VOID;
         { temps which are immutable do not need to be initialized/finalized }
         if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempflags) then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+          include(compiler.current_procinfo.flags,pi_needs_implicit_finally);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
-        inc(current_procinfo.estimatedtempsize,size);
+        inc(compiler.current_procinfo.estimatedtempsize,size);
         { if a temp. create node is loaded from a ppu, it could be that the unit was compiled with other settings which
           enabled a certain type to be stored in a register while the current settings do not support this, so correct this here
           if needed

@@ -1557,8 +1557,8 @@ unit aoptx86;
       begin
         Result := NR_NO;
         RegSet :=
-          paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption) +
-          current_procinfo.saved_regs_int;
+          paramanager.get_volatile_registers_int(compiler.current_procinfo.procdef.proccalloption) +
+          compiler.current_procinfo.saved_regs_int;
 (*
         { Don't use the frame register unless explicitly allowed (fixes i40111) }
         if ([cs_useebp, cs_userbp] * compiler.globals.current_settings.optimizerswitches) = [] then
@@ -1635,8 +1635,8 @@ unit aoptx86;
       begin
         Result := NR_NO;
         RegSet :=
-          paramanager.get_volatile_registers_mm(current_procinfo.procdef.proccalloption) +
-          current_procinfo.saved_regs_mm;
+          paramanager.get_volatile_registers_mm(compiler.current_procinfo.procdef.proccalloption) +
+          compiler.current_procinfo.saved_regs_mm;
 
         for CurrentSuperReg in RegSet do
           begin
@@ -2315,6 +2315,8 @@ unit aoptx86;
 
     class function TX86AsmOptimizer.IsExitCode(p : tai) : boolean;
       var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp2,hp3 : tai;
       begin
         { some x86-64 issue a NOP before the real exit code }
@@ -2336,18 +2338,18 @@ unit aoptx86;
          ) or
          ((((taicpu(p).opcode=A_MOV) and
            MatchOpType(taicpu(p),top_reg,top_reg) and
-           (taicpu(p).oper[0]^.reg=current_procinfo.framepointer) and
+           (taicpu(p).oper[0]^.reg=_compiler.current_procinfo.framepointer) and
            (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)) or
            ((taicpu(p).opcode=A_LEA) and
            MatchOpType(taicpu(p),top_ref,top_reg) and
-           (taicpu(p).oper[0]^.ref^.base=current_procinfo.framepointer) and
+           (taicpu(p).oper[0]^.ref^.base=_compiler.current_procinfo.framepointer) and
            (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)
            )
           ) and
           GetNextInstruction(p,hp2) and
-          MatchInstruction(hp2,A_POP,[reg2opsize(current_procinfo.framepointer)]) and
+          MatchInstruction(hp2,A_POP,[reg2opsize(_compiler.current_procinfo.framepointer)]) and
           MatchOpType(taicpu(hp2),top_reg) and
-          (taicpu(hp2).oper[0]^.reg=current_procinfo.framepointer) and
+          (taicpu(hp2).oper[0]^.reg=_compiler.current_procinfo.framepointer) and
           GetNextInstruction(hp2,hp3) and
           MatchInstruction(hp3,A_RET,[S_NO])
          )
@@ -2398,18 +2400,18 @@ unit aoptx86;
         end;
 
       begin
-          case current_procinfo.procdef.returndef.typ of
+          case compiler.current_procinfo.procdef.returndef.typ of
             arraydef,recorddef,pointerdef,
                stringdef,enumdef,procdef,objectdef,errordef,
                filedef,setdef,procvardef,
                classrefdef,forwarddef:
               DoRemoveLastDeallocForFuncRes(RS_EAX);
             orddef:
-              if current_procinfo.procdef.returndef.size <> 0 then
+              if compiler.current_procinfo.procdef.returndef.size <> 0 then
                 begin
                   DoRemoveLastDeallocForFuncRes(RS_EAX);
                   { for int64/qword }
-                  if current_procinfo.procdef.returndef.size = 8 then
+                  if compiler.current_procinfo.procdef.returndef.size = 8 then
                     DoRemoveLastDeallocForFuncRes(RS_EDX);
                 end;
             else
@@ -2871,6 +2873,8 @@ unit aoptx86;
 
 
     class function TX86AsmOptimizer.IsRefSafe(const ref: PReference): Boolean;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Result :=
           (ref^.index = NR_NO) and
@@ -2883,7 +2887,7 @@ unit aoptx86;
 {$endif x86_64}
             (ref^.refaddr = addr_full) or
             (ref^.base = NR_STACK_POINTER_REG) or
-            (ref^.base = current_procinfo.framepointer)
+            (ref^.base = _compiler.current_procinfo.framepointer)
           );
       end;
 
@@ -3299,7 +3303,7 @@ unit aoptx86;
           if (ThisRef.index = NR_NO) and
             (
               (ThisRef.base = NR_STACK_POINTER_REG) or
-              (ThisRef.base = current_procinfo.framepointer)
+              (ThisRef.base = compiler.current_procinfo.framepointer)
             ) then
             begin
               case taicpu(p).opsize of
@@ -4467,7 +4471,7 @@ unit aoptx86;
                                                       if ((SourceRef.offset mod 16) = 8) and
                                                         (
                                                           { Base pointer is always aligned (stack pointer won't be if there's no stack frame) }
-                                                          (SourceRef.base = current_procinfo.framepointer) or
+                                                          (SourceRef.base = compiler.current_procinfo.framepointer) or
                                                           ((SourceRef.alignment >= 16) and ((SourceRef.alignment mod 16) = 0))
                                                         ) then
                                                         taicpu(p).opcode := MovAligned
@@ -4480,7 +4484,7 @@ unit aoptx86;
                                                       if ((TargetRef.offset mod 16) = 8) and
                                                         (
                                                           { Base pointer is always aligned (stack pointer won't be if there's no stack frame) }
-                                                          (TargetRef.base = current_procinfo.framepointer) or
+                                                          (TargetRef.base = compiler.current_procinfo.framepointer) or
                                                           ((TargetRef.alignment >= 16) and ((TargetRef.alignment mod 16) = 0))
                                                         ) then
                                                         taicpu(hp1).opcode := MovAligned
@@ -4523,7 +4527,7 @@ unit aoptx86;
                                                           if ((SourceRef.offset mod 16) = 0) and
                                                             (
                                                               { Base pointer is always aligned (stack pointer won't be if there's no stack frame) }
-                                                              (SourceRef.base = current_procinfo.framepointer) or
+                                                              (SourceRef.base = compiler.current_procinfo.framepointer) or
                                                               ((SourceRef.alignment >= 16) and ((SourceRef.alignment mod 16) = 0))
                                                             ) then
                                                             taicpu(hp2).opcode := MovAligned
@@ -4536,7 +4540,7 @@ unit aoptx86;
                                                           if ((TargetRef.offset mod 16) = 0) and
                                                             (
                                                               { Base pointer is always aligned (stack pointer won't be if there's no stack frame) }
-                                                              (TargetRef.base = current_procinfo.framepointer) or
+                                                              (TargetRef.base = compiler.current_procinfo.framepointer) or
                                                               ((TargetRef.alignment >= 16) and ((TargetRef.alignment mod 16) = 0))
                                                             ) then
                                                             taicpu(hp3).opcode := MovAligned
@@ -5478,10 +5482,10 @@ unit aoptx86;
           (taicpu(p).oper[1]^.ref^.index = NR_NO) and
           (
             (
-              (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
+              (taicpu(p).oper[1]^.ref^.base = compiler.current_procinfo.FramePointer) and
               not (
-                assigned(current_procinfo.procdef.funcretsym) and
-                (taicpu(p).oper[1]^.ref^.offset <= tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)
+                assigned(compiler.current_procinfo.procdef.funcretsym) and
+                (taicpu(p).oper[1]^.ref^.offset <= tabstractnormalvarsym(compiler.current_procinfo.procdef.funcretsym).localloc.reference.offset)
               )
             ) or
             { Also discard writes to the stack that are below the base pointer,
@@ -5489,7 +5493,7 @@ unit aoptx86;
               stack, say. }
             (
               (taicpu(p).oper[1]^.ref^.base = NR_STACK_POINTER_REG) and
-              (taicpu(p).oper[1]^.ref^.offset < current_procinfo.final_localsize)
+              (taicpu(p).oper[1]^.ref^.offset < compiler.current_procinfo.final_localsize)
             )
           ) then
           begin
@@ -6849,7 +6853,7 @@ unit aoptx86;
           end;
 
         { Don't optimise if the stack or frame pointer is the destination register }
-        if (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) or (taicpu(p).oper[1]^.reg=current_procinfo.framepointer) then
+        if (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) or (taicpu(p).oper[1]^.reg=compiler.current_procinfo.framepointer) then
           Exit;
         if GetNextInstruction(p,hp1) and
           (hp1.typ=ait_instruction) then
@@ -8682,15 +8686,15 @@ unit aoptx86;
                GetNextInstruction(hp1, hp2) and
                (((hp2.typ = ait_instruction) and
                IsExitCode(hp2) and
-               (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
-               not(assigned(current_procinfo.procdef.funcretsym) and
-                   (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
+               (taicpu(p).oper[0]^.ref^.base = compiler.current_procinfo.FramePointer) and
+               not(assigned(compiler.current_procinfo.procdef.funcretsym) and
+                   (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(compiler.current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
                (taicpu(p).oper[0]^.ref^.index = NR_NO)) or
                { fstp <temp>
                  fld  <temp>
                  <dealloc> <temp>
                }
-               ((taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+               ((taicpu(p).oper[0]^.ref^.base = compiler.current_procinfo.FramePointer) and
                 (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                 SetAndTest(FindTempDeAlloc(taicpu(p).oper[0]^.ref^.offset,tai(hp1.next)),hp2) and
                 (tai_tempalloc(hp2).temppos=taicpu(p).oper[0]^.ref^.offset) and
@@ -8719,7 +8723,7 @@ unit aoptx86;
                 (taicpu(p).opcode=taicpu(hp2).opcode) and
                 (taicpu(p).opsize=taicpu(hp2).opsize) then
                 begin
-                  if (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+                  if (taicpu(p).oper[0]^.ref^.base = compiler.current_procinfo.FramePointer) and
                     (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                     SetAndTest(FindTempDeAlloc(taicpu(p).oper[0]^.ref^.offset,tai(hp2.next)),hp3) and
                     MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
@@ -9916,7 +9920,7 @@ unit aoptx86;
                       DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 1)', p);
 
                       { If pi_uses_ymm is set, VZEROUPPER is present to do this for us }
-                      if (pi_uses_ymm in current_procinfo.flags) then
+                      if (pi_uses_ymm in compiler.current_procinfo.flags) then
                         RemoveInstruction(hp2)
                       else
                         begin
@@ -9980,7 +9984,7 @@ unit aoptx86;
                           DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 2)', p);
 
                           { If pi_uses_ymm is set, VZEROUPPER is present to do this for us }
-                          if (pi_uses_ymm in current_procinfo.flags) then
+                          if (pi_uses_ymm in compiler.current_procinfo.flags) then
                             RemoveInstruction(hp1)
                           else
                             begin
@@ -10228,8 +10232,8 @@ unit aoptx86;
                                         (getsupreg(ref^.base) <> RS_FRAME_POINTER_REG) or
                                         (
                                           { Allow the frame pointer if it's not being used by the procedure as such }
-                                          Assigned(current_procinfo) and
-                                          (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                          Assigned(compiler.current_procinfo) and
+                                          (compiler.current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
                                         )
                                       )
                                       {$ifdef x86_64} and (ref^.base <> NR_RIP) {$endif x86_64}
@@ -10245,8 +10249,8 @@ unit aoptx86;
                                         (getsupreg(ref^.index) <> RS_FRAME_POINTER_REG) or
                                         (
                                           { Allow the frame pointer if it's not being used by the procedure as such }
-                                          Assigned(current_procinfo) and
-                                          (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                          Assigned(compiler.current_procinfo) and
+                                          (compiler.current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
                                         )
                                       )
                                       {$ifdef x86_64} and (ref^.index <> NR_RIP) {$endif x86_64} and
@@ -18094,7 +18098,7 @@ unit aoptx86;
           else if the subroutine is marked as no return, remove the ret
         }
         if ((cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
-          (po_noreturn in current_procinfo.procdef.procoptions)) and
+          (po_noreturn in compiler.current_procinfo.procdef.procoptions)) and
           GetNextInstruction(p, hp1) and
           (MatchInstruction(hp1,A_RET,[S_NO]) or
            (MatchInstruction(hp1,A_VZEROUPPER,[S_NO]) and

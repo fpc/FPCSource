@@ -314,7 +314,7 @@ implementation
           do all checks, the parameters might be type parameters,
 
           bailout as well in case of an error before }
-        if (df_generic in current_procinfo.procdef.defoptions) or
+        if (df_generic in compiler.current_procinfo.procdef.defoptions) or
          (dest.resultdef.typ=errordef) or
          (source.resultdef.typ=errordef) then
           begin
@@ -510,9 +510,9 @@ implementation
           { can't hardcode the position of the '$', e.g. on darwin an underscore
             is added }
           hashedid.id:=copy(defaultname,2,255);
-          { in case of a previous error, current_procinfo might not be set
+          { in case of a previous error, compiler.current_procinfo might not be set
             so avoid a crash in this case }
-          if assigned(current_procinfo) then
+          if assigned(compiler.current_procinfo) then
             begin
               { the default sym is always part of the current procedure/function }
               srsymtable:=compiler.current_module.localsymtable;
@@ -553,8 +553,8 @@ implementation
           internalerror(2012032102);
 
         def:=ttypenode(left).typedef;
-        if assigned(current_procinfo) and
-           (df_generic in current_procinfo.procdef.defoptions) then
+        if assigned(compiler.current_procinfo) and
+           (df_generic in compiler.current_procinfo.procdef.defoptions) then
           begin
             { don't allow as a default parameter value, because it may not be valid
               when specialising }
@@ -1670,7 +1670,7 @@ implementation
 
          { in case we are in a generic definition, we cannot
            do all checks, the parameters might be type parameters }
-         if df_generic in current_procinfo.procdef.defoptions then
+         if df_generic in compiler.current_procinfo.procdef.defoptions then
            begin
              result.Free;
              result:=nil;
@@ -1907,7 +1907,7 @@ implementation
                isarray) then
           begin
             { possibly generic involved? }
-            if df_generic in current_procinfo.procdef.defoptions then
+            if df_generic in compiler.current_procinfo.procdef.defoptions then
               result:=internalstatements(compiler,newstatement)
             else
               compiler.verbose.CGMessage(type_e_mismatch);
@@ -3428,8 +3428,8 @@ implementation
                     though for generics it can reach here as well }
                   set_varstate(left,vs_read,[]);
                   if (left.resultdef.typ<>undefineddef) and
-                      assigned(current_procinfo) and
-                      paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
+                      assigned(compiler.current_procinfo) and
+                      paramanager.push_high_param(vs_value,left.resultdef,compiler.current_procinfo.procdef.proccalloption) then
                    begin
                      { this should be an open array or array of const, both of
                        which can only be simple load nodes of parameters }
@@ -3590,7 +3590,7 @@ implementation
                       end;
                     undefineddef :
                       begin
-                        if not (df_generic in current_procinfo.procdef.defoptions) then
+                        if not (df_generic in compiler.current_procinfo.procdef.defoptions) then
                           compiler.verbose.CGMessage(type_e_mismatch);
                         { otherwise nothing }
                       end;
@@ -3704,7 +3704,7 @@ implementation
               in_dec_x:
                 begin
                   resultdef:=voidtype;
-                  if not(df_generic in current_procinfo.procdef.defoptions) then
+                  if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       if assigned(left) then
                         begin
@@ -3785,7 +3785,7 @@ implementation
               in_ror_assign_x_y:
                 begin
                   resultdef:=voidtype;
-                  if not(df_generic in current_procinfo.procdef.defoptions) then
+                  if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       { first parameter must exist }
                       if not assigned(left) or (left.nodetype<>callparan) then
@@ -3833,7 +3833,7 @@ implementation
               in_not_assign_x:
                 begin
                   resultdef:=voidtype;
-                  if not(df_generic in current_procinfo.procdef.defoptions) then
+                  if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       valid_for_var(left,true);
                       set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
@@ -4108,7 +4108,7 @@ implementation
                       if is_boolean(left.resultdef) or
                           (
                             (left.resultdef.typ=undefineddef) and
-                            (df_generic in current_procinfo.procdef.defoptions)
+                            (df_generic in compiler.current_procinfo.procdef.defoptions)
                           ) then
                         begin
                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
@@ -4122,7 +4122,7 @@ implementation
                     compiler.verbose.CGMessage(type_e_mismatch);
 
                   if (cs_do_assertion in compiler.globals.current_settings.localswitches) then
-                    include(current_procinfo.flags,pi_do_call);
+                    include(compiler.current_procinfo.flags,pi_do_call);
                 end;
               in_prefetch_var:
                 resultdef:=voidtype;
@@ -5207,8 +5207,8 @@ implementation
 
      function tinlinenode.first_get_frame: tnode;
        begin
-         include(current_procinfo.flags,pi_needs_stackframe);
-         include(current_procinfo.flags,pi_uses_get_frame);
+         include(compiler.current_procinfo.flags,pi_needs_stackframe);
+         include(compiler.current_procinfo.flags,pi_uses_get_frame);
          expectloc:=LOC_CREGISTER;
          result:=nil;
        end;

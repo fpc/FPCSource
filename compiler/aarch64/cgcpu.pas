@@ -1907,7 +1907,7 @@ implementation
         { pi_has_unwind_info may already be set at this point if there are
           SEH directives in assembler body. In this case, .seh_endprologue
           is expected to be one of those directives, and not generated here. }
-        suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
+        suppress_endprologue:=(pi_has_unwind_info in compiler.current_procinfo.flags);
         genloadframeforexcept:=false;
 
         if not nostackframe then
@@ -1916,8 +1916,8 @@ implementation
             localsize:=align(localsize,16);
 
             if compiler.target.info.system=system_aarch64_win64 then
-              include(current_procinfo.flags,pi_has_unwind_info);
-            if not(pi_no_framepointer_needed in current_procinfo.flags) then
+              include(compiler.current_procinfo.flags,pi_has_unwind_info);
+            if not(pi_no_framepointer_needed in compiler.current_procinfo.flags) then
               begin
                 { save stack pointer and return address }
                 reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
@@ -1929,7 +1929,7 @@ implementation
                 if compiler.target.info.system=system_aarch64_win64 then
                   list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
                 { initialise frame pointer }
-                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   begin
                     a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
                     current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FP);
@@ -1944,7 +1944,7 @@ implementation
                       gen_load_frame_for_exceptfilter(list)
                     else
                       genloadframeforexcept:=true;
-                    localsize:=current_procinfo.maxpushedparasize;
+                    localsize:=compiler.current_procinfo.maxpushedparasize;
                   end;
               end;
 
@@ -1962,7 +1962,7 @@ implementation
             if localsize<>0 then
               begin
                 localsize:=align(localsize,16);
-                current_procinfo.final_localsize:=localsize;
+                compiler.current_procinfo.final_localsize:=localsize;
                 g_stackpointer_alloc(list,localsize);
               end;
             { By default, we use the frame pointer to access parameters passed via
@@ -1991,18 +1991,18 @@ implementation
               less efficiently from nested routines, but those accesses are indirect
               anyway and at least this way they can be accessed at all
             }
-            if current_procinfo.has_nestedprocs or
+            if compiler.current_procinfo.has_nestedprocs or
                (
                  (compiler.target.info.system=system_aarch64_win64) and
-                 (current_procinfo.flags*[pi_has_implicit_finally,pi_needs_implicit_finally,pi_uses_exceptions]<>[])
+                 (compiler.current_procinfo.flags*[pi_has_implicit_finally,pi_needs_implicit_finally,pi_uses_exceptions]<>[])
                ) then
               begin
-                current_procinfo.procdef.localst.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
-                current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+                compiler.current_procinfo.procdef.localst.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+                compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
               end;
           end;
 
-        if not (pi_has_unwind_info in current_procinfo.flags) then
+        if not (pi_has_unwind_info in compiler.current_procinfo.flags) then
           begin
             if genloadframeforexcept then
               gen_load_frame_for_exceptfilter(list);
@@ -2010,7 +2010,7 @@ implementation
           end;
 
         { Generate unwind data for aarch64-win64 }
-        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
+        seh_proc:=cai_seh_directive.create_name(ash_proc,compiler.current_procinfo.procdef.mangledname);
         if assigned(hitem) then
           list.insertafter(seh_proc,hitem)
         else
@@ -2023,8 +2023,8 @@ implementation
           begin
             templist.concat(cai_seh_directive.create(ash_endprologue));
           end;
-        if assigned(current_procinfo.endprologue_ai) then
-          current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
+        if assigned(compiler.current_procinfo.endprologue_ai) then
+          compiler.current_procinfo.aktproccode.insertlistafter(compiler.current_procinfo.endprologue_ai,templist)
         else
           list.concatlist(templist);
         templist.free;
@@ -2140,7 +2140,7 @@ implementation
             * the entry stack frame must be normally generated because the subroutine could be still left by
               an exception and then the unwinding code might need to restore the registers stored by the entry code
           }
-          not(po_noreturn in current_procinfo.procdef.procoptions) then
+          not(po_noreturn in compiler.current_procinfo.procdef.procoptions) then
           begin
             { if no registers have been stored, we don't have to subtract the
               allocated temp space from the stack pointer }
@@ -2161,8 +2161,8 @@ implementation
             { restore registers (and stack pointer) }
             if regsstored then
               begin
-                if current_procinfo.final_localsize<>0 then
-                  handle_reg_imm12_reg(list,A_ADD,OS_ADDR,NR_SP,current_procinfo.final_localsize,NR_SP,NR_IP0,false,true);
+                if compiler.current_procinfo.final_localsize<>0 then
+                  handle_reg_imm12_reg(list,A_ADD,OS_ADDR,NR_SP,compiler.current_procinfo.final_localsize,NR_SP,NR_IP0,false,true);
                 load_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD);
                 load_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
                 { on Windows also restore SP even if the add should be enough
@@ -2170,26 +2170,26 @@ implementation
                 if compiler.target.info.system=system_aarch64_win64 then
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end
-            else if current_procinfo.final_localsize<>0 then
+            else if compiler.current_procinfo.final_localsize<>0 then
               begin
                 { restore stack pointer }
                 { Note: for Windows we need to restore the stack using an ADD
                         and to set FP back to SP }
                 if compiler.target.info.system=system_aarch64_win64 then
                   begin
-                    handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
-                      current_procinfo.framepointer,NR_IP0,false,true);
-                    if not (pi_no_framepointer_needed in current_procinfo.flags) then
+                    handle_reg_imm12_reg(list,A_ADD,OS_ADDR,compiler.current_procinfo.framepointer,compiler.current_procinfo.final_localsize,
+                      compiler.current_procinfo.framepointer,NR_IP0,false,true);
+                    if not (pi_no_framepointer_needed in compiler.current_procinfo.flags) then
                       a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
                   end
-                else if pi_no_framepointer_needed in current_procinfo.flags  then
-                  handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
-                    current_procinfo.framepointer,NR_IP0,false,true)
+                else if pi_no_framepointer_needed in compiler.current_procinfo.flags  then
+                  handle_reg_imm12_reg(list,A_ADD,OS_ADDR,compiler.current_procinfo.framepointer,compiler.current_procinfo.final_localsize,
+                    compiler.current_procinfo.framepointer,NR_IP0,false,true)
                 else
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end;
 
-            if not(pi_no_framepointer_needed in current_procinfo.flags) then
+            if not(pi_no_framepointer_needed in compiler.current_procinfo.flags) then
               begin
                 { restore framepointer and return address }
                 reference_reset_base(ref,NR_SP,16,ctempposinvalid,16,[]);
@@ -2200,9 +2200,9 @@ implementation
 
         { return }
         list.concat(taicpu.op_none(A_RET));
-        if (pi_has_unwind_info in current_procinfo.flags) then
+        if (pi_has_unwind_info in compiler.current_procinfo.flags) then
           begin
-            tcpuprocinfo(current_procinfo).dump_scopes(list);
+            tcpuprocinfo(compiler.current_procinfo).dump_scopes(list);
             list.concat(cai_seh_directive.create(ash_endproc));
           end;
       end;
@@ -2537,7 +2537,7 @@ implementation
           maxlenunrolled:=maxlenunrolled div 2;
         if (len>maxlenunrolled) and
            (len>totalalign*8) and
-           (pi_do_call in current_procinfo.flags) then
+           (pi_do_call in compiler.current_procinfo.flags) then
           begin
             g_concatcopy_move(list,source,dest,len);
             exit;
@@ -2665,7 +2665,7 @@ implementation
       begin
         { so far, we assume all flavours of AArch64 need explicit floating point exception checking }
         if ((cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches) and
-            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+            (force or compiler.current_procinfo.FPUExceptionCheckNeeded)) then
           begin
             r:=getintregister(list,OS_INT);
             tmpreg:=getintregister(list,OS_INT);
@@ -2686,7 +2686,7 @@ implementation
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l2);
             if clear then
-              current_procinfo.FPUExceptionCheckNeeded:=false;
+              compiler.current_procinfo.FPUExceptionCheckNeeded:=false;
           end;
       end;
 

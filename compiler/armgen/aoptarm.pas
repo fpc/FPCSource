@@ -334,7 +334,7 @@ Implementation
         (taicpu(movp).ops=2) and
         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
         { don't mess with moves to fp }
-        (taicpu(movp).oper[0]^.reg<>current_procinfo.framepointer) and
+        (taicpu(movp).oper[0]^.reg<>compiler.current_procinfo.framepointer) and
         { the destination register of the mov might not be used between p and movp }
         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
 {$ifdef ARM}
@@ -2190,7 +2190,7 @@ Implementation
                         { Only permit writes to the stack, since we can guarantee alignment with that }
                         (
                           (ThisRef.base = NR_STACK_POINTER_REG) or
-                          (ThisRef.base = current_procinfo.framepointer)
+                          (ThisRef.base = compiler.current_procinfo.framepointer)
                         ) then
                         begin
                           case taicpu(hp1).oppostfix of
@@ -2698,7 +2698,7 @@ Implementation
                 { Only permit writes to the stack, since we can guarantee alignment with that }
                 (
                   (ThisRef.base = NR_STACK_POINTER_REG) or
-                  (ThisRef.base = current_procinfo.framepointer)
+                  (ThisRef.base = compiler.current_procinfo.framepointer)
                 ) then
                 begin
 

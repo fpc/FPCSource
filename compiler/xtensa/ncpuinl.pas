@@ -116,7 +116,7 @@ unit ncpuinl;
             expectloc:=LOC_FPUREGISTER;
             Result:=nil;
             if compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
           end
         else
           Result:=inherited first_fma;
@@ -199,7 +199,7 @@ unit ncpuinl;
             expectloc:=LOC_REGISTER;
             Result:=nil;
             if compiler.globals.needs_check_for_fpu_exceptions then
-              Include(current_procinfo.flags,pi_do_call);
+              Include(compiler.current_procinfo.flags,pi_do_call);
           end
         else
           Result:=inherited first_minmax;

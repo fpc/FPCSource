@@ -1344,7 +1344,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             curoffset:=0;
             { in case of a generic subroutine, it might be we cannot
               determine the size yet }
-            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+            if assigned(compiler.current_procinfo) and (df_generic in compiler.current_procinfo.procdef.defoptions) then
               begin
                 while true do
                   begin

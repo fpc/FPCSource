@@ -191,6 +191,8 @@ implementation
 
     function TPSABIEHAction.AddAction(p: tobjectdef) : LongInt;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         index: LongInt;
       begin
         { if not first entry, signal that another action follows }
@@ -200,9 +202,9 @@ implementation
 
         { catch all? }
         if p=tobjectdef(-1) then
-          index:=(current_procinfo as tpsabiehprocinfo).AddTypeFilter(nil)
+          index:=(compiler.current_procinfo as tpsabiehprocinfo).AddTypeFilter(nil)
         else if assigned(p) then
-          index:=(current_procinfo as tpsabiehprocinfo).AddTypeFilter(p)
+          index:=(compiler.current_procinfo as tpsabiehprocinfo).AddTypeFilter(p)
         else
           index:=-1;
 {$ifdef debug_eh}
@@ -539,7 +541,7 @@ implementation
     procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
       begin
         tg.ungettemp(list,t.reasonbuf);
-        (current_procinfo as tpsabiehprocinfo).FinalizeAndPopAction((current_procinfo as tpsabiehprocinfo).CurrentAction);
+        (compiler.current_procinfo as tpsabiehprocinfo).FinalizeAndPopAction((compiler.current_procinfo as tpsabiehprocinfo).CurrentAction);
       end;
 
 
@@ -561,16 +563,16 @@ implementation
             exceptstate.finallycodelabel:=nil;
             action:=TPSABIEHAction.Create(exceptstate.exceptionlabel);
           end;
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
-        (current_procinfo as tpsabiehprocinfo).PushAction(action);
-        (current_procinfo as tpsabiehprocinfo).PushLandingPad(action);
+        (compiler.current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
+        (compiler.current_procinfo as tpsabiehprocinfo).PushAction(action);
+        (compiler.current_procinfo as tpsabiehprocinfo).PushLandingPad(action);
         if exceptframekind<>tek_except then
           { no safecall? }
           if use_cleanup(exceptframekind) then
-            (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil)
+            (compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil)
           else
             { if safecall, catch all }
-            (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
+            (compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
         if exceptframekind<>tek_except then
@@ -615,8 +617,8 @@ implementation
         inherited;
         if exceptframekind=tek_except then
           hlcg.a_jmp_always(list,endlabel);
-        (current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
-        (current_procinfo as tpsabiehprocinfo).PopLandingPad((current_procinfo as tpsabiehprocinfo).CurrentLandingPad);
+        (compiler.current_procinfo as tpsabiehprocinfo).CreateNewPSABIEHCallsite(list);
+        (compiler.current_procinfo as tpsabiehprocinfo).PopLandingPad((compiler.current_procinfo as tpsabiehprocinfo).CurrentLandingPad);
       end;
 
 
@@ -640,7 +642,7 @@ implementation
           begin
             { Resume might not be called outside of an landing pad else
               the unwind is immediately terminated, so create an empty landing pad }
-            psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
+            psabiehprocinfo:=compiler.current_procinfo as tpsabiehprocinfo;
 
             if psabiehprocinfo.landingpadstack.count>1 then
               begin
@@ -668,7 +670,7 @@ implementation
           end
         else
           begin
-            psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
+            psabiehprocinfo:=compiler.current_procinfo as tpsabiehprocinfo;
             { empty landing pad needed to avoid immediate termination? }
             if psabiehprocinfo.landingpadstack.Count=0 then
               begin
@@ -720,7 +722,7 @@ implementation
           begin
             if assigned(excepttype) then
               begin
-                otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+                otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(compiler.current_procinfo.procdef.owner).moduleid;
                 indirect:=(tf_supports_packages in compiler.target.info.flags) and
                         (compiler.target.info.system in systems_indirect_var_imports) and
                         (cs_imported_data in compiler.globals.current_settings.localswitches) and
@@ -735,7 +737,7 @@ implementation
         if assigned(excepttype) then
           begin
 {$if defined(i386) or defined(x86_64)}
-            typeindex:=(current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(excepttype);
+            typeindex:=(compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(excepttype);
 {$endif}
             current_asmdata.getjumplabel(catchstartlab);
 {$if defined(i386)}
@@ -750,7 +752,7 @@ implementation
             hlcg.a_label(list,catchstartlab);
           end
         else
-          (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
+          (compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
         pd:=search_system_proc('fpc_psabi_begin_catch');
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
@@ -799,7 +801,7 @@ implementation
 
     procedure tpsabiehexceptionstatehandler.catch_all_add(list: TAsmList);
       begin
-        (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil);
+        (compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil);
       end;
 
 

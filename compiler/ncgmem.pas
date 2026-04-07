@@ -161,15 +161,15 @@ implementation
         hsym   : tparavarsym;
         href   : treference;
       begin
-        if (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
+        if (compiler.current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
             location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
-            location.register:=current_procinfo.framepointer;
+            location.register:=compiler.current_procinfo.framepointer;
           end
         else
           begin
             location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
-            currpi:=current_procinfo;
+            currpi:=compiler.current_procinfo;
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parentfpsym);
             if (currpi.procdef.owner.symtablelevel=parentpd.parast.symtablelevel) and (hsym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then

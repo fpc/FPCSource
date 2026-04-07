@@ -345,7 +345,7 @@ unit rarvgas;
                   if hasdot and
                      (not oper.hastype) and
                      (tabstractvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
-                     (current_procinfo.procdef.proccalloption<>pocall_register) then
+                     (compiler.current_procinfo.procdef.proccalloption<>pocall_register) then
                     compiler.verbose.Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
                 end;

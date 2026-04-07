@@ -1384,16 +1384,16 @@ implementation
      currpara : tparavarsym;
      paraloc  : pcgparalocation;
    begin
-     if (po_assembler in current_procinfo.procdef.procoptions) or
+     if (po_assembler in compiler.current_procinfo.procdef.procoptions) or
      { exceptfilters have a single hidden 'parentfp' parameter, which
        is handled by tcg.g_proc_entry. }
-        (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+        (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
        exit;
 
      { Allocate registers used by parameters }
-     for i:=0 to current_procinfo.procdef.paras.count-1 do
+     for i:=0 to compiler.current_procinfo.procdef.paras.count-1 do
        begin
-         currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+         currpara:=tparavarsym(compiler.current_procinfo.procdef.paras[i]);
          paraloc:=currpara.paraloc[calleeside].location;
          while assigned(paraloc) do
            begin
@@ -1404,9 +1404,9 @@ implementation
        end;
 
      { Copy parameters to local references/registers }
-     for i:=0 to current_procinfo.procdef.paras.count-1 do
+     for i:=0 to compiler.current_procinfo.procdef.paras.count-1 do
        begin
-         currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+         currpara:=tparavarsym(compiler.current_procinfo.procdef.paras[i]);
          { don't use currpara.vardef, as this will be wrong in case of
            call-by-reference parameters (it won't contain the pointerdef) }
          gen_load_cgpara_loc(list,currpara.paraloc[calleeside].def,currpara.paraloc[calleeside],currpara.initialloc,paramanager.param_use_paraloc(currpara.paraloc[calleeside]));
@@ -1422,8 +1422,8 @@ implementation
      { generate copies of call by value parameters, must be done before
        the initialization and body is parsed because the refcounts are
        incremented using the local copies }
-     current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
-     if not(po_assembler in current_procinfo.procdef.procoptions) then
+     compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
+     if not(po_assembler in compiler.current_procinfo.procdef.procoptions) then
        begin
          { initialize refcounted paras, and trash others. Needed here
            instead of in gen_initialize_code, because when a reference is
@@ -1431,7 +1431,7 @@ implementation
            in a regvar, we add a register move and that one again has to
            come after the parameter loading code as far as the register
            allocator is concerned }
-         current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
+         compiler.current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
        end;
    end;
 

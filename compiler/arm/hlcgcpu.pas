@@ -82,10 +82,10 @@ implementation
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
                 current_asmdata.getlabel(l,alt_data);
-                current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                cg.a_label(current_procinfo.aktlocaldata,l);
-                tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
+                compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                cg.a_label(compiler.current_procinfo.aktlocaldata,l);
+                tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
                 tmpref.symbol:=l;
                 tmpref.base:=NR_PC;
                 list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
@@ -126,10 +126,10 @@ implementation
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
                 current_asmdata.getlabel(l,alt_data);
-                current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                cg.a_label(current_procinfo.aktlocaldata,l);
-                tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
+                compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                cg.a_label(compiler.current_procinfo.aktlocaldata,l);
+                tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
                 tmpref.symbol:=l;
                 tmpref.base:=NR_PC;
                 list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
@@ -183,7 +183,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      current_procinfo:=cprocinfo.create(nil,compiler);
+      compiler.current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -205,10 +205,10 @@ implementation
           { create consts entry }
           reference_reset(tmpref,4,[]);
           current_asmdata.getjumplabel(l);
-          current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-          cg.a_label(current_procinfo.aktlocaldata,l);
-          tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-          current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+          compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+          cg.a_label(compiler.current_procinfo.aktlocaldata,l);
+          tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
+          compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
           tmpref.symbol:=l;
           tmpref.base:=NR_PC;
@@ -219,10 +219,10 @@ implementation
         end
       else
         list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
-      list.concatlist(current_procinfo.aktlocaldata);
+      list.concatlist(compiler.current_procinfo.aktlocaldata);
 
-      current_procinfo.Free;
-      current_procinfo:=nil;
+      compiler.current_procinfo.Free;
+      compiler.current_procinfo:=nil;
 
       list.concat(Tai_symbol_end.Createname(labelname));
     end;

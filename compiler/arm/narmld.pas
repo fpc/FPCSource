@@ -68,7 +68,7 @@ implementation
           begin
             if compiler.target.info.system in [system_arm_linux] then
               begin
-                if not(pi_uses_threadvar in current_procinfo.flags) then
+                if not(pi_uses_threadvar in compiler.current_procinfo.flags) then
                   internalerror(2012012101);
                 case compiler.globals.current_settings.tlsmodel of
                   tlsm_global_dynamic:
@@ -122,8 +122,8 @@ implementation
                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
                       reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
-                      location.reference.base:=current_procinfo.tlsoffset;
-                      include(current_procinfo.flags,pi_needs_tls);
+                      location.reference.base:=compiler.current_procinfo.tlsoffset;
+                      include(compiler.current_procinfo.flags,pi_needs_tls);
                       location.reference.index:=hregister;
 {$endif use_tls_dialect_gnu}
                       handled:=true;
@@ -142,8 +142,8 @@ implementation
                       href.index:=hregister;
                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                      location.reference.base:=current_procinfo.tlsoffset;
-                      include(current_procinfo.flags,pi_needs_tls);
+                      location.reference.base:=compiler.current_procinfo.tlsoffset;
+                      include(compiler.current_procinfo.flags,pi_needs_tls);
                       location.reference.index:=hregister;
                       handled:=true;
                     end;
@@ -154,8 +154,8 @@ implementation
                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                       cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                       reference_reset(href,0,[]);
-                      location.reference.base:=current_procinfo.tlsoffset;
-                      include(current_procinfo.flags,pi_needs_tls);
+                      location.reference.base:=compiler.current_procinfo.tlsoffset;
+                      include(compiler.current_procinfo.flags,pi_needs_tls);
                       location.reference.index:=hregister;
                       handled:=true;
                     end;

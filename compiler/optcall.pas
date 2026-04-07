@@ -157,7 +157,7 @@ type
         callnode.inlinelocals:=TFPObjectList.create(true);
 
         { inherit flags }
-        current_procinfo.flags:=current_procinfo.flags+
+        compiler.current_procinfo.flags:=compiler.current_procinfo.flags+
           ((callnode.procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
 
         { Create new code block for inlining }

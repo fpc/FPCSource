@@ -255,7 +255,7 @@ implementation
         result on the A0 register, as well as D0. So when we
         have a result in A0, also copy it to D0. See the decision
         making code in tcpuparamanager.get_funcretloc (KB) }
-      cgpara:=current_procinfo.procdef.funcretloc[calleeside];
+      cgpara:=compiler.current_procinfo.procdef.funcretloc[calleeside];
       if ((cgpara.location^.loc = LOC_REGISTER) and
           (isaddressregister(cgpara.location^.register))) then
         begin

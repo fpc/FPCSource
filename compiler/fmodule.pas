@@ -681,9 +681,9 @@ implementation
           end;
         if assigned(procinfo) then
           begin
-            if current_procinfo=tprocinfo(procinfo) then
+            if compiler.current_procinfo=tprocinfo(procinfo) then
               begin
-                current_procinfo:=nil;
+                tcompiler(compiler).current_procinfo:=nil;
                 current_structdef:=nil;
                 current_genericdef:=nil;
                 current_specializedef:=nil;
@@ -831,9 +831,9 @@ implementation
           end;
         if assigned(procinfo) then
           begin
-            if current_procinfo=tprocinfo(procinfo) then
+            if compiler.current_procinfo=tprocinfo(procinfo) then
               begin
-                current_procinfo:=nil;
+                tcompiler(compiler).current_procinfo:=nil;
                 current_structdef:=nil;
                 current_genericdef:=nil;
                 current_specializedef:=nil;

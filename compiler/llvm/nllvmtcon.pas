@@ -828,7 +828,7 @@ implementation
          not l.asmblocklabel.defined_in_asmstatement then
         begin
           ai:=taillvm.blockaddress(voidcodepointertype,
-              current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
+              current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
             );
           emit_tai(ai,voidcodepointertype);

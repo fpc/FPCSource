@@ -564,7 +564,7 @@ unit aoptcpu;
                       Actually, as in this case the stack pointer is no used as a frame pointer and
                       there will be more instructions to restore the stack frame before jsr, so this
                       is unlikely to happen }
-                    (current_procinfo.maxpushedparasize=0) then
+                    (compiler.current_procinfo.maxpushedparasize=0) then
                     begin
                       DebugMsg('Optimizer: JSR, RTS to JMP',p);
                       taicpu(p).opcode:=A_JMP;

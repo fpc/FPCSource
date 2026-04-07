@@ -758,7 +758,7 @@ implementation
         item: TCmdStrListItem;
       begin
         result:=true;
-        item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+        item:=TCmdStrListItem(compiler.current_procinfo.procdef.aliasnames.first);
         while assigned(item) do
           begin
             if symbol_live(item.Str) then
@@ -769,13 +769,13 @@ implementation
       end;
 
     begin
-      if assigned(current_procinfo) and
-         not(po_inline in current_procinfo.procdef.procoptions) and
-         not symbol_live(current_procinfo.procdef.mangledname) and
+      if assigned(compiler.current_procinfo) and
+         not(po_inline in compiler.current_procinfo.procdef.procoptions) and
+         not symbol_live(compiler.current_procinfo.procdef.mangledname) and
          not alias_symbol_live then
         begin
 {$ifdef debug_deadcode}
-          writeln(' NOT adding creation of ',fordef.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
+          writeln(' NOT adding creation of ',fordef.typename,' because performed in dead stripped proc: ',compiler.current_procinfo.procdef.typename);
 {$endif debug_deadcode}
           result:=false;
         end

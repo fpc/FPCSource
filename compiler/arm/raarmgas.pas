@@ -778,7 +778,7 @@ Unit raarmgas;
               else
                 newconst:=tai_const.Create_32bit(ofs);
 
-              hp:=tai(current_procinfo.aktlocaldata.First);
+              hp:=tai(compiler.current_procinfo.aktlocaldata.First);
               while assigned(hp) do
                 begin
                   if hp.typ=ait_const then
@@ -798,9 +798,9 @@ Unit raarmgas;
                 end;
 
               current_asmdata.getjumplabel(lab);
-              current_procinfo.aktlocaldata.concat(tai_align.create(4));
-              current_procinfo.aktlocaldata.concat(tai_label.create(lab));
-              current_procinfo.aktlocaldata.concat(newconst);
+              compiler.current_procinfo.aktlocaldata.concat(tai_align.create(4));
+              compiler.current_procinfo.aktlocaldata.concat(tai_label.create(lab));
+              compiler.current_procinfo.aktlocaldata.concat(newconst);
               result:=lab;
             end;
 

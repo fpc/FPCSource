@@ -162,8 +162,8 @@ unit cgrv;
           end;
 
         { not assigned while generating external wrappers }
-        if assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_do_call);
+        if assigned(compiler.current_procinfo) then
+          include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -670,16 +670,16 @@ unit cgrv;
         if not(nostackframe) then
           begin
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
             { Int registers }
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_FRAME_POINTER_REG,RS_RETURN_ADDRESS_REG];
 
-            if (pi_do_call in current_procinfo.flags) then
+            if (pi_do_call in compiler.current_procinfo.flags) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
 
             stackcount:=0;
@@ -728,7 +728,7 @@ unit cgrv;
                   list.concat(taicpu.op_reg_ref(A_FSD,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
                 end;
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,stackAdjust));
 
             if localsize>0 then
@@ -764,10 +764,10 @@ unit cgrv;
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_FRAME_POINTER_REG,RS_RETURN_ADDRESS_REG];
 
-            if (pi_do_call in current_procinfo.flags) then
+            if (pi_do_call in compiler.current_procinfo.flags) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
 
             stacksize:=0;
@@ -781,7 +781,7 @@ unit cgrv;
               if r in fregs then
                 inc(stacksize,8);
 
-            localsize:=current_procinfo.calc_stackframe_size+stacksize;
+            localsize:=compiler.current_procinfo.calc_stackframe_size+stacksize;
             if localsize>0 then
               begin
                 localsize:=align(localsize,sizeof(pint));
@@ -841,7 +841,7 @@ unit cgrv;
               list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,postcompensation));
           end;
 
-        if (compiler.target.info.system in (systems_freertos+systems_embedded)) and (po_interrupt in current_procinfo.procdef.procoptions) then
+        if (compiler.target.info.system in (systems_freertos+systems_embedded)) and (po_interrupt in compiler.current_procinfo.procdef.procoptions) then
           begin
             list.concat(Taicpu.Op_none(A_MRET));
           end
@@ -893,7 +893,7 @@ unit cgrv;
     procedure tcgrv.a_call_reg(list : TAsmList;reg: tregister);
       begin
         list.concat(taicpu.op_reg_reg(A_JALR,NR_RETURN_ADDRESS_REG,reg));
-        include(current_procinfo.flags,pi_do_call);
+        include(compiler.current_procinfo.flags,pi_do_call);
       end;
 
 

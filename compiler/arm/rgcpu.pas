@@ -161,11 +161,11 @@ unit rgcpu;
                 if (taicpu(p).oper[1]^.typ=top_ref) and
                   (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
                   begin
-                    add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
+                    add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(compiler.current_procinfo.framepointer));
                     { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
                     {        while compiling the compiler. }
                     r:=NR_STACK_POINTER_REG;
-                    if current_procinfo.framepointer<>r then
+                    if compiler.current_procinfo.framepointer<>r then
                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(r));
                   end;
               else
@@ -201,7 +201,7 @@ unit rgcpu;
           helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
           {$endif}
           cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
-          cg.a_op_reg_reg(helplist,OP_ADD,OS_ADDR,current_procinfo.framepointer,hreg);
+          cg.a_op_reg_reg(helplist,OP_ADD,OS_ADDR,compiler.current_procinfo.framepointer,hreg);
           reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);
         end
       else if is_shifter_const(a and not($FFF), immshift) then
@@ -210,7 +210,7 @@ unit rgcpu;
             {$ifdef DEBUG_SPILLING}
             helplist.concat(tai_comment.create(strpnew('Spilling: Use ADD to fix spill offset')));
             {$endif}
-            helplist.concat(taicpu.op_reg_reg_const(A_ADD, hreg, current_procinfo.framepointer,
+            helplist.concat(taicpu.op_reg_reg_const(A_ADD, hreg, compiler.current_procinfo.framepointer,
                                                       a and not($FFF)));
             reference_reset_base(tmpref, hreg, a and $FFF, spilltemp.temppos, sizeof(aint),[]);
           end
@@ -219,7 +219,7 @@ unit rgcpu;
             {$ifdef DEBUG_SPILLING}
             helplist.concat(tai_comment.create(strpnew('Spilling: Use SUB to fix spill offset')));
             {$endif}
-            helplist.concat(taicpu.op_reg_reg_const(A_SUB, hreg, current_procinfo.framepointer,
+            helplist.concat(taicpu.op_reg_reg_const(A_SUB, hreg, compiler.current_procinfo.framepointer,
                                                       a and not($FFF)));
             reference_reset_base(tmpref, hreg, -(a and $FFF), spilltemp.temppos, sizeof(aint),[]);
           end
@@ -229,7 +229,7 @@ unit rgcpu;
           helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
           {$endif}
           cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
-          reference_reset_base(tmpref,current_procinfo.framepointer,0,spilltemp.temppos,sizeof(aint),[]);
+          reference_reset_base(tmpref,compiler.current_procinfo.framepointer,0,spilltemp.temppos,sizeof(aint),[]);
           tmpref.index:=hreg;
         end;
 
@@ -481,10 +481,10 @@ unit rgcpu;
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+            cg.a_label(compiler.current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
+            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
@@ -496,7 +496,7 @@ unit rgcpu;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,ctempposinvalid,sizeof(aint),[]);
+            reference_reset_base(tmpref,compiler.current_procinfo.framepointer,0,ctempposinvalid,sizeof(aint),[]);
             tmpref.index:=hreg;
 
             if spilltemp.index<>NR_NO then
@@ -542,10 +542,10 @@ unit rgcpu;
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+            cg.a_label(compiler.current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
+            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
@@ -559,7 +559,7 @@ unit rgcpu;
             if spilltemp.index<>NR_NO then
               internalerror(2004012602);
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
+            reference_reset_base(tmpref,compiler.current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
             tmpref.index:=hreg;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));
@@ -615,11 +615,11 @@ unit rgcpu;
                 if (taicpu(p).oper[1]^.typ=top_ref) and
                   (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
                   begin
-                    add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
+                    add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(compiler.current_procinfo.framepointer));
                     { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
                     {        while compiling the compiler. }
                     r:=NR_STACK_POINTER_REG;
-                    if current_procinfo.framepointer<>r then
+                    if compiler.current_procinfo.framepointer<>r then
                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(r));
                   end;
               else
@@ -645,7 +645,7 @@ unit rgcpu;
                 {        while compiling the compiler. }
                 r:=NR_STACK_POINTER_REG;
                 add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(r));
-                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(current_procinfo.framepointer));
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(compiler.current_procinfo.framepointer));
               end;
             if (taicpu(p).ops>=2) and (taicpu(p).oper[1]^.typ=top_reg) and
               (taicpu(p).spilling_get_operation_type(1) in [operand_write,operand_readwrite]) then
@@ -654,7 +654,7 @@ unit rgcpu;
                 {        while compiling the compiler. }
                 r:=NR_STACK_POINTER_REG;
                 add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(r));
-                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(current_procinfo.framepointer));
+                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(compiler.current_procinfo.framepointer));
               end;
             case taicpu(p).opcode of
               A_LDRB,

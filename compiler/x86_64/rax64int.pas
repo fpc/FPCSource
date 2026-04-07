@@ -83,7 +83,7 @@ Unit rax64int;
               end;
           end;
         { allow SEH directives only in pure assember routines }
-        if result and not (po_assembler in current_procinfo.procdef.procoptions) then
+        if result and not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             compiler.verbose.Message(asmr_e_seh_in_pure_asm_only);
             result:=false;
@@ -103,7 +103,7 @@ Unit rax64int;
         if actasmtoken<>AS_TARGET_DIRECTIVE then
           InternalError(2011100203);
         Consume(AS_TARGET_DIRECTIVE);
-        Include(current_procinfo.flags,pi_has_unwind_info);
+        Include(compiler.current_procinfo.flags,pi_has_unwind_info);
         case actsehdirective of
           { TODO: .seh_pushframe is supposed to have a boolean parameter,
                   but GAS 2.21 does not support it. }

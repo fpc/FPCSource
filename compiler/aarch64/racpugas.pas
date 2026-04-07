@@ -144,7 +144,7 @@ Unit racpugas;
               end;
           end;
         { allow SEH directives only in pure assember routines }
-        if result and not (po_assembler in current_procinfo.procdef.procoptions) then
+        if result and not (po_assembler in compiler.current_procinfo.procdef.procoptions) then
           begin
             compiler.verbose.Message(asmr_e_seh_in_pure_asm_only);
             result:=false;
@@ -1338,7 +1338,7 @@ Unit racpugas;
         if actasmtoken<>AS_TARGET_DIRECTIVE then
           InternalError(2020033102);
         Consume(AS_TARGET_DIRECTIVE);
-        Include(current_procinfo.flags,pi_has_unwind_info);
+        Include(compiler.current_procinfo.flags,pi_has_unwind_info);
 
         case actsehdirective of
           ash_nop,

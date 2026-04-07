@@ -2976,7 +2976,7 @@ type
              'FPCTARGETOS':
                hs:=compiler.target.info.shortname;
              'CURRENTROUTINE':
-               hs:=current_procinfo.procdef.procsym.RealName;
+               hs:=compiler.current_procinfo.procdef.procsym.RealName;
              else
                hs:=GetEnvironmentVariable(hs);
            end;

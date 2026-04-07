@@ -59,12 +59,12 @@ implementation
       begin
         { normally, we cannot use the stack pointer as normal register on arm thumb }
         if (GenerateThumbCode) and
-          (getsupreg(current_procinfo.framepointer) in [RS_R8..RS_R15]) and
-          (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
+          (getsupreg(compiler.current_procinfo.framepointer) in [RS_R8..RS_R15]) and
+          (compiler.current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,current_procinfo.framepointer,location.register);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,compiler.current_procinfo.framepointer,location.register);
           end
         else
           inherited pass_generate_code;

@@ -506,7 +506,7 @@ implementation
                     if reg_and_stack then
                       begin
                         for j:=intparareg to mips_nb_used_registers-1 do
-                          tcpuprocinfo(current_procinfo).register_used[j]:=true;
+                          tcpuprocinfo(compiler.current_procinfo).register_used[j]:=true;
                         { all registers used now }
                         intparareg:=mips_nb_used_registers;
                       end;
@@ -529,8 +529,8 @@ implementation
                         else
                           begin
                             paraloc^.reference.index := NR_FRAME_POINTER_REG;
-                            if assigned(current_procinfo) then
-                              include(current_procinfo.flags,pi_needs_stackframe);
+                            if assigned(compiler.current_procinfo) then
+                              include(compiler.current_procinfo.flags,pi_needs_stackframe);
                           end;
                         paraloc^.reference.offset:=intparasize;
 

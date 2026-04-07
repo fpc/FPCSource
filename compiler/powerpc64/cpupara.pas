@@ -771,9 +771,9 @@ implemented
         { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
         paraloc^.reference.index := NR_OLD_STACK_POINTER_REG;
         { create_paraloc_info_intern might be also called when being outside of
-          code generation so current_procinfo might be not set }
-        if assigned(current_procinfo) then
-          tcpuprocinfo(current_procinfo).needs_frame_pointer := true;
+          code generation so compiler.current_procinfo might be not set }
+        if assigned(compiler.current_procinfo) then
+          tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer := true;
       end;
       paraloc^.reference.offset := stack_offset;
 

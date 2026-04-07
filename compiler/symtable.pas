@@ -2461,7 +2461,7 @@ implementation
             sym:=tsym(SymList[i]);
             { Count only varsyms, but ignore the funcretsym }
             if (tsym(sym).typ in [localvarsym,paravarsym]) and
-               (tsym(sym)<>current_procinfo.procdef.funcretsym) and
+               (tsym(sym)<>compiler.current_procinfo.procdef.funcretsym) and
                (not(vo_is_parentfp in tabstractvarsym(sym).varoptions) or
                 (tstoredsym(sym).refs>0)) then
               inc(result);
@@ -3203,7 +3203,7 @@ implementation
            for packages as well }
          if ([tf_supports_packages,tf_supports_hidden_symbols]<=compiler.target.info.flags) and
              (owner.symtabletype=staticsymtable) and
-             assigned(current_procinfo) and
+             assigned(compiler.current_procinfo) and
              (
                (
                  (sym.typ=staticvarsym) and
@@ -3221,17 +3221,17 @@ implementation
                )
              ) then
            begin
-             procowner:=current_procinfo.procdef.owner;
+             procowner:=compiler.current_procinfo.procdef.owner;
              while procowner.symtabletype in [objectsymtable,recordsymtable] do
                procowner:=tdef(procowner.defowner).owner;
              if procowner.symtabletype=globalsymtable then
                begin
                  if sym.typ=procsym then
-                   current_procinfo.add_local_ref_def(def)
+                   compiler.current_procinfo.add_local_ref_def(def)
                  else if sym.typ=staticvarsym then
-                   current_procinfo.add_local_ref_sym(sym)
+                   compiler.current_procinfo.add_local_ref_sym(sym)
                  else
-                   current_procinfo.add_local_ref_sym(tlocalvarsym(sym).defaultconstsym);
+                   compiler.current_procinfo.add_local_ref_sym(tlocalvarsym(sym).defaultconstsym);
                end;
            end;
        end;
@@ -3483,10 +3483,10 @@ implementation
           while nonlocalst.symtabletype in [localsymtable,parasymtable] do
             nonlocalst:=nonlocalst.defowner.owner;
         isspezproc:=false;
-        if assigned(current_procinfo) then
+        if assigned(compiler.current_procinfo) then
           begin
-            if current_procinfo.procdef.is_specialization and
-                assigned(current_procinfo.procdef.struct) then
+            if compiler.current_procinfo.procdef.is_specialization and
+                assigned(compiler.current_procinfo.procdef.struct) then
               isspezproc:=true;
           end;
         case symvisibility of
@@ -3516,7 +3516,7 @@ implementation
                          but that is specialized elsewhere }
                        (
                          isspezproc and
-                         (current_procinfo.procdef.struct=curstruct)
+                         (compiler.current_procinfo.procdef.struct=curstruct)
                        ) or
                        { specializations may access private symbols that their
                          generics are allowed to access }
@@ -3584,7 +3584,7 @@ implementation
                          but that is specialized elsewhere }
                        (
                          isspezproc and
-                         (current_procinfo.procdef.struct=curstruct)
+                         (compiler.current_procinfo.procdef.struct=curstruct)
                        ) or
                        { specializations may access private symbols that their
                          generics are allowed to access }
@@ -3675,6 +3675,8 @@ implementation
 
     function  searchsym_maybe_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hashedid: THashedIDString;
         contextstructdef: tabstractrecorddef;
         stackitem: psymtablestackitem;
@@ -3715,9 +3717,9 @@ implementation
                      srsymtable.iscurrentunit or
                      (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid)) or
                      (
-                       assigned(current_procinfo) and
-                       (df_specialization in current_procinfo.procdef.defoptions) and
-                       (current_procinfo.procdef.genericdef.owner.moduleid=srsymtable.moduleid)
+                       assigned(compiler.current_procinfo) and
+                       (df_specialization in compiler.current_procinfo.procdef.defoptions) and
+                       (compiler.current_procinfo.procdef.genericdef.owner.moduleid=srsymtable.moduleid)
                      )
                    ) and
                    (not (ssf_search_option in flags) or (option in srsym.symoptions))then
@@ -3738,9 +3740,9 @@ implementation
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
                           inlined from outside this unit }
-                        if assigned(current_procinfo) and
+                        if assigned(compiler.current_procinfo) and
                            (srsym.owner.symtabletype=staticsymtable) then
-                          include(current_procinfo.flags,pi_uses_static_symtable);
+                          include(compiler.current_procinfo.flags,pi_uses_static_symtable);
                         if not (ssf_no_addsymref in flags) then
                           addsymref(srsym);
                         result:=true;
@@ -3761,6 +3763,8 @@ implementation
       end;
 
     function searchsym_type(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hashedid  : THashedIDString;
         stackitem : psymtablestackitem;
@@ -3811,9 +3815,9 @@ implementation
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
                       inlined from outside this unit }
-                    if assigned(current_procinfo) and
+                    if assigned(compiler.current_procinfo) and
                        (srsym.owner.symtabletype=staticsymtable) then
-                      include(current_procinfo.flags,pi_uses_static_symtable);
+                      include(compiler.current_procinfo.flags,pi_uses_static_symtable);
                     addsymref(srsym);
                     result:=true;
                     exit;
@@ -3990,9 +3994,9 @@ implementation
                           end;
                       end;
                     result:=tobjectdef(ttypesym(srsym).typedef);
-                    if assigned(current_procinfo) and
+                    if assigned(compiler.current_procinfo) and
                        (srsym.owner.symtabletype=staticsymtable) then
-                      include(current_procinfo.flags,pi_uses_static_symtable);
+                      include(compiler.current_procinfo.flags,pi_uses_static_symtable);
                     addsymref(srsym);
                     exit;
                   end;
@@ -4726,9 +4730,9 @@ implementation
               in the static symtable, because then it can't be
               inlined from outside this unit }
             if (srsym.typ=procsym) and
-               assigned(current_procinfo) and
+               assigned(compiler.current_procinfo) and
                (srsym.owner.symtabletype=staticsymtable) then
-              include(current_procinfo.flags,pi_uses_static_symtable);
+              include(compiler.current_procinfo.flags,pi_uses_static_symtable);
             addsymref(srsym);
           end
         else
@@ -4782,9 +4786,9 @@ implementation
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
                           inlined from outside this unit }
-                        if assigned(current_procinfo) and
+                        if assigned(compiler.current_procinfo) and
                            (searchsym.owner.symtabletype=staticsymtable) then
-                          include(current_procinfo.flags,pi_uses_static_symtable);
+                          include(compiler.current_procinfo.flags,pi_uses_static_symtable);
                         { Stop looking if this is a category that extends the specified
                           class itself. There might be other categories that extend this,
                           but that doesn't matter. If it extens a parent, keep looking
@@ -4843,9 +4847,9 @@ implementation
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
                       inlined from outside this unit }
-                    if assigned(current_procinfo) and
+                    if assigned(compiler.current_procinfo) and
                        (srsym.owner.symtabletype=staticsymtable) then
-                      include(current_procinfo.flags,pi_uses_static_symtable);
+                      include(compiler.current_procinfo.flags,pi_uses_static_symtable);
                     { no need to keep looking. There might be other
                       methods with the same name, but that doesn't matter
                       as far as the basic procsym is concerned.
