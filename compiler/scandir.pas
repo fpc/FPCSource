@@ -238,7 +238,7 @@ unit scandir;
       { c contains the next char, a + or - would be fine }
         state:=current_scanner.readstate;
         if state in ['-','+'] then
-          HandleSwitch(sw,state);
+          compiler.switches.HandleSwitch(sw,state);
       end;
 
 
@@ -248,7 +248,7 @@ unit scandir;
       begin
       { support ON/OFF }
         state:=current_scanner.ReadState;
-        recordpendingverbosityswitch(flag,state);
+        compiler.switches.recordpendingverbosityswitch(flag,state);
       end;
 
 
@@ -273,14 +273,14 @@ unit scandir;
       begin
         state:=current_scanner.readstate;
         if (sw<>cs_localnone) and (state in ['-','+']) then
-          recordpendinglocalswitch(sw,state);
+          compiler.switches.recordpendinglocalswitch(sw,state);
       end;
 
     function TScanDir.do_localswitchdefault(sw:tlocalswitch): char;
       begin
         result:=current_scanner.readstatedefault;
         if (sw<>cs_localnone) and (result in ['-','+','*']) then
-          recordpendinglocalswitch(sw,result);
+          compiler.switches.recordpendinglocalswitch(sw,result);
       end;
 
 
@@ -479,12 +479,12 @@ unit scandir;
         If compiler.globals.Inside_asm_statement then
           compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
-          recordpendingasmmode(compiler.globals.init_settings.asmmode)
+          compiler.switches.recordpendingasmmode(compiler.globals.init_settings.asmmode)
         else
          if not SetAsmReadMode(s,asmmode) then
            compiler.verbose.Message1(scan_e_illegal_asmmode_specifier,s)
          else
-           recordpendingasmmode(asmmode);
+           compiler.switches.recordpendingasmmode(asmmode);
       end;
 
 {$if defined(m68k) or defined(arm)}
@@ -567,7 +567,7 @@ unit scandir;
         if (hs='') then
           compiler.verbose.Message(parser_e_proc_directive_expected)
         else
-          recordpendingcallingswitch(hs);
+          compiler.switches.recordpendingcallingswitch(hs);
       end;
 
 
@@ -1386,18 +1386,18 @@ unit scandir;
         { Support also the ON and OFF as switch }
         hs:=current_scanner.readid;
         if (hs='ON') then
-          recordpendingoptimizerswitches(level2optimizerswitches)
+          compiler.switches.recordpendingoptimizerswitches(level2optimizerswitches)
         else if (hs='OFF') then
-          recordpendingoptimizerswitches([])
+          compiler.switches.recordpendingoptimizerswitches([])
         else if (hs='DEFAULT') then
-          recordpendingoptimizerswitches(compiler.globals.init_settings.optimizerswitches)
+          compiler.switches.recordpendingoptimizerswitches(compiler.globals.init_settings.optimizerswitches)
         else
           begin
             optimizerswitches:=compiler.globals.current_settings.optimizerswitches;
             if UpdateOptimizerStr(hs,optimizerswitches) then
               begin
                 compiler.globals.current_settings.optimizerswitches:=optimizerswitches;
-                recordpendingoptimizerswitches(compiler.globals.current_settings.optimizerswitches)
+                compiler.switches.recordpendingoptimizerswitches(compiler.globals.current_settings.optimizerswitches)
               end
             else
               compiler.verbose.Message1(scan_e_illegal_optimization_specifier,hs);
@@ -1419,7 +1419,7 @@ unit scandir;
          begin
            hs:=current_scanner.readid;
            if (hs='NORMAL') or (hs='DEFAULT') then
-            recordpendingpackenum(4)
+            compiler.switches.recordpendingpackenum(4)
            else
             compiler.verbose.Message1(scan_e_illegal_pack_enum, hs);
          end
@@ -1427,7 +1427,7 @@ unit scandir;
          begin
            v:=current_scanner.readval;
            case v of
-            1,2,4 : recordpendingpackenum(v);
+            1,2,4 : compiler.switches.recordpendingpackenum(v);
            else
             compiler.verbose.Message1(scan_e_illegal_pack_enum, current_scanner.pattern);
            end;
@@ -1462,10 +1462,10 @@ unit scandir;
            hs:=current_scanner.readid;
            { C has the special recordalignmax of C_alignment }
            if (hs='C') then
-            recordpendingpackrecords(C_alignment)
+            compiler.switches.recordpendingpackrecords(C_alignment)
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             recordpendingpackrecords(default_settings.packrecords)
+             compiler.switches.recordpendingpackrecords(default_settings.packrecords)
            else
             compiler.verbose.Message1(scan_e_illegal_pack_records,hs);
          end
@@ -1473,7 +1473,7 @@ unit scandir;
          begin
            v:=current_scanner.readval;
            case v of
-             1,2,4,8,16,32 : recordpendingpackrecords(v);
+             1,2,4,8,16,32 : compiler.switches.recordpendingpackrecords(v);
            else
             compiler.verbose.Message1(scan_e_illegal_pack_records,current_scanner.pattern);
            end;
@@ -1491,7 +1491,7 @@ unit scandir;
          begin
            hs:=current_scanner.readid;
            if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
-            recordpendingsetalloc(0) {Fixed mode, sets are 4 or 32 bytes}
+            compiler.switches.recordpendingsetalloc(0) {Fixed mode, sets are 4 or 32 bytes}
            else
             compiler.verbose.Message(scan_e_only_packset);
          end
@@ -1499,7 +1499,7 @@ unit scandir;
          begin
            v:=current_scanner.readval;
            case v of
-            1,2,4,8 : recordpendingsetalloc(v);
+            1,2,4,8 : compiler.switches.recordpendingsetalloc(v);
            else
             compiler.verbose.Message(scan_e_only_packset);
            end;
@@ -1524,14 +1524,14 @@ unit scandir;
       else
         begin
           Dec(switchesstatestackpos);
-          recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
-          recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
-          recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
-          recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
-          recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
-          recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
-          recordpendingasmmode(switchesstatestack[switchesstatestackpos].asmmode);
-          recordpendingoptimizerswitches(switchesstatestack[switchesstatestackpos].optimizerswitches);
+          compiler.switches.recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
+          compiler.switches.recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
+          compiler.switches.recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
+          compiler.switches.recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
+          compiler.switches.recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
+          compiler.switches.recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
+          compiler.switches.recordpendingasmmode(switchesstatestack[switchesstatestackpos].asmmode);
+          compiler.switches.recordpendingoptimizerswitches(switchesstatestack[switchesstatestackpos].optimizerswitches);
           compiler.globals.pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
           { flushpendingswitchesstate will reset the message state }
           compiler.globals.current_settings.pmessage:=nil;
@@ -2133,72 +2133,72 @@ unit scandir;
 
         if ident='CONSTRUCTING_ABSTRACT' then
           begin
-            recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
-            recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
+            compiler.switches.recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
+            compiler.switches.recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
           end
         else
         if ident='IMPLICIT_VARIANTS' then
-          recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
+          compiler.switches.recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
         else
         if ident='NO_RETVAL' then
-          recordpendingmessagestate(sym_w_function_result_not_set, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_function_result_not_set, msgstate)
         else
         if ident='SYMBOL_DEPRECATED' then
           begin
-            recordpendingmessagestate(sym_w_deprecated_symbol, msgstate);
-            recordpendingmessagestate(sym_w_deprecated_symbol_with_msg, msgstate);
+            compiler.switches.recordpendingmessagestate(sym_w_deprecated_symbol, msgstate);
+            compiler.switches.recordpendingmessagestate(sym_w_deprecated_symbol_with_msg, msgstate);
           end
         else
         if ident='SYMBOL_EXPERIMENTAL' then
-          recordpendingmessagestate(sym_w_experimental_symbol, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_experimental_symbol, msgstate)
         else
         if ident='SYMBOL_LIBRARY' then
-          recordpendingmessagestate(sym_w_library_symbol, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_library_symbol, msgstate)
         else
         if ident='SYMBOL_PLATFORM' then
-          recordpendingmessagestate(sym_w_non_portable_symbol, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_non_portable_symbol, msgstate)
         else
         if ident='SYMBOL_UNIMPLEMENTED' then
-          recordpendingmessagestate(sym_w_non_implemented_symbol, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_non_implemented_symbol, msgstate)
         else
         if ident='UNIT_DEPRECATED' then
           begin
-            recordpendingmessagestate(sym_w_deprecated_unit, msgstate);
-            recordpendingmessagestate(sym_w_deprecated_unit_with_msg, msgstate);
+            compiler.switches.recordpendingmessagestate(sym_w_deprecated_unit, msgstate);
+            compiler.switches.recordpendingmessagestate(sym_w_deprecated_unit_with_msg, msgstate);
           end
         else
         if ident='UNIT_EXPERIMENTAL' then
-          recordpendingmessagestate(sym_w_experimental_unit, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_experimental_unit, msgstate)
         else
         if ident='UNIT_LIBRARY' then
-          recordpendingmessagestate(sym_w_library_unit, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_library_unit, msgstate)
         else
         if ident='UNIT_PLATFORM' then
-          recordpendingmessagestate(sym_w_non_portable_unit, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_non_portable_unit, msgstate)
         else
         if ident='UNIT_UNIMPLEMENTED' then
-          recordpendingmessagestate(sym_w_non_implemented_unit, msgstate)
+          compiler.switches.recordpendingmessagestate(sym_w_non_implemented_unit, msgstate)
         else
         if ident='ZERO_NIL_COMPAT' then
-          recordpendingmessagestate(type_w_zero_to_nil, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_zero_to_nil, msgstate)
         else
         if ident='IMPLICIT_STRING_CAST' then
-          recordpendingmessagestate(type_w_implicit_string_cast, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_implicit_string_cast, msgstate)
         else
         if ident='IMPLICIT_STRING_CAST_LOSS' then
-          recordpendingmessagestate(type_w_implicit_string_cast_loss, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_implicit_string_cast_loss, msgstate)
         else
         if ident='EXPLICIT_STRING_CAST' then
-          recordpendingmessagestate(type_w_explicit_string_cast, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_explicit_string_cast, msgstate)
         else
         if ident='EXPLICIT_STRING_CAST_LOSS' then
-          recordpendingmessagestate(type_w_explicit_string_cast_loss, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_explicit_string_cast_loss, msgstate)
         else
         if ident='CVT_NARROWING_STRING_LOST' then
-          recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
         else
         if ident='INTF_RAISE_VISIBILITY' then
-          recordpendingmessagestate(type_w_interface_lower_visibility, msgstate)
+          compiler.switches.recordpendingmessagestate(type_w_interface_lower_visibility, msgstate)
         else
           begin
             i:=0;
@@ -2231,7 +2231,7 @@ unit scandir;
 
     procedure TScanDir.dir_yd;
       begin
-        HandleSwitch('Y','+');
+        compiler.switches.HandleSwitch('Y','+');
       end;
 
     procedure TScanDir.dir_z1;
@@ -2289,18 +2289,18 @@ unit scandir;
         case hs of
           'BORLANDC':
              begin
-               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
-               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
              end;
           'MICROSOFTC':
              begin
-               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
-               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
              end;
           'WATCOMC':
              begin
-               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
-               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               compiler.switches.recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
              end;
           else
             compiler.verbose.Message(scan_e_illegal_hugepointernormalization);

@@ -1125,7 +1125,7 @@ implementation
          hl:=nil;
 
          { apply all switch changes as the assembler readers doesn't do so }
-         flushpendingswitchesstate;
+         compiler.switches.flushpendingswitchesstate;
 
          if assigned(asmmodeinfos[compiler.globals.current_settings.asmmode]) then
            begin

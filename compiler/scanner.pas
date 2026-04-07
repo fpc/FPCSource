@@ -643,7 +643,7 @@ implementation
         if b then
          begin
            { resolve all postponed switch changes }
-           flushpendingswitchesstate;
+           compiler.switches.flushpendingswitchesstate;
 
            HandleModeSwitches(m_none,changeinit);
 
@@ -997,7 +997,7 @@ implementation
           begin
             state:=current_scanner.ReadState;
             if state in ['-','+'] then
-              opt_check:=CheckSwitch(hs[1],state)
+              opt_check:=compiler.switches.CheckSwitch(hs[1],state)
             else
               compiler.verbose.Message(scan_e_error_in_preproc_expr);
           end;
@@ -1005,7 +1005,7 @@ implementation
 
     procedure TScanner.dir_ifopt;
       begin
-        flushpendingswitchesstate;
+        compiler.switches.flushpendingswitchesstate;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
@@ -2152,7 +2152,7 @@ type
                       compiler.verbose.Message(scan_e_error_in_preproc_expr)
                     else
                       begin
-                        if CheckSwitch(hs[1],'+') then
+                        if compiler.switches.CheckSwitch(hs[1],'+') then
                           result:=texprvalue.create_bool(true)
                         else
                           result:=texprvalue.create_bool(false);
@@ -3965,7 +3965,7 @@ type
             compiler.globals.pendingstate:=replaystack.pending;
             if assigned(compiler.globals.pendingstate.nextmessagerecord) then
               compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
-            recordpendingverbosityfullswitch(replaystack.verbosity);
+            compiler.switches.recordpendingverbosityfullswitch(replaystack.verbosity);
             compiler.globals.pendingstate.nextmessagerecord:=compiler.globals.current_settings.pmessage;
             compiler.globals.current_settings.pmessage:=nil;
             popreplaystack;
@@ -4050,7 +4050,7 @@ type
                         replaytokenbuf.read(compiler.globals.current_settings,copy_size);
                         }
                         tokenreadsettings(compiler.globals.current_settings,copy_size);
-                        recordpendingverbosityfullswitch(compiler.globals.current_settings.verbosity);
+                        compiler.switches.recordpendingverbosityfullswitch(compiler.globals.current_settings.verbosity);
                       end;
                     ST_LOADMESSAGES:
                       begin
@@ -4677,7 +4677,7 @@ type
          while (length(hs)=1) and (c in ['-','+']) do
           begin
             compiler.verbose.Message1(scan_d_handling_switch,'$'+hs+c);
-            HandleSwitch(hs[1],c);
+            compiler.switches.HandleSwitch(hs[1],c);
             current_scanner.readchar; {Remove + or -}
             if c=',' then
              begin
@@ -6266,7 +6266,7 @@ type
       begin
         had_newline:=false;
         first_multiline:=false;
-        flushpendingswitchesstate;
+        compiler.switches.flushpendingswitchesstate;
 
         { record tokens? }
         if allowrecordtoken and

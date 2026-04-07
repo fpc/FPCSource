@@ -28,22 +28,31 @@ interface
 uses
   systems,globtype,compilerbase;
 
-procedure HandleSwitch(switch,state:char);
-function CheckSwitch(switch,state:char):boolean;
+type
+  TSwitchesHandler = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
-procedure recordpendingverbosityswitch(sw: char; state: char);
-procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
-procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
-procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
-procedure recordpendingverbosityfullswitch(verbosity: longint);
-procedure recordpendingcallingswitch(const str: shortstring);
-procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
-procedure recordpendingsetalloc(alloc:shortint);
-procedure recordpendingpackenum(size:shortint);
-procedure recordpendingpackrecords(size:shortint);
-procedure recordpendingasmmode(asmmode:tasmmode);
-procedure recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
-procedure flushpendingswitchesstate;
+    procedure HandleSwitch(switch,state:char);
+    function CheckSwitch(switch,state:char):boolean;
+
+    procedure recordpendingverbosityswitch(sw: char; state: char);
+    procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
+    procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
+    procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
+    procedure recordpendingverbosityfullswitch(verbosity: longint);
+    procedure recordpendingcallingswitch(const str: shortstring);
+    procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+    procedure recordpendingsetalloc(alloc:shortint);
+    procedure recordpendingpackenum(size:shortint);
+    procedure recordpendingpackrecords(size:shortint);
+    procedure recordpendingasmmode(asmmode:tasmmode);
+    procedure recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
+    procedure flushpendingswitchesstate;
+  end;
 
 implementation
 uses
@@ -58,6 +67,11 @@ uses
 {****************************************************************************
                           Main Switches Parsing
 ****************************************************************************}
+
+constructor TSwitchesHandler.Create(ACompiler: TCompilerBase);
+begin
+  FCompiler:=ACompiler;
+end;
 
 type
   TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw,pentiumfdivsw,targetsw);
@@ -151,9 +165,7 @@ const
    {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
     );
 
-procedure HandleSwitch(switch,state:char);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.HandleSwitch(switch,state:char);
 
 var
   switchTablePtr: ^SwitchRecTable;
@@ -181,9 +193,9 @@ begin
        alignsw:
          begin
            if state='+' then
-             recordpendingpackrecords(4)
+             compiler.switches.recordpendingpackrecords(4)
            else
-             recordpendingpackrecords(1);
+             compiler.switches.recordpendingpackrecords(1);
          end;
        optimizersw :
          begin
@@ -199,7 +211,7 @@ begin
        unsupportedsw :
          compiler.verbose.Message1(scan_w_unsupported_switch,'$'+switch);
        localsw :
-         recordpendinglocalswitch(tlocalswitch(setsw),state);
+         compiler.switches.recordpendinglocalswitch(tlocalswitch(setsw),state);
        modulesw :
          begin
            if compiler.current_module.in_global then
@@ -264,9 +276,7 @@ begin
 end;
 
 
-function CheckSwitch(switch,state:char):boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function TSwitchesHandler.CheckSwitch(switch,state:char):boolean;
 
 var
   found : boolean;
@@ -306,17 +316,13 @@ begin
 end;
 
 
-procedure recordpendingverbosityswitch(sw: char; state: char);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingverbosityswitch(sw: char; state: char);
   begin
     compiler.globals.pendingstate.nextverbositystr:=compiler.globals.pendingstate.nextverbositystr+sw+state;
   end;
 
 
-procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingmessagestate(msg: longint; state: tmsgstate);
   var
     pstate : pmessagestaterecord;
   begin
@@ -331,9 +337,7 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
   end;
 
 
-procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendinglocalswitch(sw: tlocalswitch; state: char);
   begin
     if not (psf_local_switches_changed in compiler.globals.pendingstate.flags) then
        compiler.globals.pendingstate.nextlocalswitches:=compiler.globals.current_settings.localswitches;
@@ -352,89 +356,69 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
   end;
 
 
-procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingalignmentfullswitch(const alignment : talignmentinfo);
   begin
     compiler.globals.pendingstate.nextalignment:=alignment;
     include(compiler.globals.pendingstate.flags,psf_alignment_changed);
   end;
 
 
-procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendinglocalfullswitch(const switches: tlocalswitches);
   begin
     compiler.globals.pendingstate.nextlocalswitches:=switches;
     include(compiler.globals.pendingstate.flags,psf_local_switches_changed);
   end;
 
 
-procedure recordpendingverbosityfullswitch(verbosity: longint);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingverbosityfullswitch(verbosity: longint);
   begin
     compiler.globals.pendingstate.nextverbositystr:='';
     compiler.globals.pendingstate.nextverbosityfullswitch:=verbosity;
     include(compiler.globals.pendingstate.flags,psf_verbosity_full_switched);
   end;
 
-procedure recordpendingcallingswitch(const str: shortstring);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingcallingswitch(const str: shortstring);
   begin
     compiler.globals.pendingstate.nextcallingstr:=str;
   end;
 
 
-procedure recordpendingsetalloc(alloc:shortint);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingsetalloc(alloc:shortint);
   begin
     compiler.globals.pendingstate.nextsetalloc:=alloc;
     include(compiler.globals.pendingstate.flags,psf_setalloc_changed);
   end;
 
 
-procedure recordpendingasmmode(asmmode:tasmmode);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingasmmode(asmmode:tasmmode);
   begin
     compiler.globals.pendingstate.nextasmmode:=asmmode;
     include(compiler.globals.pendingstate.flags,psf_asmmode_changed);
   end;
 
 
-procedure recordpendingpackenum(size:shortint);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingpackenum(size:shortint);
   begin
     compiler.globals.pendingstate.nextpackenum:=size;
     include(compiler.globals.pendingstate.flags,psf_packenum_changed);
   end;
 
 
-procedure recordpendingpackrecords(size:shortint);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingpackrecords(size:shortint);
   begin
     compiler.globals.pendingstate.nextpackrecords:=size;
     include(compiler.globals.pendingstate.flags,psf_packrecords_changed);
   end;
 
 
-procedure recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
   begin
     compiler.globals.pendingstate.nextoptimizerswitches:=optimizerswitches;
     include(compiler.globals.pendingstate.flags,psf_optimizerswitches_changed);
   end;
 
 
-procedure flushpendingswitchesstate;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TSwitchesHandler.flushpendingswitchesstate;
   var
     tmpproccal: tproccalloption;
     fstate, pstate : pmessagestaterecord;

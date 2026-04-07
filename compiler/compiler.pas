@@ -180,6 +180,7 @@ type
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FScanner: TScanner;
+    FSwitches: TSwitchesHandler;
     FDefFile: TDefFile;
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
@@ -254,6 +255,7 @@ type
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
     property Scanner: TScanner read FScanner write FScanner;
+    property Switches: TSwitchesHandler read FSwitches;
     property DefFile: TDefFile read FDefFile write FDefFile;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
@@ -334,6 +336,7 @@ type
     function GetRTTIWriter: TRTTIWriter; inline;
     function GetScanner: TScanner; inline;
     function GetSmartLinkOFiles: TCmdStrList; inline;
+    function GetSwitches: TSwitchesHandler; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetSysSymList: tsyssymlist; inline;
     function GetTarget: TCompilerTarget; inline;
@@ -465,6 +468,7 @@ type
     property Globals: TCompilerGlobals read GetGlobals;
     property Parser: TParser read GetParser;
     property Scanner: TScanner read GetScanner;
+    property Switches: TSwitchesHandler read GetSwitches;
     property DefFile: TDefFile read GetDefFile;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
@@ -543,6 +547,7 @@ begin
   CompilerInited:=false;
   do_doneSymbolInfo;
   DoneSymtable(Self);
+  FreeAndNil(FSwitches);
   FreeAndNil(FSysSymList);
   FreeAndNil(FGlobals);
   DoneFileUtils;
@@ -599,6 +604,7 @@ begin
   inittokens;
   InitSymtable(Self); {Must come before read_arguments, to enable macrosymstack}
   do_initSymbolInfo;
+  FSwitches:=TSwitchesHandler.Create(Self);
   CompilerInited:=true;
 { this is needed here for the IDE
   in case of compilation failure
@@ -664,7 +670,7 @@ begin
        InitCompiler(cmd);
 
        { apply global messages/verbosity }
-       flushpendingswitchesstate;
+       switches.flushpendingswitchesstate;
        pmessage:=globals.current_settings.pmessage;
        verbose.FreeLocalVerbosity(pmessage);
        globals.current_settings.pmessage:=pmessage;
@@ -1209,6 +1215,11 @@ end;
 function TCompilerHelper.GetSmartLinkOFiles: TCmdStrList; inline;
 begin
   Result := TCompiler(Self).SmartLinkOFiles;
+end;
+
+function TCompilerHelper.GetSwitches: TSwitchesHandler; inline;
+begin
+  Result := TCompiler(Self).Switches;
 end;
 
 function TCompilerHelper.Getsymtablestack: TSymtablestack;

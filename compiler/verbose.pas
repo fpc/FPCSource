@@ -242,6 +242,8 @@ implementation
 
     function TVerbose.ChangeMessageVerbosity(s: ansistring; var i : integer;state:tmsgstate): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tok  : ansistring;
         msgnr, code : longint;
       begin
@@ -260,7 +262,7 @@ implementation
           if not msg^.valid(msgnr) then
             exit
           else
-            recordpendingmessagestate(msgnr, state);
+            compiler.switches.recordpendingmessagestate(msgnr, state);
         until false;
         result:=true;
       end;

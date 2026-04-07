@@ -188,7 +188,7 @@ var
         ppcgen/cgppc.pas
         line 144 has a WARN 6018 OFF...
       }
-      flushpendingswitchesstate; { flushpendingswitchesstate before storing compiler.globals.current_settings.pmessage, switchesstatestack etc }
+      compiler.switches.flushpendingswitchesstate; { flushpendingswitchesstate before storing compiler.globals.current_settings.pmessage, switchesstatestack etc }
       old_switchesstatestack:=switchesstatestack;
       old_switchesstatestackpos:=switchesstatestackpos;
 
@@ -332,7 +332,7 @@ var
       current_procinfo:=nil;
 
       _compiler.globals.block_type:=bt_none;
-      flushpendingswitchesstate;
+      _compiler.switches.flushpendingswitchesstate;
       switchesstatestack:=default(tswitchesstatestack);
       switchesstatestackpos:=0;
 
