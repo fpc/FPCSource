@@ -1870,9 +1870,9 @@ uses
           type of the current (main) specialization (this is necessary, because
           during that time the symbol of the main specialization will still
           contain a reference to an errordef) }
-        if not assigned(result) and assigned(current_specializedef) then
+        if not assigned(result) and assigned(compiler.current_specializedef) then
           begin
-            def:=current_specializedef;
+            def:=compiler.current_specializedef;
             repeat
               if def.typ in [objectdef,recorddef] then
                 if tabstractrecorddef(def).objname^=ufinalspecializename then begin
@@ -1898,8 +1898,8 @@ uses
               result:=def
             else if assigned(compiler.current_genericdef) then
               result:=find_in_hierarchy(compiler.current_genericdef,generictypelist);
-            if not assigned(result) and assigned(current_specializedef) then
-              result:=find_in_hierarchy(current_specializedef,generictypelist);
+            if not assigned(result) and assigned(compiler.current_specializedef) then
+              result:=find_in_hierarchy(compiler.current_specializedef,generictypelist);
           end;
 
         { decide in which symtable to put the specialization }
@@ -2037,14 +2037,14 @@ uses
                   begin
                     old_current_structdef:=compiler.current_structdef;
                     old_current_genericdef:=compiler.current_genericdef;
-                    old_current_specializedef:=current_specializedef;
+                    old_current_specializedef:=compiler.current_specializedef;
 
                     if genericdef.owner.symtabletype in [recordsymtable,objectsymtable] then
                       tcompiler(compiler).current_structdef:=tabstractrecorddef(genericdef.owner.defowner)
                     else
                       tcompiler(compiler).current_structdef:=nil;
                     tcompiler(compiler).current_genericdef:=nil;
-                    current_specializedef:=nil;
+                    tcompiler(compiler).current_specializedef:=nil;
                   end;
 
                 maybe_add_waiting_unit(genericdef);
@@ -2246,7 +2246,7 @@ uses
                   begin
                     tcompiler(compiler).current_structdef:=old_current_structdef;
                     tcompiler(compiler).current_genericdef:=old_current_genericdef;
-                    current_specializedef:=old_current_specializedef;
+                    tcompiler(compiler).current_specializedef:=old_current_specializedef;
                   end;
               end;
 
@@ -2711,7 +2711,7 @@ uses
                 (genericlist.count>0)
               ) or
               (
-                assigned(current_specializedef) and
+                assigned(compiler.current_specializedef) and
                 assigned(compiler.current_structdef.genericdef) and
                 (compiler.current_structdef.genericdef.typ in [objectdef,recorddef]) and
                 (pos('$',name)>0)

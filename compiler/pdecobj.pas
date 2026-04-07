@@ -1543,12 +1543,12 @@ implementation
       begin
         old_current_structdef:=compiler.current_structdef;
         old_current_genericdef:=compiler.current_genericdef;
-        old_current_specializedef:=current_specializedef;
+        old_current_specializedef:=compiler.current_specializedef;
         old_parse_generic:=parser.pbase.parse_generic;
 
         tcompiler(compiler).current_structdef:=nil;
         tcompiler(compiler).current_genericdef:=nil;
-        current_specializedef:=nil;
+        tcompiler(compiler).current_specializedef:=nil;
 
         { objects and class types can't be declared local }
         if not(compiler.symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
@@ -1640,7 +1640,7 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=compiler.current_structdef;
+          tcompiler(compiler).current_specializedef:=compiler.current_structdef;
         { reject declaration of generic class inside generic class }
         if assigned(genericlist) then
           tcompiler(compiler).current_genericdef:=compiler.current_structdef;
@@ -1877,7 +1877,7 @@ implementation
         { restore old state }
         tcompiler(compiler).current_structdef:=old_current_structdef;
         tcompiler(compiler).current_genericdef:=old_current_genericdef;
-        current_specializedef:=old_current_specializedef;
+        tcompiler(compiler).current_specializedef:=old_current_specializedef;
         parser.pbase.parse_generic:=old_parse_generic;
       end;
 

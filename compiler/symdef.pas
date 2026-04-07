@@ -1136,8 +1136,6 @@ interface
 
 
     var
-       current_specializedef: tstoreddef;     { used to implement usage of generic class in itself }
-
        cfiledef: tfiledefclass;
        cvariantdef: tvariantdefclass;
        cformaldef: tformaldefclass;

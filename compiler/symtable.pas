@@ -3715,7 +3715,7 @@ implementation
                    (
                      not(srsym.typ in [unitsym,namespacesym]) or
                      srsymtable.iscurrentunit or
-                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid)) or
+                     (assigned(compiler.current_specializedef)and(compiler.current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid)) or
                      (
                        assigned(compiler.current_procinfo) and
                        (df_specialization in compiler.current_procinfo.procdef.defoptions) and
@@ -3807,7 +3807,7 @@ implementation
                    (
                      not(srsym.typ in [unitsym,namespacesym]) or
                      srsymtable.iscurrentunit or
-                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
+                     (assigned(compiler.current_specializedef)and(compiler.current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
                    ) and
                    not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
                    (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,compiler.current_structdef)) then

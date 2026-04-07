@@ -233,6 +233,7 @@ type
 
     Fcurrent_structdef: tabstractrecorddef; { used for private functions check !! }
     Fcurrent_genericdef: tstoreddef;        { used to reject declaration of generic class inside generic class }
+    Fcurrent_specializedef: tstoreddef;     { used to implement usage of generic class in itself }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -309,6 +310,7 @@ type
     property current_structdef: tabstractrecorddef read Fcurrent_structdef write Fcurrent_structdef;
     property current_objectdef : tobjectdef read Getcurrent_objectdef;
     property current_genericdef: tstoreddef read Fcurrent_genericdef write Fcurrent_genericdef;
+    property current_specializedef: tstoreddef read Fcurrent_specializedef write Fcurrent_specializedef;
   end;
 
   { TCompilerHelper }
@@ -322,6 +324,7 @@ type
     function Getcurrent_module: tmodule; inline;
     function Getcurrent_objectdef: tobjectdef; inline;
     function Getcurrent_procinfo: tprocinfo; inline;
+    function Getcurrent_specializedef: tstoreddef; inline;
     function Getcurrent_structdef: tabstractrecorddef; inline;
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
     function GetDefFile: TDefFile; inline;
@@ -523,6 +526,7 @@ type
     property current_structdef: tabstractrecorddef read Getcurrent_structdef;
     property current_objectdef : tobjectdef read Getcurrent_objectdef;
     property current_genericdef: tstoreddef read Getcurrent_genericdef;
+    property current_specializedef: tstoreddef read Getcurrent_specializedef;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1128,6 +1132,11 @@ end;
 function TCompilerHelper.Getcurrent_procinfo: tprocinfo; inline;
 begin
   Result := TCompiler(Self).current_procinfo;
+end;
+
+function TCompilerHelper.Getcurrent_specializedef: tstoreddef; inline;
+begin
+  Result := TCompiler(Self).current_specializedef;
 end;
 
 function TCompilerHelper.Getcurrent_structdef: tabstractrecorddef; inline;

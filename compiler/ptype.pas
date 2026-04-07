@@ -637,9 +637,9 @@ implementation
           end
         else
           begin
-            if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
+            if assigned(compiler.current_specializedef) and (def=compiler.current_specializedef.genericdef) then
               begin
-                def:=current_specializedef
+                def:=compiler.current_specializedef
               end
             else if (def=compiler.current_genericdef) then
               begin
@@ -1110,11 +1110,11 @@ implementation
       begin
          old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=compiler.current_genericdef;
-         old_current_specializedef:=current_specializedef;
+         old_current_specializedef:=compiler.current_specializedef;
          old_parse_generic:=parser.pbase.parse_generic;
 
          tcompiler(compiler).current_genericdef:=nil;
-         current_specializedef:=nil;
+         tcompiler(compiler).current_specializedef:=nil;
          { create recdef }
          if (n<>'') or
             not(compiler.target.info.system in systems_jvm) then
@@ -1138,7 +1138,7 @@ implementation
 
          { usage of specialized type inside its generic template }
          if assigned(genericdef) then
-           current_specializedef:=compiler.current_structdef
+           tcompiler(compiler).current_specializedef:=compiler.current_structdef
          { reject declaration of generic class inside generic class }
          else if assigned(genericlist) then
            tcompiler(compiler).current_genericdef:=compiler.current_structdef;
@@ -1222,7 +1222,7 @@ implementation
          parser.pbase.parse_generic:=old_parse_generic;
          tcompiler(compiler).current_structdef:=old_current_structdef;
          tcompiler(compiler).current_genericdef:=old_current_genericdef;
-         current_specializedef:=old_current_specializedef;
+         tcompiler(compiler).current_specializedef:=old_current_specializedef;
       end;
 
 
@@ -1370,9 +1370,9 @@ implementation
                      end
                    else
                      begin
-                       if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
+                       if assigned(compiler.current_specializedef) and (def=compiler.current_specializedef.genericdef) then
                          begin
-                           def:=current_specializedef
+                           def:=compiler.current_specializedef
                          end
                        else if (def=compiler.current_genericdef) then
                          begin
@@ -1580,18 +1580,18 @@ implementation
           old_parse_generic: boolean;
         begin
            old_current_genericdef:=compiler.current_genericdef;
-           old_current_specializedef:=current_specializedef;
+           old_current_specializedef:=compiler.current_specializedef;
            old_parse_generic:=parser.pbase.parse_generic;
 
            tcompiler(compiler).current_genericdef:=nil;
-           current_specializedef:=nil;
+           tcompiler(compiler).current_specializedef:=nil;
            first:=true;
            arrdef:=carraydef.create(0,0,s32inttype,compiler);
            parser.pbase.consume(_ARRAY);
 
            { usage of specialized type inside its generic template }
            if assigned(genericdef) then
-             current_specializedef:=arrdef
+             tcompiler(compiler).current_specializedef:=arrdef
            { reject declaration of generic class inside generic class }
            else if assigned(genericlist) then
              tcompiler(compiler).current_genericdef:=arrdef;
@@ -1744,7 +1744,7 @@ implementation
            { restore old state }
            parser.pbase.parse_generic:=old_parse_generic;
            tcompiler(compiler).current_genericdef:=old_current_genericdef;
-           current_specializedef:=old_current_specializedef;
+           tcompiler(compiler).current_specializedef:=old_current_specializedef;
         end;
 
 
@@ -1758,11 +1758,11 @@ implementation
             olddef : tdef;
           begin
             old_current_genericdef:=compiler.current_genericdef;
-            old_current_specializedef:=current_specializedef;
+            old_current_specializedef:=compiler.current_specializedef;
             old_parse_generic:=parser.pbase.parse_generic;
 
             tcompiler(compiler).current_genericdef:=nil;
-            current_specializedef:=nil;
+            tcompiler(compiler).current_specializedef:=nil;
             olddef:=nil;
 
             is_func:=(current_scanner.token=_FUNCTION);
@@ -1781,7 +1781,7 @@ implementation
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then
-              current_specializedef:=pd
+              tcompiler(compiler).current_specializedef:=pd
             { reject declaration of generic class inside generic class }
             else if assigned(genericlist) then
               tcompiler(compiler).current_genericdef:=pd;
@@ -1833,7 +1833,7 @@ implementation
             { restore old state }
             parser.pbase.parse_generic:=old_parse_generic;
             tcompiler(compiler).current_genericdef:=old_current_genericdef;
-            current_specializedef:=old_current_specializedef;
+            tcompiler(compiler).current_specializedef:=old_current_specializedef;
 
             if assigned(sym) then
               begin
@@ -1888,7 +1888,7 @@ implementation
                 l:=int64(-1);
                 enumdupmsg:=false;
                 { check that we are not adding an enum from specialization
-                  we can't just use current_specializedef because of inner types
+                  we can't just use compiler.current_specializedef because of inner types
                   like specialize array of record }
                 is_specialize:=false;
                 stitem:=compiler.symtablestack.stack;

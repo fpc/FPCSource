@@ -2509,7 +2509,7 @@ implementation
          old_block_type:=compiler.globals.block_type;
          old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=compiler.current_genericdef;
-         old_current_specializedef:=current_specializedef;
+         old_current_specializedef:=compiler.current_specializedef;
          old_parse_generic:=compiler.parser.pbase.parse_generic;
 
          tcompiler(compiler).current_procinfo:=self;
@@ -2540,7 +2540,7 @@ implementation
              compiler.parser.pbase.parse_generic:=true;
            end;
          if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
-           current_specializedef:=compiler.current_structdef;
+           tcompiler(compiler).current_specializedef:=compiler.current_structdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -2667,7 +2667,7 @@ implementation
 
          tcompiler(compiler).current_structdef:=old_current_structdef;
          tcompiler(compiler).current_genericdef:=old_current_genericdef;
-         current_specializedef:=old_current_specializedef;
+         tcompiler(compiler).current_specializedef:=old_current_specializedef;
          tcompiler(compiler).current_procinfo:=old_current_procinfo;
          compiler.parser.pbase.parse_generic:=old_parse_generic;
 
@@ -2849,14 +2849,14 @@ implementation
          old_current_procinfo:=compiler.current_procinfo;
          old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=compiler.current_genericdef;
-         old_current_specializedef:=current_specializedef;
+         old_current_specializedef:=compiler.current_specializedef;
 
          { reset compiler.current_procinfo.procdef to nil to be sure that nothing is writing
            to another procdef }
          tcompiler(compiler).current_procinfo:=nil;
          tcompiler(compiler).current_structdef:=nil;
          tcompiler(compiler).current_genericdef:=nil;
-         current_specializedef:=nil;
+         tcompiler(compiler).current_specializedef:=nil;
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
@@ -3054,7 +3054,7 @@ implementation
 
          tcompiler(compiler).current_structdef:=old_current_structdef;
          tcompiler(compiler).current_genericdef:=old_current_genericdef;
-         current_specializedef:=old_current_specializedef;
+         tcompiler(compiler).current_specializedef:=old_current_specializedef;
          tcompiler(compiler).current_procinfo:=old_current_procinfo;
       end;
 

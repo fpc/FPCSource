@@ -1331,7 +1331,7 @@ implementation
               end;
             if (df_specialization in pd.struct.defoptions) then
               begin
-                if assigned(current_specializedef) then
+                if assigned(compiler.current_specializedef) then
                   begin
                     include(pd.defoptions,df_specialization);
                     { Find corresponding genericdef, we need it later to
@@ -1414,12 +1414,12 @@ implementation
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
                 old_current_structdef:=compiler.current_structdef;
-                old_current_specializedef:=current_specializedef;
+                old_current_specializedef:=compiler.current_specializedef;
                 tcompiler(compiler).current_structdef:=pd.struct;
                 if assigned(compiler.current_structdef) and (df_generic in compiler.current_structdef.defoptions) then
                   tcompiler(compiler).current_genericdef:=compiler.current_structdef;
                 if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
-                  current_specializedef:=compiler.current_structdef;
+                  tcompiler(compiler).current_specializedef:=compiler.current_structdef;
               end;
             if pd.is_generic then
               tcompiler(compiler).current_genericdef:=pd;
@@ -1433,7 +1433,7 @@ implementation
             if popclass>0 then
               begin
                 tcompiler(compiler).current_structdef:=old_current_structdef;
-                current_specializedef:=old_current_specializedef;
+                tcompiler(compiler).current_specializedef:=old_current_specializedef;
                 dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
                   internalerror(201011260); // 11 nov 2010 index 0
@@ -1464,9 +1464,9 @@ implementation
             popclass:=0;
             old_current_structdef:=nil;
             old_current_genericdef:=compiler.current_genericdef;
-            old_current_specializedef:=current_specializedef;
+            old_current_specializedef:=compiler.current_specializedef;
             tcompiler(compiler).current_genericdef:=nil;
-            current_specializedef:=nil;
+            tcompiler(compiler).current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
                not (compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -1487,9 +1487,9 @@ implementation
             if df_specialization in pd.defoptions then
               begin
                 if pd.is_specialization then
-                  current_specializedef:=pd
+                  tcompiler(compiler).current_specializedef:=pd
                 else if assigned(pd.struct) then
-                  current_specializedef:=pd.struct
+                  tcompiler(compiler).current_specializedef:=pd.struct
                 else
                   internalerror(2016090203);
               end;
@@ -1521,7 +1521,7 @@ implementation
                   internalerror(201012020);
               end;
             tcompiler(compiler).current_genericdef:=old_current_genericdef;
-            current_specializedef:=old_current_specializedef;
+            tcompiler(compiler).current_specializedef:=old_current_specializedef;
             parser.pbase.parse_generic:=old_parse_generic;
           end;
 

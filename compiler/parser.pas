@@ -180,7 +180,7 @@ implementation
          tcompiler(compiler).current_procinfo:=nil;
          tcompiler(compiler).current_structdef:=nil;
          tcompiler(compiler).current_genericdef:=nil;
-         current_specializedef:=nil;
+         tcompiler(compiler).current_specializedef:=nil;
 
          tcompiler(compiler).loaded_units:=TLinkedList.Create;
 
@@ -315,7 +315,7 @@ implementation
          current_asmdata:=nil;
          tcompiler(compiler).current_structdef:=nil;
          tcompiler(compiler).current_genericdef:=nil;
-         current_specializedef:=nil;
+         tcompiler(compiler).current_specializedef:=nil;
 
          { unload units }
          if assigned(compiler.loaded_units) then
