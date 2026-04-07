@@ -49,6 +49,7 @@ implementation
       nullstub: TObjSymbol;
       stubcount: longint;
       trampolinesection: TObjSection;
+      procedure putword(sec:TObjSection;d:longword);
       procedure MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
       procedure MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
       procedure CreatePICStub(objsym:TObjSymbol);
@@ -246,11 +247,9 @@ implementation
     end;
 
 
-  procedure putword(sec:TObjSection;d:longword);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure TElfExeOutputMIPS.putword(sec:TObjSection;d:longword);
     begin
-      if source_info.endian<>compiler.target.info.endian then
+      if source_info.endian<>target.info.endian then
         d:=swapendian(d);
       sec.write(d,4);
     end;
