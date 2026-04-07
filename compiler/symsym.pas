@@ -510,8 +510,6 @@ interface
        end;
 
     var
-       generrorsym : tsym;
-
        clabelsym: tlabelsymclass;
        cunitsym: tunitsymclass;
        cprogramparasym: tprogramparasymclass;

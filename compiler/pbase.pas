@@ -233,7 +233,7 @@ implementation
         if current_scanner.token<>_ID then
           begin
             consume(_ID);
-            srsym:=generrorsym;
+            srsym:=compiler.generrorsym;
             srsymtable:=nil;
             result:=false;
             exit;
@@ -247,7 +247,7 @@ implementation
         else
           begin
             identifier_not_found(current_scanner.orgpattern);
-            srsym:=generrorsym;
+            srsym:=compiler.generrorsym;
             srsymtable:=nil;
           end;
         consume(t);
@@ -266,7 +266,7 @@ implementation
         if current_scanner.token<>_ID then
           begin
             consume(_ID);
-            srsym:=generrorsym;
+            srsym:=compiler.generrorsym;
             srsymtable:=nil;
             result:=false;
             exit;
@@ -280,7 +280,7 @@ implementation
         else
           begin
             identifier_not_found(current_scanner.orgpattern);
-            srsym:=generrorsym;
+            srsym:=compiler.generrorsym;
             srsymtable:=nil;
           end;
         s:=current_scanner.orgpattern;

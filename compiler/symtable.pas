@@ -5180,7 +5180,7 @@ implementation
        tcompiler(compiler).symtablestack:=nil;
        systemunit:=nil;
        { create error syms and def }
-       generrorsym:=terrorsym.create;
+       tcompiler(compiler).generrorsym:=terrorsym.create;
        generrordef:=cerrordef.create(compiler);
        { macros }
        tcompiler(compiler).initialmacrosymtable:=tmacrosymtable.create(false,compiler);
@@ -5196,9 +5196,9 @@ implementation
 
    procedure DoneSymtable(Compiler: TCompilerBase);
       begin
-        generrorsym.owner:=nil;
-        generrorsym.free;
-        generrorsym := nil;
+        compiler.generrorsym.owner:=nil;
+        tcompiler(compiler).generrorsym.free;
+        tcompiler(compiler).generrorsym := nil;
         generrordef.owner:=nil;
         generrordef.free;
         generrordef := nil;

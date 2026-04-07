@@ -1022,7 +1022,7 @@ implementation
                                if srsym=nil then
                                  begin
                                    parser.pbase.identifier_not_found(objrealname);
-                                   srsym:=generrorsym;
+                                   srsym:=compiler.generrorsym;
                                  end;
                                if unit_found then
                                  parser.pbase.consume(t);
@@ -1432,7 +1432,7 @@ implementation
                         if srsym=nil then
                           begin
                             parser.pbase.identifier_not_found(current_scanner.pattern);
-                            srsym:=generrorsym;
+                            srsym:=compiler.generrorsym;
                             srsymtable:=nil;
                           end;
                         parser.pbase.consume(current_scanner.token);

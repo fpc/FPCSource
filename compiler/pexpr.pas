@@ -1755,7 +1755,7 @@ implementation
                   begin
                     spezcontext.free;
                     spezcontext:=nil;
-                    srsym:=generrorsym;
+                    srsym:=compiler.generrorsym;
                   end;
                 procdef:
                   begin
@@ -1764,7 +1764,7 @@ implementation
                         compiler.verbose.Message(parser_e_illegal_expression);
                         spezcontext.free;
                         spezcontext:=nil;
-                        srsym:=generrorsym;
+                        srsym:=compiler.generrorsym;
                       end
                     else
                       begin
@@ -3478,7 +3478,7 @@ implementation
            { first check for identifier }
            if current_scanner.token<>_ID then
              begin
-               srsym:=generrorsym;
+               srsym:=compiler.generrorsym;
                srsymtable:=nil;
                parser.pbase.consume(_ID);
                unit_found:=false;
@@ -3553,7 +3553,7 @@ implementation
                    if not assigned(srsym) then
                      begin
                        parser.pbase.identifier_not_found(orgstoredpattern,tokenpos);
-                       srsym:=generrorsym;
+                       srsym:=compiler.generrorsym;
                        srsymtable:=nil;
                      end
                    else
@@ -3568,7 +3568,7 @@ implementation
                          begin
                            spezcontext.free;
                            spezcontext:=nil;
-                           srsym:=generrorsym;
+                           srsym:=compiler.generrorsym;
                            srsymtable:=nil;
                          end
                        else
@@ -3585,7 +3585,7 @@ implementation
                                  end
                                else
                                  begin
-                                   srsym:=generrorsym;
+                                   srsym:=compiler.generrorsym;
                                    srsymtable:=nil;
                                  end;
                              end
@@ -3704,7 +3704,7 @@ implementation
                          compiler.verbose.MessagePos(tokenpos,parser_e_no_generics_as_types)
                        else
                          parser.pbase.identifier_not_found(orgstoredpattern,tokenpos);
-                       srsym:=generrorsym;
+                       srsym:=compiler.generrorsym;
                        srsymtable:=nil;
                      end;
                  end;
@@ -3730,7 +3730,7 @@ implementation
               else
                 begin
                   compiler.verbose.Message(parser_e_illegal_expression);
-                  srsym:=generrorsym;
+                  srsym:=compiler.generrorsym;
                 end;
               srsymtable:=srsym.owner;
             end;
@@ -4636,7 +4636,7 @@ implementation
               begin
                 spezcontext.free;
                 spezcontext:=nil;
-                gensym:=generrorsym;
+                gensym:=compiler.generrorsym;
               end;
             objectdef,
             recorddef,
@@ -4647,7 +4647,7 @@ implementation
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then
-                  gensym:=generrorsym
+                  gensym:=compiler.generrorsym
                 else
                   gensym:=gendef.typesym;
               end;
@@ -4656,7 +4656,7 @@ implementation
                 if not (compiler.globals.block_type in [bt_body,bt_except]) then
                   begin
                     compiler.verbose.Message(parser_e_illegal_expression);
-                    gensym:=generrorsym;
+                    gensym:=compiler.generrorsym;
                   end
                 else
                   begin

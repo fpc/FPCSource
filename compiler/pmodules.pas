@@ -410,7 +410,7 @@ implementation
            parser.psystem.create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
-           generrorsym.owner:=systemunit;
+           compiler.generrorsym.owner:=systemunit;
            generrordef.owner:=systemunit;
            exit;
          end;
@@ -431,7 +431,7 @@ implementation
 
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
-        generrorsym.owner:=systemunit;
+        compiler.generrorsym.owner:=systemunit;
         generrordef.owner:=systemunit;
         // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
         { TODO: Check if we should also do this for mode macpas }

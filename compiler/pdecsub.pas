@@ -781,7 +781,7 @@ implementation
               begin
                 if gen_error then
                   parser.pbase.identifier_not_found(orgsp);
-                result:=generrorsym;
+                result:=compiler.generrorsym;
               end;
             compiler.globals.current_tokenpos:=storepos;
           end;
@@ -833,14 +833,14 @@ implementation
             result:=true;
             if error then
               begin
-                srsym:=generrorsym;
+                srsym:=compiler.generrorsym;
                 exit;
               end;
 
             if not compiler.symtablestack.searchsym(sp,typesrsym,typesrsymtable) or (typesrsym.typ<>typesym) then
               begin
                 parser.pbase.identifier_not_found(sp);
-                srsym:=generrorsym;
+                srsym:=compiler.generrorsym;
                 exit;
               end;
 
@@ -859,7 +859,7 @@ implementation
             if not assigned(srsym) then
               begin
                 compiler.verbose.Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
-                srsym:=generrorsym;
+                srsym:=compiler.generrorsym;
               end;
           end;
 
