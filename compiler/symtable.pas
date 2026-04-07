@@ -3313,7 +3313,7 @@ implementation
     { symst: symboltable that contains the symbol (-> symowner def: record/objectdef in which the symbol is defined)
       symvisibility: visibility of the symbol
       contextobjdef: via which def the symbol is accessed, e.g.:
-        fieldname:=1 -> contextobjdef = current_structdef
+        fieldname:=1 -> contextobjdef = compiler.current_structdef
         objfield.fieldname:=1 -> contextobjdef = def of objfield
     }
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
@@ -3467,16 +3467,16 @@ implementation
             orgcontextobjdef:=contextobjdef;
             contextobjdef:=tabstractrecorddef(contextobjdef.genericdef);
           end;
-        if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
+        if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
           begin
-            if not assigned(current_structdef.genericdef) then
+            if not assigned(compiler.current_structdef.genericdef) then
               internalerror(2024041203);
-            if not (current_structdef.genericdef.typ in [objectdef,recorddef]) then
+            if not (compiler.current_structdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024030903);
-            curstruct:=tabstractrecorddef(current_structdef.genericdef)
+            curstruct:=tabstractrecorddef(compiler.current_structdef.genericdef)
           end
         else
-          curstruct:=current_structdef;
+          curstruct:=compiler.current_structdef;
         { specializations might belong to a localsymtable or parasymtable }
         nonlocalst:=symownerdef.owner;
         if tstoreddef(symownerdef).is_specialization then
@@ -3733,7 +3733,7 @@ implementation
                        (srsymtable.defowner.owner.iscurrentunit) then
                       contextstructdef:=tabstractrecorddef(srsymtable.defowner)
                     else
-                      contextstructdef:=current_structdef;
+                      contextstructdef:=compiler.current_structdef;
                     if not(srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
                        is_visible_for_object(srsym,contextstructdef) then
                       begin
@@ -3791,7 +3791,7 @@ implementation
                     srsym:=tsym(srsymtable.FindWithHash(hashedid));
                      if assigned(srsym) and
                         not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
-                        is_visible_for_object(srsym,current_structdef) then
+                        is_visible_for_object(srsym,compiler.current_structdef) then
                        begin
                         addsymref(srsym);
                         result:=true;
@@ -3810,7 +3810,7 @@ implementation
                      (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
                    ) and
                    not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
-                   (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,current_structdef)) then
+                   (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,compiler.current_structdef)) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -4283,7 +4283,7 @@ implementation
         { now search all helpers using the extendeddef as the starting point }
         if (m_multi_helpers in compiler.globals.current_settings.modeswitches) and
             (
-              (current_structdef<>classh) or
+              (compiler.current_structdef<>classh) or
               assigned(classh.extendeddef)
             ) then
           begin

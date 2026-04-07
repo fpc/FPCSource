@@ -197,9 +197,9 @@ implementation
       result:=internalstatements(compiler,newstatement);
 
       { call fail helper and exit normal }
-      if is_class(current_structdef) then
+      if is_class(compiler.current_structdef) then
         begin
-          srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
+          srsym:=search_struct_member(compiler.current_structdef,'FREEINSTANCE');
           if assigned(srsym) and
              (srsym.typ=procsym) then
             begin
@@ -219,13 +219,13 @@ implementation
             internalerror(2003051002);
         end
       else
-        if is_object(current_structdef) then
+        if is_object(compiler.current_structdef) then
           begin
             { parameter 3 : vmt_offset }
             { parameter 2 : pointer to vmt }
             { parameter 1 : self pointer }
             para:=compiler.ccallparanode(
-                      compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                      compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
                   compiler.ccallparanode(
                       compiler.ctypeconvnode_internal(
                           load_vmt_pointer_node,

@@ -2625,7 +2625,7 @@ implementation
            FProcSymtable.defowner.owner.iscurrentunit then
           contextstructdef:=tabstractrecorddef(FProcSymtable.defowner)
         else
-          contextstructdef:=current_structdef;
+          contextstructdef:=compiler.current_structdef;
 
         { symtable is needed later to calculate the distance }
         if assigned(FProcsym) then

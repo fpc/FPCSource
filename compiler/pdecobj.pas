@@ -90,10 +90,6 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    var
-      current_objectdef : tobjectdef absolute current_structdef;
-
-
     type
 
       { TObjectDeclarationsParserHelper }
@@ -156,7 +152,7 @@ implementation
         result:=nil;
         parser.pbase.consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parser.pdecsub.parse_proc_head(current_structdef,potype_class_constructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(compiler.current_structdef,potype_class_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             parser.pbase.consume(_SEMICOLON);
@@ -181,7 +177,7 @@ implementation
         result:=nil;
         parser.pbase.consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parser.pdecsub.parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(compiler.current_structdef,potype_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             parser.pbase.consume(_SEMICOLON);
@@ -191,7 +187,7 @@ implementation
            (pd.procsym.name<>'INIT') then
           compiler.verbose.Message(parser_e_constructorname_must_be_init);
         parser.pbase.consume(_SEMICOLON);
-        include(current_structdef.objectoptions,oo_has_constructor);
+        include(compiler.current_structdef.objectoptions,oo_has_constructor);
         { Set return type, class and record constructors return the
           created instance, helper types return the extended type,
           object constructors return boolean }
@@ -220,18 +216,18 @@ implementation
         _symoptions: tsymoptions;
       begin
         { check for a class, record or helper }
-        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or
-                is_objectpascal_helper(current_structdef) or is_java_class_or_interface(current_structdef)) or
-               (not(m_tp7 in compiler.globals.current_settings.modeswitches) and (is_object(current_structdef)))) then
+        if not((is_class_or_interface_or_dispinterface(compiler.current_structdef) or is_record(compiler.current_structdef) or
+                is_objectpascal_helper(compiler.current_structdef) or is_java_class_or_interface(compiler.current_structdef)) or
+               (not(m_tp7 in compiler.globals.current_settings.modeswitches) and (is_object(compiler.current_structdef)))) then
           compiler.verbose.Message(parser_e_syntax_error);
         parser.pbase.consume(_PROPERTY);
-        p:=parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
+        p:=parser.pdecvar.read_property_dec(is_classproperty,compiler.current_structdef);
         parser.pbase.consume(_SEMICOLON);
         if parser.pbase.try_to_consume(_DEFAULT) then
           begin
-            if oo_has_default_property in current_structdef.objectoptions then
+            if oo_has_default_property in compiler.current_structdef.objectoptions then
               compiler.verbose.Message(parser_e_only_one_default_property);
-            include(current_structdef.objectoptions,oo_has_default_property);
+            include(compiler.current_structdef.objectoptions,oo_has_default_property);
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
               compiler.verbose.Message(parser_e_property_need_paras);
@@ -249,11 +245,11 @@ implementation
             begin
               if current_scanner.pattern='CURRENT' then
               begin
-                if oo_has_enumerator_current in current_structdef.objectoptions then
+                if oo_has_enumerator_current in compiler.current_structdef.objectoptions then
                   compiler.verbose.Message(parser_e_only_one_enumerator_current);
                 if not p.propaccesslist[palt_read].empty then
                 begin
-                  include(current_structdef.objectoptions,oo_has_enumerator_current);
+                  include(compiler.current_structdef.objectoptions,oo_has_enumerator_current);
                   include(p.propoptions,ppo_enumerator_current);
                 end
                 else
@@ -295,7 +291,7 @@ implementation
       begin
         result:=nil;
         parser.pbase.consume(_DESTRUCTOR);
-        parser.pdecsub.parse_proc_head(current_structdef,potype_class_destructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(compiler.current_structdef,potype_class_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             parser.pbase.consume(_SEMICOLON);
@@ -319,7 +315,7 @@ implementation
       begin
         result:=nil;
         parser.pbase.consume(_DESTRUCTOR);
-        parser.pdecsub.parse_proc_head(current_structdef,potype_destructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(compiler.current_structdef,potype_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             parser.pbase.consume(_SEMICOLON);
@@ -333,8 +329,8 @@ implementation
            (m_fpc in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message(parser_e_no_paras_for_destructor);
         parser.pbase.consume(_SEMICOLON);
-        include(current_structdef.objectoptions,oo_has_destructor);
-        include(current_structdef.objectoptions,oo_has_new_destructor);
+        include(compiler.current_structdef.objectoptions,oo_has_destructor);
+        include(compiler.current_structdef.objectoptions,oo_has_new_destructor);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,pd.struct);
@@ -347,10 +343,10 @@ implementation
         i   : longint;
         def : tdef;
       begin
-        include(current_structdef.objectoptions,oo_has_virtual);
-        for i:=0 to current_structdef.symtable.DefList.count-1 do
+        include(compiler.current_structdef.objectoptions,oo_has_virtual);
+        for i:=0 to compiler.current_structdef.symtable.DefList.count-1 do
           begin
-            def:=tdef(current_structdef.symtable.DefList[i]);
+            def:=tdef(compiler.current_structdef.symtable.DefList[i]);
             if assigned(def) and
                (def.typ=procdef) then
               begin
@@ -366,9 +362,9 @@ implementation
         i   : longint;
         def : tdef;
       begin
-        for i:=0 to current_structdef.symtable.DefList.count-1 do
+        for i:=0 to compiler.current_structdef.symtable.DefList.count-1 do
           begin
-            def:=tdef(current_structdef.symtable.DefList[i]);
+            def:=tdef(compiler.current_structdef.symtable.DefList[i]);
             if assigned(def) and
                (def.typ=procdef) then
               begin
@@ -390,17 +386,17 @@ implementation
              compiler.verbose.Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if find_implemented_interface(current_objectdef,intfdef)<>nil then
+        if find_implemented_interface(compiler.current_objectdef,intfdef)<>nil then
           compiler.verbose.Message1(sym_e_duplicate_id,intfdef.objname^)
         else
-          current_objectdef.register_implemented_interface(intfdef,true);
+          compiler.current_objectdef.register_implemented_interface(intfdef,true);
       end;
 
 
     procedure TObjectDeclarationsParser.handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
       begin
         intfdef:=compiler.symtablestack.find_real_class_definition(intfdef,false);
-        case current_objectdef.objecttype of
+        case compiler.current_objectdef.objecttype of
           odt_objcclass,
           odt_objccategory,
           odt_objcprotocol:
@@ -424,10 +420,10 @@ implementation
              compiler.verbose.Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if find_implemented_interface(current_objectdef,intfdef)<>nil then
+        if find_implemented_interface(compiler.current_objectdef,intfdef)<>nil then
           compiler.verbose.Message1(sym_e_duplicate_id,intfdef.objname^)
         else
-          current_objectdef.register_implemented_interface(intfdef,false);
+          compiler.current_objectdef.register_implemented_interface(intfdef,false);
       end;
 
 
@@ -463,13 +459,13 @@ implementation
         p:=parser.pexpr.comp_expr([ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
-            stringdispose(current_objectdef.iidstr);
-            current_objectdef.iidstr:=stringdup(tstringconstnode(p).asrawbytestring);
-            valid:=string2guid(current_objectdef.iidstr^,current_objectdef.iidguid^);
-            if (current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
+            stringdispose(compiler.current_objectdef.iidstr);
+            compiler.current_objectdef.iidstr:=stringdup(tstringconstnode(p).asrawbytestring);
+            valid:=string2guid(compiler.current_objectdef.iidstr^,compiler.current_objectdef.iidguid^);
+            if (compiler.current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
                not valid then
               compiler.verbose.Message(parser_e_improper_guid_syntax);
-            include(current_structdef.objectoptions,oo_has_valid_guid);
+            include(compiler.current_structdef.objectoptions,oo_has_valid_guid);
           end
         else
           compiler.verbose.Message(parser_e_illegal_expression);
@@ -546,7 +542,7 @@ implementation
       var
         gotexternal: boolean;
       begin
-        case current_objectdef.objecttype of
+        case compiler.current_objectdef.objecttype of
           odt_object,odt_class,
           odt_javaclass:
             begin
@@ -554,15 +550,15 @@ implementation
               while true do
                 begin
                   if parser.pbase.try_to_consume(_ABSTRACT) then
-                    include(current_structdef.objectoptions,oo_is_abstract)
+                    include(compiler.current_structdef.objectoptions,oo_is_abstract)
                   else
                   if parser.pbase.try_to_consume(_SEALED) then
-                    include(current_structdef.objectoptions,oo_is_sealed)
-                  else if (current_objectdef.objecttype=odt_javaclass) and
+                    include(compiler.current_structdef.objectoptions,oo_is_sealed)
+                  else if (compiler.current_objectdef.objecttype=odt_javaclass) and
                           (current_scanner.token=_ID) and
                           (current_scanner.idtoken=_EXTERNAL) then
                     begin
-                      get_cpp_or_java_class_external_status(current_objectdef);
+                      get_cpp_or_java_class_external_status(compiler.current_objectdef);
                       gotexternal:=true;
                     end
                   else
@@ -570,18 +566,18 @@ implementation
                 end;
               { don't use <=, because there's a bug in the 2.6.0 SPARC code
                 generator regarding handling this expression }
-              if ([oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions) = [oo_is_abstract, oo_is_sealed] then
+              if ([oo_is_abstract, oo_is_sealed] * compiler.current_structdef.objectoptions) = [oo_is_abstract, oo_is_sealed] then
                 compiler.verbose.Message(parser_e_abstract_and_sealed_conflict);
               { set default external name in case of no external directive }
-              if (current_objectdef.objecttype=odt_javaclass) and
+              if (compiler.current_objectdef.objecttype=odt_javaclass) and
                  not gotexternal then
-               get_cpp_or_java_class_external_status(current_objectdef)
+               get_cpp_or_java_class_external_status(compiler.current_objectdef)
             end;
           odt_cppclass,
           odt_interfacejava:
-            get_cpp_or_java_class_external_status(current_objectdef);
+            get_cpp_or_java_class_external_status(compiler.current_objectdef);
           odt_objcclass,odt_objcprotocol,odt_objccategory:
-            get_objc_class_or_protocol_external_status(current_objectdef);
+            get_objc_class_or_protocol_external_status(compiler.current_objectdef);
           odt_helper: ; // nothing
           else
             ;
@@ -601,7 +597,7 @@ implementation
 
         { reads the parent class }
         if (current_scanner.token=_LKLAMMER) or
-           is_objccategory(current_structdef) then
+           is_objccategory(compiler.current_structdef) then
           begin
             parser.pbase.consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
@@ -611,7 +607,7 @@ implementation
               begin
                 if assigned(hdef) then
                   compiler.verbose.Message1(type_e_class_type_expected,hdef.typename)
-                else if is_objccategory(current_structdef) then
+                else if is_objccategory(compiler.current_structdef) then
                   { a category must specify the class to extend }
                   compiler.verbose.Message(type_e_objcclass_type_expected);
               end
@@ -620,15 +616,15 @@ implementation
                 childof:=tobjectdef(hdef);
                 { a mix of class, interfaces, objects and cppclasses
                   isn't allowed }
-                case current_objectdef.objecttype of
+                case compiler.current_objectdef.objecttype of
                    odt_class,
                    odt_javaclass:
-                     if (childof.objecttype<>current_objectdef.objecttype) then
+                     if (childof.objecttype<>compiler.current_objectdef.objecttype) then
                        begin
                           if (is_interface(childof) and
-                              is_class(current_objectdef)) or
+                              is_class(compiler.current_objectdef)) or
                              (is_javainterface(childof) and
-                              is_javaclass(current_objectdef)) then
+                              is_javaclass(compiler.current_objectdef)) then
                             begin
                                { we insert the interface after the child
                                  is set, see below
@@ -649,7 +645,7 @@ implementation
                      begin
                        if not(is_interface(childof)) then
                          compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
-                       current_objectdef.objecttype:=childof.objecttype;
+                       compiler.current_objectdef.objecttype:=childof.objecttype;
                      end;
                    odt_cppclass:
                      if not(is_cppclass(childof)) then
@@ -660,7 +656,7 @@ implementation
                        begin
                          if is_objcprotocol(childof) then
                            begin
-                             if not(oo_is_classhelper in current_structdef.objectoptions) then
+                             if not(oo_is_classhelper in compiler.current_structdef.objectoptions) then
                                begin
                                  intfchildof:=childof;
                                  childof:=nil;
@@ -713,12 +709,12 @@ implementation
         { if no parent class, then a class get tobject as parent }
         if not assigned(childof) then
           begin
-            case current_objectdef.objecttype of
+            case compiler.current_objectdef.objecttype of
               odt_class:
-                if current_objectdef<>class_tobject then
+                if compiler.current_objectdef<>class_tobject then
                   childof:=class_tobject;
               odt_interfacecom:
-                if current_objectdef<>interface_iunknown then
+                if compiler.current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
               odt_dispinterface:
                 childof:=interface_idispatch;
@@ -726,7 +722,7 @@ implementation
                 compiler.verbose.CGMessage(parser_h_no_objc_parent);
               odt_javaclass:
                 { inherit from TObject by default for compatibility }
-                if current_objectdef<>java_jlobject then
+                if compiler.current_objectdef<>java_jlobject then
                   childof:=class_tobject;
               else
                 ;
@@ -742,21 +738,21 @@ implementation
             if (oo_is_forward in childof.objectoptions) then
               compiler.verbose.Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^)
             else if not(oo_is_formal in childof.objectoptions) then
-              current_objectdef.set_parent(childof)
+              compiler.current_objectdef.set_parent(childof)
             else
               compiler.verbose.Message1(sym_e_formal_class_not_resolved,childof.objrealname^);
           end;
 
         if hasparentdefined then
           begin
-            if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+            if compiler.current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 if assigned(intfchildof) then
-                  if current_objectdef.objecttype=odt_class then
+                  if compiler.current_objectdef.objecttype=odt_class then
                     handleImplementedInterface(intfchildof)
                   else
                     handleImplementedProtocolOrJavaIntf(intfchildof);
-                readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
+                readImplementedInterfacesAndProtocols(compiler.current_objectdef.objecttype=odt_class);
               end;
             parser.pbase.consume(_RKLAMMER);
           end;
@@ -782,20 +778,20 @@ implementation
         var
           tmp : tstoreddef;
         begin
-          if (def.typ<>errordef) and assigned(current_objectdef.childof) then
+          if (def.typ<>errordef) and assigned(compiler.current_objectdef.childof) then
             begin
-              if def<>current_objectdef.childof.extendeddef then
+              if def<>compiler.current_objectdef.childof.extendeddef then
                 begin
                   { a type helper may extend a type alias of the type its
                     parent type helper extends }
                   tmp:=tstoreddef(def);
                   while (df_unique in tmp.defoptions) and assigned(tstoreddef(tmp).orgdef) do
                     begin
-                      if tmp.orgdef=current_objectdef.childof.extendeddef then
+                      if tmp.orgdef=compiler.current_objectdef.childof.extendeddef then
                         exit;
                       tmp:=tstoreddef(tmp.orgdef);
                     end;
-                  compiler.verbose.Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
+                  compiler.verbose.Message1(type_e_record_helper_must_extend_same_record,compiler.current_objectdef.childof.extendeddef.typename);
                   def:=generrordef;
                 end;
             end;
@@ -803,14 +799,14 @@ implementation
 
       procedure check_inheritance_class_helper(var def:tdef);
         begin
-          if (def.typ<>errordef) and assigned(current_objectdef.childof) then
+          if (def.typ<>errordef) and assigned(compiler.current_objectdef.childof) then
             begin
-              if (current_objectdef.childof.extendeddef.typ<>objectdef) or
-                 not (tobjectdef(current_objectdef.childof.extendeddef).objecttype in objecttypes_with_helpers) then
+              if (compiler.current_objectdef.childof.extendeddef.typ<>objectdef) or
+                 not (tobjectdef(compiler.current_objectdef.childof.extendeddef).objecttype in objecttypes_with_helpers) then
                 Internalerror(2011021101);
-              if not def_is_related(def,current_objectdef.childof.extendeddef) then
+              if not def_is_related(def,compiler.current_objectdef.childof.extendeddef) then
                 begin
-                  compiler.verbose.Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                  compiler.verbose.Message1(type_e_class_helper_must_extend_subclass,compiler.current_objectdef.childof.extendeddef.typename);
                   def:=generrordef;
                 end;
             end;
@@ -819,13 +815,13 @@ implementation
       var
         hdef: tdef;
       begin
-        if not is_objectpascal_helper(current_structdef) then
+        if not is_objectpascal_helper(compiler.current_structdef) then
           Internalerror(2011021103);
 
         parser.pbase.consume(_FOR);
         { set extendeddef to non-Nil so that potential checks for it won't trigger
           access violations }
-        current_objectdef.extendeddef:=generrordef;
+        compiler.current_objectdef.extendeddef:=generrordef;
         parser.ptype.single_type(hdef,[stoParseClassParent]);
         if not assigned(hdef) or (hdef.typ=errordef) then
           begin
@@ -889,19 +885,19 @@ implementation
           end;
 
         if assigned(hdef) then
-          current_objectdef.extendeddef:=hdef;
+          compiler.current_objectdef.extendeddef:=hdef;
       end;
 
     procedure TObjectDeclarationsParser.parse_guid;
       begin
         { read GUID }
-        if (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) and
+        if (compiler.current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) and
            parser.pbase.try_to_consume(_LECKKLAMMER) then
           begin
             readinterfaceiid;
             parser.pbase.consume(_RECKKLAMMER);
           end
-        else if (current_objectdef.objecttype=odt_dispinterface) then
+        else if (compiler.current_objectdef.objecttype=odt_dispinterface) then
           compiler.verbose.Message(parser_e_dispinterface_needs_a_guid);
       end;
 
@@ -1061,7 +1057,7 @@ implementation
               oldparse_only:=parser.pbase.parse_only;
               parser.pbase.parse_only:=true;
               if is_classdef then
-                result:=class_constructor_head(current_structdef)
+                result:=class_constructor_head(compiler.current_structdef)
               else
                 begin
                   result:=constructor_head;
@@ -1108,7 +1104,7 @@ implementation
               oldparse_only:=parser.pbase.parse_only;
               parser.pbase.parse_only:=true;
               if is_classdef then
-                result:=class_destructor_head(current_structdef)
+                result:=class_destructor_head(compiler.current_structdef)
               else
                 result:=destructor_head;
 
@@ -1147,7 +1143,7 @@ implementation
 
       procedure parse_const;
         begin
-          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
+          if not(compiler.current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
             compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
           parser.pbase.consume(_CONST);
           object_member_blocktype:=bt_const;
@@ -1158,9 +1154,9 @@ implementation
 
       procedure parse_var(isthreadvar:boolean);
         begin
-          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) and
+          if not(compiler.current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) and
              { Java interfaces can contain static final class vars }
-             not((current_objectdef.objecttype=odt_interfacejava) and
+             not((compiler.current_objectdef.objecttype=odt_interfacejava) and
                  is_final and is_classdef) then
             compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
           if isthreadvar then
@@ -1192,8 +1188,8 @@ implementation
             check_unbound_attributes;
 
           { Java interfaces can contain final class vars }
-          if is_interface(current_structdef) or
-             (is_javainterface(current_structdef) and
+          if is_interface(compiler.current_structdef) or
+             (is_javainterface(compiler.current_structdef) and
               (not(is_final) or
                (current_scanner.token<>_VAR))) then
             compiler.verbose.Message(parser_e_no_static_method_in_interfaces)
@@ -1208,17 +1204,17 @@ implementation
           { Objective-C and Java classes do not support "published",
             as basically everything is published.  }
           if (vis=vis_published) and
-             (is_objc_class_or_protocol(current_structdef) or
-              is_java_class_or_interface(current_structdef)) then
+             (is_objc_class_or_protocol(compiler.current_structdef) or
+              is_java_class_or_interface(compiler.current_structdef)) then
              compiler.verbose.Message(parser_e_no_objc_published)
-          else if is_interface(current_structdef) or
-             is_objc_protocol_or_category(current_structdef) or
-             is_javainterface(current_structdef) then
+          else if is_interface(compiler.current_structdef) or
+             is_objc_protocol_or_category(compiler.current_structdef) or
+             is_javainterface(compiler.current_structdef) then
             compiler.verbose.Message(parser_e_no_access_specifier_in_interfaces);
-          current_structdef.symtable.currentvisibility:=vis;
+          compiler.current_structdef.symtable.currentvisibility:=vis;
           parser.pbase.consume(current_scanner.token);
           if (oo<>oo_none) then
-            include(current_structdef.objectoptions,oo);
+            include(compiler.current_structdef.objectoptions,oo);
           fields_allowed:=true;
           is_classdef:=false;
           class_fields:=false;
@@ -1230,15 +1226,15 @@ implementation
 
       begin
         { empty class declaration ? }
-        if (current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
+        if (compiler.current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
            (current_scanner.token=_SEMICOLON) then
           exit;
 
         { in "publishable" classes the default access type is published }
-        if (oo_can_have_published in current_structdef.objectoptions) then
-          current_structdef.symtable.currentvisibility:=vis_published
+        if (oo_can_have_published in compiler.current_structdef.objectoptions) then
+          compiler.current_structdef.symtable.currentvisibility:=vis_published
         else
-          current_structdef.symtable.currentvisibility:=vis_public;
+          compiler.current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
         class_fields:=false;
@@ -1254,7 +1250,7 @@ implementation
             _TYPE :
               begin
                 check_unbound_attributes;
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
+                if not(compiler.current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
                   compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
                 parser.pbase.consume(_TYPE);
                 object_member_blocktype:=bt_type;
@@ -1303,11 +1299,11 @@ implementation
               end;
             _ID :
               begin
-                if is_objcprotocol(current_structdef) and
+                if is_objcprotocol(compiler.current_structdef) and
                    ((current_scanner.idtoken=_REQUIRED) or
                     (current_scanner.idtoken=_OPTIONAL)) then
                   begin
-                    current_structdef.symtable.currentlyoptional:=(current_scanner.idtoken=_OPTIONAL);
+                    compiler.current_structdef.symtable.currentlyoptional:=(current_scanner.idtoken=_OPTIONAL);
                     parser.pbase.consume(current_scanner.idtoken)
                   end
                 else case current_scanner.idtoken of
@@ -1329,9 +1325,9 @@ implementation
                      end;
                    _STRICT :
                      begin
-                       if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) or
-                          is_javainterface(current_structdef) then
+                       if is_interface(compiler.current_structdef) or
+                          is_objc_protocol_or_category(compiler.current_structdef) or
+                          is_javainterface(compiler.current_structdef) then
                          compiler.verbose.Message(parser_e_no_access_specifier_in_interfaces);
                          parser.pbase.consume(_STRICT);
                         if current_scanner.token=_ID then
@@ -1340,14 +1336,14 @@ implementation
                               _PRIVATE:
                                 begin
                                   parser.pbase.consume(_PRIVATE);
-                                  current_structdef.symtable.currentvisibility:=vis_strictprivate;
-                                  include(current_structdef.objectoptions,oo_has_strictprivate);
+                                  compiler.current_structdef.symtable.currentvisibility:=vis_strictprivate;
+                                  include(compiler.current_structdef.objectoptions,oo_has_strictprivate);
                                 end;
                               _PROTECTED:
                                 begin
                                   parser.pbase.consume(_PROTECTED);
-                                  current_structdef.symtable.currentvisibility:=vis_strictprotected;
-                                  include(current_structdef.objectoptions,oo_has_strictprotected);
+                                  compiler.current_structdef.symtable.currentvisibility:=vis_strictprotected;
+                                  include(compiler.current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
                                 compiler.verbose.Message(parser_e_protected_or_private_expected);
@@ -1369,8 +1365,8 @@ implementation
                       begin
                         { currently only supported for external classes, because
                           requires fully working DFA otherwise }
-                        if (current_structdef.typ<>objectdef) or
-                           not(oo_is_external in tobjectdef(current_structdef).objectoptions) then
+                        if (compiler.current_structdef.typ<>objectdef) or
+                           not(oo_is_external in tobjectdef(compiler.current_structdef).objectoptions) then
                           compiler.verbose.Message(parser_e_final_only_external);
                         parser.pbase.consume(_final);
                         is_final:=true;
@@ -1387,7 +1383,7 @@ implementation
                                 not (m_delphi in compiler.globals.current_settings.modeswitches) and
                                 (
                                   not fields_allowed or
-                                  is_objectpascal_helper(current_structdef)
+                                  is_objectpascal_helper(compiler.current_structdef)
                                 ) then
                               begin
                                 if hadgeneric then
@@ -1399,18 +1395,18 @@ implementation
                               end
                             else
                               begin
-                                if is_interface(current_structdef) or
-                                   is_objc_protocol_or_category(current_structdef) or
+                                if is_interface(compiler.current_structdef) or
+                                   is_objc_protocol_or_category(compiler.current_structdef) or
                                    (
-                                     is_objectpascal_helper(current_structdef) and
+                                     is_objectpascal_helper(compiler.current_structdef) and
                                      not class_fields
                                    ) or
-                                   (is_javainterface(current_structdef) and
+                                   (is_javainterface(compiler.current_structdef) and
                                     not(class_fields and final_fields)) then
                                   compiler.verbose.Message(parser_e_no_vars_in_interfaces);
 
-                                if (current_structdef.symtable.currentvisibility=vis_published) and
-                                   not(oo_can_have_published in current_structdef.objectoptions) then
+                                if (compiler.current_structdef.symtable.currentvisibility=vis_published) and
+                                   not(oo_can_have_published in compiler.current_structdef.objectoptions) then
                                   compiler.verbose.Message(parser_e_cant_have_published);
                                 if (not fields_allowed) then
                                   compiler.verbose.Message(parser_e_field_not_allowed_here);
@@ -1420,7 +1416,7 @@ implementation
                                   include(vdoptions,vd_check_generic);
                                 if class_fields then
                                   include(vdoptions,vd_class);
-                                if is_class(current_structdef) then
+                                if is_class(compiler.current_structdef) then
                                   include(vdoptions,vd_canreorder);
                                 if final_fields then
                                   include(vdoptions,vd_final);
@@ -1476,7 +1472,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in compiler.globals.current_settings.localswitches;
                                 compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches-[cs_typed_const_writable];
                               end;
-                            parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
+                            parser.pdecl.consts_dec(true,not is_javainterface(compiler.current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               compiler.globals.current_settings.localswitches:=compiler.globals.current_settings.localswitches+[cs_typed_const_writable];
@@ -1499,7 +1495,7 @@ implementation
             _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
-                method_def:=method_dec(current_structdef,is_classdef,hadgeneric);
+                method_def:=method_dec(compiler.current_structdef,is_classdef,hadgeneric);
                 if assigned(rtti_attrs_def) then
                   begin
                   trtti_attribute_list.bind(rtti_attrs_def,method_def.rtti_attribute_list);
@@ -1527,8 +1523,8 @@ implementation
           end;
         until false;
 
-        if is_class(current_structdef) then
-          tabstractrecordsymtable(current_structdef.symtable).addfieldlist(fieldlist,true);
+        if is_class(compiler.current_structdef) then
+          tabstractrecordsymtable(compiler.current_structdef.symtable).addfieldlist(fieldlist,true);
         fieldlist.free;
         fieldlist := nil;
       end;
@@ -1545,12 +1541,12 @@ implementation
         st: TSymtable;
         olddef: tdef;
       begin
-        old_current_structdef:=current_structdef;
+        old_current_structdef:=compiler.current_structdef;
         old_current_genericdef:=current_genericdef;
         old_current_specializedef:=current_specializedef;
         old_parse_generic:=parser.pbase.parse_generic;
 
-        current_structdef:=nil;
+        tcompiler(compiler).current_structdef:=nil;
         current_genericdef:=nil;
         current_specializedef:=nil;
 
@@ -1566,11 +1562,11 @@ implementation
               begin
                 compiler.verbose.Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
-                include(current_structdef.objectoptions,oo_is_forward);
+                tcompiler(compiler).current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
+                include(compiler.current_structdef.objectoptions,oo_is_forward);
               end
             else
-              current_structdef:=fd
+              tcompiler(compiler).current_structdef:=fd
           end
         else
           begin
@@ -1579,52 +1575,52 @@ implementation
               compiler.verbose.Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
-            tobjectdef(current_structdef).helpertype:=helpertype;
+            tcompiler(compiler).current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
+            tobjectdef(compiler.current_structdef).helpertype:=helpertype;
 
             { include always the forward flag, it'll be removed once the whole
               class has been parsed so that it can be used as a parent class
               of a nested class;
               Exception: for external classes this will be removed once the
               parent classes have been parsed }
-            include(current_structdef.objectoptions,oo_is_forward);
+            include(compiler.current_structdef.objectoptions,oo_is_forward);
 
             if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               begin
-                case current_objectdef.objecttype of
+                case compiler.current_objectdef.objecttype of
                   odt_interfacecom :
-                    if (current_structdef.objname^='IUNKNOWN') then
-                      interface_iunknown:=current_objectdef
+                    if (compiler.current_structdef.objname^='IUNKNOWN') then
+                      interface_iunknown:=compiler.current_objectdef
                     else
-                    if (current_structdef.objname^='IDISPATCH') then
-                      interface_idispatch:=current_objectdef;
+                    if (compiler.current_structdef.objname^='IDISPATCH') then
+                      interface_idispatch:=compiler.current_objectdef;
                   odt_class :
-                    if (current_structdef.objname^='TOBJECT') then
-                      class_tobject:=current_objectdef;
+                    if (compiler.current_structdef.objname^='TOBJECT') then
+                      class_tobject:=compiler.current_objectdef;
                   odt_javaclass:
                     begin
-                      if (current_structdef.objname^='TOBJECT') then
-                        class_tobject:=current_objectdef
-                      else if (current_objectdef.objname^='JLOBJECT') then
-                        java_jlobject:=current_objectdef
-                      else if (current_objectdef.objname^='JLTHROWABLE') then
-                        java_jlthrowable:=current_objectdef
-                      else if (current_objectdef.objname^='FPCBASERECORDTYPE') then
-                        java_fpcbaserecordtype:=current_objectdef
-                      else if (current_objectdef.objname^='JLSTRING') then
-                        java_jlstring:=current_objectdef
-                      else if (current_objectdef.objname^='ANSISTRINGCLASS') then
-                        java_ansistring:=current_objectdef
-                      else if (current_objectdef.objname^='SHORTSTRINGCLASS') then
-                        java_shortstring:=current_objectdef
-                      else if (current_objectdef.objname^='JLENUM') then
-                        java_jlenum:=current_objectdef
-                      else if (current_objectdef.objname^='JUENUMSET') then
-                        java_juenumset:=current_objectdef
-                      else if (current_objectdef.objname^='FPCBITSET') then
-                        java_jubitset:=current_objectdef
-                      else if (current_objectdef.objname^='FPCBASEPROCVARTYPE') then
-                        java_procvarbase:=current_objectdef;
+                      if (compiler.current_structdef.objname^='TOBJECT') then
+                        class_tobject:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='JLOBJECT') then
+                        java_jlobject:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='JLTHROWABLE') then
+                        java_jlthrowable:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='FPCBASERECORDTYPE') then
+                        java_fpcbaserecordtype:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='JLSTRING') then
+                        java_jlstring:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='ANSISTRINGCLASS') then
+                        java_ansistring:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='SHORTSTRINGCLASS') then
+                        java_shortstring:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='JLENUM') then
+                        java_jlenum:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='JUENUMSET') then
+                        java_juenumset:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='FPCBITSET') then
+                        java_jubitset:=compiler.current_objectdef
+                      else if (compiler.current_objectdef.objname^='FPCBASEPROCVARTYPE') then
+                        java_procvarbase:=compiler.current_objectdef;
                     end;
                   else
                     ;
@@ -1632,10 +1628,10 @@ implementation
               end;
             if (compiler.current_module.modulename^='OBJCBASE') then
               begin
-                case current_objectdef.objecttype of
+                case compiler.current_objectdef.objecttype of
                   odt_objcclass:
-                    if (current_objectdef.objname^='Protocol') then
-                      objc_protocoltype:=current_objectdef;
+                    if (compiler.current_objectdef.objname^='Protocol') then
+                      objc_protocoltype:=compiler.current_objectdef;
                   else
                     ;
                 end;
@@ -1644,27 +1640,27 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=current_structdef;
+          current_specializedef:=compiler.current_structdef;
         { reject declaration of generic class inside generic class }
         if assigned(genericlist) then
-          current_genericdef:=current_structdef;
+          current_genericdef:=compiler.current_structdef;
 
         { nested types of specializations are specializations as well }
         if assigned(old_current_structdef) and
             (df_specialization in old_current_structdef.defoptions) then
-          include(current_structdef.defoptions,df_specialization);
+          include(compiler.current_structdef.defoptions,df_specialization);
         if assigned(old_current_structdef) and
             (df_generic in old_current_structdef.defoptions) then
           begin
-            include(current_structdef.defoptions,df_generic);
-            current_genericdef:=current_structdef;
+            include(compiler.current_structdef.defoptions,df_generic);
+            current_genericdef:=compiler.current_structdef;
           end;
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in compiler.globals.current_settings.localswitches) and
-           (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_class,odt_helper]) then
-          include(current_structdef.objectoptions,oo_can_have_published);
+           (compiler.current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_class,odt_helper]) then
+          include(compiler.current_structdef.objectoptions,oo_can_have_published);
 
         { Objective-C/Java objectdefs can be "formal definitions", in which case
           the syntax is "type tc = objcclass external;" -> we have to parse
@@ -1680,24 +1676,24 @@ implementation
               compiler.verbose.Message1(parser_e_type_alread_forward,n)
             else
               begin
-                if is_objectpascal_helper(current_structdef) then
+                if is_objectpascal_helper(compiler.current_structdef) then
                   parser.pbase.consume(_FOR);
                 { add to the list of definitions to check that the forward
                   is resolved. this is required for delphi mode }
-                compiler.current_module.checkforwarddefs.add(current_structdef);
+                compiler.current_module.checkforwarddefs.add(compiler.current_structdef);
 
-                compiler.symtablestack.push(current_structdef.symtable);
-                parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+                compiler.symtablestack.push(compiler.current_structdef.symtable);
+                parser.pgenutil.insert_generic_parameter_types(compiler.current_structdef,genericdef,genericlist,false);
                 { when we are parsing a generic already then this is a generic as
                   well }
                 if old_parse_generic then
-                  include(current_structdef.defoptions,df_generic);
-                parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+                  include(compiler.current_structdef.defoptions,df_generic);
+                parser.pbase.parse_generic:=(df_generic in compiler.current_structdef.defoptions);
 
                 { *don't* add the strict private symbol for non-Delphi modes for
                   forward defs }
 
-                compiler.symtablestack.pop(current_structdef.symtable);
+                compiler.symtablestack.pop(compiler.current_structdef.symtable);
               end;
           end
         else
@@ -1705,25 +1701,25 @@ implementation
             { change objccategories into objcclass helpers }
             if (objecttype=odt_objccategory) then
               begin
-                current_objectdef.objecttype:=odt_objcclass;
-                include(current_structdef.objectoptions,oo_is_classhelper);
+                compiler.current_objectdef.objecttype:=odt_objcclass;
+                include(compiler.current_structdef.objectoptions,oo_is_classhelper);
               end;
 
             { include the class helper flag for Object Pascal helpers }
             if (objecttype=odt_helper) then
-              include(current_objectdef.objectoptions,oo_is_classhelper);
+              include(compiler.current_objectdef.objectoptions,oo_is_classhelper);
 
             { parse list of options (abstract / sealed) }
             if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava]) then
               parse_object_options;
 
-            compiler.symtablestack.push(current_structdef.symtable);
-            parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
+            compiler.symtablestack.push(compiler.current_structdef.symtable);
+            parser.pgenutil.insert_generic_parameter_types(compiler.current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
             if old_parse_generic then
-              include(current_structdef.defoptions, df_generic);
-            parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+              include(compiler.current_structdef.defoptions, df_generic);
+            parser.pbase.parse_generic:=(df_generic in compiler.current_structdef.defoptions);
 
             { in non-Delphi modes we need a strict private symbol without type
               count and type parameters in the name to simplify resolving }
@@ -1731,23 +1727,23 @@ implementation
 
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }
-            if not (is_objectpascal_helper(current_objectdef) and
+            if not (is_objectpascal_helper(compiler.current_objectdef) and
                 (m_delphi in compiler.globals.current_settings.modeswitches) and
                 (helpertype=ht_record)) then
               parse_parent_classes;
 
             { for external classes we remove the external flag here already }
-            if oo_is_external in current_objectdef.objectoptions then
-              exclude(current_objectdef.objectoptions,oo_is_forward);
+            if oo_is_external in compiler.current_objectdef.objectoptions then
+              exclude(compiler.current_objectdef.objectoptions,oo_is_forward);
 
             { parse extended type for helpers }
-            if is_objectpascal_helper(current_structdef) then
+            if is_objectpascal_helper(compiler.current_structdef) then
               parse_extended_type(helpertype);
 
-            if is_interface(current_objectdef) and
-                is_interface(current_objectdef.childof) and
-                (oo_is_invokable in tobjectdef(current_objectdef.childof).objectoptions) then
-              include(current_objectdef.objectoptions,oo_is_invokable);
+            if is_interface(compiler.current_objectdef) and
+                is_interface(compiler.current_objectdef.childof) and
+                (oo_is_invokable in tobjectdef(compiler.current_objectdef.childof).objectoptions) then
+              include(compiler.current_objectdef.objectoptions,oo_is_invokable);
 
             { parse optional GUID for interfaces }
             parse_guid;
@@ -1761,27 +1757,27 @@ implementation
             if assigned(objsym) and not (objecttype in [odt_cppclass,odt_objccategory,odt_objcclass,odt_objcprotocol]) then
               begin
                 olddef:=ttypesym(objsym).typedef;
-                ttypesym(objsym).typedef:=current_structdef;
-                current_structdef.typesym:=objsym;
+                ttypesym(objsym).typedef:=compiler.current_structdef;
+                compiler.current_structdef.typesym:=objsym;
               end
             else
               olddef:=nil;
 
             { if set explicitly, apply $RTTI directive to current object }
             if compiler.current_module.rtti_directive.clause<>rtc_none then
-              current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive)
+              compiler.current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive)
             else
               { if not set, and class has a parent, take parent object settings }
-              if (objectType = odt_class) and assigned(current_objectdef.childof) then
-                current_structdef.apply_rtti_directive(current_objectdef.childof.rtti);
+              if (objectType = odt_class) and assigned(compiler.current_objectdef.childof) then
+                compiler.current_structdef.apply_rtti_directive(compiler.current_objectdef.childof.rtti);
 
             { generate TObject VMT space }
             { We must insert the VMT at the start for system.tobject, and class_tobject was already set.
               The cs_compilesystem is superfluous, but we add it for safety.
 
             }
-            if (current_objectdef=class_tobject) and (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
-              current_objectdef.insertvmt;
+            if (compiler.current_objectdef=class_tobject) and (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
+              compiler.current_objectdef.insertvmt;
 
             { parse and insert object members }
             parse_object_members;
@@ -1789,32 +1785,32 @@ implementation
             if assigned(olddef) then
               begin
                 ttypesym(objsym).typedef:=olddef;
-                current_structdef.typesym:=nil;
+                compiler.current_structdef.typesym:=nil;
               end;
 
-          if not(oo_is_external in current_structdef.objectoptions) then
+          if not(oo_is_external in compiler.current_structdef.objectoptions) then
             begin
               { In Java, constructors are not automatically inherited (so you can
                 hide them). Emulate the Pascal behaviour for classes implemented
                 in Pascal (we cannot do it for classes implemented in Java, since
                 we obviously cannot add constructors to those) }
-              if is_javaclass(current_structdef) then
+              if is_javaclass(compiler.current_structdef) then
                 begin
-                  add_missing_parent_constructors_intf(tobjectdef(current_structdef),true,vis_none);
+                  add_missing_parent_constructors_intf(tobjectdef(compiler.current_structdef),true,vis_none);
 {$ifdef jvm}
-                  maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
-                  jvm_wrap_virtual_class_methods(tobjectdef(current_structdef));
+                  maybe_add_public_default_java_constructor(tobjectdef(compiler.current_structdef));
+                  jvm_wrap_virtual_class_methods(tobjectdef(compiler.current_structdef));
 {$endif}
                 end;
               { need method to hold the initialization code for typed constants? }
               if (compiler.target.info.system in systems_typed_constants_node_init) and
-                 not is_any_interface_kind(current_structdef) then
-                parser.ptype.add_typedconst_init_routine(current_structdef);
+                 not is_any_interface_kind(compiler.current_structdef) then
+                parser.ptype.add_typedconst_init_routine(compiler.current_structdef);
             end;
 
-            compiler.symtablestack.pop(current_structdef.symtable);
+            compiler.symtablestack.pop(compiler.current_structdef.symtable);
 
-            exclude(current_structdef.objectoptions,oo_is_forward);
+            exclude(compiler.current_structdef.objectoptions,oo_is_forward);
           end;
 
         { generate vmt space if needed }
@@ -1822,47 +1818,47 @@ implementation
            Here we only do it for non-classes, all classes have it since they depend on TObject
            so their vmt is already created when TObject was parsed.
         }
-        if not(oo_has_vmt in current_structdef.objectoptions) and
-           not(current_objectdef.objecttype in [odt_class]) and
-           not(oo_is_forward in current_structdef.objectoptions) and
+        if not(oo_has_vmt in compiler.current_structdef.objectoptions) and
+           not(compiler.current_objectdef.objecttype in [odt_class]) and
+           not(oo_is_forward in compiler.current_structdef.objectoptions) and
            not(parser.pbase.parse_generic) and
            { no vmt for helpers ever }
-           not is_objectpascal_helper(current_structdef) and
-            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[])
+           not is_objectpascal_helper(compiler.current_structdef) and
+            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*compiler.current_structdef.objectoptions<>[])
            then
-          current_objectdef.insertvmt;
+          compiler.current_objectdef.insertvmt;
 
         { for implemented classes with a vmt check if there is a constructor }
-        if (oo_has_vmt in current_structdef.objectoptions) and
-           not(oo_is_forward in current_structdef.objectoptions) and
-           not(oo_has_constructor in current_structdef.objectoptions) and
-           not is_objc_class_or_protocol(current_structdef) and
-           not is_java_class_or_interface(current_structdef) then
-          compiler.verbose.Message1(parser_w_virtual_without_constructor,current_structdef.objrealname^);
+        if (oo_has_vmt in compiler.current_structdef.objectoptions) and
+           not(oo_is_forward in compiler.current_structdef.objectoptions) and
+           not(oo_has_constructor in compiler.current_structdef.objectoptions) and
+           not is_objc_class_or_protocol(compiler.current_structdef) and
+           not is_java_class_or_interface(compiler.current_structdef) then
+          compiler.verbose.Message1(parser_w_virtual_without_constructor,compiler.current_structdef.objrealname^);
 
-        if is_interface(current_structdef) or
-           is_objcprotocol(current_structdef) or
-           is_javainterface(current_structdef) then
+        if is_interface(compiler.current_structdef) or
+           is_objcprotocol(compiler.current_structdef) or
+           is_javainterface(compiler.current_structdef) then
           setinterfacemethodoptions
-        else if is_objcclass(current_structdef) then
+        else if is_objcclass(compiler.current_structdef) then
           setobjcclassmethodoptions;
 
         { we need to add this helper to the extendeddefs of the current module,
           as the global and static symtable are not pushed onto the symtable
           stack again (it will be removed when popping the symtable) }
-        if is_objectpascal_helper(current_structdef) and
-            (current_objectdef.extendeddef.typ<>errordef) then
+        if is_objectpascal_helper(compiler.current_structdef) and
+            (compiler.current_objectdef.extendeddef.typ<>errordef) then
           begin
             { the topmost symtable must be a static symtable }
-            st:=current_structdef.owner;
+            st:=compiler.current_structdef.owner;
             while st.symtabletype in [objectsymtable,recordsymtable] do
               st:=st.defowner.owner;
             if st.symtabletype in [staticsymtable,globalsymtable] then
               begin
-                if current_objectdef.extendeddef.typ in [recorddef,objectdef] then
-                  s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'')
+                if compiler.current_objectdef.extendeddef.typ in [recorddef,objectdef] then
+                  s:=make_mangledname('',tabstractrecorddef(compiler.current_objectdef.extendeddef).symtable,'')
                 else
-                  s:=make_mangledname('',current_objectdef.extendeddef.owner,current_objectdef.extendeddef.typesym.name);
+                  s:=make_mangledname('',compiler.current_objectdef.extendeddef.owner,compiler.current_objectdef.extendeddef.typesym.name);
                 compiler.verbose.Message1(sym_d_adding_helper_for,s);
                 list:=TFPObjectList(compiler.current_module.extendeddefs.Find(s));
                 if not assigned(list) then
@@ -1870,16 +1866,16 @@ implementation
                     list:=TFPObjectList.Create(false);
                     compiler.current_module.extendeddefs.Add(s, list);
                   end;
-                list.add(current_structdef);
+                list.add(compiler.current_structdef);
               end;
           end;
-        tabstractrecordsymtable(current_objectdef.symtable).addalignmentpadding;
+        tabstractrecordsymtable(compiler.current_objectdef.symtable).addalignmentpadding;
 
         { return defined objectdef }
-        result:=current_objectdef;
+        result:=compiler.current_objectdef;
 
         { restore old state }
-        current_structdef:=old_current_structdef;
+        tcompiler(compiler).current_structdef:=old_current_structdef;
         current_genericdef:=old_current_genericdef;
         current_specializedef:=old_current_specializedef;
         parser.pbase.parse_generic:=old_parse_generic;

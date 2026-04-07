@@ -231,9 +231,12 @@ type
     { information about the current sub routine being parsed (@var(pprocinfo))}
     Fcurrent_procinfo : tprocinfo;
 
+    Fcurrent_structdef: tabstractrecorddef; { used for private functions check !! }
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
+    function Getcurrent_objectdef: tobjectdef; inline;
     procedure InitCompiler(const cmd:TCmdStr);
     procedure DoneCompiler;
   public
@@ -302,6 +305,8 @@ type
     all_modules: array of tmodule;   { modules by moduleid }
     property SmartLinkOFiles: TCmdStrList read FSmartLinkOFiles write FSmartLinkOFiles;
     property current_procinfo : tprocinfo read Fcurrent_procinfo write Fcurrent_procinfo;
+    property current_structdef: tabstractrecorddef read Fcurrent_structdef write Fcurrent_structdef;
+    property current_objectdef : tobjectdef read Getcurrent_objectdef;
   end;
 
   { TCompilerHelper }
@@ -312,7 +317,9 @@ type
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
     function Getcurrent_module: tmodule; inline;
+    function Getcurrent_objectdef: tobjectdef; inline;
     function Getcurrent_procinfo: tprocinfo; inline;
+    function Getcurrent_structdef: tabstractrecorddef; inline;
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
     function GetDefFile: TDefFile; inline;
 {$ifdef cpu64bitalu}
@@ -510,6 +517,8 @@ type
     property unloaded_units: tlinkedlist read Getunloaded_units;
     property SmartLinkOFiles: TCmdStrList read GetSmartLinkOFiles;
     property current_procinfo: tprocinfo read Getcurrent_procinfo;
+    property current_structdef: tabstractrecorddef read Getcurrent_structdef;
+    property current_objectdef : tobjectdef read Getcurrent_objectdef;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -628,6 +637,12 @@ begin
 
   FTaskHandler:=InitTaskHandler(self);
   CompilerInitedAfterArgs:=true;
+end;
+
+
+function TCompiler.Getcurrent_objectdef: tobjectdef; inline;
+begin
+  Result:=tobjectdef(current_structdef);
 end;
 
 
@@ -1096,9 +1111,19 @@ begin
   Result := TCompiler(Self).current_module;
 end;
 
+function TCompilerHelper.Getcurrent_objectdef: tobjectdef; inline;
+begin
+  Result := TCompiler(Self).current_objectdef;
+end;
+
 function TCompilerHelper.Getcurrent_procinfo: tprocinfo; inline;
 begin
   Result := TCompiler(Self).current_procinfo;
+end;
+
+function TCompilerHelper.Getcurrent_structdef: tabstractrecorddef; inline;
+begin
+  Result := TCompiler(Self).current_structdef;
 end;
 
 function TCompilerHelper.GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;

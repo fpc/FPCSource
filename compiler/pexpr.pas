@@ -1632,8 +1632,8 @@ implementation
                               }
                               if (tcallnode(p1).procdefinition.proctypeoption<>potype_constructor) and
                                  not(po_staticmethod in tcallnode(p1).procdefinition.procoptions) and
-                                 (not assigned(current_structdef) or
-                                  not def_is_related(current_structdef,structh)) then
+                                 (not assigned(compiler.current_structdef) or
+                                  not def_is_related(compiler.current_structdef,structh)) then
                                 begin
                                   p1.free;
                                   p1:=compiler.cerrornode;
@@ -1830,9 +1830,9 @@ implementation
              parser.pbase.consume(_POINT);
              { handles calling methods declared in parent objects
                using "parentobject.methodname()" }
-             if assigned(current_structdef) and
+             if assigned(compiler.current_structdef) and
                 not(getaddr) and
-                def_is_related(current_structdef,hdef) then
+                def_is_related(compiler.current_structdef,hdef) then
                begin
                  result:=compiler.ctypenode(hdef);
                  ttypenode(result).typesym:=sym;
@@ -1849,7 +1849,7 @@ implementation
                  else
                    isspecialize:=false;
                  { search also in inherited methods }
-                 searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
+                 searchsym_in_class(tobjectdef(hdef),tobjectdef(compiler.current_structdef),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                  if isspecialize then
                    begin
                      parser.pbase.consume(_ID);
@@ -3149,8 +3149,8 @@ implementation
                   if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
                     { if we are accessing a owner procsym from the nested }
                     { class we need to call it as a class member          }
-                    if assigned(current_structdef) and
-                        (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                    if assigned(compiler.current_structdef) and
+                        (((compiler.current_structdef<>hdef) and is_owned_by(compiler.current_structdef,hdef)) or
                          (sp_static in srsym.symoptions)) then
                       if srsymtable.symtabletype=recordsymtable then
                         result:=compiler.ctypenode(hdef)
@@ -3272,7 +3272,7 @@ implementation
                   { if we are accessing a owner procsym from the nested }
                   { class we need to call it as a class member          }
                   if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
-                    assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                    assigned(compiler.current_structdef) and (compiler.current_structdef<>hdef) and is_owned_by(compiler.current_structdef,hdef) then
                     result:=compiler.cloadvmtaddrnode(compiler.ctypenode(hdef));
                   { not srsymtable.symtabletype since that can be }
                   { withsymtable as well                          }
@@ -3314,7 +3314,7 @@ implementation
                     { if we are accessing a owner procsym from the nested }
                     { class or from a static class method we need to call }
                     { it as a class member                                }
-                    if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                    if (assigned(compiler.current_structdef) and (compiler.current_structdef<>hdef) and is_owned_by(compiler.current_structdef,hdef)) or
                        (assigned(compiler.current_procinfo) and compiler.current_procinfo.get_normal_proc.procdef.no_self_node) then
                       begin
                         result:=compiler.ctypenode(hdef);
@@ -3631,8 +3631,8 @@ implementation
                        (
                          not parser.pbase.parse_generic or
                          not (
-                           assigned(current_structdef) and
-                           assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
+                           assigned(compiler.current_structdef) and
+                           assigned(get_generic_in_hierarchy_by_name(srsym,compiler.current_structdef))
                          )
                        )
                      )
@@ -3678,10 +3678,10 @@ implementation
                        "specialization" or "<T>" may be used to identify the
                        current class }
                      (sp_generic_dummy in srsym.symoptions) and
-                     assigned(current_structdef) and
-                     (df_generic in current_structdef.defoptions) and
+                     assigned(compiler.current_structdef) and
+                     (df_generic in compiler.current_structdef.defoptions) and
                      not (m_delphi in compiler.globals.current_settings.modeswitches) and
-                     assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
+                     assigned(get_generic_in_hierarchy_by_name(srsym,compiler.current_structdef))
                    )) and
                    { it could be a rename of a generic para }
                    { Note: if this generates false positives we'll need to
@@ -3793,7 +3793,7 @@ implementation
          begin
            result:=false;
            if (compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
-              not assigned(current_structdef) or
+              not assigned(compiler.current_structdef) or
               not assigned(compiler.current_procinfo) then
              exit;
            result:=not compiler.current_procinfo.get_normal_proc.procdef.no_self_node;
@@ -3925,25 +3925,25 @@ implementation
                  again:=true;
                  parser.pbase.consume(_INHERITED);
                  if assigned(compiler.current_procinfo) and
-                    assigned(current_structdef) and
-                    ((current_structdef.typ=objectdef) or
+                    assigned(compiler.current_structdef) and
+                    ((compiler.current_structdef.typ=objectdef) or
                      ((compiler.target.info.system in systems_jvm) and
-                      (current_structdef.typ=recorddef)))then
+                      (compiler.current_structdef.typ=recorddef)))then
                   begin
                     { for record helpers in mode Delphi "inherited" is not
                       allowed }
-                    if is_objectpascal_helper(current_structdef) and
+                    if is_objectpascal_helper(compiler.current_structdef) and
                         (m_delphi in compiler.globals.current_settings.modeswitches) and
-                        (tobjectdef(current_structdef).helpertype=ht_record) then
+                        (tobjectdef(compiler.current_structdef).helpertype=ht_record) then
                       compiler.verbose.Message(parser_e_inherited_not_in_record);
-                    if (current_structdef.typ=objectdef) then
+                    if (compiler.current_structdef.typ=objectdef) then
                       begin
-                        hclassdef:=tobjectdef(current_structdef).childof;
+                        hclassdef:=tobjectdef(compiler.current_structdef).childof;
                         { Objective-C categories *replace* methods in the class
                           they extend, or add methods to it. So calling an
                           inherited method always calls the method inherited from
                           the parent of the extended class }
-                        if is_objccategory(current_structdef) then
+                        if is_objccategory(compiler.current_structdef) then
                           hclassdef:=hclassdef.childof;
                       end
                     else if compiler.target.info.system in systems_jvm then
@@ -3969,10 +3969,10 @@ implementation
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
                        { helpers have their own ways of dealing with inherited }
-                       if is_objectpascal_helper(current_structdef) then
-                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
+                       if is_objectpascal_helper(compiler.current_structdef) then
+                         searchsym_in_helper(tobjectdef(compiler.current_structdef),tobjectdef(compiler.current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
-                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
+                         searchsym_in_class(hclassdef,compiler.current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                      end
                     else
                      begin
@@ -3993,10 +3993,10 @@ implementation
                        parser.pbase.consume(_ID);
                        anon_inherited:=false;
                        { helpers have their own ways of dealing with inherited }
-                       if is_objectpascal_helper(current_structdef) then
-                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
+                       if is_objectpascal_helper(compiler.current_structdef) then
+                         searchsym_in_helper(tobjectdef(compiler.current_structdef),tobjectdef(compiler.current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
-                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
+                         searchsym_in_class(hclassdef,compiler.current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                        if isspecialize and assigned(srsym) then
                          begin
                            if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
@@ -4024,7 +4024,7 @@ implementation
                              else
                                begin
                                  useself:=false;
-                                 if is_objectpascal_helper(current_structdef) then
+                                 if is_objectpascal_helper(compiler.current_structdef) then
                                    begin
                                      { for a helper load the procdef either from the
                                        extended type, from the parent helper or from
@@ -4033,9 +4033,9 @@ implementation
                                        to }
                                      if (srsym.Owner.defowner.typ=objectdef) and
                                          is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
-                                       if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
-                                           assigned(tobjectdef(current_structdef).childof) then
-                                         hdef:=tobjectdef(current_structdef).childof
+                                       if def_is_related(compiler.current_structdef,tdef(srsym.Owner.defowner)) and
+                                           assigned(tobjectdef(compiler.current_structdef).childof) then
+                                         hdef:=tobjectdef(compiler.current_structdef).childof
                                        else
                                          begin
                                            hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
@@ -4126,8 +4126,8 @@ implementation
                  else
                    begin
                      { in case of records we use a more clear error message }
-                     if assigned(current_structdef) and
-                         (current_structdef.typ=recorddef) then
+                     if assigned(compiler.current_structdef) and
+                         (compiler.current_structdef.typ=recorddef) then
                        compiler.verbose.Message(parser_e_inherited_not_in_record)
                      else
                        compiler.verbose.Message(parser_e_generic_methods_only_in_methods);
@@ -4713,7 +4713,7 @@ implementation
                       { if we are accessing a owner procsym from the nested }
                       { class we need to call it as a class member }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                          assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                          assigned(compiler.current_structdef) and (compiler.current_structdef<>parseddef) and is_owned_by(compiler.current_structdef,parseddef) then
                         result:=compiler.cloadvmtaddrnode(compiler.ctypenode(parseddef));
                       { not srsymtable.symtabletype since that can be }
                       { withsymtable as well                          }

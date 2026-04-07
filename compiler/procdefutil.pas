@@ -187,9 +187,9 @@ implementation
       intfdef.defoptions:=intfdef.defoptions+pvdef.defoptions*[df_generic,df_specialization];
       { also inherit the general flags from the surrounding structured type or
         function }
-      if assigned(current_structdef) then
+      if assigned(compiler.current_structdef) then
         begin
-          intfdef.defoptions:=intfdef.defoptions+current_structdef.defoptions*[df_generic,df_specialization];
+          intfdef.defoptions:=intfdef.defoptions+compiler.current_structdef.defoptions*[df_generic,df_specialization];
         end
       else if assigned(compiler.current_procinfo) then
         begin

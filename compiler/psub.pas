@@ -501,21 +501,21 @@ implementation
       begin
         result:=internalstatements(compiler,newstatement);
 
-        if assigned(current_structdef) then
+        if assigned(compiler.current_structdef) then
           begin
             { a constructor needs a help procedure }
             if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
-                if is_class(current_structdef) or
+                if is_class(compiler.current_structdef) or
                     (
-                      is_objectpascal_helper(current_structdef) and
-                      is_class(tobjectdef(current_structdef).extendeddef)
+                      is_objectpascal_helper(compiler.current_structdef) and
+                      is_class(tobjectdef(compiler.current_structdef).extendeddef)
                     ) then
                   begin
-                    if is_objectpascal_helper(current_structdef) then
-                      def:=tabstractrecorddef(tobjectdef(current_structdef).extendeddef)
+                    if is_objectpascal_helper(compiler.current_structdef) then
+                      def:=tabstractrecorddef(tobjectdef(compiler.current_structdef).extendeddef)
                     else
-                      def:=current_structdef;
+                      def:=compiler.current_structdef;
                     srsym:=search_struct_member(def,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -523,7 +523,7 @@ implementation
                         { if vmt=1 then newinstance }
                         call:=
                           compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,
-                            compiler.ctypeconvnode_internal(load_self_pointer_node,cclassrefdef.create(current_structdef,compiler)),
+                            compiler.ctypeconvnode_internal(load_self_pointer_node,cclassrefdef.create(compiler.current_structdef,compiler)),
                             [],nil);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
                         addstatement(newstatement,compiler.cifnode(
@@ -543,7 +543,7 @@ implementation
                       compiler.verbose.Message(parser_e_no_suitable_newinstance_method_found);
                   end
                 else
-                  if is_object(current_structdef) then
+                  if is_object(compiler.current_structdef) then
                     begin
                       { parameter 3 : vmt_offset }
                       { parameter 2 : address of pointer to vmt,
@@ -551,7 +551,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -568,16 +568,16 @@ implementation
                           compiler.ccallnode_intern('fpc_help_constructor',para)));
                     end
                 else
-                  if is_javaclass(current_structdef) or
+                  if is_javaclass(compiler.current_structdef) or
                      ((compiler.target.info.system in systems_jvm) and
-                      is_record(current_structdef)) then
+                      is_record(compiler.current_structdef)) then
                     begin
                       if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                          not compiler.current_procinfo.ConstructorCallingConstructor then
                        begin
                          { call inherited constructor }
-                         if is_javaclass(current_structdef) then
-                           srsym:=search_struct_member_no_helper(tobjectdef(current_structdef).childof,'CREATE')
+                         if is_javaclass(compiler.current_structdef) then
+                           srsym:=search_struct_member_no_helper(tobjectdef(compiler.current_structdef).childof,'CREATE')
                          else
                            srsym:=search_struct_member_no_helper(java_fpcbaserecordtype,'CREATE');
                          if assigned(srsym) and
@@ -592,16 +592,16 @@ implementation
                        end;
                     end
                 else
-                  if not is_record(current_structdef) and
+                  if not is_record(compiler.current_structdef) and
                      not (
-                            is_objectpascal_helper(current_structdef) and
-                            (tobjectdef(current_structdef).extendeddef.typ<>objectdef)
+                            is_objectpascal_helper(compiler.current_structdef) and
+                            (tobjectdef(compiler.current_structdef).extendeddef.typ<>objectdef)
                          ) then
                     internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
-                if is_class_or_object(current_structdef) then
+                if is_class_or_object(compiler.current_structdef) then
                   addstatement(newstatement,compiler.cifnode(
                     compiler.caddnode(equaln,
                         load_self_pointer_node,
@@ -612,9 +612,9 @@ implementation
 
             { maybe call BeforeDestruction for classes }
             if (compiler.current_procinfo.procdef.proctypeoption=potype_destructor) and
-               is_class(current_structdef) then
+               is_class(compiler.current_structdef) then
               begin
-                srsym:=search_struct_member(current_structdef,'BEFOREDESTRUCTION');
+                srsym:=search_struct_member(compiler.current_structdef,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -648,7 +648,7 @@ implementation
       begin
         result:=internalstatements(compiler,newstatement);
 
-        if assigned(current_structdef) then
+        if assigned(compiler.current_structdef) then
           begin
             { Don't test self and the vmt here. The reason is that  }
             { a constructor already checks whether these are valid  }
@@ -661,9 +661,9 @@ implementation
             { a destructor needs a help procedure }
             if (compiler.current_procinfo.procdef.proctypeoption=potype_destructor) then
               begin
-                if is_class(current_structdef) then
+                if is_class(compiler.current_structdef) then
                   begin
-                    srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
+                    srsym:=search_struct_member(compiler.current_structdef,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -685,10 +685,10 @@ implementation
                       internalerror(2003051001);
                   end
                 else
-                  if is_object(current_structdef) then
+                  if is_object(compiler.current_structdef) then
                     begin
                       { finalize object data, but only if not in inherited call }
-                      if is_managed_type(current_structdef) then
+                      if is_managed_type(compiler.current_structdef) then
                         begin
                           addstatement(newstatement,compiler.cifnode(
                             compiler.caddnode(unequaln,
@@ -701,7 +701,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -714,7 +714,7 @@ implementation
                       addstatement(newstatement,
                           compiler.ccallnode_intern('fpc_help_destructor',para));
                     end
-                else if is_javaclass(current_structdef) then
+                else if is_javaclass(compiler.current_structdef) then
                   begin
                     { nothing to do }
                   end
@@ -1983,12 +1983,12 @@ implementation
 
         old_current_procinfo:=compiler.current_procinfo;
         oldfilepos:=compiler.globals.current_filepos;
-        old_current_structdef:=current_structdef;
+        old_current_structdef:=compiler.current_structdef;
         oldmaxfpuregisters:=compiler.globals.current_settings.maxfpuregisters;
 
         tcompiler(compiler).current_procinfo:=self;
         compiler.globals.current_filepos:=entrypos;
-        current_structdef:=procdef.struct;
+        tcompiler(compiler).current_structdef:=procdef.struct;
 
         { store start of user code, it must be a block node, it will be used later one to
           check variable lifeness }
@@ -2434,7 +2434,7 @@ implementation
         templist := nil;
         compiler.globals.current_settings.maxfpuregisters:=oldmaxfpuregisters;
         compiler.globals.current_filepos:=oldfilepos;
-        current_structdef:=old_current_structdef;
+        tcompiler(compiler).current_structdef:=old_current_structdef;
         tcompiler(compiler).current_procinfo:=old_current_procinfo;
       end;
 
@@ -2507,13 +2507,13 @@ implementation
       begin
          old_current_procinfo:=compiler.current_procinfo;
          old_block_type:=compiler.globals.block_type;
-         old_current_structdef:=current_structdef;
+         old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
          old_parse_generic:=compiler.parser.pbase.parse_generic;
 
          tcompiler(compiler).current_procinfo:=self;
-         current_structdef:=procdef.struct;
+         tcompiler(compiler).current_structdef:=procdef.struct;
 
 
         { check if the definitions of certain types are available which might not be available in older rtls and
@@ -2534,13 +2534,13 @@ implementation
              current_genericdef:=procdef;
              compiler.parser.pbase.parse_generic:=true;
            end
-         else if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+         else if assigned(compiler.current_structdef) and (df_generic in compiler.current_structdef.defoptions) then
            begin
-             current_genericdef:=current_structdef;
+             current_genericdef:=compiler.current_structdef;
              compiler.parser.pbase.parse_generic:=true;
            end;
-         if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-           current_specializedef:=current_structdef;
+         if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
+           current_specializedef:=compiler.current_structdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -2665,7 +2665,7 @@ implementation
 {    aktstate.destroy;}
     {$endif state_tracking}
 
-         current_structdef:=old_current_structdef;
+         tcompiler(compiler).current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          tcompiler(compiler).current_procinfo:=old_current_procinfo;
@@ -2847,14 +2847,14 @@ implementation
       begin
          { save old state }
          old_current_procinfo:=compiler.current_procinfo;
-         old_current_structdef:=current_structdef;
+         old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
 
          { reset compiler.current_procinfo.procdef to nil to be sure that nothing is writing
            to another procdef }
          tcompiler(compiler).current_procinfo:=nil;
-         current_structdef:=nil;
+         tcompiler(compiler).current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
@@ -3052,7 +3052,7 @@ implementation
          if (([po_external,po_weakexternal]*result.procoptions)=[]) and (pocall_internproc<>result.proccalloption) then
            current_asmdata.DefineProcAsmSymbol(result,result.mangledname,result.needsglobalasmsym);
 
-         current_structdef:=old_current_structdef;
+         tcompiler(compiler).current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          tcompiler(compiler).current_procinfo:=old_current_procinfo;
@@ -3208,7 +3208,7 @@ implementation
                         not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)) then
                        compiler.verbose.Message(parser_e_procedure_or_function_expected);
 
-                     if is_interface(current_structdef) then
+                     if is_interface(compiler.current_structdef) then
                        compiler.verbose.Message(parser_e_no_static_method_in_interfaces)
                      else
                        { class methods are also allowed for Objective-C protocols }

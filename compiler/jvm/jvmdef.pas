@@ -1133,7 +1133,7 @@ implementation
             { result type }
             pd.returndef:=obj;
             { calling convention }
-            if assigned(current_structdef) or
+            if assigned(compiler.current_structdef) or
                (assigned(pd.owner.defowner) and
                 (pd.owner.defowner.typ=recorddef)) then
               compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf_struct)

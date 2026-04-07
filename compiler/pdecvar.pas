@@ -1837,9 +1837,9 @@ implementation
              { make sure that the correct genericdef is set up, especially if
                we're dealing with anonymous type declarations }
              gendef:=nil;
-             if df_specialization in current_structdef.defoptions then
+             if df_specialization in compiler.current_structdef.defoptions then
                begin
-                 srsymtable:=current_structdef.genericdef.getsymtable(gs_record);
+                 srsymtable:=compiler.current_structdef.genericdef.getsymtable(gs_record);
                  if not assigned(srsymtable) then
                    internalerror(2024041204);
                  srsym:=tsym(srsymtable.find(tabstractvarsym(sc[0]).name));
@@ -1867,7 +1867,7 @@ implementation
 
              { field type is a generic param so set a flag in the struct }
              if assigned(hdef.typesym) and (sp_generic_para in hdef.typesym.symoptions) then
-               include(current_structdef.defoptions,df_has_generic_fields);
+               include(compiler.current_structdef.defoptions,df_has_generic_fields);
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then

@@ -1617,7 +1617,7 @@ implementation
          paralength:=-1;
          varargsparas:=nil;
          intrinsiccode:=Default(TInlineNumber);
-         if assigned(current_structdef) and
+         if assigned(compiler.current_structdef) and
             assigned(mp) and
             assigned(compiler.current_procinfo) then
            begin
@@ -1625,9 +1625,9 @@ implementation
               constructor of a TP-style object }
             if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                (cnf_create_failed in callflags) then
-              if is_object(current_structdef) then
+              if is_object(compiler.current_structdef) then
                 call_vmt_node:=load_vmt_pointer_node
-              else if is_class(current_structdef) then
+              else if is_class(compiler.current_structdef) then
                 begin
                   if not compiler.symtablestack.searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
                     internalerror(2016090801);

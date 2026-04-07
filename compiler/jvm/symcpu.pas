@@ -253,7 +253,7 @@ implementation
       paranr: word;
       explicitwrapper: boolean;
     begin
-      obj:=current_structdef;
+      obj:=compiler.current_structdef;
       { if someone gets the idea to add a property to an external class
         definition, don't try to wrap it since we cannot add methods to
         external classes }

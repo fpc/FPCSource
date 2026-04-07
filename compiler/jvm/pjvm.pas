@@ -210,8 +210,8 @@ implementation
             enumclass.typesym.visibility:=vis_private;
           end;
         { now add a bunch of extra things to the enum class }
-        old_current_structdef:=current_structdef;
-        current_structdef:=enumclass;
+        old_current_structdef:=compiler.current_structdef;
+        tcompiler(compiler).current_structdef:=enumclass;
 
         compiler.symtablestack.push(enumclass.symtable);
         { create static fields representing all enums }
@@ -327,7 +327,7 @@ implementation
         build_vmt(enumclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
-        current_structdef:=old_current_structdef;
+        tcompiler(compiler).current_structdef:=old_current_structdef;
       end;
 
 
@@ -422,13 +422,13 @@ implementation
 
             { add an extra constructor to the procvarclass that takes an
               instance of this interface as parameter }
-            old_current_structdef:=current_structdef;
-            current_structdef:=pvclass;
+            old_current_structdef:=compiler.current_structdef;
+            tcompiler(compiler).current_structdef:=pvclass;
             if not str_parse_method_dec('constructor Create(__intf:'+pvintf.objextname^+');overload;',potype_constructor,false,pvclass,methoddef) then
               internalerror(2011092402);
             methoddef.synthetickind:=tsk_jvm_procvar_intconstr;
             methoddef.skpara:=def;
-            current_structdef:=old_current_structdef;
+            tcompiler(compiler).current_structdef:=old_current_structdef;
           end;
 
         compiler.symtablestack.pop(pvclass.symtable);
@@ -694,7 +694,7 @@ implementation
         obj: tabstractrecorddef;
         visname: string;
       begin
-        obj:=current_structdef;
+        obj:=compiler.current_structdef;
         { if someone gets the idea to add a property to an external class
           definition, don't try to wrap it since we cannot add methods to
           external classes }

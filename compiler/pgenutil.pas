@@ -1860,9 +1860,9 @@ uses
           end;
 
         { Special case if we are referencing the current defined object }
-        if assigned(current_structdef) and
-           (current_structdef.objname^=ufinalspecializename) then
-          result:=current_structdef;
+        if assigned(compiler.current_structdef) and
+           (compiler.current_structdef.objname^=ufinalspecializename) then
+          result:=compiler.current_structdef;
 
         { Can we reuse an already specialized type? }
 
@@ -2035,14 +2035,14 @@ uses
 
                 if parse_class_parent then
                   begin
-                    old_current_structdef:=current_structdef;
+                    old_current_structdef:=compiler.current_structdef;
                     old_current_genericdef:=current_genericdef;
                     old_current_specializedef:=current_specializedef;
 
                     if genericdef.owner.symtabletype in [recordsymtable,objectsymtable] then
-                      current_structdef:=tabstractrecorddef(genericdef.owner.defowner)
+                      tcompiler(compiler).current_structdef:=tabstractrecorddef(genericdef.owner.defowner)
                     else
-                      current_structdef:=nil;
+                      tcompiler(compiler).current_structdef:=nil;
                     current_genericdef:=nil;
                     current_specializedef:=nil;
                   end;
@@ -2244,7 +2244,7 @@ uses
                 compiler.current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
                   begin
-                    current_structdef:=old_current_structdef;
+                    tcompiler(compiler).current_structdef:=old_current_structdef;
                     current_genericdef:=old_current_genericdef;
                     current_specializedef:=old_current_specializedef;
                   end;
@@ -2712,8 +2712,8 @@ uses
               ) or
               (
                 assigned(current_specializedef) and
-                assigned(current_structdef.genericdef) and
-                (current_structdef.genericdef.typ in [objectdef,recorddef]) and
+                assigned(compiler.current_structdef.genericdef) and
+                (compiler.current_structdef.genericdef.typ in [objectdef,recorddef]) and
                 (pos('$',name)>0)
               )
             ) then
@@ -2721,7 +2721,7 @@ uses
             { we need to pass nil as def here, because the constructor wants
               to set the typesym of the def which is not what we want }
             gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil);
-            gensym.typedef:=current_structdef;
+            gensym.typedef:=compiler.current_structdef;
             include(gensym.symoptions,sp_internal);
             { the symbol should be only visible to the generic class
               itself }
@@ -3183,11 +3183,11 @@ uses
         result:=nil;
         { check whether this is a declaration of a type inside a
           specialization }
-        if assigned(current_structdef) and
-            (df_specialization in current_structdef.defoptions) then
+        if assigned(compiler.current_structdef) and
+            (df_specialization in compiler.current_structdef.defoptions) then
           begin
-            if not assigned(current_structdef.genericdef) or
-                not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
+            if not assigned(compiler.current_structdef.genericdef) or
+                not (compiler.current_structdef.genericdef.typ in [recorddef,objectdef]) then
               internalerror(2011052301);
             hashedid.id:=name;
             { we could be inside a method of the specialization
@@ -3210,7 +3210,7 @@ uses
             if not assigned(sym) or not (sym.typ=typesym) then
               begin
                 { now search in the declaration of the generic }
-                sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.findwithhash(hashedid));
+                sym:=tsym(tabstractrecorddef(compiler.current_structdef.genericdef).symtable.findwithhash(hashedid));
                 if not assigned(sym) or not (sym.typ=typesym) then
                   internalerror(2011052302);
               end;

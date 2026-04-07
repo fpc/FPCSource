@@ -648,7 +648,7 @@ implementation
            pushobjchild(withdef,obj.childof);
            { we need to look for helpers that were defined for the parent
              class as well }
-           search_last_objectpascal_helper(obj,current_structdef,parenthelperdef);
+           search_last_objectpascal_helper(obj,compiler.current_structdef,parenthelperdef);
            { push the symtables of the helper's parents in reverse order }
            if assigned(parenthelperdef) then
              pushobjchild(withdef,parenthelperdef.childof);
@@ -766,7 +766,7 @@ implementation
               objectdef :
                 begin
                    { do we have a helper for this type? }
-                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),compiler.current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(p.resultdef),tobjectdef(p.resultdef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -780,7 +780,7 @@ implementation
               classrefdef :
                 begin
                    { do we have a helper for this type? }
-                   search_last_objectpascal_helper(tobjectdef(tclassrefdef(p.resultdef).pointeddef),current_structdef,helperdef);
+                   search_last_objectpascal_helper(tobjectdef(tclassrefdef(p.resultdef).pointeddef),compiler.current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -794,7 +794,7 @@ implementation
               recorddef :
                 begin
                    { do we have a helper for this type? }
-                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),compiler.current_structdef,helperdef);
                    { push symtables of all parents of the helper in reverse order }
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);

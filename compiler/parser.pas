@@ -178,7 +178,7 @@ implementation
          compiler.set_current_module(nil);
          current_asmdata:=nil;
          tcompiler(compiler).current_procinfo:=nil;
-         current_structdef:=nil;
+         tcompiler(compiler).current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
@@ -313,7 +313,7 @@ implementation
          compiler.set_current_module(nil);
          tcompiler(compiler).current_procinfo:=nil;
          current_asmdata:=nil;
-         current_structdef:=nil;
+         tcompiler(compiler).current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
@@ -512,7 +512,7 @@ implementation
          { parsing a procedure or declaration should be finished }
          if assigned(compiler.current_procinfo) then
            internalerror(200811121);
-         if assigned(current_structdef) then
+         if assigned(compiler.current_structdef) then
            internalerror(200811122);
          inc(module.compilecount);
          compiler.globals.parser_current_file:=module.mainsource;

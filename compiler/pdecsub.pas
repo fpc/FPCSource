@@ -1413,13 +1413,13 @@ implementation
                not(compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
-                old_current_structdef:=current_structdef;
+                old_current_structdef:=compiler.current_structdef;
                 old_current_specializedef:=current_specializedef;
-                current_structdef:=pd.struct;
-                if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=current_structdef;
-                if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=current_structdef;
+                tcompiler(compiler).current_structdef:=pd.struct;
+                if assigned(compiler.current_structdef) and (df_generic in compiler.current_structdef.defoptions) then
+                  current_genericdef:=compiler.current_structdef;
+                if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
+                  current_specializedef:=compiler.current_structdef;
               end;
             if pd.is_generic then
               current_genericdef:=pd;
@@ -1432,7 +1432,7 @@ implementation
             current_genericdef:=old_current_genericdef;
             if popclass>0 then
               begin
-                current_structdef:=old_current_structdef;
+                tcompiler(compiler).current_structdef:=old_current_structdef;
                 current_specializedef:=old_current_specializedef;
                 dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
@@ -1472,8 +1472,8 @@ implementation
                not (compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
-                old_current_structdef:=current_structdef;
-                current_structdef:=pd.struct;
+                old_current_structdef:=compiler.current_structdef;
+                tcompiler(compiler).current_structdef:=pd.struct;
               end;
             if df_generic in pd.defoptions then
               begin
@@ -1515,7 +1515,7 @@ implementation
               compiler.symtablestack.pop(pd.parast);
             if popclass>0 then
               begin
-                current_structdef:=old_current_structdef;
+                tcompiler(compiler).current_structdef:=old_current_structdef;
                 dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
                   internalerror(201012020);

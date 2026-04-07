@@ -108,14 +108,14 @@ implementation
           end
         else
           begin
-            if assigned(current_structdef) then
-              previnit:=current_structdef.tcinitcode
+            if assigned(compiler.current_structdef) then
+              previnit:=compiler.current_structdef.tcinitcode
             else
               previnit:=tnode(compiler.current_module.tcinitcode);
             tcbuilder:=tnodetreetypedconstbuilderclass(ctypedconstbuilder).create(sym,previnit,compiler);
             restree:=tnodetreetypedconstbuilder(tcbuilder).parse_into_nodetree;
-            if assigned(current_structdef) then
-              current_structdef.tcinitcode:=restree
+            if assigned(compiler.current_structdef) then
+              compiler.current_structdef.tcinitcode:=restree
             else
               compiler.current_module.tcinitcode:=restree;
           end;

@@ -908,8 +908,8 @@ implementation
         old_current_structdef : tabstractrecorddef;
         overridesclasshelper : boolean;
       begin
-        old_current_structdef:=current_structdef;
-        current_structdef:=_class;
+        old_current_structdef:=compiler.current_structdef;
+        tcompiler(compiler).current_structdef:=_class;
 
         { inherit (copy) VMT from parent object }
         if assigned(_class.childof) then
@@ -940,7 +940,7 @@ implementation
             intf_allocate_vtbls;
           end;
         create_vmt_def;
-        current_structdef:=old_current_structdef;
+        tcompiler(compiler).current_structdef:=old_current_structdef;
       end;
 
 

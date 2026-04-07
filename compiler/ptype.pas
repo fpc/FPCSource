@@ -406,7 +406,7 @@ implementation
          { use of current parsed object:
            classes, objects, records can be used also in themself }
          if checkcurrentrecdef and
-            try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
+            try_parse_structdef_nested_type(def,compiler.current_structdef,isforwarddef) then
            exit;
          if not allowunitsym and not (m_delphi in compiler.globals.current_settings.modeswitches) and (current_scanner.idtoken=_SPECIALIZE) then
            begin
@@ -490,12 +490,12 @@ implementation
            we need to check by name as the link from the dummy symbol to the
            current type is not yet established }
          if (sp_generic_dummy in srsym.symoptions) and
-             assigned(current_structdef) and
-             (df_generic in current_structdef.defoptions) and
+             assigned(compiler.current_structdef) and
+             (df_generic in compiler.current_structdef.defoptions) and
              (ttypesym(srsym).typedef.typ=undefineddef) and
              not (m_delphi in compiler.globals.current_settings.modeswitches) then
            begin
-             def:=get_generic_in_hierarchy_by_name(srsym,current_structdef);
+             def:=get_generic_in_hierarchy_by_name(srsym,compiler.current_structdef);
              if assigned(def) then
                exit;
            end;
@@ -650,9 +650,9 @@ implementation
               def will contain the generic definition, but we need a reference
               to the specialization of that generic }
             { TODO : only in non-Delphi modes? }
-            else if assigned(current_structdef) and
-                (df_specialization in current_structdef.defoptions) and
-                return_specialization_of_generic(current_structdef,def,t2) then
+            else if assigned(compiler.current_structdef) and
+                (df_specialization in compiler.current_structdef.defoptions) and
+                return_specialization_of_generic(compiler.current_structdef,def,t2) then
               begin
                 def:=t2
               end
@@ -722,7 +722,7 @@ implementation
 
       function IsAnonOrLocal: Boolean;
         begin
-          result:=(current_structdef.objname^='') or
+          result:=(compiler.current_structdef.objname^='') or
                   not(compiler.symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
         end;
 
@@ -750,7 +750,7 @@ implementation
         if (current_scanner.token=_SEMICOLON) then
           Exit;
 
-        current_structdef.symtable.currentvisibility:=vis_public;
+        compiler.current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
         hadgeneric:=false;
@@ -813,8 +813,8 @@ implementation
                     begin
                       check_unbound_attributes;
                        parser.pbase.consume(_PRIVATE);
-                       current_structdef.symtable.currentvisibility:=vis_private;
-                       include(current_structdef.objectoptions,oo_has_private);
+                       compiler.current_structdef.symtable.currentvisibility:=vis_private;
+                       include(compiler.current_structdef.objectoptions,oo_has_private);
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -826,8 +826,8 @@ implementation
                        check_unbound_attributes;
                        compiler.verbose.Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
                        parser.pbase.consume(_PROTECTED);
-                       current_structdef.symtable.currentvisibility:=vis_protected;
-                       include(current_structdef.objectoptions,oo_has_protected);
+                       compiler.current_structdef.symtable.currentvisibility:=vis_protected;
+                       include(compiler.current_structdef.objectoptions,oo_has_protected);
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -838,7 +838,7 @@ implementation
                      begin
                        check_unbound_attributes;
                        parser.pbase.consume(_PUBLIC);
-                       current_structdef.symtable.currentvisibility:=vis_public;
+                       compiler.current_structdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -850,7 +850,7 @@ implementation
                        check_unbound_attributes;
                        compiler.verbose.Message(parser_e_no_record_published);
                        parser.pbase.consume(_PUBLISHED);
-                       current_structdef.symtable.currentvisibility:=vis_published;
+                       compiler.current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -866,16 +866,16 @@ implementation
                               _PRIVATE:
                                 begin
                                   parser.pbase.consume(_PRIVATE);
-                                  current_structdef.symtable.currentvisibility:=vis_strictprivate;
-                                  include(current_structdef.objectoptions,oo_has_strictprivate);
+                                  compiler.current_structdef.symtable.currentvisibility:=vis_strictprivate;
+                                  include(compiler.current_structdef.objectoptions,oo_has_strictprivate);
                                 end;
                               _PROTECTED:
                                 begin
                                   { "strict protected" is not allowed for records }
                                   compiler.verbose.Message1(parser_e_not_allowed_in_record,tokeninfo^[_STRICT].str+' '+tokeninfo^[_PROTECTED].str);
                                   parser.pbase.consume(_PROTECTED);
-                                  current_structdef.symtable.currentvisibility:=vis_strictprotected;
-                                  include(current_structdef.objectoptions,oo_has_strictprotected);
+                                  compiler.current_structdef.symtable.currentvisibility:=vis_strictprotected;
+                                  include(compiler.current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
                                 compiler.verbose.Message(parser_e_protected_or_private_expected);
@@ -893,7 +893,7 @@ implementation
                     if is_classdef and (current_scanner.idtoken=_OPERATOR) then
                       begin
                         check_unbound_attributes;
-                        pd:=parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,false);
+                        pd:=parser.pdecsub.parse_record_method_dec(compiler.current_structdef,is_classdef,false);
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
@@ -923,7 +923,7 @@ implementation
                                   include(vdoptions,vd_check_generic);
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
-                                fldCount:=current_structdef.symtable.SymList.Count;
+                                fldCount:=compiler.current_structdef.symtable.SymList.Count;
                                 parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
@@ -941,12 +941,12 @@ implementation
                                   begin
                                   While (attr_element_count>1) do
                                     begin
-                                    trtti_attribute_list.copyandbind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
+                                    trtti_attribute_list.copyandbind(rtti_attrs_def,(compiler.current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
                                     inc(fldcount);
                                     dec(attr_element_count);
                                     end;
-                                  if fldCount<current_structdef.symtable.SymList.Count then
-                                    trtti_attribute_list.bind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
+                                  if fldCount<compiler.current_structdef.symtable.SymList.Count then
+                                    trtti_attribute_list.bind(rtti_attrs_def,(compiler.current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
                                   end;
                               end;
                           end
@@ -990,7 +990,7 @@ implementation
               begin
                 if IsAnonOrLocal then
                   compiler.verbose.Message(parser_e_no_methods_in_local_anonymous_records);
-                pd:=parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                pd:=parser.pdecsub.parse_record_method_dec(compiler.current_structdef,is_classdef,hadgeneric);
                 if assigned(rtti_attrs_def) then
                   begin
                   trtti_attribute_list.bind(rtti_attrs_def,pd.rtti_attribute_list);
@@ -1005,17 +1005,17 @@ implementation
                 check_unbound_attributes;
                 if IsAnonOrLocal then
                   compiler.verbose.Message(parser_e_no_methods_in_local_anonymous_records);
-                if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
+                if not is_classdef and (compiler.current_structdef.symtable.currentvisibility <> vis_public) then
                   compiler.verbose.Message(parser_w_constructor_should_be_public);
 
                 { only 1 class constructor is allowed }
-                if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
-                  compiler.verbose.Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
+                if is_classdef and (oo_has_class_constructor in compiler.current_structdef.objectoptions) then
+                  compiler.verbose.Message1(parser_e_only_one_class_constructor_allowed, compiler.current_structdef.objrealname^);
 
                 oldparse_only:=parser.pbase.parse_only;
                 parser.pbase.parse_only:=true;
                 if is_classdef then
-                  pd:=parser.pdecobj.class_constructor_head(current_structdef)
+                  pd:=parser.pdecobj.class_constructor_head(compiler.current_structdef)
                 else
                   begin
                     pd:=parser.pdecobj.constructor_head;
@@ -1036,13 +1036,13 @@ implementation
                   compiler.verbose.Message(parser_e_no_destructor_in_records);
 
                 { only 1 class destructor is allowed }
-                if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
-                  compiler.verbose.Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
+                if is_classdef and (oo_has_class_destructor in compiler.current_structdef.objectoptions) then
+                  compiler.verbose.Message1(parser_e_only_one_class_destructor_allowed, compiler.current_structdef.objrealname^);
 
                 oldparse_only:=parser.pbase.parse_only;
                 parser.pbase.parse_only:=true;
                 if is_classdef then
-                  pd:=parser.pdecobj.class_destructor_head(current_structdef)
+                  pd:=parser.pdecobj.class_destructor_head(compiler.current_structdef)
                 else
                   pd:=parser.pdecobj.destructor_head;
 
@@ -1060,10 +1060,10 @@ implementation
             _END :
               begin
 {$ifdef jvm}
-                add_java_default_record_methods_intf(trecorddef(current_structdef));
+                add_java_default_record_methods_intf(trecorddef(compiler.current_structdef));
 {$endif}
                 if compiler.target.info.system in systems_typed_constants_node_init then
-                  add_typedconst_init_routine(current_structdef);
+                  add_typedconst_init_routine(compiler.current_structdef);
                 parser.pbase.consume(_END);
                 break;
               end;
@@ -1082,20 +1082,20 @@ implementation
         begin
           if not assigned(recsym) then
             exit;
-          if ttypesym(recsym).typedef=current_structdef then
+          if ttypesym(recsym).typedef=compiler.current_structdef then
             exit;
-          ttypesym(recsym).typedef:=current_structdef;
-          current_structdef.typesym:=recsym;
+          ttypesym(recsym).typedef:=compiler.current_structdef;
+          compiler.current_structdef.typesym:=recsym;
         end;
 
       procedure reset_typesym;
         begin
           if not assigned(recsym) then
             exit;
-          if ttypesym(recsym).typedef<>current_structdef then
+          if ttypesym(recsym).typedef<>compiler.current_structdef then
             exit;
           ttypesym(recsym).typedef:=olddef;
-          current_structdef.typesym:=nil;
+          compiler.current_structdef.typesym:=nil;
         end;
 
       var
@@ -1108,7 +1108,7 @@ implementation
          alignment: Integer;
          dummyattrelcount : Integer;
       begin
-         old_current_structdef:=current_structdef;
+         old_current_structdef:=compiler.current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
          old_parse_generic:=parser.pbase.parse_generic;
@@ -1122,7 +1122,7 @@ implementation
              recst:=trecordsymtable.create(n,compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
              { can't use recst.realname^ instead of n, because recst.realname is
                nil in case of an empty name }
-             current_structdef:=crecorddef.create(n,recst,compiler);
+             tcompiler(compiler).current_structdef:=crecorddef.create(n,recst,compiler);
            end
          else
            begin
@@ -1130,40 +1130,40 @@ implementation
                represented by a class }
              recst:=trecordsymtable.create(compiler.current_module.realmodulename^+'__fpc_intern_recname_'+tostr(compiler.current_module.deflist.count),
                compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
-             current_structdef:=crecorddef.create(recst.name^,recst,compiler);
+             tcompiler(compiler).current_structdef:=crecorddef.create(recst.name^,recst,compiler);
            end;
-         result:=current_structdef;
+         result:=compiler.current_structdef;
          { insert in symtablestack }
          compiler.symtablestack.push(recst);
 
          { usage of specialized type inside its generic template }
          if assigned(genericdef) then
-           current_specializedef:=current_structdef
+           current_specializedef:=compiler.current_structdef
          { reject declaration of generic class inside generic class }
          else if assigned(genericlist) then
-           current_genericdef:=current_structdef;
+           current_genericdef:=compiler.current_structdef;
 
          { nested types of specializations are specializations as well }
          if assigned(old_current_structdef) and
              (df_specialization in old_current_structdef.defoptions) then
-           include(current_structdef.defoptions,df_specialization);
+           include(compiler.current_structdef.defoptions,df_specialization);
          if assigned(old_current_structdef) and
              (df_generic in old_current_structdef.defoptions) then
-           include(current_structdef.defoptions,df_generic);
+           include(compiler.current_structdef.defoptions,df_generic);
 
-         parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+         parser.pgenutil.insert_generic_parameter_types(compiler.current_structdef,genericdef,genericlist,false);
          { when we are parsing a generic already then this is a generic as
            well }
          if old_parse_generic then
-           include(current_structdef.defoptions, df_generic);
-         parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+           include(compiler.current_structdef.defoptions, df_generic);
+         parser.pbase.parse_generic:=(df_generic in compiler.current_structdef.defoptions);
          if parser.pbase.parse_generic and not assigned(current_genericdef) then
-           current_genericdef:=current_structdef;
+           current_genericdef:=compiler.current_structdef;
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
          parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
          { apply $RTTI directive to current object }
-         current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive);
+         compiler.current_structdef.apply_rtti_directive(compiler.current_module.rtti_directive);
 
          { the correct typesym<->def relationship is needed for example when
            parsing parameters that are specializations of the record, when
@@ -1184,10 +1184,10 @@ implementation
              parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
-             add_java_default_record_methods_intf(trecorddef(current_structdef));
+             add_java_default_record_methods_intf(trecorddef(compiler.current_structdef));
 {$endif}
              if compiler.target.info.system in systems_typed_constants_node_init then
-               add_typedconst_init_routine(current_structdef);
+               add_typedconst_init_routine(compiler.current_structdef);
              parser.pbase.consume(_END);
             end;
 
@@ -1213,14 +1213,14 @@ implementation
          { don't keep track of procdefs in a separate list, because the
            compiler may add additional procdefs (e.g. property wrappers for
            the jvm backend) }
-         compiler.parser.pparautl.insert_struct_hidden_paras(trecorddef(current_structdef));
+         compiler.parser.pparautl.insert_struct_hidden_paras(trecorddef(compiler.current_structdef));
          { restore symtable stack }
          compiler.symtablestack.pop(recst);
-         if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
+         if trecorddef(compiler.current_structdef).is_packed and is_managed_type(compiler.current_structdef) then
            compiler.verbose.Message(type_e_no_packed_inittable);
          { restore old state }
          parser.pbase.parse_generic:=old_parse_generic;
-         current_structdef:=old_current_structdef;
+         tcompiler(compiler).current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
       end;
@@ -1256,7 +1256,7 @@ implementation
            { use of current parsed object:
              classes, objects, records can be used also in themself }
            if (current_scanner.token=_ID) then
-             if try_parse_structdef_nested_type(def,current_structdef,false) then
+             if try_parse_structdef_nested_type(def,compiler.current_structdef,false) then
                exit;
            { we can't accept a equal in type }
            pt1:=parser.pexpr.comp_expr([ef_type_only]);
@@ -1330,21 +1330,21 @@ implementation
                        assigned(ttypenode(pt1).typesym) and
                        (ttypenode(pt1).typesym.typ=typesym) and
                        (sp_generic_dummy in ttypenode(pt1).typesym.symoptions) and
-                       assigned(current_structdef) and
+                       assigned(compiler.current_structdef) and
                        (
                          (
                            not (m_delphi in compiler.globals.current_settings.modeswitches) and
                            (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
-                           (df_generic in current_structdef.defoptions) and
-                           (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
-                           (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                           (df_generic in compiler.current_structdef.defoptions) and
+                           (ttypesym(ttypenode(pt1).typesym).typedef.owner=compiler.current_structdef.owner) and
+                           (upper(ttypenode(pt1).typesym.realname)=copy(compiler.current_structdef.objname^,1,pos('$',compiler.current_structdef.objname^)-1))
                          ) or (
                            { this could be a nested specialization which uses
                              the type name of a surrounding generic to
                              reference the specialization of said surrounding
                              class }
-                           (df_specialization in current_structdef.defoptions) and
-                           return_specialization_of_generic(current_structdef,ttypesym(ttypenode(pt1).typesym).typedef,newdef)
+                           (df_specialization in compiler.current_structdef.defoptions) and
+                           return_specialization_of_generic(compiler.current_structdef,ttypesym(ttypenode(pt1).typesym).typedef,newdef)
                          )
                        )
                        then
@@ -1352,7 +1352,7 @@ implementation
                        if assigned(newdef) then
                          def:=newdef
                        else
-                         def:=current_structdef;
+                         def:=compiler.current_structdef;
                        if assigned(def) then
                          { handle nested types }
                          parser.pexpr.post_comp_expr_gendef(def)

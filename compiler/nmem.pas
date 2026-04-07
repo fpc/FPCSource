@@ -231,12 +231,12 @@ implementation
                   if tstoreddef(left.resultdef).is_generic then
                     begin
                       defaultresultdef:=true;
-                      if assigned(current_structdef) then
+                      if assigned(compiler.current_structdef) then
                         begin
-                          if assigned(current_structdef.genericdef) then
-                            if current_structdef.genericdef=left.resultdef then
+                          if assigned(compiler.current_structdef.genericdef) then
+                            if compiler.current_structdef.genericdef=left.resultdef then
                               begin
-                                resultdef:=cclassrefdef.create(current_structdef,compiler);
+                                resultdef:=cclassrefdef.create(compiler.current_structdef,compiler);
                                 defaultresultdef:=false;
                               end
                             else
