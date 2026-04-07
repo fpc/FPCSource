@@ -292,15 +292,13 @@ implementation
 
   function elf_mips_loadsection(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       ri: TElfReginfo;
     begin
       case shdr.sh_type of
         SHT_MIPS_REGINFO:
           begin
             objinput.ReadBytes(shdr.sh_offset,ri,sizeof(ri));
-            MaybeSwapElfReginfo(compiler.target.info.endian,ri);
+            MaybeSwapElfReginfo(objinput.target.info.endian,ri);
             TElfObjData(objdata).gp_value:=ri.ri_gp_value;
             result:=true;
           end;

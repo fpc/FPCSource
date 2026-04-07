@@ -556,13 +556,13 @@ interface
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure ReadSectionContent(Data:TObjData);
         property Globals: TReadOnlyCompilerGlobals read FGlobals;
-        property Target: TReadOnlyCompilerTarget read FTarget;
         property Verbose: TVerbose read FVerbose;
       public
         constructor create(aglobals:TReadOnlyCompilerGlobals;atarget:TReadOnlyCompilerTarget;averbose:TVerbose);virtual;
         function  ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;virtual;abstract;
         class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
+        property Target: TReadOnlyCompilerTarget read FTarget;
       end;
       TObjInputClass=class of TObjInput;
 
