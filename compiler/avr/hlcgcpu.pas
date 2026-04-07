@@ -78,7 +78,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      compiler.current_procinfo:=cprocinfo.create(nil,compiler);
+      tcompiler(compiler).current_procinfo:=cprocinfo.create(nil,compiler);
 
       //{ set param1 interface to self  }
       //g_adjust_self_value(list,procdef,ioffset);
@@ -119,8 +119,8 @@ implementation
       { dummy so far }
       list.concat(taicpu.op_none(A_RET));
 
-      compiler.current_procinfo.Free;
-      compiler.current_procinfo:=nil;
+      tcompiler(compiler).current_procinfo.Free;
+      tcompiler(compiler).current_procinfo:=nil;
 
       list.concat(Tai_symbol_end.Createname(labelname));
     end;
