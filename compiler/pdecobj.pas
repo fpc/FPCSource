@@ -1542,12 +1542,12 @@ implementation
         olddef: tdef;
       begin
         old_current_structdef:=compiler.current_structdef;
-        old_current_genericdef:=current_genericdef;
+        old_current_genericdef:=compiler.current_genericdef;
         old_current_specializedef:=current_specializedef;
         old_parse_generic:=parser.pbase.parse_generic;
 
         tcompiler(compiler).current_structdef:=nil;
-        current_genericdef:=nil;
+        tcompiler(compiler).current_genericdef:=nil;
         current_specializedef:=nil;
 
         { objects and class types can't be declared local }
@@ -1643,7 +1643,7 @@ implementation
           current_specializedef:=compiler.current_structdef;
         { reject declaration of generic class inside generic class }
         if assigned(genericlist) then
-          current_genericdef:=compiler.current_structdef;
+          tcompiler(compiler).current_genericdef:=compiler.current_structdef;
 
         { nested types of specializations are specializations as well }
         if assigned(old_current_structdef) and
@@ -1653,7 +1653,7 @@ implementation
             (df_generic in old_current_structdef.defoptions) then
           begin
             include(compiler.current_structdef.defoptions,df_generic);
-            current_genericdef:=compiler.current_structdef;
+            tcompiler(compiler).current_genericdef:=compiler.current_structdef;
           end;
 
         { set published flag in $M+ mode, it can also be inherited and will
@@ -1876,7 +1876,7 @@ implementation
 
         { restore old state }
         tcompiler(compiler).current_structdef:=old_current_structdef;
-        current_genericdef:=old_current_genericdef;
+        tcompiler(compiler).current_genericdef:=old_current_genericdef;
         current_specializedef:=old_current_specializedef;
         parser.pbase.parse_generic:=old_parse_generic;
       end;

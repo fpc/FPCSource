@@ -685,7 +685,7 @@ implementation
               begin
                 tcompiler(compiler).current_procinfo:=nil;
                 tcompiler(compiler).current_structdef:=nil;
-                current_genericdef:=nil;
+                tcompiler(compiler).current_genericdef:=nil;
                 current_specializedef:=nil;
               end;
             { release procinfo tree }
@@ -835,7 +835,7 @@ implementation
               begin
                 tcompiler(compiler).current_procinfo:=nil;
                 tcompiler(compiler).current_structdef:=nil;
-                current_genericdef:=nil;
+                tcompiler(compiler).current_genericdef:=nil;
                 current_specializedef:=nil;
               end;
             { release procinfo tree }

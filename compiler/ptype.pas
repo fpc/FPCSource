@@ -641,9 +641,9 @@ implementation
               begin
                 def:=current_specializedef
               end
-            else if (def=current_genericdef) then
+            else if (def=compiler.current_genericdef) then
               begin
-                def:=current_genericdef
+                def:=compiler.current_genericdef
               end
             { when parsing a nested specialization in non-Delphi mode it might
               use the name of the topmost generic without type paramaters, thus
@@ -665,14 +665,14 @@ implementation
                         a valid usage of a generic }
                       (sp_generic_para in srsym.symoptions) or
                       (
-                        (current_genericdef.typ in [recorddef,objectdef]) and
+                        (compiler.current_genericdef.typ in [recorddef,objectdef]) and
                         (
                           { if both defs belong to the same generic (e.g. both are
                             subtypes) then we must allow the usage }
-                          defs_belong_to_same_generic(def,current_genericdef) or
+                          defs_belong_to_same_generic(def,compiler.current_genericdef) or
                           { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
                             declarations inside a generic }
-                          sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                          sym_is_owned_by(srsym,tabstractrecorddef(compiler.current_genericdef).symtable)
                         )
                       )
                     )
@@ -685,15 +685,15 @@ implementation
                 (sp_generic_dummy in srsym.symoptions) then
               begin
                 if parser.pbase.parse_generic and
-                    (current_genericdef.typ in [recorddef,objectdef]) and
-                    (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
+                    (compiler.current_genericdef.typ in [recorddef,objectdef]) and
+                    (Pos(upper(srsym.realname),tabstractrecorddef(compiler.current_genericdef).objname^)=1) then
                   begin
                     if m_delphi in compiler.globals.current_settings.modeswitches then
                       begin
                         def:=handle_dummysym(srsym);
                       end
                     else
-                      def:=current_genericdef;
+                      def:=compiler.current_genericdef;
                   end
                 else
                   begin
@@ -1109,11 +1109,11 @@ implementation
          dummyattrelcount : Integer;
       begin
          old_current_structdef:=compiler.current_structdef;
-         old_current_genericdef:=current_genericdef;
+         old_current_genericdef:=compiler.current_genericdef;
          old_current_specializedef:=current_specializedef;
          old_parse_generic:=parser.pbase.parse_generic;
 
-         current_genericdef:=nil;
+         tcompiler(compiler).current_genericdef:=nil;
          current_specializedef:=nil;
          { create recdef }
          if (n<>'') or
@@ -1141,7 +1141,7 @@ implementation
            current_specializedef:=compiler.current_structdef
          { reject declaration of generic class inside generic class }
          else if assigned(genericlist) then
-           current_genericdef:=compiler.current_structdef;
+           tcompiler(compiler).current_genericdef:=compiler.current_structdef;
 
          { nested types of specializations are specializations as well }
          if assigned(old_current_structdef) and
@@ -1157,8 +1157,8 @@ implementation
          if old_parse_generic then
            include(compiler.current_structdef.defoptions, df_generic);
          parser.pbase.parse_generic:=(df_generic in compiler.current_structdef.defoptions);
-         if parser.pbase.parse_generic and not assigned(current_genericdef) then
-           current_genericdef:=compiler.current_structdef;
+         if parser.pbase.parse_generic and not assigned(compiler.current_genericdef) then
+           tcompiler(compiler).current_genericdef:=compiler.current_structdef;
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
          parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
@@ -1221,7 +1221,7 @@ implementation
          { restore old state }
          parser.pbase.parse_generic:=old_parse_generic;
          tcompiler(compiler).current_structdef:=old_current_structdef;
-         current_genericdef:=old_current_genericdef;
+         tcompiler(compiler).current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
       end;
 
@@ -1374,26 +1374,26 @@ implementation
                          begin
                            def:=current_specializedef
                          end
-                       else if (def=current_genericdef) then
+                       else if (def=compiler.current_genericdef) then
                          begin
-                           def:=current_genericdef
+                           def:=compiler.current_genericdef
                          end
                        else if tstoreddef(def).is_generic and
                            { TODO : check once nested generics are allowed }
                            not
                              (
                                parser.pbase.parse_generic and
-                               (current_genericdef.typ in [recorddef,objectdef]) and
+                               (compiler.current_genericdef.typ in [recorddef,objectdef]) and
                                (def.typ in [recorddef,objectdef]) and
                                (
                                  { if both defs belong to the same generic (e.g. both are
                                    subtypes) then we must allow the usage }
-                                 defs_belong_to_same_generic(def,current_genericdef) or
+                                 defs_belong_to_same_generic(def,compiler.current_genericdef) or
                                  { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
                                    declarations inside a generic }
                                  (
                                    (ttypenode(pt1).typesym<>nil) and
-                                   sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(current_genericdef).symtable)
+                                   sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(compiler.current_genericdef).symtable)
                                  )
                                )
                              )
@@ -1579,11 +1579,11 @@ implementation
           first,
           old_parse_generic: boolean;
         begin
-           old_current_genericdef:=current_genericdef;
+           old_current_genericdef:=compiler.current_genericdef;
            old_current_specializedef:=current_specializedef;
            old_parse_generic:=parser.pbase.parse_generic;
 
-           current_genericdef:=nil;
+           tcompiler(compiler).current_genericdef:=nil;
            current_specializedef:=nil;
            first:=true;
            arrdef:=carraydef.create(0,0,s32inttype,compiler);
@@ -1594,20 +1594,20 @@ implementation
              current_specializedef:=arrdef
            { reject declaration of generic class inside generic class }
            else if assigned(genericlist) then
-             current_genericdef:=arrdef;
+             tcompiler(compiler).current_genericdef:=arrdef;
            compiler.symtablestack.push(arrdef.symtable);
            parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
            { there are two possibilities for the following to be true:
              * the array declaration itself is generic
              * the array is declared inside a generic
-             in both cases we need "parser.pbase.parse_generic" and "current_genericdef"
+             in both cases we need "parser.pbase.parse_generic" and "compiler.current_genericdef"
              so that e.g. specializations of another generic inside the
              current generic can be used (either inline ones or "type" ones) }
            if old_parse_generic then
              include(arrdef.defoptions,df_generic);
            parser.pbase.parse_generic:=(df_generic in arrdef.defoptions);
-           if parser.pbase.parse_generic and not assigned(current_genericdef) then
-             current_genericdef:=old_current_genericdef;
+           if parser.pbase.parse_generic and not assigned(compiler.current_genericdef) then
+             tcompiler(compiler).current_genericdef:=old_current_genericdef;
 
            { open array? }
            if parser.pbase.try_to_consume(_LECKKLAMMER) then
@@ -1743,7 +1743,7 @@ implementation
              end;
            { restore old state }
            parser.pbase.parse_generic:=old_parse_generic;
-           current_genericdef:=old_current_genericdef;
+           tcompiler(compiler).current_genericdef:=old_current_genericdef;
            current_specializedef:=old_current_specializedef;
         end;
 
@@ -1757,11 +1757,11 @@ implementation
             old_parse_generic: boolean;
             olddef : tdef;
           begin
-            old_current_genericdef:=current_genericdef;
+            old_current_genericdef:=compiler.current_genericdef;
             old_current_specializedef:=current_specializedef;
             old_parse_generic:=parser.pbase.parse_generic;
 
-            current_genericdef:=nil;
+            tcompiler(compiler).current_genericdef:=nil;
             current_specializedef:=nil;
             olddef:=nil;
 
@@ -1784,20 +1784,20 @@ implementation
               current_specializedef:=pd
             { reject declaration of generic class inside generic class }
             else if assigned(genericlist) then
-              current_genericdef:=pd;
+              tcompiler(compiler).current_genericdef:=pd;
             compiler.symtablestack.push(pd.parast);
             parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
             { there are two possibilities for the following to be true:
               * the procvar declaration itself is generic
               * the procvar is declared inside a generic
-              in both cases we need "parser.pbase.parse_generic" and "current_genericdef"
+              in both cases we need "parser.pbase.parse_generic" and "compiler.current_genericdef"
               so that e.g. specializations of another generic inside the
               current generic can be used (either inline ones or "type" ones) }
             if old_parse_generic then
               include(pd.defoptions,df_generic);
             parser.pbase.parse_generic:=(df_generic in pd.defoptions);
-            if parser.pbase.parse_generic and not assigned(current_genericdef) then
-              current_genericdef:=old_current_genericdef;
+            if parser.pbase.parse_generic and not assigned(compiler.current_genericdef) then
+              tcompiler(compiler).current_genericdef:=old_current_genericdef;
 
             if current_scanner.token=_LKLAMMER then
               parser.pdecsub.parse_parameter_dec(pd);
@@ -1832,7 +1832,7 @@ implementation
               end;
             { restore old state }
             parser.pbase.parse_generic:=old_parse_generic;
-            current_genericdef:=old_current_genericdef;
+            tcompiler(compiler).current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
 
             if assigned(sym) then

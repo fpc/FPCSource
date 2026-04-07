@@ -809,7 +809,7 @@ implementation
            { Generic type declaration? }
            if isgeneric then
              begin
-               if assigned(current_genericdef) then
+               if assigned(compiler.current_genericdef) then
                  compiler.verbose.Message(parser_f_no_generic_inside_generic);
 
                parser.pbase.consume(_LSHARPBRACKET);

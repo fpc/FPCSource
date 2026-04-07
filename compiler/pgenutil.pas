@@ -651,7 +651,7 @@ uses
                     not is_or_belongs_to_current_genericdef(typeparam.resultdef) and
                     (
                       not parser.pbase.parse_generic or
-                      not defs_belong_to_same_generic(typeparam.resultdef,current_genericdef)
+                      not defs_belong_to_same_generic(typeparam.resultdef,compiler.current_genericdef)
                     ) then
                   compiler.verbose.Message(parser_e_no_generics_as_params);
                 if assigned(poslist) then
@@ -1893,11 +1893,11 @@ uses
           specialization }
         if not assigned(result) then
           begin
-            def:=current_genericdef;
+            def:=compiler.current_genericdef;
             if def=genericdef then
               result:=def
-            else if assigned(current_genericdef) then
-              result:=find_in_hierarchy(current_genericdef,generictypelist);
+            else if assigned(compiler.current_genericdef) then
+              result:=find_in_hierarchy(compiler.current_genericdef,generictypelist);
             if not assigned(result) and assigned(current_specializedef) then
               result:=find_in_hierarchy(current_specializedef,generictypelist);
           end;
@@ -1921,20 +1921,20 @@ uses
               specializest:=compiler.current_procinfo.procdef.getsymtable(gs_local)
             else
               begin
-                if not assigned(current_genericdef) then
+                if not assigned(compiler.current_genericdef) then
                   internalerror(2014050901);
                 { we specialize the partial specialization into the symtable of the currently parsed
                   generic }
-                case current_genericdef.typ of
+                case compiler.current_genericdef.typ of
                   procvardef:
-                    specializest:=current_genericdef.getsymtable(gs_para);
+                    specializest:=compiler.current_genericdef.getsymtable(gs_para);
                   procdef:
-                    specializest:=current_genericdef.getsymtable(gs_local);
+                    specializest:=compiler.current_genericdef.getsymtable(gs_local);
                   objectdef,
                   recorddef:
-                    specializest:=current_genericdef.getsymtable(gs_record);
+                    specializest:=compiler.current_genericdef.getsymtable(gs_record);
                   arraydef:
-                    specializest:=tarraydef(current_genericdef).symtable;
+                    specializest:=tarraydef(compiler.current_genericdef).symtable;
                   else
                     internalerror(2014050902);
                 end;
@@ -1978,9 +1978,9 @@ uses
             if (specializest.symtabletype=objectsymtable) and not assigned(context.forwarddef) then
               begin
                 { search also in parent classes }
-                if not assigned(current_genericdef) or (current_genericdef.typ<>objectdef) then
+                if not assigned(compiler.current_genericdef) or (compiler.current_genericdef.typ<>objectdef) then
                   internalerror(2016112901);
-                if not searchsym_in_class(tobjectdef(current_genericdef),tobjectdef(current_genericdef),ufinalspecializename,srsym,srsymtable,[]) then
+                if not searchsym_in_class(tobjectdef(compiler.current_genericdef),tobjectdef(compiler.current_genericdef),ufinalspecializename,srsym,srsymtable,[]) then
                   srsym:=nil;
               end
             else
@@ -2036,14 +2036,14 @@ uses
                 if parse_class_parent then
                   begin
                     old_current_structdef:=compiler.current_structdef;
-                    old_current_genericdef:=current_genericdef;
+                    old_current_genericdef:=compiler.current_genericdef;
                     old_current_specializedef:=current_specializedef;
 
                     if genericdef.owner.symtabletype in [recordsymtable,objectsymtable] then
                       tcompiler(compiler).current_structdef:=tabstractrecorddef(genericdef.owner.defowner)
                     else
                       tcompiler(compiler).current_structdef:=nil;
-                    current_genericdef:=nil;
+                    tcompiler(compiler).current_genericdef:=nil;
                     current_specializedef:=nil;
                   end;
 
@@ -2245,7 +2245,7 @@ uses
                 if parse_class_parent then
                   begin
                     tcompiler(compiler).current_structdef:=old_current_structdef;
-                    current_genericdef:=old_current_genericdef;
+                    tcompiler(compiler).current_genericdef:=old_current_genericdef;
                     current_specializedef:=old_current_specializedef;
                   end;
               end;
@@ -2840,8 +2840,8 @@ uses
         state : pspecializationstate;
       begin
         result:=true;
-        if (def=current_genericdef) or
-            defs_belong_to_same_generic(def,current_genericdef) then
+        if (def=compiler.current_genericdef) or
+            defs_belong_to_same_generic(def,compiler.current_genericdef) then
           exit;
         state:=pspecializationstate(compiler.current_module.specializestate);
         while assigned(state) do
@@ -2874,7 +2874,7 @@ uses
       state.oldsymtablestack:=compiler.symtablestack;
       state.oldextendeddefs:=compiler.current_module.extendeddefs;
       state.oldgenericdummysyms:=compiler.current_module.genericdummysyms;
-      state.oldcurrent_genericdef:=current_genericdef;
+      state.oldcurrent_genericdef:=compiler.current_genericdef;
       state.oldspecializestate:=pspecializationstate(compiler.current_module.specializestate);
       state.oldoptoken:=parser.pbase.optoken;
       parser.pbase.optoken:=NOTOKEN;

@@ -232,6 +232,7 @@ type
     Fcurrent_procinfo : tprocinfo;
 
     Fcurrent_structdef: tabstractrecorddef; { used for private functions check !! }
+    Fcurrent_genericdef: tstoreddef;        { used to reject declaration of generic class inside generic class }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -307,6 +308,7 @@ type
     property current_procinfo : tprocinfo read Fcurrent_procinfo write Fcurrent_procinfo;
     property current_structdef: tabstractrecorddef read Fcurrent_structdef write Fcurrent_structdef;
     property current_objectdef : tobjectdef read Getcurrent_objectdef;
+    property current_genericdef: tstoreddef read Fcurrent_genericdef write Fcurrent_genericdef;
   end;
 
   { TCompilerHelper }
@@ -316,6 +318,7 @@ type
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
+    function Getcurrent_genericdef: tstoreddef; inline;
     function Getcurrent_module: tmodule; inline;
     function Getcurrent_objectdef: tobjectdef; inline;
     function Getcurrent_procinfo: tprocinfo; inline;
@@ -519,6 +522,7 @@ type
     property current_procinfo: tprocinfo read Getcurrent_procinfo;
     property current_structdef: tabstractrecorddef read Getcurrent_structdef;
     property current_objectdef : tobjectdef read Getcurrent_objectdef;
+    property current_genericdef: tstoreddef read Getcurrent_genericdef;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1104,6 +1108,11 @@ end;
 function TCompilerHelper.GetCG: tcg; inline;
 begin
   Result := TCompiler(Self).cg;
+end;
+
+function TCompilerHelper.Getcurrent_genericdef: tstoreddef; inline;
+begin
+  Result := TCompiler(Self).current_genericdef;
 end;
 
 function TCompilerHelper.Getcurrent_module: tmodule; inline;

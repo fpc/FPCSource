@@ -1014,7 +1014,7 @@ implementation
                exit;
              end;
 
-            if assigned(genericparams) and assigned(current_genericdef) then
+            if assigned(genericparams) and assigned(compiler.current_genericdef) then
               compiler.verbose.Message(parser_f_no_generic_inside_generic);
 
             { method  ? }
@@ -1404,7 +1404,7 @@ implementation
         if current_scanner.token=_LKLAMMER then
           begin
             old_current_structdef:=nil;
-            old_current_genericdef:=current_genericdef;
+            old_current_genericdef:=compiler.current_genericdef;
             old_current_specializedef:=nil;
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
@@ -1417,19 +1417,19 @@ implementation
                 old_current_specializedef:=current_specializedef;
                 tcompiler(compiler).current_structdef:=pd.struct;
                 if assigned(compiler.current_structdef) and (df_generic in compiler.current_structdef.defoptions) then
-                  current_genericdef:=compiler.current_structdef;
+                  tcompiler(compiler).current_genericdef:=compiler.current_structdef;
                 if assigned(compiler.current_structdef) and (df_specialization in compiler.current_structdef.defoptions) then
                   current_specializedef:=compiler.current_structdef;
               end;
             if pd.is_generic then
-              current_genericdef:=pd;
+              tcompiler(compiler).current_genericdef:=pd;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
               compiler.symtablestack.push(pd.parast);
             parse_parameter_dec(pd);
             if pd.parast.symtabletype<>staticsymtable then
               compiler.symtablestack.pop(pd.parast);
-            current_genericdef:=old_current_genericdef;
+            tcompiler(compiler).current_genericdef:=old_current_genericdef;
             if popclass>0 then
               begin
                 tcompiler(compiler).current_structdef:=old_current_structdef;
@@ -1463,9 +1463,9 @@ implementation
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             old_current_structdef:=nil;
-            old_current_genericdef:=current_genericdef;
+            old_current_genericdef:=compiler.current_genericdef;
             old_current_specializedef:=current_specializedef;
-            current_genericdef:=nil;
+            tcompiler(compiler).current_genericdef:=nil;
             current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
@@ -1478,9 +1478,9 @@ implementation
             if df_generic in pd.defoptions then
               begin
                 if pd.is_generic then
-                  current_genericdef:=pd
+                  tcompiler(compiler).current_genericdef:=pd
                 else if assigned(pd.struct) then
-                  current_genericdef:=pd.struct
+                  tcompiler(compiler).current_genericdef:=pd.struct
                 else
                   internalerror(2016090202);
               end;
@@ -1520,7 +1520,7 @@ implementation
                 if popclass<>0 then
                   internalerror(201012020);
               end;
-            current_genericdef:=old_current_genericdef;
+            tcompiler(compiler).current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
             parser.pbase.parse_generic:=old_parse_generic;
           end;
