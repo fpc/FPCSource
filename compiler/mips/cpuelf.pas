@@ -232,13 +232,11 @@ implementation
       'R_MIPS_TLS_TPREL_LO16'
     );
 
-  procedure MaybeSwapElfReginfo(var h:TElfReginfo);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure MaybeSwapElfReginfo(target_endian:tendian;var h:TElfReginfo);
     var
       i: longint;
     begin
-      if source_info.endian<>compiler.target.info.endian then
+      if source_info.endian<>target_endian then
         begin
           h.ri_gprmask:=swapendian(h.ri_gprmask);
           for i:=0 to 3 do
@@ -294,13 +292,15 @@ implementation
 
   function elf_mips_loadsection(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       ri: TElfReginfo;
     begin
       case shdr.sh_type of
         SHT_MIPS_REGINFO:
           begin
             objinput.ReadBytes(shdr.sh_offset,ri,sizeof(ri));
-            MaybeSwapElfReginfo(ri);
+            MaybeSwapElfReginfo(compiler.target.info.endian,ri);
             TElfObjData(objdata).gp_value:=ri.ri_gp_value;
             result:=true;
           end;
