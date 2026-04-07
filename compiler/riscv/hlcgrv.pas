@@ -158,7 +158,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      compiler.current_procinfo:=cprocinfo.create(nil,compiler);
+      tcompiler(compiler).current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);
@@ -213,8 +213,8 @@ implementation
         end;
       list.concatlist(compiler.current_procinfo.aktlocaldata);
 
-      compiler.current_procinfo.Free;
-      compiler.current_procinfo:=nil;
+      tcompiler(compiler).current_procinfo.Free;
+      tcompiler(compiler).current_procinfo:=nil;
 
       list.concat(Tai_symbol_end.Createname(labelname));
     end;
