@@ -502,7 +502,7 @@ implementation
          result:=nil;
          include(transientflags,tnf_error);
          compiler.verbose.codegenerror:=true;
-         resultdef:=generrordef;
+         resultdef:=compiler.generrordef;
       end;
 
 

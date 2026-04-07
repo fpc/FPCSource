@@ -147,7 +147,7 @@ implementation
                     else
                       begin
                         compiler.verbose.Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
-                        def:=generrordef;
+                        def:=compiler.generrordef;
                         result:=false;
                       end;
                   end;
@@ -155,7 +155,7 @@ implementation
                else
                 begin
                   compiler.verbose.Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
-                  def:=generrordef;
+                  def:=compiler.generrordef;
                   result:=false;
                 end;
                parser.pbase.consume(_ID);
@@ -449,7 +449,7 @@ implementation
                 sc.clear;
                 repeat
                   inc(paranr);
-                  hreadparavs:=cparavarsym.create(current_scanner.orgpattern,10*paranr,varspez,generrordef,[]);
+                  hreadparavs:=cparavarsym.create(current_scanner.orgpattern,10*paranr,varspez,compiler.generrordef,[]);
                   p.parast.insertsym(hreadparavs);
                   sc.add(hreadparavs);
                   parser.pbase.consume(_ID);
@@ -552,7 +552,7 @@ implementation
                 end
               else
                 begin
-                  p.propdef:=generrordef;
+                  p.propdef:=compiler.generrordef;
                   compiler.verbose.Message(parser_e_no_property_found_to_override);
                 end;
            end;
@@ -1442,11 +1442,11 @@ implementation
                                 (current_scanner.idtoken=_GENERIC);
                    case compiler.symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=clocalvarsym.create(current_scanner.orgpattern,vs_value,generrordef,[]);
+                       vs:=clocalvarsym.create(current_scanner.orgpattern,vs_value,compiler.generrordef,[]);
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=cstaticvarsym.create(current_scanner.orgpattern,vs_value,generrordef,[]);
+                         vs:=cstaticvarsym.create(current_scanner.orgpattern,vs_value,compiler.generrordef,[]);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;
@@ -1795,7 +1795,7 @@ implementation
                sorg:=current_scanner.orgpattern;
                if current_scanner.token=_ID then
                  begin
-                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   vs:=cfieldvarsym.create(sorg,vs_value,compiler.generrordef,[]);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
@@ -1862,7 +1862,7 @@ implementation
                begin
                  if not check_allowed_for_var_or_const(hdef,true) then
                    { for error recovery or compiler will crash later }
-                   hdef:=generrordef;
+                   hdef:=compiler.generrordef;
                end;
 
              { field type is a generic param so set a flag in the struct }
@@ -2064,7 +2064,7 @@ implementation
                     begin
                       parser.pbase.consume(_ID);
                       parser.pbase.consume(_COLON);
-                      fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                      fieldvs:=cfieldvarsym.create(sorg,vs_value,compiler.generrordef,[]);
                       variantdesc^^.variantselector:=fieldvs;
                       compiler.symtablestack.top.insertsym(fieldvs);
                     end;

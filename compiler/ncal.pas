@@ -1092,7 +1092,7 @@ implementation
          if assigned(fparacopyback) then
            typecheckpass(fparacopyback);
          if compiler.verbose.codegenerror then
-          resultdef:=generrordef
+          resultdef:=compiler.generrordef
          else
           resultdef:=left.resultdef;
       end;

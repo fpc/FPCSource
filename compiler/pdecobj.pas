@@ -770,7 +770,7 @@ implementation
               ) then
             begin
               compiler.verbose.Message1(type_e_type_not_allowed_for_type_helper,def.typename);
-              def:=generrordef;
+              def:=compiler.generrordef;
             end;
         end;
 
@@ -792,7 +792,7 @@ implementation
                       tmp:=tstoreddef(tmp.orgdef);
                     end;
                   compiler.verbose.Message1(type_e_record_helper_must_extend_same_record,compiler.current_objectdef.childof.extendeddef.typename);
-                  def:=generrordef;
+                  def:=compiler.generrordef;
                 end;
             end;
         end;
@@ -807,7 +807,7 @@ implementation
               if not def_is_related(def,compiler.current_objectdef.childof.extendeddef) then
                 begin
                   compiler.verbose.Message1(type_e_class_helper_must_extend_subclass,compiler.current_objectdef.childof.extendeddef.typename);
-                  def:=generrordef;
+                  def:=compiler.generrordef;
                 end;
             end;
         end;
@@ -821,7 +821,7 @@ implementation
         parser.pbase.consume(_FOR);
         { set extendeddef to non-Nil so that potential checks for it won't trigger
           access violations }
-        compiler.current_objectdef.extendeddef:=generrordef;
+        compiler.current_objectdef.extendeddef:=compiler.generrordef;
         parser.ptype.single_type(hdef,[stoParseClassParent]);
         if not assigned(hdef) or (hdef.typ=errordef) then
           begin

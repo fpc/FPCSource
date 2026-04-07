@@ -719,7 +719,7 @@ uses
       begin
         FillChar(dummypos, SizeOf(tfileposinfo), 0);
         genericdef:=tstoreddef(generate_specialization_phase1(context,tt,enforce_unit,nil,symname,symtable,dummypos));
-        if genericdef<>generrordef then
+        if genericdef<>compiler.generrordef then
           genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
@@ -1499,7 +1499,7 @@ uses
                 compiler.verbose.Message(type_e_type_id_expected);
                 if not parser.pbase.try_to_consume(_GT) then
                   parser.pbase.try_to_consume(_RSHARPBRACKET);
-                result:=generrordef;
+                result:=compiler.generrordef;
                 exit;
               end;
           end;
@@ -1514,7 +1514,7 @@ uses
               parser.pbase.try_to_consume(_RSHARPBRACKET);
             context.free;
             context:=nil;
-            result:=generrordef;
+            result:=compiler.generrordef;
             exit;
           end;
 
@@ -1631,7 +1631,7 @@ uses
               parser.pbase.try_to_consume(_RSHARPBRACKET);
             context.free;
             context:=nil;
-            result:=generrordef;
+            result:=compiler.generrordef;
             exit;
           end;
 
@@ -1822,7 +1822,7 @@ uses
           begin
             { the parameters didn't fit the constraints, so don't continue with the
               specialization }
-            result:=generrordef;
+            result:=compiler.generrordef;
             exit;
           end;
 
@@ -2057,7 +2057,7 @@ uses
                   else
                     srsym:=cprocsym.create(finalspecializename)
                 else
-                  srsym:=ctypesym.create(finalspecializename,generrordef);
+                  srsym:=ctypesym.create(finalspecializename,compiler.generrordef);
                 { insert the symbol only if we don't know already that we have
                   a procsym to add it to and we aren't dealing with a forwarddef }
                 if not assigned(psym) and not assigned(context.forwarddef) then
@@ -2308,7 +2308,7 @@ uses
         genericdef : tstoreddef;
       begin
         genericdef:=tstoreddef(generate_specialization_phase1(context,tt,enforce_unit,parsedtype,symname,nil,parsedpos));
-        if genericdef<>generrordef then
+        if genericdef<>compiler.generrordef then
           genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
@@ -2407,7 +2407,7 @@ uses
 
               allowconstructor:=m_delphi in compiler.globals.current_settings.modeswitches;
 
-              basedef:=generrordef;
+              basedef:=compiler.generrordef;
               repeat
                 doconsume:=true;
 
@@ -2423,7 +2423,7 @@ uses
                     begin
                       if gcf_class in constraintdata.flags then
                         compiler.verbose.Message(parser_e_illegal_expression);
-                      if basedef=generrordef then
+                      if basedef=compiler.generrordef then
                         include(constraintdata.flags,gcf_class)
                       else
                         compiler.verbose.Message(parser_e_illegal_expression);
@@ -2464,7 +2464,7 @@ uses
                                 compiler.verbose.Message(parser_e_illegal_expression)
                               else
                                 { do we already have a concrete class? }
-                                if basedef<>generrordef then
+                                if basedef<>compiler.generrordef then
                                   compiler.verbose.Message(parser_e_illegal_expression)
                                 else
                                   basedef:=def;

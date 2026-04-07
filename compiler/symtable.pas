@@ -1680,7 +1680,7 @@ implementation
         sym: tfieldvarsym;
       begin
         result:=false;
-        def:=generrordef;
+        def:=compiler.generrordef;
         { If a record contains a union, it does not contain a "single
           non-composite field" in the context of certain ABIs requiring
           special treatment for such records }
@@ -5181,7 +5181,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        tcompiler(compiler).generrorsym:=terrorsym.create;
-       generrordef:=cerrordef.create(compiler);
+       tcompiler(compiler).generrordef:=cerrordef.create(compiler);
        { macros }
        tcompiler(compiler).initialmacrosymtable:=tmacrosymtable.create(false,compiler);
        tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
@@ -5199,9 +5199,9 @@ implementation
         compiler.generrorsym.owner:=nil;
         tcompiler(compiler).generrorsym.free;
         tcompiler(compiler).generrorsym := nil;
-        generrordef.owner:=nil;
-        generrordef.free;
-        generrordef := nil;
+        compiler.generrordef.owner:=nil;
+        tcompiler(compiler).generrordef.free;
+        tcompiler(compiler).generrordef := nil;
         compiler.initialmacrosymtable.free;
         tcompiler(compiler).initialmacrosymtable := nil;
         compiler.macrosymtablestack.free;

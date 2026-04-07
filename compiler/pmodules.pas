@@ -411,7 +411,7 @@ implementation
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
            compiler.generrorsym.owner:=systemunit;
-           generrordef.owner:=systemunit;
+           compiler.generrordef.owner:=systemunit;
            exit;
          end;
 
@@ -432,7 +432,7 @@ implementation
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
         compiler.generrorsym.owner:=systemunit;
-        generrordef.owner:=systemunit;
+        compiler.generrordef.owner:=systemunit;
         // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
         { TODO: Check if we should also do this for mode macpas }
         if not (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then

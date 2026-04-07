@@ -439,7 +439,7 @@ implementation
                then
                begin
                  compiler.verbose.MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
-                 hloopvar.resultdef:=generrordef;
+                 hloopvar.resultdef:=compiler.generrordef;
                end;
 
              hp:=hloopvar;
@@ -924,7 +924,7 @@ implementation
               (def.typ=errordef)) then
              begin
                compiler.verbose.Message1(type_e_class_type_expected,def.typename);
-               def:=generrordef;
+               def:=compiler.generrordef;
              end;
         end;
 
@@ -990,7 +990,7 @@ implementation
               compiler.globals.block_type:=bt_except;
               exceptblockcounter:=exceptblockcounter+1;
               compiler.globals.current_exceptblock := exceptblockcounter;
-              ot:=generrordef;
+              ot:=compiler.generrordef;
               p_specific:=nil;
               if (current_scanner.idtoken=_ON) then
                 { catch specific exceptions }
@@ -1037,7 +1037,7 @@ implementation
                                else
                                  begin
                                    compiler.verbose.Message(type_e_type_id_expected);
-                                   ot:=generrordef;
+                                   ot:=compiler.generrordef;
                                  end;
 
                                  { create dummy symbol so we don't need a special

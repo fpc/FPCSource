@@ -400,7 +400,7 @@ implementation
           sc.clear;
           repeat
             inc(paranr);
-            vs:=cparavarsym.create(current_scanner.orgpattern,paranr*10,varspez,generrordef,[]);
+            vs:=cparavarsym.create(current_scanner.orgpattern,paranr*10,varspez,compiler.generrordef,[]);
             currparast.insertsym(vs);
             if assigned(vs.owner) then
              sc.add(vs)
@@ -1680,7 +1680,7 @@ implementation
                 if not parser.pbase.try_to_consume(_COLON) then
                   begin
                     parser.pbase.consume(_COLON);
-                    pd.returndef:=generrordef;
+                    pd.returndef:=compiler.generrordef;
                     parser.pbase.consume_all_until(_SEMICOLON);
                   end
                 else

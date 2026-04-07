@@ -236,6 +236,7 @@ type
     Fcurrent_specializedef: tstoreddef;     { used to implement usage of generic class in itself }
 
     Fgenerrorsym: tsym;
+    Fgenerrordef: tdef;               { error in definition }
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -314,6 +315,7 @@ type
     property current_genericdef: tstoreddef read Fcurrent_genericdef write Fcurrent_genericdef;
     property current_specializedef: tstoreddef read Fcurrent_specializedef write Fcurrent_specializedef;
     property generrorsym: tsym read Fgenerrorsym write Fgenerrorsym;
+    property generrordef: tdef read Fgenerrordef write Fgenerrordef;
   end;
 
   { TCompilerHelper }
@@ -338,6 +340,7 @@ type
 {$endif cpu64bitalu}
     function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
     function GetExportLib: TExportLib; inline;
+    function Getgenerrordef: tdef; inline;
     function Getgenerrorsym: tsym; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
@@ -532,6 +535,7 @@ type
     property current_genericdef: tstoreddef read Getcurrent_genericdef;
     property current_specializedef: tstoreddef read Getcurrent_specializedef;
     property generrorsym: tsym read Getgenerrorsym;
+    property generrordef: tdef read Getgenerrordef;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1179,6 +1183,11 @@ end;
 function TCompilerHelper.GetExportLib: TExportLib; inline;
 begin
   Result := TCompiler(Self).ExportLib;
+end;
+
+function TCompilerHelper.Getgenerrordef: tdef; inline;
+begin
+  Result := TCompiler(Self).generrordef;
 end;
 
 function TCompilerHelper.Getgenerrorsym: tsym; inline;

@@ -1259,10 +1259,12 @@ type
     end;
 
   constructor texprvalue.create_error;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fillchar(value,sizeof(value),#0);
       consttyp:=constnone;
-      def:=generrordef;
+      def:=compiler.generrordef;
     end;
 
   constructor texprvalue.create_ord(v: Tconstexprint);

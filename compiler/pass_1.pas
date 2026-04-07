@@ -92,7 +92,7 @@ implementation
             include(p.transientflags,tnf_error);
             { default to errortype if no type is set yet }
             if p.resultdef=nil then
-              p.resultdef:=generrordef;
+              p.resultdef:=compiler.generrordef;
           end;
       end;
 

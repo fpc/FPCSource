@@ -257,7 +257,7 @@ implementation
                       begin
                         compiler.verbose.Message1(sym_e_forward_type_not_resolved,hs);
                         { try to recover }
-                        tabstractpointerdef(def).pointeddef:=generrordef;
+                        tabstractpointerdef(def).pointeddef:=compiler.generrordef;
                       end;
                    end;
                 end;
@@ -326,7 +326,7 @@ implementation
                      oldsymtablestack:=compiler.symtablestack;
                      tcompiler(compiler).symtablestack:=TSymtablestack.create(compiler);
                      compiler.symtablestack.push(tabstractrecorddef(def).symtable);
-                     t2:=generrordef;
+                     t2:=compiler.generrordef;
                      id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize,isunitspecific);
                      compiler.symtablestack.pop(tabstractrecorddef(def).symtable);
                      compiler.symtablestack.free;
@@ -454,7 +454,7 @@ implementation
             not (df_generic in tstoreddef(srsym.owner.defowner).defoptions))) then
           begin
             compiler.verbose.Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
-            def:=generrordef;
+            def:=compiler.generrordef;
             exit;
           end;
          { are we parsing a possible forward def ? }
@@ -468,21 +468,21 @@ implementation
          if not assigned(srsym) and not not_a_type then
           begin
             compiler.verbose.Message1(sym_e_id_not_found,sorg);
-            def:=generrordef;
+            def:=compiler.generrordef;
             exit;
           end;
          { type sym ? }
          if not_a_type or (srsym.typ<>typesym) then
           begin
             compiler.verbose.Message(type_e_type_id_expected);
-            def:=generrordef;
+            def:=compiler.generrordef;
             exit;
           end;
          { Give an error when referring to an errordef }
          if (ttypesym(srsym).typedef.typ=errordef) then
           begin
             compiler.verbose.Message(sym_e_error_in_type_def);
-            def:=generrordef;
+            def:=compiler.generrordef;
             exit;
           end;
          { In non-Delphi modes the class/record name of a generic might be used
@@ -515,7 +515,7 @@ implementation
            else
              begin
                compiler.verbose.Message(parser_e_no_generics_as_types);
-               result:=generrordef;
+               result:=compiler.generrordef;
              end;
          end;
 
@@ -566,7 +566,7 @@ implementation
                            { try to recover }
                            while current_scanner.token<>_SEMICOLON do
                              parser.pbase.consume(current_scanner.token);
-                           def:=generrordef;
+                           def:=compiler.generrordef;
                          end
                        else
                          begin
@@ -588,7 +588,7 @@ implementation
                else
                  begin
                    compiler.verbose.Message(type_e_type_id_expected);
-                   def:=generrordef;
+                   def:=compiler.generrordef;
                  end;
             end;
         until not again;
@@ -601,7 +601,7 @@ implementation
             if not assigned(srsym) or not (srsym.typ=typesym) then
               begin
                 compiler.verbose.Message1(type_e_type_is_not_completly_defined,def.typename);
-                def:=generrordef;
+                def:=compiler.generrordef;
                 dospecialize:=false;
               end;
           end;
@@ -704,7 +704,7 @@ implementation
                 not (stoParseClassParent in options) then
               begin
                 compiler.verbose.Message(parser_e_no_category_as_types);
-                def:=generrordef
+                def:=compiler.generrordef
               end
           end;
       end;
@@ -1357,7 +1357,7 @@ implementation
                          { handle nested types }
                          parser.pexpr.post_comp_expr_gendef(def)
                        else
-                         def:=generrordef;
+                         def:=compiler.generrordef;
                      end;
                    if dospecialize then
                      begin
@@ -1417,13 +1417,13 @@ implementation
                            else
                              begin
                                compiler.verbose.Message(parser_e_no_generics_as_types);
-                               def:=generrordef;
+                               def:=compiler.generrordef;
                              end;
                          end
                        else if is_classhelper(def) then
                          begin
                            compiler.verbose.Message(parser_e_no_category_as_types);
-                           def:=generrordef
+                           def:=compiler.generrordef
                          end
                      end;
                  end
@@ -1482,7 +1482,7 @@ implementation
              end;
            end
           else
-           def:=generrordef;
+           def:=compiler.generrordef;
         end;
 
 
@@ -1613,7 +1613,7 @@ implementation
            if parser.pbase.try_to_consume(_LECKKLAMMER) then
              begin
                 { defaults }
-                indexdef:=generrordef;
+                indexdef:=compiler.generrordef;
                 isgeneric:=false;
                 { use defaults which don't overflow the compiler }
                 lowval:=0;
@@ -2199,7 +2199,7 @@ implementation
          end;
 
          if def=nil then
-          def:=generrordef;
+          def:=compiler.generrordef;
       end;
 
 

@@ -985,7 +985,7 @@ implementation
               def:=nil;
               parser.ptype.single_type(def,[stoAllowSpecialization]);
               statement_syssym:=compiler.cerrornode;
-              if def<>generrordef then
+              if def<>compiler.generrordef then
                 { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
                   compiler.verbose.Message1(type_e_type_is_not_completly_defined,tforwarddef(def).tosymname^)
@@ -1781,7 +1781,7 @@ implementation
                     spezdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
-                    if spezdef<>generrordef then
+                    if spezdef<>compiler.generrordef then
                       begin
                         srsym:=spezdef.typesym;
                         srsymtable:=srsym.owner;
@@ -3564,7 +3564,7 @@ implementation
                        {$warn 5036 off}
                        hdef:=parser.pgenutil.generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
                        {$pop}
-                       if hdef=generrordef then
+                       if hdef=compiler.generrordef then
                          begin
                            spezcontext.free;
                            spezcontext:=nil;
@@ -3578,7 +3578,7 @@ implementation
                                hdef:=parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
-                               if hdef<>generrordef then
+                               if hdef<>compiler.generrordef then
                                  begin
                                    srsym:=hdef.typesym;
                                    srsymtable:=srsym.owner;
@@ -4523,7 +4523,7 @@ implementation
         if assigned(p1) and (p1.nodetype=typen) then
           def:=ttypenode(p1).typedef
         else
-          def:=generrordef;
+          def:=compiler.generrordef;
       end;
 
 {****************************************************************************

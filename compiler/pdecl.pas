@@ -683,7 +683,7 @@ implementation
         else
           begin
             compiler.verbose.Message1(parser_h_type_redef,genorgtypename);
-            result:=generrordef;
+            result:=compiler.generrordef;
           end;
       end;
 
@@ -880,7 +880,7 @@ implementation
               { insert the new type first with an errordef, so that
                 referencing the type before it's really set it
                 will give an error (PFV) }
-              hdef:=generrordef;
+              hdef:=compiler.generrordef;
               gendef:=nil;
               storetokenpos:=compiler.globals.current_tokenpos;
               if isgeneric then
@@ -1236,7 +1236,7 @@ implementation
            if isgeneric and (not(hdef.typ in [objectdef,recorddef,arraydef,procvardef])
                or is_objectpascal_helper(hdef)) then
              begin
-               newtype.typedef:=generrordef;
+               newtype.typedef:=compiler.generrordef;
                compiler.verbose.Message(parser_e_cant_create_generics_of_this_type);
              end;
 

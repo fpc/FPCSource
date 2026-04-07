@@ -1158,7 +1158,6 @@ interface
 
 
     { default types }
-       generrordef,               { error in definition }
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
