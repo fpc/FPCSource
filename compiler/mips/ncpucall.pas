@@ -26,7 +26,7 @@ unit ncpucall;
 interface
 
 uses
-  node, ncgcal;
+  node, ncgcal, compilerbase;
 
 type
   tMIPSELcallnode = class(tcgcallnode)
@@ -41,7 +41,8 @@ uses
   symconst,
   aasmtai,aasmcpu,aasmdata,
   paramgr,
-  ncal;
+  ncal,
+  compiler;
 
 function TMIPSELcallnode.pass_1 : tnode;
 begin

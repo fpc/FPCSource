@@ -26,7 +26,7 @@ unit ncpuld;
 interface
 
 uses
-  node, ncgld;
+  node, ncgld, compilerbase;
 
 type
   tmipsloadnode = class(tcgloadnode)
@@ -44,7 +44,8 @@ uses
   aasmbase, aasmtai,aasmdata,
   symconst, symsym,
   procinfo,
-  nld;
+  nld,
+  compiler;
 
 function tmipsloadnode.pass_1 : tnode;
 begin
