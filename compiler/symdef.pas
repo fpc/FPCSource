@@ -1144,7 +1144,8 @@ interface
          parentfpvoidpointertype: tdef;{ void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
          voidnearpointertype,
-         voidnearcspointertype: tdef;
+         voidnearcspointertype,
+         voidneardspointertype: tdef;
 {$endif x86}
        end;
 
@@ -1173,7 +1174,6 @@ interface
 
     { default types }
 {$ifdef x86}
-       voidneardspointertype,
        voidnearsspointertype,
        voidnearespointertype,
        voidnearfspointertype,
@@ -9746,7 +9746,7 @@ implementation
 {$ifdef x86}
        compiler.deftypes.voidnearpointertype:=nil;
        compiler.deftypes.voidnearcspointertype:=nil;
-       voidneardspointertype:=nil;
+       compiler.deftypes.voidneardspointertype:=nil;
        voidnearsspointertype:=nil;
        voidnearespointertype:=nil;
        voidnearfspointertype:=nil;
