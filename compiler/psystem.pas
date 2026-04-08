@@ -196,7 +196,7 @@ implementation
           compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidnearpointertype
         else
           compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidnearcspointertype;
-        compiler.deftypes.voidstackpointertype:=voidnearsspointertype;
+        compiler.deftypes.voidstackpointertype:=compiler.deftypes.voidnearsspointertype;
 {$else i8086}
         compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidpointertype;
         compiler.deftypes.voidstackpointertype:=compiler.deftypes.voidpointertype;
@@ -432,7 +432,7 @@ implementation
         compiler.deftypes.voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near,compiler);
         compiler.deftypes.voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs,compiler);
         compiler.deftypes.voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds,compiler);
-        voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
+        compiler.deftypes.voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
         voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es,compiler);
         voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_fs,compiler);
         voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs,compiler);
@@ -520,7 +520,7 @@ implementation
         addtype('NearPointer',compiler.deftypes.voidnearpointertype);
         addtype('NearCsPointer',compiler.deftypes.voidnearcspointertype);
         addtype('NearDsPointer',compiler.deftypes.voidneardspointertype);
-        addtype('NearSsPointer',voidnearsspointertype);
+        addtype('NearSsPointer',compiler.deftypes.voidnearsspointertype);
         addtype('NearEsPointer',voidnearespointertype);
         addtype('NearFsPointer',voidnearfspointertype);
         addtype('NearGsPointer',voidneargspointertype);
@@ -629,7 +629,7 @@ implementation
         addtype('$void_nearpointer',compiler.deftypes.voidnearpointertype);
         addtype('$void_nearcspointer',compiler.deftypes.voidnearcspointertype);
         addtype('$void_neardspointer',compiler.deftypes.voidneardspointertype);
-        addtype('$void_nearsspointer',voidnearsspointertype);
+        addtype('$void_nearsspointer',compiler.deftypes.voidnearsspointertype);
         addtype('$void_nearespointer',voidnearespointertype);
         addtype('$void_nearfspointer',voidnearfspointertype);
         addtype('$void_neargspointer',voidneargspointertype);
@@ -793,7 +793,7 @@ implementation
         loadtype('void_nearpointer',compiler.deftypes.voidnearpointertype);
         loadtype('void_nearcspointer',compiler.deftypes.voidnearcspointertype);
         loadtype('void_neardspointer',compiler.deftypes.voidneardspointertype);
-        loadtype('void_nearsspointer',voidnearsspointertype);
+        loadtype('void_nearsspointer',compiler.deftypes.voidnearsspointertype);
         loadtype('void_nearespointer',voidnearespointertype);
         loadtype('void_nearfspointer',voidnearfspointertype);
         loadtype('void_neargspointer',voidneargspointertype);
