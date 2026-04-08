@@ -1546,17 +1546,17 @@ const
               p2:=tpointerconstnode(right).value;
             case nodetype of
               equaln:
-                result:=compiler.cordconstnode(ord(p1=p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1=p2),compiler.deftypes.bool8type,false);
               unequaln:
-                result:=compiler.cordconstnode(ord(p1<>p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1<>p2),compiler.deftypes.bool8type,false);
               gtn:
-                result:=compiler.cordconstnode(ord(p1>p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1>p2),compiler.deftypes.bool8type,false);
               ltn:
-                result:=compiler.cordconstnode(ord(p1<p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1<p2),compiler.deftypes.bool8type,false);
               gten:
-                result:=compiler.cordconstnode(ord(p1>=p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1>=p2),compiler.deftypes.bool8type,false);
               lten:
-                result:=compiler.cordconstnode(ord(p1<=p2),bool8type,false);
+                result:=compiler.cordconstnode(ord(p1<=p2),compiler.deftypes.bool8type,false);
               else
                 Internalerror(2020100101);
             end;

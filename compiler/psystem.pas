@@ -313,7 +313,7 @@ implementation
         compiler.deftypes.pasbool16type:=corddef.create(pasbool16,0,1,true,compiler);
         compiler.deftypes.pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
         compiler.deftypes.pasbool64type:=corddef.create(pasbool64,0,1,true,compiler);
-        bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
+        compiler.deftypes.bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
         bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
         bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
         bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
@@ -550,7 +550,7 @@ implementation
         addtype('Boolean16',compiler.deftypes.pasbool16type);
         addtype('Boolean32',compiler.deftypes.pasbool32type);
         addtype('Boolean64',compiler.deftypes.pasbool64type);
-        addtype('ByteBool',bool8type);
+        addtype('ByteBool',compiler.deftypes.bool8type);
         addtype('WordBool',bool16type);
         addtype('LongBool',bool32type);
         addtype('QWordBool',bool64type);
@@ -611,7 +611,7 @@ implementation
         addtype('$boolean16',compiler.deftypes.pasbool16type);
         addtype('$boolean32',compiler.deftypes.pasbool32type);
         addtype('$boolean64',compiler.deftypes.pasbool64type);
-        addtype('$bytebool',bool8type);
+        addtype('$bytebool',compiler.deftypes.bool8type);
         addtype('$wordbool',bool16type);
         addtype('$longbool',bool32type);
         addtype('$qwordbool',bool64type);
@@ -782,7 +782,7 @@ implementation
         loadtype('boolean16',compiler.deftypes.pasbool16type);
         loadtype('boolean32',compiler.deftypes.pasbool32type);
         loadtype('boolean64',compiler.deftypes.pasbool64type);
-        loadtype('bytebool',bool8type);
+        loadtype('bytebool',compiler.deftypes.bool8type);
         loadtype('wordbool',bool16type);
         loadtype('longbool',bool32type);
         loadtype('qwordbool',bool64type);
