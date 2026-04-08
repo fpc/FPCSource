@@ -440,7 +440,7 @@ implementation
         compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far,compiler);
         compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge,compiler);
         compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
-        charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
+        compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
         bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
@@ -637,7 +637,7 @@ implementation
         addtype('$void_farpointer',compiler.deftypes.voidfarpointertype);
         addtype('$void_hugepointer',compiler.deftypes.voidhugepointertype);
         addtype('$char_nearpointer',compiler.deftypes.charnearpointertype);
-        addtype('$char_farpointer',charfarpointertype);
+        addtype('$char_farpointer',compiler.deftypes.charfarpointertype);
         addtype('$char_hugepointer',charhugepointertype);
         addtype('$byte_farpointer',bytefarpointertype);
         addtype('$word_farpointer',wordfarpointertype);
@@ -801,7 +801,7 @@ implementation
         loadtype('void_farpointer',compiler.deftypes.voidfarpointertype);
         loadtype('void_hugepointer',compiler.deftypes.voidhugepointertype);
         loadtype('char_nearpointer',compiler.deftypes.charnearpointertype);
-        loadtype('char_farpointer',charfarpointertype);
+        loadtype('char_farpointer',compiler.deftypes.charfarpointertype);
         loadtype('char_hugepointer',charhugepointertype);
         loadtype('byte_farpointer',bytefarpointertype);
         loadtype('word_farpointer',wordfarpointertype);
