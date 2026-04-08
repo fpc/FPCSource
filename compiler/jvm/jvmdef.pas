@@ -680,6 +680,8 @@ implementation
 
     function jvmgetcorrespondingclassdef(def: tdef): tdef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         paradef: tdef;
       begin
         if def.typ in [orddef,floatdef] then

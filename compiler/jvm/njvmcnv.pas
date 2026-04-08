@@ -114,6 +114,8 @@ implementation
 *****************************************************************************}
 
     function isvalidprocvartypeconv(fromdef, todef: tdef): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         tmethoddef: tdef;
