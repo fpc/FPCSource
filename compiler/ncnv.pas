@@ -1182,7 +1182,7 @@ implementation
                         compiler.ccallparanode(
                           compiler.cordconstnode(
                             getparaencoding(resultdef),
-                            u16inttype,
+                            compiler.deftypes.u16inttype,
                             true
                           ),
                           compiler.ccallparanode(left,nil)
@@ -1316,7 +1316,7 @@ implementation
                               // hp:=compiler.cstringconstnode_str(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                               para:=compiler.ccallparanode(left,nil);
                               if tstringdef(resultdef).stringtype=st_ansistring then
-                                para:=compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),u16inttype,true),para);
+                                para:=compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),compiler.deftypes.u16inttype,true),para);
                               result:=compiler.ccallnode_internres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
                                 para,resultdef);
                               left:=nil;
@@ -1361,7 +1361,7 @@ implementation
                para:=compiler.ccallparanode(left,nil);
                { encoding required? }
                if tstringdef(resultdef).stringtype=st_ansistring then
-                 para:=compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),u16inttype,true),para);
+                 para:=compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),compiler.deftypes.u16inttype,true),para);
 
                { create the procname }
                if torddef(left.resultdef).ordtype<>uwidechar then
@@ -1390,9 +1390,9 @@ implementation
              end
            else
              begin
-               { use at least u16inttype }
+               { use at least compiler.deftypes.u16inttype }
 {$ifdef cpu8bitalu}
-               exprtype:=u16inttype;
+               exprtype:=compiler.deftypes.u16inttype;
 {$else cpu8bitalu}
                exprtype:=uinttype;
 {$endif cpu8bitalu}
@@ -1406,7 +1406,7 @@ implementation
                else
                  left := compiler.caddnode(orn,left,
                    compiler.cordconstnode(1 shl 8,exprtype,false));
-               left := compiler.ctypeconvnode_internal(left,u16inttype);
+               left := compiler.ctypeconvnode_internal(left,compiler.deftypes.u16inttype);
                typecheckpass(left);
              end;
       end;
@@ -1434,7 +1434,7 @@ implementation
                       compiler.ccallparanode(
                         compiler.cordconstnode(
                           tstringdef(resultdef).encoding,
-                          u16inttype,
+                          compiler.deftypes.u16inttype,
                           true
                         ),
                         compiler.ccallparanode(left,nil)
@@ -1815,7 +1815,7 @@ implementation
           result := compiler.ccallnode_internres(
                       'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
                       compiler.ccallparanode(
-                        compiler.cordconstnode(getparaencoding(resultdef),u16inttype,true),
+                        compiler.cordconstnode(getparaencoding(resultdef),compiler.deftypes.u16inttype,true),
                         compiler.ccallparanode(left,nil)
                       ),
                       resultdef
@@ -1894,7 +1894,7 @@ implementation
                          compiler.ccallparanode(
                            compiler.cordconstnode(
                              getparaencoding(resultdef),
-                             u16inttype,
+                             compiler.deftypes.u16inttype,
                              true
                            ),
                            compiler.ccallparanode(left,nil)
@@ -3837,7 +3837,7 @@ implementation
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and
                     (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit],int64(low(smallint)),high(word)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s16inttype,u16inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s16inttype,compiler.deftypes.u16inttype);
 {$endif defined(cpu16bitalu)}
 {$if defined(cpu8bitalu)}
                  if (resultdef.size<left.resultdef.size) and
@@ -4441,7 +4441,7 @@ implementation
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
                 (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
             result:=compiler.ccallnode_internres(procname,
-              compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),u16inttype,true),
+              compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),compiler.deftypes.u16inttype,true),
               compiler.ccallparanode(left,nil)),resultdef)
         else
           result:=compiler.ccallnode_internres(procname,compiler.ccallparanode(left,nil),resultdef);

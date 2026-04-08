@@ -1113,9 +1113,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
         { ??? (From Clang: always 0, pointer to some selector) }
         tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
         { From Clang: number of defined classes }
-        tcb.emit_ord_const(classsyms.count,u16inttype);
+        tcb.emit_ord_const(classsyms.count,compiler.deftypes.u16inttype);
         { From Clang: number of defined categories }
-        tcb.emit_ord_const(catsyms.count,u16inttype);
+        tcb.emit_ord_const(catsyms.count,compiler.deftypes.u16inttype);
         { first all classes }
         for i:=0 to classsyms.count-1 do
            tcb.emit_tai(Tai_const.Create_sym(tasmsymbol(classsyms[i])),tdef(classrttidefs[i]));

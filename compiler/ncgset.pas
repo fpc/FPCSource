@@ -329,7 +329,7 @@ implementation
            (tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase+1<=65536) then
            begin
              uopsize := OS_16;
-             uopdef := u16inttype;
+             uopdef := compiler.deftypes.u16inttype;
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S16;

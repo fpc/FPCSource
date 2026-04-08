@@ -126,7 +126,7 @@ implementation
            in_x86_inportw:
              begin
                CheckParameters(1);
-               resultdef:=u16inttype;
+               resultdef:=compiler.deftypes.u16inttype;
              end;
            in_x86_inportl:
              begin
@@ -151,7 +151,7 @@ implementation
            in_x86_get_fs,
            in_x86_get_gs:
 {$ifdef i8086}
-             resultdef:=u16inttype;
+             resultdef:=compiler.deftypes.u16inttype;
 {$else i8086}
              resultdef:=s32inttype;
 {$endif i8086}
@@ -481,7 +481,7 @@ implementation
            else
              begin
                hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
-               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u16inttype,portnumber.location,NR_DX);
+               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u16inttype,portnumber.location,NR_DX);
                hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_IN,dsize,NR_DX,dreg));
                hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
@@ -510,7 +510,7 @@ implementation
            else
              begin
                hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
-               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u16inttype,portnumber.location,NR_DX);
+               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u16inttype,portnumber.location,NR_DX);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OUT,dsize,dreg,NR_DX));
                hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
              end;
@@ -605,13 +605,13 @@ implementation
            in_x86_inportb:
              inport(NR_AL,S_B,compiler.deftypes.u8inttype);
            in_x86_inportw:
-             inport(NR_AX,S_W,u16inttype);
+             inport(NR_AX,S_W,compiler.deftypes.u16inttype);
            in_x86_inportl:
              inport(NR_EAX,S_L,s32inttype);
            in_x86_outportb:
              outport(NR_AL,S_B,compiler.deftypes.u8inttype);
            in_x86_outportw:
-             outport(NR_AX,S_W,u16inttype);
+             outport(NR_AX,S_W,compiler.deftypes.u16inttype);
            in_x86_outportl:
              outport(NR_EAX,S_L,s32inttype);
            in_x86_cli:

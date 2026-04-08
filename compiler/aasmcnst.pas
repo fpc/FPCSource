@@ -1460,7 +1460,7 @@ implementation
        begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
        string_symofs:=get_string_symofs(stringtype,false,compiler.target);
        { encoding }
-       emit_tai(tai_const.create_16bit(encoding),u16inttype);
+       emit_tai(tai_const.create_16bit(encoding),compiler.deftypes.u16inttype);
        inc(result.ofs,2);
        { element size }
        case stringtype of
@@ -1477,7 +1477,7 @@ implementation
          else
            internalerror(2014080401);
        end;
-       emit_tai(tai_const.create_16bit(elesize),u16inttype);
+       emit_tai(tai_const.create_16bit(elesize),compiler.deftypes.u16inttype);
        inc(result.ofs,2);
 {$ifdef cpu64bitaddr}
        emit_tai(tai_const.Create_32bit(-1),s32inttype);
@@ -1682,9 +1682,9 @@ implementation
          begin
            result:=crecorddef.create_global_internal('$'+name,1,1,acompiler);
            { encoding }
-           result.add_field_by_def('',u16inttype);
+           result.add_field_by_def('',acompiler.deftypes.u16inttype);
            { element size }
-           result.add_field_by_def('',u16inttype);
+           result.add_field_by_def('',acompiler.deftypes.u16inttype);
            { elements }
            case typ of
              st_ansistring:
@@ -1887,9 +1887,9 @@ implementation
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA1'));
        emit_tai(Tai_const.Create_32bit(longint(guid.D1)),u32inttype);
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA2'));
-       emit_tai(Tai_const.Create_16bit(guid.D2),u16inttype);
+       emit_tai(Tai_const.Create_16bit(guid.D2),compiler.deftypes.u16inttype);
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA3'));
-       emit_tai(Tai_const.Create_16bit(guid.D3),u16inttype);
+       emit_tai(Tai_const.Create_16bit(guid.D3),compiler.deftypes.u16inttype);
        field:=tfieldvarsym(rec_tguid.symtable.Find('DATA4'));
        next_field:=field;
        { the array }

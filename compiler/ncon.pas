@@ -1537,7 +1537,7 @@ implementation
               1:
                 tcb.emit_ord_const(byte(setval),compiler.deftypes.u8inttype);
               2:
-                tcb.emit_ord_const(word(setval),u16inttype);
+                tcb.emit_ord_const(word(setval),compiler.deftypes.u16inttype);
               4:
                 tcb.emit_ord_const(longword(setval),u32inttype);
               8:

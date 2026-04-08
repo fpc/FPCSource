@@ -701,7 +701,7 @@ implementation
 
                   if (tcgsize2size[right.location.size] < 2) or
                      (right.location.loc = LOC_CONSTANT) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u16inttype,true);
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u16inttype,true);
 
                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                   emit_const_reg(A_MOV,S_W,1,hreg);

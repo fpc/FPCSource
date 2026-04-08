@@ -647,7 +647,7 @@ implementation
                 datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
                   packrecords,1,
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-                datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
+                datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),compiler.deftypes.u16inttype);
                 for i:=0 to classtablelist.Count-1 do
                   begin
                     classdef:=tobjectdef(classtablelist[i]);
@@ -682,7 +682,7 @@ implementation
               reused }
             datatcb.begin_anonymous_record('',packrecords,1,
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-            datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
+            datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),compiler.deftypes.u16inttype);
             if classtable<>nil then
               datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef,compiler))
             else
@@ -716,7 +716,7 @@ implementation
                         classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                         if classindex=-1 then
                           internalerror(200611033);
-                        datatcb.emit_tai(Tai_const.Create_16bit(classindex+1),u16inttype);
+                        datatcb.emit_tai(Tai_const.Create_16bit(classindex+1),compiler.deftypes.u16inttype);
                         datatcb.emit_shortstring_const(tfieldvarsym(sym).realname);
                         datatcb.end_anonymous_record;
                       end;

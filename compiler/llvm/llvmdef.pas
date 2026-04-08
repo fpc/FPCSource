@@ -1159,7 +1159,7 @@ implementation
                 1:
                   retdeflist[i]:=compiler.deftypes.u8inttype;
                 2:
-                  retdeflist[i]:=u16inttype;
+                  retdeflist[i]:=compiler.deftypes.u16inttype;
                 3:
                   retdeflist[i]:=u24inttype;
                 4:

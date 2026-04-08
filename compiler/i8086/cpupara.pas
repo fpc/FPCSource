@@ -346,7 +346,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
 
                { bits 16..31 }
                paraloc:=result.add_location;
@@ -356,7 +356,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
 
                { bits 32..47 }
                paraloc:=result.add_location;
@@ -366,7 +366,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGHER_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
 
                { bits 48..63 }
                paraloc:=result.add_location;
@@ -376,7 +376,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGHEST_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
              end
             else if retcgsize in [OS_32,OS_S32] then
              begin
@@ -386,7 +386,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN32_LOW_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
 
                { high 16bits }
                paraloc:=result.add_location;
@@ -396,7 +396,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN32_HIGH_REG;
                paraloc^.size:=OS_16;
-               paraloc^.def:=u16inttype;
+               paraloc^.def:=compiler.deftypes.u16inttype;
              end
             else
              begin

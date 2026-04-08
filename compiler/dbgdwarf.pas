@@ -1236,7 +1236,7 @@ implementation
                   if (sign=DW_ATE_signed) then
                     basedef:=s16inttype
                   else
-                    basedef:=u16inttype;
+                    basedef:=compiler.deftypes.u16inttype;
                 3,4:
                   if (sign=DW_ATE_signed) then
                     basedef:=s32inttype
@@ -1532,7 +1532,7 @@ implementation
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s16inttype))
                else
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u16inttype));
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u16inttype));
             4:
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s32inttype))
@@ -1791,7 +1791,7 @@ implementation
               addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
 {$endif cpu32bitaddr}
 {$ifdef cpu16bitaddr}
-              addnormalstringdef('LongString',u16inttype,cardinal(1024));
+              addnormalstringdef('LongString',compiler.deftypes.u16inttype,cardinal(1024));
 {$endif cpu16bitaddr}
            end;
          st_ansistring:

@@ -374,7 +374,7 @@ implementation
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,hreg1);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,hreg1);
                 emit_reg(op,S_W,hreg1);
               end;
 
@@ -430,7 +430,7 @@ implementation
             { load right operators in a register }
             tmpreg64.reghi:=NR_NO;
             tmpreg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,tmpreg64.reglo);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,tmpreg64.reglo);
             if nodetype=shln then
               cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,tmpreg64,location.register64)
             else

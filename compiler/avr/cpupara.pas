@@ -527,7 +527,7 @@ unit cpupara;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
                 paraloc^.size:=OS_INT;
-                paraloc^.def:=u16inttype;
+                paraloc^.def:=compiler.deftypes.u16inttype;
               end;}
           end;
       end;

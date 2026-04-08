@@ -119,7 +119,7 @@ implementation
          hsym: tfieldvarsym;
        begin
          result := nil;
-         resultdef:=u16inttype;
+         resultdef:=compiler.deftypes.u16inttype;
 
          { don't allow constants }
          if is_constnode(left) then

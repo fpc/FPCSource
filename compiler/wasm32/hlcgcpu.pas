@@ -2885,7 +2885,7 @@ implementation
                 else if torddef(retdef).ordtype in [u8bit,uchar] then
                     convsize:=compiler.deftypes.u8inttype
                   else
-                    convsize:=u16inttype;
+                    convsize:=compiler.deftypes.u16inttype;
                 if assigned(convsize) then
                   resize_stack_int_val(list,s32inttype,convsize,false);
               end;

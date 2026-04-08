@@ -2127,6 +2127,8 @@ implementation
 
     procedure tllvmshadowsymtable.appenddefoffset(vardef:tdef; fieldoffset: aint; derefclass: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sizectr,
         tmpsize: aint;
       begin
@@ -2188,6 +2190,8 @@ implementation
 
 
     procedure tllvmshadowsymtable.addalignmentpadding(finalsize: aint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
           begin

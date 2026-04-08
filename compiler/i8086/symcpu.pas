@@ -577,7 +577,7 @@ implementation
           x86pt_near_es,
           x86pt_near_fs,
           x86pt_near_gs:
-            result:=u16inttype;
+            result:=compiler.deftypes.u16inttype;
         end;
       end;
 
@@ -588,7 +588,7 @@ implementation
           x86pt_huge:
             result:=s32inttype;
           x86pt_far:
-            result:=u16inttype;
+            result:=compiler.deftypes.u16inttype;
           x86pt_near,
           x86pt_near_cs,
           x86pt_near_ds,

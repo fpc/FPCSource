@@ -696,7 +696,7 @@ in_x86_pextrw_sse2
 : //out r0:r16;r1:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=u16inttype;
+    resultdef:=compiler.deftypes.u16inttype;
   end;
 in_x86_pinsrw_sse2
 ,in_x86_pinsrb

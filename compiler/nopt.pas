@@ -371,7 +371,7 @@ begin
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
                   tstringdef(p.resultdef).encoding,
-                  u16inttype,
+                  compiler.deftypes.u16inttype,
                   true
                 ),
                 para
@@ -407,7 +407,7 @@ begin
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
                   tstringdef(p.resultdef).encoding,
-                  u16inttype,
+                  compiler.deftypes.u16inttype,
                   true
                 ),
                 para

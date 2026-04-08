@@ -474,7 +474,7 @@ implementation
         { for ansistrings insert the encoding argument }
         if is_ansistring(dest.resultdef) then
           newparas:=compiler.ccallparanode(compiler.cordconstnode(
-            getparaencoding(dest.resultdef),u16inttype,true),newparas);
+            getparaencoding(dest.resultdef),compiler.deftypes.u16inttype,true),newparas);
 
         { free the errornode we generated in the beginning }
         result.free;
@@ -720,6 +720,8 @@ implementation
 
     procedure get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       ordtype: tordtype;
     begin
       ordtype := torddef(def).ordtype;
@@ -754,7 +756,7 @@ implementation
             u16bit :
               begin
                 func_suffix := 'word';
-                readfunctype:=u16inttype;
+                readfunctype:=compiler.deftypes.u16inttype;
               end;
             else
               internalerror(2013032602);
@@ -1190,7 +1192,7 @@ implementation
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
                     para:=compiler.ccallparanode(compiler.cordconstnode(
-                      getparaencoding(para.left.resultdef),u16inttype,true),para);
+                      getparaencoding(para.left.resultdef),compiler.deftypes.u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     compiler.ccallnode_intern(name,para));
@@ -2521,9 +2523,9 @@ implementation
                         in_hi_word :
                           result:=compiler.cordconstnode(tordconstnode(left).value shr 8,compiler.deftypes.u8inttype,true);
                         in_lo_long :
-                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffff,u16inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffff,compiler.deftypes.u16inttype,true);
                         in_hi_long :
-                          result:=compiler.cordconstnode(tordconstnode(left).value shr 16,u16inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 16,compiler.deftypes.u16inttype,true);
                         in_lo_qword :
                           result:=compiler.cordconstnode(tordconstnode(left).value and $ffffffff,u32inttype,true);
                         in_hi_qword :
@@ -2551,7 +2553,7 @@ implementation
                           uwidechar :
                             begin
                               { change to word() }
-                              result:=compiler.ctypeconvnode_internal(left,u16inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.u16inttype);
                               left:=nil;
                             end;
                           pasbool32 :
@@ -3413,7 +3415,7 @@ implementation
                       resultdef:=compiler.deftypes.u8inttype;
                     in_lo_long,
                     in_hi_long :
-                      resultdef:=u16inttype;
+                      resultdef:=compiler.deftypes.u16inttype;
                     in_lo_qword,
                     in_hi_qword :
                       resultdef:=u32inttype;
@@ -5297,7 +5299,7 @@ implementation
             newblock:=compiler.ccallnode_intern(
               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
               compiler.ccallparanode(
-                compiler.cordconstnode(getparaencoding(destppn.resultdef),u16inttype,true),
+                compiler.cordconstnode(getparaencoding(destppn.resultdef),compiler.deftypes.u16inttype,true),
                 paras
               )
             );

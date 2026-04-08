@@ -166,13 +166,13 @@ implementation
         alusinttype:=s32inttype;
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
-        sizeuinttype:=u16inttype;
+        sizeuinttype:=compiler.deftypes.u16inttype;
         sizesinttype:=s16inttype;
 {$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}
-        uinttype:=u16inttype;
+        uinttype:=compiler.deftypes.u16inttype;
         sinttype:=s16inttype;
-        aluuinttype:=u16inttype;
+        aluuinttype:=compiler.deftypes.u16inttype;
         alusinttype:=s16inttype;
 {$endif cpu16bitalu}
 {$ifdef cpu8bitalu}
@@ -204,7 +204,7 @@ implementation
         case compiler.deftypes.voidcodepointertype.size of
           2:
             begin
-              codeptruinttype:=u16inttype;
+              codeptruinttype:=compiler.deftypes.u16inttype;
               codeptrsinttype:=s16inttype;
             end;
           4:
@@ -223,7 +223,7 @@ implementation
         case compiler.deftypes.voidpointertype.size of
           2:
             begin
-              ptruinttype:=u16inttype;
+              ptruinttype:=compiler.deftypes.u16inttype;
               ptrsinttype:=s16inttype;
             end;
           4:
@@ -288,7 +288,7 @@ implementation
         compiler.deftypes.voidpointertype:=cpointerdef.create(compiler.deftypes.voidtype,compiler);
         compiler.deftypes.u8inttype:=corddef.create(u8bit,0,255,true,compiler);
         compiler.deftypes.s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
-        u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
+        compiler.deftypes.u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
         s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
         s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
         u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true,compiler);
@@ -443,7 +443,7 @@ implementation
         compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_far,compiler);
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_huge,compiler);
         compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.u8inttype,x86pt_far,compiler);
-        compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
+        compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.u16inttype,x86pt_far,compiler);
         compiler.deftypes.longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
   {$endif i8086}
         x86_m64type:=carraydef.create_vector(0,1,s32inttype,compiler);
@@ -559,7 +559,7 @@ implementation
 {$endif llvm}
         addtype('Byte',compiler.deftypes.u8inttype);
         addtype('ShortInt',compiler.deftypes.s8inttype);
-        addtype('Word',u16inttype);
+        addtype('Word',compiler.deftypes.u16inttype);
         addtype('SmallInt',s16inttype);
         addtype('LongWord',u32inttype);
         addtype('LongInt',s32inttype);
@@ -582,7 +582,7 @@ implementation
         addtype('$void_pointer',compiler.deftypes.voidpointertype);
         addtype('$byte',compiler.deftypes.u8inttype);
         addtype('$shortint',compiler.deftypes.s8inttype);
-        addtype('$word',u16inttype);
+        addtype('$word',compiler.deftypes.u16inttype);
         addtype('$smallint',s16inttype);
         addtype('$sint24',s24inttype);
         addtype('$uint24',u24inttype);
@@ -739,7 +739,7 @@ implementation
         compiler.set_current_module(nil);
         loadtype('byte',compiler.deftypes.u8inttype);
         loadtype('shortint',compiler.deftypes.s8inttype);
-        loadtype('word',u16inttype);
+        loadtype('word',compiler.deftypes.u16inttype);
         loadtype('smallint',s16inttype);
         loadtype('uint24',u24inttype);
         loadtype('sint24',s24inttype);

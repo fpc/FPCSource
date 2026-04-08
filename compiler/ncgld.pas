@@ -826,12 +826,12 @@ implementation
               begin
                 if right.nodetype=ordconstn then
                   begin
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(u16inttype,compiler),left.location.reference);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(compiler.deftypes.u16inttype,compiler),left.location.reference);
                     if (compiler.target.info.endian = endian_little) then
-                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
                     else
-                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,tordconstnode(right).value.svalue or (1 shl 8),
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u16inttype,tordconstnode(right).value.svalue or (1 shl 8),
                           setalignment(left.location.reference,1));
                   end
                 else

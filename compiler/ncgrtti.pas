@@ -273,12 +273,12 @@ implementation
         if not extended_rtti then
           begin
             maybe_add_comment(tcb,#9'count');
-            tcb.emit_ord_const(totalcount,u16inttype);
+            tcb.emit_ord_const(totalcount,compiler.deftypes.u16inttype);
             maybe_add_comment(tcb,#9'RTTI count');
             if rtticount=0 then
-              tcb.emit_ord_const($FFFF,u16inttype)
+              tcb.emit_ord_const($FFFF,compiler.deftypes.u16inttype)
             else
-              tcb.emit_ord_const(rtticount,u16inttype);
+              tcb.emit_ord_const(rtticount,compiler.deftypes.u16inttype);
           end;
 
         if rtticount>0 then
@@ -306,7 +306,7 @@ implementation
                     maybe_add_comment(tcb,#9'method kind');
                     write_methodkind(tcb,def);
                     maybe_add_comment(tcb,#9'param count');
-                    tcb.emit_ord_const(def.paras.count,u16inttype);
+                    tcb.emit_ord_const(def.paras.count,compiler.deftypes.u16inttype);
                     maybe_add_comment(tcb,#9'caller args size');
                     tcb.emit_ord_const(def.callerargareasize,sizesinttype);
                     maybe_add_comment(tcb,#9'invoke helper');
@@ -326,7 +326,7 @@ implementation
                         if st.defowner.typ=objectdef then
                           begin
                             maybe_add_comment(tcb,#9'VMT index');
-                            tcb.emit_ord_const(def.extnumber,u16inttype);
+                            tcb.emit_ord_const(def.extnumber,compiler.deftypes.u16inttype);
                           end;
                         maybe_add_comment(tcb,#9'Code Address');
                         tcb.emit_procdef_const(def);
@@ -474,7 +474,7 @@ implementation
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
                 loctcb.emit_ord_const(locs[i].loctype,compiler.deftypes.u8inttype);
                 loctcb.emit_ord_const(locs[i].regsub,compiler.deftypes.u8inttype);
-                loctcb.emit_ord_const(locs[i].regindex,u16inttype);
+                loctcb.emit_ord_const(locs[i].regindex,compiler.deftypes.u16inttype);
                 { the corresponding type for aint is alusinttype }
                 loctcb.emit_ord_const(locs[i].offset,alusinttype);
                 loctcb.end_anonymous_record;
@@ -537,7 +537,7 @@ implementation
         if (compiler.target.info.endian = endian_big) then
           paraspec:=reverse_word(paraspec);
         { write flags for current parameter }
-        tcb.emit_ord_const(paraspec,u16inttype);
+        tcb.emit_ord_const(paraspec,compiler.deftypes.u16inttype);
       end;
 
     procedure TRTTIWriter.write_param(tcb: ttai_typedconstbuilder;
@@ -821,7 +821,7 @@ implementation
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         { emit method count }
         maybe_add_comment(tcb,'RTTI Method table: method count');
-        tcb.emit_ord_const(methodcount,u16inttype);
+        tcb.emit_ord_const(methodcount,compiler.deftypes.u16inttype);
         { emit method entries (array) }
         if methodcount>0 then
           write_methods(tcb,def.symtable,true,def.rtti_visibilities_for_option(ro_methods));
@@ -860,7 +860,7 @@ implementation
         }
         tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_table]+tostr(list.count),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         maybe_add_comment(tcb,'RTTI: Extended Field count');
-        tcb.emit_ord_const(list.count,u16inttype);
+        tcb.emit_ord_const(list.count,compiler.deftypes.u16inttype);
         for i := 0 to list.count-1 do
           begin
             fldsym:=tfieldvarsym(list[i]);
@@ -1170,7 +1170,7 @@ implementation
               internalerror(200512201);
             if addcomments then
               tcb.emit_comment(#9'property index');
-            tcb.emit_ord_const(propnameitem.propindex,u16inttype);
+            tcb.emit_ord_const(propnameitem.propindex,compiler.deftypes.u16inttype);
             if addcomments then
               tcb.emit_comment(#9'proc types');
             tcb.emit_ord_const(proctypesinfo,compiler.deftypes.u8inttype);
@@ -1204,7 +1204,7 @@ implementation
           maybe_add_comment(tcb,'RTTI: Extended property data: Property count')
         else
           maybe_add_comment(tcb,'RTTI: Legacy property data: Property count');
-        tcb.emit_ord_const(properties_count(st),u16inttype);
+        tcb.emit_ord_const(properties_count(st),compiler.deftypes.u16inttype);
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -1287,7 +1287,7 @@ implementation
                   internaltypeprefixName[itp_rtti_case]+tostr(string_typekinds[def.stringtype]),
                   defaultpacking,reqalign,
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-                tcb.emit_ord_const(def.encoding,u16inttype);
+                tcb.emit_ord_const(def.encoding,compiler.deftypes.u16inttype);
                 tcb.end_anonymous_record;
               end;
 
@@ -2023,7 +2023,7 @@ implementation
             { total number of unique properties }
 
             maybe_add_comment(tcb,#9'Number of properties');
-            tcb.emit_ord_const(propnamelist.count,u16inttype);
+            tcb.emit_ord_const(propnamelist.count,compiler.deftypes.u16inttype);
 
             { write unit name }
 
@@ -2215,7 +2215,7 @@ implementation
       begin
         if length(attr.paras)=0 then
           begin
-            tbltcb.emit_tai(tai_const.Create_16bit(0),u16inttype);
+            tbltcb.emit_tai(tai_const.Create_16bit(0),compiler.deftypes.u16inttype);
             tbltcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
           end
         else
@@ -2254,7 +2254,7 @@ implementation
             argtcb := nil;
 
             { write argument size and the reference to the argument entry }
-            tbltcb.emit_ord_const(argdef.size,u16inttype);
+            tbltcb.emit_ord_const(argdef.size,compiler.deftypes.u16inttype);
             tbltcb.emit_tai(Tai_const.Create_sym(arglab),compiler.deftypes.voidpointertype);
           end;
       end;
@@ -2287,7 +2287,7 @@ implementation
         internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
         defaultpacking,min(reqalign,SizeOf(PInt)),
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-      tbltcb.emit_ord_const(count,u16inttype);
+      tbltcb.emit_ord_const(count,compiler.deftypes.u16inttype);
       for i:=0 to count-1 do
         begin
           tbltcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_attr_entry],defaultpacking,min(reqalign,SizeOf(PInt)),

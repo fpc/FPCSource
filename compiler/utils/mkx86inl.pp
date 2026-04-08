@@ -142,7 +142,7 @@ function GetTypeDef(const ATyp: string): string;
     case ATyp of
       'r8':    exit('compiler.deftypes.u8inttype');
       'rs8':   exit('compiler.deftypes.s8inttype');
-      'r16':   exit('u16inttype');
+      'r16':   exit('compiler.deftypes.u16inttype');
       'rs16':  exit('s16inttype');
       'r32':   exit('u32inttype');
       'rs32':  exit('s32inttype');
@@ -269,8 +269,8 @@ function GetLocStatement(AIndex: longint; const ATyp: string; AConst: boolean): 
     case ATyp of
       'r8':    exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u8inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'rs8':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u8inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
-      'r16':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,u16inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
-      'rs16':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,u16inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
+      'r16':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u16inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
+      'rs16':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u16inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'r32':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,u32inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'rs32':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,u32inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'r64':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,u64inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));

@@ -1120,7 +1120,7 @@ implementation
                      if sizeleft>=2 then
                        begin
                          tmpreg:=getintregister(list,location^.def);
-                         a_load_ref_reg(list,u16inttype,location^.def,tmpref,tmpreg);
+                         a_load_ref_reg(list,compiler.deftypes.u16inttype,location^.def,tmpref,tmpreg);
                          dec(sizeleft,2);
                          if reghasvalue then
                            begin

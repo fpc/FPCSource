@@ -1184,7 +1184,8 @@ interface
          llvmbool1type,             { LLVM i1 type }
 {$endif llvm}
          u8inttype,                 { 8-Bit unsigned integer }
-         s8inttype: tdef;           { 8-Bit signed integer }
+         s8inttype,                 { 8-Bit signed integer }
+         u16inttype: tdef;          { 16-Bit unsigned integer }
        end;
 
 
@@ -1211,7 +1212,6 @@ interface
 
 
     { default types }
-       u16inttype,                { 16-Bit unsigned integer }
        s16inttype,                { 16-Bit signed integer }
        u24inttype,                { 24-Bit unsigned integer }
        s24inttype,                { 24-Bit signed integer }
@@ -1570,7 +1570,7 @@ implementation
         result:=crecorddef.create_global_internal(
           name,sizeof(pint),sizeof(pint),compiler);
 {$ifdef cpu16bitaddr}
-        index_field:=result.add_field_by_def('',u16inttype);
+        index_field:=result.add_field_by_def('',compiler.deftypes.u16inttype);
 {$else cpu16bitaddr}
         index_field:=result.add_field_by_def('',u32inttype);
 {$endif cpu16bitaddr}
@@ -9784,7 +9784,7 @@ implementation
 {$endif llvm}
        compiler.deftypes.u8inttype:=nil;                 { 8-Bit unsigned integer }
        compiler.deftypes.s8inttype:=nil;                 { 8-Bit signed integer }
-       u16inttype:=nil;                { 16-Bit unsigned integer }
+       compiler.deftypes.u16inttype:=nil;                { 16-Bit unsigned integer }
        s16inttype:=nil;                { 16-Bit signed integer }
        u24inttype:=nil;                { 24-Bit unsigned integer }
        s24inttype:=nil;                { 24-Bit signed integer }

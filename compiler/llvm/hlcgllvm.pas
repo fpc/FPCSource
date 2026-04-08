@@ -1193,7 +1193,7 @@ implementation
           if signed then
             calcsize:=s16inttype
           else
-            calcsize:=u16inttype;
+            calcsize:=compiler.deftypes.u16inttype;
         2:
           if signed then
             calcsize:=s32inttype

@@ -1747,7 +1747,7 @@ const
                            1:
                              inttype:=compiler.deftypes.u8inttype;
                            2:
-                             inttype:=u16inttype;
+                             inttype:=compiler.deftypes.u16inttype;
                            4:
                              inttype:=u32inttype;
                            8:
@@ -3535,7 +3535,7 @@ const
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
                               tstringdef(resultdef).encoding,
-                              u16inttype,
+                              compiler.deftypes.u16inttype,
                               true
                             ),
                             para
@@ -3575,7 +3575,7 @@ const
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
                               tstringdef(resultdef).encoding,
-                              u16inttype,
+                              compiler.deftypes.u16inttype,
                               true
                             ),
                             para

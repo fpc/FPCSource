@@ -945,7 +945,7 @@ interface
                   { maybe we can reuse a constant register when the
                     operation is a comparison that doesn't change the
                     value of the register }
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u16inttype,true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u16inttype,true);
                 end;
               end;
 
