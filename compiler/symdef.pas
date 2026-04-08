@@ -1173,7 +1173,8 @@ interface
          cchartype,                 { either cansichartype or cwidechartype. Do not free }
          pasbool1type,              { boolean type }
          pasbool8type,
-         pasbool16type: tdef;
+         pasbool16type,
+         pasbool32type: tdef;
        end;
 
 
@@ -1200,7 +1201,6 @@ interface
 
 
     { default types }
-       pasbool32type,
        pasbool64type,
        bool8type,
        bool16type,
@@ -9773,7 +9773,7 @@ implementation
        compiler.deftypes.pasbool1type:=nil;              { boolean type }
        compiler.deftypes.pasbool8type:=nil;
        compiler.deftypes.pasbool16type:=nil;
-       pasbool32type:=nil;
+       compiler.deftypes.pasbool32type:=nil;
        pasbool64type:=nil;
        bool8type:=nil;
        bool16type:=nil;

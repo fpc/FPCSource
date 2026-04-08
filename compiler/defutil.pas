@@ -1522,7 +1522,7 @@ implementation
                  pasbool16:
                    result:=compiler.deftypes.pasbool16type;
                  pasbool32:
-                   result:=pasbool32type;
+                   result:=compiler.deftypes.pasbool32type;
                  pasbool64:
                    result:=pasbool64type;
                  bool8bit:

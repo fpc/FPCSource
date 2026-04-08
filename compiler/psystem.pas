@@ -311,7 +311,7 @@ implementation
         compiler.deftypes.pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
         compiler.deftypes.pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
         compiler.deftypes.pasbool16type:=corddef.create(pasbool16,0,1,true,compiler);
-        pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
+        compiler.deftypes.pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
         pasbool64type:=corddef.create(pasbool64,0,1,true,compiler);
         bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
         bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
@@ -548,7 +548,7 @@ implementation
         addtype('Boolean',compiler.deftypes.pasbool1type);
         addtype('Boolean8',compiler.deftypes.pasbool8type);
         addtype('Boolean16',compiler.deftypes.pasbool16type);
-        addtype('Boolean32',pasbool32type);
+        addtype('Boolean32',compiler.deftypes.pasbool32type);
         addtype('Boolean64',pasbool64type);
         addtype('ByteBool',bool8type);
         addtype('WordBool',bool16type);
@@ -609,7 +609,7 @@ implementation
         addtype('$boolean',compiler.deftypes.pasbool1type);
         addtype('$boolean8',compiler.deftypes.pasbool8type);
         addtype('$boolean16',compiler.deftypes.pasbool16type);
-        addtype('$boolean32',pasbool32type);
+        addtype('$boolean32',compiler.deftypes.pasbool32type);
         addtype('$boolean64',pasbool64type);
         addtype('$bytebool',bool8type);
         addtype('$wordbool',bool16type);
@@ -780,7 +780,7 @@ implementation
         loadtype('boolean',compiler.deftypes.pasbool1type);
         loadtype('boolean8',compiler.deftypes.pasbool8type);
         loadtype('boolean16',compiler.deftypes.pasbool16type);
-        loadtype('boolean32',pasbool32type);
+        loadtype('boolean32',compiler.deftypes.pasbool32type);
         loadtype('boolean64',pasbool64type);
         loadtype('bytebool',bool8type);
         loadtype('wordbool',bool16type);
