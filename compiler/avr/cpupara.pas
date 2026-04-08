@@ -348,7 +348,7 @@ unit cpupara;
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.size:=OS_8;
-                            paraloc^.def:=u8inttype;
+                            paraloc^.def:=compiler.deftypes.u8inttype;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end
@@ -469,7 +469,7 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=reg;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
                       if reg<>NR_R25 then
                         paraloc:=result.add_location;
                     end;
@@ -481,7 +481,7 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=reg;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
                       if reg<>NR_R25 then
                         paraloc:=result.add_location;
                     end;
@@ -491,20 +491,20 @@ unit cpupara;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_R24;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_R25;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
                 end;
               OS_8,OS_S8:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_R24;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
                 end;
               else
                 internalerror(2014030101);

@@ -101,7 +101,7 @@ implementation
            begin
              seg_node:=geninlinenode(in_seg_x,false,left.getcopy,compiler);
              inserttypeconv_internal(seg_node,u32inttype,compiler);
-             seg_node:=compiler.cshlshrnode(shln,seg_node,compiler.cordconstnode(16,u8inttype,false));
+             seg_node:=compiler.cshlshrnode(shln,seg_node,compiler.cordconstnode(16,compiler.deftypes.u8inttype,false));
              inserttypeconv_internal(addr_node,u32inttype,compiler);
              left:=nil;
              result:=compiler.caddnode(addn,seg_node,addr_node);

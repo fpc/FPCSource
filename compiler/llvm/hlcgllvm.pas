@@ -1750,7 +1750,7 @@ implementation
         size for extended, which is usually larger) into an extended }
       if (llvmfield.def.typ=floatdef) and
          (tfloatdef(llvmfield.def).floattype=s80real) then
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10,compiler),compiler),cpointerdef.getreusable(s80floattype,compiler),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.u8inttype,10,compiler),compiler),cpointerdef.getreusable(s80floattype,compiler),recref);
       { if it doesn't match the requested field exactly (variant record),
         adjust the type of the pointer }
       if (field.offsetfromllvmfield<>0) or

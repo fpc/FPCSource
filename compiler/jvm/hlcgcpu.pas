@@ -744,7 +744,7 @@ implementation
                 case tstringdef(elemdef).stringtype of
                   st_shortstring:
                     begin
-                      a_load_const_stack_intern(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER,true);
+                      a_load_const_stack_intern(list,compiler.deftypes.u8inttype,tstringdef(elemdef).len,R_INTREGISTER,true);
                       g_call_system_proc(list,'fpc_initialize_array_shortstring',[],nil);
                     end;
                   st_ansistring:
@@ -2271,7 +2271,7 @@ implementation
                   else
                     convsize:=s16inttype
                 else if torddef(retdef).ordtype in [u8bit,uchar] then
-                    convsize:=u8inttype
+                    convsize:=compiler.deftypes.u8inttype
                   else
                     convsize:=u16inttype;
                 if assigned(convsize) then

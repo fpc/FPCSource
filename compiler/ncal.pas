@@ -521,12 +521,12 @@ implementation
             restype:=getvardef(resultdef)
           else
             restype:=0;
-          tcb.emit_ord_const(restype,u8inttype);
+          tcb.emit_ord_const(restype,compiler.deftypes.u8inttype);
         end;
 
-        tcb.emit_ord_const(calltypes[calltype],u8inttype);
-        tcb.emit_ord_const(paracount,u8inttype);
-        tcb.emit_ord_const(namedparacount,u8inttype);
+        tcb.emit_ord_const(calltypes[calltype],compiler.deftypes.u8inttype);
+        tcb.emit_ord_const(paracount,compiler.deftypes.u8inttype);
+        tcb.emit_ord_const(namedparacount,compiler.deftypes.u8inttype);
 
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
@@ -539,7 +539,7 @@ implementation
             if para.left.nodetype=nothingn then
             begin
               if variantdispatch then
-                tcb.emit_ord_const(varError,u8inttype);
+                tcb.emit_ord_const(varError,compiler.deftypes.u8inttype);
               para:=tcallparanode(para.nextpara);
               continue;
             end;
@@ -571,7 +571,7 @@ implementation
                 compiler.ctypeconvnode_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(compiler.deftypes.voidpointertype.size,assignmenttype.size));
-            tcb.emit_ord_const(restype,u8inttype);
+            tcb.emit_ord_const(restype,compiler.deftypes.u8inttype);
 
             para.left:=nil;
             para:=tcallparanode(para.nextpara);
@@ -943,7 +943,7 @@ implementation
                 { don't increase/decrease the reference count here, will be done by
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
-                temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size,compiler);
+                temparraydef:=carraydef.getreusable(compiler.deftypes.u8inttype,left.resultdef.size,compiler);
                 paratemp:=compiler.ctempcreatenode(temparraydef,temparraydef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,

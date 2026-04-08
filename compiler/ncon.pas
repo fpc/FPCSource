@@ -1535,7 +1535,7 @@ implementation
               setval:=setval shr (32-resultdef.size*8);
             case resultdef.size of
               1:
-                tcb.emit_ord_const(byte(setval),u8inttype);
+                tcb.emit_ord_const(byte(setval),compiler.deftypes.u8inttype);
               2:
                 tcb.emit_ord_const(word(setval),u16inttype);
               4:
@@ -1550,10 +1550,10 @@ implementation
           begin
             if (source_info.endian=compiler.target.info.endian) then
               for i:=0 to resultdef.size-1 do
-                tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
+                tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),compiler.deftypes.u8inttype)
             else
               for i:=0 to resultdef.size-1 do
-                tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
+                tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),compiler.deftypes.u8inttype);
           end;
         result:=resultdef.size;
       end;

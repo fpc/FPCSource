@@ -629,14 +629,14 @@ implementation
               if slen=0 then
                 slen:=255;
               charst:=def_stab_number(compiler.deftypes.cansichartype);
-              bytest:=def_stab_number(u8inttype);
+              bytest:=def_stab_number(compiler.deftypes.u8inttype);
               ss:=def_stabstr_evaluate(def,'s$1length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
                           [tostr(slen+1),bytest,tostr(slen),charst,tostr(slen*8)]);
             end;
           st_longstring:
             begin
               charst:=def_stab_number(compiler.deftypes.cansichartype);
-              bytest:=def_stab_number(u8inttype);
+              bytest:=def_stab_number(compiler.deftypes.u8inttype);
               longst:=def_stab_number(u32inttype);
               ss:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                           [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
@@ -796,13 +796,13 @@ implementation
                                  '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;32;$3,384,256;'+
                                  'NAME:ar$1;0;255;$4,640,2048;;',[def_stab_number(s32inttype),
                                  def_stab_number(s64inttype),
-                                 def_stab_number(u8inttype),
+                                 def_stab_number(compiler.deftypes.u8inttype),
                                  def_stab_number(compiler.deftypes.cansichartype)]);
 {$else cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
                                  '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;32;$2,352,256;'+
                                  'NAME:ar$1;0;255;$3,608,2048;;',[def_stab_number(s32inttype),
-                                 def_stab_number(u8inttype),
+                                 def_stab_number(compiler.deftypes.u8inttype),
                                  def_stab_number(compiler.deftypes.cansichartype)]);
 {$endif cpu64bitaddr}
         write_def_stabstr(list,def,ss);
@@ -1018,7 +1018,7 @@ implementation
               else
                 begin
                   appenddef(list,compiler.deftypes.cansichartype);
-                  appenddef(list,u8inttype);
+                  appenddef(list,compiler.deftypes.u8inttype);
                 end;
             end;
           floatdef :
@@ -1029,7 +1029,7 @@ implementation
 {$ifdef cpu64bitaddr}
               appenddef(list,s64inttype);
 {$endif cpu64bitaddr}
-              appenddef(list,u8inttype);
+              appenddef(list,compiler.deftypes.u8inttype);
               appenddef(list,compiler.deftypes.cansichartype);
             end;
           classrefdef :

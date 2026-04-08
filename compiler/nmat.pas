@@ -638,13 +638,13 @@ implementation
                       masknode:=
                         compiler.cshlshrnode(shrn,
                           compiler.ctemprefnode(temp),
-                          compiler.cordconstnode(shiftval,u8inttype,false)
+                          compiler.cordconstnode(shiftval,compiler.deftypes.u8inttype,false)
                         )
                     else
                       masknode:=
                         compiler.caddnode(andn,
                           compiler.cinlinenode(in_sar_x_y,false,
-                            compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
+                            compiler.ccallparanode(compiler.cordconstnode(shiftval,compiler.deftypes.u8inttype,false),
                             compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                           ),
                           compiler.cordconstnode(tcgint((qword(1) shl power)-1),
@@ -655,7 +655,7 @@ implementation
                       addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(resulttemp),
                         compiler.cunaryminusnode(
                           compiler.cinlinenode(in_sar_x_y,false,
-                            compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
+                            compiler.ccallparanode(compiler.cordconstnode(power,compiler.deftypes.u8inttype,false),
                             compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                               masknode),nil
                             )))))
@@ -663,7 +663,7 @@ implementation
                     else
                       addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(resulttemp),
                         compiler.cinlinenode(in_sar_x_y,false,
-                          compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
+                          compiler.ccallparanode(compiler.cordconstnode(power,compiler.deftypes.u8inttype,false),
                           compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                             masknode),nil
                           ))))
@@ -699,13 +699,13 @@ implementation
                   masknode:=
                     compiler.cshlshrnode(shrn,
                       compiler.ctemprefnode(temp),
-                      compiler.cordconstnode(shiftval,u8inttype,false)
+                      compiler.cordconstnode(shiftval,compiler.deftypes.u8inttype,false)
                     )
                 else
                   masknode:=
                     compiler.caddnode(andn,
                       compiler.cinlinenode(in_sar_x_y,false,
-                        compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
+                        compiler.ccallparanode(compiler.cordconstnode(shiftval,compiler.deftypes.u8inttype,false),
                         compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                       ),
                       compiler.cordconstnode(tcgint((qword(1) shl power)-1),

@@ -285,7 +285,7 @@ implementation
                          if (p.location.sref.bitindexreg=NR_NO) and (p.location.sref.bitlen=1) then
                            begin
                              tmpreg:=cg.getintregister(list,OS_INT);
-                             hlcg.a_load_ref_reg(list,u8inttype,osuinttype,p.location.sref.ref,tmpreg);
+                             hlcg.a_load_ref_reg(list,compiler.deftypes.u8inttype,osuinttype,p.location.sref.ref,tmpreg);
 
                              if compiler.target.info.endian=endian_big then
                                hlcg.a_op_const_reg_reg(list,OP_AND,osuinttype,1 shl (8-(p.location.sref.startbit+1)),tmpreg,tmpreg)

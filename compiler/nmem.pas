@@ -1263,7 +1263,7 @@ implementation
                end;
              stringdef:
                if is_open_string(left.resultdef) then
-                 inserttypeconv(right,u8inttype,compiler)
+                 inserttypeconv(right,compiler.deftypes.u8inttype,compiler)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
                  inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true,compiler),compiler)

@@ -131,7 +131,7 @@ implementation
           10 bytes) }
         if (resultdef.typ=floatdef) and
            (tfloatdef(resultdef).floattype=s80real) then
-          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(u8inttype,10,compiler),compiler)
+          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.u8inttype,10,compiler),compiler)
         else
           arrptrelementdef:=cpointerdef.getreusable(resultdef,compiler);
       end;
@@ -183,7 +183,7 @@ implementation
           packedloadsize:=packedbitsloadsize(tarraydef(left.resultdef).elementdef.packedbitsize);
           arrptrelementdef:=cpointerdef.getreusable(cgsize_orddef(int_cgsize(packedloadsize)),compiler);
           hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-            cpointerdef.getreusable(u8inttype,compiler),
+            cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),
             arrptrelementdef,
             locref^);
         end;

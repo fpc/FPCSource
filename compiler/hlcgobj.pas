@@ -1143,7 +1143,7 @@ implementation
                      if sizeleft=1 then
                        begin
                          tmpreg:=getintregister(list,location^.def);
-                         a_load_ref_reg(list,u8inttype,location^.def,tmpref,tmpreg);
+                         a_load_ref_reg(list,compiler.deftypes.u8inttype,location^.def,tmpref,tmpreg);
                          dec(sizeleft,1);
                          if reghasvalue then
                            begin
@@ -1878,8 +1878,8 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize,compiler),cpointerdef.getreusable(u8inttype,compiler),href);
-      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,href),destreg);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize,compiler),cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),href);
+      a_load_subsetref_reg(list,compiler.deftypes.u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,href),destreg);
     end;
 
   procedure thlcgobj.a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: aint; setreg, destreg: tregister);
@@ -1907,8 +1907,8 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,cpointerdef.getreusable(refsize,compiler),cpointerdef.getreusable(u8inttype,compiler),href);
-      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_reg_ref_sref(list,bitnumbersize,refsize,bitnumber,href),destreg);
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(refsize,compiler),cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),href);
+      a_load_subsetref_reg(list,compiler.deftypes.u8inttype,destsize,get_bit_reg_ref_sref(list,bitnumbersize,refsize,bitnumber,href),destreg);
     end;
 
   procedure thlcgobj.a_bit_test_reg_loc_reg(list: TAsmList; bitnumbersize, locsize, destsize: tdef; bitnumber: tregister; const loc: tlocation; destreg: tregister);
@@ -1995,14 +1995,14 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,cpointerdef.getreusable(destsize,compiler),cpointerdef.getreusable(u8inttype,compiler),href);
-      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,href));
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(destsize,compiler),cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),href);
+      a_load_const_subsetref(list,compiler.deftypes.u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,href));
     end;
 
   procedure thlcgobj.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
     begin
-      g_ptrtypecast_reg(list,cpointerdef.getreusable(destsize,compiler),cpointerdef.getreusable(u8inttype,compiler),destreg);
-      a_load_const_subsetreg(list,u8inttype,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
+      g_ptrtypecast_reg(list,cpointerdef.getreusable(destsize,compiler),cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),destreg);
+      a_load_const_subsetreg(list,compiler.deftypes.u8inttype,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
     end;
 
   procedure thlcgobj.a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const destreg: tsubsetregister);
@@ -2017,7 +2017,7 @@ implementation
       tmpsreg.subsetregsize:=destreg.subsetregsize;
       { correct offset of the set in the subsetreg }
       inc(tmpsreg.startbit,destreg.startbit);
-      a_load_const_subsetreg(list,u8inttype,ord(doset),tmpsreg);
+      a_load_const_subsetreg(list,compiler.deftypes.u8inttype,ord(doset),tmpsreg);
     end;
 
   procedure thlcgobj.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
@@ -2025,8 +2025,8 @@ implementation
       href: treference;
     begin
       href:=ref;
-      g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize,compiler),cpointerdef.getreusable(u8inttype,compiler),href);
-      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,href));
+      g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize,compiler),cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler),href);
+      a_load_const_subsetref(list,compiler.deftypes.u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,href));
     end;
 
   procedure thlcgobj.a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);

@@ -98,7 +98,7 @@ unit navrinl;
           in_avr_save:
             begin
               CheckParameters(0);
-              resultdef:=u8inttype;
+              resultdef:=compiler.deftypes.u8inttype;
             end;
           in_avr_restore:
             begin
@@ -145,7 +145,7 @@ unit navrinl;
           in_avr_save:
             begin
               expectloc:=LOC_REGISTER;
-              resultdef:=u8inttype;
+              resultdef:=compiler.deftypes.u8inttype;
             end;
           else
             Result:=inherited first_cpu;

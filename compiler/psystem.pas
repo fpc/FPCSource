@@ -176,9 +176,9 @@ implementation
         alusinttype:=s16inttype;
 {$endif cpu16bitalu}
 {$ifdef cpu8bitalu}
-        uinttype:=u8inttype;
+        uinttype:=compiler.deftypes.u8inttype;
         sinttype:=s8inttype;
-        aluuinttype:=u8inttype;
+        aluuinttype:=compiler.deftypes.u8inttype;
         alusinttype:=s8inttype;
 {$endif cpu8bitalu}
 
@@ -286,7 +286,7 @@ implementation
         compiler.deftypes.ctypedformaltype:=cformaldef.create(true,compiler);
         compiler.deftypes.voidtype:=corddef.create(uvoid,0,0,true,compiler);
         compiler.deftypes.voidpointertype:=cpointerdef.create(compiler.deftypes.voidtype,compiler);
-        u8inttype:=corddef.create(u8bit,0,255,true,compiler);
+        compiler.deftypes.u8inttype:=corddef.create(u8bit,0,255,true,compiler);
         s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
         s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
@@ -442,7 +442,7 @@ implementation
         compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_near,compiler);
         compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_far,compiler);
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_huge,compiler);
-        compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
+        compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.u8inttype,x86pt_far,compiler);
         compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
         compiler.deftypes.longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
   {$endif i8086}
@@ -557,7 +557,7 @@ implementation
 {$ifdef llvm}
         addtype('LLVMBool1',compiler.deftypes.llvmbool1type);
 {$endif llvm}
-        addtype('Byte',u8inttype);
+        addtype('Byte',compiler.deftypes.u8inttype);
         addtype('ShortInt',s8inttype);
         addtype('Word',u16inttype);
         addtype('SmallInt',s16inttype);
@@ -580,7 +580,7 @@ implementation
         addtype('$typedformal',compiler.deftypes.ctypedformaltype);
         addtype('$void',compiler.deftypes.voidtype);
         addtype('$void_pointer',compiler.deftypes.voidpointertype);
-        addtype('$byte',u8inttype);
+        addtype('$byte',compiler.deftypes.u8inttype);
         addtype('$shortint',s8inttype);
         addtype('$word',u16inttype);
         addtype('$smallint',s16inttype);
@@ -737,7 +737,7 @@ implementation
 
         oldcurrentmodule:=compiler.current_module;
         compiler.set_current_module(nil);
-        loadtype('byte',u8inttype);
+        loadtype('byte',compiler.deftypes.u8inttype);
         loadtype('shortint',s8inttype);
         loadtype('word',u16inttype);
         loadtype('smallint',s16inttype);

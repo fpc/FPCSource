@@ -981,7 +981,7 @@ implementation
             not ispowerof2(def.elementdef.packedbitsize div 8,power)) then
           begin
             { for now just encode as an array of bytes }
-            appenddef_array_internal(list,def,u8inttype,0,def.size-1);
+            appenddef_array_internal(list,def,compiler.deftypes.u8inttype,0,def.size-1);
             exit;
           end;
 
@@ -1386,7 +1386,7 @@ implementation
         case def.stringtype of
           st_shortstring:
             begin
-              addnormalstringdef('ShortString',u8inttype,255);
+              addnormalstringdef('ShortString',compiler.deftypes.u8inttype,255);
             end;
           st_longstring:
             begin
@@ -1535,7 +1535,7 @@ implementation
 
     procedure TDebugInfoLLVM.appenddef_set(list: TAsmList; def: tsetdef);
       begin
-        appenddef_array_internal(list,def,u8inttype,0,def.size-1);
+        appenddef_array_internal(list,def,compiler.deftypes.u8inttype,0,def.size-1);
       end;
 
 

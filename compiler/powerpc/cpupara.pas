@@ -585,7 +585,7 @@ unit cpupara;
                              if paraloc^.size<>OS_NO then
                                paraloc^.def:=cgsize_orddef(paraloc^.size)
                              else
-                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen,compiler);
+                               paraloc^.def:=carraydef.getreusable_no_free(compiler.deftypes.u8inttype,paralen,compiler);
                            end;
                          else
                            internalerror(2006011101);

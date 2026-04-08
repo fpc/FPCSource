@@ -321,7 +321,7 @@ implementation
                       begin
                         { write visibility section for extended RTTI }
                         maybe_add_comment(tcb,#9'visibility');
-                        tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),u8inttype);
+                        tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),compiler.deftypes.u8inttype);
                         { for objects and classes write a VMT index }
                         if st.defowner.typ=objectdef then
                           begin
@@ -367,7 +367,7 @@ implementation
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         if def.typ=arraydef then
           InternalError(201012211);
-        tcb.emit_tai(Tai_const.Create_8bit(typekind),u8inttype);
+        tcb.emit_tai(Tai_const.Create_8bit(typekind),compiler.deftypes.u8inttype);
         tcb.emit_shortstring_const(name);
 
         tcb.end_anonymous_record;
@@ -400,7 +400,7 @@ implementation
               result:=mkFunction;
           end;
         end;
-        tcb.emit_ord_const(result,u8inttype);
+        tcb.emit_ord_const(result,compiler.deftypes.u8inttype);
       end;
 
 
@@ -429,7 +429,7 @@ implementation
          { pocall_vectorcall }       18
         );
       begin
-        tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);
+        tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],compiler.deftypes.u8inttype);
       end;
 
 
@@ -467,13 +467,13 @@ implementation
 
             loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-            loctcb.emit_ord_const(length(locs),u8inttype);
+            loctcb.emit_ord_const(length(locs),compiler.deftypes.u8inttype);
             for i:=low(locs) to high(locs) do
               begin
                 loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-                loctcb.emit_ord_const(locs[i].loctype,u8inttype);
-                loctcb.emit_ord_const(locs[i].regsub,u8inttype);
+                loctcb.emit_ord_const(locs[i].loctype,compiler.deftypes.u8inttype);
+                loctcb.emit_ord_const(locs[i].regsub,compiler.deftypes.u8inttype);
                 loctcb.emit_ord_const(locs[i].regindex,u16inttype);
                 { the corresponding type for aint is alusinttype }
                 loctcb.emit_ord_const(locs[i].offset,alusinttype);
@@ -882,7 +882,7 @@ implementation
             else
               tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),compiler.deftypes.voidpointertype);
             { FieldVisibility }
-            tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),u8inttype);
+            tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),compiler.deftypes.u8inttype);
             { Name }
             tcb.emit_pooled_shortstring_const_ref(fldsym.realname);
             { Attribute table }
@@ -1173,7 +1173,7 @@ implementation
             tcb.emit_ord_const(propnameitem.propindex,u16inttype);
             if addcomments then
               tcb.emit_comment(#9'proc types');
-            tcb.emit_ord_const(proctypesinfo,u8inttype);
+            tcb.emit_ord_const(proctypesinfo,compiler.deftypes.u8inttype);
             if addcomments then
               tcb.emit_comment(#9'is static prop');
             tcb.emit_ord_const(ord(sp_static in sym.symoptions),compiler.deftypes.pasbool1type);
@@ -1227,7 +1227,7 @@ implementation
                     { write visiblity flags for extended RTTI }
                     maybe_add_comment(tcb,#9'visibility flags');
                     visbyte:=byte(visibility_to_rtti_flags(sym.visibility));
-                    tcb.emit_ord_const(visByte,u8inttype);
+                    tcb.emit_ord_const(visByte,compiler.deftypes.u8inttype);
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
                     tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
@@ -1257,7 +1257,7 @@ implementation
 
         procedure unknown_rtti(def:tstoreddef);
         begin
-          tcb.emit_ord_const(tkUnknown,u8inttype);
+          tcb.emit_ord_const(tkUnknown,compiler.deftypes.u8inttype);
           write_rtti_name(tcb,def);
           write_common_rtti_data(tcb,def,rt);
         end;
@@ -1297,7 +1297,7 @@ implementation
                   internaltypeprefixName[itp_rtti_case]+tostr(string_typekinds[def.stringtype]),
                   defaultpacking,reqalign,
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-                tcb.emit_ord_const(def.len,u8inttype);
+                tcb.emit_ord_const(def.len,compiler.deftypes.u8inttype);
                 tcb.end_anonymous_record;
               end;
 
@@ -1331,11 +1331,11 @@ implementation
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           case longint(def.size) of
             1 :
-              tcb.emit_ord_const(otUByte,u8inttype);
+              tcb.emit_ord_const(otUByte,compiler.deftypes.u8inttype);
             2 :
-              tcb.emit_ord_const(otUWord,u8inttype);
+              tcb.emit_ord_const(otUWord,compiler.deftypes.u8inttype);
             4 :
-              tcb.emit_ord_const(otULong,u8inttype);
+              tcb.emit_ord_const(otULong,compiler.deftypes.u8inttype);
           end;
           { we need to align by Tconstptruint here to satisfy the alignment
             rules set by records: in the typinfo unit we overlay a TTypeData
@@ -1370,7 +1370,7 @@ implementation
           { write unit name }
           tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
           { write zero which is required by RTL }
-          tcb.emit_ord_const(0,u8inttype);
+          tcb.emit_ord_const(0,compiler.deftypes.u8inttype);
           { terminate all records }
           tcb.end_anonymous_record;
           tcb.end_anonymous_record;
@@ -1430,7 +1430,7 @@ implementation
               internaltypeprefixName[itp_rtti_ord_middle]+elesize,
               defaultpacking,reqalign,
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-            tcb.emit_ord_const(byte(trans[def.ordtype]),u8inttype);
+            tcb.emit_ord_const(byte(trans[def.ordtype]),compiler.deftypes.u8inttype);
             tcb.begin_anonymous_record(
               internaltypeprefixName[itp_rtti_ord_inner]+elesize,
               defaultpacking,reqalign,
@@ -1494,7 +1494,7 @@ implementation
                   defaultpacking,reqalign,
                   targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
                 write_common_rtti_data(tcb,def,rt);
-                tcb.emit_ord_const(ftCurr,u8inttype);
+                tcb.emit_ord_const(ftCurr,compiler.deftypes.u8inttype);
                 tcb.end_anonymous_record;
               end;
             else
@@ -1519,7 +1519,7 @@ implementation
              internaltypeprefixName[itp_rtti_float],
              defaultpacking,reqalign,
              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-           tcb.emit_ord_const(translate[def.floattype],u8inttype);
+           tcb.emit_ord_const(translate[def.floattype],compiler.deftypes.u8inttype);
            tcb.end_anonymous_record;
            tcb.end_anonymous_record;
         end;
@@ -1539,13 +1539,13 @@ implementation
              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
            case def.size of
              1:
-               tcb.emit_ord_const(otUByte,u8inttype);
+               tcb.emit_ord_const(otUByte,compiler.deftypes.u8inttype);
              2:
-               tcb.emit_ord_const(otUWord,u8inttype);
+               tcb.emit_ord_const(otUWord,compiler.deftypes.u8inttype);
              4:
-               tcb.emit_ord_const(otULong,u8inttype);
+               tcb.emit_ord_const(otULong,compiler.deftypes.u8inttype);
              else
-               tcb.emit_ord_const(otUByte,u8inttype);
+               tcb.emit_ord_const(otUByte,compiler.deftypes.u8inttype);
            end;
            tcb.begin_anonymous_record(
              internaltypeprefixName[itp_rtti_set_inner],
@@ -1567,9 +1567,9 @@ implementation
             curdef:tarraydef;
         begin
            if ado_IsDynamicArray in def.arrayoptions then
-             tcb.emit_ord_const(tkDynArray,u8inttype)
+             tcb.emit_ord_const(tkDynArray,compiler.deftypes.u8inttype)
            else
-             tcb.emit_ord_const(tkArray,u8inttype);
+             tcb.emit_ord_const(tkArray,compiler.deftypes.u8inttype);
            write_rtti_name(tcb,def);
 
            if not(ado_IsDynamicArray in def.arrayoptions) then
@@ -1608,7 +1608,7 @@ implementation
                else
                  tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),compiler.deftypes.voidpointertype);
                { dimension count }
-               tcb.emit_ord_const(dimcount,u8inttype);
+               tcb.emit_ord_const(dimcount,compiler.deftypes.u8inttype);
                finaldef:=def;
                { ranges of the dimensions }
                for i:=1 to dimcount do
@@ -1866,7 +1866,7 @@ implementation
 
                { write parameter info. The parameters must be written in reverse order
                  if this method uses right to left parameter pushing! }
-               tcb.emit_ord_const(def.paras.count,u8inttype);
+               tcb.emit_ord_const(def.paras.count,compiler.deftypes.u8inttype);
 
                for i:=0 to def.paras.count-1 do
                  write_para(tparavarsym(def.paras[i]));
@@ -1909,14 +1909,14 @@ implementation
                 defaultpacking,reqalign,
                 targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
               { flags }
-              tcb.emit_ord_const(0,u8inttype);
+              tcb.emit_ord_const(0,compiler.deftypes.u8inttype);
               { write calling convention }
               write_callconv(tcb,def);
               { enclosing record takes care of alignment }
               { write result typeinfo }
               write_rtti_reference(tcb,def.returndef,fullrtti);
               { write parameter count }
-              tcb.emit_ord_const(def.paras.count,u8inttype);
+              tcb.emit_ord_const(def.paras.count,compiler.deftypes.u8inttype);
               for i:=0 to def.paras.count-1 do
                 write_procedure_param(tparavarsym(def.paras[i]));
               tcb.end_anonymous_record;
@@ -2072,7 +2072,7 @@ implementation
               IntfFlags:=reverse_byte(IntfFlags);
               {
               ifDispatch, }
-            tcb.emit_ord_const(IntfFlags,u8inttype);
+            tcb.emit_ord_const(IntfFlags,compiler.deftypes.u8inttype);
 
             { write GUID }
             tcb.emit_guid_const(def.iidguid^);
@@ -2111,16 +2111,16 @@ implementation
         begin
            case def.objecttype of
              odt_class:
-               tcb.emit_ord_const(tkclass,u8inttype);
+               tcb.emit_ord_const(tkclass,compiler.deftypes.u8inttype);
              odt_object:
-               tcb.emit_ord_const(tkobject,u8inttype);
+               tcb.emit_ord_const(tkobject,compiler.deftypes.u8inttype);
              odt_dispinterface,
              odt_interfacecom:
-               tcb.emit_ord_const(tkInterface,u8inttype);
+               tcb.emit_ord_const(tkInterface,compiler.deftypes.u8inttype);
              odt_interfacecorba:
-               tcb.emit_ord_const(tkinterfaceCorba,u8inttype);
+               tcb.emit_ord_const(tkinterfaceCorba,compiler.deftypes.u8inttype);
              odt_helper:
-               tcb.emit_ord_const(tkhelper,u8inttype);
+               tcb.emit_ord_const(tkhelper,compiler.deftypes.u8inttype);
              else
                internalerror(200611034);
            end;

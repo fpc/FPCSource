@@ -534,12 +534,14 @@ implementation
 
 
     procedure range_to_type(const l,h:TConstExprInt;var def:tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { prefer signed over unsigned }
         if (l>=int64(-128)) and (h<=127) then
          def:=s8inttype
         else if (l>=0) and (h<=255) then
-         def:=u8inttype
+         def:=compiler.deftypes.u8inttype
         else if (l>=int64(-32768)) and (h<=32767) then
          def:=s16inttype
         else if (l>=0) and (h<=65535) then
@@ -1819,10 +1821,12 @@ implementation
       end;
 
     function cgsize_orddef(size: tcgsize): torddef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case size of
           OS_8:
-            result:=torddef(u8inttype);
+            result:=torddef(compiler.deftypes.u8inttype);
           OS_S8:
             result:=torddef(s8inttype);
           OS_16:
@@ -1951,6 +1955,8 @@ implementation
 
     function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         llow, lhigh: tconstexprint;
       begin
         llow:=min(ld.low,rd.low);
@@ -1959,7 +1965,7 @@ implementation
           s8bit:
             result:=torddef(s8inttype);
           u8bit:
-            result:=torddef(u8inttype);
+            result:=torddef(compiler.deftypes.u8inttype);
           s16bit:
             result:=torddef(s16inttype);
           u16bit:
@@ -1984,7 +1990,7 @@ implementation
            (is_signed(result)<>is_signed(ld)) then
           case result.ordtype of
             s8bit:
-              result:=torddef(u8inttype);
+              result:=torddef(compiler.deftypes.u8inttype);
             u8bit:
               result:=torddef(s16inttype);
             s16bit:

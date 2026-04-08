@@ -841,7 +841,7 @@ in_x86_pextrb
 : //out r0:r8;r1:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=u8inttype;
+    resultdef:=compiler.deftypes.u8inttype;
   end;
 in_x86_pextrb_to_mem
 : //r0:ptr8;r1:xmm;imm:i32;

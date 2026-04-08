@@ -1745,7 +1745,7 @@ const
                        begin
                          case v1p^.resultdef.size of
                            1:
-                             inttype:=u8inttype;
+                             inttype:=compiler.deftypes.u8inttype;
                            2:
                              inttype:=u16inttype;
                            4:

@@ -2517,9 +2517,9 @@ implementation
                     begin
                       case inlinenumber of
                         in_lo_word :
-                          result:=compiler.cordconstnode(tordconstnode(left).value and $ff,u8inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ff,compiler.deftypes.u8inttype,true);
                         in_hi_word :
-                          result:=compiler.cordconstnode(tordconstnode(left).value shr 8,u8inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 8,compiler.deftypes.u8inttype,true);
                         in_lo_long :
                           result:=compiler.cordconstnode(tordconstnode(left).value and $ffff,u16inttype,true);
                         in_hi_long :
@@ -2544,7 +2544,7 @@ implementation
                           uchar:
                             begin
                               { change to byte() }
-                              result:=compiler.ctypeconvnode_internal(left,u8inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.u8inttype);
                               left:=nil;
                             end;
                           pasbool16,
@@ -2775,16 +2775,16 @@ implementation
                           begin
                             if is_dynamicstring(left.resultdef) and
                               not(cs_zerobasedstrings in compiler.globals.current_settings.localswitches) then
-                              result:=compiler.cordconstnode(1,u8inttype,false)
+                              result:=compiler.cordconstnode(1,compiler.deftypes.u8inttype,false)
                             else
-                              result:=compiler.cordconstnode(0,u8inttype,false);
+                              result:=compiler.cordconstnode(0,compiler.deftypes.u8inttype,false);
                           end
                         else if not is_dynamicstring(left.resultdef) then
-                          result:=compiler.cordconstnode(tstringdef(left.resultdef).len,u8inttype,true)
+                          result:=compiler.cordconstnode(tstringdef(left.resultdef).len,compiler.deftypes.u8inttype,true)
                       end;
                     undefineddef:
                       begin
-                        result:=compiler.cordconstnode(0,u8inttype,false);
+                        result:=compiler.cordconstnode(0,compiler.deftypes.u8inttype,false);
                       end;
                     errordef:
                       ;
@@ -3410,7 +3410,7 @@ implementation
                   case inlinenumber of
                     in_lo_word,
                     in_hi_word :
-                      resultdef:=u8inttype;
+                      resultdef:=compiler.deftypes.u8inttype;
                     in_lo_long,
                     in_hi_long :
                       resultdef:=u16inttype;
@@ -3601,7 +3601,7 @@ implementation
                   { shortstring return an 8 bit value as the length
                     is the first byte of the string }
                   if is_shortstring(left.resultdef) then
-                    resultdef:=u8inttype
+                    resultdef:=compiler.deftypes.u8inttype
                   else
                     resultdef:=sizesinttype;
                 end;
@@ -5565,7 +5565,7 @@ implementation
          if is_64bitint(resultdef) then
            begin
              if (inlinenumber=in_sar_x) then
-               left:=compiler.ccallparanode(compiler.cordconstnode(1,u8inttype,false),
+               left:=compiler.ccallparanode(compiler.cordconstnode(1,compiler.deftypes.u8inttype,false),
                  compiler.ccallparanode(left,nil));
              result:=compiler.ccallnode_intern('fpc_sarint64',left);
              left:=nil;

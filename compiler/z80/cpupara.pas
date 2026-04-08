@@ -343,7 +343,7 @@ unit cpupara;
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.size:=OS_8;
-                            paraloc^.def:=u8inttype;
+                            paraloc^.def:=compiler.deftypes.u8inttype;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end
@@ -427,25 +427,25 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_L;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_H;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_E;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_D;
                       paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
+                      paraloc^.def:=compiler.deftypes.u8inttype;
                     end;
                   else
                     internalerror(2005082603);
@@ -468,45 +468,45 @@ unit cpupara;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_L;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_H;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_E;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_D;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
                 end;
               OS_16,OS_S16:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_L;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_H;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
                 end;
               OS_8,OS_S8:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_L;
                   paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  paraloc^.def:=compiler.deftypes.u8inttype;
                 end;
               else
                 internalerror(2014030101);

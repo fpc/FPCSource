@@ -905,7 +905,7 @@ implementation
        fillbytes:=curagginfo.prepare_next_field(nextfielddef);
        while fillbytes>0 do
          begin
-           do_emit_tai(tai_const.create_8bit(0),u8inttype);
+           do_emit_tai(tai_const.create_8bit(0),compiler.deftypes.u8inttype);
            dec(fillbytes);
          end;
      end;
@@ -1440,7 +1440,7 @@ implementation
            fillbytes:=def.size-info.curoffset;
            while fillbytes>0 do
              begin
-               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
+               do_emit_tai(Tai_const.Create_8bit(0),compiler.deftypes.u8inttype);
                dec(fillbytes)
              end;
          end;
@@ -1858,7 +1858,7 @@ implementation
          this difference }
        result:=carraydef.getreusable(compiler.deftypes.cansichartype,length(str)+1,compiler);
        maybe_begin_aggregate(result);
-       emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
+       emit_tai(Tai_const.Create_8bit(length(str)),compiler.deftypes.u8inttype);
        if str<>'' then
          emit_tai(Tai_string.Create(str),carraydef.getreusable(compiler.deftypes.cansichartype,length(str),compiler));
        maybe_end_aggregate(result);
@@ -1895,7 +1895,7 @@ implementation
        { the array }
        maybe_begin_aggregate(field.vardef);
        for i:=Low(guid.D4) to High(guid.D4) do
-         emit_tai(Tai_const.Create_8bit(guid.D4[i]),u8inttype);
+         emit_tai(Tai_const.Create_8bit(guid.D4[i]),compiler.deftypes.u8inttype);
        maybe_end_aggregate(field.vardef);
        maybe_end_aggregate(rec_tguid);
      end;

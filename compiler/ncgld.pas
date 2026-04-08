@@ -848,10 +848,10 @@ implementation
 {$ifndef cpuhighleveltarget}
                           r:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_8);
 {$else not cpuhighleveltarget}
-                          r:=hlcg.getintregister(current_asmdata.CurrAsmList,u8inttype);
-                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,u8inttype,right.location.register,r);
+                          r:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype);
+                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,compiler.deftypes.u8inttype,right.location.register,r);
 {$endif cpuhighleveltarget}
-                          hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,r,href);
+                          hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.u8inttype,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :

@@ -1231,7 +1231,7 @@ implementation
                   if (sign=DW_ATE_signed) then
                     basedef:=s8inttype
                   else
-                    basedef:=u8inttype;
+                    basedef:=compiler.deftypes.u8inttype;
                 2:
                   if (sign=DW_ATE_signed) then
                     basedef:=s16inttype
@@ -1527,7 +1527,7 @@ implementation
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s8inttype))
                else
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype));
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u8inttype));
             2:
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s16inttype))
@@ -1771,7 +1771,7 @@ implementation
         case def.stringtype of
           st_shortstring:
             begin
-              addnormalstringdef('ShortString',u8inttype,255);
+              addnormalstringdef('ShortString',compiler.deftypes.u8inttype,255);
             end;
           st_longstring:
             begin

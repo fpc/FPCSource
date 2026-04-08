@@ -413,10 +413,10 @@ implementation
         tcb.maybe_begin_aggregate(resultdef);
         if (source_info.endian=compiler.target.info.endian) then
           for i:=0 to resultdef.size-1 do
-            tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
+            tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),compiler.deftypes.u8inttype)
         else
           for i:=0 to resultdef.size-1 do
-            tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
+            tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),compiler.deftypes.u8inttype);
         tcb.maybe_end_aggregate(resultdef);
         current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
           result,resultdef,sec_rodata_norel,result.name,compiler.globals.const_align(8)));

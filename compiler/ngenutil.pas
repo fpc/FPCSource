@@ -944,7 +944,7 @@ implementation
   procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
     begin
       addstatement(stat,compiler.ccallnode_intern('fpc_fillmem',
-        compiler.ccallparanode(compiler.cordconstnode(tconstexprint(byte(trashintval)),u8inttype,false),
+        compiler.ccallparanode(compiler.cordconstnode(tconstexprint(byte(trashintval)),compiler.deftypes.u8inttype,false),
         compiler.ccallparanode(sizen,
         compiler.ccallparanode(trashn,nil)))
         ));
@@ -1690,8 +1690,8 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',compiler.globals.current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(compiler.deftypes.u8inttype,1,compiler),AT_DATA));
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1733,15 +1733,15 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',compiler.globals.current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-      tcb.emit_ord_const(byte(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches),u8inttype);
-      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
+      tcb.emit_ord_const(byte(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches),compiler.deftypes.u8inttype);
+      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,compiler.deftypes.u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',compiler.globals.const_align(sizeof(pint)))
+        tcb.get_final_asmlist(sym,compiler.deftypes.u8inttype,sec_data,'__fpc_valgrind',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
       tcb := nil;

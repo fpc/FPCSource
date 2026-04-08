@@ -60,7 +60,7 @@ unit nz80inl;
           in_z80_inport:
             begin
               CheckParameters(1);
-              resultdef:=u8inttype;
+              resultdef:=compiler.deftypes.u8inttype;
             end;
           in_z80_outport:
             begin
@@ -111,7 +111,7 @@ unit nz80inl;
               { data can be put anywhere, but port number must be in C }
               hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_C);
               dreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u8inttype,portnumber.location,NR_C);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u8inttype,portnumber.location,NR_C);
               reference_reset_base(ref,NR_C,0,ctempposinvalid,1,[]);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_IN,dreg,ref));
               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_C);
@@ -137,7 +137,7 @@ unit nz80inl;
             begin
               { data needs to reside in A }
               dreg:=NR_A;
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,u8inttype,portdata.location,dreg);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,compiler.deftypes.u8inttype,portdata.location,dreg);
               hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
               reference_reset_base(ref,NR_NO,portnumber.location.value,ctempposinvalid,1,[]);
               current_asmdata.currasmlist.concat(taicpu.op_ref_reg(A_OUT,ref,dreg));
@@ -148,8 +148,8 @@ unit nz80inl;
               { data can reside anywhere, but port number must be in C }
               hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_C);
               dreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,u8inttype,portdata.location,dreg);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u8inttype,portnumber.location,NR_C);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,compiler.deftypes.u8inttype,portdata.location,dreg);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u8inttype,portnumber.location,NR_C);
               reference_reset_base(ref,NR_C,0,ctempposinvalid,1,[]);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_OUT,ref,dreg));
               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_C);

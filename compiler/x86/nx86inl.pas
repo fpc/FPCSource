@@ -121,7 +121,7 @@ implementation
            in_x86_inportb:
              begin
                CheckParameters(1);
-               resultdef:=u8inttype;
+               resultdef:=compiler.deftypes.u8inttype;
              end;
            in_x86_inportw:
              begin
@@ -603,13 +603,13 @@ implementation
          FillChar(paraarray,sizeof(paraarray),0);
          case inlinenumber of
            in_x86_inportb:
-             inport(NR_AL,S_B,u8inttype);
+             inport(NR_AL,S_B,compiler.deftypes.u8inttype);
            in_x86_inportw:
              inport(NR_AX,S_W,u16inttype);
            in_x86_inportl:
              inport(NR_EAX,S_L,s32inttype);
            in_x86_outportb:
-             outport(NR_AL,S_B,u8inttype);
+             outport(NR_AL,S_B,compiler.deftypes.u8inttype);
            in_x86_outportw:
              outport(NR_AX,S_W,u16inttype);
            in_x86_outportl:

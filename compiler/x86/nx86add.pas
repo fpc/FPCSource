@@ -1441,8 +1441,8 @@ unit nx86add;
 
                             if shift>0 then
                               begin
-                                ConstNode:=compiler.cordconstnode(shift, u8inttype, False);
-                                ConstNode.resultdef:=u8inttype;
+                                ConstNode:=compiler.cordconstnode(shift, compiler.deftypes.u8inttype, False);
+                                ConstNode.resultdef:=compiler.deftypes.u8inttype;
                                 ThisNode:=compiler.cinlinenode_intern(in_ror_x_y,false,
                                   compiler.ccallparanode(ConstNode,
                                   compiler.ccallparanode(ThisNode, nil)));
@@ -1552,8 +1552,8 @@ unit nx86add;
 
                             if shift>0 then
                               begin
-                                ConstNode:=compiler.cordconstnode(shift, u8inttype, False);
-                                ConstNode.resultdef:=u8inttype;
+                                ConstNode:=compiler.cordconstnode(shift, compiler.deftypes.u8inttype, False);
+                                ConstNode.resultdef:=compiler.deftypes.u8inttype;
                                 ThisNode:=compiler.cinlinenode_intern(in_ror_x_y,false,
                                   compiler.ccallparanode(ConstNode,
                                   compiler.ccallparanode(ThisNode, nil)));

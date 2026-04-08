@@ -589,7 +589,7 @@ implementation
                     (and if this array is inside a record, it must not be
                      encoded as a type that is too long) }
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).size)+' x ';
-                  llvmaddencodedtype_intern(u8inttype,[lef_inaggregate],encodedstr);
+                  llvmaddencodedtype_intern(compiler.deftypes.u8inttype,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else
@@ -1157,7 +1157,7 @@ implementation
             begin
               case sizeleft of
                 1:
-                  retdeflist[i]:=u8inttype;
+                  retdeflist[i]:=compiler.deftypes.u8inttype;
                 2:
                   retdeflist[i]:=u16inttype;
                 3:

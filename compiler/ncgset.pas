@@ -308,7 +308,7 @@ implementation
            (tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase+1<=256) then
            begin
              uopsize := OS_8;
-             uopdef := u8inttype;
+             uopdef := compiler.deftypes.u8inttype;
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S8;

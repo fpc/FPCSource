@@ -2883,7 +2883,7 @@ implementation
                   else
                     convsize:=s16inttype
                 else if torddef(retdef).ordtype in [u8bit,uchar] then
-                    convsize:=u8inttype
+                    convsize:=compiler.deftypes.u8inttype
                   else
                     convsize:=u16inttype;
                 if assigned(convsize) then

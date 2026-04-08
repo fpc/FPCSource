@@ -1179,10 +1179,11 @@ interface
          bool8type,
          bool16type,
          bool32type,
-         bool64type: tdef;          { implement me }
+         bool64type,                { implement me }
 {$ifdef llvm}
-         llvmbool1type: tdef;       { LLVM i1 type }
+         llvmbool1type,             { LLVM i1 type }
 {$endif llvm}
+         u8inttype: tdef;           { 8-Bit unsigned integer }
        end;
 
 
@@ -1209,7 +1210,6 @@ interface
 
 
     { default types }
-       u8inttype,                 { 8-Bit unsigned integer }
        s8inttype,                 { 8-Bit signed integer }
        u16inttype,                { 16-Bit unsigned integer }
        s16inttype,                { 16-Bit signed integer }
@@ -9782,7 +9782,7 @@ implementation
 {$ifdef llvm}
        compiler.deftypes.llvmbool1type:=nil;             { LLVM i1 type }
 {$endif llvm}
-       u8inttype:=nil;                 { 8-Bit unsigned integer }
+       compiler.deftypes.u8inttype:=nil;                 { 8-Bit unsigned integer }
        s8inttype:=nil;                 { 8-Bit signed integer }
        u16inttype:=nil;                { 16-Bit unsigned integer }
        s16inttype:=nil;                { 16-Bit signed integer }

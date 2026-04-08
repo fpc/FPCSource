@@ -360,7 +360,7 @@ implementation
       fillbytes:=info.prepare_next_field(def);
       while fillbytes>0 do
         begin
-          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
+          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(compiler.deftypes.u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
           dec(fillbytes);
         end;
     end;
@@ -591,17 +591,17 @@ implementation
       realval: p80realval;
     begin
       { emit as an array of 10 bytes }
-      arrdef:=carraydef.getreusable(u8inttype,10,compiler);
+      arrdef:=carraydef.getreusable(compiler.deftypes.u8inttype,10,compiler);
       maybe_begin_aggregate(arrdef);
       if (p.typ<>ait_realconst) then
         internalerror(2015062401);
       realval:=p80realval(@tai_realconst(p).value.s80val);
       if compiler.target.info.endian=source_info.endian then
         for i:=0 to 9 do
-          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype)
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),compiler.deftypes.u8inttype)
       else
         for i:=9 downto 0 do
-          emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype);
+          emit_tai(tai_const.Create_8bit(realval^.a[i]),compiler.deftypes.u8inttype);
       maybe_end_aggregate(arrdef);
       { free the original constant, since we didn't emit it }
       p.free;
@@ -725,15 +725,15 @@ implementation
               { convert to a pointer to a 1-sized element }
               if llvmfielddef.size<>1 then
                 begin
-                  getpascalfieldaddr:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,u8inttype);
+                  getpascalfieldaddr:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,compiler.deftypes.u8inttype);
                   { update the current fielddef of the expression }
-                  llvmfielddef:=u8inttype;
+                  llvmfielddef:=compiler.deftypes.u8inttype;
                 end;
               { add the offset }
               getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
               { ... and set the result type of the getelementptr }
-              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(u8inttype,compiler));
-              llvmfielddef:=u8inttype;
+              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler));
+              llvmfielddef:=compiler.deftypes.u8inttype;
             end;
           { bitcast the data at the final offset to the right type }
           if llvmfielddef<>vs.vardef then

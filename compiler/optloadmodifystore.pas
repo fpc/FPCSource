@@ -467,7 +467,7 @@ unit optloadmodifystore;
                 end;
                 result:=compiler.cinlinenode_intern(
                   newinlinenodetype,false,compiler.ccallparanode(
-                  compiler.cordconstnode(1,u8inttype,false),compiler.ccallparanode(tinlinenode(right).left,nil)));
+                  compiler.cordconstnode(1,compiler.deftypes.u8inttype,false),compiler.ccallparanode(tinlinenode(right).left,nil)));
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -518,7 +518,7 @@ unit optloadmodifystore;
                 end;
                 result:=compiler.cinlinenode_intern(
                   newinlinenodetype,false,compiler.ccallparanode(
-                  compiler.cordconstnode(1,u8inttype,false),compiler.ccallparanode(
+                  compiler.cordconstnode(1,compiler.deftypes.u8inttype,false),compiler.ccallparanode(
                   ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left,nil)));
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;

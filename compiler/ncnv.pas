@@ -456,7 +456,7 @@ implementation
                       begin
                          if (constsethi>255) or
                             (torddef(def).low<0) then
-                           hdef:=u8inttype
+                           hdef:=compiler.deftypes.u8inttype
                          else
                            hdef:=def;
                       end;
@@ -610,8 +610,8 @@ implementation
                                  end
                                else
                                  begin
-                                   inserttypeconv(p3,u8inttype,compiler);
-                                   inserttypeconv(p2,u8inttype,compiler);
+                                   inserttypeconv(p3,compiler.deftypes.u8inttype,compiler);
+                                   inserttypeconv(p2,compiler.deftypes.u8inttype,compiler);
                                  end;
 
                               if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
@@ -636,7 +636,7 @@ implementation
                               else if first then
                                 hdef:=p3.resultdef
                               else
-                                inserttypeconv(p3,u8inttype,compiler);
+                                inserttypeconv(p3,compiler.deftypes.u8inttype,compiler);
                               p4:=compiler.csetelementnode(p2,p3);
                             end;
                          end;
@@ -651,7 +651,7 @@ implementation
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype,compiler);
+                            inserttypeconv(p2,compiler.deftypes.u8inttype,compiler);
 
                           if not(is_integer(p2.resultdef)) then
                             update_constsethi(p2.resultdef,true);
@@ -669,7 +669,7 @@ implementation
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype,compiler);
+                            inserttypeconv(p2,compiler.deftypes.u8inttype,compiler);
 
                           p4:=compiler.csetelementnode(p2,nil);
                         end;
@@ -691,7 +691,7 @@ implementation
               first:=false;
             end;
           if (hdef=nil) then
-            hdef:=u8inttype;
+            hdef:=compiler.deftypes.u8inttype;
          end
         else
          begin
@@ -3844,7 +3844,7 @@ implementation
                   is_integer(left.resultdef) and
                   (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                   checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s8inttype,u8inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s8inttype,compiler.deftypes.u8inttype);
 {$endif defined(cpu8bitalu)}
                   { the above simplification may have left a redundant equal
                     typeconv (e.g. int32 to int32). If that's the case, we remove it }

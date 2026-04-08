@@ -434,7 +434,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 bp.curval:=bp.curval shl 8;
 {$pop}
               end;
-            ftcb.emit_tai(tai_const.create_8bit(writeval),u8inttype);
+            ftcb.emit_tai(tai_const.create_8bit(writeval),compiler.deftypes.u8inttype);
             dec(bitstowrite,8);
           end;
         bp.curval:=bp.nextval;
@@ -1098,12 +1098,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     if source_info.endian=compiler.target.info.endian then
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          ftcb.emit_tai(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]),u8inttype);
+                          ftcb.emit_tai(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]),compiler.deftypes.u8inttype);
                       end
                     else
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          ftcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i])),u8inttype);
+                          ftcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i])),compiler.deftypes.u8inttype);
                       end;
                   end
                 else
@@ -1785,7 +1785,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         fillbytes:=(tfieldvarsym(srsym).fieldoffset-recoffset) div 8;
                       end;
                     for i:=1 to fillbytes do
-                      ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype)
+                      ftcb.emit_tai(Tai_const.Create_8bit(0),compiler.deftypes.u8inttype)
                   end;
 
                 { new position }
@@ -1851,7 +1851,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 fillbytes:=def.size-(recoffset div 8);
               end;
             for i:=1 to fillbytes do
-              ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
+              ftcb.emit_tai(Tai_const.Create_8bit(0),compiler.deftypes.u8inttype);
 
             ftcb.maybe_end_aggregate(def);
           end;
