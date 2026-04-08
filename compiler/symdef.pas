@@ -1151,7 +1151,8 @@ interface
          voidnearfspointertype,
          voidneargspointertype: tdef;
   {$ifdef i8086}
-         voidfarpointertype: tdef;
+         voidfarpointertype,
+         voidhugepointertype: tdef;
   {$endif i8086}
 {$endif x86}
        end;
@@ -1182,7 +1183,6 @@ interface
     { default types }
 {$ifdef x86}
   {$ifdef i8086}
-       voidhugepointertype,
        charnearpointertype,
        charfarpointertype,
        charhugepointertype,
@@ -9755,7 +9755,7 @@ implementation
        compiler.deftypes.voidneargspointertype:=nil;
   {$ifdef i8086}
        compiler.deftypes.voidfarpointertype:=nil;
-       voidhugepointertype:=nil;
+       compiler.deftypes.voidhugepointertype:=nil;
        charnearpointertype:=nil;
        charfarpointertype:=nil;
        charhugepointertype:=nil;

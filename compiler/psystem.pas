@@ -438,7 +438,7 @@ implementation
         compiler.deftypes.voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs,compiler);
   {$ifdef i8086}
         compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far,compiler);
-        voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge,compiler);
+        compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge,compiler);
         charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
         charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
@@ -526,7 +526,7 @@ implementation
         addtype('NearGsPointer',compiler.deftypes.voidneargspointertype);
   {$ifdef i8086}
         addtype('FarPointer',compiler.deftypes.voidfarpointertype);
-        addtype('HugePointer',voidhugepointertype);
+        addtype('HugePointer',compiler.deftypes.voidhugepointertype);
   {$endif i8086}
         addtype('__m64',x86_m64type);
         addtype('__m128', x86_m128type);
@@ -635,7 +635,7 @@ implementation
         addtype('$void_neargspointer',compiler.deftypes.voidneargspointertype);
   {$ifdef i8086}
         addtype('$void_farpointer',compiler.deftypes.voidfarpointertype);
-        addtype('$void_hugepointer',voidhugepointertype);
+        addtype('$void_hugepointer',compiler.deftypes.voidhugepointertype);
         addtype('$char_nearpointer',charnearpointertype);
         addtype('$char_farpointer',charfarpointertype);
         addtype('$char_hugepointer',charhugepointertype);
@@ -799,7 +799,7 @@ implementation
         loadtype('void_neargspointer',compiler.deftypes.voidneargspointertype);
   {$ifdef i8086}
         loadtype('void_farpointer',compiler.deftypes.voidfarpointertype);
-        loadtype('void_hugepointer',voidhugepointertype);
+        loadtype('void_hugepointer',compiler.deftypes.voidhugepointertype);
         loadtype('char_nearpointer',charnearpointertype);
         loadtype('char_farpointer',charfarpointertype);
         loadtype('char_hugepointer',charhugepointertype);
