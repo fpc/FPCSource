@@ -758,7 +758,7 @@ implementation
           in_wasm32_tls_base:
             begin
               CheckParameters(0);
-              resultdef:=voidpointertype;
+              resultdef:=compiler.deftypes.voidpointertype;
             end;
           else
             Result:=inherited pass_typecheck_cpu;

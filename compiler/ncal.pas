@@ -413,7 +413,7 @@ implementation
                   (variantdispatch and valid_for_var(para.left,false));
 
           if result or (para.left.resultdef.typ in [variantdef]) then
-            assign_type:=voidpointertype
+            assign_type:=compiler.deftypes.voidpointertype
           else
             case para.left.resultdef.size of
               1..4:
@@ -504,7 +504,7 @@ implementation
           end;
 
         { create a temp to store parameter values }
-        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size,compiler);
+        vardispatchparadef:=crecorddef.create_global_internal('',compiler.deftypes.voidpointertype.size,compiler.deftypes.voidpointertype.size,compiler);
         { the size will be set once the vardistpatchparadef record has been completed }
         params:=compiler.ctempcreatenode(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
@@ -561,16 +561,16 @@ implementation
               depending on byref bit }
 
             vardispatchfield:=vardispatchparadef.add_field_by_def('',assignmenttype);
-            if assignmenttype=voidpointertype then
+            if assignmenttype=compiler.deftypes.voidpointertype then
               addstatement(statements,compiler.cassignmentnode(
                 compiler.csubscriptnode(vardispatchfield,compiler.ctemprefnode(params)),
-                compiler.ctypeconvnode_internal(compiler.caddrnode_internal(para.left),voidpointertype)))
+                compiler.ctypeconvnode_internal(compiler.caddrnode_internal(para.left),compiler.deftypes.voidpointertype)))
             else
               addstatement(statements,compiler.cassignmentnode(
               compiler.csubscriptnode(vardispatchfield,compiler.ctemprefnode(params)),
                 compiler.ctypeconvnode_internal(para.left,assignmenttype)));
 
-            inc(paramssize,max(voidpointertype.size,assignmenttype.size));
+            inc(paramssize,max(compiler.deftypes.voidpointertype.size,assignmenttype.size));
             tcb.emit_ord_const(restype,u8inttype);
 
             para.left:=nil;
@@ -592,7 +592,7 @@ implementation
         if useresult then
           resultvalue:=compiler.caddrnode(compiler.ctemprefnode(result_data))
         else
-          resultvalue:=compiler.cpointerconstnode(0,voidpointertype);
+          resultvalue:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
 
         if variantdispatch then
           begin
@@ -653,7 +653,7 @@ implementation
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(params)),
               compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,compiler.current_module.localsymtable)),
-              compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,voidpointertype),
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,compiler.deftypes.voidpointertype),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
           end;
@@ -800,7 +800,7 @@ implementation
                (is_dynamic_array(left.resultdef) and
                 is_open_array(parasym.vardef)) then
               begin
-                 paratemp:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                 paratemp:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
                  if is_dynamic_array(left.resultdef) then
                    begin
                       { note that in insert_typeconv, this dynamic array was
@@ -812,7 +812,7 @@ implementation
                      temparraydef:=left.resultdef;
                      left.resultdef:=resultdef;
                      { get its address }
-                     lefttemp:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                     lefttemp:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
                      addstatement(initstat,lefttemp);
                      addstatement(finistat,compiler.ctempdeletenode(lefttemp));
                      addstatement(initstat,
@@ -2607,7 +2607,7 @@ implementation
                   begin
                     if (cnf_new_call in callnodeflags) then
                       { old-style object: push 0 as self }
-                      selftree:=compiler.cpointerconstnode(0,voidpointertype)
+                      selftree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                     else
                       begin
                         { class-style: push classtype }
@@ -2677,7 +2677,7 @@ implementation
                     selftree:=compiler.cloadvmtaddrnode(selftree);
                 end
               else
-                selftree:=compiler.cpointerconstnode(0,voidpointertype);
+                selftree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
             end
         else
           begin
@@ -3322,7 +3322,7 @@ implementation
             { constructor call via classreference => allocate memory }
             if (procdefinition.proctypeoption=potype_constructor) then
               begin
-                vmttree:=compiler.cpointerconstnode(1,voidpointertype);
+                vmttree:=compiler.cpointerconstnode(1,compiler.deftypes.voidpointertype);
               end
             else  { <class of xx>.destroy is not valid }
               InternalError(2014020601);
@@ -3333,7 +3333,7 @@ implementation
           begin
             { inherited call, no create/destroy }
             if (cnf_inherited in callnodeflags) then
-              vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+              vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3351,14 +3351,14 @@ implementation
                         call afterconstruction but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     if (compiler.current_procinfo.procdef.proctypeoption<>potype_constructor) then
-                      vmttree:=compiler.cpointerconstnode(1,voidpointertype)
+                      vmttree:=compiler.cpointerconstnode(1,compiler.deftypes.voidpointertype)
                     else
-                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                      vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                   else if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
-                    vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                    vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                   else
-                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype);
+                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),compiler.deftypes.voidpointertype);
                 end
             else
             { normal call to method like cl1.proc }
@@ -3379,18 +3379,18 @@ implementation
                      is_class(methodpointer.resultdef) then
                     vmttree:=call_vmt_node.getcopy
                   else if not(cnf_create_failed in callnodeflags) then
-                    vmttree:=compiler.cpointerconstnode(1,voidpointertype)
+                    vmttree:=compiler.cpointerconstnode(1,compiler.deftypes.voidpointertype)
                   else
-                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype)
+                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),compiler.deftypes.voidpointertype)
                 else
                   begin
                     if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
                        (methodpointer.nodetype=loadn) and
                        (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
-                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                      vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                     else
-                      vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype);
+                      vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),compiler.deftypes.voidpointertype);
                   end;
               end;
           end
@@ -3404,15 +3404,15 @@ implementation
               { destructor with extended syntax called from dispose }
               { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
               if (cnf_dispose_call in callnodeflags) then
-                vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype)
+                vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),compiler.deftypes.voidpointertype)
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=compiler.ctypeconvnode_internal(call_vmt_node.getcopy,voidpointertype)
+                vmttree:=compiler.ctypeconvnode_internal(call_vmt_node.getcopy,compiler.deftypes.voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
-                vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3420,7 +3420,7 @@ implementation
                 begin
                   { destructor: don't release instance, vmt=0
                     constructor: don't initialize instance, vmt=0 }
-                  vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                  vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                 end
             else
             { normal object call like obj.proc }
@@ -3431,12 +3431,12 @@ implementation
                  begin
                    { old styled inherited call? }
                    if (methodpointer.nodetype=typen) then
-                     vmttree:=compiler.cpointerconstnode(0,voidpointertype)
+                     vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype)
                    else
                      vmttree:=compiler.cloadvmtaddrnode(compiler.ctypenode(methodpointer.resultdef))
                  end
                else
-                 vmttree:=compiler.cpointerconstnode(0,voidpointertype);
+                 vmttree:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
              end;
           end;
         result:=vmttree;

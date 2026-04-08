@@ -105,7 +105,7 @@ implementation
       var
         href : treference;
       begin
-        reference_reset_base(href,voidpointertype,NR_R3,0,ctempposinvalid,sizeof(pint),[]);
+        reference_reset_base(href,compiler.deftypes.voidpointertype,NR_R3,0,ctempposinvalid,sizeof(pint),[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
       end;
 
@@ -117,7 +117,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(2000061310);
         { call/jmp  vmtoffs(%eax) ; method offs }
-        reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
+        reference_reset_base(href,compiler.deftypes.voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
         if tcgppcgen(cg).hasLargeOffset(href) then
           begin
 {$ifdef cpu64bitaddr}
@@ -136,7 +136,7 @@ implementation
            ((compiler.target.info.system = system_powerpc64_linux) and
             (compiler.target.info.abi=abi_powerpc_sysv)) then
           begin
-            reference_reset_base(href, voidpointertype, NR_R12, 0, ctempposinvalid, sizeof(pint),[]);
+            reference_reset_base(href, compiler.deftypes.voidpointertype, NR_R12, 0, ctempposinvalid, sizeof(pint),[]);
             cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,NR_R12));

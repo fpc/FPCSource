@@ -652,7 +652,7 @@ implementation
                   begin
                     classdef:=tobjectdef(classtablelist[i]);
                     { type of the field }
-                    datatcb.queue_init(voidpointertype);
+                    datatcb.queue_init(compiler.deftypes.voidpointertype);
                     { reference to the vmt }
                     datatcb.queue_emit_asmsym(
                       current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA,true),
@@ -686,7 +686,7 @@ implementation
             if classtable<>nil then
               datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef,compiler))
             else
-              datatcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
+              datatcb.emit_tai(tai_const.Create_nil_codeptr,compiler.deftypes.voidpointertype);
             if fieldcount>0 then
               begin
                 for i:=0 to _class.symtable.SymList.Count-1 do
@@ -788,7 +788,7 @@ implementation
            end
         else
           { can't have an empty symbol on LLVM }
-          datatcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
+          datatcb.emit_tai(tai_const.Create_nil_codeptr,compiler.deftypes.voidpointertype);
         tcb.finish_internal_data_builder(datatcb,fintfvtablelabels[intfindex],
           datatcb.end_anonymous_record,sizeof(pint));
       end;
@@ -819,7 +819,7 @@ implementation
 
         { VTable }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
-        tcb.queue_init(voidpointertype);
+        tcb.queue_init(compiler.deftypes.voidpointertype);
         tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],nonuniqueintf);
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
@@ -1149,9 +1149,9 @@ implementation
          if _class.classtype=ct_object then
            begin
               if assigned(dmtlabel) then
-                tcb.emit_tai(dmtlabel,voidpointertype)
+                tcb.emit_tai(dmtlabel,compiler.deftypes.voidpointertype)
               else
-                tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+                tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
            end;
 {$endif WITHDMT}
          { write pointer to parent VMT, this isn't implemented in TP }
@@ -1161,7 +1161,7 @@ implementation
          if is_class(_class) then
            parentvmtdef:=cpointerdef.getreusable(search_system_type('TVMT').typedef,compiler)
          else
-           parentvmtdef:=voidpointertype;
+           parentvmtdef:=compiler.deftypes.voidpointertype;
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
            begin
@@ -1185,36 +1185,36 @@ implementation
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(compiler.deftypes.voidpointertype);
                 tcb.queue_emit_asmsym(intmessagetable,cpointerdef.getreusable(intmessagetabledef,compiler));
               end
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
             { pointer to method table or nil }
             if assigned(methodnametable) then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(compiler.deftypes.voidpointertype);
                 tcb.queue_emit_asmsym(methodnametable,cpointerdef.getreusable(methodnametabledef,compiler))
               end
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
             { pointer to field table }
             if assigned(fieldtablelabel) then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(compiler.deftypes.voidpointertype);
                 tcb.queue_emit_asmsym(fieldtablelabel,fieldtabledef)
               end
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
             { pointer to type info of published section }
-            tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,fullrtti,false)),voidpointertype);
+            tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,fullrtti,false)),compiler.deftypes.voidpointertype);
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,initrtti,false)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,initrtti,false)),compiler.deftypes.voidpointertype)
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
             { auto table }
-            tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+            tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
             { interface table }
             pinterfacetabledef:=search_system_type('PINTERFACETABLE').typedef;
             if _class.implements_any_interfaces then
@@ -1228,7 +1228,7 @@ implementation
             pstringmessagetabledef:=search_system_type('PSTRINGMESSAGETABLE').typedef;
             if (oo_has_msgstr in _class.objectoptions) then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(compiler.deftypes.voidpointertype);
                 tcb.queue_emit_asmsym(strmessagetable,pstringmessagetabledef);
               end
             else

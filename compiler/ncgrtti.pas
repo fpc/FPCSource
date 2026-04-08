@@ -450,7 +450,7 @@ implementation
         if length(locs)=0 then
           begin
             { *shrugs* }
-            tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
+            tcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidpointertype);
             exit;
           end;
 
@@ -493,7 +493,7 @@ implementation
         else
           loclab:=TAsmLabel(entry^.Data);
 
-        tcb.emit_tai(Tai_const.Create_sym(loclab),voidpointertype);
+        tcb.emit_tai(Tai_const.Create_sym(loclab),compiler.deftypes.voidpointertype);
       end;
 
 
@@ -605,7 +605,7 @@ implementation
             list.sort(@compare_mop_offset_entry);
           end;
         if list.count=0 then
-          tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype)
+          tcb.emit_tai(tai_const.create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
           begin
             tcb.start_internal_data_builder(current_asmdata.AsmLists[al_rtti],sec_rodata,'',datatcb,tbllbl);
@@ -637,7 +637,7 @@ implementation
 
             tcb.finish_internal_data_builder(datatcb,tbllbl,datadef,sizeof(pint));
 
-            tcb.emit_tai(tai_const.Create_sym(tbllbl),voidpointertype);
+            tcb.emit_tai(tai_const.Create_sym(tbllbl),compiler.deftypes.voidpointertype);
           end;
         list.free;
         list := nil;
@@ -878,9 +878,9 @@ implementation
             tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
             if is_objc_class_or_protocol(fldsym.vardef) then
-              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(voidpointertype,fullrtti,true)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(compiler.deftypes.voidpointertype,fullrtti,true)),compiler.deftypes.voidpointertype)
             else
-              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),compiler.deftypes.voidpointertype);
             { FieldVisibility }
             tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),u8inttype);
             { Name }
@@ -1112,7 +1112,7 @@ implementation
               paramdef:=paramtcb.end_anonymous_record;
               tcb.finish_internal_data_builder(paramtcb,paramlbl,paramdef,sizeof(pint));
 
-              tcb.emit_tai(tai_const.Create_sym(paramlbl),voidpointertype);
+              tcb.emit_tai(tai_const.Create_sym(paramlbl),compiler.deftypes.voidpointertype);
           end;
 
         function write_propinfo_data(tcb: ttai_typedconstbuilder; sym: tpropertysym): tdef;
@@ -1183,7 +1183,7 @@ implementation
             if extended_rtti and assigned(tpropertysym(sym).parast) then
               write_prop_params(tcb,sym.parast)
             else
-              tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(tai_const.create_nil_dataptr,compiler.deftypes.voidpointertype);
             { write reference to attribute table }
             if addcomments then
               tcb.emit_comment(#9'attributes');
@@ -1240,7 +1240,7 @@ implementation
                     tbltcb := nil;
                     { write the pointer to the prop info }
                     maybe_add_comment(tcb,#9'property info reference');
-                    tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
+                    tcb.emit_tai(Tai_const.Create_sym(tbllab),compiler.deftypes.voidpointertype);
                     { end record }
                     tcb.end_anonymous_record;
                     maybe_add_comment(tcb,'RTTI: end property '+sym.prettyname);
@@ -1604,9 +1604,9 @@ implementation
                tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
                { last dimension element type }
                if is_objc_class_or_protocol(curdef.elementdef) then
-                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(voidpointertype,rt,true)),voidpointertype)
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(compiler.deftypes.voidpointertype,rt,true)),compiler.deftypes.voidpointertype)
                else
-                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),voidpointertype);
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),compiler.deftypes.voidpointertype);
                { dimension count }
                tcb.emit_ord_const(dimcount,u8inttype);
                finaldef:=def;
@@ -1650,7 +1650,7 @@ implementation
                if def.elementdef.needs_inittable then
                  write_rtti_reference(tcb,def.elementdef,rt)
                else
-                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+                 tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
                { write unit name }
                tcb.emit_shortstring_const(compiler.current_module.realmodulename^);
              end;
@@ -1770,11 +1770,11 @@ implementation
              strictly related to RecordRTTI procedure in rtti.inc (directly
              related to RTTIRecordRttiInfoToInitInfo function) }
            if rt=initrtti then
-             tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+             tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
            else
              { we use a direct reference as the init RTTI is always in the same
                unit as the full RTTI }
-             tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype);
+             tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),compiler.deftypes.voidpointertype);
 
            tcb.emit_ord_const(def.size,u32inttype);
 
@@ -1783,15 +1783,15 @@ implementation
            if rt=initrtti then
              begin
                { for now records don't have the initializer table }
-               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+               tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
                if (trecordsymtable(def.symtable).managementoperators=[]) then
-                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+                 tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
                else
                  begin
                    current_asmdata.getlocaldatalabel(oplab);
                    tcb.emit_tai(Tai_const.Createname(
                      oplab.name,
-                     AT_DATA_FORCEINDIRECT,0),voidpointertype);
+                     AT_DATA_FORCEINDIRECT,0),compiler.deftypes.voidpointertype);
                  end;
              end;
 
@@ -1942,10 +1942,10 @@ implementation
               - neither helper nor class type have fullrtti for fields
             }
             if (rt=initrtti) then
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
             else
               if (def.objecttype=odt_object) then
-                tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype)
+                tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),compiler.deftypes.voidpointertype)
               else
                 internalerror(2017011801);
 
@@ -1957,8 +1957,8 @@ implementation
                 if def.objecttype=odt_class then
                   write_mop_offset_table(tcb,def,mop_initialize)
                 else
-                  tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
-                tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+                  tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
+                tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
               end;
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
@@ -2004,7 +2004,7 @@ implementation
                   Tai_const.Createname(def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
                   cpointerdef.getreusable(def.vmt_def,compiler))
               else
-                tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+                tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
               end;
             { write parent typeinfo }
             maybe_add_comment(tcb,#9'Parent type info');
@@ -2216,7 +2216,7 @@ implementation
         if length(attr.paras)=0 then
           begin
             tbltcb.emit_tai(tai_const.Create_16bit(0),u16inttype);
-            tbltcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+            tbltcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
           end
         else
           begin
@@ -2255,7 +2255,7 @@ implementation
 
             { write argument size and the reference to the argument entry }
             tbltcb.emit_ord_const(argdef.size,u16inttype);
-            tbltcb.emit_tai(Tai_const.Create_sym(arglab),voidpointertype);
+            tbltcb.emit_tai(Tai_const.Create_sym(arglab),compiler.deftypes.voidpointertype);
           end;
       end;
 
@@ -2274,7 +2274,7 @@ implementation
       if count=0 then
         begin
           { write a Nil reference }
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
           exit;
         end;
 
@@ -2316,7 +2316,7 @@ implementation
       tbltcb := nil;
 
       { write the reference to the attribute table }
-      tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
+      tcb.emit_tai(Tai_const.Create_sym(tbllab),compiler.deftypes.voidpointertype);
     end;
 
 
@@ -2421,7 +2421,7 @@ implementation
                       inc(o);
                     end;
                   inc(o);
-                  tcb.queue_init(voidpointertype);
+                  tcb.queue_init(compiler.deftypes.voidpointertype);
                   tcb.queue_subscriptn_multiple_by_name(rttidef,
                     ['size_start_rec',
                       'typ_union_rec',
@@ -2440,7 +2440,7 @@ implementation
               for i:=0 to sym_count-1 do
                 begin
                   tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
-                  tcb.queue_init(voidpointertype);
+                  tcb.queue_init(compiler.deftypes.voidpointertype);
                   tcb.queue_subscriptn_multiple_by_name(rttidef,
                     ['size_start_rec',
                       'typ_union_rec',
@@ -2490,7 +2490,7 @@ implementation
             begin
               tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
               { alignment of pointer value handled by enclosing record already }
-              tcb.queue_init(voidpointertype);
+              tcb.queue_init(compiler.deftypes.voidpointertype);
               tcb.queue_subscriptn_multiple_by_name(rttidef,
                 ['size_start_rec',
                   'typ_union_rec',
@@ -2635,9 +2635,9 @@ implementation
           in llvm/llvmtype)
         }
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
-          tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,rt,true)),voidpointertype);
+          tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,rt,true)),compiler.deftypes.voidpointertype);
       end;
 
 

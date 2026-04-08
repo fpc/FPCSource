@@ -1089,7 +1089,7 @@ implementation
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
-                          vs_value,voidpointertype,[vo_is_external]);
+                          vs_value,compiler.deftypes.voidpointertype,[vo_is_external]);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              curr.localsymtable.insertsym(gotvarsym);
              { avoid unnecessary warnings }

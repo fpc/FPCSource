@@ -927,7 +927,7 @@ unit cpupara;
           classrefdef:
             result:=classify_as_integer_argument(def,real_size,classes,rounded_offset);
           formaldef:
-            result:=classify_as_integer_argument(voidpointertype,voidpointertype.size,classes,rounded_offset);
+            result:=classify_as_integer_argument(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,classes,rounded_offset);
           floatdef:
             begin
               classes[0].def:=def;
@@ -998,7 +998,7 @@ unit cpupara;
                 result:=0
               else
                 { all kinds of pointer types: class, objcclass, interface, ... }
-                result:=classify_as_integer_argument(def,voidpointertype.size,classes,rounded_offset);
+                result:=classify_as_integer_argument(def,compiler.deftypes.voidpointertype.size,classes,rounded_offset);
             end;
           setdef:
             begin
@@ -1018,7 +1018,7 @@ unit cpupara;
             begin
               { a dynamic array is treated like a pointer }
               if is_dynamic_array(def) then
-                result:=classify_as_integer_argument(def,voidpointertype.size,classes,rounded_offset)
+                result:=classify_as_integer_argument(def,compiler.deftypes.voidpointertype.size,classes,rounded_offset)
               { other special arrays are passed on the stack }
               else if is_open_array(def) or
                       is_array_of_const(def) then

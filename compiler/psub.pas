@@ -530,12 +530,12 @@ implementation
                             compiler.caddnode_internal(equaln,
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
-                                compiler.cpointerconstnode(1,voidpointertype)),
+                                    compiler.deftypes.voidpointertype),
+                                compiler.cpointerconstnode(1,compiler.deftypes.voidpointertype)),
                             compiler.cassignmentnode(
                                 compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
+                                    compiler.deftypes.voidpointertype),
                                 call),
                             nil));
                       end
@@ -555,16 +555,16 @@ implementation
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
+                                    compiler.deftypes.voidpointertype),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
+                                    compiler.deftypes.voidpointertype),
                             nil)));
                       addstatement(newstatement,compiler.cassignmentnode(
                           compiler.ctypeconvnode_internal(
                               load_self_pointer_node,
-                              voidpointertype),
+                              compiler.deftypes.voidpointertype),
                           compiler.ccallnode_intern('fpc_help_constructor',para)));
                     end
                 else
@@ -676,8 +676,8 @@ implementation
                                 compiler.caddnode(unequaln,
                                     compiler.ctypeconvnode(
                                         load_vmt_pointer_node,
-                                        voidpointertype),
-                                    compiler.cpointerconstnode(0,voidpointertype))),
+                                        compiler.deftypes.voidpointertype),
+                                    compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype))),
                             compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                             nil));
                       end
@@ -692,7 +692,7 @@ implementation
                         begin
                           addstatement(newstatement,compiler.cifnode(
                             compiler.caddnode(unequaln,
-                              compiler.ctypeconvnode_internal(load_vmt_pointer_node,voidpointertype),
+                              compiler.ctypeconvnode_internal(load_vmt_pointer_node,compiler.deftypes.voidpointertype),
                               compiler.cnilnode),
                             compiler.nodeutils.finalize_data_node(load_self_node),
                             nil));
@@ -705,11 +705,11 @@ implementation
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
+                                    compiler.deftypes.voidpointertype),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
+                                    compiler.deftypes.voidpointertype),
                             nil)));
                       addstatement(newstatement,
                           compiler.ccallnode_intern('fpc_help_destructor',para));
@@ -881,11 +881,11 @@ implementation
                           compiler.ccallparanode(
                             compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,
-                              voidpointertype),
+                              compiler.deftypes.voidpointertype),
                           compiler.ccallparanode(
                             compiler.ctypeconvnode_internal(
                               load_self_pointer_node,
-                              voidpointertype),
+                              compiler.deftypes.voidpointertype),
                           nil))))
                       );
                     { then re-raise the exception }

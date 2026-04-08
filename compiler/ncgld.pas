@@ -538,7 +538,7 @@ implementation
                       end
                     else
                       location_reset_ref(location,LOC_REFERENCE,newsize,1,[]);
-                    hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
+                    hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
                   end;
 
                 { make const a LOC_CREFERENCE }
@@ -554,7 +554,7 @@ implementation
                    (resultdef.typ in [symconst.procdef,procvardef]) and
                     not tabstractprocdef(resultdef).is_addressonly then
                    begin
-                     location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
+                     location_reset(location,LOC_CREGISTER,int_cgsize(compiler.deftypes.voidpointertype.size*2));
 {$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
                      { cpus with 16 bit address registers don't use registerhi here, so allocate already here a register for all purposes }
                      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);

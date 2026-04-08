@@ -519,7 +519,7 @@ type
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                      tempnode:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
                       addinduction(tempnode,n);
 
                       if lnf_backward in currforloop.loopflags then
@@ -548,7 +548,7 @@ type
                           else
                             nt:=subn;
                           nn:=compiler.caddnode_internal(nt,
-                             compiler.ctypeconvnode_internal(nn,voidpointertype),
+                             compiler.ctypeconvnode_internal(nn,compiler.deftypes.voidpointertype),
                              compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false));
                         end;
                       addstatement(initcodestatements,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),nn));

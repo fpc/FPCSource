@@ -468,7 +468,7 @@ type
                         addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
-                          templist[i]:=compiler.ctempcreatenode_value(cpointerdef.getreusable(def,compiler),voidpointertype.size,tt_persistent,
+                          templist[i]:=compiler.ctempcreatenode_value(cpointerdef.getreusable(def,compiler),compiler.deftypes.voidpointertype.size,tt_persistent,
                             true,compiler.caddrnode_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=compiler.ctempcreatenode_value(def,def.size,tt_persistent,
@@ -854,7 +854,7 @@ type
                         deleteblock:=internalstatements(compiler,deletes);
                       end;
                      constentries[i].temp:=compiler.ctempcreatenode(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
-                       voidpointertype.size,tt_persistent,true);
+                       compiler.deftypes.voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),
                        compiler.caddrnode_internal(constentries[i].valuenode)));

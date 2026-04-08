@@ -458,11 +458,11 @@ begin
   hp:=p;
   while assigned(hp) and (hp.nodetype=addn) do
     begin
-      sn:=compiler.ctypeconvnode_internal(taddnode(hp).right.getcopy,voidpointertype);
+      sn:=compiler.ctypeconvnode_internal(taddnode(hp).right.getcopy,compiler.deftypes.voidpointertype);
       arrp:=compiler.carrayconstructornode(sn,arrp);
       hp:=taddnode(hp).left;
     end;
-  sn:=compiler.ctypeconvnode_internal(hp.getcopy,voidpointertype);
+  sn:=compiler.ctypeconvnode_internal(hp.getcopy,compiler.deftypes.voidpointertype);
   arrp:=compiler.carrayconstructornode(sn,arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(compiler.aktassignmentnode) and
@@ -475,7 +475,7 @@ begin
             compiler.ccallparanode(
               compiler.caddrnode_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal)),
             compiler.ccallparanode(
-              compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,voidpointertype),nil)
+              compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,compiler.deftypes.voidpointertype),nil)
           ));
       result:=compiler.ccallnode_intern(
                 'fpc_dynarray_concat_multi',
@@ -503,7 +503,7 @@ begin
             compiler.ccallparanode(
               compiler.caddrnode_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal)),
             compiler.ccallparanode(
-              compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidpointertype),nil)
+              compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),compiler.deftypes.voidpointertype),nil)
           ));
       addstatement(
         newstatement,

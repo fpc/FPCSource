@@ -768,8 +768,8 @@ implementation
 
          if assigned(exceptvarsym) then
            begin
-             location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(voidpointertype), voidpointertype.alignment, []);
-             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, voidpointertype.alignment, 0, exceptvarsym.vardef, exceptvarsym, exceptvarsym.localloc.reference);
+             location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
+             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, compiler.deftypes.voidpointertype.alignment, 0, exceptvarsym.vardef, exceptvarsym, exceptvarsym.localloc.reference);
              hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
            end;
          { in the case that another exception is risen
@@ -893,7 +893,7 @@ implementation
             hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.vardef,selfsym.localloc,cgpara);
           end
         else
-          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,voidpointertype,0,cgpara);
+          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype,0,cgpara);
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
         resultpara:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@cgpara],nil);
         cgpara.done;

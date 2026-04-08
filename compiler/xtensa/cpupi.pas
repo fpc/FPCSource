@@ -134,7 +134,7 @@ unit cpupi;
                       { getsize returns 0 for e.g. open arrays, however, they require a pointer at the stack, so
                         allocate one pointer }
                       if tabstractnormalvarsym(procdef.parast.SymList[i]).getsize=0 then
-                        inc(localsize,voidpointertype.size)
+                        inc(localsize,compiler.deftypes.voidpointertype.size)
                       else
                         inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
                     end;

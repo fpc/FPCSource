@@ -848,7 +848,7 @@ implementation
             use_frame_pointer:=true
           else
             begin
-              hlcg.location_force_reg(current_asmdata.currasmlist,left.location,left.resultdef,voidpointertype,false);
+              hlcg.location_force_reg(current_asmdata.currasmlist,left.location,left.resultdef,compiler.deftypes.voidpointertype,false);
               frame_reg:=left.location.register;
               use_frame_pointer:=false;
             end

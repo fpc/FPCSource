@@ -817,8 +817,8 @@ implementation
 
     function tpointerconstnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
       begin
-        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) then
-          tcb.emit_tai(tai_const.Create_int_dataptr(value),voidpointertype)
+        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(compiler.deftypes.voidpointertype)) then
+          tcb.emit_tai(tai_const.Create_int_dataptr(value),compiler.deftypes.voidpointertype)
         else
           tcb.emit_tai(tai_const.Create_int_codeptr(value),voidcodepointertype);
         result:=resultdef.size;
@@ -1227,7 +1227,7 @@ implementation
             begin
               labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,charpointertype);
-              result:=voidpointertype.size;
+              result:=compiler.deftypes.voidpointertype.size;
             end;
           st_widestring,
           st_unicodestring:
@@ -1235,7 +1235,7 @@ implementation
               winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in compiler.target.info.flags);
               labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],valuews,tstringdef(resultdef).encoding,winlikewidestring);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,widecharpointertype);
-              result:=voidpointertype.size;
+              result:=compiler.deftypes.voidpointertype.size;
             end;
         end;
       end;
@@ -1572,13 +1572,13 @@ implementation
     function tnilnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidpointertype;
+        resultdef:=compiler.deftypes.voidpointertype;
       end;
 
     function tnilnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
       begin
-        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) then
-          tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype)
+        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(compiler.deftypes.voidpointertype)) then
+          tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
           tcb.emit_tai(tai_const.Create_nil_codeptr,voidcodepointertype);
         result:=resultdef.size;

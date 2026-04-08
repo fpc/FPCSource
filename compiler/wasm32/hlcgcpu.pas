@@ -52,7 +52,7 @@ uses
         and registerhi with the following sizes:
 
         register   - cgsize = int_cgsize(voidcodepointertype.size)
-        registerhi - cgsize = int_cgsize(voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
+        registerhi - cgsize = int_cgsize(compiler.deftypes.voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
                               (check d.size to determine which one of the two)
         }
       function is_methodptr_like_type(d:tdef): boolean;
@@ -1081,7 +1081,7 @@ implementation
             if (fromloc.reference.base<>NR_NO) and
                (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
-              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
+              g_allocload_reg_reg(list,compiler.deftypes.voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
           end;
         else
           inherited;
@@ -1330,7 +1330,7 @@ implementation
           if (ref.base<>NR_STACK_POINTER_REG) then
             begin
               { regular field -> load self on the stack }
-              a_load_reg_stack(list,voidpointertype,ref.base);
+              a_load_reg_stack(list,compiler.deftypes.voidpointertype,ref.base);
               if assigned(ref.symbol) then
                 begin
                   list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
@@ -1354,7 +1354,7 @@ implementation
                 end;
               if dup then
                 begin
-                  a_load_reg_stack(list,voidpointertype,ref.base);
+                  a_load_reg_stack(list,compiler.deftypes.voidpointertype,ref.base);
                   if assigned(ref.symbol) then
                     begin
                       list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
@@ -1524,8 +1524,8 @@ implementation
           a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
           inc(tmpref.offset,voidcodepointertype.size);
           { the second part could be either self or parentfp }
-          if tosize.size=(voidcodepointertype.size+voidpointertype.size) then
-            a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref)
+          if tosize.size=(voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
+            a_load_reg_ref(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,loc.registerhi,tmpref)
           else if tosize.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
             a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
           else
@@ -2601,14 +2601,14 @@ implementation
          ((ref.base<>NR_NO) and (ref.index<>NR_NO)) or
          ((ref.base=NR_NO) and (ref.index=NR_NO)) then
         begin
-          reg:=getintregister(list,voidpointertype);
-          a_loadaddr_ref_reg(list,voidpointertype,voidpointertype,ref,reg);
+          reg:=getintregister(list,compiler.deftypes.voidpointertype);
+          a_loadaddr_ref_reg(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,ref,reg);
         end
       else if ref.base<>NR_NO then
         reg:=ref.base
       else
         reg:=ref.index;
-      a_cmp_const_reg_stack(list,voidpointertype,OC_B,size,reg);
+      a_cmp_const_reg_stack(list,compiler.deftypes.voidpointertype,OC_B,size,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
       decstack(current_asmdata.CurrAsmList,1);
       g_call_system_proc(list,'fpc_invalidpointer',[],nil);

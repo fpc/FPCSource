@@ -3780,11 +3780,11 @@ implementation
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
             end
           else
             begin
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
             end;
           paramanager.freecgpara(list,cgpara1);
@@ -3828,11 +3828,11 @@ implementation
             if pd.is_pushleftright then
               begin
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+                a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
               end
             else
               begin
-                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+                a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
               end;
             paramanager.freecgpara(list,cgpara1);
@@ -3878,11 +3878,11 @@ implementation
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
             end
           else
             begin
-              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
             end;
           paramanager.freecgpara(list,cgpara1);
@@ -3921,7 +3921,7 @@ implementation
       if pd.is_pushleftright then
         begin
           a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
         end;
 
       { push parameter 3 }
@@ -3945,7 +3945,7 @@ implementation
       { if calling convention is right to left, push parameters 2 and 1 }
       if not pd.is_pushleftright then
         begin
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          a_loadaddr_ref_cgpara(list,compiler.deftypes.voidpointertype,href,cgpara2);
           a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
         end;
       paramanager.freecgpara(list,cgpara1);
@@ -4357,11 +4357,11 @@ implementation
             if (fromloc.reference.base<>NR_NO) and
                (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
-              handle_reg_move(voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
+              handle_reg_move(compiler.deftypes.voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
             if (fromloc.reference.index<>NR_NO) and
                (fromloc.reference.index<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.index<>NR_STACK_POINTER_REG) then
-              handle_reg_move(voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
+              handle_reg_move(compiler.deftypes.voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
           end;
         else
           internalerror(2012012701);
@@ -4675,7 +4675,7 @@ implementation
               if loadref then
                 begin
                   pdef:=cpointerdef.getreusable(def,compiler);
-                  reference_reset_base(ref,pdef,getaddressregister(list,voidpointertype),0,ctempposinvalid,alignment,[]);
+                  reference_reset_base(ref,pdef,getaddressregister(list,compiler.deftypes.voidpointertype),0,ctempposinvalid,alignment,[]);
                   { it's a pointer to def }
                   a_load_ref_reg(list,pdef,pdef,l.reference,ref.base);
                 end
@@ -5491,7 +5491,7 @@ implementation
                     end
                   else
                     highloc.loc:=LOC_INVALID;
-                  hreg:=getaddressregister(list,voidpointertype);
+                  hreg:=getaddressregister(list,compiler.deftypes.voidpointertype);
                   if not is_packed_array(tparavarsym(p).vardef) then
                     g_copyvaluepara_openarray(list,href,highloc,tarraydef(tparavarsym(p).vardef),hreg)
                   else

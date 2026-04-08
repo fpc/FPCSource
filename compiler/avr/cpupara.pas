@@ -257,7 +257,7 @@ unit cpupara;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_R25;
                 paraloc^.size:=OS_ADDR;
-                paraloc^.def:=voidpointertype;
+                paraloc^.def:=compiler.deftypes.voidpointertype;
                 break;
               end;
 
@@ -287,7 +287,7 @@ unit cpupara;
                       begin
                         paracgsize:=OS_ADDR;
                         paralen:=tcgsize2size[OS_ADDR];
-                        paradef:=voidpointertype;
+                        paradef:=compiler.deftypes.voidpointertype;
                       end;
                   end
               end;

@@ -112,7 +112,7 @@ implementation
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_G0;
                 paraloc^.size:=OS_ADDR;
-                paraloc^.def:=voidpointertype;
+                paraloc^.def:=compiler.deftypes.voidpointertype;
                 break;
               end;
 
@@ -128,7 +128,7 @@ implementation
                 if paracgsize=OS_NO then
                   begin
                     paracgsize:=OS_ADDR;
-                    paradef:=voidpointertype;
+                    paradef:=compiler.deftypes.voidpointertype;
                   end;
               end;
             hp.paraloc[side].reset;

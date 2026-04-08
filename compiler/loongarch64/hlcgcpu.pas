@@ -61,7 +61,7 @@ implementation
         href : treference;
         l : TAsmLabel;
       begin
-        reference_reset_base(href,voidpointertype,NR_R4,0,ctempposinvalid,sizeof(pint),[]);
+        reference_reset_base(href,compiler.deftypes.voidpointertype,NR_R4,0,ctempposinvalid,sizeof(pint),[]);
         href.refaddr:=addr_reg_12i;
         list.concat(taicpu.op_reg_ref(A_LD_D,NR_R12,href));
       end;
@@ -82,11 +82,11 @@ implementation
             list.concat(taicpu.op_reg_reg_reg(A_ADD_D,NR_R12,NR_R12,NR_R15));
             offset:=0;
           end;
-        reference_reset_base(href,voidpointertype,NR_R12,offset,ctempposinvalid, sizeof(pint),[]);
+        reference_reset_base(href,compiler.deftypes.voidpointertype,NR_R12,offset,ctempposinvalid, sizeof(pint),[]);
         href.refaddr:=addr_reg_12i;
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
 
-        reference_reset_base(href,voidpointertype,NR_R12,0,ctempposinvalid,0,[]);
+        reference_reset_base(href,compiler.deftypes.voidpointertype,NR_R12,0,ctempposinvalid,0,[]);
         href.refaddr:=addr_reg;
         list.concat(taicpu.op_ref(A_JR,href));
       end;
@@ -161,7 +161,7 @@ implementation
           list.concat(taicpu.op_reg_ref(A_PCALAU12I,tmpreg,href));
           href.refaddr:=addr_pc_lo12;
           list.concat(taicpu.op_reg_reg_ref(A_ADDI_D,tmpreg,tmpreg,href));
-          reference_reset_base(href,voidpointertype,tmpreg,0,ctempposinvalid,0,[]);
+          reference_reset_base(href,compiler.deftypes.voidpointertype,tmpreg,0,ctempposinvalid,0,[]);
           href.refaddr:=addr_reg;
           list.concat(taicpu.op_ref(A_JR,href));
         end;

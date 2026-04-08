@@ -852,7 +852,7 @@ implementation
                     p:=compiler.ctypeconvnode(p,s64floattype);
                 end;
             procvardef :
-              p:=compiler.ctypeconvnode(p,voidpointertype);
+              p:=compiler.ctypeconvnode(p,compiler.deftypes.voidpointertype);
             stringdef:
               if iscvarargs then
                 p:=compiler.ctypeconvnode(p,charpointertype);
@@ -867,10 +867,10 @@ implementation
               ;
             classrefdef:
               if iscvarargs then
-                p:=compiler.ctypeconvnode(p,voidpointertype);
+                p:=compiler.ctypeconvnode(p,compiler.deftypes.voidpointertype);
             objectdef :
               if is_objc_class_or_protocol(p.resultdef) then
-                p:=compiler.ctypeconvnode(p,voidpointertype)
+                p:=compiler.ctypeconvnode(p,compiler.deftypes.voidpointertype)
               else if iscvarargs or
                  is_object(p.resultdef) then
                 compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
@@ -1927,7 +1927,7 @@ implementation
         result := compiler.ccallnode_internres(
           'fpc_dynarray_to_variant',
           compiler.ccallparanode(compiler.caddrnode_internal(compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal)),
-            compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,voidpointertype),nil)
+            compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,compiler.deftypes.voidpointertype),nil)
           ),resultdef);
         typecheckpass(result);
         left:=nil;
@@ -2022,7 +2022,7 @@ implementation
                   (compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal)),
                compiler.ccallparanode(
                  compiler.ctypeconvnode_internal(
-                   compiler.ctemprefnode(temp),voidpointertype),
+                   compiler.ctemprefnode(temp),compiler.deftypes.voidpointertype),
                  nil))))
 
           ));
@@ -2030,7 +2030,7 @@ implementation
 
         { copy ... }
         addstatement(newstatement,compiler.cassignmentnode(
-          compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),voidpointertype)),left.resultdef),
+          compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),compiler.deftypes.voidpointertype)),left.resultdef),
           left
         ));
         { left is reused }
@@ -2121,7 +2121,7 @@ implementation
                   (compiler.crttinode(tstoreddef(totypedef),initrtti,rdt_normal)),
                compiler.ccallparanode(
                  compiler.ctypeconvnode_internal(
-                   compiler.ctemprefnode(arrnode),voidpointertype),
+                   compiler.ctemprefnode(arrnode),compiler.deftypes.voidpointertype),
                  nil))))
 
           ));
@@ -2898,7 +2898,7 @@ implementation
            not(resultdef.typ in [procvardef,recorddef,setdef]) and
            not is_invokable(resultdef) and
            { in case of interface assignments of invokables they'll be converted
-             to voidpointertype using an internal conversions; we must not call
+             to compiler.deftypes.voidpointertype using an internal conversions; we must not call
              the invokable in that case }
            not (
              (nf_internal in flags) and
@@ -3153,7 +3153,7 @@ implementation
                              newblock:=internalstatements(compiler,newstatement);
                              if (valid_for_var(left,false)) then
                                begin
-                                 tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                                 tempnode:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,compiler.cassignmentnode(
                                    compiler.ctemprefnode(tempnode),

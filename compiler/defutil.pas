@@ -1756,7 +1756,7 @@ implementation
                 internalerror(2013052201);
             end;
           formaldef:
-            result := int_cgsize(voidpointertype.size);
+            result := int_cgsize(compiler.deftypes.voidpointertype.size);
           procvardef:
             result:=int_cgsize(def.size);
           stringdef :

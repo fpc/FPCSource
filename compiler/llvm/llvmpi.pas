@@ -150,7 +150,7 @@ implementation
           hlcg.a_label(list,exceptionstate.exceptionlabel);
           { use packrecords 1 because we don't want padding (LLVM 4.0+ requires
             exactly two fields in this struct) }
-          landingpaddef:=llvmgettemprecorddef([voidpointertype,u32inttype],
+          landingpaddef:=llvmgettemprecorddef([compiler.deftypes.voidpointertype,u32inttype],
             1,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           reg:=hlcg.getregisterfordef(list,landingpaddef);
@@ -163,7 +163,7 @@ implementation
               if use_cleanup(exceptframekind) then
                 landingpad.landingpad_add_clause(la_cleanup, nil, nil)
               else
-                landingpad.landingpad_add_clause(la_catch, voidpointertype, nil);
+                landingpad.landingpad_add_clause(la_catch, compiler.deftypes.voidpointertype, nil);
               hlcg.a_label(list,exceptionstate.finallycodelabel);
               exceptionstate.finallycodelabel:=nil;
             end;
@@ -203,7 +203,7 @@ implementation
           if assigned(landingpad) and
              not assigned(landingpad.oper[2]^.ai) then
             begin
-              landingpad.landingpad_add_clause(la_catch,voidpointertype,nil);
+              landingpad.landingpad_add_clause(la_catch,compiler.deftypes.voidpointertype,nil);
             end;
         end;
 
@@ -312,7 +312,7 @@ implementation
                 end
               else
                 begin
-                  landingpad.landingpad_add_clause(la_catch,voidpointertype,nil);
+                  landingpad.landingpad_add_clause(la_catch,compiler.deftypes.voidpointertype,nil);
                 end;
             end;
           { pascal_exception := FPC_psabi_begin_catch(wrappedExceptionObject) where
@@ -341,12 +341,12 @@ implementation
               typeidres.resetiftemp;
             end;
 
-          wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
+          wrappedexception:=hlcg.getaddressregister(list,compiler.deftypes.voidpointertype);
           list.concat(taillvm.extract(la_extractvalue,wrappedexception,landingpadstructdef,landingpadres,0));
 
           pd:=search_system_proc('fpc_psabi_begin_catch');
           paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
-          hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
+          hlcg.a_load_reg_cgpara(list,compiler.deftypes.voidpointertype,wrappedexception,paraloc1);
           begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
           location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
           exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);

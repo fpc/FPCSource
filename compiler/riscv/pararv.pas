@@ -360,7 +360,7 @@ implementation
               paraloc^.loc := LOC_REGISTER;
               paraloc^.register := NR_X0;
               paraloc^.size := OS_ADDR;
-              paraloc^.def := voidpointertype;
+              paraloc^.def := compiler.deftypes.voidpointertype;
               break;
             end;
             delphi_nestedfp:=(vo_is_parentfp in hp.varoptions) and (po_delphi_nested_cc in p.procoptions);

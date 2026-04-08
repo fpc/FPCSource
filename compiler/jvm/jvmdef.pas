@@ -708,7 +708,7 @@ implementation
                 end;
               pointerdef :
                 begin
-                  if def=voidpointertype then
+                  if def=compiler.deftypes.voidpointertype then
                     result:=java_jlobject
                   else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
                     result:=tpointerdef(def).pointeddef

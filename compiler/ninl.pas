@@ -1492,7 +1492,7 @@ implementation
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+            filetemp := compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
             addstatement(newstatement,filetemp);
 
             { make sure the resultdef of the temp (and as such of the }
@@ -1530,7 +1530,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                filetemp := compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
@@ -2485,7 +2485,7 @@ implementation
 {$elseif defined(i386)}
                      hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype);
 {$else}
-                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,compiler.deftypes.voidpointertype);
 {$endif}
                    end;
                  in_const_eh_return_data_regno:
@@ -3482,7 +3482,7 @@ implementation
                   if (left.resultdef.typ=objectdef) and
                     not(oo_has_vmt in tobjectdef(left.resultdef).objectoptions) then
                       compiler.verbose.Message(type_e_typeof_requires_vmt);
-                  resultdef:=voidpointertype;
+                  resultdef:=compiler.deftypes.voidpointertype;
                 end;
 
               in_ord_x:
@@ -3618,7 +3618,7 @@ implementation
                       ) then
                      compiler.verbose.CGMessage(type_e_no_type_info);
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   resultdef:=voidpointertype;
+                   resultdef:=compiler.deftypes.voidpointertype;
                 end;
 
               in_gettypekind_x:
@@ -4130,7 +4130,7 @@ implementation
               in_get_caller_frame,
               in_get_caller_addr:
                 begin
-                  resultdef:=voidpointertype;
+                  resultdef:=compiler.deftypes.voidpointertype;
                 end;
               in_rol_x,
               in_ror_x,
@@ -4291,7 +4291,7 @@ implementation
                           { pointer is only allowed for Exchange and CmpExchange }
                           if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
                             compiler.verbose.CGMessagePos(fileinfo,type_e_ordinal_expr_expected);
-                          resultdef:=voidpointertype;
+                          resultdef:=compiler.deftypes.voidpointertype;
                           convdef:=ptrsinttype;
                         end;
                       { left gets changed -> must be unique }
@@ -4421,7 +4421,7 @@ implementation
                         result:=genloadfield(result,'VINSTANCESIZE');
                       end
                     else
-                      inserttypeconv_explicit(result,voidpointertype,compiler);
+                      inserttypeconv_explicit(result,compiler.deftypes.voidpointertype,compiler);
                   end;
                 undefineddef:
                   ;
@@ -5087,7 +5087,7 @@ implementation
            Value of 3 corresponds to subscript nodes, i.e. record field. }
          if node_complexity(tcallparanode(left).left) > 3 then
            begin
-             tempnode := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+             tempnode := compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
              addstatement(newstatement,tempnode);
              addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
                compiler.caddrnode_internal(tcallparanode(left).left.getcopy)));
@@ -5245,7 +5245,7 @@ implementation
            if (dims=1) and is_constintvalue(tcallparanode(paras).left, 0) then
              begin
                ppn.left:=nil; { unlink destppn }
-               result:=compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,voidpointertype),nil);
+               result:=compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,compiler.deftypes.voidpointertype),nil);
                result:=compiler.ccallnode_intern('fpc_dynarray_clear',
                  compiler.ccallparanode(compiler.caddrnode_internal(
                    compiler.crttinode(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
@@ -5288,7 +5288,7 @@ implementation
                      (dims,sinttype,true),
                   compiler.ccallparanode(compiler.caddrnode_internal
                      (compiler.crttinode(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
-                  compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,voidpointertype),nil))));
+                  compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,compiler.deftypes.voidpointertype),nil))));
            addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',npara));
            addstatement(newstatement,compiler.ctempdeletenode(temp));
          end
@@ -5368,7 +5368,7 @@ implementation
               eletypeppn:=compiler.caddrnode_internal(
                 compiler.crttinode(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal))
             else
-              eletypeppn:=compiler.cordconstnode(0,voidpointertype,false);
+              eletypeppn:=compiler.cordconstnode(0,compiler.deftypes.voidpointertype,false);
             maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy,compiler);
             case counter of
               1:
@@ -5398,7 +5398,7 @@ implementation
               end
             else if is_dynamic_array(paradef) then
               begin
-                arrayppn:=compiler.ctypeconvnode_internal(ppn.left,voidpointertype);
+                arrayppn:=compiler.ctypeconvnode_internal(ppn.left,compiler.deftypes.voidpointertype);
               end
             else
               internalerror(2012100704);
@@ -5678,7 +5678,7 @@ implementation
                  datatemp:=compiler.ctempcreatenode_value(first,first.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
                  if is_dynamic_array(first) then
-                   datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype)
+                   datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),compiler.deftypes.voidpointertype)
                  else
                    datan:=compiler.caddrnode_internal(compiler.cvecnode(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false)));
                  datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
@@ -5688,7 +5688,7 @@ implementation
                  inserttypeconv(firstn,second,compiler);
                  datatemp:=compiler.ctempcreatenode_value(second,second.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
-                 datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype);
+                 datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),compiler.deftypes.voidpointertype);
                  datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
                end
              else
@@ -5713,7 +5713,7 @@ implementation
                      compiler.ccallparanode(datacountn,
                        compiler.ccallparanode(datan,
                          compiler.ccallparanode(tcallparanode(left).left,
-                           compiler.ccallparanode(compiler.ctypeconvnode_internal(secondn,voidpointertype),nil)))));
+                           compiler.ccallparanode(compiler.ctypeconvnode_internal(secondn,compiler.deftypes.voidpointertype),nil)))));
              addstatement(insertstatement,compiler.ccallnode_intern(procname,newn));
              if assigned(datatemp) then
                addstatement(insertstatement,compiler.ctempdeletenode(datatemp));
@@ -5783,7 +5783,7 @@ implementation
                   (compiler.crttinode(tstoreddef(first),initrtti,rdt_normal)),
                     compiler.ccallparanode(tcallparanode(left).left,
                       compiler.ccallparanode(tcallparanode(tcallparanode(left).right).left,
-                        compiler.ccallparanode(compiler.ctypeconvnode_internal(firstn,voidpointertype),nil))));
+                        compiler.ccallparanode(compiler.ctypeconvnode_internal(firstn,compiler.deftypes.voidpointertype),nil))));
              tcallparanode(tcallparanode(tcallparanode(left).right).right).left:=nil;
              tcallparanode(tcallparanode(left).right).left:=nil;
              tcallparanode(left).left:=nil;
@@ -5919,7 +5919,7 @@ implementation
                      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                      n:=compiler.ctemprefnode(tempnode);
                      { then to a plain pointer for the helper }
-                     inserttypeconv_internal(n,voidpointertype,compiler);
+                     inserttypeconv_internal(n,compiler.deftypes.voidpointertype,compiler);
                      arrconstr:=compiler.carrayconstructornode(n,arrconstr);
                    end;
                  Include(arrconstr.arrayconstructornodeflags,acnf_allow_array_constructor);
@@ -5942,7 +5942,7 @@ implementation
                          arrconstr,
                          compiler.ccallparanode(
                            compiler.caddrnode_internal(compiler.crttinode(tstoreddef(arrn.resultdef),initrtti,rdt_normal)),
-                             compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidpointertype),nil))
+                             compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),compiler.deftypes.voidpointertype),nil))
                        );
                  addstatement(
                    newstatement,
@@ -6211,7 +6211,7 @@ implementation
          end;
          name:=name+'_';
          if is_pointer(resultdef) then
-           name:=name+tostr(voidpointertype.size*8)
+           name:=name+tostr(compiler.deftypes.voidpointertype.size*8)
          else if is_integer(resultdef) then
            case torddef(resultdef).ordtype of
              s8bit:

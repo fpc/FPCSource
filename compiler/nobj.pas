@@ -786,9 +786,9 @@ implementation
                 { allocate a pointer in the object memory }
                 with tObjectSymtable(_class.symtable) do
                   begin
-                    datasize:=align(datasize,voidpointertype.alignment);
+                    datasize:=align(datasize,compiler.deftypes.voidpointertype.alignment);
                     ImplIntf.Ioffset:=datasize;
-                    datasize:=datasize+voidpointertype.size;
+                    datasize:=datasize+compiler.deftypes.voidpointertype.size;
                   end;
               end;
           end;
@@ -882,9 +882,9 @@ implementation
               { size, -size, parent vmt [, dmt ] (same names as for class) }
               vmtdef.add_field_by_def('vInstanceSize',sizesinttype);
               vmtdef.add_field_by_def('vInstanceSize2',sizesinttype);
-              vmtdef.add_field_by_def('vParent',voidpointertype);
+              vmtdef.add_field_by_def('vParent',compiler.deftypes.voidpointertype);
 {$ifdef WITHDMT}
-              vmtdef.add_field_by_def('',voidpointertype);
+              vmtdef.add_field_by_def('',compiler.deftypes.voidpointertype);
 {$endif WITHDMT}
             end;
           else

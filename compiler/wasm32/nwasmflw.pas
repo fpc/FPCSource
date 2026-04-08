@@ -256,7 +256,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=compiler.cpointerconstnode(0,voidpointertype);
+                  third:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
               end
             else
               begin
@@ -313,7 +313,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=compiler.cpointerconstnode(0,voidpointertype);
+                  third:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
               end
             else
               begin
@@ -370,7 +370,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=compiler.cpointerconstnode(0,voidpointertype);
+                  third:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
               end
             else
               begin
@@ -427,7 +427,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=compiler.cpointerconstnode(0,voidpointertype);
+                  third:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
               end
             else
               begin
@@ -1911,7 +1911,7 @@ implementation
 
         if assigned(exceptvarsym) then
           begin
-            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(voidpointertype), voidpointertype.alignment, []);
+            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
@@ -2058,7 +2058,7 @@ implementation
 
         if assigned(exceptvarsym) then
           begin
-            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(voidpointertype), voidpointertype.alignment, []);
+            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
@@ -2204,7 +2204,7 @@ implementation
 
         if assigned(exceptvarsym) then
           begin
-            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(voidpointertype), voidpointertype.alignment, []);
+            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;

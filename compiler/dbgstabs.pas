@@ -1703,7 +1703,7 @@ implementation
         if not(compiler.target.info.system in systems_darwin) then
           begin
             new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
-            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
           end
         else
           new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
@@ -1848,7 +1848,7 @@ implementation
         infile:=compiler.current_module.sourcefiles.get_file(1);
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
 {$ifdef MIPS}
        { at least mipsel needs an explicit '.set nomips16' before any reference to
          procedure/function, see bug report 32138 }
@@ -1869,7 +1869,7 @@ implementation
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),sizeof(pint),secorder_end);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
         hlabel.increfs;
@@ -1888,7 +1888,7 @@ implementation
         { make sure the debuginfo doesn't get stripped out }
         if (compiler.target.info.system in systems_darwin) then
           begin
-            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_METADATA,0,voidpointertype);
+            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_METADATA,0,compiler.deftypes.voidpointertype);
             list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));
             list.concat(dbgtable);
           end;

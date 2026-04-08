@@ -357,7 +357,7 @@ unit cpupara;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_D0;
                 paraloc^.size:=OS_ADDR;
-                paraloc^.def:=voidpointertype;
+                paraloc^.def:=compiler.deftypes.voidpointertype;
                 break;
               end;
 

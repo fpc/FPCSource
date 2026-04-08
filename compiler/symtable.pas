@@ -4387,9 +4387,9 @@ implementation
         if not assigned(result) and is_pointer(to_def) and not is_voidpointer(to_def) then
           begin
             if explicit then
-              result:=search_specific_assignment_operator(_OP_EXPLICIT,from_def,voidpointertype);
+              result:=search_specific_assignment_operator(_OP_EXPLICIT,from_def,compiler.deftypes.voidpointertype);
             if not assigned(result) then
-              result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,voidpointertype);
+              result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,compiler.deftypes.voidpointertype);
           end;
 
         { restore symtable stack }

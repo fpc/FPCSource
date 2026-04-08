@@ -111,10 +111,10 @@ implementation
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { load vmt }
-          reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(pint),[]);
+          reference_reset_base(href,compiler.deftypes.voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
           { jmp to method }
-          reference_reset_base(href,voidpointertype,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
+          reference_reset_base(href,compiler.deftypes.voidpointertype,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
           list.concat(taicpu.op_reg(A_JMP,NR_G1));
           { Delay slot }

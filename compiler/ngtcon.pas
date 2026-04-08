@@ -1061,7 +1061,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   // TODO correct type?
                   ftcb.emit_tai(Tai_const.createname(
                     tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0),
-                    voidpointertype);
+                    compiler.deftypes.voidpointertype);
                 end
               else
                 compiler.verbose.Message(parser_e_illegal_expression);
@@ -1512,7 +1512,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                procvar record }
              ftcb.emit_tai_procvar2procdef(Tai_const.Create_sym(nil),def);
              if not def.is_addressonly then
-               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+               ftcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
              ftcb.maybe_end_aggregate(def);
              exit;
           end;
@@ -1599,7 +1599,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     selfdef:=tclassrefdef(selfdef).pointeddef;
                     ftcb.emit_tai(Tai_const.Create_sym(
                       current_asmdata.RefAsmSymbol(tobjectdef(selfdef).vmt_mangledname,AT_DATA)),
-                      voidpointertype);
+                      compiler.deftypes.voidpointertype);
                   end
                 else
                   compiler.verbose.Message(parser_e_no_procvarobj_const);
@@ -1612,20 +1612,20 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if haveblock or
                    is_nested_pd(pd) then
                   compiler.verbose.Message(parser_e_no_procvarnested_const);
-                ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+                ftcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
               end;
           end
         else if n.nodetype=pointerconstn then
           begin
             ftcb.queue_emit_ordconst(tpointerconstnode(n).value,procaddrdef);
             if not def.is_addressonly then
-              ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+              ftcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
           end
         else if n.nodetype=niln then
           begin
             ftcb.queue_emit_ordconst(0,procaddrdef);
             if not def.is_addressonly then
-              ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+              ftcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
           end
         else
           compiler.verbose.Message(parser_e_illegal_expression);

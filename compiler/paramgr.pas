@@ -283,12 +283,12 @@ implementation
           vs_constref,
           vs_out,
           vs_var :
-            push_size:=voidpointertype.size;
+            push_size:=compiler.deftypes.voidpointertype.size;
           vs_value,
           vs_const :
             begin
                 if push_addr_param(varspez,def,calloption) then
-                  push_size:=voidpointertype.size
+                  push_size:=compiler.deftypes.voidpointertype.size
                 else
                   begin
                     { special array are normally pushed by addr, only for

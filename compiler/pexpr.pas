@@ -2206,7 +2206,7 @@ implementation
                     (compiler.crttinode(tstoreddef(arrdef),initrtti,rdt_normal)),
                  compiler.ccallparanode(
                    compiler.ctypeconvnode_internal(
-                     compiler.ctemprefnode(arrnode),voidpointertype),
+                     compiler.ctemprefnode(arrnode),compiler.deftypes.voidpointertype),
                    nil))))
 
             ));
@@ -2238,7 +2238,7 @@ implementation
                 if node.nodetype=addrn then
                   { always use the pointer type for addr nodes as otherwise
                     we'll have an anonymous pointertype with no name }
-                  def:=voidpointertype
+                  def:=compiler.deftypes.voidpointertype
                 else
                   def:=node.resultdef;
               result:=search_objectpascal_helper(def,nil,current_scanner.pattern,srsym,srsymtable);

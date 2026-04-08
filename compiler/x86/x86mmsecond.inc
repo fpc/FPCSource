@@ -1784,7 +1784,7 @@ in_x86_maskmovdqu
     for i := 1 to 3 do secondpass(paraarray[i]);
 
     hlcg.getcpuregister(current_asmdata.CurrAsmList,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});
-    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,voidpointertype,paraarray[1].location,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});
+    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,compiler.deftypes.voidpointertype,paraarray[1].location,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[3].location, true);
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,paraarray[3].location.register,paraarray[2].location.register));

@@ -142,7 +142,7 @@ end;
           result:=compiler.ctypeconvnode_internal(
             compiler.cderefnode(
               compiler.ctypeconvnode_internal(n,
-                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype,compiler),compiler)
+                cpointerdef.getreusable(cpointerdef.getreusable(compiler.deftypes.voidpointertype,compiler),compiler)
               )
             ),tfieldvarsym(vs).vardef
           )

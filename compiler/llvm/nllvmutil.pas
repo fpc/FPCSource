@@ -135,7 +135,7 @@ implementation
           prevasmsym:=nil;
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
-          useddef:=carraydef.getreusable(voidpointertype,uniquesyms,compiler);
+          useddef:=carraydef.getreusable(compiler.deftypes.voidpointertype,uniquesyms,compiler);
           tcb.maybe_begin_aggregate(useddef);
           for i:=0 to usedsyms.count-1 do
             begin
@@ -144,7 +144,7 @@ implementation
                  not((typedsym.def.typ=procdef) and
                      (po_assembler in tprocdef(typedsym.def).procoptions)) then
                 begin
-                  tcb.queue_init(voidpointertype);
+                  tcb.queue_init(compiler.deftypes.voidpointertype);
                   tcb.queue_emit_asmsym(typedsym.sym,typedsym.def);
                   prevasmsym:=typedsym.sym;
                 end;
@@ -178,7 +178,7 @@ implementation
           pd:=tprocdef(procdefs[0]);
           fields[0]:=s32inttype;
           fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler);
-          fields[2]:=voidpointertype;
+          fields[2]:=compiler.deftypes.voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
@@ -192,7 +192,7 @@ implementation
               tcb.maybe_begin_aggregate(itemdef);
               tcb.emit_ord_const(65535,s32inttype);
               tcb.emit_procdef_const(tprocdef(procdefs[i]));
-              tcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+              tcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
               tcb.maybe_end_aggregate(itemdef);
             end;
           tcb.maybe_end_aggregate(arraydef);
@@ -200,7 +200,7 @@ implementation
             tcb.get_final_asmlist(
               current_asmdata.DefineAsmSymbol(
                 initfinisymsname,AB_GLOBAL,AT_DATA,arraydef),arraydef,sec_data,
-                initfinisymsname,voidpointertype.alignment
+                initfinisymsname,compiler.deftypes.voidpointertype.alignment
             )
           );
           tcb.free;

@@ -130,7 +130,7 @@ implementation
               ((def2.typ=procvardef) and
                tprocvardef(def2).is_addressonly) or
               (def2=java_jlobject) or
-              (def2=voidpointertype)
+              (def2=compiler.deftypes.voidpointertype)
           else if po_methodpointer in tprocvardef(def1).procoptions then
             begin
               if not assigned(tmethoddef) then
@@ -1095,7 +1095,7 @@ implementation
           if todef.typ=procvardef then
             todef:=tcpuprocvardef(todef).classdef;
           if (todef=java_jlobject) or
-             (todef=voidpointertype) then
+             (todef=compiler.deftypes.voidpointertype) then
             exit;
           if compare_defs(fromdef,todef,nothingn)>=te_equal then
             exit;

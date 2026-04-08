@@ -157,13 +157,13 @@ function GetTypeDef(const ATyp: string): string;
       'xmm':   exit('x86_m128type');
       'i32':   exit('s32inttype');
 
-      'edi_ptr':   exit('voidpointertype');
+      'edi_ptr':   exit('compiler.deftypes.voidpointertype');
 
       'ptr8',
       'ptr16',
       'ptr32',
       'ptr64',
-      'ptr128': exit('voidpointertype');
+      'ptr128': exit('compiler.deftypes.voidpointertype');
     else
       exit(ATyp);
     end;
@@ -289,7 +289,7 @@ function GetLocStatement(AIndex: longint; const ATyp: string; AConst: boolean): 
                       [AIndex+1, BoolToStr(aconst,'true','false'), AIndex+1, AIndex+1]));
       'edi_ptr':
         exit(format('hlcg.getcpuregister(current_asmdata.CurrAsmList,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});'+LineEnding+
-                    '    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[%d].resultdef,voidpointertype,paraarray[%d].location,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});',
+                    '    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[%d].resultdef,compiler.deftypes.voidpointertype,paraarray[%d].location,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});',
                       [AIndex+1, AIndex+1]));
 
       'ptr8',

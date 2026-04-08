@@ -342,7 +342,7 @@ unit cgppc;
         if weak then
           current_asmdata.weakrefasmsymbol(s,AT_FUNCTION);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA,voidpointertype);
+        l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
         reference_reset_symbol(href,l1,0,sizeof(pint),[]);
         href.refaddr := addr_higha;
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
@@ -815,7 +815,7 @@ unit cgppc;
             begin
               TPPCAsmData(current_asmdata).DirectTOCEntries:=TPPCAsmData(current_asmdata).DirectTOCEntries+1;
               new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
-              ref.symbol:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,voidpointertype);
+              ref.symbol:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
 	      ref.symbol.increfs;
               current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(ref.symbol,0));
               { do not assign the result of these statements to ref.symbol: the
@@ -849,7 +849,7 @@ unit cgppc;
                   { base address for this batch of toc table entries that we'll
                     put in a data block instead }
                   new_section(current_asmdata.AsmLists[al_indirectpicdata],sec_rodata,'',sizeof(pint));
-                  sym:=current_asmdata.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA,voidpointertype);
+                  sym:=current_asmdata.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
                   current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(sym,0));
 		  sym.increfs;
                 end;
@@ -860,7 +860,7 @@ unit cgppc;
                 current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
                 current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
-              tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,voidpointertype));
+              tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype));
               ref.symbol:=tocsym;
 	      tocsym.increfs;
               tocsym.ftocsecnr:=tocnr;

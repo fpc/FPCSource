@@ -179,7 +179,7 @@ type
                           is_open_array(paranode.parasym.vardef));
                         if useaddr then
                           begin
-                            tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
+                            tempnode:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               compiler.cassignmentnode(

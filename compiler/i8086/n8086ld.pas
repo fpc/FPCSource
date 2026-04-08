@@ -160,7 +160,7 @@ implementation
             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
             cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
             cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
@@ -172,9 +172,9 @@ implementation
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-            hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
+            hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
           end
         else
           inherited generate_threadvar_access(gvs);

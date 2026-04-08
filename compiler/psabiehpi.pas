@@ -597,7 +597,7 @@ implementation
             hlcg.a_label(list,exceptionstate.finallycodelabel);
             exceptionstate.finallycodelabel:=nil;
             exceptiontemps.unwind_info:=cg.getaddressregister(list);
-            hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,exceptiontemps.unwind_info);
+            hlcg.a_load_reg_reg(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,NR_FUNCTION_RESULT_REG,exceptiontemps.unwind_info);
           end;
       end;
 
@@ -655,7 +655,7 @@ implementation
             pd:=search_system_proc('_unwind_resume');
             cgpara1.init(compiler.target);
             paramanager.getcgtempparaloc(list,pd,1,cgpara1);
-            hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
+            hlcg.a_load_reg_cgpara(list,compiler.deftypes.voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             hlcg.g_call_system_proc(list,'_unwind_resume',[@cgpara1],nil).resetiftemp;
             { we do not have to clean up the stack, we never return }
@@ -715,8 +715,8 @@ implementation
         rttidef:=nil;
         rttisym:=nil;
 }
-        wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
-        hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,wrappedexception);
+        wrappedexception:=hlcg.getaddressregister(list,compiler.deftypes.voidpointertype);
+        hlcg.a_load_reg_reg(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,NR_FUNCTION_RESULT_REG,wrappedexception);
 (*
         if add_catch then
           begin
@@ -756,7 +756,7 @@ implementation
 
         pd:=search_system_proc('fpc_psabi_begin_catch');
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
-        hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
+        hlcg.a_load_reg_cgpara(list,compiler.deftypes.voidpointertype,wrappedexception,paraloc1);
         begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
         location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));
         exceptloc.register:=hlcg.getaddressregister(list, begincatchres.def);

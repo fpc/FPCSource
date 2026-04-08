@@ -198,8 +198,8 @@ implementation
           voidcodepointertype:=voidnearcspointertype;
         voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
-        voidcodepointertype:=voidpointertype;
-        voidstackpointertype:=voidpointertype;
+        voidcodepointertype:=compiler.deftypes.voidpointertype;
+        voidstackpointertype:=compiler.deftypes.voidpointertype;
 {$endif i8086}
         case voidcodepointertype.size of
           2:
@@ -220,7 +220,7 @@ implementation
           else
             Internalerror(2015112106);
         end;
-        case voidpointertype.size of
+        case compiler.deftypes.voidpointertype.size of
           2:
             begin
               ptruinttype:=u16inttype;
@@ -285,7 +285,7 @@ implementation
         cformaltype:=cformaldef.create(false,compiler);
         ctypedformaltype:=cformaldef.create(true,compiler);
         voidtype:=corddef.create(uvoid,0,0,true,compiler);
-        voidpointertype:=cpointerdef.create(voidtype,compiler);
+        compiler.deftypes.voidpointertype:=cpointerdef.create(voidtype,compiler);
         u8inttype:=corddef.create(u8bit,0,255,true,compiler);
         s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
@@ -515,7 +515,7 @@ implementation
           addtype('Comp',cfloatdef.create(s64comp,true,compiler));
 {$endif x86}
         addtype('Currency',s64currencytype);
-        addtype('Pointer',voidpointertype);
+        addtype('Pointer',compiler.deftypes.voidpointertype);
 {$ifdef x86}
         addtype('NearPointer',voidnearpointertype);
         addtype('NearCsPointer',voidnearcspointertype);
@@ -579,7 +579,7 @@ implementation
         addtype('$formal',cformaltype);
         addtype('$typedformal',ctypedformaltype);
         addtype('$void',voidtype);
-        addtype('$void_pointer',voidpointertype);
+        addtype('$void_pointer',compiler.deftypes.voidpointertype);
         addtype('$byte',u8inttype);
         addtype('$shortint',s8inttype);
         addtype('$word',u16inttype);
@@ -690,7 +690,7 @@ implementation
               __vtbl_ptr_type in all cases (JM) }
             addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype,compiler),[]));
             vmtarraytype:=carraydef.create(0,0,s32inttype,compiler);
-            tarraydef(vmtarraytype).elementdef:=voidpointertype;
+            tarraydef(vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',vmttype);
             vmtarraytype:=carraydef.create(0,1,s32inttype,compiler);
@@ -700,7 +700,7 @@ implementation
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$self',vs_value,compiler.deftypes.voidpointertype,[]));
         methodpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
@@ -759,7 +759,7 @@ implementation
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
-        loadtype('void_pointer',voidpointertype);
+        loadtype('void_pointer',compiler.deftypes.voidpointertype);
         loadtype('ansichar',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);

@@ -630,7 +630,7 @@ implementation
             if (fromloc.reference.base<>NR_NO) and
                (fromloc.reference.base<>compiler.current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
-              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
+              g_allocload_reg_reg(list,compiler.deftypes.voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
             case fromloc.reference.arrayreftype of
               art_indexreg:
                 begin
@@ -642,7 +642,7 @@ implementation
                   { base register of the address of the index -> pointer }
                   if (fromloc.reference.indexbase<>NR_NO) and
                      (fromloc.reference.indexbase<>NR_STACK_POINTER_REG) then
-                    g_allocload_reg_reg(list,voidpointertype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
+                    g_allocload_reg_reg(list,compiler.deftypes.voidpointertype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
                 end;
               else
                 ;
@@ -991,7 +991,7 @@ implementation
               if (ref.base<>NR_STACK_POINTER_REG) then
                 begin
                   { regular field -> load self on the stack }
-                  a_load_reg_stack(list,voidpointertype,ref.base);
+                  a_load_reg_stack(list,compiler.deftypes.voidpointertype,ref.base);
                   if dup then
                     begin
                       list.concat(taicpu.op_none(a_dup));
@@ -1031,7 +1031,7 @@ implementation
 
           { stack: ... -> ..., arrayref, index }
           { load array base address }
-          a_load_reg_stack(list,voidpointertype,ref.base);
+          a_load_reg_stack(list,compiler.deftypes.voidpointertype,ref.base);
           { index can either be in a register, or located in a simple memory
             location (since we have to load it anyway) }
           case ref.arrayreftype of
@@ -2447,7 +2447,7 @@ implementation
       if (checkdef.typ=pointerdef) and
          jvmimplicitpointertype(tpointerdef(checkdef).pointeddef) then
         checkdef:=tpointerdef(checkdef).pointeddef;
-      if (checkdef=voidpointertype) or
+      if (checkdef=compiler.deftypes.voidpointertype) or
          (checkdef.typ=formaldef) then
         checkdef:=java_jlobject
       else if checkdef.typ=enumdef then

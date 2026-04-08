@@ -1030,7 +1030,7 @@ implementation
 
                       isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
-                        vs.initialloc.size:=def_cgsize(voidpointertype)
+                        vs.initialloc.size:=def_cgsize(compiler.deftypes.voidpointertype)
                       else
                         vs.initialloc.size:=def_cgsize(vs.vardef);
 

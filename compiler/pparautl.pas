@@ -253,7 +253,7 @@ implementation
             if not assigned(pd.parast.find(name_self)) then
               begin
                 { Generate self variable }
-                vs:=cparavarsym.create('$'+name_self,paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
+                vs:=cparavarsym.create('$'+name_self,paranr_self,vs_value,compiler.deftypes.voidpointertype,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insertsym(vs);
               end;
           end
@@ -513,7 +513,7 @@ implementation
                   n:=name_typinfo+name;
                   if not assigned(owner.find(n)) then
                     begin
-                      hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,voidpointertype,
+                      hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,compiler.deftypes.voidpointertype,
                                               [vo_is_typinfo_para,vo_is_hidden_para]);
                       owner.insertsym(hvs);
                     end;

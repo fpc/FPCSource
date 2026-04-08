@@ -105,10 +105,10 @@ implementation
         otherunit,
         indirect : boolean;
       begin
-         location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
+         location_reset(location,LOC_REGISTER,def_cgsize(compiler.deftypes.voidpointertype));
          if (left.nodetype=typen) then
            begin
-             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
                  { we are using a direct reference if any of the following is true:
@@ -297,7 +297,7 @@ implementation
          if (cs_use_heaptrc in compiler.globals.current_settings.globalswitches) and
             (cs_checkpointer in compiler.globals.current_settings.localswitches) and
             not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) and
-            tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) and
+            tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(compiler.deftypes.voidpointertype)) and
             not(drnf_no_checkpointer in derefnodeflags) and
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
@@ -556,7 +556,7 @@ implementation
                earlier versions)
              }
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
-             reference_reset_symbol(tmpref,asmsym,0,voidpointertype.alignment,[]);
+             reference_reset_symbol(tmpref,asmsym,0,compiler.deftypes.voidpointertype.alignment,[]);
              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),location.reference);
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
@@ -947,7 +947,7 @@ implementation
                 we assume to be always aligned to a multiple of the
                 pointer size
               }
-              location.reference.alignment:=voidpointertype.size;
+              location.reference.alignment:=compiler.deftypes.voidpointertype.size;
               location.reference.volatility:=[];
            end
          else

@@ -827,14 +827,14 @@ implementation
             if anf_typedaddr in addrnodeflags then
               res:=compiler.cpointerconstnode(offset,cpointerdef.getreusable(left.resultdef,compiler))
             else
-              res:=compiler.cpointerconstnode(offset,voidpointertype);
+              res:=compiler.cpointerconstnode(offset,compiler.deftypes.voidpointertype);
             result:=true;
           end
         else if (nf_internal in flags) or
            valid_for_addr(left,true) then
           begin
             if not(anf_typedaddr in addrnodeflags) then
-              resultdef:=voidpointertype
+              resultdef:=compiler.deftypes.voidpointertype
             else
               resultdef:=cpointerdef.getreusable(left.resultdef,compiler);
             result:=true;
@@ -1408,7 +1408,7 @@ implementation
            begin
              left := compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                compiler.ccallparanode(
-                 compiler.ctypeconvnode_internal(left,voidpointertype),nil)),
+                 compiler.ctypeconvnode_internal(left,compiler.deftypes.voidpointertype),nil)),
                left.resultdef);
              firstpass(left);
              { double resultdef passes somewhere else may cause this to be }

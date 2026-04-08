@@ -511,8 +511,8 @@ const
           if op in [equaln,unequaln,gtn,lten] then
             begin
               { “pointer(L.left) = nil”. Steal L.left instead of getcopy, zero a bit later. }
-              resn:=compiler.caddnode_internal(equaln,compiler.ctypeconvnode_internal(tinlinenode(L).left,voidpointertype),
-                 compiler.cpointerconstnode(0,voidpointertype));
+              resn:=compiler.caddnode_internal(equaln,compiler.ctypeconvnode_internal(tinlinenode(L).left,compiler.deftypes.voidpointertype),
+                 compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype));
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
               if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in compiler.target.info.flags) then
@@ -523,7 +523,7 @@ const
                       compiler.caddnode_internal(equaln,
                         compiler.ctypeconvnode_internal(
                           compiler.cderefnode(
-                            compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,voidpointertype),
+                            compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,compiler.deftypes.voidpointertype),
                               compiler.cordconstnode(sizeof(uint32),ptruinttype,false))
                           ),u32inttype
                         ),
@@ -3633,8 +3633,8 @@ const
                           { compare the pointer with nil (for ansistrings etc), }
                           { faster than getting the length (JM)                 }
                           result:= compiler.caddnode(nodetype,
-                            compiler.ctypeconvnode_internal(left,voidpointertype),
-                            compiler.cpointerconstnode(0,voidpointertype));
+                            compiler.ctypeconvnode_internal(left,compiler.deftypes.voidpointertype),
+                            compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype));
                         end;
                     end;
                   { left is reused }

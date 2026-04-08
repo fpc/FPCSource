@@ -903,9 +903,9 @@ implementation
                  compiler.ccallparanode(
                    compiler.cguidconstnode(tobjectdef(left.resultdef).iidguid^),
                  compiler.ccallparanode(
-                   compiler.ctypeconvnode_internal(right,voidpointertype),
+                   compiler.ctypeconvnode_internal(right,compiler.deftypes.voidpointertype),
                  compiler.ccallparanode(
-                   compiler.ctypeconvnode_internal(left,voidpointertype),
+                   compiler.ctypeconvnode_internal(left,compiler.deftypes.voidpointertype),
                    nil)));
                result:=compiler.ccallnode_intern('fpc_intf_assign_by_iid',hp);
                left:=nil;
@@ -1020,9 +1020,9 @@ implementation
            hp:=compiler.ccallparanode(compiler.caddrnode_internal(
                   compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
-                 compiler.caddrnode_internal(left),voidpointertype),
+                 compiler.caddrnode_internal(left),compiler.deftypes.voidpointertype),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
-                 compiler.caddrnode_internal(right),voidpointertype),
+                 compiler.caddrnode_internal(right),compiler.deftypes.voidpointertype),
                nil)));
            if tempreturnfromcall then
              result:=compiler.ccallnode_intern('fpc_copy_with_move_semantics_proc',hp)
@@ -1093,8 +1093,8 @@ implementation
         {     is a property which refers to a field without a setter call, we will not get }
         {     an error about trying to pass a property as a var parameter                  }
         exclude(left.flags,nf_isproperty);
-        hp:=compiler.ccallparanode(compiler.ctypeconvnode_internal(right,voidpointertype),
-            compiler.ccallparanode(compiler.ctypeconvnode_internal(left,voidpointertype),
+        hp:=compiler.ccallparanode(compiler.ctypeconvnode_internal(right,compiler.deftypes.voidpointertype),
+            compiler.ccallparanode(compiler.ctypeconvnode_internal(left,compiler.deftypes.voidpointertype),
             nil));
         if needrtti then
           hp:=compiler.ccallparanode(
@@ -1633,7 +1633,7 @@ implementation
       begin
         { rtti information will be returned as a void pointer }
         result:=nil;
-        resultdef:=voidpointertype;
+        resultdef:=compiler.deftypes.voidpointertype;
       end;
 
 

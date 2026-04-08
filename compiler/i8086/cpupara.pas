@@ -455,8 +455,8 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
-                paralen:=voidpointertype.size;
-                paracgsize:=int_cgsize(voidpointertype.size);
+                paralen:=compiler.deftypes.voidpointertype.size;
+                paracgsize:=int_cgsize(compiler.deftypes.voidpointertype.size);
                 paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
               end
             else
@@ -596,8 +596,8 @@ unit cpupara;
                     pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
                     if pushaddr then
                       begin
-                        paralen:=voidpointertype.size;
-                        paracgsize:=int_cgsize(voidpointertype.size);
+                        paralen:=compiler.deftypes.voidpointertype.size;
+                        paracgsize:=int_cgsize(compiler.deftypes.voidpointertype.size);
                         paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                       end
                     else

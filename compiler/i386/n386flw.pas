@@ -118,7 +118,7 @@ procedure ti386onnode.pass_generate_code;
       begin
         exceptvarsym.localloc.loc:=LOC_REFERENCE;
         exceptvarsym.localloc.size:=OS_ADDR;
-        tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
+        tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.voidpointertype,exceptvarsym.localloc.reference);
         cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
       end;
     cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);

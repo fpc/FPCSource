@@ -1552,7 +1552,7 @@ implementation
                    begin
                      prefetchcode := internalstatements(prefetchstatements);
                      addstatement(prefetchstatements,geninlinenode(in_prefetch_var,false,
-                       compiler.cderefnode(compiler.ctypeconvnode(assignmentnode.right.getcopy,voidpointertype))));
+                       compiler.cderefnode(compiler.ctypeconvnode(assignmentnode.right.getcopy,compiler.deftypes.voidpointertype))));
                      addstatement(prefetchstatements,right);
                      right := prefetchcode;
                      typecheckpass(right);
@@ -2688,7 +2688,7 @@ implementation
                   begin
                     typecheckpass(third);
                     set_varstate(third,vs_read,[vsf_must_be_valid]);
-                    inserttypeconv(third,voidpointertype,compiler);
+                    inserttypeconv(third,compiler.deftypes.voidpointertype,compiler);
                   end;
                end;
            end;
@@ -2716,7 +2716,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=compiler.cpointerconstnode(0,voidpointertype);
+                  third:=compiler.cpointerconstnode(0,compiler.deftypes.voidpointertype);
               end
             else
               begin

@@ -1594,7 +1594,7 @@ implementation
              asmtype:=AT_DATA_FORCEINDIRECT
            else
              asmtype:=AT_DATA;
-           result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,asmtype,voidpointertype);
+           result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,asmtype,_compiler.deftypes.voidpointertype);
            if tcdssso_register_asmsym in options then
              _compiler.current_module.add_public_asmsym(result);
          end
@@ -1735,7 +1735,7 @@ implementation
        datatcb.emit_tai(ts,datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,compiler.globals.const_align(voidpointertype.alignment));
+       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,compiler.globals.const_align(compiler.deftypes.voidpointertype.alignment));
      end;
 
 
@@ -1790,7 +1790,7 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,compiler.globals.const_align(voidpointertype.alignment));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,compiler.globals.const_align(compiler.deftypes.voidpointertype.alignment));
      end;
 
 

@@ -1136,6 +1136,7 @@ interface
 
 
        tdefaulttypes = class
+         voidpointertype: tdef;     { pointer for Void-pointeddef }
        end;
 
 
@@ -1162,7 +1163,6 @@ interface
 
 
     { default types }
-       voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
        voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
@@ -3006,7 +3006,7 @@ implementation
           st_unicodestring,
           st_widestring,
           st_ansistring:
-            alignment:=voidpointertype.alignment;
+            alignment:=compiler.deftypes.voidpointertype.alignment;
           st_longstring,
           st_shortstring:
               { char to string accesses byte 0 and 1 with one word access }
@@ -3041,7 +3041,7 @@ implementation
           st_ansistring,
           st_widestring,
           st_unicodestring:
-            Result:=voidpointertype.size;
+            Result:=compiler.deftypes.voidpointertype.size;
         end;
       end;
 
@@ -4072,13 +4072,13 @@ implementation
 
     function tabstractpointerdef.size: asizeint;
       begin
-        Result:=voidpointertype.size;
+        Result:=compiler.deftypes.voidpointertype.size;
       end;
 
 
     function tabstractpointerdef.alignment: shortint;
       begin
-        alignment:=size_2_align(voidpointertype.size);
+        alignment:=size_2_align(compiler.deftypes.voidpointertype.size);
       end;
 
 
@@ -4670,7 +4670,7 @@ implementation
       begin
         if ado_IsDynamicArray in arrayoptions then
           begin
-            size:=voidpointertype.size;
+            size:=compiler.deftypes.voidpointertype.size;
             exit;
           end;
 
@@ -4745,7 +4745,7 @@ implementation
            alignment:=size
          { alignment of dyn. arrays doesn't depend on the element size }
          else if ado_IsDynamicArray in arrayoptions then
-           alignment:=voidpointertype.alignment
+           alignment:=compiler.deftypes.voidpointertype.alignment
          { alignment is the target alignment for the used load size }
          else if (ado_IsBitPacked in arrayoptions) and
             (elementdef.typ in [enumdef,orddef]) then
@@ -7834,15 +7834,15 @@ implementation
          { we return false for is_addressonly for a block (because it's not a
            simple pointer to a function), but they are handled as implicit
            pointers to a datastructure that contains everything ->
-           voidpointertype.size instead of voidcodepointertype.size }
+           compiler.deftypes.voidpointertype.size instead of voidcodepointertype.size }
          if po_is_block in procoptions then
-           size:=voidpointertype.size
+           size:=compiler.deftypes.voidpointertype.size
          else if not is_addressonly then
            begin
              if is_nested_pd(self) then
                size:=voidcodepointertype.size+parentfpvoidpointertype.size
              else
-               size:=voidcodepointertype.size+voidpointertype.size;
+               size:=voidcodepointertype.size+compiler.deftypes.voidpointertype.size;
            end
          else
            size:=voidcodepointertype.size;
@@ -8477,7 +8477,7 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,compiler.deftypes.voidpointertype,[]);
              hidesym(vmt_field);
              tObjectSymtable(symtable).insertsym(vmt_field);
              tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);
@@ -8545,7 +8545,7 @@ implementation
     function tobjectdef.size : asizeint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
-          result:=voidpointertype.size
+          result:=compiler.deftypes.voidpointertype.size
         else
           result:=tObjectSymtable(symtable).datasize;
       end;
@@ -8554,7 +8554,7 @@ implementation
     function tobjectdef.alignment:shortint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
-          alignment:=voidpointertype.alignment
+          alignment:=compiler.deftypes.voidpointertype.alignment
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
       end;
@@ -8566,7 +8566,7 @@ implementation
         case objecttype of
         odt_class:
           { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=index*voidcodepointertype.size+10*voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+10*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
@@ -8580,9 +8580,9 @@ implementation
         else
           { the +2*sizeof(pint) is size and -size }
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+2*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+1*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
@@ -8692,7 +8692,7 @@ implementation
               init/finalisation }
             if rt=initrtti then
               begin
-                result:=voidpointertype.rtti_mangledname(rt);
+                result:=compiler.deftypes.voidpointertype.rtti_mangledname(rt);
                 exit;
               end;
 
@@ -9729,11 +9729,13 @@ implementation
       end;
 
     procedure reset_all_default_types;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { Those class pointers have to be set to nil manually }
     { after memory they point to have been released.      }
     { Necessary strictly for Textmode IDE.                }
     begin
-       voidpointertype:=nil;           { pointer for Void-pointeddef }
+       compiler.deftypes.voidpointertype:=nil;           { pointer for Void-pointeddef }
        charpointertype:=nil;           { pointer for Char-pointeddef }
        widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
        voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }

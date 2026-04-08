@@ -229,11 +229,11 @@ implementation
                   compiler.ccallparanode(
                       compiler.ctypeconvnode_internal(
                           load_vmt_pointer_node,
-                          voidpointertype),
+                          compiler.deftypes.voidpointertype),
                   compiler.ccallparanode(
                       compiler.ctypeconvnode_internal(
                           load_self_pointer_node,
-                          voidpointertype),
+                          compiler.deftypes.voidpointertype),
                   nil)));
             addstatement(newstatement,
                 compiler.ccallnode_intern('fpc_help_fail',para));
@@ -275,7 +275,7 @@ implementation
              is_dynamic_array(p.resultdef) then
             begin
               result:=compiler.cassignmentnode(
-                 compiler.ctypeconvnode_internal(p,voidpointertype),
+                 compiler.ctypeconvnode_internal(p,compiler.deftypes.voidpointertype),
                  compiler.cnilnode
                  );
             end
@@ -334,7 +334,7 @@ implementation
           if hs<>'' then
             result:=compiler.ccallnode_intern(hs,
                compiler.ccallparanode(
-                 compiler.ctypeconvnode_internal(p,voidpointertype),
+                 compiler.ctypeconvnode_internal(p,compiler.deftypes.voidpointertype),
                  nil))
           else if p.resultdef.typ=variantdef then
             begin
@@ -1336,7 +1336,7 @@ implementation
         exit;
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
-      tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
+      tcb.begin_anonymous_record('',default_settings.packrecords,compiler.deftypes.voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
       placeholder:=tcb.emit_placeholder(sizesinttype);
 
       hp:=tused_unit(compiler.usedunits.first);
@@ -1347,7 +1347,7 @@ implementation
              sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
              tcb.emit_tai(
                tai_const.Create_sym(sym),
-               voidpointertype);
+               compiler.deftypes.voidpointertype);
              compiler.current_module.add_extern_asmsym(sym);
              inc(count);
            end;
@@ -1359,7 +1359,7 @@ implementation
           sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
             Tai_const.Create_sym(sym),
-            voidpointertype);
+            compiler.deftypes.voidpointertype);
           inc(count);
         end;
       { set the count at the start }
@@ -1419,13 +1419,13 @@ implementation
        if (tf_section_threadvars in compiler.target.info.flags) then
          exit;
        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
-       tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
+       tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,compiler.deftypes.voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
        if assigned(compiler.current_module.globalsymtable) then
          compiler.current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        compiler.current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        if trecordsymtable(tabledef.symtable).datasize<>0 then
          { terminator }
-         tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+         tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
        tcb.end_anonymous_record;
        add:=trecordsymtable(tabledef.symtable).datasize<>0;
        if add then
@@ -1514,7 +1514,7 @@ implementation
         if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
           begin
             { address to initialize }
-            tcb.queue_init(voidpointertype);
+            tcb.queue_init(compiler.deftypes.voidpointertype);
             rawdatadef:=carraydef.getreusable(cansichartype,tstaticvarsym(item.sym).vardef.size,compiler);
             tcb.queue_vecn(rawdatadef,item.offset);
             tcb.queue_typeconvn(cpointerdef.getreusable(tstaticvarsym(item.sym).vardef,compiler),cpointerdef.getreusable(rawdatadef,compiler));
@@ -1525,7 +1525,7 @@ implementation
         item:=TTCInitItem(item.Next);
       until item=nil;
       { end-of-list marker }
-      tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+      tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
       rawdatadef:=tcb.end_anonymous_record;
       current_asmdata.asmlists[al_globals].concatList(
         tcb.get_final_asmlist(
@@ -1581,11 +1581,11 @@ implementation
             begin
               tcb.emit_tai(Tai_const.Create_sym(
                 ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
-                voidpointertype
+                compiler.deftypes.voidpointertype
               );
               tcb.emit_tai(Tai_const.Create_sym(
                 ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
-                voidpointertype
+                compiler.deftypes.voidpointertype
               );
               inc(count);
             end;
@@ -1620,14 +1620,14 @@ implementation
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
 
           if ResourcesUsed and (compiler.target.res.id<>res_ext) then
-            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
+            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),compiler.deftypes.voidpointertype)
           else
             { Nil pointer to resource information }
-            tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+            tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
           current_asmdata.asmlists[al_globals].concatList(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA,voidpointertype),
-              voidpointertype,
+              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA,compiler.deftypes.voidpointertype),
+              compiler.deftypes.voidpointertype,
               sec_rodata,
               'FPC_RESLOCATION',
               compiler.globals.const_align(sizeof(puint))
@@ -1816,7 +1816,7 @@ implementation
            tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLREASON',2,vs_const,u32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('DLLPARAM',3,vs_const,voidpointertype,[]);
+           pvs:=cparavarsym.create('DLLPARAM',3,vs_const,compiler.deftypes.voidpointertype,[]);
            tprocdef(pd).parast.insertsym(pvs);
            tprocdef(pd).returndef:=bool32type;
            compiler.parser.pparautl.insert_funcret_para(tprocdef(pd));

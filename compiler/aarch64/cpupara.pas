@@ -265,8 +265,8 @@ unit cpupara;
               begin
                 hp.paraloc[side].reset;
                 hp.paraloc[side].size:=OS_ADDR;
-                hp.paraloc[side].alignment:=voidpointertype.alignment;
-                hp.paraloc[side].intsize:=voidpointertype.size;
+                hp.paraloc[side].alignment:=compiler.deftypes.voidpointertype.alignment;
+                hp.paraloc[side].intsize:=compiler.deftypes.voidpointertype.size;
                 hp.paraloc[side].def:=cpointerdef.getreusable_no_free(hp.vardef,compiler);
                 with hp.paraloc[side].add_location^ do
                   begin
@@ -401,7 +401,7 @@ unit cpupara;
                   begin
                     paracgsize:=OS_ADDR;
                     paralen:=tcgsize2size[OS_ADDR];
-                    paradef:=voidpointertype;
+                    paradef:=compiler.deftypes.voidpointertype;
                   end;
               end
           end;

@@ -653,7 +653,7 @@ implementation
                   compiler.caddnode(equaln,
                     compiler.ctypeconvnode_explicit(
                       check_self,
-                      voidpointertype
+                      compiler.deftypes.voidpointertype
                     ),
                     compiler.cnilnode),
                   compiler.ccallnode_intern('fpc_objecterror',nil),
@@ -681,7 +681,7 @@ implementation
           result:=compiler.cderefnode(
             compiler.ctypeconvnode_explicit(
               self_node,
-              cpointerdef.getreusable(voidpointertype,compiler)
+              cpointerdef.getreusable(compiler.deftypes.voidpointertype,compiler)
             )
           );
         result:=compiler.ctypeconvnode_explicit(

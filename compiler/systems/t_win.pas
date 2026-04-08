@@ -585,7 +585,7 @@ implementation
                      current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l4));
                   end
                 else
-                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,voidpointertype));
+                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,compiler.deftypes.voidpointertype));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
                 if compiler.target.info.system in systems_peoptplus then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
@@ -807,7 +807,7 @@ implementation
          new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
          { export flags }
          current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }

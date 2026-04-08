@@ -633,8 +633,8 @@ interface
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
     begin
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,voidpointertype);
-      hlcg.a_load_const_reg(current_asmdata.currasmlist,voidpointertype,0,location.registerhi);
+      location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidpointertype);
+      hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidpointertype,0,location.registerhi);
       location.register:=hlcg.getaddressregister(current_asmdata.currasmlist,voidcodepointertype);
       hlcg.a_load_const_reg(current_asmdata.currasmlist,voidcodepointertype,0,location.register);
     end;
