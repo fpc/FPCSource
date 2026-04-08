@@ -2483,7 +2483,7 @@ implementation
 {$if defined(i8086)}
                      hp:=compiler.cpointerconstnode((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
 {$elseif defined(i386)}
-                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,compiler.deftypes.voidnearfspointertype);
 {$else}
                      hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,compiler.deftypes.voidpointertype);
 {$endif}
