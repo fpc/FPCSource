@@ -1898,6 +1898,7 @@ begin
   FQueue.FItemsThreshold := 0;
   LOldQueueItems := FQueue.FItems;
   FQueue.FItems := nil;
+  FQueue.FIdx.Clear;
 
   for i := 0 to High(LOldQueueItems) do
   begin
