@@ -2246,7 +2246,7 @@ implementation
           compiler.parser.pparautl.insert_funcret_local(pd);
           result:=compiler.cassignmentnode(
                       compiler.cloadnode(pd.funcretsym,pd.localst),
-                      compiler.cordconstnode(1,bool32type,false)
+                      compiler.cordconstnode(1,compiler.deftypes.bool32type,false)
                     );
         end
       else

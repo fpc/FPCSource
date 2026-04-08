@@ -1177,7 +1177,8 @@ interface
          pasbool32type,
          pasbool64type,
          bool8type,
-         bool16type: tdef;
+         bool16type,
+         bool32type: tdef;
        end;
 
 
@@ -1204,7 +1205,6 @@ interface
 
 
     { default types }
-       bool32type,
        bool64type,                { implement me }
 {$ifdef llvm}
        llvmbool1type,             { LLVM i1 type }
@@ -9777,7 +9777,7 @@ implementation
        compiler.deftypes.pasbool64type:=nil;
        compiler.deftypes.bool8type:=nil;
        compiler.deftypes.bool16type:=nil;
-       bool32type:=nil;
+       compiler.deftypes.bool32type:=nil;
        bool64type:=nil;
 {$ifdef llvm}
        llvmbool1type:=nil;             { LLVM i1 type }

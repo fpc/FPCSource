@@ -1614,7 +1614,7 @@ implementation
 {$ifdef CPU64bitaddr}
                       pd.returndef:=bool64type;
 {$else CPU64bitaddr}
-                      pd.returndef:=bool32type;
+                      pd.returndef:=compiler.deftypes.bool32type;
 {$endif CPU64bitaddr}
                 end
               else

@@ -1818,7 +1818,7 @@ implementation
            tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLPARAM',3,vs_const,compiler.deftypes.voidpointertype,[]);
            tprocdef(pd).parast.insertsym(pvs);
-           tprocdef(pd).returndef:=bool32type;
+           tprocdef(pd).returndef:=compiler.deftypes.bool32type;
            compiler.parser.pparautl.insert_funcret_para(tprocdef(pd));
            tprocdef(pd).calcparas;
          end;
