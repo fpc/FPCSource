@@ -1462,6 +1462,8 @@ implementation
 
   function asis_target_specific_typecheck(node: tasisnode): boolean;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       realtodef: tdef;
       temp: tnode;
     begin
