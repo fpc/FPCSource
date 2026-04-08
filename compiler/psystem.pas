@@ -439,7 +439,7 @@ implementation
   {$ifdef i8086}
         compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far,compiler);
         compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge,compiler);
-        charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
+        compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
         charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
         bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
@@ -636,7 +636,7 @@ implementation
   {$ifdef i8086}
         addtype('$void_farpointer',compiler.deftypes.voidfarpointertype);
         addtype('$void_hugepointer',compiler.deftypes.voidhugepointertype);
-        addtype('$char_nearpointer',charnearpointertype);
+        addtype('$char_nearpointer',compiler.deftypes.charnearpointertype);
         addtype('$char_farpointer',charfarpointertype);
         addtype('$char_hugepointer',charhugepointertype);
         addtype('$byte_farpointer',bytefarpointertype);
@@ -800,7 +800,7 @@ implementation
   {$ifdef i8086}
         loadtype('void_farpointer',compiler.deftypes.voidfarpointertype);
         loadtype('void_hugepointer',compiler.deftypes.voidhugepointertype);
-        loadtype('char_nearpointer',charnearpointertype);
+        loadtype('char_nearpointer',compiler.deftypes.charnearpointertype);
         loadtype('char_farpointer',charfarpointertype);
         loadtype('char_hugepointer',charhugepointertype);
         loadtype('byte_farpointer',bytefarpointertype);

@@ -1152,7 +1152,8 @@ interface
          voidneargspointertype: tdef;
   {$ifdef i8086}
          voidfarpointertype,
-         voidhugepointertype: tdef;
+         voidhugepointertype,
+         charnearpointertype: tdef;
   {$endif i8086}
 {$endif x86}
        end;
@@ -1183,7 +1184,6 @@ interface
     { default types }
 {$ifdef x86}
   {$ifdef i8086}
-       charnearpointertype,
        charfarpointertype,
        charhugepointertype,
        bytefarpointertype,        { used for Mem[] }
@@ -9756,7 +9756,7 @@ implementation
   {$ifdef i8086}
        compiler.deftypes.voidfarpointertype:=nil;
        compiler.deftypes.voidhugepointertype:=nil;
-       charnearpointertype:=nil;
+       compiler.deftypes.charnearpointertype:=nil;
        charfarpointertype:=nil;
        charhugepointertype:=nil;
        bytefarpointertype:=nil;        { used for Mem[] }
