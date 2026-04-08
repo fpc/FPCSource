@@ -26,7 +26,8 @@ unit nz80inl;
   interface
 
     uses
-      node,ninl,ncginl, aasmbase;
+      node,ninl,ncginl, aasmbase,
+      compilerbase;
 
     type
       tz80inlinenode = class(tcginlinenode)
@@ -48,7 +49,8 @@ unit nz80inl;
       ncal,
       cgbase, cgobj, cgutils,
       cpubase,
-      nodehelper;
+      nodehelper,
+      compiler;
 
 
     function tz80inlinenode.pass_typecheck_cpu : tnode;
@@ -63,7 +65,7 @@ unit nz80inl;
           in_z80_outport:
             begin
               CheckParameters(2);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           else
             Result:=inherited pass_typecheck_cpu;

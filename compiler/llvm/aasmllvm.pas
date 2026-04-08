@@ -30,7 +30,8 @@ interface
       aasmbase,aasmtai,aasmdata,aasmdef,aasmsym,aasmcnst,
       cpubase,cgbase,cgutils,
       symtype,symdef,symsym,
-      llvmbase;
+      llvmbase,
+      compilerbase;
 
     type
       pllvmcallpara = ^tllvmcallpara;
@@ -262,7 +263,8 @@ implementation
     uses
       cutils, strings,
       symconst,
-      aasmcpu;
+      aasmcpu,
+      compiler;
 
     { taillvmprocdecl }
 
@@ -667,6 +669,8 @@ implementation
 
 
     function taillvm.spilling_get_reg_type(opnr: longint): tdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case llvmopcode of
           la_trunc, la_zext, la_sext, la_fptrunc, la_fpext,

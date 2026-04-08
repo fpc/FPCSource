@@ -165,7 +165,7 @@ implementation
         include(astruct.objectoptions,oo_has_class_constructor);
         include(compiler.current_module.moduleflags,mf_classinits);
         { no return value }
-        pd.returndef:=voidtype;
+        pd.returndef:=compiler.deftypes.voidtype;
         constr_destr_finish_head(pd,astruct);
         result:=pd;
       end;
@@ -304,7 +304,7 @@ implementation
         include(astruct.objectoptions,oo_has_class_destructor);
         include(compiler.current_module.moduleflags,mf_classinits);
         { no return value }
-        pd.returndef:=voidtype;
+        pd.returndef:=compiler.deftypes.voidtype;
         constr_destr_finish_head(pd,astruct);
         result:=pd;
       end;
@@ -332,7 +332,7 @@ implementation
         include(compiler.current_structdef.objectoptions,oo_has_destructor);
         include(compiler.current_structdef.objectoptions,oo_has_new_destructor);
         { no return value }
-        pd.returndef:=voidtype;
+        pd.returndef:=compiler.deftypes.voidtype;
         constr_destr_finish_head(pd,pd.struct);
         result:=pd;
       end;

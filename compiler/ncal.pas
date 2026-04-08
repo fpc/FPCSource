@@ -4487,7 +4487,7 @@ implementation
              resultdef:=tclassrefdef(methodpointer.resultdef).pointeddef
            else
            { Member call to a (inherited) constructor from the class, the return
-             value is always self, so we change it to voidtype to generate an
+             value is always self, so we change it to compiler.deftypes.voidtype to generate an
              error and to prevent users from generating non-working code
              when they expect to clone the current instance, see bug 3662 (PFV) }
              if (procdefinition.proctypeoption=potype_constructor) and
@@ -4495,7 +4495,7 @@ implementation
                 assigned(methodpointer) and
                 (methodpointer.nodetype=loadn) and
                 (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
-               resultdef:=voidtype
+               resultdef:=compiler.deftypes.voidtype
              else
                resultdef:=procdefinition.returndef;
           end
@@ -4651,7 +4651,7 @@ implementation
                 addstatement(statements,compiler.ctemprefnode(converted_result_data));
               end
             else
-              result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,voidtype);
+              result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,compiler.deftypes.voidtype);
 
             { don't free reused nodes }
             methodpointer:=nil;

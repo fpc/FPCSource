@@ -42,7 +42,7 @@ in_x86_movss_to_mem
 : //r0:ptr32;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_movaps_to_mem
 ,in_x86_movups_to_mem
@@ -52,7 +52,7 @@ in_x86_movaps_to_mem
 : //r0:ptr128;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_movss_to_val
 : //out r0:f32;r1:xmm;
@@ -85,7 +85,7 @@ in_x86_movlps_to_mem
 : //r0:ptr64;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_movlhps
 ,in_x86_movhlps
@@ -731,7 +731,7 @@ in_x86_maskmovdqu
 : //addr:edi_ptr;r0:xmm;r1:xmm;
   begin
     CheckParameters(3);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_movq2dq
 : //out r0:xmm;r1:mm;
@@ -813,7 +813,7 @@ in_x86_extractps_from_mem
 : //r0:ptr32;r1:xmm;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_pinsrb_from_mem
 : //var r0:xmm;r1:ptr8;imm:i32;
@@ -847,13 +847,13 @@ in_x86_pextrb_to_mem
 : //r0:ptr8;r1:xmm;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 in_x86_pextrw_sse41_to_mem
 : //r0:ptr16;r1:xmm;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 {$ifdef X86_64}
 in_x86_pextrq
@@ -868,7 +868,7 @@ in_x86_pextrq_to_mem
 : //r0:ptr64;r1:xmm;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=voidtype;
+    resultdef:=compiler.deftypes.voidtype;
   end;
 {$endif}
 in_x86_pmovsxbq_from_mem

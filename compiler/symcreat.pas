@@ -594,6 +594,8 @@ implementation
 
   procedure implement_callthrough(pd: tprocdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       str: ansistring;
       callpd: tprocdef;
       isclassmethod: boolean;
@@ -603,7 +605,7 @@ implementation
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
       callpd:=tprocdef(pd.skpara);
       str:='begin ';
-      if pd.returndef<>voidtype then
+      if pd.returndef<>compiler.deftypes.voidtype then
         str:=str+'result:=';
       { if the routine is a global routine in a unit/program, explicitly
         mnetion this program/unit name to avoid accidentally calling other
@@ -1160,11 +1162,13 @@ implementation
 
   procedure implement_block_invoke_procvar(pd: tprocdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       str: ansistring;
     begin
       str:='';
       str:='begin ';
-      if pd.returndef<>voidtype then
+      if pd.returndef<>compiler.deftypes.voidtype then
         str:=str+'result:=';
       str:=str+'__FPC_BLOCK_INVOKE_PV_TYPE(PFPC_Block_literal_complex_procvar(FPC_Block_Self)^.pv)(';
       addvisibleparameters(str,pd);
@@ -1191,7 +1195,7 @@ implementation
         adjust so it points to the start of the instance }
       str:=str+'pointer(self):=pointer(self) - '+tostr(wrapperinfo^.offset)+';';
       { now call through to the actual method }
-      if pd.returndef<>voidtype then
+      if pd.returndef<>compiler.deftypes.voidtype then
         str:=str+'result:=';
       str:=str+'&'+callthroughpd.procsym.realname+'(';
       addvisibleparameters(str,pd);
@@ -1245,6 +1249,8 @@ implementation
   end;
 
   procedure implement_invoke_helper(cn : string;pd: tprocdef; idx : integer);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var
       sarg,str : ansistring;
@@ -1280,7 +1286,7 @@ implementation
             end;
           str:=str+'  tp'+tostr(argcount)+' = '+pt+';'#10;
         end;
-      haveresult:=pd.returndef<>voidtype;
+      haveresult:=pd.returndef<>compiler.deftypes.voidtype;
       if haveresult then
         begin
         if argCount=0 then
@@ -1587,6 +1593,8 @@ implementation
   end;
 
   procedure implement_interface_thunkclass_decl(cn : shortstring; objdef : tobjectdef);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   var
     parentname,str : ansistring;
@@ -1618,13 +1626,13 @@ implementation
           for j:=0 to proc.ProcdefList.Count-1 do
             begin
             pd:=tprocdef(proc.ProcdefList[j]);
-            if pd.returndef<>voidtype then
+            if pd.returndef<>compiler.deftypes.voidtype then
               str:=str+'function '
             else
               str:=str+'procedure ';
             str:=str+proc.RealName;
             str:=str+create_intf_method_args(pd,argcount);
-            if pd.returndef<>voidtype then
+            if pd.returndef<>compiler.deftypes.voidtype then
               str:=str+' : '+get_method_paramtype(pd.returndef,false);
             str:=str+';'#10;
             end;
@@ -1686,6 +1694,8 @@ implementation
 
 
   procedure implement_interface_thunkclass_impl_method(cn : shortstring; objdef : tobjectdef; proc : tprocsym; pd : tprocdef);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   var
     rest,str : ansistring;
@@ -1699,14 +1709,14 @@ implementation
   begin
     rest:='';
     str:='';
-    if pd.returndef<>voidtype then
+    if pd.returndef<>compiler.deftypes.voidtype then
       str:=str+'function '
     else
       str:=str+'procedure ';
     pn:=proc.RealName;
     str:=str+cn+'.'+pn;
     str:=str+create_intf_method_args(pd,argcount);
-    haveresult:=pd.returndef<>voidtype;
+    haveresult:=pd.returndef<>compiler.deftypes.voidtype;
     if haveresult then
       begin
       rest:=get_method_paramtype(pd.returndef,false);

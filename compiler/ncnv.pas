@@ -1012,7 +1012,7 @@ implementation
     constructor ttypeconvnode.create_proc_to_procvar(node : tnode;acompiler:TCompilerBase);
 
       begin
-         self.create(node,voidtype,acompiler);
+         self.create(node,acompiler.deftypes.voidtype,acompiler);
          convtype:=tc_proc_2_procvar;
       end;
 

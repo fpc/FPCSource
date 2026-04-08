@@ -981,7 +981,7 @@ implementation
         else
           begin
             encodedstr:=encodedstr+' ';
-            llvmaddencodedtype(voidtype,false,encodedstr);
+            llvmaddencodedtype(compiler.deftypes.voidtype,false,encodedstr);
           end;
         encodedstr:=encodedstr+' ';
         { add procname? }

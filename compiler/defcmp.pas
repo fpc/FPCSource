@@ -2094,8 +2094,8 @@ implementation
                          (tfiledef(def_from).filetyp = ft_typed) and
                          (tfiledef(def_to).filetyp = ft_typed) and
                          (
-                          (tfiledef(def_from).typedfiledef = tdef(voidtype)) or
-                          (tfiledef(def_to).typedfiledef = tdef(voidtype))
+                          (tfiledef(def_from).typedfiledef = tdef(compiler.deftypes.voidtype)) or
+                          (tfiledef(def_to).typedfiledef = tdef(compiler.deftypes.voidtype))
                          )
                         ) then
                       begin

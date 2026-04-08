@@ -394,7 +394,7 @@ implementation
               result:=mkFunction;
         else
           begin
-            if def.returndef = voidtype then
+            if def.returndef = compiler.deftypes.voidtype then
               result:=mkProcedure
             else
               result:=mkFunction;

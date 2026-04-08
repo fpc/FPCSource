@@ -985,7 +985,7 @@ implementation
               end
             { "for x in [] do ..." always results in a never executed loop body }
             else if (is_array_constructor(expr.resultdef) and
-                (tarraydef(expr.resultdef).elementdef=voidtype)) then
+                (tarraydef(expr.resultdef).elementdef=compiler.deftypes.voidtype)) then
               begin
                 if assigned(hloopbody) then
                   compiler.verbose.MessagePos(hloopbody.fileinfo,cg_w_unreachable_code);
@@ -1342,7 +1342,7 @@ implementation
          t:Tunarynode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
 
          typecheckpass(left);
 
@@ -1859,7 +1859,7 @@ implementation
     function tifnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
 
          typecheckpass(left);
 
@@ -1965,7 +1965,7 @@ implementation
         rangedef: tdef;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
 
          { process the loopvar, from and to, varstates are already set }
          typecheckpass(left);
@@ -2327,7 +2327,7 @@ implementation
               this node }
             include(newstatement.left.flags,nf_internal);
           end;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2354,7 +2354,7 @@ implementation
     function tbreaknode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2378,7 +2378,7 @@ implementation
     function tcontinuenode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2442,7 +2442,7 @@ implementation
     function tgotonode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2615,7 +2615,7 @@ implementation
     function tlabelnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2664,7 +2664,7 @@ implementation
     function traisenode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
          if assigned(left) then
            begin
              { first para must be a _class_ }
@@ -2771,7 +2771,7 @@ implementation
         { else block }
         if assigned(t1) then
           typecheckpass(t1);
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -2832,7 +2832,7 @@ implementation
     function ttryfinallynode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
 
         typecheckpass(left);
         // "try block" is "used"? (JM)
@@ -2953,7 +2953,7 @@ implementation
     function tonnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
          if not is_class(excepttype) and
             not is_javaclass(excepttype) then
            compiler.verbose.CGMessage1(type_e_class_type_expected,excepttype.typename);

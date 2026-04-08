@@ -93,7 +93,7 @@ unit navrinl;
           in_avr_cli:
             begin
               CheckParameters(0);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_avr_save:
             begin
@@ -103,12 +103,12 @@ unit navrinl;
           in_avr_restore:
             begin
               CheckParameters(1);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_avr_des:
             begin
               CheckParameters(4);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
               para4:=tcallparanode(left);
               para3:=tcallparanode(tcallparanode(para4).nextpara);
               para2:=tcallparanode(tcallparanode(para3).nextpara);
@@ -140,7 +140,7 @@ unit navrinl;
           in_avr_des:
             begin
               expectloc:=LOC_VOID;
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_avr_save:
             begin

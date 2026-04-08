@@ -79,7 +79,7 @@ implementation
          Result:=nil;
          case inlinenumber of
            in_a64_yield:
-             resultdef:=voidtype;
+             resultdef:=compiler.deftypes.voidtype;
            else
              result:=inherited;
          end;
@@ -93,7 +93,7 @@ implementation
           in_a64_yield:
             begin
               expectloc:=LOC_VOID;
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           else
             Result:=inherited first_cpu;

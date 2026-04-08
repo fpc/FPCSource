@@ -81,7 +81,7 @@ implementation
           dec(stacksizeleft,stackblock);
           inc(i);
         end;
-      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___stacktop',AT_DATA,0,voidtype));
+      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___stacktop',AT_DATA,0,compiler.deftypes.voidtype));
     end;
 
 
@@ -106,7 +106,7 @@ implementation
           dec(heapsizeleft,heapblock);
           inc(i);
         end;
-      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___heaptop',AT_DATA,0,voidtype));
+      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___heaptop',AT_DATA,0,compiler.deftypes.voidtype));
     end;
 
 

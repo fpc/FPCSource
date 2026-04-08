@@ -320,7 +320,7 @@ implementation
           begin
             result.Free;
             result:=nil;
-            resultdef:=voidtype;
+            resultdef:=compiler.deftypes.voidtype;
             exit;
           end;
 
@@ -1674,7 +1674,7 @@ implementation
            begin
              result.Free;
              result:=nil;
-             resultdef:=voidtype;
+             resultdef:=compiler.deftypes.voidtype;
              exit;
            end;
 
@@ -1875,7 +1875,7 @@ implementation
       begin
         { for easy exiting if something goes wrong }
         result:=compiler.cerrornode;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
         paras:=left;
         dims:=0;
         if assigned(paras) then
@@ -3292,7 +3292,7 @@ implementation
           unpackedarraydef, packedarraydef: tarraydef;
           tempindex: TConstExprInt;
         begin
-          resultdef:=voidtype;
+          resultdef:=compiler.deftypes.voidtype;
 
           unpackedarraydef := nil;
           packedarraydef := nil;
@@ -3703,7 +3703,7 @@ implementation
               in_inc_x,
               in_dec_x:
                 begin
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       if assigned(left) then
@@ -3784,7 +3784,7 @@ implementation
               in_rol_assign_x_y,
               in_ror_assign_x_y:
                 begin
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       { first parameter must exist }
@@ -3832,7 +3832,7 @@ implementation
               in_neg_assign_x,
               in_not_assign_x:
                 begin
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   if not(df_generic in compiler.current_procinfo.procdef.defoptions) then
                     begin
                       valid_for_var(left,true);
@@ -3871,7 +3871,7 @@ implementation
                 begin
                   if compiler.target.info.system in systems_managed_vm then
                     compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   { now we know the type of buffer }
                   hp:=compiler.ccallparanode(compiler.cordconstnode(
                      tcallparanode(left).left.resultdef.size,s32inttype,true),left);
@@ -3901,7 +3901,7 @@ implementation
               in_include_x_y,
               in_exclude_x_y:
                 begin
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   { the parser already checks whether we have two (and exactly two) }
                   { parameters (JM)                                                 }
                   { first param must be var }
@@ -4100,7 +4100,7 @@ implementation
                 end;
               in_assert_x_y :
                 begin
-                  resultdef:=voidtype;
+                  resultdef:=compiler.deftypes.voidtype;
                   if assigned(left) then
                     begin
                       set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
@@ -4125,7 +4125,7 @@ implementation
                     include(compiler.current_procinfo.flags,pi_do_call);
                 end;
               in_prefetch_var:
-                resultdef:=voidtype;
+                resultdef:=compiler.deftypes.voidtype;
               in_get_frame,
               in_get_caller_frame,
               in_get_caller_addr:

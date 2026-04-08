@@ -728,7 +728,7 @@ implementation
         if assigned(elseblock) then
           typecheckpass(elseblock);
 
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
         result:=simplify(false);
       end;
 

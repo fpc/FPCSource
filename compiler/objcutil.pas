@@ -248,7 +248,7 @@ end;
         { On ppc, the callee is responsible for removing the hidden function
           result parameter from the stack, so it has to know. On i386, it's
           the caller that does this.  }
-        if (pd.returndef<>voidtype) and
+        if (pd.returndef<>compiler.deftypes.voidtype) and
             paramgr.ret_in_param(pd.returndef,pocall_cdecl) then
           inc(totalsize,sizeof(pint));
 {$endif}

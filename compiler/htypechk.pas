@@ -3046,7 +3046,7 @@ implementation
                 ) and
                 (currpt.left.nodetype=typeconvn) and
                 (ttypeconvnode(currpt.left).convtype=tc_proc_2_procvar) and
-                (ttypeconvnode(currpt.left).totypedef=voidtype) and
+                (ttypeconvnode(currpt.left).totypedef=compiler.deftypes.voidtype) and
                 not (nf_explicit in currpt.left.flags) and
                 (ttypeconvnode(currpt.left).left.nodetype=loadn) and
                 (ttypeconvnode(currpt.left).left.resultdef.typ=procdef) then

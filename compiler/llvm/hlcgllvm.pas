@@ -640,7 +640,7 @@ implementation
            pd.generate_safecall_wrapper then
           llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true, callerside)
         else
-          llvmretdef:=voidtype;
+          llvmretdef:=compiler.deftypes.voidtype;
       end;
     if not is_void(llvmretdef) then
       res:=getregisterfordef(list, llvmretdef)
@@ -1562,7 +1562,7 @@ implementation
             shortstring that's returned in a parameter }
           paramanager.ret_in_param(compiler.current_procinfo.procdef.returndef,compiler.current_procinfo.procdef)) and
          not compiler.current_procinfo.procdef.generate_safecall_wrapper then
-        list.concat(taillvm.op_size(la_ret,voidtype))
+        list.concat(taillvm.op_size(la_ret,compiler.deftypes.voidtype))
       else
         begin
           case retpara.location^.loc of

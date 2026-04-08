@@ -1629,7 +1629,7 @@ unit cpupara;
                          (numclasses<>1) then
                         internalerror(2010060302);
                       paraloc^.loc:=LOC_VOID;
-                      paraloc^.def:=voidtype;
+                      paraloc^.def:=compiler.deftypes.voidtype;
                     end;
                   else
                     internalerror(2010021504);

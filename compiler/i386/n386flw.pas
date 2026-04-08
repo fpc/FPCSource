@@ -170,7 +170,7 @@ constructor ti386tryfinallynode.create(l, r: TNode;acompiler: TCompilerBase);
       (df_generic in compiler.current_procinfo.procdef.defoptions)
       then
       exit;
-    finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
+    finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,compiler.deftypes.voidtype,r));
     { Regvar optimization for symbols is suppressed when using exceptions, but
       temps may be still placed into registers. This must be fixed. }
     foreachnodestatic(r,@reset_regvars,finalizepi);
@@ -192,7 +192,7 @@ constructor ti386tryfinallynode.create_implicit(l, r: TNode;acompiler: TCompiler
     if df_generic in compiler.current_procinfo.procdef.defoptions then
       InternalError(2013012501);
 
-    finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
+    finalizepi:=tcgprocinfo(compiler.current_procinfo.create_for_outlining('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,compiler.deftypes.voidtype,r));
     include(finalizepi.flags,pi_has_assembler_block);
     include(finalizepi.flags,pi_do_call);
     include(finalizepi.flags,pi_uses_exceptions);
@@ -227,7 +227,7 @@ function ti386tryfinallynode.dogetcopy: tnode;
       begin
         n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
         n.finalizepi.force_nested;
-        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',compiler.current_procinfo.procdef.struct,potype_exceptfilter,compiler.deftypes.voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;
         n.finalizepi.entryswitches:=finalizepi.entryswitches;
         n.finalizepi.exitpos:=finalizepi.exitpos;

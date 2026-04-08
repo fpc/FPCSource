@@ -443,7 +443,7 @@ implementation
           begin
             pd.proctypeoption:=potype_procedure;
             pd.synthetickind:=tsk_field_setter;
-            pd.returndef:=voidtype;
+            pd.returndef:=compiler.deftypes.voidtype;
             if not assigned(orgaccesspd) then
               begin
                 { parameter with value to set }
@@ -727,7 +727,7 @@ implementation
     { And the type of the function result (void in case of a procedure and
       constructor). }
     if (proctypeoption in [potype_constructor,potype_class_constructor]) then
-      jvmaddencodedtype(voidtype,false,tmpresult,signature,founderror)
+      jvmaddencodedtype(compiler.deftypes.voidtype,false,tmpresult,signature,founderror)
     else if not jvmaddencodedtype(returndef,false,tmpresult,signature,founderror) then
       { an internalerror here is also triggered in case of errors in the source code }
       tmpresult:='<error>';

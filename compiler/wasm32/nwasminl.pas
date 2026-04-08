@@ -609,7 +609,7 @@ implementation
           in_wasm32_set_base_pointer:
             begin
               CheckParameters(1);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_memory_size:
             begin
@@ -624,27 +624,27 @@ implementation
           in_wasm32_unreachable:
             begin
               CheckParameters(0);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_throw_fpcexception:
             begin
               CheckParameters(0);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_memory_fill:
             begin
               CheckParameters(3);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_memory_copy:
             begin
               CheckParameters(3);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_atomic_fence:
             begin
               CheckParameters(0);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
 
           in_wasm32_i32_atomic_rmw8_add_u,
@@ -747,7 +747,7 @@ implementation
           in_i64_atomic_store:
             begin
               CheckParameters(2);
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           in_wasm32_tls_size,
           in_wasm32_tls_align:

@@ -28,7 +28,8 @@ interface
       cclasses,
       aasmtai,aasmdata,
       cpubase,cpuinfo,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils,
+      compilerbase;
 
     type
 
@@ -62,7 +63,8 @@ implementation
       cutils,verbose,systems,
       defutil,wasmdef,tgcpu,
       aasmcpu,
-      hlcgobj;
+      hlcgobj,
+      compiler;
 
 
     function tcpuparamanager.has_strict_proc_signature: boolean;
@@ -173,7 +175,7 @@ implementation
             result.size:=OS_NO;
             result.intsize:=0;
             paraloc^.size:=OS_NO;
-            paraloc^.def:=voidtype;
+            paraloc^.def:=compiler.deftypes.voidtype;
             paraloc^.loc:=LOC_VOID;
             exit;
           end;

@@ -1166,7 +1166,8 @@ interface
 {$endif wasm}
          cundefinedtype,
          cformaltype,               { unique formal definition }
-         ctypedformaltype: tdef;    { unique typed formal definition }
+         ctypedformaltype,          { unique typed formal definition }
+         voidtype: tdef;            { Void (procedure) }
        end;
 
 
@@ -1193,7 +1194,6 @@ interface
 
 
     { default types }
-       voidtype,                  { Void (procedure) }
        cansichartype,             { Char }
        cwidechartype,             { WideChar }
        cchartype,                 { either cansichartype or cwidechartype. Do not free }
@@ -5754,7 +5754,7 @@ implementation
          proctypeoption:=potype_none;
          proccalloption:=pocall_none;
          procoptions:=[];
-         returndef:=voidtype;
+         returndef:=compiler.deftypes.voidtype;
          returndefderef.reset;
          savesize:=sizeof(pint);
          callerargareasize:=0;
@@ -7917,7 +7917,7 @@ implementation
            else
              s := s+'procedure variable type of';
          if assigned(returndef) and
-            (returndef<>voidtype) then
+            (returndef<>compiler.deftypes.voidtype) then
            s:=s+' function'+typename_paras(pno)+':'+returndef.GetTypeName
          else
            s:=s+' procedure'+typename_paras(pno);
@@ -9766,7 +9766,7 @@ implementation
        compiler.deftypes.cundefinedtype:=nil;
        compiler.deftypes.cformaltype:=nil;               { unique formal definition }
        compiler.deftypes.ctypedformaltype:=nil;          { unique typed formal definition }
-       voidtype:=nil;                  { Void (procedure) }
+       compiler.deftypes.voidtype:=nil;                  { Void (procedure) }
        cansichartype:=nil;             { Char }
        cwidechartype:=nil;             { WideChar }
        cchartype:=nil;                 { either cansichartype or cwidechartype. Do not free }

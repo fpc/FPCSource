@@ -326,6 +326,8 @@ implementation
     end;
 
   constructor tllvmspecialisedmetaitem.createstring(const aitemname: TSymStr; const stringval: TSymStr);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_string;
@@ -333,6 +335,8 @@ implementation
     end;
 
   constructor tllvmspecialisedmetaitem.createenum(const aitemname: TSymStr; const enumval: TSymStr);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_enum;

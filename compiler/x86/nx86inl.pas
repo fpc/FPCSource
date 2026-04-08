@@ -138,12 +138,12 @@ implementation
            in_x86_outportl:
              begin
                CheckParameters(2);
-               resultdef:=voidtype;
+               resultdef:=compiler.deftypes.voidtype;
              end;
            in_x86_pause,
            in_x86_cli,
            in_x86_sti:
-             resultdef:=voidtype;
+             resultdef:=compiler.deftypes.voidtype;
            in_x86_get_cs,
            in_x86_get_ss,
            in_x86_get_ds,

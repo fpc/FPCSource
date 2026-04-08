@@ -284,8 +284,8 @@ implementation
         compiler.deftypes.cundefinedtype:=cundefineddef.create(true,compiler);
         compiler.deftypes.cformaltype:=cformaldef.create(false,compiler);
         compiler.deftypes.ctypedformaltype:=cformaldef.create(true,compiler);
-        voidtype:=corddef.create(uvoid,0,0,true,compiler);
-        compiler.deftypes.voidpointertype:=cpointerdef.create(voidtype,compiler);
+        compiler.deftypes.voidtype:=corddef.create(uvoid,0,0,true,compiler);
+        compiler.deftypes.voidpointertype:=cpointerdef.create(compiler.deftypes.voidtype,compiler);
         u8inttype:=corddef.create(u8bit,0,255,true,compiler);
         s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
@@ -424,21 +424,21 @@ implementation
         compiler.deftypes.charpointertype:=cpointerdef.create(cansichartype,compiler);
         compiler.deftypes.widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
 {$ifdef i8086}
-        compiler.deftypes.parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
+        compiler.deftypes.parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_ss,compiler);
 {$else i8086}
-        compiler.deftypes.parentfpvoidpointertype:=cpointerdef.create(voidtype,compiler);
+        compiler.deftypes.parentfpvoidpointertype:=cpointerdef.create(compiler.deftypes.voidtype,compiler);
 {$endif i8086}
 {$ifdef x86}
-        compiler.deftypes.voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near,compiler);
-        compiler.deftypes.voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs,compiler);
-        compiler.deftypes.voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds,compiler);
-        compiler.deftypes.voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
-        compiler.deftypes.voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es,compiler);
-        compiler.deftypes.voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_fs,compiler);
-        compiler.deftypes.voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs,compiler);
+        compiler.deftypes.voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near,compiler);
+        compiler.deftypes.voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_cs,compiler);
+        compiler.deftypes.voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_ds,compiler);
+        compiler.deftypes.voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_ss,compiler);
+        compiler.deftypes.voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_es,compiler);
+        compiler.deftypes.voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_fs,compiler);
+        compiler.deftypes.voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_gs,compiler);
   {$ifdef i8086}
-        compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far,compiler);
-        compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge,compiler);
+        compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_far,compiler);
+        compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_huge,compiler);
         compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
         compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
@@ -463,7 +463,7 @@ implementation
         tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
 {$ifdef wasm}
-        compiler.deftypes.wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype,compiler);
+        compiler.deftypes.wasmvoidexternreftype:=tcpupointerdefclass.create_externref(compiler.deftypes.voidtype,compiler);
 {$endif wasm}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray(compiler);
@@ -568,7 +568,7 @@ implementation
         addtype('AnsiChar',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext(compiler));
-        addtype('TypedFile',cfiledef.createtyped(voidtype,compiler));
+        addtype('TypedFile',cfiledef.createtyped(compiler.deftypes.voidtype,compiler));
         if f_variants in compiler.globals.features then
           begin
             addtype('Variant',cvarianttype);
@@ -578,7 +578,7 @@ implementation
         addtype('$undefined',compiler.deftypes.cundefinedtype);
         addtype('$formal',compiler.deftypes.cformaltype);
         addtype('$typedformal',compiler.deftypes.ctypedformaltype);
-        addtype('$void',voidtype);
+        addtype('$void',compiler.deftypes.voidtype);
         addtype('$void_pointer',compiler.deftypes.voidpointertype);
         addtype('$byte',u8inttype);
         addtype('$shortint',s8inttype);
@@ -758,7 +758,7 @@ implementation
         loadtype('undefined',compiler.deftypes.cundefinedtype);
         loadtype('formal',compiler.deftypes.cformaltype);
         loadtype('typedformal',compiler.deftypes.ctypedformaltype);
-        loadtype('void',voidtype);
+        loadtype('void',compiler.deftypes.voidtype);
         loadtype('void_pointer',compiler.deftypes.voidpointertype);
         loadtype('ansichar',cansichartype);
         loadtype('widechar',cwidechartype);

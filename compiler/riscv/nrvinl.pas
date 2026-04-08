@@ -87,7 +87,7 @@ implementation
              begin
                if not(CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                  compiler.verbose.Message(cg_e_intrinsic_not_supported_by_instruction_set);
-               resultdef:=voidtype;
+               resultdef:=compiler.deftypes.voidtype;
              end;
            else
              result:=inherited;
@@ -102,7 +102,7 @@ implementation
           in_riscv_pause:
             begin
               expectloc:=LOC_VOID;
-              resultdef:=voidtype;
+              resultdef:=compiler.deftypes.voidtype;
             end;
           else
             Result:=inherited first_cpu;

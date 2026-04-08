@@ -612,7 +612,7 @@ implementation
                       begin
                         { setter is a procedure with an extra value parameter
                           of the of the property }
-                        writeprocdef.returndef:=voidtype;
+                        writeprocdef.returndef:=compiler.deftypes.voidtype;
                         inc(paranr);
                         hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                         writeprocdef.parast.insertsym(hparavs);

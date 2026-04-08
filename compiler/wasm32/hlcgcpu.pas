@@ -2131,9 +2131,9 @@ implementation
           if pd.is_pushleftright then
             begin
               { load source }
-              a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,source,cgpara1);
               { load destination }
-              a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,dest,cgpara2);
               { load size }
               a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
             end
@@ -2142,9 +2142,9 @@ implementation
               { load size }
               a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
               { load destination }
-              a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,dest,cgpara2);
               { load source }
-              a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
+              a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,source,cgpara1);
             end;
           paramanager.freecgpara(list,cgpara3);
           paramanager.freecgpara(list,cgpara2);

@@ -482,7 +482,7 @@ implementation
            labelsym:
              begin
                tlabelsym(symtableentry).used:=true;
-               resultdef:=voidtype;
+               resultdef:=compiler.deftypes.voidtype;
              end;
            else
              internalerror(200104141);
@@ -711,7 +711,7 @@ implementation
         oldassignmentnode : tassignmentnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
 
         { must be made unique }
         set_unique(left);
@@ -784,7 +784,7 @@ implementation
               (
                 (right.nodetype=arrayconstructorn) and
                 (right.resultdef.typ=arraydef) and
-                (tarraydef(right.resultdef).elementdef=voidtype) and
+                (tarraydef(right.resultdef).elementdef=compiler.deftypes.voidtype) and
                 tarrayconstructornode(right).isempty
               )
             ) then
@@ -1347,7 +1347,7 @@ implementation
             varia or
             is_array_of_const(hdef) or
             is_open_array(hdef) then
-           hdef:=voidtype;
+           hdef:=compiler.deftypes.voidtype;
          resultdef:=carraydef.create(0,len-1,s32inttype,compiler);
          include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then

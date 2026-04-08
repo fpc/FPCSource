@@ -1530,7 +1530,7 @@ implementation
         case pd.proctypeoption of
           potype_procedure:
             begin
-              pd.returndef:=voidtype;
+              pd.returndef:=compiler.deftypes.voidtype;
               if ppf_classmethod in flags then
                 include(pd.procoptions,po_classmethod);
             end;
@@ -1618,13 +1618,13 @@ implementation
 {$endif CPU64bitaddr}
                 end
               else
-                pd.returndef:=voidtype;
+                pd.returndef:=compiler.deftypes.voidtype;
             end;
           potype_class_destructor,
           potype_destructor:
             begin
               if assigned(pd) then
-                pd.returndef:=voidtype;
+                pd.returndef:=compiler.deftypes.voidtype;
             end;
           potype_operator:
             begin
@@ -1674,7 +1674,7 @@ implementation
 
                   trecordsymtable(pd.procsym.Owner).includemanagementoperator(
                     token2managementoperator(parser.pbase.optoken));
-                  pd.returndef:=voidtype
+                  pd.returndef:=compiler.deftypes.voidtype
                 end
               else
                 if not parser.pbase.try_to_consume(_COLON) then

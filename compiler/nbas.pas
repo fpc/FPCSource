@@ -466,7 +466,7 @@ implementation
     function tnothingnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
       end;
 
 
@@ -572,7 +572,7 @@ implementation
 
     function tfinalizetempsnode.pass_typecheck: tnode;
       begin
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
         result:=nil;
       end;
 
@@ -656,7 +656,7 @@ implementation
     function tstatementnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
 
          { left is the statement itself calln assignn or a complex one }
          typecheckpass(left);
@@ -910,7 +910,7 @@ implementation
          hp : tstatementnode;
       begin
          result:=nil;
-         resultdef:=voidtype;
+         resultdef:=compiler.deftypes.voidtype;
 
          hp:=tstatementnode(left);
          while assigned(hp) do
@@ -920,7 +920,7 @@ implementation
                    compiler.verbose.codegenerror:=false;
                    typecheckpass(hp.left);
                    { the resultdef of the block is the last type that is
-                     returned. Normally this is a voidtype. But when the
+                     returned. Normally this is a compiler.deftypes.voidtype. But when the
                      compiler inserts a block of multiple statements then the
                      last entry can return a value }
                    resultdef:=hp.left.resultdef;
@@ -1155,7 +1155,7 @@ implementation
     function tasmnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=voidtype;
+        resultdef:=compiler.deftypes.voidtype;
         if not(asmnf_get_asm_position in asmnodeflags) then
           include(compiler.current_procinfo.flags,pi_has_assembler_block);
       end;
@@ -1540,7 +1540,7 @@ implementation
       begin
         result := nil;
         { a tempcreatenode doesn't have a resultdef, only temprefnodes do }
-        resultdef := voidtype;
+        resultdef := compiler.deftypes.voidtype;
         if assigned(tempinfo^.withnode) then
           typecheckpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
@@ -1832,7 +1832,7 @@ implementation
     function ttempdeletenode.pass_typecheck: tnode;
       begin
         result := nil;
-        resultdef := voidtype;
+        resultdef := compiler.deftypes.voidtype;
       end;
 
     function ttempdeletenode.docompare(p: tnode): boolean;

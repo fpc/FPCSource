@@ -598,7 +598,7 @@ procedure ParseList(const APrefix, AFilename: string);
             if hasOutput then
               ftypechk.Add('    resultdef:='+GetTypeDef(outputType)+';')
             else
-              ftypechk.Add('    resultdef:=voidtype;');
+              ftypechk.Add('    resultdef:=compiler.deftypes.voidtype;');
             ftypechk.Add('  end;');
 
             if target<>'' then

@@ -1595,7 +1595,7 @@ implementation
       opc: tasmop;
     begin
       if compiler.current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
-        retdef:=voidtype
+        retdef:=compiler.deftypes.voidtype
       else
         retdef:=compiler.current_procinfo.procdef.returndef;
       case retdef.typ of
