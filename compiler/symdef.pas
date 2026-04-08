@@ -1174,7 +1174,8 @@ interface
          pasbool1type,              { boolean type }
          pasbool8type,
          pasbool16type,
-         pasbool32type: tdef;
+         pasbool32type,
+         pasbool64type: tdef;
        end;
 
 
@@ -1201,7 +1202,6 @@ interface
 
 
     { default types }
-       pasbool64type,
        bool8type,
        bool16type,
        bool32type,
@@ -9774,7 +9774,7 @@ implementation
        compiler.deftypes.pasbool8type:=nil;
        compiler.deftypes.pasbool16type:=nil;
        compiler.deftypes.pasbool32type:=nil;
-       pasbool64type:=nil;
+       compiler.deftypes.pasbool64type:=nil;
        bool8type:=nil;
        bool16type:=nil;
        bool32type:=nil;
