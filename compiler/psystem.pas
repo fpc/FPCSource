@@ -463,7 +463,7 @@ implementation
         tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
 {$ifdef wasm}
-        wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype,compiler);
+        compiler.deftypes.wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype,compiler);
 {$endif wasm}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray(compiler);
@@ -652,8 +652,8 @@ implementation
         addtype('$__m256i',x86_m256itype);
 {$endif x86}
 {$ifdef wasm}
-        addtype('$wasm_void_externref',wasmvoidexternreftype);
-        addtype('WasmExternRef',wasmvoidexternreftype);
+        addtype('$wasm_void_externref',compiler.deftypes.wasmvoidexternreftype);
+        addtype('WasmExternRef',compiler.deftypes.wasmvoidexternreftype);
 {$endif wasm}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
@@ -820,7 +820,7 @@ implementation
         loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
 {$ifdef wasm}
-        loadtype('wasm_void_externref',wasmvoidexternreftype);
+        loadtype('wasm_void_externref',compiler.deftypes.wasmvoidexternreftype);
 {$endif wasm}
         loadtype('file',cfiletype);
         if compiler.target.info.system=system_i386_watcom then

@@ -436,7 +436,7 @@ implementation
                       R_EXTERNREFREGISTER:
                         begin
                           size:=0;
-                          def:=wasmvoidexternreftype;
+                          def:=_compiler.deftypes.wasmvoidexternreftype;
                         end;
                       else
                         internalerror(2010122912);

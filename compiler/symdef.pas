@@ -1161,6 +1161,9 @@ interface
          longintfarpointertype: tdef;{ used for MemL[] }
   {$endif i8086}
 {$endif x86}
+{$ifdef wasm}
+         wasmvoidexternreftype: tdef;
+{$endif wasm}
        end;
 
 
@@ -1187,9 +1190,6 @@ interface
 
 
     { default types }
-{$ifdef wasm}
-       wasmvoidexternreftype,
-{$endif wasm}
        cundefinedtype,
        cformaltype,               { unique formal definition }
        ctypedformaltype,          { unique typed formal definition }
@@ -9761,7 +9761,7 @@ implementation
   {$endif i8086}
 {$endif x86}
 {$ifdef wasm}
-       wasmvoidexternreftype:=nil;
+       compiler.deftypes.wasmvoidexternreftype:=nil;
 {$endif wasm}
        cundefinedtype:=nil;
        cformaltype:=nil;               { unique formal definition }
