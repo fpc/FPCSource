@@ -1295,21 +1295,23 @@ implementation
       end;
 
     function is_systemunit_unicode: boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var
       t : ttypesym;
 
     begin
-      if cchartype=nil then
+      if compiler.deftypes.cchartype=nil then
         begin
           t:=search_system_type('CHAR');
           if t<>nil then
-            cchartype:=t.typedef;
+            compiler.deftypes.cchartype:=t.typedef;
         end;
-      if cchartype=nil then
+      if compiler.deftypes.cchartype=nil then
         is_systemunit_unicode:=(sizeof(char)=2)
       else
-        is_systemunit_unicode:=(cchartype.size=2);
+        is_systemunit_unicode:=(compiler.deftypes.cchartype.size=2);
     end;
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
