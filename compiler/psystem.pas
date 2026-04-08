@@ -309,7 +309,7 @@ implementation
         u128inttype:=corddef.create(u128bit,0,0,true,compiler);
         s128inttype:=corddef.create(s128bit,0,0,true,compiler);
         compiler.deftypes.pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
-        pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
+        compiler.deftypes.pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
         pasbool16type:=corddef.create(pasbool16,0,1,true,compiler);
         pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
         pasbool64type:=corddef.create(pasbool64,0,1,true,compiler);
@@ -546,7 +546,7 @@ implementation
 
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',compiler.deftypes.pasbool1type);
-        addtype('Boolean8',pasbool8type);
+        addtype('Boolean8',compiler.deftypes.pasbool8type);
         addtype('Boolean16',pasbool16type);
         addtype('Boolean32',pasbool32type);
         addtype('Boolean64',pasbool64type);
@@ -607,7 +607,7 @@ implementation
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',compiler.deftypes.pasbool1type);
-        addtype('$boolean8',pasbool8type);
+        addtype('$boolean8',compiler.deftypes.pasbool8type);
         addtype('$boolean16',pasbool16type);
         addtype('$boolean32',pasbool32type);
         addtype('$boolean64',pasbool64type);
@@ -778,7 +778,7 @@ implementation
           end;
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',compiler.deftypes.pasbool1type);
-        loadtype('boolean8',pasbool8type);
+        loadtype('boolean8',compiler.deftypes.pasbool8type);
         loadtype('boolean16',pasbool16type);
         loadtype('boolean32',pasbool32type);
         loadtype('boolean64',pasbool64type);

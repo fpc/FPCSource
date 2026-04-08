@@ -553,7 +553,7 @@ implementation
                 pasbool8:
                   begin
                     objdef:=tobjectdef(search_system_type('JLBOOLEAN').typedef);
-                    paradef:=pasbool8type;
+                    paradef:=compiler.deftypes.pasbool8type;
                   end;
                 uwidechar:
                   begin

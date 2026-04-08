@@ -2449,7 +2449,7 @@ const
                           resultdef:=nil;
                           if is_cbool(ld) then
                             begin
-                              left:=compiler.ctypeconvnode(left,pasbool8type);
+                              left:=compiler.ctypeconvnode(left,compiler.deftypes.pasbool8type);
                               ttypeconvnode(left).convtype:=tc_bool_2_bool;
                               firstpass(left);
                               if not is_cbool(rd) or
@@ -2458,7 +2458,7 @@ const
                             end;
                           if is_cbool(rd) then
                             begin
-                              right:=compiler.ctypeconvnode(right,pasbool8type);
+                              right:=compiler.ctypeconvnode(right,compiler.deftypes.pasbool8type);
                               ttypeconvnode(right).convtype:=tc_bool_2_bool;
                               firstpass(right);
                               if not assigned(resultdef) then

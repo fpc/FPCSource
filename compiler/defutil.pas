@@ -1518,7 +1518,7 @@ implementation
                  pasbool1:
                    result:=compiler.deftypes.pasbool1type;
                  pasbool8:
-                   result:=pasbool8type;
+                   result:=compiler.deftypes.pasbool8type;
                  pasbool16:
                    result:=pasbool16type;
                  pasbool32:
