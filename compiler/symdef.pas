@@ -1141,7 +1141,7 @@ interface
          widecharpointertype,       { pointer for WideChar-pointeddef }
          voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
          voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
-         parentfpvoidpointertype: tdef;{ void pointer with the size of the hidden parentfp parameter, passed to nested functions }
+         parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
          voidnearpointertype,
          voidnearcspointertype,
@@ -1149,7 +1149,7 @@ interface
          voidnearsspointertype,
          voidnearespointertype,
          voidnearfspointertype,
-         voidneargspointertype: tdef;
+         voidneargspointertype,
   {$ifdef i8086}
          voidfarpointertype,
          voidhugepointertype,
@@ -1158,12 +1158,13 @@ interface
          charhugepointertype,
          bytefarpointertype,        { used for Mem[] }
          wordfarpointertype,        { used for MemW[] }
-         longintfarpointertype: tdef;{ used for MemL[] }
+         longintfarpointertype,     { used for MemL[] }
   {$endif i8086}
 {$endif x86}
 {$ifdef wasm}
-         wasmvoidexternreftype: tdef;
+         wasmvoidexternreftype,
 {$endif wasm}
+         cundefinedtype: tdef;
        end;
 
 
@@ -1190,7 +1191,6 @@ interface
 
 
     { default types }
-       cundefinedtype,
        cformaltype,               { unique formal definition }
        ctypedformaltype,          { unique typed formal definition }
        voidtype,                  { Void (procedure) }
@@ -9763,7 +9763,7 @@ implementation
 {$ifdef wasm}
        compiler.deftypes.wasmvoidexternreftype:=nil;
 {$endif wasm}
-       cundefinedtype:=nil;
+       compiler.deftypes.cundefinedtype:=nil;
        cformaltype:=nil;               { unique formal definition }
        ctypedformaltype:=nil;          { unique typed formal definition }
        voidtype:=nil;                  { Void (procedure) }

@@ -2348,9 +2348,9 @@ uses
           if current_scanner.token=_ID then
             begin
               if is_const then
-                generictype:=cconstsym.create_undefined(current_scanner.orgpattern,cundefinedtype)
+                generictype:=cconstsym.create_undefined(current_scanner.orgpattern,compiler.deftypes.cundefinedtype)
               else
-                generictype:=ctypesym.create(current_scanner.orgpattern,cundefinedtype);
+                generictype:=ctypesym.create(current_scanner.orgpattern,compiler.deftypes.cundefinedtype);
               { type parameters need to be added as strict private }
               generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
@@ -2680,7 +2680,7 @@ uses
                 if generictype.typ=typesym then
                   begin
                     generictypedef:=ttypesym(generictype).typedef;
-                    if (generictypedef.typ=undefineddef) and (generictypedef<>cundefinedtype) then
+                    if (generictypedef.typ=undefineddef) and (generictypedef<>compiler.deftypes.cundefinedtype) then
                       begin
                         { the generic parameters were parsed before the genericdef existed thus the
                           undefineddefs were added as part of the parent symtable }

@@ -291,7 +291,7 @@ implementation
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
            begin
-             resultdef:=cundefinedtype;
+             resultdef:=compiler.deftypes.cundefinedtype;
              exit;
            end;
 
@@ -886,7 +886,7 @@ implementation
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
            begin
-             resultdef:=cundefinedtype;
+             resultdef:=compiler.deftypes.cundefinedtype;
              exit;
            end;
 
@@ -1124,7 +1124,7 @@ implementation
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) then
            begin
-             resultdef:=cundefinedtype;
+             resultdef:=compiler.deftypes.cundefinedtype;
              exit;
            end;
 
@@ -1271,7 +1271,7 @@ implementation
         { avoid any problems with type parameters later on }
         if is_typeparam(left.resultdef) then
           begin
-            resultdef:=cundefinedtype;
+            resultdef:=compiler.deftypes.cundefinedtype;
             exit;
           end;
 
@@ -1411,7 +1411,7 @@ implementation
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) then
            begin
-             resultdef:=cundefinedtype;
+             resultdef:=compiler.deftypes.cundefinedtype;
              exit;
            end;
 

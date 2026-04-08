@@ -541,7 +541,7 @@ implementation
     function tspecializenode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resultdef:=cundefinedtype;
+         resultdef:=compiler.deftypes.cundefinedtype;
       end;
 
 

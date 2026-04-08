@@ -281,7 +281,7 @@ implementation
 	pvmt_name : shortstring;
       begin
         compiler.symtablestack.push(systemunit);
-        cundefinedtype:=cundefineddef.create(true,compiler);
+        compiler.deftypes.cundefinedtype:=cundefineddef.create(true,compiler);
         cformaltype:=cformaldef.create(false,compiler);
         ctypedformaltype:=cformaldef.create(true,compiler);
         voidtype:=corddef.create(uvoid,0,0,true,compiler);
@@ -575,7 +575,7 @@ implementation
             addtype('OleVariant',colevarianttype);
           end;
         { Internal types }
-        addtype('$undefined',cundefinedtype);
+        addtype('$undefined',compiler.deftypes.cundefinedtype);
         addtype('$formal',cformaltype);
         addtype('$typedformal',ctypedformaltype);
         addtype('$void',voidtype);
@@ -755,7 +755,7 @@ implementation
         loadtype('int64',s64inttype);
         loadtype('uint128',u128inttype);
         loadtype('int128',s128inttype);
-        loadtype('undefined',cundefinedtype);
+        loadtype('undefined',compiler.deftypes.cundefinedtype);
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
