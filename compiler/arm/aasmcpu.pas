@@ -1863,6 +1863,8 @@ implementation
 
     procedure InsertPData;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         prolog: TAsmList;
       begin
         prolog:=TAsmList.create;
