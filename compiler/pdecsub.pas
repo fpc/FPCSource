@@ -483,7 +483,7 @@ implementation
 
                 { this is not really working and generates internal errors
                 if parser.pbase.try_to_consume(_TYPE) then
-                  hdef:=ctypedformaltype
+                  hdef:=compiler.deftypes.ctypedformaltype
                 else }
                   begin
                     compiler.globals.block_type:=bt_var_type;

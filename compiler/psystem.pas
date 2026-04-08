@@ -283,7 +283,7 @@ implementation
         compiler.symtablestack.push(systemunit);
         compiler.deftypes.cundefinedtype:=cundefineddef.create(true,compiler);
         compiler.deftypes.cformaltype:=cformaldef.create(false,compiler);
-        ctypedformaltype:=cformaldef.create(true,compiler);
+        compiler.deftypes.ctypedformaltype:=cformaldef.create(true,compiler);
         voidtype:=corddef.create(uvoid,0,0,true,compiler);
         compiler.deftypes.voidpointertype:=cpointerdef.create(voidtype,compiler);
         u8inttype:=corddef.create(u8bit,0,255,true,compiler);
@@ -577,7 +577,7 @@ implementation
         { Internal types }
         addtype('$undefined',compiler.deftypes.cundefinedtype);
         addtype('$formal',compiler.deftypes.cformaltype);
-        addtype('$typedformal',ctypedformaltype);
+        addtype('$typedformal',compiler.deftypes.ctypedformaltype);
         addtype('$void',voidtype);
         addtype('$void_pointer',compiler.deftypes.voidpointertype);
         addtype('$byte',u8inttype);
@@ -757,7 +757,7 @@ implementation
         loadtype('int128',s128inttype);
         loadtype('undefined',compiler.deftypes.cundefinedtype);
         loadtype('formal',compiler.deftypes.cformaltype);
-        loadtype('typedformal',ctypedformaltype);
+        loadtype('typedformal',compiler.deftypes.ctypedformaltype);
         loadtype('void',voidtype);
         loadtype('void_pointer',compiler.deftypes.voidpointertype);
         loadtype('ansichar',cansichartype);
