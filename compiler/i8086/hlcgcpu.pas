@@ -260,7 +260,7 @@ implementation
           if is_proc_far(tabstractprocdef(size)) then
             size:=voidfarpointertype
           else
-            size:=voidnearpointertype;
+            size:=compiler.deftypes.voidnearpointertype;
 
       if is_farpointer(size) or is_hugepointer(size) then
         Result:=cg.getintregister(list,OS_32)
@@ -544,7 +544,7 @@ implementation
             if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
               inc(selfoffsetfromsp,2);
             list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
-            reference_reset_base(href,voidnearpointertype,NR_DI,selfoffsetfromsp+offs+2,ctempposinvalid,2,[]);
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,selfoffsetfromsp+offs+2,ctempposinvalid,2,[]);
             if not segment_regs_equal(NR_SS,NR_DS) then
               href.segment:=NR_SS;
             if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
@@ -565,12 +565,12 @@ implementation
         { mov  0(%bx),%bx ; load vmt}
         if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
           begin
-            reference_reset_base(href,voidnearpointertype,NR_BX,0,ctempposinvalid,2,[]);
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_BX,0,ctempposinvalid,2,[]);
             cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
           end
         else
           begin
-            reference_reset_base(href,voidnearpointertype,NR_BX,0,ctempposinvalid,2,[]);
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_BX,0,ctempposinvalid,2,[]);
             href.segment:=NR_ES;
             list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
           end;
@@ -591,12 +591,12 @@ implementation
         if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           begin
             { mov vmtseg(%bx),%si ; method seg }
-            reference_reset_base(href,voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,ctempposinvalid,2,[]);
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,ctempposinvalid,2,[]);
             href.segment:=srcseg;
             cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_SI);
           end;
         { mov vmtoffs(%bx),%bx ; method offs }
-        reference_reset_base(href,voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,2,[]);
+        reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,2,[]);
         href.segment:=srcseg;
         cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
       end;
@@ -650,9 +650,9 @@ implementation
           { set target address
             "mov %bx,4(%sp)" }
           if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
-            reference_reset_base(href,voidnearpointertype,NR_DI,6,ctempposinvalid,2,[])
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,6,ctempposinvalid,2,[])
           else
-            reference_reset_base(href,voidnearpointertype,NR_DI,4,ctempposinvalid,2,[]);
+            reference_reset_base(href,compiler.deftypes.voidnearpointertype,NR_DI,4,ctempposinvalid,2,[]);
           if not segment_regs_equal(NR_DS,NR_SS) then
             href.segment:=NR_SS;
           list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));

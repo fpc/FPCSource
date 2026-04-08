@@ -97,10 +97,10 @@ implementation
             secondpass(left);
 
             location_reset(location,LOC_REGISTER,OS_16);
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidnearpointertype);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidnearpointertype);
             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               internalerror(2015103003);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidnearpointertype,left.location.reference,location.register);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.voidnearpointertype,left.location.reference,location.register);
           end
         else
           inherited;

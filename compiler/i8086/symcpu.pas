@@ -369,13 +369,13 @@ implementation
       if is_far then
         result:=voidfarpointertype
       else
-        result:=voidnearpointertype;
+        result:=compiler.deftypes.voidnearpointertype;
     end;
 
 
   function tcpuprocdef.ofs_address_type:tdef;
     begin
-      result:=voidnearpointertype;
+      result:=compiler.deftypes.voidnearpointertype;
     end;
 
 
@@ -464,7 +464,7 @@ implementation
           begin
             { near }
             if compiler.globals.current_settings.x86memorymodel=mm_tiny then
-              result:=voidnearpointertype
+              result:=compiler.deftypes.voidnearpointertype
             else
               result:=voidnearcspointertype;
           end
@@ -475,7 +475,7 @@ implementation
 
   function tcpuprocvardef.ofs_address_type:tdef;
     begin
-      result:=voidnearpointertype;
+      result:=compiler.deftypes.voidnearpointertype;
     end;
 
 

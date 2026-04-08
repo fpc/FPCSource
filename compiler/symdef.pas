@@ -1142,6 +1142,9 @@ interface
          voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
          voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
          parentfpvoidpointertype: tdef;{ void pointer with the size of the hidden parentfp parameter, passed to nested functions }
+{$ifdef x86}
+         voidnearpointertype: tdef;
+{$endif x86}
        end;
 
 
@@ -1169,7 +1172,6 @@ interface
 
     { default types }
 {$ifdef x86}
-       voidnearpointertype,
        voidnearcspointertype,
        voidneardspointertype,
        voidnearsspointertype,
@@ -9742,7 +9744,7 @@ implementation
        compiler.deftypes.voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
        compiler.deftypes.parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
-       voidnearpointertype:=nil;
+       compiler.deftypes.voidnearpointertype:=nil;
        voidnearcspointertype:=nil;
        voidneardspointertype:=nil;
        voidnearsspointertype:=nil;

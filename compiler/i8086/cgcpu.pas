@@ -2565,12 +2565,12 @@ unit cgcpu;
         if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or (ref.base<>NR_BP))) or
            (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
           begin
-            compiler.hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            compiler.hlcg.a_loadaddr_ref_reg(list,compiler.deftypes.voidnearpointertype,compiler.deftypes.voidnearpointertype,ref,NR_SI);
             saved_ds:=false;
           end
         else
           begin
-            compiler.hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            compiler.hlcg.a_loadaddr_ref_reg(list,compiler.deftypes.voidnearpointertype,compiler.deftypes.voidnearpointertype,ref,NR_SI);
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
             saved_ds:=true;
             if ref.segment<>NR_NO then
