@@ -3717,12 +3717,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=compiler.cordconstnode(Ord(cs_check_range in compiler.globals.current_settings.localswitches),pasbool1type,false);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_range in compiler.globals.current_settings.localswitches),compiler.deftypes.pasbool1type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=compiler.cordconstnode(Ord(cs_check_overflow in compiler.globals.current_settings.localswitches),pasbool1type,false);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_overflow in compiler.globals.current_settings.localswitches),compiler.deftypes.pasbool1type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then

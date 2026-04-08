@@ -964,7 +964,7 @@ implementation
                       else
                         begin
                           name := procprefixes[do_read]+'boolean';
-                          readfunctype:=pasbool1type;
+                          readfunctype:=compiler.deftypes.pasbool1type;
                         end
                     else
                       begin
@@ -1185,7 +1185,7 @@ implementation
                   { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
                     para := compiler.ccallparanode(compiler.cordconstnode(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false),para)
+                      ord(tarraydef(para.left.resultdef).lowrange=0),compiler.deftypes.pasbool1type,false),para)
                   else
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
@@ -2468,7 +2468,7 @@ implementation
                    else
                      hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline,false,compiler);
                  in_const_odd :
-                   hp:=compiler.cordconstnode(qword(odd(int64(vl))),pasbool1type,true);
+                   hp:=compiler.cordconstnode(qword(odd(int64(vl))),compiler.deftypes.pasbool1type,true);
                  in_const_swap_word :
                    hp:=compiler.cordconstnode((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
@@ -3634,13 +3634,13 @@ implementation
                   if compiler.target.info.system in systems_managed_vm then
                     compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=pasbool1type;
+                  resultdef:=compiler.deftypes.pasbool1type;
                 end;
 
               in_isconstvalue_x:
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=pasbool1type;
+                  resultdef:=compiler.deftypes.pasbool1type;
                 end;
 
               in_assigned_x:
@@ -3659,7 +3659,7 @@ implementation
                   { Postpone conversion into addnode until firstpass, so targets
                     may override first_assigned and insert specific code. }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=pasbool1type;
+                  resultdef:=compiler.deftypes.pasbool1type;
                 end;
 
               in_ofs_x :
@@ -4313,7 +4313,7 @@ implementation
                                   valid_for_var(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,true);
                                   set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_written,[]);
                                   if not is_boolean(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left.resultdef) then
-                                    inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type,compiler);
+                                    inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,compiler.deftypes.pasbool1type,compiler);
                                 end;
                             end;
                         end;

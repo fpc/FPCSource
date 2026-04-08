@@ -1176,7 +1176,7 @@ implementation
             tcb.emit_ord_const(proctypesinfo,u8inttype);
             if addcomments then
               tcb.emit_comment(#9'is static prop');
-            tcb.emit_ord_const(ord(sp_static in sym.symoptions),pasbool1type);
+            tcb.emit_ord_const(ord(sp_static in sym.symoptions),compiler.deftypes.pasbool1type);
             { index parameters }
             if addcomments then
               tcb.emit_comment(#9'indexed params');

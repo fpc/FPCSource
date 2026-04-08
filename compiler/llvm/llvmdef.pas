@@ -427,7 +427,7 @@ implementation
                 encodedstr:=encodedstr+'void'
               { mainly required because comparison operations return i1, and
                 we need a way to represent the i1 type in Pascal. We don't
-                reuse pasbool1type, because putting an i1 in a record or
+                reuse compiler.deftypes.pasbool1type, because putting an i1 in a record or
                 passing it as a parameter may result in unexpected behaviour }
               else if def=llvmbool1type then
                 encodedstr:=encodedstr+'i1'

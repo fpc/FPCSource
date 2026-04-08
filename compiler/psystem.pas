@@ -136,8 +136,8 @@ implementation
         systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicDecrement',in_atomic_dec));
         systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicExchange',in_atomic_xchg));
         systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicCmpExchange',in_atomic_cmp_xchg));
-        systemunit.insertsym(cconstsym.create_ord('False',constord,0,pasbool1type));
-        systemunit.insertsym(cconstsym.create_ord('True',constord,1,pasbool1type));
+        systemunit.insertsym(cconstsym.create_ord('False',constord,0,compiler.deftypes.pasbool1type));
+        systemunit.insertsym(cconstsym.create_ord('True',constord,1,compiler.deftypes.pasbool1type));
       end;
 
 
@@ -308,7 +308,7 @@ implementation
           implement overflow checking }
         u128inttype:=corddef.create(u128bit,0,0,true,compiler);
         s128inttype:=corddef.create(s128bit,0,0,true,compiler);
-        pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
+        compiler.deftypes.pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
         pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
         pasbool16type:=corddef.create(pasbool16,0,1,true,compiler);
         pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
@@ -545,7 +545,7 @@ implementation
         addtype('UnicodeString',cunicodestringtype);
 
         addtype('OpenString',openshortstringtype);
-        addtype('Boolean',pasbool1type);
+        addtype('Boolean',compiler.deftypes.pasbool1type);
         addtype('Boolean8',pasbool8type);
         addtype('Boolean16',pasbool16type);
         addtype('Boolean32',pasbool32type);
@@ -606,7 +606,7 @@ implementation
         addtype('$widestring',cwidestringtype);
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
-        addtype('$boolean',pasbool1type);
+        addtype('$boolean',compiler.deftypes.pasbool1type);
         addtype('$boolean8',pasbool8type);
         addtype('$boolean16',pasbool16type);
         addtype('$boolean32',pasbool32type);
@@ -777,7 +777,7 @@ implementation
             loadtype('sc80real',sc80floattype);
           end;
         loadtype('s64currency',s64currencytype);
-        loadtype('boolean',pasbool1type);
+        loadtype('boolean',compiler.deftypes.pasbool1type);
         loadtype('boolean8',pasbool8type);
         loadtype('boolean16',pasbool16type);
         loadtype('boolean32',pasbool32type);

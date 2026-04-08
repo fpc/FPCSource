@@ -1162,7 +1162,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,compiler.ccallnode_intern('fpc_'+chartype+'array_to_shortstr',
               compiler.ccallparanode(compiler.cordconstnode(
-                ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
+                ord(tarraydef(left.resultdef).lowrange=0),compiler.deftypes.pasbool1type,false),
               compiler.ccallparanode(left,compiler.ccallparanode(
               compiler.ctemprefnode(restemp),nil)))));
             addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
@@ -1176,7 +1176,7 @@ implementation
                       compiler.ccallparanode(
                         compiler.cordconstnode(
                           ord(tarraydef(left.resultdef).lowrange=0),
-                          pasbool1type,
+                          compiler.deftypes.pasbool1type,
                           false
                         ),
                         compiler.ccallparanode(
@@ -1195,7 +1195,7 @@ implementation
           result:=compiler.ccallnode_internres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             compiler.ccallparanode(compiler.cordconstnode(
-               ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
+               ord(tarraydef(left.resultdef).lowrange=0),compiler.deftypes.pasbool1type,false),
              compiler.ccallparanode(left,nil)),resultdef);
         left:=nil;
       end;
@@ -4973,7 +4973,7 @@ implementation
               compiler.verbose.CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             case nodetype of
               isn:
-                resultdef:=pasbool1type;
+                resultdef:=compiler.deftypes.pasbool1type;
               asn:
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
               else
@@ -4986,7 +4986,7 @@ implementation
           begin
            case nodetype of
              isn:
-               resultdef:=pasbool1type;
+               resultdef:=compiler.deftypes.pasbool1type;
              asn:
                resultdef:=right.resultdef;
              else

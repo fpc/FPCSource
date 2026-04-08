@@ -699,7 +699,7 @@ implementation
                                  storedprocdef:=cprocvardef.create(normal_function_level,true,compiler);
                                  include(storedprocdef.procoptions,po_methodpointer);
                                  { Return type must be boolean }
-                                 storedprocdef.returndef:=pasbool1type;
+                                 storedprocdef.returndef:=compiler.deftypes.pasbool1type;
                                  { Add index parameter if needed }
                                  if ppo_indexed in p.propoptions then
                                    begin

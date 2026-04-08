@@ -536,7 +536,7 @@ implementation
           one }
         hp:=compiler.cwhilerepeatnode(
           { repeat .. until false }
-          compiler.cordconstnode(0,pasbool1type,false),innerloop,false,true);
+          compiler.cordconstnode(0,compiler.deftypes.pasbool1type,false),innerloop,false,true);
         addstatement(outerloopbodystatement,hp);
 
         { create the outer repeat/until and add it to the the main body }
@@ -1369,7 +1369,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool1type,compiler);
+             inserttypeconv(left,compiler.deftypes.pasbool1type,compiler);
 
          { Give warnings for code that will never be executed for
            while false do }
@@ -1648,7 +1648,7 @@ implementation
             end;
         if not is_constboolnode(condition) then
             aktstate.store_fact(condition,
-             compiler.cordconstnode(byte(checknegate),pasbool1type,true))
+             compiler.cordconstnode(byte(checknegate),compiler.deftypes.pasbool1type,true))
         else
             condition.free; // no nil needed
     end;
@@ -1878,7 +1878,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool1type,compiler);
+             inserttypeconv(left,compiler.deftypes.pasbool1type,compiler);
 
          result:=internalsimplify(not(nf_internal in flags));
       end;

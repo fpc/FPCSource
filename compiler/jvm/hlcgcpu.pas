@@ -1382,7 +1382,7 @@ implementation
             else
               begin
                 { deepcopy=true }
-                a_load_const_stack(list,pasbool1type,1,R_INTREGISTER);
+                a_load_const_stack(list,compiler.deftypes.pasbool1type,1,R_INTREGISTER);
                 { ndim }
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }

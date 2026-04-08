@@ -1170,7 +1170,8 @@ interface
          voidtype,                  { Void (procedure) }
          cansichartype,             { Char }
          cwidechartype,             { WideChar }
-         cchartype: tdef;           { either cansichartype or cwidechartype. Do not free }
+         cchartype,                 { either cansichartype or cwidechartype. Do not free }
+         pasbool1type: tdef;        { boolean type }
        end;
 
 
@@ -1197,7 +1198,6 @@ interface
 
 
     { default types }
-       pasbool1type,              { boolean type }
        pasbool8type,
        pasbool16type,
        pasbool32type,
@@ -9770,7 +9770,7 @@ implementation
        compiler.deftypes.cansichartype:=nil;             { Char }
        compiler.deftypes.cwidechartype:=nil;             { WideChar }
        compiler.deftypes.cchartype:=nil;                 { either compiler.deftypes.cansichartype or compiler.deftypes.cwidechartype. Do not free }
-       pasbool1type:=nil;              { boolean type }
+       compiler.deftypes.pasbool1type:=nil;              { boolean type }
        pasbool8type:=nil;
        pasbool16type:=nil;
        pasbool32type:=nil;

@@ -1516,7 +1516,7 @@ implementation
                  end
                else case torddef(def).ordtype of
                  pasbool1:
-                   result:=pasbool1type;
+                   result:=compiler.deftypes.pasbool1type;
                  pasbool8:
                    result:=pasbool8type;
                  pasbool16:

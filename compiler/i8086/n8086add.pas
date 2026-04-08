@@ -131,17 +131,17 @@ interface
                     internalerror(2014040606);
                 end;
               ltn:
-                t:=compiler.cordconstnode(ord(word(qword(lv))<word(qword(rv))),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(word(qword(lv))<word(qword(rv))),compiler.deftypes.pasbool1type,true);
               lten:
-                t:=compiler.cordconstnode(ord(word(qword(lv))<=word(qword(rv))),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(word(qword(lv))<=word(qword(rv))),compiler.deftypes.pasbool1type,true);
               gtn:
-                t:=compiler.cordconstnode(ord(word(qword(lv))>word(qword(rv))),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(word(qword(lv))>word(qword(rv))),compiler.deftypes.pasbool1type,true);
               gten:
-                t:=compiler.cordconstnode(ord(word(qword(lv))>=word(qword(rv))),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(word(qword(lv))>=word(qword(rv))),compiler.deftypes.pasbool1type,true);
               equaln:
-                t:=compiler.cordconstnode(ord(lv=rv),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(lv=rv),compiler.deftypes.pasbool1type,true);
               unequaln:
-                t:=compiler.cordconstnode(ord(lv<>rv),pasbool1type,true);
+                t:=compiler.cordconstnode(ord(lv<>rv),compiler.deftypes.pasbool1type,true);
               else
                 internalerror(2014040605);
             end;

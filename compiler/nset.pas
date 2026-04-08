@@ -249,7 +249,7 @@ implementation
       begin
          result:=nil;
 
-         resultdef:=pasbool1type;
+         resultdef:=compiler.deftypes.pasbool1type;
          typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if compiler.verbose.codegenerror then
@@ -336,7 +336,7 @@ implementation
             ((right.nodetype = setconstn) and
              (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
-            t:=compiler.cordconstnode(0,pasbool1type,false);
+            t:=compiler.cordconstnode(0,compiler.deftypes.pasbool1type,false);
             typecheckpass(t);
             result:=t;
             exit;
@@ -364,10 +364,10 @@ implementation
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
                    t:=compiler.cordconstnode(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true)
+                     compiler.deftypes.pasbool1type,true)
                  else
                    t:=compiler.cordconstnode(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true);
+                     compiler.deftypes.pasbool1type,true);
                  typecheckpass(t);
                  result:=t;
                  exit;
@@ -377,7 +377,7 @@ implementation
                  if (Tordconstnode(left).value<int64(tsetdef(right.resultdef).setbase)) or
                     (Tordconstnode(left).value>int64(Tsetdef(right.resultdef).setmax)) then
                    begin
-                     t:=compiler.cordconstnode(0, pasbool1type, true);
+                     t:=compiler.cordconstnode(0, compiler.deftypes.pasbool1type, true);
                      typecheckpass(t);
                      result:=t;
                      exit;
@@ -398,7 +398,7 @@ implementation
            ) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=compiler.cordconstnode(1, pasbool1type, true);
+             t:=compiler.cordconstnode(1, compiler.deftypes.pasbool1type, true);
              typecheckpass(t);
              result:=t;
              exit;
@@ -407,7 +407,7 @@ implementation
          else if is_emptyset(right) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=compiler.cordconstnode(1, pasbool1type, false);
+             t:=compiler.cordconstnode(1, compiler.deftypes.pasbool1type, false);
              typecheckpass(t);
              result:=t;
              exit;

@@ -881,17 +881,17 @@ const
                  else
                    t:=compiler.cordconstnode(lv and rv,resultdef,true);
                ltn :
-                 t:=compiler.cordconstnode(ord(lv<rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv<rv),compiler.deftypes.pasbool1type,true);
                lten :
-                 t:=compiler.cordconstnode(ord(lv<=rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv<=rv),compiler.deftypes.pasbool1type,true);
                gtn :
-                 t:=compiler.cordconstnode(ord(lv>rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv>rv),compiler.deftypes.pasbool1type,true);
                gten :
-                 t:=compiler.cordconstnode(ord(lv>=rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv>=rv),compiler.deftypes.pasbool1type,true);
                equaln :
-                 t:=compiler.cordconstnode(ord(lv=rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv=rv),compiler.deftypes.pasbool1type,true);
                unequaln :
-                 t:=compiler.cordconstnode(ord(lv<>rv),pasbool1type,true);
+                 t:=compiler.cordconstnode(ord(lv<>rv),compiler.deftypes.pasbool1type,true);
                slashn :
                  begin
                    { int/int becomes a real }
@@ -908,9 +908,9 @@ const
         else if cmp_of_disjunct_ranges(res) then
           begin
             if res then
-              t:=compiler.cordconstnode(1,pasbool1type,true)
+              t:=compiler.cordconstnode(1,compiler.deftypes.pasbool1type,true)
             else
-              t:=compiler.cordconstnode(0,pasbool1type,true);
+              t:=compiler.cordconstnode(0,compiler.deftypes.pasbool1type,true);
             { don't do this optimization, if the variable expression might
               have a side effect }
             if (is_constintnode(left) and might_have_sideeffects(right)) or
@@ -1070,17 +1070,17 @@ const
                 slashn :
                   t:=compiler.crealconstnode(lvd/rvd,resultrealdef);
                 ltn :
-                  t:=compiler.cordconstnode(ord(lvd<rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd<rvd),compiler.deftypes.pasbool1type,true);
                 lten :
-                  t:=compiler.cordconstnode(ord(lvd<=rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd<=rvd),compiler.deftypes.pasbool1type,true);
                 gtn :
-                  t:=compiler.cordconstnode(ord(lvd>rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd>rvd),compiler.deftypes.pasbool1type,true);
                 gten :
-                  t:=compiler.cordconstnode(ord(lvd>=rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd>=rvd),compiler.deftypes.pasbool1type,true);
                 equaln :
-                  t:=compiler.cordconstnode(ord(lvd=rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd=rvd),compiler.deftypes.pasbool1type,true);
                 unequaln :
-                  t:=compiler.cordconstnode(ord(lvd<>rvd),pasbool1type,true);
+                  t:=compiler.cordconstnode(ord(lvd<>rvd),compiler.deftypes.pasbool1type,true);
                 else
                   internalerror(2008022102);
              end;
@@ -1299,17 +1299,17 @@ const
                      t:=compiler.cstringconstnode_unistr(ws1);
                   end;
                 ltn :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<0),compiler.deftypes.pasbool1type,true);
                 lten :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<=0),compiler.deftypes.pasbool1type,true);
                 gtn :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>0),compiler.deftypes.pasbool1type,true);
                 gten :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>=0),compiler.deftypes.pasbool1type,true);
                 equaln :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)=0),compiler.deftypes.pasbool1type,true);
                 unequaln :
-                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<>0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<>0),compiler.deftypes.pasbool1type,true);
                 else
                   internalerror(2008022103);
              end;
@@ -1379,17 +1379,17 @@ const
                       tstringconstnode(t).changestringtype(getansistringdef)
                   end;
                 ltn :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<0),compiler.deftypes.pasbool1type,true);
                 lten :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<=0),compiler.deftypes.pasbool1type,true);
                 gtn :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>0),compiler.deftypes.pasbool1type,true);
                 gten :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>=0),compiler.deftypes.pasbool1type,true);
                 equaln :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)=0),compiler.deftypes.pasbool1type,true);
                 unequaln :
-                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool1type,true);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<>0),compiler.deftypes.pasbool1type,true);
                 else
                   internalerror(2008022104);
              end;
@@ -1427,22 +1427,22 @@ const
                unequaln :
                   begin
                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
+                    t:=compiler.cordconstnode(byte(b),compiler.deftypes.pasbool1type,true);
                   end;
                equaln :
                   begin
                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
+                    t:=compiler.cordconstnode(byte(b),compiler.deftypes.pasbool1type,true);
                   end;
                lten :
                   begin
                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
+                    t:=compiler.cordconstnode(byte(b),compiler.deftypes.pasbool1type,true);
                   end;
                gten :
                   begin
                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
+                    t:=compiler.cordconstnode(byte(b),compiler.deftypes.pasbool1type,true);
                   end;
                 else
                   internalerror(2008022105);
@@ -2422,12 +2422,12 @@ const
                 begin
                   if not is_boolean(ld) then
                     begin
-                      inserttypeconv(left,pasbool1type,compiler);
+                      inserttypeconv(left,compiler.deftypes.pasbool1type,compiler);
                       ld := left.resultdef;
                     end;
                   if not is_boolean(rd) then
                     begin
-                      inserttypeconv(right,pasbool1type,compiler);
+                      inserttypeconv(right,compiler.deftypes.pasbool1type,compiler);
                       rd := right.resultdef;
                     end;
                 end;
@@ -2494,8 +2494,8 @@ const
                       { convert both to pasbool to perform the comparison (so
                         that longbool(4) = longbool(2), since both represent
                         "true" }
-                      inserttypeconv(left,pasbool1type,compiler);
-                      inserttypeconv(right,pasbool1type,compiler);
+                      inserttypeconv(left,compiler.deftypes.pasbool1type,compiler);
+                      inserttypeconv(right,compiler.deftypes.pasbool1type,compiler);
                     end;
                   unequaln,
                   equaln:
@@ -2531,8 +2531,8 @@ const
                         end;
                       { Delphi-compatibility: convert both to pasbool to
                         perform the equality comparison }
-                      inserttypeconv(left,pasbool1type,compiler);
-                      inserttypeconv(right,pasbool1type,compiler);
+                      inserttypeconv(left,compiler.deftypes.pasbool1type,compiler);
+                      inserttypeconv(right,compiler.deftypes.pasbool1type,compiler);
                     end;
                   else
                     begin
@@ -3358,7 +3358,7 @@ const
           begin
              case nodetype of
                 ltn,lten,gtn,gten,equaln,unequaln :
-                  resultdef:=pasbool1type;
+                  resultdef:=compiler.deftypes.pasbool1type;
                 slashn :
                   resultdef:=resultrealdef;
                 addn:
@@ -4445,7 +4445,7 @@ const
         if not(compiler.target.info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-              resultdef:=pasbool1type;
+              resultdef:=compiler.deftypes.pasbool1type;
             result:=compiler.ctypeconvnode_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
                 compiler.ctypeconvnode_internal(right,fdef),
                 compiler.ccallparanode(
