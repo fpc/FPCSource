@@ -1139,7 +1139,8 @@ interface
          voidpointertype,           { pointer for Void-pointeddef }
          charpointertype,           { pointer for Char-pointeddef }
          widecharpointertype,       { pointer for WideChar-pointeddef }
-         voidcodepointertype: tdef; { pointer to code; corresponds to System.CodePointer }
+         voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
+         voidstackpointertype: tdef;{ the pointer type used for accessing parameters and local vars on the stack }
        end;
 
 
@@ -1166,7 +1167,6 @@ interface
 
 
     { default types }
-       voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
        parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        voidnearpointertype,
@@ -9739,7 +9739,7 @@ implementation
        compiler.deftypes.charpointertype:=nil;           { pointer for Char-pointeddef }
        compiler.deftypes.widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
        compiler.deftypes.voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
-       voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
+       compiler.deftypes.voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
        parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        voidnearpointertype:=nil;

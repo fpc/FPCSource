@@ -88,10 +88,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,voidstackpointertype.size,[]);
+                      reference_reset_base(href,compiler.deftypes.voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,compiler.deftypes.voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+                    reference_reset_base(href,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                   cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                 end;
               LOC_FPUREGISTER:
@@ -133,10 +133,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,voidstackpointertype.size,[]);
+                      reference_reset_base(href,compiler.deftypes.voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,compiler.deftypes.voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+                    reference_reset_base(href,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                   cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                 end;
               LOC_FPUREGISTER:
@@ -162,7 +162,7 @@ implementation
                     cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                   else
                     begin
-                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+                      reference_reset_base(href,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                       cg.g_concatcopy(list,l.reference,href,stacksize);
                     end;
                 end;
@@ -333,7 +333,7 @@ implementation
               selfoffsetfromsp:=2*sizeof(aint)
             else
               selfoffsetfromsp:=sizeof(aint);
-            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
+            reference_reset_base(href,compiler.deftypes.voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
           end;
       end;
@@ -411,7 +411,7 @@ implementation
               loadvmtto(NR_EAX);
               loadmethodoffstoeax;
               { mov %eax,4(%esp) }
-              reference_reset_base(href,voidstackpointertype,NR_ESP,4,ctempposinvalid,4,[]);
+              reference_reset_base(href,compiler.deftypes.voidstackpointertype,NR_ESP,4,ctempposinvalid,4,[]);
               list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
               { pop  %eax }
               list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));

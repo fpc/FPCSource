@@ -1005,7 +1005,7 @@ implementation
            a_load_reg_reg(list,size,cgpara.location^.def,r,cgpara.location^.register);
          LOC_REFERENCE,LOC_CREFERENCE:
            begin
-              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+              reference_reset_base(ref,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
               a_load_reg_ref(list,size,cgpara.location^.def,r,ref);
            end;
          LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1035,7 +1035,7 @@ implementation
             a_load_const_reg(list,cgpara.location^.def,a,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-               reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+               reference_reset_base(ref,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                a_load_const_ref(list,cgpara.location^.def,a,ref);
             end
           else
@@ -1166,7 +1166,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2017073001);
-                 reference_reset_base(ref,voidstackpointertype,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                 reference_reset_base(ref,compiler.deftypes.voidstackpointertype,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -2819,7 +2819,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               cgpara.check_simple_location;
-              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+              reference_reset_base(ref,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
               a_loadfpu_reg_ref(list,fromsize,cgpara.def,r,ref);
             end;
           LOC_REGISTER,LOC_CREGISTER:
@@ -2851,7 +2851,7 @@ implementation
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
             cgpara.check_simple_location;
-            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+            reference_reset_base(href,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
             { concatcopy should choose the best way to copy the data }
             g_concatcopy(list,fromsize,ref,href);
           end;
@@ -2961,7 +2961,7 @@ implementation
           a_loadmm_reg_reg(list,fromsize,cgpara.def,reg,cgpara.location^.register,shuffle);
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
-            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+            reference_reset_base(href,compiler.deftypes.voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
             a_loadmm_reg_ref(list,fromsize,cgpara.def,reg,href,shuffle);
           end;
         LOC_REGISTER,LOC_CREGISTER:
@@ -5125,7 +5125,7 @@ implementation
 
   procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
     begin
-      reference_reset_base(vs.initialloc.reference,voidstackpointertype,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
+      reference_reset_base(vs.initialloc.reference,compiler.deftypes.voidstackpointertype,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
           tparavarsym(vs).paraloc[calleeside].location^.reference.offset,ctempposinvalid,
           tparavarsym(vs).paraloc[calleeside].alignment,[]);
     end;
@@ -5724,7 +5724,7 @@ implementation
                 case para.location^.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      reference_reset_base(href,voidstackpointertype,para.location^.reference.index,para.location^.reference.offset,ctempposinvalid,para.alignment,[]);
+                      reference_reset_base(href,compiler.deftypes.voidstackpointertype,para.location^.reference.index,para.location^.reference.offset,ctempposinvalid,para.alignment,[]);
                       a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
                     end;
                   else

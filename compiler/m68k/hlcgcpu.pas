@@ -138,7 +138,7 @@ implementation
           selfoffsetfromsp:=sizeof(aint)
         else
           selfoffsetfromsp:=0;
-        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
+        reference_reset_base(href, compiler.deftypes.voidstackpointertype, NR_SP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 

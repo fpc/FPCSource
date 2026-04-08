@@ -196,10 +196,10 @@ implementation
           compiler.deftypes.voidcodepointertype:=voidnearpointertype
         else
           compiler.deftypes.voidcodepointertype:=voidnearcspointertype;
-        voidstackpointertype:=voidnearsspointertype;
+        compiler.deftypes.voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
         compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidpointertype;
-        voidstackpointertype:=compiler.deftypes.voidpointertype;
+        compiler.deftypes.voidstackpointertype:=compiler.deftypes.voidpointertype;
 {$endif i8086}
         case compiler.deftypes.voidcodepointertype.size of
           2:
