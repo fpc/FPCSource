@@ -443,7 +443,7 @@ implementation
         compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
         compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
-        wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
+        compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
   {$endif i8086}
         x86_m64type:=carraydef.create_vector(0,1,s32inttype,compiler);
@@ -640,7 +640,7 @@ implementation
         addtype('$char_farpointer',compiler.deftypes.charfarpointertype);
         addtype('$char_hugepointer',compiler.deftypes.charhugepointertype);
         addtype('$byte_farpointer',compiler.deftypes.bytefarpointertype);
-        addtype('$word_farpointer',wordfarpointertype);
+        addtype('$word_farpointer',compiler.deftypes.wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
         addtype('$__m64',  x86_m64type);
@@ -804,7 +804,7 @@ implementation
         loadtype('char_farpointer',compiler.deftypes.charfarpointertype);
         loadtype('char_hugepointer',compiler.deftypes.charhugepointertype);
         loadtype('byte_farpointer',compiler.deftypes.bytefarpointertype);
-        loadtype('word_farpointer',wordfarpointertype);
+        loadtype('word_farpointer',compiler.deftypes.wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
         loadtype('__m64',  x86_m64type);
