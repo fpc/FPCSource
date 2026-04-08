@@ -75,7 +75,7 @@ implementation
     procedure ti8086addrnode.set_labelsym_resultdef;
       begin
         if anf_ofs in addrnodeflags then
-          resultdef:=voidnearcspointertype
+          resultdef:=compiler.deftypes.voidnearcspointertype
         else
           inherited;
       end;

@@ -466,7 +466,7 @@ implementation
             if compiler.globals.current_settings.x86memorymodel=mm_tiny then
               result:=compiler.deftypes.voidnearpointertype
             else
-              result:=voidnearcspointertype;
+              result:=compiler.deftypes.voidnearcspointertype;
           end
       else
         result:=inherited;

@@ -1143,7 +1143,8 @@ interface
          voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
          parentfpvoidpointertype: tdef;{ void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
-         voidnearpointertype: tdef;
+         voidnearpointertype,
+         voidnearcspointertype: tdef;
 {$endif x86}
        end;
 
@@ -1172,7 +1173,6 @@ interface
 
     { default types }
 {$ifdef x86}
-       voidnearcspointertype,
        voidneardspointertype,
        voidnearsspointertype,
        voidnearespointertype,
@@ -9745,7 +9745,7 @@ implementation
        compiler.deftypes.parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        compiler.deftypes.voidnearpointertype:=nil;
-       voidnearcspointertype:=nil;
+       compiler.deftypes.voidnearcspointertype:=nil;
        voidneardspointertype:=nil;
        voidnearsspointertype:=nil;
        voidnearespointertype:=nil;

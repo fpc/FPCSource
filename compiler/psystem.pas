@@ -195,7 +195,7 @@ implementation
         else if compiler.globals.current_settings.x86memorymodel=mm_tiny then
           compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidnearpointertype
         else
-          compiler.deftypes.voidcodepointertype:=voidnearcspointertype;
+          compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidnearcspointertype;
         compiler.deftypes.voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
         compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidpointertype;
@@ -430,7 +430,7 @@ implementation
 {$endif i8086}
 {$ifdef x86}
         compiler.deftypes.voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near,compiler);
-        voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs,compiler);
+        compiler.deftypes.voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs,compiler);
         voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds,compiler);
         voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
         voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es,compiler);
@@ -518,7 +518,7 @@ implementation
         addtype('Pointer',compiler.deftypes.voidpointertype);
 {$ifdef x86}
         addtype('NearPointer',compiler.deftypes.voidnearpointertype);
-        addtype('NearCsPointer',voidnearcspointertype);
+        addtype('NearCsPointer',compiler.deftypes.voidnearcspointertype);
         addtype('NearDsPointer',voidneardspointertype);
         addtype('NearSsPointer',voidnearsspointertype);
         addtype('NearEsPointer',voidnearespointertype);
@@ -627,7 +627,7 @@ implementation
         addtype('$parentfp_void_pointer',compiler.deftypes.parentfpvoidpointertype);
 {$ifdef x86}
         addtype('$void_nearpointer',compiler.deftypes.voidnearpointertype);
-        addtype('$void_nearcspointer',voidnearcspointertype);
+        addtype('$void_nearcspointer',compiler.deftypes.voidnearcspointertype);
         addtype('$void_neardspointer',voidneardspointertype);
         addtype('$void_nearsspointer',voidnearsspointertype);
         addtype('$void_nearespointer',voidnearespointertype);
@@ -791,7 +791,7 @@ implementation
         loadtype('parentfp_void_pointer',compiler.deftypes.parentfpvoidpointertype);
 {$ifdef x86}
         loadtype('void_nearpointer',compiler.deftypes.voidnearpointertype);
-        loadtype('void_nearcspointer',voidnearcspointertype);
+        loadtype('void_nearcspointer',compiler.deftypes.voidnearcspointertype);
         loadtype('void_neardspointer',voidneardspointertype);
         loadtype('void_nearsspointer',voidnearsspointertype);
         loadtype('void_nearespointer',voidnearespointertype);
