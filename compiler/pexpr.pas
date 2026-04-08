@@ -2450,7 +2450,7 @@ implementation
                                case tloadnode(p1).symtableentry.name of
                                  'MEM': p2:=compiler.ctypeconvnode_internal(p2,compiler.deftypes.bytefarpointertype);
                                  'MEMW': p2:=compiler.ctypeconvnode_internal(p2,compiler.deftypes.wordfarpointertype);
-                                 'MEML': p2:=compiler.ctypeconvnode_internal(p2,longintfarpointertype);
+                                 'MEML': p2:=compiler.ctypeconvnode_internal(p2,compiler.deftypes.longintfarpointertype);
                                  else
                                    internalerror(2013053102);
                                end;

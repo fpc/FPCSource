@@ -1157,7 +1157,8 @@ interface
          charfarpointertype,
          charhugepointertype,
          bytefarpointertype,        { used for Mem[] }
-         wordfarpointertype: tdef;  { used for MemW[] }
+         wordfarpointertype,        { used for MemW[] }
+         longintfarpointertype: tdef;{ used for MemL[] }
   {$endif i8086}
 {$endif x86}
        end;
@@ -1186,11 +1187,6 @@ interface
 
 
     { default types }
-{$ifdef x86}
-  {$ifdef i8086}
-       longintfarpointertype,     { used for MemL[] }
-  {$endif i8086}
-{$endif x86}
 {$ifdef wasm}
        wasmvoidexternreftype,
 {$endif wasm}
@@ -9761,7 +9757,7 @@ implementation
        compiler.deftypes.charhugepointertype:=nil;
        compiler.deftypes.bytefarpointertype:=nil;        { used for Mem[] }
        compiler.deftypes.wordfarpointertype:=nil;        { used for MemW[] }
-       longintfarpointertype:=nil;     { used for MemL[] }
+       compiler.deftypes.longintfarpointertype:=nil;     { used for MemL[] }
   {$endif i8086}
 {$endif x86}
 {$ifdef wasm}
