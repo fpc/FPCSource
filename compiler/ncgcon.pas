@@ -246,7 +246,7 @@ implementation
            cst_ansistring:
              begin
                elementdef:=cansichartype;
-               strpointerdef:=charpointertype;
+               strpointerdef:=compiler.deftypes.charpointertype;
              end;
            cst_widestring,
            cst_unicodestring:

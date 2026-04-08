@@ -1136,7 +1136,8 @@ interface
 
 
        tdefaulttypes = class
-         voidpointertype: tdef;     { pointer for Void-pointeddef }
+         voidpointertype,           { pointer for Void-pointeddef }
+         charpointertype: tdef;     { pointer for Char-pointeddef }
        end;
 
 
@@ -1163,7 +1164,6 @@ interface
 
 
     { default types }
-       charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
        voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
        voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
@@ -9736,7 +9736,7 @@ implementation
     { Necessary strictly for Textmode IDE.                }
     begin
        compiler.deftypes.voidpointertype:=nil;           { pointer for Void-pointeddef }
-       charpointertype:=nil;           { pointer for Char-pointeddef }
+       compiler.deftypes.charpointertype:=nil;           { pointer for Char-pointeddef }
        widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
        voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
        voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }

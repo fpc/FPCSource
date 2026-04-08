@@ -1226,7 +1226,7 @@ implementation
           st_ansistring:
             begin
               labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
-              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,charpointertype);
+              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,compiler.deftypes.charpointertype);
               result:=compiler.deftypes.voidpointertype.size;
             end;
           st_widestring,

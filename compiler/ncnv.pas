@@ -808,7 +808,7 @@ implementation
             arraydef :
               begin
                 if is_chararray(p.resultdef) then
-                  p:=compiler.ctypeconvnode_internal(p,charpointertype)
+                  p:=compiler.ctypeconvnode_internal(p,compiler.deftypes.charpointertype)
                 else
                   if is_widechararray(p.resultdef) then
                     p:=compiler.ctypeconvnode_internal(p,widecharpointertype)
@@ -855,7 +855,7 @@ implementation
               p:=compiler.ctypeconvnode(p,compiler.deftypes.voidpointertype);
             stringdef:
               if iscvarargs then
-                p:=compiler.ctypeconvnode(p,charpointertype);
+                p:=compiler.ctypeconvnode(p,compiler.deftypes.charpointertype);
             variantdef:
               if iscvarargs then
                 compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);

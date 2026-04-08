@@ -1356,7 +1356,7 @@ implementation
                   st_shortstring :
                     begin
                       elementdef:=cansichartype;
-                      elementptrdef:=charpointertype;
+                      elementptrdef:=compiler.deftypes.charpointertype;
                     end;
                 end;
                 if right.nodetype=rangen then

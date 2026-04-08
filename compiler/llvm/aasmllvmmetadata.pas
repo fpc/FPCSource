@@ -329,14 +329,14 @@ implementation
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_string;
-      inherited create(charpointertype,tai_string.Create(stringval));
+      inherited create(compiler.deftypes.charpointertype,tai_string.Create(stringval));
     end;
 
   constructor tllvmspecialisedmetaitem.createenum(const aitemname: TSymStr; const enumval: TSymStr);
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_enum;
-      inherited create(charpointertype,tai_string.Create(enumval));
+      inherited create(compiler.deftypes.charpointertype,tai_string.Create(enumval));
     end;
 
   constructor tai_llvmspecialisedmetadatanode.create(aKind: tspecialisedmetadatanodekind);

@@ -1467,7 +1467,7 @@ implementation
          st_ansistring:
            begin
              elesize:=1;
-             charptrdef:=charpointertype;
+             charptrdef:=compiler.deftypes.charpointertype;
            end;
          st_unicodestring:
            begin
@@ -1967,7 +1967,7 @@ implementation
        else
          strlab:=tasmlabel(entry^.Data);
 
-       emit_tai(tai_const.Create_sym(strlab),charpointertype);
+       emit_tai(tai_const.Create_sym(strlab),compiler.deftypes.charpointertype);
      end;
 
 

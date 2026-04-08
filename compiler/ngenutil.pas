@@ -1277,11 +1277,11 @@ implementation
               unitinits.start_internal_data_builder(current_asmdata.asmlists[al_globals],sec_rodata,'',unitnametcb,unitnamelbl);
               unitnamedef:=unitnametcb.emit_shortstring_const(entry^.module.realmodulename^);
               unitinits.finish_internal_data_builder(unitnametcb,unitnamelbl,unitnamedef,sizeof(pint));
-              unitinits.queue_init(charpointertype);
+              unitinits.queue_init(compiler.deftypes.charpointertype);
               unitinits.queue_emit_asmsym(unitnamelbl,unitnamedef);
             end
           else
-            unitinits.emit_tai(Tai_const.Create_nil_dataptr,charpointertype);
+            unitinits.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.charpointertype);
         end;
 
       { Add to data segment }
@@ -1802,9 +1802,9 @@ implementation
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(charpointertype,compiler),[]);
+           pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(compiler.deftypes.charpointertype,compiler),[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(charpointertype,compiler),[]);
+           pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(compiler.deftypes.charpointertype,compiler),[]);
            tprocdef(pd).parast.insertsym(pvs);
            tprocdef(pd).calcparas;
          end

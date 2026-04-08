@@ -2850,12 +2850,12 @@ const
             { convert char array to pointer }
             if is_chararray(rd) then
               begin
-                inserttypeconv(right,charpointertype,compiler);
+                inserttypeconv(right,compiler.deftypes.charpointertype,compiler);
                 rd:=right.resultdef;
               end
             else if is_chararray(ld) then
               begin
-                inserttypeconv(left,charpointertype,compiler);
+                inserttypeconv(left,compiler.deftypes.charpointertype,compiler);
                 ld:=left.resultdef;
               end;
 

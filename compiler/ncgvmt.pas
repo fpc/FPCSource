@@ -516,7 +516,7 @@ implementation
                 lists^.pubmethodstcb.maybe_begin_aggregate(lists^.methodnamerec);
                 { convert the pointer to the name into a generic pshortstring,
                   so all entries can share the same recorddef }
-                lists^.pubmethodstcb.queue_init(charpointertype);
+                lists^.pubmethodstcb.queue_init(compiler.deftypes.charpointertype);
                 lists^.pubmethodstcb.queue_emit_asmsym(l,namedef);
                 if po_abstractmethod in pd.procoptions then
                   lists^.pubmethodstcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)

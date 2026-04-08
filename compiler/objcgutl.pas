@@ -372,10 +372,10 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
     for i:=0 to mcnt-1 do
       begin
         { reference to the selector name }
-        tcb.queue_init(charpointertype);
+        tcb.queue_init(compiler.deftypes.charpointertype);
         tcb.queue_emit_asmsym(defs[i].selsym,defs[i].seldef);
         { reference to the obj-c encoded function parameters (signature) }
-        tcb.queue_init(charpointertype);
+        tcb.queue_init(compiler.deftypes.charpointertype);
         tcb.queue_emit_asmsym(defs[i].encsym,defs[i].encdef);
         { mangled name of the method }
         tcb.queue_init(voidcodepointertype);
@@ -1393,7 +1393,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     tcb.emit_tai(Tai_const.Create_nil_dataptr,objc_idtype);
     { name }
     objcreatestringpoolentry(protocol.objextname^,sp_objcclassnames,sec_objc_class_names,namesym,namedef);
-    tcb.queue_init(charpointertype);
+    tcb.queue_init(compiler.deftypes.charpointertype);
     tcb.queue_emit_asmsym(namesym,namedef);
     { parent protocols list }
     ConcatSymOrNil(tcb,protolist,compiler.deftypes.voidpointertype);

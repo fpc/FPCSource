@@ -818,7 +818,7 @@ implementation
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(charpointertype),left.location.reference);
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(compiler.deftypes.charpointertype),left.location.reference);
                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,0,left.location.reference);
               end
             { char loading }
@@ -837,7 +837,7 @@ implementation
                 else
                   begin
                     href:=left.location.reference;
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(charpointertype),href);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(compiler.deftypes.charpointertype),href);
                     hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
                     inc(href.offset,1);
                     href.alignment:=1;

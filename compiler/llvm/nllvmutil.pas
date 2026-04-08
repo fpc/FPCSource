@@ -249,14 +249,14 @@ implementation
                   if assigned(hpdecl.sym) then
                     begin
                       sourcefile:=compiler.get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
-                      globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(sourcefile.name)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.line)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.column)));
                     end
                   else
                     begin
                       sourcefile:=compiler.current_module.sourcefiles.get_file(1);
-                      globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(sourcefile.name)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
                       globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
                     end;
@@ -304,7 +304,7 @@ implementation
             objcabiversion:=1;
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Version')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Version')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(objcabiversion)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
@@ -312,7 +312,7 @@ implementation
           { image info version }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Version')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Version')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
@@ -320,15 +320,15 @@ implementation
           { image info section }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Section')));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info,compiler.target))));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Section')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info,compiler.target))));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { garbage collection }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Garbage Collection')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Garbage Collection')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
@@ -345,7 +345,7 @@ implementation
             format }
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
           dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Debug Info Version')));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Debug Info Version')));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[compiler.globals.current_settings.llvmversion])));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
@@ -353,7 +353,7 @@ implementation
           { dwarf version }
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
           dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Dwarf Version')));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Dwarf Version')));
           case compiler.target.dbg.id of
             dbg_dwarf2:
               dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));

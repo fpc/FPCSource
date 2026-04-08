@@ -562,7 +562,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 current_asmdata.ResStrInits.Concat(
                   TTCInitItem.Create(tcsym,curoffset,
-                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA),charpointertype)
+                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA),compiler.deftypes.charpointertype)
                 );
                 Include(tcsym.varoptions,vo_force_finalize);
               end;
@@ -602,7 +602,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      end
                    else
                      ll:=ftcb.emit_ansistring_const(fdatalist,strval,strlength,def.encoding);
-                   ftcb.emit_string_offset(ll,strlength,def.stringtype,false,charpointertype);
+                   ftcb.emit_string_offset(ll,strlength,def.stringtype,false,compiler.deftypes.charpointertype);
                 end;
               st_unicodestring,
               st_widestring:
