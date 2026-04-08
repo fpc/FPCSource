@@ -269,10 +269,17 @@ unit optconstprop;
                 result:=result and replaceBasicAssign(tcallnode(n).right, arg, tree_modified4);
                 result:=result and replaceBasicAssign(tnode(tcallnode(n).callcleanupblock), arg, tree_modified5);
                 tree_modified:=tree_modified or tree_modified2 or tree_modified3 or tree_modified4 or tree_modified5;
+
+                { If the parameters were simplified, we may be able to simplify
+                  the call node otherwise just exit to save time }
+                if not tree_modified2 then
+                  Exit;
               end
             else
-              result:=false;
-            exit;
+              begin
+                result:=false;
+                exit;
+              end;
           end
         else if n.InheritsFrom(tbinarynode) then
           begin
@@ -286,11 +293,9 @@ unit optconstprop;
             result:=replaceBasicAssign(tunarynode(n).left, arg, tree_modified);
           end;
 
-        if n.nodetype<>callparan then
+        if tree_modified and (n.nodetype<>callparan) then
           begin
-            if tree_modified then
-              exclude(n.transientflags,tnf_pass1_done);
-
+            exclude(n.transientflags,tnf_pass1_done);
             do_firstpass(n);
           end;
       end;
