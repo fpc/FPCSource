@@ -312,13 +312,13 @@ implementation
              if assigned(tsetdef(right.resultdef).elementdef) then
                inserttypeconv(left,tsetdef(right.resultdef).elementdef,compiler);
            end
-         else if not is_ordinal(left.resultdef) or (left.resultdef.size > u32inttype.size) then
+         else if not is_ordinal(left.resultdef) or (left.resultdef.size > compiler.deftypes.u32inttype.size) then
            begin
              compiler.verbose.CGMessage(type_h_in_range_check);
              if is_signed(left.resultdef) then
                inserttypeconv(left,s32inttype,compiler)
              else
-               inserttypeconv(left,u32inttype,compiler);
+               inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
            end
          else if assigned(tsetdef(right.resultdef).elementdef) and
                  not(is_integer(tsetdef(right.resultdef).elementdef) and

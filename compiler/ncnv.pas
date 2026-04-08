@@ -1736,7 +1736,7 @@ implementation
            begin
              pb:=pbyte(tstringconstnode(left).asconstpchar);
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
-             result:=compiler.cordconstnode(fcc,u32inttype,false);
+             result:=compiler.cordconstnode(fcc,compiler.deftypes.u32inttype,false);
            end
          else
            compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
@@ -3831,7 +3831,7 @@ implementation
                     is_64bitint(left.resultdef) and
                     (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s32inttype,u32inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s32inttype,compiler.deftypes.u32inttype);
 {$if defined(cpu16bitalu)}
                   if (resultdef.size <= 2) and
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and

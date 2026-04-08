@@ -326,7 +326,7 @@ implementation
 
          tcb.maybe_begin_aggregate(entrydef);
          { write integer dispatch number }
-         tcb.emit_tai(Tai_const.Create_32bit(p^.data.messageinf.i),u32inttype);
+         tcb.emit_tai(Tai_const.Create_32bit(p^.data.messageinf.i),compiler.deftypes.u32inttype);
          tcb.queue_init(compiler.deftypes.voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -356,7 +356,7 @@ implementation
                 method : codepointer;
              end;
          }
-         msginttabledef:=get_recorddef(itp_vmt_intern_msgint_table,[u32inttype,compiler.deftypes.voidcodepointertype],0);
+         msginttabledef:=get_recorddef(itp_vmt_intern_msgint_table,[compiler.deftypes.u32inttype,compiler.deftypes.voidcodepointertype],0);
          { from objpas.inc:
              TMsgInt = record
                 count : longint;
@@ -566,14 +566,14 @@ implementation
                   end;
                }
               tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,lists.pubmethodstcb,lab);
-              get_tabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,packrecords,pubmethodsdef,pubmethodsarraydef);
+              get_tabledef(itp_vmt_intern_tmethodnametable,compiler.deftypes.u32inttype,lists.methodnamerec,count,packrecords,pubmethodsdef,pubmethodsarraydef);
               { begin record encompassing the tmethodnametable and the extended method table }
               lists.pubmethodstcb.begin_anonymous_record('',packrecords,
                   pubmethodsdef.alignment, targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
               { begin tmethodnametable }
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
-              lists.pubmethodstcb.emit_tai(Tai_const.Create_32bit(count),u32inttype);
+              lists.pubmethodstcb.emit_tai(Tai_const.Create_32bit(count),compiler.deftypes.u32inttype);
               if count>0 then
                 begin
                   { begin entries field (array) }

@@ -381,7 +381,7 @@ implementation
            { length in ansi/wide strings and high in dynamic arrays is at offset
              -sizeof(sizeint), for widestrings it's at -4 }
            if is_widestring(left.resultdef) then
-             lendef:=u32inttype
+             lendef:=compiler.deftypes.u32inttype
            else
              lendef:=ossinttype;
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,

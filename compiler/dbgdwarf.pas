@@ -1241,7 +1241,7 @@ implementation
                   if (sign=DW_ATE_signed) then
                     basedef:=s32inttype
                   else
-                    basedef:=u32inttype;
+                    basedef:=compiler.deftypes.u32inttype;
                 else
                   internalerror(2008032201);
               end;
@@ -1537,7 +1537,7 @@ implementation
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s32inttype))
                else
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u32inttype));
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u32inttype));
             8:
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s64inttype))
@@ -1788,7 +1788,7 @@ implementation
               addnormalstringdef('LongString',u64inttype,qword(1024*1024));
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
-              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
+              addnormalstringdef('LongString',compiler.deftypes.u32inttype,cardinal(1024*1024));
 {$endif cpu32bitaddr}
 {$ifdef cpu16bitaddr}
               addnormalstringdef('LongString',compiler.deftypes.u16inttype,cardinal(1024));

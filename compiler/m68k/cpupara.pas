@@ -246,7 +246,7 @@ unit cpupara;
                { low 32bits }
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
                if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
@@ -255,7 +255,7 @@ unit cpupara;
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
                if side=calleeside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else

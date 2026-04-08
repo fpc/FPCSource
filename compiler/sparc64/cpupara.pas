@@ -257,7 +257,7 @@ implementation
                           begin
                             { for 3-byte records }
                             paraloc^.size:=OS_32;
-                            paraloc^.def:=u32inttype;
+                            paraloc^.def:=compiler.deftypes.u32inttype;
                           end;
                       end;
 

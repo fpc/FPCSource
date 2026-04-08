@@ -1403,7 +1403,7 @@ implementation
               addnormalstringdef('LongString',u64inttype,qword(1024*1024));
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
-              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
+              addnormalstringdef('LongString',compiler.deftypes.u32inttype,cardinal(1024*1024));
 {$endif cpu32bitaddr}
 {$ifdef cpu16bitaddr}
               addnormalstringdef('LongString',compiler.deftypes.u16inttype,cardinal(1024));

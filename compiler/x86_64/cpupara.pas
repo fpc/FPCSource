@@ -196,7 +196,7 @@ unit cpupara;
                if not assigned(cl.def) or
                   (cl.def.typ<>orddef) or
                   (torddef(cl.def).ordtype<>pasbool1) then
-                 cl.def:=u32inttype;
+                 cl.def:=compiler.deftypes.u32inttype;
              end
            else
              begin
@@ -1530,7 +1530,7 @@ unit cpupara;
                         begin
                           paraloc^.size:=OS_32;
                           if paraloc^.def.size<>4 then
-                            paraloc^.def:=u32inttype;
+                            paraloc^.def:=compiler.deftypes.u32inttype;
                         end;
                       setsubreg(paraloc^.register,cgsize2subreg(R_INTREGISTER,paraloc^.size));
                       inc(intretregidx);
@@ -1764,7 +1764,7 @@ unit cpupara;
                   begin
                     loc[0].typ:=X86_64_INTEGERSI_CLASS;
                     paracgsize:=OS_32;
-                    paralocdef:=u32inttype;
+                    paralocdef:=compiler.deftypes.u32inttype;
                   end;
                 loc[0].def:=paralocdef;
               end;
@@ -1835,7 +1835,7 @@ unit cpupara;
                               else
                                 begin
                                   paraloc^.size:=OS_32;
-                                  paraloc^.def:=u32inttype;
+                                  paraloc^.def:=compiler.deftypes.u32inttype;
                                   subreg:=R_SUBD;
                                 end;
                             end

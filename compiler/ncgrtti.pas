@@ -612,7 +612,7 @@ implementation
 
             datatcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-            datatcb.emit_ord_const(list.count,u32inttype);
+            datatcb.emit_ord_const(list.count,compiler.deftypes.u32inttype);
 
             entrydef:=get_recorddef(itp_init_mop_offset_entry,[compiler.deftypes.voidcodepointertype,sizeuinttype],defaultpacking);
 
@@ -711,7 +711,7 @@ implementation
           end;
         { insert field count before data }
         maybe_add_comment(tcb,'Field count');
-        tcb.emit_ord_const(fieldcnt,u32inttype);
+        tcb.emit_ord_const(fieldcnt,compiler.deftypes.u32inttype);
         { parent object? }
         if parentrtti then
           begin
@@ -1100,7 +1100,7 @@ implementation
                 targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
               { paramcount }
-              paramtcb.emit_ord_const(paramst.symlist.count,u32inttype);
+              paramtcb.emit_ord_const(paramst.symlist.count,compiler.deftypes.u32inttype);
               for i:=0 to paramst.symlist.count-1 do
                 begin
                   if tsym(paramst.symlist[i]).typ<>paravarsym then
@@ -1161,10 +1161,10 @@ implementation
               writeaccessproc(tcb,palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
             if addcomments then
               tcb.emit_comment(#9'Index');
-            tcb.emit_ord_const(sym.index,u32inttype);
+            tcb.emit_ord_const(sym.index,compiler.deftypes.u32inttype);
             if addcomments then
               tcb.emit_comment(#9'default');
-            tcb.emit_ord_const(sym.default,u32inttype);
+            tcb.emit_ord_const(sym.default,compiler.deftypes.u32inttype);
             propnameitem:=TPropNameListItem(propnamelist.Find(sym.name));
             if not assigned(propnameitem) then
               internalerror(200512201);
@@ -1776,7 +1776,7 @@ implementation
                unit as the full RTTI }
              tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),compiler.deftypes.voidpointertype);
 
-           tcb.emit_ord_const(def.size,u32inttype);
+           tcb.emit_ord_const(def.size,compiler.deftypes.u32inttype);
 
            oplab:=nil;
            { store rtti management operators only for init table }
@@ -1949,7 +1949,7 @@ implementation
               else
                 internalerror(2017011801);
 
-            tcb.emit_ord_const(def.size, u32inttype);
+            tcb.emit_ord_const(def.size, compiler.deftypes.u32inttype);
             { pointer to management operators available only for initrtti }
             if (rt=initrtti) then
               begin
@@ -1969,7 +1969,7 @@ implementation
 
           procedure objectdef_rtti_interface_init(def:tobjectdef);
           begin
-            tcb.emit_ord_const(def.size, u32inttype);
+            tcb.emit_ord_const(def.size, compiler.deftypes.u32inttype);
           end;
 
           procedure objectdef_extended_rtti_class(def:tobjectdef);
@@ -2406,7 +2406,7 @@ implementation
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           { now emit the data: first the mode }
-          tcb.emit_tai(Tai_const.create_32bit(longint(mode)),u32inttype);
+          tcb.emit_tai(Tai_const.create_32bit(longint(mode)),compiler.deftypes.u32inttype);
           { align }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2434,7 +2434,7 @@ implementation
             end
           else
             begin
-              tcb.emit_ord_const(sym_count,u32inttype);
+              tcb.emit_ord_const(sym_count,compiler.deftypes.u32inttype);
               tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
                 targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
               for i:=0 to sym_count-1 do

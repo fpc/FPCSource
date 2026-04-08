@@ -120,7 +120,7 @@ implementation
 
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_stackplusmaxheap_in_para',sizeof(pint));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_stackplusmaxheap_in_para',AT_DATA,4,u32inttype));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_stackplusmaxheap_in_para',AT_DATA,4,compiler.deftypes.u32inttype));
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_16bit(min($1000,stacksize_para+maxheapsize_para)));
     end;
 

@@ -101,7 +101,7 @@ implementation
               inserttypeconv(left,s32inttype,compiler)
             else
               begin
-                inserttypeconv(left,u32inttype,compiler);
+                inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
                 if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                   (tf_pic_uses_got in compiler.target.info.flags) then
                   include(compiler.current_procinfo.flags,pi_needs_got);
@@ -157,7 +157,7 @@ implementation
             current_asmdata.getjumplabel(l2);
             reference_reset_symbol(href,l1,0,8,[]);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,u32inttype,left.location,hregister);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,hregister);
 
             { here we need always an 64 bit register }
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);

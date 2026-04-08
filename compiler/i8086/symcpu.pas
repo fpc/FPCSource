@@ -568,7 +568,7 @@ implementation
       begin
         case x86pointertyp of
           x86pt_huge:
-            result:=u32inttype;
+            result:=compiler.deftypes.u32inttype;
           x86pt_far,
           x86pt_near,
           x86pt_near_cs,

@@ -614,12 +614,12 @@ implementation
           in_wasm32_memory_size:
             begin
               CheckParameters(0);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_wasm32_memory_grow:
             begin
               CheckParameters(1);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_wasm32_unreachable:
             begin
@@ -667,7 +667,7 @@ implementation
           in_wasm32_i32_atomic_rmw_xchg:
             begin
               CheckParameters(2);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_wasm32_i64_atomic_rmw8_add_u,
           in_wasm32_i64_atomic_rmw16_add_u,
@@ -702,7 +702,7 @@ implementation
           in_wasm32_i32_atomic_rmw_cmpxchg:
             begin
               CheckParameters(3);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_wasm32_i64_atomic_rmw8_cmpxchg_u,
           in_wasm32_i64_atomic_rmw16_cmpxchg_u,
@@ -721,14 +721,14 @@ implementation
           in_wasm32_memory_atomic_notify:
             begin
               CheckParameters(2);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_i32_atomic_load8_u,
           in_i32_atomic_load16_u,
           in_i32_atomic_load:
             begin
               CheckParameters(1);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_i64_atomic_load8_u,
           in_i64_atomic_load16_u,
@@ -753,7 +753,7 @@ implementation
           in_wasm32_tls_align:
             begin
               CheckParameters(0);
-              resultdef:=u32inttype;
+              resultdef:=compiler.deftypes.u32inttype;
             end;
           in_wasm32_tls_base:
             begin
@@ -1054,7 +1054,7 @@ implementation
               with size OS_SINT/ossinttype can hold the length without
               overflowing (this code returns an ossinttype value) }
             if is_widestring(left.resultdef) then
-              lendef:=u32inttype
+              lendef:=compiler.deftypes.u32inttype
             else
               lendef:=ossinttype;
             { volatility of the ansistring/widestring refers to the volatility of the

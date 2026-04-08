@@ -533,7 +533,7 @@ in_x86_movmskpd
 : //out r0:r32;r1:xmm;
   begin
     CheckParameters(1);
-    resultdef:=u32inttype;
+    resultdef:=compiler.deftypes.u32inttype;
   end;
 in_x86_movsd_to_val
 : //out r0:f64;r1:xmm;
@@ -690,7 +690,7 @@ in_x86_pmovmskb
 : //var r0:r32;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=u32inttype;
+    resultdef:=compiler.deftypes.u32inttype;
   end;
 in_x86_pextrw_sse2
 : //out r0:r16;r1:xmm;imm:i32;
@@ -806,7 +806,7 @@ in_x86_extractps
 : //out r0:r32;r1:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=u32inttype;
+    resultdef:=compiler.deftypes.u32inttype;
   end;
 in_x86_extractps_from_mem
 ,in_x86_pextrd_to_mem
@@ -860,7 +860,7 @@ in_x86_pextrq
 : //out r0:r32;r1:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=u32inttype;
+    resultdef:=compiler.deftypes.u32inttype;
   end;
 {$endif}
 {$ifdef X86_64}

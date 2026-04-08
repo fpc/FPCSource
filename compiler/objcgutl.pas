@@ -360,15 +360,15 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
 
     if (abi=oa_fragile) then
       { not used, always zero }
-      tcb.emit_ord_const(0,u32inttype)
+      tcb.emit_ord_const(0,compiler.deftypes.u32inttype)
     else
       begin
         { size of each entry -- always 32 bit value }
         mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD',true).typedef;
-        tcb.emit_ord_const(mtype.size,u32inttype);
+        tcb.emit_ord_const(mtype.size,compiler.deftypes.u32inttype);
       end;
     { number of objc_method entries in the method_list array -- always 32 bit}
-    tcb.emit_ord_const(mcnt,u32inttype);
+    tcb.emit_ord_const(mcnt,compiler.deftypes.u32inttype);
     for i:=0 to mcnt-1 do
       begin
         { reference to the selector name }
@@ -562,9 +562,9 @@ begin
     begin
       { size of each entry -- always 32 bit value }
       mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD',true).typedef;
-      tcb.emit_ord_const(mtype.size,u32inttype);
+      tcb.emit_ord_const(mtype.size,compiler.deftypes.u32inttype);
     end;
-  tcb.emit_ord_const(items.count,u32inttype);
+  tcb.emit_ord_const(items.count,compiler.deftypes.u32inttype);
   for i:=0 to items.Count-1 do
     begin
       m:=tprocdef(items[i]);
@@ -749,7 +749,7 @@ function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsy
           C_alignment,1,
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         { size of this structure }
-        tcb.emit_ord_const(16,u32inttype);
+        tcb.emit_ord_const(16,compiler.deftypes.u32inttype);
         { optional instance methods }
         ConcatSymOrNil(tcb,optinstsym,compiler.deftypes.voidpointertype);
         { optional class methods }
@@ -876,9 +876,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objc
     ConcatSymOrNil(tcb,clsmthdlist,compiler.deftypes.voidpointertype);
     ConcatSymOrNil(tcb,protolistsym,compiler.deftypes.voidpointertype);
     { size of this structure }
-    tcb.emit_ord_const(28,u32inttype);
+    tcb.emit_ord_const(28,compiler.deftypes.u32inttype);
     { properties, not yet supported }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     catdef:=tcb.end_anonymous_record;
     catsym:=current_asmdata.DefineAsmSymbol(objccat.rtti_mangledname(objcclassrtti),AB_LOCAL,AT_DATA,catdef);
     list.concatList(
@@ -1000,23 +1000,23 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     tcb.queue_emit_asmsym(classStrSym,classStrDef);
 
     { version is always 0 currently }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     { CLS_META for meta-classes }
-    tcb.emit_ord_const(hiddenflag or CLS_META,u32inttype);
+    tcb.emit_ord_const(hiddenflag or CLS_META,compiler.deftypes.u32inttype);
     { size of the meta-class instance: sizeof(objc_class) + 8 bytes }
-    tcb.emit_ord_const(META_INST_SIZE,u32inttype);
+    tcb.emit_ord_const(META_INST_SIZE,compiler.deftypes.u32inttype);
     { meta-classes don't have ivars list (=0) }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     { class methods list (stored in "__cls_meth" section) }
     ConcatSymOrNil(tcb,mthdlist,compiler.deftypes.voidpointertype);
     { From Clang: cache is always nil }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     { protocols }
     ConcatSymOrNil(tcb,protolistsym,compiler.deftypes.voidpointertype);
     { From Clang: ivar_layout for meta-class is always NULL. }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     { From Clang: The class extension is always unused for meta-classes. }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     metaDef:=tcb.end_anonymous_record;
     metasym:=current_asmdata.DefineAsmSymbol(objclss.rtti_mangledname(objcmetartti),AB_LOCAL,AT_DATA,metadef);
     list.concatList(
@@ -1054,11 +1054,11 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     tcb.queue_init(compiler.deftypes.voidcodepointertype);
     tcb.queue_emit_asmsym(classStrSym,classStrDef);
     { version is always 0 currently }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     { CLS_CLASS for classes }
-    tcb.emit_ord_const(hiddenflag or CLS_CLASS,u32inttype);
+    tcb.emit_ord_const(hiddenflag or CLS_CLASS,compiler.deftypes.u32inttype);
     { size of instance: total size of instance variables }
-    tcb.emit_ord_const(tobjectsymtable(objclss.symtable).datasize,u32inttype);
+    tcb.emit_ord_const(tobjectsymtable(objclss.symtable).datasize,compiler.deftypes.u32inttype);
     { objc_ivar_list (stored in "__instance_vars" section) }
     ConcatSymOrNil(tcb,ivarslist,compiler.deftypes.voidpointertype);
     { instance methods list (stored in "__inst_meth" section) }
@@ -1308,9 +1308,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
 
     { size of each entry -- always 32 bit value }
     ivtype:=search_named_unit_globaltype('OBJC','OBJC_IVAR',true).typedef;
-    tcb.emit_ord_const(ivtype.size,u32inttype);
+    tcb.emit_ord_const(ivtype.size,compiler.deftypes.u32inttype);
     { number of entries -- always 32 bit value }
-    tcb.emit_ord_const(vcnt,u32inttype);
+    tcb.emit_ord_const(vcnt,compiler.deftypes.u32inttype);
 
     { we use compiler.deftypes.voidpointertype for all elements so that we can reuse the
       recorddef for all ivar tables with the same number of elements }
@@ -1326,9 +1326,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
         tcb.queue_init(compiler.deftypes.voidpointertype);
         tcb.queue_emit_asmsym(vars[i].typesym,vars[i].typedef);
         { alignment -- always 32 bit value }
-        tcb.emit_ord_const(vars[i].vf.vardef.alignment,u32inttype);
+        tcb.emit_ord_const(vars[i].vf.vardef.alignment,compiler.deftypes.u32inttype);
         { size -- always 32 bit value }
-        tcb.emit_ord_const(vars[i].vf.vardef.size,u32inttype);
+        tcb.emit_ord_const(vars[i].vf.vardef.size,compiler.deftypes.u32inttype);
       end;
     list.concatList(
       tcb.get_final_asmlist(
@@ -1408,9 +1408,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     { TODO: properties }
     tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
     { size of this type }
-    tcb.emit_ord_const(prottype.size,u32inttype);
+    tcb.emit_ord_const(prottype.size,compiler.deftypes.u32inttype);
     { flags }
-    tcb.emit_ord_const(0,u32inttype);
+    tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
     tcb.maybe_end_aggregate(prottype);
     { coalesced sections are only required for ld-classic, because it does not
       support "weak" bits on all symbols. They are deprecated in ld64 starting
@@ -1695,9 +1695,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
       C_alignment,1,
       targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
-    tcb.emit_ord_const(flags,u32inttype);
-    tcb.emit_ord_const(start,u32inttype);
-    tcb.emit_ord_const(size,u32inttype);
+    tcb.emit_ord_const(flags,compiler.deftypes.u32inttype);
+    tcb.emit_ord_const(start,compiler.deftypes.u32inttype);
+    tcb.emit_ord_const(size,compiler.deftypes.u32inttype);
     { strong ivar layout for garbage collection (deprecated) }
     tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
     tcb.queue_init(compiler.deftypes.voidpointertype);

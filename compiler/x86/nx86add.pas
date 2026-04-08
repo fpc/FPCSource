@@ -544,7 +544,7 @@ unit nx86add;
                  if opsize=OS_8 then
                    begin
                      opsize:=OS_32;
-                     opdef:=u32inttype;
+                     opdef:=compiler.deftypes.u32inttype;
                    end;
                  { bts requires both elements to be registers }
                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);

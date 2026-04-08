@@ -2350,7 +2350,7 @@ implementation
 {$endif}
         begin
           aintmax:=high(longint);
-          maxdef:=u32inttype;
+          maxdef:=compiler.deftypes.u32inttype;
         end;
 
       { generate the rangecheck code for the def where we are going to }

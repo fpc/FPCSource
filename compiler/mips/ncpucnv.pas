@@ -109,7 +109,7 @@ begin
         inserttypeconv(left,s32inttype,compiler)
       else
         begin
-          inserttypeconv(left,u32inttype,compiler);
+          inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
           if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
             include(compiler.current_procinfo.flags,pi_needs_got);
         end;

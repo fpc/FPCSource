@@ -150,7 +150,7 @@ implementation
           hlcg.a_label(list,exceptionstate.exceptionlabel);
           { use packrecords 1 because we don't want padding (LLVM 4.0+ requires
             exactly two fields in this struct) }
-          landingpaddef:=llvmgettemprecorddef([compiler.deftypes.voidpointertype,u32inttype],
+          landingpaddef:=llvmgettemprecorddef([compiler.deftypes.voidpointertype,compiler.deftypes.u32inttype],
             1,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           reg:=hlcg.getregisterfordef(list,landingpaddef);

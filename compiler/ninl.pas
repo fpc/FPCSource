@@ -746,7 +746,7 @@ implementation
             u32bit :
               begin
                 func_suffix := 'longword';
-                readfunctype:=u32inttype;
+                readfunctype:=compiler.deftypes.u32inttype;
               end;
             s16bit:
               begin
@@ -2527,9 +2527,9 @@ implementation
                         in_hi_long :
                           result:=compiler.cordconstnode(tordconstnode(left).value shr 16,compiler.deftypes.u16inttype,true);
                         in_lo_qword :
-                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffffffff,u32inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffffffff,compiler.deftypes.u32inttype,true);
                         in_hi_qword :
-                          result:=compiler.cordconstnode(tordconstnode(left).value shr 32,u32inttype,true);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 32,compiler.deftypes.u32inttype,true);
                         else
                           internalerror(2019050514);
                       end;
@@ -2559,7 +2559,7 @@ implementation
                           pasbool32 :
                             begin
                               { change to dword() }
-                              result:=compiler.ctypeconvnode_internal(left,u32inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.u32inttype);
                               left:=nil;
                             end;
                           pasbool64 :
@@ -3418,7 +3418,7 @@ implementation
                       resultdef:=compiler.deftypes.u16inttype;
                     in_lo_qword,
                     in_hi_qword :
-                      resultdef:=u32inttype;
+                      resultdef:=compiler.deftypes.u32inttype;
                     else
                       ;
                   end;
@@ -4158,7 +4158,7 @@ implementation
                    if torddef(left.resultdef).ordtype in [u64bit, s64bit] then
                      resultdef:=u64inttype
                    else
-                     resultdef:=u32inttype
+                     resultdef:=compiler.deftypes.u32inttype
                  end;
 
               in_popcnt_x:

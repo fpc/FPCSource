@@ -188,7 +188,7 @@ implementation
 
             { load right operators in a register }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,NR_ECX);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u32inttype,right.location,NR_ECX);
 
             { left operator is already in a register }
             { hence are both in a register }

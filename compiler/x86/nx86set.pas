@@ -725,14 +725,14 @@ implementation
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   location.resflags:=F_NE;
 {$else i8086}
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,left.location,setbase);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,left.location,setbase);
 
                   if (tcgsize2size[right.location.size] < opdef.size) or
                     (right.location.loc = LOC_CONSTANT) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
-                    ((right.resultdef.size<=u32inttype.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
+                    ((right.resultdef.size<=compiler.deftypes.u32inttype.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
                   hreg:=left.location.register;
 

@@ -178,7 +178,7 @@ implementation
             internalerror(200406021);
         end;
         { flip sign-bit (bit 31/63) of single/double }
-        hlcg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,u32inttype,
+        hlcg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,compiler.deftypes.u32inttype,
 {$ifdef cpu64bitalu}
           aint($80000000),
 {$else cpu64bitalu}
@@ -542,7 +542,7 @@ implementation
                   end
                 else
                   begin
-                    opdef:=u32inttype;
+                    opdef:=compiler.deftypes.u32inttype;
                     opsize:=OS_32;
                   end;
 {$ifdef cpu16bitalu}

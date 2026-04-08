@@ -304,7 +304,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
                { high 32bits }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
@@ -313,7 +313,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
              end
             else
              begin
@@ -461,7 +461,7 @@ unit cpupara;
                   else
                     begin
                       paracgsize:=OS_32;
-                      paradef:=u32inttype;
+                      paradef:=compiler.deftypes.u32inttype;
                     end;
                 end;
 
@@ -506,7 +506,7 @@ unit cpupara;
                       if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
                         begin
                           paraloc^.size:=OS_INT;
-                          paraloc^.def:=u32inttype;
+                          paraloc^.def:=compiler.deftypes.u32inttype;
                         end
                       else
                         begin
@@ -521,7 +521,7 @@ unit cpupara;
                         begin
                           paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
                           paraloc^.size := OS_INT;
-                          paraloc^.def := u32inttype;
+                          paraloc^.def := compiler.deftypes.u32inttype;
                         end;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);

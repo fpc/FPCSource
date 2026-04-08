@@ -1084,7 +1084,7 @@ implementation
 {$endif}
                 end;
               else
-                a_load_loc_reg(list,src_size,u32inttype,l,hregister);
+                a_load_loc_reg(list,src_size,compiler.deftypes.u32inttype,l,hregister);
             end;
             { reset hi part, take care of the signed bit of the current value }
             hregisterhi:=cg.getintregister(list,OS_32);

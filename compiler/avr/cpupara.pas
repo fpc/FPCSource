@@ -325,12 +325,12 @@ unit cpupara;
                      OS_F32:
                        begin
                          paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
+                         paraloc^.def:=compiler.deftypes.u32inttype;
                        end;
                      OS_F64:
                        begin
                          paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
+                         paraloc^.def:=compiler.deftypes.u32inttype;
                        end;
                      else
                        internalerror(2005082901);
@@ -431,12 +431,12 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   OS_32,
                   OS_F32:
@@ -444,7 +444,7 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_FUNCTION_RETURN_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   else
                     internalerror(2005082603);
@@ -515,12 +515,12 @@ unit cpupara;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                 paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
+                paraloc^.def:=compiler.deftypes.u32inttype;
                 paraloc:=result.add_location;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                 paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
+                paraloc^.def:=compiler.deftypes.u32inttype;
               end
             else
               begin

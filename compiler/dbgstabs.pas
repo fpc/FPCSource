@@ -637,7 +637,7 @@ implementation
             begin
               charst:=def_stab_number(compiler.deftypes.cansichartype);
               bytest:=def_stab_number(compiler.deftypes.u8inttype);
-              longst:=def_stab_number(u32inttype);
+              longst:=def_stab_number(compiler.deftypes.u32inttype);
               ss:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                           [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
            end;

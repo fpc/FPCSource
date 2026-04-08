@@ -153,9 +153,9 @@ implementation
 
             { the idea behind this code is based on the cardinal to double code in the PPC and x86 CG (KB) }
             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(double),sizeof(double),tt_normal,tempref);
-            hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u32inttype,$43300000,tempref);
+            hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,$43300000,tempref);
             inc(tempref.offset,sizeof(aint));
-            hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,u32inttype,left.location,tempref);
+            hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,tempref);
             dec(tempref.offset,sizeof(aint));
             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,S_FD,tempref,location.register));
 

@@ -417,7 +417,7 @@ implementation
           else
             case para.left.resultdef.size of
               1..4:
-                assign_type:=u32inttype;
+                assign_type:=compiler.deftypes.u32inttype;
               8:
                 assign_type:=u64inttype;
               else

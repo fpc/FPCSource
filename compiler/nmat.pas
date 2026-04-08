@@ -942,7 +942,7 @@ implementation
                  else
                    begin
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
-                     inserttypeconv(left,u32inttype,compiler);
+                     inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                      inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true),compiler);
 {$else}

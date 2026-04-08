@@ -345,7 +345,7 @@ implementation
 {$endif defined(cpu8bitalu)}
            begin
              uopsize := OS_32;
-             uopdef := u32inttype;
+             uopdef := compiler.deftypes.u32inttype;
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S32;

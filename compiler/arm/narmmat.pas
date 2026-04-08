@@ -610,7 +610,7 @@ implementation
             { force right operator into a register }
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                (right.location.size<>OS_32) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
             if nodetype = shln then
               shift_by_variable(lreg.reglo, lreg.reghi, resreg.reglo, resreg.reghi, right.location.register, SM_LSL)

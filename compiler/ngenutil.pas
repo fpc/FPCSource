@@ -1397,7 +1397,7 @@ implementation
            )
          );
          { size of threadvar }
-         tcb.emit_ord_const(tstaticvarsym(p).getsize,u32inttype);
+         tcb.emit_ord_const(tstaticvarsym(p).getsize,compiler.deftypes.u32inttype);
        end;
     end;
 
@@ -1814,7 +1814,7 @@ implementation
          begin
            pvs:=cparavarsym.create('HINSTANCE',1,vs_const,uinttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('DLLREASON',2,vs_const,u32inttype,[]);
+           pvs:=cparavarsym.create('DLLREASON',2,vs_const,compiler.deftypes.u32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLPARAM',3,vs_const,compiler.deftypes.voidpointertype,[]);
            tprocdef(pd).parast.insertsym(pvs);

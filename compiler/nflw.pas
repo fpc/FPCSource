@@ -420,7 +420,7 @@ implementation
          typecheckpass(tnode(state));
          addstatement(mainstatement,state);
          { the temporary items array }
-         itemsarraydef:=carraydef.create(1,16,u32inttype,compiler);
+         itemsarraydef:=carraydef.create(1,16,compiler.deftypes.u32inttype,compiler);
          itemsarraydef.elementdef:=objc_idtype;
          items:=compiler.ctempcreatenode(itemsarraydef,itemsarraydef.size,tt_persistent,false);
          addstatement(mainstatement,items);

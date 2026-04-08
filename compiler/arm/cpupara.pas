@@ -505,7 +505,7 @@ unit cpupara;
                           OS_F64:
                             begin
                               paraloc^.size:=OS_32;
-                              paraloc^.def:=u32inttype;
+                              paraloc^.def:=compiler.deftypes.u32inttype;
                             end;
                           else
                             internalerror(2005082901);
@@ -696,7 +696,7 @@ unit cpupara;
            is_object(paradef) then
           begin
             paralocsize:=OS_32;
-            paralocdef:=u32inttype;
+            paralocdef:=compiler.deftypes.u32inttype;
           end
         else
           begin
@@ -795,7 +795,7 @@ unit cpupara;
                       else
                         paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
                       if target.info.endian = endian_big then
@@ -803,7 +803,7 @@ unit cpupara;
                       else
                         paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   OS_32,
                   OS_F32:
@@ -811,7 +811,7 @@ unit cpupara;
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=NR_FUNCTION_RETURN_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   else
                     internalerror(2005082603);
@@ -836,7 +836,7 @@ unit cpupara;
                 else
                   paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                 paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
+                paraloc^.def:=compiler.deftypes.u32inttype;
                 paraloc:=result.add_location;
                 paraloc^.loc:=LOC_REGISTER;
                 if target.info.endian = endian_big then
@@ -844,7 +844,7 @@ unit cpupara;
                 else
                   paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                 paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
+                paraloc^.def:=compiler.deftypes.u32inttype;
               end
             else
               begin
@@ -861,7 +861,7 @@ unit cpupara;
                   3:
                     begin
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   else
                     begin

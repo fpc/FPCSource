@@ -163,7 +163,7 @@ uses
         else if node.nodetype=niln then
           begin
             if is_farpointer(def) or is_hugepointer(def) then
-              ftcb.emit_tai(Tai_const.Create_32bit(0),u32inttype)
+              ftcb.emit_tai(Tai_const.Create_32bit(0),compiler.deftypes.u32inttype)
             else
               ftcb.emit_tai(Tai_const.Create_16bit(0),compiler.deftypes.u16inttype);
           end

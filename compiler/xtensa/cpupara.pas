@@ -196,7 +196,7 @@ unit cpupara;
             { low 32bits }
             paraloc^.loc:=LOC_REGISTER;
             paraloc^.size:=OS_32;
-            paraloc^.def:=u32inttype;
+            paraloc^.def:=compiler.deftypes.u32inttype;
             if side=callerside then
               case target.info.abi of
                 abi_xtensa_call0:
@@ -214,7 +214,7 @@ unit cpupara;
             paraloc:=result.add_location;
             paraloc^.loc:=LOC_REGISTER;
             paraloc^.size:=OS_32;
-            paraloc^.def:=u32inttype;
+            paraloc^.def:=compiler.deftypes.u32inttype;
             if side=callerside then
               case target.info.abi of
                 abi_xtensa_call0:
@@ -415,7 +415,7 @@ unit cpupara;
                 if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
                   begin
                     paraloc^.size:=OS_INT;
-                    paraloc^.def:=u32inttype;
+                    paraloc^.def:=compiler.deftypes.u32inttype;
                   end
                 else
                   begin

@@ -589,7 +589,7 @@ implementation
               end;
           else
             begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,u32inttype,u32inttype,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,compiler.deftypes.u32inttype,compiler.deftypes.u32inttype,false);
 
               location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1, []);
               hloc.reference.base:=loc.register;
@@ -1183,7 +1183,7 @@ implementation
             end
           else
             begin
-              opdef:=u32inttype;
+              opdef:=compiler.deftypes.u32inttype;
               opsize:=OS_32;
             end;
           bitsperop:=(8*tcgsize2size[opsize]);
@@ -1222,7 +1222,7 @@ implementation
               orgsize:=opsize;
               if opsize in [OS_8,OS_S8] then
                 begin
-                  opdef:=u32inttype;
+                  opdef:=compiler.deftypes.u32inttype;
                   opsize:=OS_32;
                 end;
               { determine asm operator }

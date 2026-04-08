@@ -1885,7 +1885,7 @@ implementation
        maybe_begin_aggregate(rec_tguid);
        { variant record -> must specify which fields get initialised }
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA1'));
-       emit_tai(Tai_const.Create_32bit(longint(guid.D1)),u32inttype);
+       emit_tai(Tai_const.Create_32bit(longint(guid.D1)),compiler.deftypes.u32inttype);
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA2'));
        emit_tai(Tai_const.Create_16bit(guid.D2),compiler.deftypes.u16inttype);
        next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA3'));

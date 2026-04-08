@@ -458,7 +458,7 @@ interface
                   extensions since it will be full of 1s, so do this by
                   downsizing the register from 32-bit to the target size }
                 if (def_cgsize(resultdef) in [OS_8, OS_16]) then
-                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,torddef(u32inttype),resultdef,self.location.register,self.location.register);
+                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,torddef(compiler.deftypes.u32inttype),resultdef,self.location.register,self.location.register);
 
                 { Overflow can't happen with bic/orn/eon }
                 Exit;

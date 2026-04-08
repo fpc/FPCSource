@@ -450,7 +450,7 @@ interface
                         begin
                           // const32 - reg64
                           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
-                            left.resultdef,u32inttype,true);
+                            left.resultdef,compiler.deftypes.u32inttype,true);
                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBC,
                             location.register64.reglo,left.location.register64.reglo,
                             right.location.register64.reglo));
@@ -464,7 +464,7 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.register64.reglo,right.location.register64.reglo,0));
                       left.location.value64 := left.location.value64 shr 32;
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBFE,
                         location.register64.reghi,right.location.register64.reghi,
                         left.location.register));

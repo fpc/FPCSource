@@ -696,7 +696,7 @@ implemented
             begin
               { for 3-byte records aligned in the lower bits of register }
               paraloc^.size := OS_32;
-              paraloc^.def := u32inttype;
+              paraloc^.def := compiler.deftypes.u32inttype;
             end;
         end
       else

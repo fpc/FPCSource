@@ -219,7 +219,7 @@ implementation
                       else
                         paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                       { high }
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
@@ -228,7 +228,7 @@ implementation
                       else
                         paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   OS_32,
                   OS_F32:
@@ -239,7 +239,7 @@ implementation
                       else
                         paraloc^.register:=NR_FUNCTION_RETURN_REG;
                       paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
+                      paraloc^.def:=compiler.deftypes.u32inttype;
                     end;
                   else
                     internalerror(2024092901);
@@ -268,7 +268,7 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
                { high }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
@@ -277,7 +277,7 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
              end
             else
 {$endif cpu64bitalu}
@@ -373,7 +373,7 @@ implementation
                 else
                   begin
                     paracgsize:=OS_32;
-                    locdef:=u32inttype;
+                    locdef:=compiler.deftypes.u32inttype;
                   end;
                 paralen:=align(paralen,4);
               end
@@ -430,7 +430,7 @@ implementation
                      not(can_use_float)) then
                   begin
                     paraloc^.size:=OS_32;
-                    paraloc^.def:=u32inttype;
+                    paraloc^.def:=compiler.deftypes.u32inttype;
                   end
                 else
 {$endif cpu64bitalu}

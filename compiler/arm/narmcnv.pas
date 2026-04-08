@@ -95,7 +95,7 @@ implementation
                 if is_signed(left.resultdef) then
                   inserttypeconv(left,s32inttype,compiler)
                 else
-                  inserttypeconv(left,u32inttype,compiler);
+                  inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
                 firstpass(left);
               end;
             result := nil;
@@ -176,7 +176,7 @@ implementation
             begin
               { convert first to double to avoid precision loss }
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
               if is_signed(left.resultdef) then

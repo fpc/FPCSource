@@ -390,7 +390,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
 
                { high 32bits }
                paraloc:=result.add_location;
@@ -400,7 +400,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
+               paraloc^.def:=compiler.deftypes.u32inttype;
              end
             else
              begin

@@ -106,7 +106,7 @@ implementation
              with size OS_SINT/ossinttype can hold the length without
              overflowing (this code returns an ossinttype value) }
            if is_widestring(left.resultdef) then
-             lendef:=u32inttype
+             lendef:=compiler.deftypes.u32inttype
            else
              lendef:=ossinttype;
            { volatility of the ansistring/widestring refers to the volatility of the

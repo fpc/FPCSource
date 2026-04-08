@@ -525,9 +525,9 @@ const
                           compiler.cderefnode(
                             compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,compiler.deftypes.voidpointertype),
                               compiler.cordconstnode(sizeof(uint32),ptruinttype,false))
-                          ),u32inttype
+                          ),compiler.deftypes.u32inttype
                         ),
-                        compiler.cordconstnode(0,u32inttype,false))
+                        compiler.cordconstnode(0,compiler.deftypes.u32inttype,false))
                     );
                   include(taddnode(resn).addnodeflags,anf_short_bool);
                 end;
@@ -1749,7 +1749,7 @@ const
                            2:
                              inttype:=compiler.deftypes.u16inttype;
                            4:
-                             inttype:=u32inttype;
+                             inttype:=compiler.deftypes.u32inttype;
                            8:
                              inttype:=u64inttype;
                            else
@@ -2368,13 +2368,13 @@ const
            begin
              if (rt=stringconstn) then
                begin
-                 inserttypeconv(right,u32inttype,compiler);
+                 inserttypeconv(right,compiler.deftypes.u32inttype,compiler);
                  rt:=right.nodetype;
                  rd:=right.resultdef;
                end
              else
                begin
-                 inserttypeconv(left,u32inttype,compiler);
+                 inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
                  lt:=left.nodetype;
                  ld:=left.resultdef;
                end;
@@ -4096,8 +4096,8 @@ const
                   end
                 else
                   begin
-                    inserttypeconv_internal(left,u32inttype,compiler);
-                    inserttypeconv_internal(right,u32inttype,compiler);
+                    inserttypeconv_internal(left,compiler.deftypes.u32inttype,compiler);
+                    inserttypeconv_internal(right,compiler.deftypes.u32inttype,compiler);
                   end;
                 firstpass(left);
                 firstpass(right);

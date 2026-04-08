@@ -102,7 +102,7 @@ implementation
                 if is_signed(left.resultdef) then
                   inserttypeconv(left,s32inttype,compiler)
                 else
-                  inserttypeconv(left,u32inttype,compiler);
+                  inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
                 firstpass(left);
               end;
             result := nil;

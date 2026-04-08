@@ -1198,7 +1198,7 @@ implementation
           if signed then
             calcsize:=s32inttype
           else
-            calcsize:=u32inttype;
+            calcsize:=compiler.deftypes.u32inttype;
         4:
           if signed then
             calcsize:=s64inttype

@@ -1109,7 +1109,7 @@ implementation
 {$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=4 then
                        begin
-                         a_load_ref_reg(list,u32inttype,location^.def,tmpref,location^.register);
+                         a_load_ref_reg(list,compiler.deftypes.u32inttype,location^.def,tmpref,location^.register);
                          dec(sizeleft,4);
                          if compiler.target.info.endian=endian_big then
                            a_op_const_reg(list,OP_SHL,location^.def,sizeleft*8,location^.register);
@@ -4109,7 +4109,7 @@ implementation
 {$endif}
         begin
           aintmax:=high(longint);
-          maxdef:=u32inttype;
+          maxdef:=compiler.deftypes.u32inttype;
         end;
 
       { generate the rangecheck code for the def where we are going to }

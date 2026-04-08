@@ -159,7 +159,7 @@ implementation
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
           end
         else
-          thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,resultdef,false);
+          thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);

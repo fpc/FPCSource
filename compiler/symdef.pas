@@ -1188,7 +1188,8 @@ interface
          u16inttype,                { 16-Bit unsigned integer }
          s16inttype,                { 16-Bit signed integer }
          u24inttype,                { 24-Bit unsigned integer }
-         s24inttype: tdef;          { 24-Bit signed integer }
+         s24inttype,                { 24-Bit signed integer }
+         u32inttype: tdef;          { 32-Bit unsigned integer }
        end;
 
 
@@ -1215,7 +1216,6 @@ interface
 
 
     { default types }
-       u32inttype,                { 32-Bit unsigned integer }
        s32inttype,                { 32-Bit signed integer }
        u40inttype,                { 40-Bit unsigned integer }
        s40inttype,                { 40-Bit signed integer }
@@ -1572,7 +1572,7 @@ implementation
 {$ifdef cpu16bitaddr}
         index_field:=result.add_field_by_def('',compiler.deftypes.u16inttype);
 {$else cpu16bitaddr}
-        index_field:=result.add_field_by_def('',u32inttype);
+        index_field:=result.add_field_by_def('',compiler.deftypes.u32inttype);
 {$endif cpu16bitaddr}
         non_mt_data_field:=result.add_field_by_def('',def);
         { no need to add alignment padding, we won't create arrays of these }
@@ -9788,7 +9788,7 @@ implementation
        compiler.deftypes.s16inttype:=nil;                { 16-Bit signed integer }
        compiler.deftypes.u24inttype:=nil;                { 24-Bit unsigned integer }
        compiler.deftypes.s24inttype:=nil;                { 24-Bit signed integer }
-       u32inttype:=nil;                { 32-Bit unsigned integer }
+       compiler.deftypes.u32inttype:=nil;                { 32-Bit unsigned integer }
        s32inttype:=nil;                { 32-Bit signed integer }
        u40inttype:=nil;                { 40-Bit unsigned integer }
        s40inttype:=nil;                { 40-Bit signed integer }

@@ -479,7 +479,7 @@ implementation
         cgsize:=def_cgsize(size)
       else
         begin
-          resize_stack_int_val(list,u32inttype,s64inttype,false);
+          resize_stack_int_val(list,compiler.deftypes.u32inttype,s64inttype,false);
           cgsize:=OS_S64;
         end;
       case cgsize of
@@ -2498,7 +2498,7 @@ implementation
         begin
           { needs zero-extension to 64 bit, because the JVM only supports
             signed divisions }
-          resize_stack_int_val(list,u32inttype,s64inttype,false);
+          resize_stack_int_val(list,compiler.deftypes.u32inttype,s64inttype,false);
           op:=OP_IDIV;
           isdivu32:=true;
         end

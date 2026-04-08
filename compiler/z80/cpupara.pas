@@ -321,12 +321,12 @@ unit cpupara;
                      OS_F32:
                        begin
                          paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
+                         paraloc^.def:=compiler.deftypes.u32inttype;
                        end;
                      OS_F64:
                        begin
                          paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
+                         paraloc^.def:=compiler.deftypes.u32inttype;
                        end;
                      else
                        internalerror(2005082901);
