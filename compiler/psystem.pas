@@ -290,7 +290,7 @@ implementation
         compiler.deftypes.s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         compiler.deftypes.u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
         compiler.deftypes.s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
-        s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
+        compiler.deftypes.s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
         compiler.deftypes.u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true,compiler);
         u32inttype:=corddef.create(u32bit,0,high(longword),true,compiler);
         s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true,compiler);
@@ -584,7 +584,7 @@ implementation
         addtype('$shortint',compiler.deftypes.s8inttype);
         addtype('$word',compiler.deftypes.u16inttype);
         addtype('$smallint',compiler.deftypes.s16inttype);
-        addtype('$sint24',s24inttype);
+        addtype('$sint24',compiler.deftypes.s24inttype);
         addtype('$uint24',compiler.deftypes.u24inttype);
         addtype('$ulong',u32inttype);
         addtype('$longint',s32inttype);
@@ -742,7 +742,7 @@ implementation
         loadtype('word',compiler.deftypes.u16inttype);
         loadtype('smallint',compiler.deftypes.s16inttype);
         loadtype('uint24',compiler.deftypes.u24inttype);
-        loadtype('sint24',s24inttype);
+        loadtype('sint24',compiler.deftypes.s24inttype);
         loadtype('ulong',u32inttype);
         loadtype('longint',s32inttype);
         loadtype('uint40',u40inttype);

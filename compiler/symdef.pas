@@ -1187,7 +1187,8 @@ interface
          s8inttype,                 { 8-Bit signed integer }
          u16inttype,                { 16-Bit unsigned integer }
          s16inttype,                { 16-Bit signed integer }
-         u24inttype: tdef;          { 24-Bit unsigned integer }
+         u24inttype,                { 24-Bit unsigned integer }
+         s24inttype: tdef;          { 24-Bit signed integer }
        end;
 
 
@@ -1214,7 +1215,6 @@ interface
 
 
     { default types }
-       s24inttype,                { 24-Bit signed integer }
        u32inttype,                { 32-Bit unsigned integer }
        s32inttype,                { 32-Bit signed integer }
        u40inttype,                { 40-Bit unsigned integer }
@@ -9787,7 +9787,7 @@ implementation
        compiler.deftypes.u16inttype:=nil;                { 16-Bit unsigned integer }
        compiler.deftypes.s16inttype:=nil;                { 16-Bit signed integer }
        compiler.deftypes.u24inttype:=nil;                { 24-Bit unsigned integer }
-       s24inttype:=nil;                { 24-Bit signed integer }
+       compiler.deftypes.s24inttype:=nil;                { 24-Bit signed integer }
        u32inttype:=nil;                { 32-Bit unsigned integer }
        s32inttype:=nil;                { 32-Bit signed integer }
        u40inttype:=nil;                { 40-Bit unsigned integer }
