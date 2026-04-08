@@ -52,7 +52,7 @@ uses
         and registerhi with the following sizes:
 
         register   - cgsize = int_cgsize(compiler.deftypes.voidcodepointertype.size)
-        registerhi - cgsize = int_cgsize(compiler.deftypes.voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
+        registerhi - cgsize = int_cgsize(compiler.deftypes.voidpointertype.size) or int_cgsize(compiler.deftypes.parentfpvoidpointertype.size)
                               (check d.size to determine which one of the two)
         }
       function is_methodptr_like_type(d:tdef): boolean;
@@ -1526,8 +1526,8 @@ implementation
           { the second part could be either self or parentfp }
           if tosize.size=(compiler.deftypes.voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
             a_load_reg_ref(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,loc.registerhi,tmpref)
-          else if tosize.size=(compiler.deftypes.voidcodepointertype.size+parentfpvoidpointertype.size) then
-            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
+          else if tosize.size=(compiler.deftypes.voidcodepointertype.size+compiler.deftypes.parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,compiler.deftypes.parentfpvoidpointertype,compiler.deftypes.parentfpvoidpointertype,loc.registerhi,tmpref)
           else
             internalerror(2021100301);
         end

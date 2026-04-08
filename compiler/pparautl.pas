@@ -189,7 +189,7 @@ implementation
                (pd.owner.defowner.typ<>procdef) then
               begin
                 vs:=cparavarsym.create('$'+name_parentfp,paranr,vs_value
-                      ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
+                      ,compiler.deftypes.parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
               end
             else
               begin

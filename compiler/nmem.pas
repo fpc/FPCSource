@@ -399,7 +399,7 @@ implementation
     function tloadparentfpnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=parentfpvoidpointertype;
+        resultdef:=compiler.deftypes.parentfpvoidpointertype;
       end;
 
 

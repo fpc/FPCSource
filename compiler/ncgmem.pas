@@ -163,12 +163,12 @@ implementation
       begin
         if (compiler.current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
-            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
+            location_reset(location,LOC_REGISTER,def_cgsize(compiler.deftypes.parentfpvoidpointertype));
             location.register:=compiler.current_procinfo.framepointer;
           end
         else
           begin
-            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
+            location_reset(location,LOC_REGISTER,def_cgsize(compiler.deftypes.parentfpvoidpointertype));
             currpi:=compiler.current_procinfo;
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parentfpsym);
@@ -176,8 +176,8 @@ implementation
               location.register:=hsym.localloc.register
             else
               begin
-                location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
+                location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.parentfpvoidpointertype);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.parentfpvoidpointertype,compiler.deftypes.parentfpvoidpointertype,hsym.localloc,location.register);
                 { walk parents }
                 while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
                   begin
@@ -188,8 +188,8 @@ implementation
                     if hsym.localloc.loc<>LOC_REFERENCE then
                       internalerror(200309283);
 
-                    hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
-                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
+                    hlcg.reference_reset_base(href,compiler.deftypes.parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,compiler.deftypes.parentfpvoidpointertype.alignment,[]);
+                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.parentfpvoidpointertype,compiler.deftypes.parentfpvoidpointertype,href,location.register);
                   end;
               end;
           end;

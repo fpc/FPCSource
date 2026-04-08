@@ -424,9 +424,9 @@ implementation
         compiler.deftypes.charpointertype:=cpointerdef.create(cansichartype,compiler);
         compiler.deftypes.widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
 {$ifdef i8086}
-        parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
+        compiler.deftypes.parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
 {$else i8086}
-        parentfpvoidpointertype:=cpointerdef.create(voidtype,compiler);
+        compiler.deftypes.parentfpvoidpointertype:=cpointerdef.create(voidtype,compiler);
 {$endif i8086}
 {$ifdef x86}
         voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near,compiler);
@@ -624,7 +624,7 @@ implementation
 {$endif llvm}
         addtype('$char_pointer',compiler.deftypes.charpointertype);
         addtype('$widechar_pointer',compiler.deftypes.widecharpointertype);
-        addtype('$parentfp_void_pointer',parentfpvoidpointertype);
+        addtype('$parentfp_void_pointer',compiler.deftypes.parentfpvoidpointertype);
 {$ifdef x86}
         addtype('$void_nearpointer',voidnearpointertype);
         addtype('$void_nearcspointer',voidnearcspointertype);
@@ -706,7 +706,7 @@ implementation
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
-        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,compiler.deftypes.parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$nestedprocpointer',nestedprocpointertype);
         compiler.symtablestack.pop(systemunit);
@@ -788,7 +788,7 @@ implementation
         loadtype('qwordbool',bool64type);
         loadtype('char_pointer',compiler.deftypes.charpointertype);
         loadtype('widechar_pointer',compiler.deftypes.widecharpointertype);
-        loadtype('parentfp_void_pointer',parentfpvoidpointertype);
+        loadtype('parentfp_void_pointer',compiler.deftypes.parentfpvoidpointertype);
 {$ifdef x86}
         loadtype('void_nearpointer',voidnearpointertype);
         loadtype('void_nearcspointer',voidnearcspointertype);

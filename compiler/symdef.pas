@@ -1140,7 +1140,8 @@ interface
          charpointertype,           { pointer for Char-pointeddef }
          widecharpointertype,       { pointer for WideChar-pointeddef }
          voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
-         voidstackpointertype: tdef;{ the pointer type used for accessing parameters and local vars on the stack }
+         voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
+         parentfpvoidpointertype: tdef;{ void pointer with the size of the hidden parentfp parameter, passed to nested functions }
        end;
 
 
@@ -1167,7 +1168,6 @@ interface
 
 
     { default types }
-       parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        voidnearpointertype,
        voidnearcspointertype,
@@ -7840,7 +7840,7 @@ implementation
          else if not is_addressonly then
            begin
              if is_nested_pd(self) then
-               size:=compiler.deftypes.voidcodepointertype.size+parentfpvoidpointertype.size
+               size:=compiler.deftypes.voidcodepointertype.size+compiler.deftypes.parentfpvoidpointertype.size
              else
                size:=compiler.deftypes.voidcodepointertype.size+compiler.deftypes.voidpointertype.size;
            end
@@ -9740,7 +9740,7 @@ implementation
        compiler.deftypes.widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
        compiler.deftypes.voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
        compiler.deftypes.voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
-       parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
+       compiler.deftypes.parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        voidnearpointertype:=nil;
        voidnearcspointertype:=nil;
