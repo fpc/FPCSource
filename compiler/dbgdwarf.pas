@@ -1229,7 +1229,7 @@ implementation
               case fullbytesize of
                 1:
                   if (sign=DW_ATE_signed) then
-                    basedef:=s8inttype
+                    basedef:=compiler.deftypes.s8inttype
                   else
                     basedef:=compiler.deftypes.u8inttype;
                 2:
@@ -1525,7 +1525,7 @@ implementation
           case def.size of
             1:
                if def.min<0 then
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(s8inttype))
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.s8inttype))
                else
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u8inttype));
             2:

@@ -1183,7 +1183,8 @@ interface
 {$ifdef llvm}
          llvmbool1type,             { LLVM i1 type }
 {$endif llvm}
-         u8inttype: tdef;           { 8-Bit unsigned integer }
+         u8inttype,                 { 8-Bit unsigned integer }
+         s8inttype: tdef;           { 8-Bit signed integer }
        end;
 
 
@@ -1210,7 +1211,6 @@ interface
 
 
     { default types }
-       s8inttype,                 { 8-Bit signed integer }
        u16inttype,                { 16-Bit unsigned integer }
        s16inttype,                { 16-Bit signed integer }
        u24inttype,                { 24-Bit unsigned integer }
@@ -9783,7 +9783,7 @@ implementation
        compiler.deftypes.llvmbool1type:=nil;             { LLVM i1 type }
 {$endif llvm}
        compiler.deftypes.u8inttype:=nil;                 { 8-Bit unsigned integer }
-       s8inttype:=nil;                 { 8-Bit signed integer }
+       compiler.deftypes.s8inttype:=nil;                 { 8-Bit signed integer }
        u16inttype:=nil;                { 16-Bit unsigned integer }
        s16inttype:=nil;                { 16-Bit signed integer }
        u24inttype:=nil;                { 24-Bit unsigned integer }

@@ -889,7 +889,7 @@ implementation
                       trashn := nil;
                   end;
                 1: trash_small(stat,
-                  compiler.ctypeconvnode_internal(trashn,s8inttype),
+                  compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s8inttype),
                     genintconstnode(shortint(trashintval),compiler));
                 2: trash_small(stat,
                   compiler.ctypeconvnode_internal(trashn,s16inttype),

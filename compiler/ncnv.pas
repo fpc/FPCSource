@@ -3103,7 +3103,7 @@ implementation
                          hdef:=nil;
                          case longint(resultdef.size) of
                            1 :
-                             hdef:=s8inttype;
+                             hdef:=compiler.deftypes.s8inttype;
                            2 :
                              hdef:=s16inttype;
                            4 :
@@ -3844,7 +3844,7 @@ implementation
                   is_integer(left.resultdef) and
                   (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                   checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s8inttype,compiler.deftypes.u8inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,compiler.deftypes.s8inttype,compiler.deftypes.u8inttype);
 {$endif defined(cpu8bitalu)}
                   { the above simplification may have left a redundant equal
                     typeconv (e.g. int32 to int32). If that's the case, we remove it }

@@ -890,7 +890,7 @@ implementation
                       1:
                         begin
                           name:=name+'_shortint';
-                          readfunctype:=s8inttype;
+                          readfunctype:=compiler.deftypes.s8inttype;
                         end;
                       2:
                         begin
@@ -2569,7 +2569,7 @@ implementation
                           bool8bit:
                             begin
                               { change to shortint() }
-                              result:=compiler.ctypeconvnode_internal(left,s8inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s8inttype);
                               left:=nil;
                             end;
                           bool16bit :

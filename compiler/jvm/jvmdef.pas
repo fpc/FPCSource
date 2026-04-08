@@ -579,7 +579,7 @@ implementation
                           bool8bit:
                             begin
                               objdef:=tobjectdef(search_system_type('JLBYTE').typedef);
-                              paradef:=s8inttype;
+                              paradef:=compiler.deftypes.s8inttype;
                             end;
                           s16bit,
                           u16bit,
@@ -773,7 +773,7 @@ implementation
         case torddef(def).ordtype of
           u8bit,uchar:
             if torddef(def).high>127 then
-              result:=s8inttype;
+              result:=compiler.deftypes.s8inttype;
           u16bit:
             begin
               if torddef(def).high>32767 then

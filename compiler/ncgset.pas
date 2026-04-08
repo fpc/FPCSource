@@ -312,7 +312,7 @@ implementation
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S8;
-                 opdef := s8inttype;
+                 opdef := compiler.deftypes.s8inttype;
                end
              else
                begin

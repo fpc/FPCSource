@@ -1224,7 +1224,7 @@ implementation
           cv:=parser.pexpr.get_intconst;
           case actype of
             aitconst_8bit:
-              def:=s8inttype;
+              def:=compiler.deftypes.s8inttype;
             aitconst_16bit:
               def:=s16inttype;
             else

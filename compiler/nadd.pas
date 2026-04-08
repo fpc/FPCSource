@@ -3616,7 +3616,7 @@ const
                     { compare the length with 0 }
                     result := compiler.caddnode(nodetype,
                       compiler.cinlinenode(in_length_x,false,left),
-                      compiler.cordconstnode(0,s8inttype,false))
+                      compiler.cordconstnode(0,compiler.deftypes.s8inttype,false))
                   else { nodetype in [equaln,unequaln] }
                     begin
                       if is_widestring(left.resultdef) and (tf_winlikewidestring in compiler.target.info.flags) then
@@ -3624,7 +3624,7 @@ const
                           { windows like widestrings requires that we also check the length }
                           result:=compiler.cinlinenode(in_length_x,false,left);
                           { and compare its result with 0 }
-                          result:=compiler.caddnode(equaln,result,compiler.cordconstnode(0,s8inttype,false));
+                          result:=compiler.caddnode(equaln,result,compiler.cordconstnode(0,compiler.deftypes.s8inttype,false));
                           if nodetype=unequaln then
                             result:=compiler.cnotnode(result);
                         end
@@ -3654,7 +3654,7 @@ const
                 compiler.ccallparanode(right,compiler.ccallparanode(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := compiler.caddnode(nodetype,result,
-                compiler.cordconstnode(0,s8inttype,false));
+                compiler.cordconstnode(0,compiler.deftypes.s8inttype,false));
               left := nil;
               right := nil;
             end;

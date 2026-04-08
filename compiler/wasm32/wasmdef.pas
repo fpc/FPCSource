@@ -51,7 +51,7 @@ implementation
         case torddef(def).ordtype of
           u8bit,uchar:
             if torddef(def).high>127 then
-              result:=s8inttype;
+              result:=compiler.deftypes.s8inttype;
           u16bit:
             begin
               if torddef(def).high>32767 then

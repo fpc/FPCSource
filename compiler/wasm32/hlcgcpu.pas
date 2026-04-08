@@ -453,7 +453,7 @@ implementation
   procedure thlcgwasm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
       tosize:=get_para_push_size(tosize);
-      if tosize=s8inttype then
+      if tosize=compiler.deftypes.s8inttype then
         a:=shortint(a)
       else if tosize=s16inttype then
         a:=smallint(a);
@@ -2760,7 +2760,7 @@ implementation
       if formemstore and
          (tosize.typ=orddef) then
         if (torddef(tosize).ordtype in [u8bit,uchar]) then
-          tosize:=s8inttype
+          tosize:=compiler.deftypes.s8inttype
         else if torddef(tosize).ordtype=u16bit then
           tosize:=s16inttype;
 
@@ -2879,7 +2879,7 @@ implementation
                 convsize:=nil;
                 if callside then
                   if torddef(retdef).ordtype in [u8bit,uchar] then
-                    convsize:=s8inttype
+                    convsize:=compiler.deftypes.s8inttype
                   else
                     convsize:=s16inttype
                 else if torddef(retdef).ordtype in [u8bit,uchar] then

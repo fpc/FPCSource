@@ -539,7 +539,7 @@ implementation
       begin
         { prefer signed over unsigned }
         if (l>=int64(-128)) and (h<=127) then
-         def:=s8inttype
+         def:=compiler.deftypes.s8inttype
         else if (l>=0) and (h<=255) then
          def:=compiler.deftypes.u8inttype
         else if (l>=int64(-32768)) and (h<=32767) then
@@ -1828,7 +1828,7 @@ implementation
           OS_8:
             result:=torddef(compiler.deftypes.u8inttype);
           OS_S8:
-            result:=torddef(s8inttype);
+            result:=torddef(compiler.deftypes.s8inttype);
           OS_16:
             result:=torddef(u16inttype);
           OS_S16:
@@ -1963,7 +1963,7 @@ implementation
         lhigh:=max(ld.high,rd.high);
         case range_to_basetype(llow,lhigh) of
           s8bit:
-            result:=torddef(s8inttype);
+            result:=torddef(compiler.deftypes.s8inttype);
           u8bit:
             result:=torddef(compiler.deftypes.u8inttype);
           s16bit:

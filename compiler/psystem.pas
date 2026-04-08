@@ -177,9 +177,9 @@ implementation
 {$endif cpu16bitalu}
 {$ifdef cpu8bitalu}
         uinttype:=compiler.deftypes.u8inttype;
-        sinttype:=s8inttype;
+        sinttype:=compiler.deftypes.s8inttype;
         aluuinttype:=compiler.deftypes.u8inttype;
-        alusinttype:=s8inttype;
+        alusinttype:=compiler.deftypes.s8inttype;
 {$endif cpu8bitalu}
 
         osuinttype:=uinttype;
@@ -287,7 +287,7 @@ implementation
         compiler.deftypes.voidtype:=corddef.create(uvoid,0,0,true,compiler);
         compiler.deftypes.voidpointertype:=cpointerdef.create(compiler.deftypes.voidtype,compiler);
         compiler.deftypes.u8inttype:=corddef.create(u8bit,0,255,true,compiler);
-        s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
+        compiler.deftypes.s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
         s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
         s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
@@ -558,7 +558,7 @@ implementation
         addtype('LLVMBool1',compiler.deftypes.llvmbool1type);
 {$endif llvm}
         addtype('Byte',compiler.deftypes.u8inttype);
-        addtype('ShortInt',s8inttype);
+        addtype('ShortInt',compiler.deftypes.s8inttype);
         addtype('Word',u16inttype);
         addtype('SmallInt',s16inttype);
         addtype('LongWord',u32inttype);
@@ -581,7 +581,7 @@ implementation
         addtype('$void',compiler.deftypes.voidtype);
         addtype('$void_pointer',compiler.deftypes.voidpointertype);
         addtype('$byte',compiler.deftypes.u8inttype);
-        addtype('$shortint',s8inttype);
+        addtype('$shortint',compiler.deftypes.s8inttype);
         addtype('$word',u16inttype);
         addtype('$smallint',s16inttype);
         addtype('$sint24',s24inttype);
@@ -738,7 +738,7 @@ implementation
         oldcurrentmodule:=compiler.current_module;
         compiler.set_current_module(nil);
         loadtype('byte',compiler.deftypes.u8inttype);
-        loadtype('shortint',s8inttype);
+        loadtype('shortint',compiler.deftypes.s8inttype);
         loadtype('word',u16inttype);
         loadtype('smallint',s16inttype);
         loadtype('uint24',u24inttype);
