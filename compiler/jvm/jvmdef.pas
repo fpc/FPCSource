@@ -884,6 +884,8 @@ implementation
 
     function jvmmangledbasename(sym: tsym; const usesymname: TSymStr; withsignature: boolean): TSymStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         container: tsymtable;
         vsym: tabstractvarsym;
         csym: tconstsym;
