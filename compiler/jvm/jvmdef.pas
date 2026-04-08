@@ -542,6 +542,8 @@ implementation
     { mergeints = true means that all integer types are mapped to jllong,
       otherwise they are mapped to the closest corresponding type }
     procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef; mergeints: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.typ of
           orddef:
