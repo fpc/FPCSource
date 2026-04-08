@@ -1532,7 +1532,7 @@ implementation
                  bool32bit:
                    result:=compiler.deftypes.bool32type;
                  bool64bit:
-                   result:=bool64type;
+                   result:=compiler.deftypes.bool64type;
                  uchar:
                    result:=compiler.deftypes.cansichartype;
                  uwidechar:

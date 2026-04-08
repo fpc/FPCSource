@@ -316,7 +316,7 @@ implementation
         compiler.deftypes.bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
         compiler.deftypes.bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
         compiler.deftypes.bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
-        bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
+        compiler.deftypes.bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
 {$ifdef llvm}
         llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
 {$endif llvm}
@@ -553,7 +553,7 @@ implementation
         addtype('ByteBool',compiler.deftypes.bool8type);
         addtype('WordBool',compiler.deftypes.bool16type);
         addtype('LongBool',compiler.deftypes.bool32type);
-        addtype('QWordBool',bool64type);
+        addtype('QWordBool',compiler.deftypes.bool64type);
 {$ifdef llvm}
         addtype('LLVMBool1',llvmbool1type);
 {$endif llvm}
@@ -614,7 +614,7 @@ implementation
         addtype('$bytebool',compiler.deftypes.bool8type);
         addtype('$wordbool',compiler.deftypes.bool16type);
         addtype('$longbool',compiler.deftypes.bool32type);
-        addtype('$qwordbool',bool64type);
+        addtype('$qwordbool',compiler.deftypes.bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',llvmbool1type);
         llvm_metadatatype:=cformaldef.create(false,compiler);
@@ -785,7 +785,7 @@ implementation
         loadtype('bytebool',compiler.deftypes.bool8type);
         loadtype('wordbool',compiler.deftypes.bool16type);
         loadtype('longbool',compiler.deftypes.bool32type);
-        loadtype('qwordbool',bool64type);
+        loadtype('qwordbool',compiler.deftypes.bool64type);
         loadtype('char_pointer',compiler.deftypes.charpointertype);
         loadtype('widechar_pointer',compiler.deftypes.widecharpointertype);
         loadtype('parentfp_void_pointer',compiler.deftypes.parentfpvoidpointertype);

@@ -200,7 +200,7 @@ implementation
             pd.returndef:=tobjectdef(pd.struct).extendeddef
           else
 {$ifdef CPU64bitaddr}
-            pd.returndef:=bool64type;
+            pd.returndef:=compiler.deftypes.bool64type;
 {$else CPU64bitaddr}
             pd.returndef:=compiler.deftypes.bool32type;
 {$endif CPU64bitaddr}
