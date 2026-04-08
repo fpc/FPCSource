@@ -1169,7 +1169,7 @@ implementation
                 6:
                   retdeflist[i]:=compiler.deftypes.u48inttype;
                 7:
-                  retdeflist[i]:=u56inttype;
+                  retdeflist[i]:=compiler.deftypes.u56inttype;
                 else
                   retdeflist[i]:=retloc^.def;
               end

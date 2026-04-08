@@ -299,7 +299,7 @@ implementation
         compiler.deftypes.s48inttype:=corddef.create(customint,-(int64(1) shl 47),int64(1) shl 47 - 1,true,compiler);
         compiler.deftypes.u48inttype:=corddef.create(customint,0,int64(1) shl 48 - 1,true,compiler);
         s56inttype:=corddef.create(customint,-(int64(1) shl 55),int64(1) shl 55 - 1,true,compiler);
-        u56inttype:=corddef.create(customint,0,int64(1) shl 56 - 1,true,compiler);
+        compiler.deftypes.u56inttype:=corddef.create(customint,0,int64(1) shl 56 - 1,true,compiler);
         u64inttype:=corddef.create(u64bit,low(qword),high(qword),true,compiler);
         s64inttype:=corddef.create(s64bit,low(int64),high(int64),true,compiler);
         { upper/lower bound not yet properly set for 128 bit types, as we don't
@@ -593,7 +593,7 @@ implementation
         addtype('$sint48',compiler.deftypes.s48inttype);
         addtype('$uint48',compiler.deftypes.u48inttype);
         addtype('$sint56',s56inttype);
-        addtype('$uint56',u56inttype);
+        addtype('$uint56',compiler.deftypes.u56inttype);
         addtype('$qword',u64inttype);
         addtype('$int64',s64inttype);
         addtype('$uint128',u128inttype);
@@ -749,7 +749,7 @@ implementation
         loadtype('sint40',compiler.deftypes.s40inttype);
         loadtype('uint48',compiler.deftypes.u48inttype);
         loadtype('sint48',compiler.deftypes.s48inttype);
-        loadtype('uint56',u56inttype);
+        loadtype('uint56',compiler.deftypes.u56inttype);
         loadtype('sint56',s56inttype);
         loadtype('qword',u64inttype);
         loadtype('int64',s64inttype);
