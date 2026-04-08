@@ -398,7 +398,7 @@ implementation
                           R_SUBD:
                             begin
                               size:=4;
-                              def:=s32inttype;
+                              def:=_compiler.deftypes.s32inttype;
                             end;
                           R_SUBQ:
                             begin

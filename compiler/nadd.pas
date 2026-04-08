@@ -4091,8 +4091,8 @@ const
                   end;
                 if (is_signed(left.resultdef)) then
                   begin
-                    inserttypeconv_internal(left,s32inttype,compiler);
-                    inserttypeconv_internal(right,s32inttype,compiler);
+                    inserttypeconv_internal(left,compiler.deftypes.s32inttype,compiler);
+                    inserttypeconv_internal(right,compiler.deftypes.s32inttype,compiler);
                   end
                 else
                   begin

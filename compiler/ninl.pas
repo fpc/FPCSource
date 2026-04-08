@@ -382,7 +382,7 @@ implementation
               begin
                 rt:=ord(tfloatdef(source.left.resultdef).floattype);
                 newparas.right := compiler.ccallparanode(compiler.cordconstnode(
-                  rt,s32inttype,true),newparas.right);
+                  rt,compiler.deftypes.s32inttype,true),newparas.right);
                 tmppara:=tcallparanode(newparas.right);
               end
             else
@@ -391,14 +391,14 @@ implementation
             if not assigned(fracpara) then
               begin
                 tmppara.right := compiler.ccallparanode(
-                  compiler.cordconstnode(int64(-1),s32inttype,false),
+                  compiler.cordconstnode(int64(-1),compiler.deftypes.s32inttype,false),
                    tmppara.right);
                 fracpara := tcallparanode(tmppara.right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               fracpara.right := compiler.ccallparanode(
-                compiler.cordconstnode(int64(-32767),s32inttype,false),
+                compiler.cordconstnode(int64(-32767),compiler.deftypes.s32inttype,false),
                    fracpara.right);
           end
         else if is_enum then
@@ -416,21 +416,21 @@ implementation
               ),
               newparas.right);
             {Insert a type conversion from the enumeration to longint.}
-            source.left:=compiler.ctypeconvnode_internal(source.left,s32inttype);
+            source.left:=compiler.ctypeconvnode_internal(source.left,compiler.deftypes.s32inttype);
             typecheckpass(source.left);
 
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               Tcallparanode(Tcallparanode(newparas.right).right).right:=
                 compiler.ccallparanode(
-                  compiler.cordconstnode(int64(-1),s32inttype,false),
+                  compiler.cordconstnode(int64(-1),compiler.deftypes.s32inttype,false),
                   Tcallparanode(Tcallparanode(newparas.right).right).right
                 );
           end
         else
           { for a normal parameter, insert a only length parameter if one is missing }
           if not assigned(lenpara) then
-            newparas.right := compiler.ccallparanode(compiler.cordconstnode(int64(-1),s32inttype,false),
+            newparas.right := compiler.ccallparanode(compiler.cordconstnode(int64(-1),compiler.deftypes.s32inttype,false),
               newparas.right);
 
         { remove the parameters from the original node so they won't get disposed, }
@@ -661,7 +661,7 @@ implementation
         if inlinenumber in [in_reset_typedfile_name,in_rewrite_typedfile_name] then
           begin
             left := compiler.ccallparanode(compiler.cordconstnode(
-              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true),left);
+              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,compiler.deftypes.s32inttype,true),left);
           end
         else
           begin
@@ -669,7 +669,7 @@ implementation
             {   parameter is gets lifted out of its original tcallparanode (see round }
             {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
             left := compiler.ccallparanode(compiler.cordconstnode(
-              tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
+              tfiledef(left.resultdef).typedfiledef.size,compiler.deftypes.s32inttype,true),
               compiler.ccallparanode(left,nil));
           end;
         { create the correct call }
@@ -741,7 +741,7 @@ implementation
             s32bit:
               begin
                 func_suffix := 'longint';
-                readfunctype:=s32inttype;
+                readfunctype:=compiler.deftypes.s32inttype;
               end;
             u32bit :
               begin
@@ -902,13 +902,13 @@ implementation
                       4:
                         begin
                           name:=name+'_longint';
-                          readfunctype:=s32inttype;
+                          readfunctype:=compiler.deftypes.s32inttype;
                         end;
                       else
                         internalerror(2022082601);
                     end
                   else
-                    readfunctype:=s32inttype;
+                    readfunctype:=compiler.deftypes.s32inttype;
                 end;
               orddef :
                 begin
@@ -1051,10 +1051,10 @@ implementation
                         begin
                           if m_isolike_io in compiler.globals.current_settings.modeswitches then
                             lenpara := compiler.ccallparanode(
-                              compiler.cordconstnode(-1,s32inttype,false),nil)
+                              compiler.cordconstnode(-1,compiler.deftypes.s32inttype,false),nil)
                           else
                             lenpara := compiler.ccallparanode(
-                              compiler.cordconstnode(0,s32inttype,false),nil);
+                              compiler.cordconstnode(0,compiler.deftypes.s32inttype,false),nil);
                         end
                       else
                         { make sure we don't pass the successive }
@@ -1067,11 +1067,11 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         lenpara := compiler.ccallparanode(
-                          compiler.cordconstnode(int64(-32767),s32inttype,false),nil);
+                          compiler.cordconstnode(int64(-32767),compiler.deftypes.s32inttype,false),nil);
                       { also create a default fracpara if necessary }
                       if not assigned(fracpara) then
                         fracpara := compiler.ccallparanode(
-                          compiler.cordconstnode(int64(-1),s32inttype,false),nil);
+                          compiler.cordconstnode(int64(-1),compiler.deftypes.s32inttype,false),nil);
                       { add it to the lenpara }
                       lenpara.right := fracpara;
                       if not is_currency(para.left.resultdef) then
@@ -1080,7 +1080,7 @@ implementation
                           { to any parameters coming after it)                    }
                           fracpara.right := compiler.ccallparanode(
                               compiler.cordconstnode(ord(tfloatdef(para.left.resultdef).floattype),
-                              s32inttype,true),nil);
+                              compiler.deftypes.s32inttype,true),nil);
                         end
                       else
                         fracpara.right:=nil;
@@ -1101,7 +1101,7 @@ implementation
                         ),
                         indexpara);
                       {Insert a type conversion to to convert the enum to longint.}
-                      para.left:=compiler.ctypeconvnode_internal(para.left,s32inttype);
+                      para.left:=compiler.ctypeconvnode_internal(para.left,compiler.deftypes.s32inttype);
                       typecheckpass(para.left);
                     end;
                 end
@@ -1270,7 +1270,7 @@ implementation
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
         filepara.right := compiler.ccallparanode(compiler.cordconstnode(
-          tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true),nil);
+          tfiledef(filepara.resultdef).typedfiledef.size,compiler.deftypes.s32inttype,true),nil);
 
       { check for "no parameters" (you need at least one extra para for typed files) }
       if not assigned(para) then
@@ -1776,7 +1776,7 @@ implementation
                     { we also need a destsize para in the case of sint or uint }
                     if (suffix = 'sint_') or (suffix = 'uint_') then
                       sizepara := compiler.ccallparanode(compiler.cordconstnode
-                        (destpara.resultdef.size,s32inttype,true),nil);
+                        (destpara.resultdef.size,compiler.deftypes.s32inttype,true),nil);
                   end;
                 scurrency: suffix := 'currency_';
                 else
@@ -2583,7 +2583,7 @@ implementation
                           bool32bit :
                             begin
                               { change to longint() }
-                              result:=compiler.ctypeconvnode_internal(left,s32inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s32inttype);
                               left:=nil;
                             end;
                           bool64bit :
@@ -2604,14 +2604,14 @@ implementation
                       end;
                     enumdef :
                       begin
-                        result:=compiler.ctypeconvnode_internal(left,s32inttype);
+                        result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s32inttype);
                         left:=nil;
                       end;
                     undefineddef :
                       begin
                         { we just create a constant 0 here, that's marked as a
                           parameter }
-                        result:=compiler.cordconstnode(0,s32inttype,false);
+                        result:=compiler.cordconstnode(0,compiler.deftypes.s32inttype,false);
                         include(result.flags,nf_generic_para);
                         left:=nil;
                       end;
@@ -3876,7 +3876,7 @@ implementation
                   resultdef:=compiler.deftypes.voidtype;
                   { now we know the type of buffer }
                   hp:=compiler.ccallparanode(compiler.cordconstnode(
-                     tcallparanode(left).left.resultdef.size,s32inttype,true),left);
+                     tcallparanode(left).left.resultdef.size,compiler.deftypes.s32inttype,true),left);
                   result:=compiler.ccallnode_intern('SETTEXTBUF',hp);
                   left:=nil;
                 end;
@@ -5444,7 +5444,7 @@ implementation
 
          { create call to fpc_getmem }
          para := compiler.ccallparanode(compiler.cordconstnode
-             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true),nil);
+             (tpointerdef(left.resultdef).pointeddef.size,compiler.deftypes.s32inttype,true),nil);
          addstatement(newstatement,compiler.cassignmentnode(
              compiler.ctemprefnode(temp),
              compiler.ccallnode_intern('fpc_getmem',para)));
@@ -5548,7 +5548,7 @@ implementation
          if compiler.target.info.system in systems_managed_vm then
            compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
          set_varstate(left,vs_read,[]);
-         result:=compiler.cordconstnode(0,s32inttype,false);
+         result:=compiler.cordconstnode(0,compiler.deftypes.s32inttype,false);
        end;
 
 

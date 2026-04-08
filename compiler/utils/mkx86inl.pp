@@ -145,7 +145,7 @@ function GetTypeDef(const ATyp: string): string;
       'r16':   exit('compiler.deftypes.u16inttype');
       'rs16':  exit('compiler.deftypes.s16inttype');
       'r32':   exit('compiler.deftypes.u32inttype');
-      'rs32':  exit('s32inttype');
+      'rs32':  exit('compiler.deftypes.s32inttype');
       'r64':   exit('u64inttype');
       'rs64':  exit('s64inttype');
       'reg':   exit('uinttype');
@@ -155,7 +155,7 @@ function GetTypeDef(const ATyp: string): string;
       'mm':    exit('x86_m64type');
       'implicit_xmm0',
       'xmm':   exit('x86_m128type');
-      'i32':   exit('s32inttype');
+      'i32':   exit('compiler.deftypes.s32inttype');
 
       'edi_ptr':   exit('compiler.deftypes.voidpointertype');
 

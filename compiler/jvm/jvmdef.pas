@@ -595,7 +595,7 @@ implementation
                           pasbool32:
                             begin
                               objdef:=tobjectdef(search_system_type('JLINTEGER').typedef);
-                              paradef:=s32inttype;
+                              paradef:=compiler.deftypes.s32inttype;
                             end;
                           else
                             internalerror(2011052101);
@@ -914,7 +914,7 @@ implementation
                       u8bit,uchar:
                         usedef:=compiler.deftypes.s16inttype;
                       u16bit:
-                        usedef:=s32inttype;
+                        usedef:=compiler.deftypes.s32inttype;
                       else
                         ;
                     end;
@@ -983,7 +983,7 @@ implementation
                 begin
                   case csym.consttyp of
                     constord:
-                      result:=jvmencodetype(s32inttype,withsignature);
+                      result:=jvmencodetype(compiler.deftypes.s32inttype,withsignature);
                     constreal:
                       result:=jvmencodetype(s64floattype,withsignature);
                     constset:

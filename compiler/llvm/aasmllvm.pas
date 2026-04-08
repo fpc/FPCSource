@@ -1123,6 +1123,8 @@ implementation
 
     constructor taillvm.getelementptr_reg_size_ref_size_reg(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: tregister; indirect: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         index: longint;
       begin
         create_llvm(la_getelementptr);
@@ -1135,7 +1137,7 @@ implementation
         loadref(2,ref);
         if indirect then
           begin
-            loaddef(3,s32inttype);
+            loaddef(3,compiler.deftypes.s32inttype);
             loadconst(4,0);
             index:=5;
           end
@@ -1148,6 +1150,8 @@ implementation
 
     constructor taillvm.getelementptr_reg_size_ref_size_const(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: ptrint; indirect: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         index: longint;
       begin
         create_llvm(la_getelementptr);
@@ -1160,7 +1164,7 @@ implementation
         loadref(2,ref);
         if indirect then
           begin
-            loaddef(3,s32inttype);
+            loaddef(3,compiler.deftypes.s32inttype);
             loadconst(4,0);
             index:=5;
           end
@@ -1173,6 +1177,8 @@ implementation
 
     constructor taillvm.getelementptr_reg_tai_size_const(dst: tregister; const ai: tai; indextype: tdef; index1: ptrint; indirect: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         index: longint;
       begin
         create_llvm(la_getelementptr);
@@ -1184,7 +1190,7 @@ implementation
         loadtai(1,ai);
         if indirect then
           begin
-            loaddef(2,s32inttype);
+            loaddef(2,compiler.deftypes.s32inttype);
             loadconst(3,0);
             index:=4;
           end

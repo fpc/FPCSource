@@ -667,13 +667,13 @@ implementation
                 if op=OP_NOT then
                   begin
                     { not = xor -1 for integer }
-                    a_load_const_stack(list,s32inttype,high(cardinal),R_INTREGISTER);
+                    a_load_const_stack(list,compiler.deftypes.s32inttype,high(cardinal),R_INTREGISTER);
                     op:=OP_XOR;
                   end
                 else if op=OP_NEG then
                   begin
                     { neg = *(-1) }
-                    a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
+                    a_load_const_stack(list,compiler.deftypes.s32inttype,-1,R_INTREGISTER);
                     op:=OP_MUL;
                   end;
                 if TOpCG2IAsmOp[op]=A_None then
@@ -837,8 +837,8 @@ implementation
             list.Concat(taicpu.op_none(a_ref_is_null));
             if cmp_op=OC_NE then
               begin
-                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
-                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+                a_load_const_stack(list,compiler.deftypes.s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,compiler.deftypes.s32inttype,OC_EQ);
               end;
           end;
         else
@@ -866,8 +866,8 @@ implementation
             list.Concat(taicpu.op_none(a_ref_is_null));
             if cmp_op=OC_NE then
               begin
-                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
-                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+                a_load_const_stack(list,compiler.deftypes.s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,compiler.deftypes.s32inttype,OC_EQ);
               end;
           end;
         else
@@ -1149,7 +1149,7 @@ implementation
       begin
         if (op in overflowops) and
            (def_cgsize(size) in [OS_8,OS_S8,OS_16,OS_S16]) then
-          resize_stack_int_val(list,s32inttype,size,false);
+          resize_stack_int_val(list,compiler.deftypes.s32inttype,size,false);
       end;
 
   procedure thlcgwasm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
@@ -1957,7 +1957,7 @@ implementation
           location_reset(ovloc,LOC_REGISTER,OS_S32);
           { not pasbool8, because then we'd still have to convert the integer to
             a boolean via branches for Dalvik}
-          ovloc.register:=getintregister(list,s32inttype);
+          ovloc.register:=getintregister(list,compiler.deftypes.s32inttype);
           if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -1977,7 +1977,7 @@ implementation
                   //todo: any operands needed?
                   list.concat(taicpu.op_none(a_i32_wrap_i64));
                 end;
-              a_load_stack_reg(list,s32inttype,ovloc.register);
+              a_load_stack_reg(list,compiler.deftypes.s32inttype,ovloc.register);
             end
           else
             begin
@@ -1985,7 +1985,7 @@ implementation
                 begin
                   { unsigned (src1-src2) overflows iff (src1<src2) }
                   a_cmp_reg_reg_stack(list,size,OC_B,orgsrc1,orgsrc2);
-                  a_load_stack_reg(list,s32inttype,ovloc.register);
+                  a_load_stack_reg(list,compiler.deftypes.s32inttype,ovloc.register);
                 end
               else
                 begin
@@ -1993,8 +1993,8 @@ implementation
                     signed to unsigned quadrant }
                   a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc1);
                   a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc2);
-                  a_op_stack(list,OP_AND,s32inttype);
-                  a_load_stack_reg(list,s32inttype,ovloc.register);
+                  a_op_stack(list,OP_AND,compiler.deftypes.s32inttype);
+                  a_load_stack_reg(list,compiler.deftypes.s32inttype,ovloc.register);
                 end;
             end;
         end
@@ -2439,7 +2439,7 @@ implementation
         exit;
       current_asmdata.getjumplabel(hl);
       list.concat(taicpu.op_none(a_block));
-      a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
+      a_cmp_const_loc_label(list,compiler.deftypes.s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
       g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       list.concat(taicpu.op_none(a_end_block));
@@ -2774,11 +2774,11 @@ implementation
               list.concat(taicpu.op_none(a_i32_wrap_i64));
               case tocgsize of
                 OS_8:
-                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,255);
                 OS_S8:
                   list.concat(taicpu.op_none(a_i32_extend8_s));
                 OS_16:
-                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
                 OS_S16:
                   list.concat(taicpu.op_none(a_i32_extend16_s));
                 OS_32,OS_S32:
@@ -2794,7 +2794,7 @@ implementation
           case fromcgsize of
             OS_8:
               begin
-                a_op_const_stack(list,OP_AND,s32inttype,255);
+                a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,255);
                 list.concat(taicpu.op_none(a_i64_extend_i32_u));
               end;
             OS_S8:
@@ -2804,7 +2804,7 @@ implementation
               end;
             OS_16:
               begin
-                a_op_const_stack(list,OP_AND,s32inttype,65535);
+                a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
                 list.concat(taicpu.op_none(a_i64_extend_i32_u));
               end;
             OS_S16:
@@ -2829,15 +2829,15 @@ implementation
               { extend }
               case fromcgsize of
                 OS_8:
-                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,255);
                 OS_S8:
                   begin
                     list.concat(taicpu.op_none(a_i32_extend8_s));
                     if tocgsize=OS_16 then
-                      a_op_const_stack(list,OP_AND,s32inttype,65535);
+                      a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
                   end;
                 OS_16:
-                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
                 OS_S16:
                   list.concat(taicpu.op_none(a_i32_extend16_s));
                 OS_32,OS_S32:
@@ -2851,11 +2851,11 @@ implementation
               { truncate }
               case tocgsize of
                 OS_8:
-                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,255);
                 OS_S8:
                   list.concat(taicpu.op_none(a_i32_extend8_s));
                 OS_16:
-                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                  a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
                 OS_S16:
                   list.concat(taicpu.op_none(a_i32_extend16_s));
                 OS_32,OS_S32:
@@ -2887,7 +2887,7 @@ implementation
                   else
                     convsize:=compiler.deftypes.u16inttype;
                 if assigned(convsize) then
-                  resize_stack_int_val(list,s32inttype,convsize,false);
+                  resize_stack_int_val(list,compiler.deftypes.s32inttype,convsize,false);
               end;
           end;
       end;

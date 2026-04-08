@@ -491,7 +491,7 @@ implementation
             if op=OP_NOT then
               begin
                 if not is_pasbool(size) then
-                  a_load_const_stack(list,s32inttype,high(cardinal),R_INTREGISTER)
+                  a_load_const_stack(list,compiler.deftypes.s32inttype,high(cardinal),R_INTREGISTER)
                 else
                   a_load_const_stack(list,size,1,R_INTREGISTER);
                 op:=OP_XOR;
@@ -551,7 +551,7 @@ implementation
           internalerror(2011010801);
         OP_SHL,OP_SHR,OP_SAR:
           { the second argument here is an int rather than a long }
-          a_load_const_stack(list,s32inttype,a,R_INTREGISTER);
+          a_load_const_stack(list,compiler.deftypes.s32inttype,a,R_INTREGISTER);
         else
           a_load_const_stack(list,size,a,R_INTREGISTER);
       end;
@@ -572,7 +572,7 @@ implementation
               { the second argument here is an int rather than a long }
               if getsubreg(reg)=R_SUBQ then
                 internalerror(2011010802);
-              a_load_reg_stack(list,s32inttype,reg)
+              a_load_reg_stack(list,compiler.deftypes.s32inttype,reg)
             end
         else
           a_load_reg_stack(list,size,reg);
@@ -598,7 +598,7 @@ implementation
             if not is_64bitint(size) then
               a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
             else
-              a_load_ref_stack(list,s32inttype,ref,prepare_stack_for_ref(list,ref,false));
+              a_load_ref_stack(list,compiler.deftypes.s32inttype,ref,prepare_stack_for_ref(list,ref,false));
           end;
         else
           a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
@@ -635,7 +635,7 @@ implementation
               art_indexreg:
                 begin
                   { all array indices in Java are 32 bit ints }
-                  g_allocload_reg_reg(list,s32inttype,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
+                  g_allocload_reg_reg(list,compiler.deftypes.s32inttype,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
                 end;
               art_indexref:
                 begin
@@ -709,7 +709,7 @@ implementation
           { duplicate array instance }
           list.concat(taicpu.op_none(a_dup));
           incstack(list,1);
-          a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
+          a_load_const_stack(list,compiler.deftypes.s32inttype,initdim-1,R_INTREGISTER);
           case elemdef.typ of
             arraydef:
               g_call_system_proc(list,'fpc_initialize_array_dynarr',[],nil);
@@ -893,7 +893,7 @@ implementation
         if ((op in overflowops) or
             (compiler.globals.current_settings.cputype=cpu_dalvik)) and
            (def_cgsize(size) in [OS_8,OS_S8,OS_16,OS_S16]) then
-          resize_stack_int_val(list,s32inttype,size,false);
+          resize_stack_int_val(list,compiler.deftypes.s32inttype,size,false);
       end;
 
   procedure thlcgjvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
@@ -1040,24 +1040,24 @@ implementation
                 if ref.index=NR_NO then
                   internalerror(2010120513);
                 { all array indices in Java are 32 bit ints }
-                a_load_reg_stack(list,s32inttype,ref.index);
+                a_load_reg_stack(list,compiler.deftypes.s32inttype,ref.index);
               end;
             art_indexref:
               begin
                 cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,ref.temppos,4,ref.volatility);
                 href.symbol:=ref.indexsymbol;
-                a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
+                a_load_ref_stack(list,compiler.deftypes.s32inttype,href,prepare_stack_for_ref(list,href,false));
               end;
             art_indexconst:
               begin
-                a_load_const_stack(list,s32inttype,ref.indexoffset,R_INTREGISTER);
+                a_load_const_stack(list,compiler.deftypes.s32inttype,ref.indexoffset,R_INTREGISTER);
               end;
             else
               internalerror(2011012001);
           end;
           { adjustment of the index }
           if ref.offset<>0 then
-            a_op_const_stack(list,OP_ADD,s32inttype,ref.offset);
+            a_op_const_stack(list,OP_ADD,compiler.deftypes.s32inttype,ref.offset);
           if dup then
             begin
               list.concat(taicpu.op_none(a_dup2));
@@ -1248,7 +1248,7 @@ implementation
           location_reset(ovloc,LOC_REGISTER,OS_S32);
           { not pasbool8, because then we'd still have to convert the integer to
             a boolean via branches for Dalvik}
-          ovloc.register:=getintregister(list,s32inttype);
+          ovloc.register:=getintregister(list,compiler.deftypes.s32inttype);
           if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -1271,16 +1271,16 @@ implementation
             end
           else
             begin
-              a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+              a_load_const_stack(list,compiler.deftypes.s32inttype,0,R_INTREGISTER);
               current_asmdata.getjumplabel(lab);
               { can be optimized by removing duplicate xor'ing to convert dst from
                 signed to unsigned quadrant }
               a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
               a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
-              a_op_const_stack(list,OP_XOR,s32inttype,1);
+              a_op_const_stack(list,OP_XOR,compiler.deftypes.s32inttype,1);
               a_label(list,lab);
             end;
-          a_load_stack_reg(list,s32inttype,ovloc.register);
+          a_load_stack_reg(list,compiler.deftypes.s32inttype,ovloc.register);
         end
       else
         ovloc.loc:=LOC_VOID;
@@ -1384,7 +1384,7 @@ implementation
                 { deepcopy=true }
                 a_load_const_stack(list,compiler.deftypes.pasbool1type,1,R_INTREGISTER);
                 { ndim }
-                a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
+                a_load_const_stack(list,compiler.deftypes.s32inttype,ndim,R_INTREGISTER);
                 { eletype }
                 a_load_const_stack(list,compiler.deftypes.cwidechartype,ord(jvmarrtype_setlength(eledef)),R_INTREGISTER);
                 adddefaultlenparas:=false;
@@ -1425,8 +1425,8 @@ implementation
      if adddefaultlenparas then
        begin
          { -1, -1 means "copy entire array" }
-         a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
-         a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
+         a_load_const_stack(list,compiler.deftypes.s32inttype,-1,R_INTREGISTER);
+         a_load_const_stack(list,compiler.deftypes.s32inttype,-1,R_INTREGISTER);
        end;
      g_call_system_proc(list,procname,[],nil);
      if ndim<>1 then
@@ -1673,7 +1673,7 @@ implementation
           inc(normaldim);
           t:=tarraydef(t).elementdef;
         end;
-      a_load_const_stack(list,s32inttype,normaldim,R_INTREGISTER);
+      a_load_const_stack(list,compiler.deftypes.s32inttype,normaldim,R_INTREGISTER);
       { highloc is invalid, the length is part of the array in Java }
       if is_wide_or_unicode_string(t) then
         g_call_system_proc(list,'fpc_initialize_array_unicodestring',[],nil)
@@ -1758,7 +1758,7 @@ implementation
       if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
       current_asmdata.getjumplabel(hl);
-      a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
+      a_cmp_const_loc_label(list,compiler.deftypes.s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
       a_label(list,hl);
     end;
@@ -2239,7 +2239,7 @@ implementation
            (fromsize<>compiler.deftypes.cwidechartype))) then
         case tocgsize of
           OS_8:
-            a_op_const_stack(list,OP_AND,s32inttype,255);
+            a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,255);
           OS_S8:
             list.concat(taicpu.op_none(a_i2b));
           OS_16:
@@ -2247,7 +2247,7 @@ implementation
                (torddef(tosize).ordtype=uwidechar) then
               list.concat(taicpu.op_none(a_i2c))
             else
-              a_op_const_stack(list,OP_AND,s32inttype,65535);
+              a_op_const_stack(list,OP_AND,compiler.deftypes.s32inttype,65535);
           OS_S16:
             list.concat(taicpu.op_none(a_i2s));
           else
@@ -2275,7 +2275,7 @@ implementation
                   else
                     convsize:=compiler.deftypes.u16inttype;
                 if assigned(convsize) then
-                  resize_stack_int_val(list,s32inttype,convsize,false);
+                  resize_stack_int_val(list,compiler.deftypes.s32inttype,convsize,false);
               end;
           end;
       end;

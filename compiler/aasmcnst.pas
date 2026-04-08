@@ -1223,6 +1223,8 @@ implementation
 
    class function ttai_typedconstbuilder.get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
      var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     var
        ansistring_header_size: pint;
        unicodestring_header_size: pint;
      begin
@@ -1233,7 +1235,7 @@ implementation
          2 +
          { reference count }
 {$ifdef cpu64bitaddr}
-         s32inttype.size +
+         _compiler.deftypes.s32inttype.size +
 {$else !cpu64bitaddr}
          sizesinttype.size +
 {$endif !cpu64bitaddr}
@@ -1480,8 +1482,8 @@ implementation
        emit_tai(tai_const.create_16bit(elesize),compiler.deftypes.u16inttype);
        inc(result.ofs,2);
 {$ifdef cpu64bitaddr}
-       emit_tai(tai_const.Create_32bit(-1),s32inttype);
-       inc(result.ofs,s32inttype.size);
+       emit_tai(tai_const.Create_32bit(-1),compiler.deftypes.s32inttype);
+       inc(result.ofs,compiler.deftypes.s32inttype.size);
 {$else !cpu64bitaddr}
        emit_tai(tai_const.create_sizeint(-1),sizesinttype);
        inc(result.ofs,sizesinttype.size);
@@ -1696,7 +1698,7 @@ implementation
            end;
            { reference count }
 {$ifdef cpu64bitaddr}
-           result.add_field_by_def('',s32inttype);
+           result.add_field_by_def('',acompiler.deftypes.s32inttype);
 {$else !cpu64bitaddr}
            result.add_field_by_def('',sizesinttype);
 {$endif !cpu64bitaddr}
@@ -1708,7 +1710,7 @@ implementation
            result:=crecorddef.create_global_internal('$'+name,4,
              targetinfos[acompiler.target.info.system]^.alignment.recordalignmin,acompiler);
            { length in bytes }
-           result.add_field_by_def('',s32inttype);
+           result.add_field_by_def('',acompiler.deftypes.s32inttype);
            streledef:=acompiler.deftypes.cwidechartype;
          end;
        { data (include zero terminator) }
@@ -1756,7 +1758,7 @@ implementation
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-           datatcb.emit_tai(Tai_const.Create_32bit(strlength*compiler.deftypes.cwidechartype.size),s32inttype);
+           datatcb.emit_tai(Tai_const.Create_32bit(strlength*compiler.deftypes.cwidechartype.size),compiler.deftypes.s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
            string_symofs:=get_string_symofs(st_widestring,true,compiler.target);

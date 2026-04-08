@@ -100,7 +100,7 @@ implementation
           begin
             { Else signed supposed to be 32 bit, or unsigned supposed to be 64 bit }
             if is_signed(left.resultdef) then
-              inserttypeconv(left,s32inttype,compiler)
+              inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
             else
               inserttypeconv(left,s64inttype,compiler);
             firstpass(left);

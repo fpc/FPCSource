@@ -557,7 +557,7 @@ implementation
                      location_reset(location,LOC_CREGISTER,int_cgsize(compiler.deftypes.voidpointertype.size*2));
 {$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
                      { cpus with 16 bit address registers don't use registerhi here, so allocate already here a register for all purposes }
-                     location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+                     location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
 {$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
                      secondpass(left);
 

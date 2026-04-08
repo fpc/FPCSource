@@ -162,7 +162,7 @@ interface
         commutative : boolean;
         cmpResultType : tdef;
       begin
-        cmpResultType := s32inttype;
+        cmpResultType := compiler.deftypes.s32inttype;
         pass_left_right;
 
         commutative:=false;

@@ -266,7 +266,7 @@ implementation
            not is_currency(left.resultdef) then
           if is_signed(left.resultdef) or
              (left.resultdef.size<4) then
-            inserttypeconv(left,s32inttype,compiler)
+            inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
           else
             inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
         firstpass(left);
@@ -686,7 +686,7 @@ implementation
               the signed interpretation is < 0 }
             current_asmdata.getjumplabel(l1);
             if srcsize=4 then
-              signeddef:=s32inttype
+              signeddef:=compiler.deftypes.s32inttype
             else
               signeddef:=s64inttype;
             hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,signeddef,OC_GTE,0,left.location,l1);
@@ -824,7 +824,7 @@ implementation
         arrayref: treference;
       begin
         { create an array with one element of the required type }
-        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
+        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,1,R_INTREGISTER);
         mangledname:=jvmarrtype(left.resultdef,primitivetype);
         if primitivetype then
           opc:=a_newarray
@@ -974,7 +974,7 @@ implementation
               if left.resultdef.size<=4 then
                 begin
                   helpername:='fpc_int_to_bitset';
-                  inserttypeconv_explicit(left,s32inttype,compiler);
+                  inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
                 end
               else
                 begin
@@ -1332,7 +1332,7 @@ implementation
             if not check_only then
               begin
                 if (left.resultdef.typ=enumdef) then
-                  inserttypeconv_explicit(left,s32inttype,compiler);
+                  inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
                 resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
               end;
             result:=true;
@@ -1357,7 +1357,7 @@ implementation
                { convert via ordinal intermediate }
                if not check_only then
                  begin;
-                   inserttypeconv_explicit(left,s32inttype,compiler);
+                   inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
                    inserttypeconv_explicit(left,resultdef,compiler);
                    resnode:=left;
                    left:=nil

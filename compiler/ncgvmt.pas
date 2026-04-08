@@ -302,10 +302,10 @@ implementation
            Instead of 0 as the upper bound, use the actual upper bound
          }
          msgstrentry:=search_system_type('TMSGSTRTABLE').typedef;
-         get_tabledef(itp_vmt_tstringmesssagetable,s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
+         get_tabledef(itp_vmt_tstringmesssagetable,compiler.deftypes.s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
          { outer record (TStringMessageTable) }
          datatcb.maybe_begin_aggregate(msgstrtabledef);
-         datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
+         datatcb.emit_tai(Tai_const.Create_32bit(count),compiler.deftypes.s32inttype);
          if assigned(root) then
            begin
               { array of TMsgStrTable }
@@ -364,9 +364,9 @@ implementation
              end;
          }
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
-         get_tabledef(itp_vmt_msgint_table_entries,s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
+         get_tabledef(itp_vmt_msgint_table_entries,compiler.deftypes.s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
          datatcb.maybe_begin_aggregate(msgintdef);
-         datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
+         datatcb.emit_tai(Tai_const.Create_32bit(count),compiler.deftypes.s32inttype);
          if assigned(root) then
            begin
               datatcb.maybe_begin_aggregate(msgintarrdef);

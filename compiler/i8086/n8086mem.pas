@@ -216,7 +216,7 @@ implementation
 
             if arraydef.elementdef.size>1 then
               right:=compiler.caddnode(muln,right,
-                compiler.cordconstnode(arraydef.elementdef.size,s32inttype,true));
+                compiler.cordconstnode(arraydef.elementdef.size,compiler.deftypes.s32inttype,true));
 
             result:=compiler.ccallnode_intern(procname,
               compiler.ccallparanode(right,

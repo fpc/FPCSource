@@ -94,7 +94,7 @@ implementation
           case retloc.size of
             OS_32,
             OS_F32:
-              location_allocate_register(current_asmdata.CurrAsmList,location,s32inttype,false);
+              location_allocate_register(current_asmdata.CurrAsmList,location,compiler.deftypes.s32inttype,false);
             OS_64,
             OS_F64:
               location_allocate_register(current_asmdata.CurrAsmList,location,s64inttype,false);

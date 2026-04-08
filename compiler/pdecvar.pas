@@ -519,7 +519,7 @@ implementation
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
                          inserttypeconv_internal(pt,compiler.deftypes.s16inttype,compiler);
 {$else}
-                         inserttypeconv_internal(pt,s32inttype,compiler);
+                         inserttypeconv_internal(pt,compiler.deftypes.s32inttype,compiler);
 {$endif}
                        p.index:=tordconstnode(pt).value.svalue;
                      end

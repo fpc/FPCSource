@@ -751,7 +751,7 @@ implementation
                 ss:='-32;';
               s64bit :
                 ss:='-31;';
-              {u32bit : result:=def_stab_number(s32inttype)+';0;-1;'); }
+              {u32bit : result:=def_stab_number(compiler.deftypes.s32inttype)+';0;-1;'); }
               else
                 begin
                   if def.size <> std_param_align then
@@ -776,10 +776,10 @@ implementation
           s64real,
           s80real,
           sc80real:
-            ss:=def_stabstr_evaluate(def,'r$1;${savesize};0;',[def_stab_number(s32inttype)]);
+            ss:=def_stabstr_evaluate(def,'r$1;${savesize};0;',[def_stab_number(compiler.deftypes.s32inttype)]);
           s64currency,
           s64comp:
-            ss:=def_stabstr_evaluate(def,'r$1;-${savesize};0;',[def_stab_number(s32inttype)]);
+            ss:=def_stabstr_evaluate(def,'r$1;-${savesize};0;',[def_stab_number(compiler.deftypes.s32inttype)]);
           else
             internalerror(200509261);
         end;
@@ -794,14 +794,14 @@ implementation
 {$ifdef cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
                                  '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;32;$3,384,256;'+
-                                 'NAME:ar$1;0;255;$4,640,2048;;',[def_stab_number(s32inttype),
+                                 'NAME:ar$1;0;255;$4,640,2048;;',[def_stab_number(compiler.deftypes.s32inttype),
                                  def_stab_number(s64inttype),
                                  def_stab_number(compiler.deftypes.u8inttype),
                                  def_stab_number(compiler.deftypes.cansichartype)]);
 {$else cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
                                  '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;32;$2,352,256;'+
-                                 'NAME:ar$1;0;255;$3,608,2048;;',[def_stab_number(s32inttype),
+                                 'NAME:ar$1;0;255;$3,608,2048;;',[def_stab_number(compiler.deftypes.s32inttype),
                                  def_stab_number(compiler.deftypes.u8inttype),
                                  def_stab_number(compiler.deftypes.cansichartype)]);
 {$endif cpu64bitaddr}
@@ -1022,10 +1022,10 @@ implementation
                 end;
             end;
           floatdef :
-            appenddef(list,s32inttype);
+            appenddef(list,compiler.deftypes.s32inttype);
           filedef :
             begin
-              appenddef(list,s32inttype);
+              appenddef(list,compiler.deftypes.s32inttype);
 {$ifdef cpu64bitaddr}
               appenddef(list,s64inttype);
 {$endif cpu64bitaddr}

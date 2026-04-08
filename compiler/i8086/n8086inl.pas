@@ -295,7 +295,7 @@ implementation
              else
                elesize:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
 
-             hp := compiler.cordconstnode(elesize,s32inttype,false);
+             hp := compiler.cordconstnode(elesize,compiler.deftypes.s32inttype,false);
              { extra parameter? }
              if assigned(tcallparanode(left).right) then
                hp:=compiler.caddnode(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);

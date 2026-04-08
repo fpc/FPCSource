@@ -1239,7 +1239,7 @@ implementation
                     basedef:=compiler.deftypes.u16inttype;
                 3,4:
                   if (sign=DW_ATE_signed) then
-                    basedef:=s32inttype
+                    basedef:=compiler.deftypes.s32inttype
                   else
                     basedef:=compiler.deftypes.u32inttype;
                 else
@@ -1535,7 +1535,7 @@ implementation
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u16inttype));
             4:
                if def.min<0 then
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(s32inttype))
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.s32inttype))
                else
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u32inttype));
             8:

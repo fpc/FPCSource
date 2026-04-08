@@ -81,8 +81,8 @@ interface
               in constant expressions) }
             if not is_boolean(resultdef) then
               internalerror(2011062603);
-            inserttypeconv_explicit(left,s32inttype,compiler);
-            inserttypeconv_explicit(right,s32inttype,compiler);
+            inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
+            inserttypeconv_explicit(right,compiler.deftypes.s32inttype,compiler);
           end;
         { special handling for sets: all sets are JUBitSet/JUEnumSet on the JVM
           target to ease interoperability with Java code }
@@ -238,7 +238,7 @@ interface
                   else
                     begin
                       { for boolean, char, etc }
-                      inserttypeconv_explicit(tsetelementnode(right).left,s32inttype,compiler);
+                      inserttypeconv_explicit(tsetelementnode(right).left,compiler.deftypes.s32inttype,compiler);
                       result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                     end;
                   paras:=compiler.ccallparanode(tsetelementnode(right).left,nil);
@@ -252,7 +252,7 @@ interface
                         end
                       else
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).right,s32inttype,compiler);
+                          inserttypeconv_explicit(tsetelementnode(right).right,compiler.deftypes.s32inttype,compiler);
                         end;
                       paras:=compiler.ccallparanode(tsetelementnode(right).right,paras);
                       tsetelementnode(right).right:=nil;
@@ -274,7 +274,7 @@ interface
                       else
                         begin
                           { for boolean, char, etc }
-                          inserttypeconv_explicit(tsetelementnode(right).left,s32inttype,compiler);
+                          inserttypeconv_explicit(tsetelementnode(right).left,compiler.deftypes.s32inttype,compiler);
                         end;
                       paras:=compiler.ccallparanode(tsetelementnode(right).left,paras);
                       tsetelementnode(right).left:=nil;
@@ -290,7 +290,7 @@ interface
                             end
                           else
                             begin
-                              inserttypeconv_explicit(tsetelementnode(right).right,s32inttype,compiler);
+                              inserttypeconv_explicit(tsetelementnode(right).right,compiler.deftypes.s32inttype,compiler);
                               tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                             end;
                           paras:=compiler.ccallparanode(compiler.ccallnode_internmethod(tmpn,'RANGE',compiler.ccallparanode(tsetelementnode(right).right,paras)),nil);

@@ -1189,7 +1189,8 @@ interface
          s16inttype,                { 16-Bit signed integer }
          u24inttype,                { 24-Bit unsigned integer }
          s24inttype,                { 24-Bit signed integer }
-         u32inttype: tdef;          { 32-Bit unsigned integer }
+         u32inttype,                { 32-Bit unsigned integer }
+         s32inttype: tdef;          { 32-Bit signed integer }
        end;
 
 
@@ -1216,7 +1217,6 @@ interface
 
 
     { default types }
-       s32inttype,                { 32-Bit signed integer }
        u40inttype,                { 40-Bit unsigned integer }
        s40inttype,                { 40-Bit signed integer }
        u48inttype,                { 48-Bit unsigned integer }
@@ -1250,7 +1250,7 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
+       { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype,
        uinttype,
        { integer types corresponding to OS_SINT/OS_INT }
@@ -9789,7 +9789,7 @@ implementation
        compiler.deftypes.u24inttype:=nil;                { 24-Bit unsigned integer }
        compiler.deftypes.s24inttype:=nil;                { 24-Bit signed integer }
        compiler.deftypes.u32inttype:=nil;                { 32-Bit unsigned integer }
-       s32inttype:=nil;                { 32-Bit signed integer }
+       compiler.deftypes.s32inttype:=nil;                { 32-Bit signed integer }
        u40inttype:=nil;                { 40-Bit unsigned integer }
        s40inttype:=nil;                { 40-Bit signed integer }
        u48inttype:=nil;                { 48-Bit unsigned integer }
@@ -9820,7 +9820,7 @@ implementation
        { we use only one variant def for every variant class }
        cvarianttype:=nil;
        colevarianttype:=nil;
-       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
+       { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype:=nil;
        uinttype:=nil;
        { integer types corresponding to OS_SINT/OS_INT }

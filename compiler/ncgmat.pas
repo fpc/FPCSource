@@ -523,7 +523,7 @@ implementation
                   end
                 else
                   begin
-                    opdef:=s32inttype;
+                    opdef:=compiler.deftypes.s32inttype;
                     opsize:=OS_S32;
                   end;
 {$ifdef cpu16bitalu}

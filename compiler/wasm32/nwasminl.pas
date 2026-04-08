@@ -716,7 +716,7 @@ implementation
           in_wasm32_memory_atomic_wait64:
             begin
               CheckParameters(3);
-              resultdef:=s32inttype;
+              resultdef:=compiler.deftypes.s32inttype;
             end;
           in_wasm32_memory_atomic_notify:
             begin

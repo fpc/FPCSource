@@ -1347,8 +1347,8 @@ implementation
           tcb.next_field_name:='min_max_rec';
           tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_enum_min_max_rec]+def.unique_id_str,defaultpacking,reqalign,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-          tcb.emit_ord_const(def.min,s32inttype);
-          tcb.emit_ord_const(def.max,s32inttype);
+          tcb.emit_ord_const(def.min,compiler.deftypes.s32inttype);
+          tcb.emit_ord_const(def.max,compiler.deftypes.s32inttype);
           tcb.next_field_name:='basetype_array_rec';
           { all strings must appear right after each other -> from now on
             packrecords 1 (but the start must still be aligned) }
@@ -1449,8 +1449,8 @@ implementation
                 end;
               else
                 begin
-                  tcb.emit_ord_const(longint(min),s32inttype);
-                  tcb.emit_ord_const(longint(max),s32inttype);
+                  tcb.emit_ord_const(longint(min),compiler.deftypes.s32inttype);
+                  tcb.emit_ord_const(longint(max),compiler.deftypes.s32inttype);
                 end;
             end;
             tcb.end_anonymous_record;
@@ -1645,7 +1645,7 @@ implementation
                { element type }
                write_rtti_reference(tcb,def.elementdef,rt);
                { variant type }
-               tcb.emit_ord_const(tstoreddef(def.elementdef).getvardef,s32inttype);
+               tcb.emit_ord_const(tstoreddef(def.elementdef).getvardef,compiler.deftypes.s32inttype);
                { element type }
                if def.elementdef.needs_inittable then
                  write_rtti_reference(tcb,def.elementdef,rt)
@@ -2439,7 +2439,7 @@ implementation
                 targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
               for i:=0 to sym_count-1 do
                 begin
-                  tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
+                  tcb.emit_ord_const(tenumsym(syms[i]).value,compiler.deftypes.s32inttype);
                   tcb.queue_init(compiler.deftypes.voidpointertype);
                   tcb.queue_subscriptn_multiple_by_name(rttidef,
                     ['size_start_rec',
@@ -2482,13 +2482,13 @@ implementation
           { begin of Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-          tcb.emit_ord_const(syms.count,s32inttype);
+          tcb.emit_ord_const(syms.count,compiler.deftypes.s32inttype);
           { begin of "data" array in Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           for i:=0 to syms.count-1 do
             begin
-              tcb.emit_ord_const(tenumsym(syms[i]).value,s32inttype);
+              tcb.emit_ord_const(tenumsym(syms[i]).value,compiler.deftypes.s32inttype);
               { alignment of pointer value handled by enclosing record already }
               tcb.queue_init(compiler.deftypes.voidpointertype);
               tcb.queue_subscriptn_multiple_by_name(rttidef,

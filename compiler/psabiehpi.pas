@@ -743,7 +743,7 @@ implementation
 {$if defined(i386)}
             hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
 {$elseif defined(x86_64)}
-            hlcg.a_cmp_const_reg_label (list,s32inttype,OC_EQ,typeindex+1,NR_EDX,catchstartlab);
+            hlcg.a_cmp_const_reg_label (list,compiler.deftypes.s32inttype,OC_EQ,typeindex+1,NR_EDX,catchstartlab);
 {$else}
             { we need to find a way to fix this in a generic way }
             Internalerror(2019021008);

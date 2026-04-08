@@ -1196,7 +1196,7 @@ implementation
             calcsize:=compiler.deftypes.u16inttype;
         2:
           if signed then
-            calcsize:=s32inttype
+            calcsize:=compiler.deftypes.s32inttype
           else
             calcsize:=compiler.deftypes.u32inttype;
         4:
@@ -1723,7 +1723,7 @@ implementation
           else
             subscriptdef:=cpointerdef.getreusable(currentstructdef);
           { recurse into the first field }
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,0,true));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,compiler.deftypes.s32inttype,0,true));
           reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,recref.temppos,newalignment(recref.alignment,field.fieldoffset),recref.volatility);
           { go to the parent }
           currentstructdef:=parentdef;
@@ -1743,7 +1743,7 @@ implementation
       { load the address of that shadow field }
       newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfield.def,compiler));
       recref:=make_simple_ref(list,recref,recdef);
-      list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
+      list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,compiler.deftypes.s32inttype,field.llvmfieldnr,true));
       reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,recref.temppos,newalignment(recref.alignment,llvmfield.fieldoffset+field.offsetfromllvmfield),recref.volatility);
       { in case of an 80 bits extended type, typecast from an array of 10
         bytes (used because otherwise llvm will allocate the ABI-defined

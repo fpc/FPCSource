@@ -94,7 +94,7 @@ implementation
       if left.resultdef.size<4 then
         begin
           if is_signed(left.resultdef) then
-            inserttypeconv(left,s32inttype,compiler)
+            inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
           else
             inserttypeconv(left,compiler.deftypes.u32inttype,compiler)
         end;

@@ -76,7 +76,7 @@ implementation
               else
                 { not very clean, since we now have "longint in enumset", but
                   the code generator doesn't really mind }
-                inserttypeconv_explicit(left,s32inttype,compiler);
+                inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
           end;
         result:=inherited pass_1;
         if assigned(result) then
@@ -94,7 +94,7 @@ implementation
           end
         else
           begin
-            inserttypeconv_explicit(left,s32inttype,compiler);
+            inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
             inserttypeconv_explicit(right,java_jubitset,compiler);
           end;
         result:=compiler.ccallnode_internmethod(right,'CONTAINS',compiler.ccallparanode(left,nil));
@@ -113,7 +113,7 @@ implementation
           enums are class instances in the JVM. All labels are stored as
           ordinal values, so it doesn't matter that we change the type }
         if left.resultdef.typ=enumdef then
-          inserttypeconv_explicit(left,s32inttype,compiler);
+          inserttypeconv_explicit(left,compiler.deftypes.s32inttype,compiler);
         result:=inherited pass_1;
       end;
 

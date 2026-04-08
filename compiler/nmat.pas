@@ -932,7 +932,7 @@ implementation
                  if is_signed(left.resultdef) then
                    begin
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
-                     inserttypeconv(left,s32inttype,compiler)
+                     inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                      inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true),compiler);
 {$else}
@@ -1167,7 +1167,7 @@ implementation
              if is_64bit(left.resultdef) then
                inserttypeconv(left,s64inttype,compiler)
              else if is_32bit(left.resultdef) then
-               inserttypeconv(left,s32inttype,compiler)
+               inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
              else if is_16bit(left.resultdef) then
                inserttypeconv(left,compiler.deftypes.s16inttype,compiler)
              else
@@ -1297,7 +1297,7 @@ implementation
             if is_64bit(left.resultdef) then
               inserttypeconv(left,s64inttype,compiler)
             else if is_32bit(left.resultdef) then
-              inserttypeconv(left,s32inttype,compiler)
+              inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
             else if is_16bit(left.resultdef) then
               inserttypeconv(left,compiler.deftypes.s16inttype,compiler)
             else

@@ -95,7 +95,7 @@ implementation
            is_dynamic_array(left.resultdef) or
            is_array_of_const(left.resultdef) then
           begin
-            resultdef:=s32inttype;
+            resultdef:=compiler.deftypes.s32inttype;
             handled:=true;
           end;
       end;
@@ -142,13 +142,13 @@ implementation
                 if not assigned(para.right) then
                   begin
                     para.right:=compiler.ccallparanode(
-                      compiler.cordconstnode(0,s32inttype,false),nil);
+                      compiler.cordconstnode(0,compiler.deftypes.s32inttype,false),nil);
                     tcallparanode(para.right).get_paratype;
                     break;
                   end
                 else
                   begin
-                    inserttypeconv(tcallparanode(para.right).left,s32inttype,compiler);
+                    inserttypeconv(tcallparanode(para.right).left,compiler.deftypes.s32inttype,compiler);
                     tcallparanode(para.right).get_paratype;
                   end;
                 para:=tcallparanode(para.right);
@@ -379,7 +379,7 @@ implementation
         else
           begin
             inserttypeconv_explicit(setpara,java_jubitset,compiler);
-            inserttypeconv_explicit(valuepara.left,s32inttype,compiler);
+            inserttypeconv_explicit(valuepara.left,compiler.deftypes.s32inttype,compiler);
           end;
         if inlinenumber=in_include_x_y then
           procname:='ADD'
@@ -498,7 +498,7 @@ implementation
                eletype=finaltype, ndim=ndims, deepcopy=false, new=newnode,
                assignmenttarget=tcallparanode(left).left }
             { prepend ndim }
-            newparas:=compiler.ccallparanode(compiler.cordconstnode(ndims,s32inttype,false),newparas);
+            newparas:=compiler.ccallparanode(compiler.cordconstnode(ndims,compiler.deftypes.s32inttype,false),newparas);
             { prepend eletype }
             newparas:=compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),compiler.deftypes.cwidechartype,false),newparas);
           end
@@ -592,7 +592,7 @@ implementation
                 stringtemp:=compiler.ctypeconvnode_explicit(left,stringclass);
               end;
             left:=nil;
-            lentemp:=compiler.ctempcreatenode(s32inttype,s32inttype.size,tt_persistent,true);
+            lentemp:=compiler.ctempcreatenode(compiler.deftypes.s32inttype,compiler.deftypes.s32inttype.size,tt_persistent,true);
             addstatement(newstatement,lentemp);
             { if-condition: assigned(stringclass(stringvar))? }
             ifcond:=compiler.cinlinenode(in_assigned_x,false,
@@ -646,7 +646,7 @@ implementation
            is_array_of_const(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_S32);
-            location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+            location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
             secondpass(left);
             thlcgjvm(hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
@@ -805,7 +805,7 @@ implementation
           thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER)
         else if is_dynamic_array(target.resultdef) then
           begin
-            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,0,R_INTREGISTER);
+            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,0,R_INTREGISTER);
             thlcgjvm(hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);
           end
         else

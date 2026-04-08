@@ -3650,7 +3650,7 @@ implementation
          a_cmp_const_reg_label(list,selftype,OC_NE,0,reg,oklabel);
          cgpara1.init(compiler.target);
          paramanager.getcgtempparaloc(list,pd,1,cgpara1);
-         a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
+         a_load_const_cgpara(list,compiler.deftypes.s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
          g_call_system_proc(list,pd,[@cgpara1],nil).resetiftemp;
          cgpara1.done;
@@ -3688,13 +3688,13 @@ implementation
       if pd.is_pushleftright then
         begin
           a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_load_const_cgpara(list,compiler.deftypes.s32inttype,strdef.len,cgpara2);
           a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
         end
       else
         begin
           a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_load_const_cgpara(list,compiler.deftypes.s32inttype,strdef.len,cgpara2);
           a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
         end;
       paramanager.freecgpara(list,cgpara3);

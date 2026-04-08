@@ -550,7 +550,7 @@ implementation
       begin
         case x86pointertyp of
           x86pt_huge:
-            result:=s32inttype;
+            result:=compiler.deftypes.s32inttype;
           x86pt_far,
           x86pt_near,
           x86pt_near_cs,
@@ -586,7 +586,7 @@ implementation
       begin
         case x86pointertyp of
           x86pt_huge:
-            result:=s32inttype;
+            result:=compiler.deftypes.s32inttype;
           x86pt_far:
             result:=compiler.deftypes.u16inttype;
           x86pt_near,
@@ -605,7 +605,7 @@ implementation
       begin
         case x86pointertyp of
           x86pt_huge:
-            result:=s32inttype;
+            result:=compiler.deftypes.s32inttype;
           x86pt_far,
           x86pt_near,
           x86pt_near_cs,

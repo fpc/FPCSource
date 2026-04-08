@@ -95,12 +95,12 @@ implementation
         if left.resultdef.typ=enumdef then
           begin
             block:=internalstatements(compiler,stat);
-            iteratortmp:=compiler.ctempcreatenode(s32inttype,left.resultdef.size,tt_persistent,true);
+            iteratortmp:=compiler.ctempcreatenode(compiler.deftypes.s32inttype,left.resultdef.size,tt_persistent,true);
             addstatement(stat,iteratortmp);
             olditerator:=left;
             left:=compiler.ctemprefnode(iteratortmp);
-            inserttypeconv_explicit(right,s32inttype,compiler);
-            inserttypeconv_explicit(t1,s32inttype,compiler);
+            inserttypeconv_explicit(right,compiler.deftypes.s32inttype,compiler);
+            inserttypeconv_explicit(t1,compiler.deftypes.s32inttype,compiler);
             newbody:=internalstatements(compiler,newbodystat);
             addstatement(newbodystat,compiler.cassignmentnode(olditerator,
               compiler.ctypeconvnode_explicit(compiler.ctemprefnode(iteratortmp),
@@ -390,7 +390,7 @@ implementation
            (duplicate) finally block because otherwise the JVM's bytecode
            verification cannot statically prove that the exception reraise code
            will only execute in case an exception actually happened }
-         reasonbuf:=hlcg.getaddressregister(current_asmdata.CurrAsmList,s32inttype);
+         reasonbuf:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
 
          { try code }
          begintrylabel:=nil;
@@ -406,7 +406,7 @@ implementation
               if compiler.verbose.codegenerror then
                 exit;
               { reason: no exception occurred }
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,reasonbuf);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,0,reasonbuf);
            end
          else
            tryflowcontrol:=[fc_inflowcontrol];
@@ -440,15 +440,15 @@ implementation
              2 = exit called
              3 = break called
              4 = continue called }
-         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
+         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
          if fc_exit in tryflowcontrol then
            if ([fc_break,fc_continue]*tryflowcontrol)<>[] then
-             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
            else
              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
          if fc_break in tryflowcontrol then
            if fc_continue in tryflowcontrol then
-             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
            else
              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
          if fc_continue in tryflowcontrol then
@@ -457,19 +457,19 @@ implementation
          if fc_exit in tryflowcontrol then
            begin
               hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,2,reasonbuf);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,2,reasonbuf);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
            end;
          if fc_break in tryflowcontrol then
           begin
               hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,3,reasonbuf);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,3,reasonbuf);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
            end;
          if fc_continue in tryflowcontrol then
            begin
               hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,4,reasonbuf);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,4,reasonbuf);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
            end;
          { jump over finally-code-in-case-an-exception-happened }

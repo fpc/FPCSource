@@ -225,7 +225,7 @@ implementation
             { parameter 2 : pointer to vmt }
             { parameter 1 : self pointer }
             para:=compiler.ccallparanode(
-                      compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
+                      compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,compiler.deftypes.s32inttype,false),
                   compiler.ccallparanode(
                       compiler.ctypeconvnode_internal(
                           load_vmt_pointer_node,
@@ -895,7 +895,7 @@ implementation
                   compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s16inttype),
                     genintconstnode(smallint(trashintval),compiler));
                 4: trash_small(stat,
-                  compiler.ctypeconvnode_internal(trashn,s32inttype),
+                  compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s32inttype),
                     genintconstnode(longint(trashintval),compiler));
                 8: trash_small(stat,
                   compiler.ctypeconvnode_internal(trashn,s64inttype),
@@ -1800,7 +1800,7 @@ implementation
        if (tprocdef(pd).proctypeoption=potype_mainstub) and
           (compiler.target.info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
          begin
-           pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
+           pvs:=cparavarsym.create('ARGC',1,vs_const,compiler.deftypes.s32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(compiler.deftypes.charpointertype,compiler),[]);
            tprocdef(pd).parast.insertsym(pvs);

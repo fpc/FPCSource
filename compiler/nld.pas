@@ -1348,7 +1348,7 @@ implementation
             is_array_of_const(hdef) or
             is_open_array(hdef) then
            hdef:=compiler.deftypes.voidtype;
-         resultdef:=carraydef.create(0,len-1,s32inttype,compiler);
+         resultdef:=carraydef.create(0,len-1,compiler.deftypes.s32inttype,compiler);
          include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then
            include(tarraydef(resultdef).arrayoptions,ado_IsVariant);

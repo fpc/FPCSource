@@ -551,7 +551,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
+                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,compiler.deftypes.s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -701,7 +701,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,s32inttype,false),
+                                compiler.cordconstnode(tobjectdef(compiler.current_structdef).vmt_offset,compiler.deftypes.s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -877,7 +877,7 @@ implementation
                       addstatement(newstatement,
                         compiler.ccallnode_intern('fpc_help_fail',
                           compiler.ccallparanode(
-                            compiler.cordconstnode(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
+                            compiler.cordconstnode(tobjectdef(procdef.struct).vmt_offset,compiler.deftypes.s32inttype,false),
                           compiler.ccallparanode(
                             compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,

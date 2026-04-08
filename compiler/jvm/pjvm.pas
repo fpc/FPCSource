@@ -231,7 +231,7 @@ implementation
           end;
         { create local "array of enumtype" type for the "values" functionality
           (used internally by the JDK) }
-        arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype,compiler);
+        arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,compiler.deftypes.s32inttype,compiler);
         arrdef.elementdef:=enumclass;
         arrsym:=ctypesym.create('__FPC_TEnumValues',arrdef);
         enumclass.symtable.insertsym(arrsym);
@@ -247,7 +247,7 @@ implementation
         if tenumdef(def).has_jumps then
           begin
             { add field for the value }
-            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
+            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,compiler.deftypes.s32inttype,[]);
             enumclass.symtable.insertsym(fsym);
             tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
             { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }

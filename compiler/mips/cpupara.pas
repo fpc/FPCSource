@@ -368,7 +368,7 @@ implementation
                 if is_signed(paradef) then
                   begin
                     paracgsize:=OS_S32;
-                    locdef:=s32inttype;
+                    locdef:=compiler.deftypes.s32inttype;
                   end
                 else
                   begin

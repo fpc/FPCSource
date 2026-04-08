@@ -203,7 +203,7 @@ implementation
         else
           begin
             { other integers are supposed to be 32 bit }
-            inserttypeconv(left,s32inttype,compiler);
+            inserttypeconv(left,compiler.deftypes.s32inttype,compiler);
             firstpass(left);
             result:=nil;
             expectloc:=LOC_FPUREGISTER;
@@ -217,7 +217,7 @@ implementation
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,s32inttype,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.s32inttype,true);
         ai:=taicpu.op_reg_reg_const(A_FLOAT,location.register,left.location.register,0);
         ai.oppostfix:=PF_S;
         current_asmdata.CurrAsmList.concat(ai);

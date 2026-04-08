@@ -327,7 +327,7 @@ implementation
              else
                { no constant shiftcount }
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,s32inttype,true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.s32inttype,true);
                  hregister1 := right.location.register;
                  if nodetype = shln then
                    begin

@@ -86,7 +86,7 @@ implementation
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
                   location_reset(location,LOC_REGISTER,OS_INT);
-                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
 
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,left.location.register,1));
                end;

@@ -1586,7 +1586,7 @@ implementation
            tcompiler(compiler).current_genericdef:=nil;
            tcompiler(compiler).current_specializedef:=nil;
            first:=true;
-           arrdef:=carraydef.create(0,0,s32inttype,compiler);
+           arrdef:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
            parser.pbase.consume(_ARRAY);
 
            { usage of specialized type inside its generic template }
@@ -1945,7 +1945,7 @@ implementation
                              equal_defs(compiler.symtablestack,p.resultdef,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
-                           IncompatibleTypes(p.resultdef,s32inttype);
+                           IncompatibleTypes(p.resultdef,compiler.deftypes.s32inttype);
                         end
                        else
                         compiler.verbose.Message(parser_e_illegal_expression);

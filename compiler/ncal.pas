@@ -515,7 +515,7 @@ implementation
         if not variantdispatch then  { generate a tdispdesc record }
         begin
           { dispid  }
-          tcb.emit_ord_const(dispid,s32inttype);
+          tcb.emit_ord_const(dispid,compiler.deftypes.s32inttype);
           { restype }
           if useresult then
             restype:=getvardef(resultdef)

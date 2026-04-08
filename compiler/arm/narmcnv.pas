@@ -93,7 +93,7 @@ implementation
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  inserttypeconv(left,s32inttype,compiler)
+                  inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
                 else
                   inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
                 firstpass(left);

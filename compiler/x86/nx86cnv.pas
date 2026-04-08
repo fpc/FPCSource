@@ -249,7 +249,7 @@ implementation
         first_int_to_real:=nil;
         if (left.resultdef.size<4) then
           begin
-            inserttypeconv(left,s32inttype, compiler);
+            inserttypeconv(left,compiler.deftypes.s32inttype, compiler);
             firstpass(left)
           end;
 

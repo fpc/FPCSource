@@ -654,7 +654,7 @@ implementation
             if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
               begin
                 elementcount:=elementcount*tarraydef(tmpdef).elecount;
-                convertdef:=carraydef.create(0,elementcount-1,s32inttype,compiler);
+                convertdef:=carraydef.create(0,elementcount-1,compiler.deftypes.s32inttype,compiler);
                 tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
                 expression:=expr.getcopy;
                 expression:=compiler.ctypeconvnode_internal(expression,convertdef);

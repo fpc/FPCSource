@@ -155,15 +155,15 @@ implementation
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
         sizeuinttype:=compiler.deftypes.u32inttype;
-        sizesinttype:=s32inttype;
+        sizesinttype:=compiler.deftypes.s32inttype;
         uinttype:=compiler.deftypes.u32inttype;
-        sinttype:=s32inttype;
+        sinttype:=compiler.deftypes.s32inttype;
 {$endif cpu32bitaddr}
 {$ifdef cpu32bitalu}
         uinttype:=compiler.deftypes.u32inttype;
-        sinttype:=s32inttype;
+        sinttype:=compiler.deftypes.s32inttype;
         aluuinttype:=compiler.deftypes.u32inttype;
-        alusinttype:=s32inttype;
+        alusinttype:=compiler.deftypes.s32inttype;
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
         sizeuinttype:=compiler.deftypes.u16inttype;
@@ -210,7 +210,7 @@ implementation
           4:
             begin
               codeptruinttype:=compiler.deftypes.u32inttype;
-              codeptrsinttype:=s32inttype;
+              codeptrsinttype:=compiler.deftypes.s32inttype;
             end;
           8:
             begin
@@ -229,7 +229,7 @@ implementation
           4:
             begin
               ptruinttype:=compiler.deftypes.u32inttype;
-              ptrsinttype:=s32inttype;
+              ptrsinttype:=compiler.deftypes.s32inttype;
             end;
           8:
             begin
@@ -293,7 +293,7 @@ implementation
         compiler.deftypes.s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
         compiler.deftypes.u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true,compiler);
         compiler.deftypes.u32inttype:=corddef.create(u32bit,0,high(longword),true,compiler);
-        s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true,compiler);
+        compiler.deftypes.s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true,compiler);
         s40inttype:=corddef.create(customint,-(int64(1) shl 39),int64(1) shl 39 - 1,true,compiler);
         u40inttype:=corddef.create(customint,0,int64(1) shl 40 - 1,true,compiler);
         s48inttype:=corddef.create(customint,-(int64(1) shl 47),int64(1) shl 47 - 1,true,compiler);
@@ -444,15 +444,15 @@ implementation
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_huge,compiler);
         compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.u8inttype,x86pt_far,compiler);
         compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.u16inttype,x86pt_far,compiler);
-        compiler.deftypes.longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
+        compiler.deftypes.longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.s32inttype,x86pt_far,compiler);
   {$endif i8086}
-        x86_m64type:=carraydef.create_vector(0,1,s32inttype,compiler);
-        x86_m128type:=carraydef.create_vector(0,3,s32inttype,compiler);
-        x86_m128dtype:=carraydef.create_vector(0,1,s32inttype,compiler);
-        x86_m128itype:=carraydef.create_vector(0,3,s32inttype,compiler);
-        x86_m256type:=carraydef.create_vector(0,7,s32inttype,compiler);
-        x86_m256dtype:=carraydef.create_vector(0,3,s32inttype,compiler);
-        x86_m256itype:=carraydef.create_vector(0,7,s32inttype,compiler);
+        x86_m64type:=carraydef.create_vector(0,1,compiler.deftypes.s32inttype,compiler);
+        x86_m128type:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
+        x86_m128dtype:=carraydef.create_vector(0,1,compiler.deftypes.s32inttype,compiler);
+        x86_m128itype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
+        x86_m256type:=carraydef.create_vector(0,7,compiler.deftypes.s32inttype,compiler);
+        x86_m256dtype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
+        x86_m256itype:=carraydef.create_vector(0,7,compiler.deftypes.s32inttype,compiler);
 
         tarraydef(x86_m64type).elementdef:=s32floattype;
         tarraydef(x86_m128type).elementdef:=s32floattype;
@@ -562,7 +562,7 @@ implementation
         addtype('Word',compiler.deftypes.u16inttype);
         addtype('SmallInt',compiler.deftypes.s16inttype);
         addtype('LongWord',compiler.deftypes.u32inttype);
-        addtype('LongInt',s32inttype);
+        addtype('LongInt',compiler.deftypes.s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
         addtype('AnsiChar',compiler.deftypes.cansichartype);
@@ -587,7 +587,7 @@ implementation
         addtype('$sint24',compiler.deftypes.s24inttype);
         addtype('$uint24',compiler.deftypes.u24inttype);
         addtype('$ulong',compiler.deftypes.u32inttype);
-        addtype('$longint',s32inttype);
+        addtype('$longint',compiler.deftypes.s32inttype);
         addtype('$sint40',s40inttype);
         addtype('$uint40',u40inttype);
         addtype('$sint48',s48inttype);
@@ -689,11 +689,11 @@ implementation
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
             addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype,compiler),[]));
-            vmtarraytype:=carraydef.create(0,0,s32inttype,compiler);
+            vmtarraytype:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',vmttype);
-            vmtarraytype:=carraydef.create(0,1,s32inttype,compiler);
+            vmtarraytype:=carraydef.create(0,1,compiler.deftypes.s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
             addtype('$vtblarray',vmtarraytype);
           end;
@@ -744,7 +744,7 @@ implementation
         loadtype('uint24',compiler.deftypes.u24inttype);
         loadtype('sint24',compiler.deftypes.s24inttype);
         loadtype('ulong',compiler.deftypes.u32inttype);
-        loadtype('longint',s32inttype);
+        loadtype('longint',compiler.deftypes.s32inttype);
         loadtype('uint40',u40inttype);
         loadtype('sint40',s40inttype);
         loadtype('uint48',u48inttype);

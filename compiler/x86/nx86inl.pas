@@ -131,7 +131,7 @@ implementation
            in_x86_inportl:
              begin
                CheckParameters(1);
-               resultdef:=s32inttype;
+               resultdef:=compiler.deftypes.s32inttype;
              end;
            in_x86_outportb,
            in_x86_outportw,
@@ -153,7 +153,7 @@ implementation
 {$ifdef i8086}
              resultdef:=compiler.deftypes.u16inttype;
 {$else i8086}
-             resultdef:=s32inttype;
+             resultdef:=compiler.deftypes.s32inttype;
 {$endif i8086}
            { include automatically generated code }
            {$i x86mmtype.inc}
@@ -607,13 +607,13 @@ implementation
            in_x86_inportw:
              inport(NR_AX,S_W,compiler.deftypes.u16inttype);
            in_x86_inportl:
-             inport(NR_EAX,S_L,s32inttype);
+             inport(NR_EAX,S_L,compiler.deftypes.s32inttype);
            in_x86_outportb:
              outport(NR_AL,S_B,compiler.deftypes.u8inttype);
            in_x86_outportw:
              outport(NR_AX,S_W,compiler.deftypes.u16inttype);
            in_x86_outportl:
-             outport(NR_EAX,S_L,s32inttype);
+             outport(NR_EAX,S_L,compiler.deftypes.s32inttype);
            in_x86_cli:
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
            in_x86_sti:

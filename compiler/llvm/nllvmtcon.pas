@@ -709,7 +709,7 @@ implementation
       llvmfielddef:=tabstractrecordsymtable(def.symtable).llvmst[vs].def;
       { get the address of the llvm-struct field that corresponds to this
         Pascal field }
-      getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);
+      getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,compiler.deftypes.s32inttype,vs.llvmfieldnr,true);
       { getelementptr doesn't contain its own resultdef, so encode it via a
         tai_simpletypedconst tai }
       getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,cpointerdef.getreusable(llvmfielddef,compiler));

@@ -151,8 +151,8 @@ uses
             ftcb.queue_init(def);
             if is_farpointer(def) or is_hugepointer(def) then
               begin
-                ftcb.queue_typeconvn(s32inttype,def);
-                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),s32inttype);
+                ftcb.queue_typeconvn(compiler.deftypes.s32inttype,def);
+                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),compiler.deftypes.s32inttype);
               end
             else
               begin

@@ -804,7 +804,7 @@ implementation
         else
           case p.resultdef.typ of
             enumdef :
-              p:=compiler.ctypeconvnode_internal(p,s32inttype);
+              p:=compiler.ctypeconvnode_internal(p,compiler.deftypes.s32inttype);
             arraydef :
               begin
                 if is_chararray(p.resultdef) then
@@ -820,7 +820,7 @@ implementation
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
                   if not(m_delphi in compiler.globals.current_settings.modeswitches) then
-                    p:=compiler.ctypeconvnode(p,s32inttype)
+                    p:=compiler.ctypeconvnode(p,compiler.deftypes.s32inttype)
                   else
                     { delphi doesn't generate a range error when passing a
                       cardinal >= $80000000, but since these are seen as
@@ -828,7 +828,7 @@ implementation
                       as a result, we require an explicit longint()
                       typecast in FPC mode on the caller side if range
                       checking should be disabled, but not in Delphi mode }
-                    p:=compiler.ctypeconvnode_internal(p,s32inttype)
+                    p:=compiler.ctypeconvnode_internal(p,compiler.deftypes.s32inttype)
                 else if is_void(p.resultdef) then
                   compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
@@ -2011,13 +2011,13 @@ implementation
         addstatement(newstatement,compiler.cassignmentnode(
             compiler.ctemprefnode(temp2),
             compiler.cordconstnode
-               (tarraydef(left.resultdef).highrange+1,s32inttype,true)));
+               (tarraydef(left.resultdef).highrange+1,compiler.deftypes.s32inttype,true)));
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
             compiler.ccallparanode(compiler.caddrnode_internal
                   (compiler.ctemprefnode(temp2)),
                compiler.ccallparanode(compiler.cordconstnode
-                  (1,s32inttype,true),
+                  (1,compiler.deftypes.s32inttype,true),
                compiler.ccallparanode(compiler.caddrnode_internal
                   (compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal)),
                compiler.ccallparanode(
@@ -2108,7 +2108,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,s32inttype,true));
+        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
         addstatement(newstatement,temp2);
 
         { create call to fpc_dynarr_setlength }
@@ -2116,7 +2116,7 @@ implementation
             compiler.ccallparanode(compiler.caddrnode_internal
                   (compiler.ctemprefnode(temp2)),
                compiler.ccallparanode(compiler.cordconstnode
-                  (1,s32inttype,true),
+                  (1,compiler.deftypes.s32inttype,true),
                compiler.ccallparanode(compiler.caddrnode_internal
                   (compiler.crttinode(tstoreddef(totypedef),initrtti,rdt_normal)),
                compiler.ccallparanode(
@@ -2180,7 +2180,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,s32inttype,true));
+        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
         addstatement(newstatement,temp2);
 
         { add assignment statements }
@@ -3107,7 +3107,7 @@ implementation
                            2 :
                              hdef:=compiler.deftypes.s16inttype;
                            4 :
-                             hdef:=s32inttype;
+                             hdef:=compiler.deftypes.s32inttype;
                            8 :
                              hdef:=s64inttype;
                          end;
@@ -3831,7 +3831,7 @@ implementation
                     is_64bitint(left.resultdef) and
                     (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s32inttype,compiler.deftypes.u32inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,compiler.deftypes.s32inttype,compiler.deftypes.u32inttype);
 {$if defined(cpu16bitalu)}
                   if (resultdef.size <= 2) and
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and
@@ -4195,7 +4195,7 @@ implementation
             (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
-             left:=compiler.ctypeconvnode_internal(left,s32inttype);
+             left:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s32inttype);
              firstpass(left);
              exit;
            end;

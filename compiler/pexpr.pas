@@ -2087,7 +2087,7 @@ implementation
            elements.add(p4);
          until not parser.pbase.try_to_consume(_COMMA);
 
-         arraydef:=carraydef.getreusable(s32inttype,elements.count,compiler);
+         arraydef:=carraydef.getreusable(compiler.deftypes.s32inttype,elements.count,compiler);
          temp:=compiler.ctempcreatenode(arraydef,arraydef.size,tt_persistent,false);
          addstatement(newstatement,temp);
          for countindices:=0 to elements.count-1 do
@@ -2116,7 +2116,7 @@ implementation
 
              { create call to fpc_vararray_put }
              paras:=compiler.ccallparanode(compiler.cordconstnode
-                   (countindices,s32inttype,true),
+                   (countindices,compiler.deftypes.s32inttype,true),
                 compiler.ccallparanode(compiler.caddrnode_internal
                (compiler.cvecnode(compiler.ctemprefnode(temp),genintconstnode(0,compiler))),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
@@ -2134,7 +2134,7 @@ implementation
 
              { create call to fpc_vararray_get }
              paras:=compiler.ccallparanode(compiler.cordconstnode
-                   (countindices,s32inttype,true),
+                   (countindices,compiler.deftypes.s32inttype,true),
                 compiler.ccallparanode(compiler.caddrnode_internal
                (compiler.ctemprefnode(temp)),
                 compiler.ccallparanode(p1,
@@ -2195,13 +2195,13 @@ implementation
           addstatement(newstatement,compiler.cassignmentnode(
               compiler.ctemprefnode(temp2),
               compiler.cordconstnode
-                 (paracount,s32inttype,true)));
+                 (paracount,compiler.deftypes.s32inttype,true)));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
               compiler.ccallparanode(compiler.caddrnode_internal
                     (compiler.ctemprefnode(temp2)),
                  compiler.ccallparanode(compiler.cordconstnode
-                    (1,s32inttype,true),
+                    (1,compiler.deftypes.s32inttype,true),
                  compiler.ccallparanode(compiler.caddrnode_internal
                     (compiler.crttinode(tstoreddef(arrdef),initrtti,rdt_normal)),
                  compiler.ccallparanode(
@@ -2458,7 +2458,7 @@ implementation
 {$elseif defined(i386)}
                                if parser.pbase.try_to_consume(_COLON) then
                                 begin
-                                  p3:=compiler.caddnode(muln,compiler.cordconstnode($10,s32inttype,false),p2);
+                                  p3:=compiler.caddnode(muln,compiler.cordconstnode($10,compiler.deftypes.s32inttype,false),p2);
                                   p2:=comp_expr([ef_accept_equal]);
                                   p2:=compiler.caddnode(addn,p2,p3);
                                   if parser.pbase.try_to_consume(_POINTPOINT) then

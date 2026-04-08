@@ -114,9 +114,9 @@ unit tgcpu;
                   eledef:=def;
                   repeat
                     if forcesize<>-1 then
-                      thlcgjvm(hlcg).a_load_const_stack(list,s32inttype,forcesize div tarraydef(eledef).elesize,R_INTREGISTER)
+                      thlcgjvm(hlcg).a_load_const_stack(list,compiler.deftypes.s32inttype,forcesize div tarraydef(eledef).elesize,R_INTREGISTER)
                     else
-                      thlcgjvm(hlcg).a_load_const_stack(list,s32inttype,tarraydef(eledef).elecount,R_INTREGISTER);
+                      thlcgjvm(hlcg).a_load_const_stack(list,compiler.deftypes.s32inttype,tarraydef(eledef).elecount,R_INTREGISTER);
                     eledef:=tarraydef(eledef).elementdef;
                     inc(ndim);
                     forcesize:=-1;

@@ -349,7 +349,7 @@ implementation
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S32;
-                 opdef := s32inttype;
+                 opdef := compiler.deftypes.s32inttype;
                end
              else
                begin

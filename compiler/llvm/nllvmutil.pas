@@ -176,7 +176,7 @@ implementation
       if procdefs.count<>0 then
         begin
           pd:=tprocdef(procdefs[0]);
-          fields[0]:=s32inttype;
+          fields[0]:=compiler.deftypes.s32inttype;
           fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler);
           fields[2]:=compiler.deftypes.voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
@@ -190,7 +190,7 @@ implementation
           for i:=0 to procdefs.count-1 do
             begin
               tcb.maybe_begin_aggregate(itemdef);
-              tcb.emit_ord_const(65535,s32inttype);
+              tcb.emit_ord_const(65535,compiler.deftypes.s32inttype);
               tcb.emit_procdef_const(tprocdef(procdefs[i]));
               tcb.emit_tai(Tai_const.Create_sym(nil),compiler.deftypes.voidpointertype);
               tcb.maybe_end_aggregate(itemdef);
@@ -250,15 +250,15 @@ implementation
                     begin
                       sourcefile:=compiler.get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
                       globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(sourcefile.name)));
-                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.line)));
-                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.column)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.line)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.column)));
                     end
                   else
                     begin
                       sourcefile:=compiler.current_module.sourcefiles.get_file(1);
                       globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(sourcefile.name)));
-                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
                     end;
 
                   asanglobal:=tai_llvmunnamedmetadatanode.create;
@@ -303,23 +303,23 @@ implementation
           else
             objcabiversion:=1;
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Version')));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(objcabiversion)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(objcabiversion)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { image info version }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Version')));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { image info section }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Section')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info,compiler.target))));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
@@ -327,9 +327,9 @@ implementation
 
           { garbage collection }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(1)));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Garbage Collection')));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
@@ -344,23 +344,23 @@ implementation
           { the debug info version is the version of the debug info metadata
             format }
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(2)));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Debug Info Version')));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[compiler.globals.current_settings.llvmversion])));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[compiler.globals.current_settings.llvmversion])));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
 
           { dwarf version }
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(2)));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Dwarf Version')));
           case compiler.target.dbg.id of
             dbg_dwarf2:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(2)));
             dbg_dwarf3:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(3)));
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(3)));
             dbg_dwarf4:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(4)));
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(4)));
             else
               internalerror(2022022012);
           end;

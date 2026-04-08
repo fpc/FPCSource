@@ -61,7 +61,7 @@ implementation
              (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
             begin
               { this triggers the special codepath for trunc/round inline nodes on m68k (KB) }
-              left.resultdef:=s32inttype;
+              left.resultdef:=compiler.deftypes.s32inttype;
             end;
 
         result:=inherited typecheck_int_to_int;
@@ -113,7 +113,7 @@ implementation
               and we have a special codepath for 32bit unsigned in second pass (KB) }
             if not (is_32bitint(left.resultdef) or is_signed(left.resultdef)) then
               begin
-                inserttypeconv(left,s32inttype,compiler);
+                inserttypeconv(left,compiler.deftypes.s32inttype,compiler);
                 firstpass(left);
               end;
           end;
