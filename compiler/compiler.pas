@@ -238,6 +238,8 @@ type
     Fgenerrorsym: tsym;
     Fgenerrordef: tdef;               { error in definition }
 
+    FDefTypes: tdefaulttypes;
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -316,6 +318,7 @@ type
     property current_specializedef: tstoreddef read Fcurrent_specializedef write Fcurrent_specializedef;
     property generrorsym: tsym read Fgenerrorsym write Fgenerrorsym;
     property generrordef: tdef read Fgenerrordef write Fgenerrordef;
+    property DefTypes: tdefaulttypes read FDefTypes;
   end;
 
   { TCompilerHelper }
@@ -333,6 +336,7 @@ type
     function Getcurrent_structdef: tabstractrecorddef; inline;
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
     function GetDefFile: TDefFile; inline;
+    function GetDefTypes: tdefaulttypes; inline;
 {$ifdef cpu64bitalu}
     function GetCG128 : tcg128; inline;
 {$else cpu64bitalu}
@@ -536,6 +540,7 @@ type
     property current_specializedef: tstoreddef read Getcurrent_specializedef;
     property generrorsym: tsym read Getgenerrorsym;
     property generrordef: tdef read Getgenerrordef;
+    property DefTypes: tdefaulttypes read GetDefTypes;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -579,6 +584,7 @@ begin
   CompilerInited:=false;
   do_doneSymbolInfo;
   DoneSymtable(Self);
+  FreeAndNil(FDefTypes);
   FreeAndNil(FSwitches);
   FreeAndNil(FSysSymList);
   FreeAndNil(FGlobals);
@@ -634,6 +640,7 @@ begin
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
   inittokens;
+  FDefTypes:=TDefaultTypes.Create;
   InitSymtable(Self); {Must come before read_arguments, to enable macrosymstack}
   do_initSymbolInfo;
   FSwitches:=TSwitchesHandler.Create(Self);
@@ -1161,6 +1168,11 @@ end;
 function TCompilerHelper.GetDefFile: TDefFile; inline;
 begin
   Result := TCompiler(Self).DefFile;
+end;
+
+function TCompilerHelper.GetDefTypes: tdefaulttypes; inline;
+begin
+  Result := TCompiler(Self).DefTypes;
 end;
 
 {$ifdef cpu64bitalu}

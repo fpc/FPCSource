@@ -1135,6 +1135,10 @@ interface
        end;
 
 
+       tdefaulttypes = class
+       end;
+
+
     var
        cfiledef: tfiledefclass;
        cvariantdef: tvariantdefclass;
