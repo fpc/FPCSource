@@ -517,7 +517,7 @@ implementation
                      begin
                        if is_integer(pt.resultdef) then
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-                         inserttypeconv_internal(pt,s16inttype,compiler);
+                         inserttypeconv_internal(pt,compiler.deftypes.s16inttype,compiler);
 {$else}
                          inserttypeconv_internal(pt,s32inttype,compiler);
 {$endif}

@@ -892,7 +892,7 @@ implementation
                   compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s8inttype),
                     genintconstnode(shortint(trashintval),compiler));
                 2: trash_small(stat,
-                  compiler.ctypeconvnode_internal(trashn,s16inttype),
+                  compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s16inttype),
                     genintconstnode(smallint(trashintval),compiler));
                 4: trash_small(stat,
                   compiler.ctypeconvnode_internal(trashn,s32inttype),

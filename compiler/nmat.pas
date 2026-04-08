@@ -1169,7 +1169,7 @@ implementation
              else if is_32bit(left.resultdef) then
                inserttypeconv(left,s32inttype,compiler)
              else if is_16bit(left.resultdef) then
-               inserttypeconv(left,s16inttype,compiler)
+               inserttypeconv(left,compiler.deftypes.s16inttype,compiler)
              else
                internalerror(2013040701);
              resultdef:=left.resultdef;
@@ -1299,7 +1299,7 @@ implementation
             else if is_32bit(left.resultdef) then
               inserttypeconv(left,s32inttype,compiler)
             else if is_16bit(left.resultdef) then
-              inserttypeconv(left,s16inttype,compiler)
+              inserttypeconv(left,compiler.deftypes.s16inttype,compiler)
             else
               internalerror(2013040702);
             result:=left;

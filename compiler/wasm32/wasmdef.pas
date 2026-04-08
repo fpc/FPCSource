@@ -61,7 +61,7 @@ implementation
           u16bit:
             begin
               if torddef(def).high>32767 then
-                result:=s16inttype;
+                result:=compiler.deftypes.s16inttype;
             end
           else
             ;

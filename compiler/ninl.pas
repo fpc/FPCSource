@@ -751,7 +751,7 @@ implementation
             s16bit:
               begin
                 func_suffix := 'smallint';
-                readfunctype:=s16inttype;
+                readfunctype:=compiler.deftypes.s16inttype;
               end;
             u16bit :
               begin
@@ -897,7 +897,7 @@ implementation
                       2:
                         begin
                           name:=name+'_smallint';
-                          readfunctype:=s16inttype;
+                          readfunctype:=compiler.deftypes.s16inttype;
                         end;
                       4:
                         begin
@@ -2577,7 +2577,7 @@ implementation
                           bool16bit :
                             begin
                               { change to smallint() }
-                              result:=compiler.ctypeconvnode_internal(left,s16inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s16inttype);
                               left:=nil;
                             end;
                           bool32bit :

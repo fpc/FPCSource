@@ -356,24 +356,24 @@ implementation
                     addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
                  else
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,s16inttype,addvalue<=1);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,compiler.deftypes.s16inttype,addvalue<=1);
                      hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
                      { insert multiply with addvalue if its >1 }
                      if addvalue>1 then
-                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,s16inttype,addvalue.svalue,hregister);
+                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,compiler.deftypes.s16inttype,addvalue.svalue,hregister);
                      addconstant:=false;
                    end;
                end;
              { write the add instruction }
              if addconstant then
                begin
-                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],s16inttype,
+                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    smallint(addvalue.svalue),
                    tmploc);
                end
              else
                begin
-                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],s16inttype,
+                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    hregister,tmploc);
                end;
            end

@@ -1226,7 +1226,7 @@ implementation
             aitconst_8bit:
               def:=compiler.deftypes.s8inttype;
             aitconst_16bit:
-              def:=s16inttype;
+              def:=compiler.deftypes.s16inttype;
             else
               def:=sizesinttype;
           end;

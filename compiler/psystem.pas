@@ -167,13 +167,13 @@ implementation
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
         sizeuinttype:=compiler.deftypes.u16inttype;
-        sizesinttype:=s16inttype;
+        sizesinttype:=compiler.deftypes.s16inttype;
 {$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}
         uinttype:=compiler.deftypes.u16inttype;
-        sinttype:=s16inttype;
+        sinttype:=compiler.deftypes.s16inttype;
         aluuinttype:=compiler.deftypes.u16inttype;
-        alusinttype:=s16inttype;
+        alusinttype:=compiler.deftypes.s16inttype;
 {$endif cpu16bitalu}
 {$ifdef cpu8bitalu}
         uinttype:=compiler.deftypes.u8inttype;
@@ -205,7 +205,7 @@ implementation
           2:
             begin
               codeptruinttype:=compiler.deftypes.u16inttype;
-              codeptrsinttype:=s16inttype;
+              codeptrsinttype:=compiler.deftypes.s16inttype;
             end;
           4:
             begin
@@ -224,7 +224,7 @@ implementation
           2:
             begin
               ptruinttype:=compiler.deftypes.u16inttype;
-              ptrsinttype:=s16inttype;
+              ptrsinttype:=compiler.deftypes.s16inttype;
             end;
           4:
             begin
@@ -289,7 +289,7 @@ implementation
         compiler.deftypes.u8inttype:=corddef.create(u8bit,0,255,true,compiler);
         compiler.deftypes.s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
         compiler.deftypes.u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
-        s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
+        compiler.deftypes.s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
         s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
         u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true,compiler);
         u32inttype:=corddef.create(u32bit,0,high(longword),true,compiler);
@@ -560,7 +560,7 @@ implementation
         addtype('Byte',compiler.deftypes.u8inttype);
         addtype('ShortInt',compiler.deftypes.s8inttype);
         addtype('Word',compiler.deftypes.u16inttype);
-        addtype('SmallInt',s16inttype);
+        addtype('SmallInt',compiler.deftypes.s16inttype);
         addtype('LongWord',u32inttype);
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
@@ -583,7 +583,7 @@ implementation
         addtype('$byte',compiler.deftypes.u8inttype);
         addtype('$shortint',compiler.deftypes.s8inttype);
         addtype('$word',compiler.deftypes.u16inttype);
-        addtype('$smallint',s16inttype);
+        addtype('$smallint',compiler.deftypes.s16inttype);
         addtype('$sint24',s24inttype);
         addtype('$uint24',u24inttype);
         addtype('$ulong',u32inttype);
@@ -740,7 +740,7 @@ implementation
         loadtype('byte',compiler.deftypes.u8inttype);
         loadtype('shortint',compiler.deftypes.s8inttype);
         loadtype('word',compiler.deftypes.u16inttype);
-        loadtype('smallint',s16inttype);
+        loadtype('smallint',compiler.deftypes.s16inttype);
         loadtype('uint24',u24inttype);
         loadtype('sint24',s24inttype);
         loadtype('ulong',u32inttype);

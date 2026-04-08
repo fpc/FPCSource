@@ -333,7 +333,7 @@ implementation
              if is_signed(left.resultdef) then
                begin
                  opsize := OS_S16;
-                 opdef := s16inttype;
+                 opdef := compiler.deftypes.s16inttype;
                end
              else
                begin

@@ -559,7 +559,7 @@ implementation
           x86pt_near_es,
           x86pt_near_fs,
           x86pt_near_gs:
-            result:=s16inttype;
+            result:=compiler.deftypes.s16inttype;
         end;
       end;
 
@@ -596,7 +596,7 @@ implementation
           x86pt_near_es,
           x86pt_near_fs,
           x86pt_near_gs:
-            result:=s16inttype;
+            result:=compiler.deftypes.s16inttype;
         end;
       end;
 
@@ -614,7 +614,7 @@ implementation
           x86pt_near_es,
           x86pt_near_fs,
           x86pt_near_gs:
-            result:=s16inttype;
+            result:=compiler.deftypes.s16inttype;
         end;
       end;
 

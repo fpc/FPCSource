@@ -3105,7 +3105,7 @@ implementation
                            1 :
                              hdef:=compiler.deftypes.s8inttype;
                            2 :
-                             hdef:=s16inttype;
+                             hdef:=compiler.deftypes.s16inttype;
                            4 :
                              hdef:=s32inttype;
                            8 :
@@ -3837,7 +3837,7 @@ implementation
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and
                     (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln,shrn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit],int64(low(smallint)),high(word)) then
-                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,s16inttype,compiler.deftypes.u16inttype);
+                    doremoveinttypeconvs(0,left,compiler.generrordef,not foundsint,compiler.deftypes.s16inttype,compiler.deftypes.u16inttype);
 {$endif defined(cpu16bitalu)}
 {$if defined(cpu8bitalu)}
                  if (resultdef.size<left.resultdef.size) and

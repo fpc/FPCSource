@@ -311,7 +311,7 @@ implementation
       tosize:=get_para_push_size(tosize);
       if tosize=compiler.deftypes.s8inttype then
         a:=shortint(a)
-      else if tosize=s16inttype then
+      else if tosize=compiler.deftypes.s16inttype then
         a:=smallint(a);
       inherited a_load_const_cgpara(list, tosize, a, cgpara);
     end;
@@ -2191,7 +2191,7 @@ implementation
         if (torddef(tosize).ordtype in [u8bit,uchar]) then
           tosize:=compiler.deftypes.s8inttype
         else if torddef(tosize).ordtype=u16bit then
-          tosize:=s16inttype;
+          tosize:=compiler.deftypes.s16inttype;
 
       fromcgsize:=def_cgsize(fromsize);
       tocgsize:=def_cgsize(tosize);
@@ -2269,7 +2269,7 @@ implementation
                   if torddef(retdef).ordtype in [u8bit,uchar] then
                     convsize:=compiler.deftypes.s8inttype
                   else
-                    convsize:=s16inttype
+                    convsize:=compiler.deftypes.s16inttype
                 else if torddef(retdef).ordtype in [u8bit,uchar] then
                     convsize:=compiler.deftypes.u8inttype
                   else

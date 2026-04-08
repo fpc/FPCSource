@@ -143,7 +143,7 @@ function GetTypeDef(const ATyp: string): string;
       'r8':    exit('compiler.deftypes.u8inttype');
       'rs8':   exit('compiler.deftypes.s8inttype');
       'r16':   exit('compiler.deftypes.u16inttype');
-      'rs16':  exit('s16inttype');
+      'rs16':  exit('compiler.deftypes.s16inttype');
       'r32':   exit('u32inttype');
       'rs32':  exit('s32inttype');
       'r64':   exit('u64inttype');

@@ -1191,7 +1191,7 @@ implementation
       case size.size of
         1:
           if signed then
-            calcsize:=s16inttype
+            calcsize:=compiler.deftypes.s16inttype
           else
             calcsize:=compiler.deftypes.u16inttype;
         2:

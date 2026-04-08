@@ -1185,7 +1185,8 @@ interface
 {$endif llvm}
          u8inttype,                 { 8-Bit unsigned integer }
          s8inttype,                 { 8-Bit signed integer }
-         u16inttype: tdef;          { 16-Bit unsigned integer }
+         u16inttype,                { 16-Bit unsigned integer }
+         s16inttype: tdef;          { 16-Bit signed integer }
        end;
 
 
@@ -1212,7 +1213,6 @@ interface
 
 
     { default types }
-       s16inttype,                { 16-Bit signed integer }
        u24inttype,                { 24-Bit unsigned integer }
        s24inttype,                { 24-Bit signed integer }
        u32inttype,                { 32-Bit unsigned integer }
@@ -9785,7 +9785,7 @@ implementation
        compiler.deftypes.u8inttype:=nil;                 { 8-Bit unsigned integer }
        compiler.deftypes.s8inttype:=nil;                 { 8-Bit signed integer }
        compiler.deftypes.u16inttype:=nil;                { 16-Bit unsigned integer }
-       s16inttype:=nil;                { 16-Bit signed integer }
+       compiler.deftypes.s16inttype:=nil;                { 16-Bit signed integer }
        u24inttype:=nil;                { 24-Bit unsigned integer }
        s24inttype:=nil;                { 24-Bit signed integer }
        u32inttype:=nil;                { 32-Bit unsigned integer }

@@ -156,8 +156,8 @@ uses
               end
             else
               begin
-                ftcb.queue_typeconvn(s16inttype,def);
-                ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),s16inttype);
+                ftcb.queue_typeconvn(compiler.deftypes.s16inttype,def);
+                ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),compiler.deftypes.s16inttype);
               end;
           end
         else if node.nodetype=niln then

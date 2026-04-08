@@ -543,7 +543,7 @@ implementation
         else if (l>=0) and (h<=255) then
          def:=compiler.deftypes.u8inttype
         else if (l>=int64(-32768)) and (h<=32767) then
-         def:=s16inttype
+         def:=compiler.deftypes.s16inttype
         else if (l>=0) and (h<=65535) then
          def:=compiler.deftypes.u16inttype
         else if (l>=int64(low(longint))) and (h<=high(longint)) then
@@ -1832,7 +1832,7 @@ implementation
           OS_16:
             result:=torddef(compiler.deftypes.u16inttype);
           OS_S16:
-            result:=torddef(s16inttype);
+            result:=torddef(compiler.deftypes.s16inttype);
           OS_32:
             result:=torddef(u32inttype);
           OS_S32:
@@ -1967,7 +1967,7 @@ implementation
           u8bit:
             result:=torddef(compiler.deftypes.u8inttype);
           s16bit:
-            result:=torddef(s16inttype);
+            result:=torddef(compiler.deftypes.s16inttype);
           u16bit:
             result:=torddef(compiler.deftypes.u16inttype);
           s32bit:
@@ -1992,7 +1992,7 @@ implementation
             s8bit:
               result:=torddef(compiler.deftypes.u8inttype);
             u8bit:
-              result:=torddef(s16inttype);
+              result:=torddef(compiler.deftypes.s16inttype);
             s16bit:
               result:=torddef(compiler.deftypes.u16inttype);
             u16bit:

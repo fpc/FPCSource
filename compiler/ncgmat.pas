@@ -527,7 +527,7 @@ implementation
                     opsize:=OS_S32;
                   end;
 {$ifdef cpu16bitalu}
-                shiftcountdef:=s16inttype;
+                shiftcountdef:=compiler.deftypes.s16inttype;
 {$else cpu16bitalu}
                 shiftcountdef:=opdef;
 {$endif cpu16bitalu}

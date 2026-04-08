@@ -587,7 +587,7 @@ implementation
                           pasbool16:
                             begin
                               objdef:=tobjectdef(search_system_type('JLSHORT').typedef);
-                              paradef:=s16inttype;
+                              paradef:=compiler.deftypes.s16inttype;
                             end;
                           s32bit,
                           u32bit,
@@ -779,7 +779,7 @@ implementation
           u16bit:
             begin
               if torddef(def).high>32767 then
-                result:=s16inttype;
+                result:=compiler.deftypes.s16inttype;
             end
           else
             ;
@@ -910,7 +910,7 @@ implementation
                   if (usedef.typ=orddef) then
                     case torddef(usedef).ordtype of
                       u8bit,uchar:
-                        usedef:=s16inttype;
+                        usedef:=compiler.deftypes.s16inttype;
                       u16bit:
                         usedef:=s32inttype;
                       else
