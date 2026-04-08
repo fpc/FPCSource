@@ -1165,7 +1165,7 @@ implementation
                 4:
                   retdeflist[i]:=compiler.deftypes.u32inttype;
                 5:
-                  retdeflist[i]:=u40inttype;
+                  retdeflist[i]:=compiler.deftypes.u40inttype;
                 6:
                   retdeflist[i]:=u48inttype;
                 7:
