@@ -160,6 +160,8 @@ implementation
 
   function llvmconvop(var fromsize, tosize: tdef; inregs: boolean): tllvmop;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       fromregtyp,
       toregtyp: tregistertype;
       frombytesize,
@@ -248,16 +250,16 @@ implementation
                   end;
               end;
             end
-          else if (fromsize=llvmbool1type) and
-                  (tosize<>llvmbool1type) then
+          else if (fromsize=compiler.deftypes.llvmbool1type) and
+                  (tosize<>compiler.deftypes.llvmbool1type) then
             begin
               if is_cbool(tosize) then
                 result:=la_sext
               else
                 result:=la_zext
             end
-          else if (tosize=llvmbool1type) and
-                  (fromsize<>llvmbool1type) then
+          else if (tosize=compiler.deftypes.llvmbool1type) and
+                  (fromsize<>compiler.deftypes.llvmbool1type) then
             begin
               { would have to compare with 0, can't just take the lowest bit }
               if is_cbool(fromsize) then
@@ -429,7 +431,7 @@ implementation
                 we need a way to represent the i1 type in Pascal. We don't
                 reuse compiler.deftypes.pasbool1type, because putting an i1 in a record or
                 passing it as a parameter may result in unexpected behaviour }
-              else if def=llvmbool1type then
+              else if def=compiler.deftypes.llvmbool1type then
                 encodedstr:=encodedstr+'i1'
               else if torddef(def).ordtype<>customint then
                 encodedstr:=encodedstr+'i'+tostr(def.size*8)

@@ -298,24 +298,30 @@ implementation
   /////////////////////////////////////////////////
 
   constructor tllvmspecialisedmetaitem.createboolean(const aitemname: TSymStr; boolval: boolean);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_boolean;
-      inherited create(llvmbool1type,tai_const.Create_8bit(ord(boolval)));
+      inherited create(compiler.deftypes.llvmbool1type,tai_const.Create_8bit(ord(boolval)));
     end;
 
   constructor tllvmspecialisedmetaitem.createint64(const aitemname: TSymStr; intval: int64);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_int64;
-      inherited create(llvmbool1type,tai_const.Create_64bit(intval));
+      inherited create(compiler.deftypes.llvmbool1type,tai_const.Create_64bit(intval));
     end;
 
   constructor tllvmspecialisedmetaitem.createqword(const aitemname: TSymStr; qwval: qword);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_qword;
-      inherited create(llvmbool1type,tai_const.Create_64bit(int64(qwval)));
+      inherited create(compiler.deftypes.llvmbool1type,tai_const.Create_64bit(int64(qwval)));
     end;
 
   constructor tllvmspecialisedmetaitem.createmetadataref(const aitemname: TSymStr; aival: tai_llvmmetadatareftypedconst);

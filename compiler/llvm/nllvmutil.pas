@@ -270,9 +270,9 @@ implementation
                   else
                     asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.namesym.Name)));
                   { dynamic init }
-                  asanglobal.addvalue(tai_simpletypedconst.create(llvmbool1type,tai_const.Create_8bit(ord(false))));
+                  asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvmbool1type,tai_const.Create_8bit(ord(false))));
                   { no asan }
-                  asanglobal.addvalue(tai_simpletypedconst.create(llvmbool1type,tai_const.Create_8bit(ord((ldf_vectorized in taillvmdecl(hp).flags)))));
+                  asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvmbool1type,tai_const.Create_8bit(ord((ldf_vectorized in taillvmdecl(hp).flags)))));
 
                   asanglobals.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(asanglobal)));
                 end;

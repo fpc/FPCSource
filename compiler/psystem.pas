@@ -318,7 +318,7 @@ implementation
         compiler.deftypes.bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
         compiler.deftypes.bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
 {$ifdef llvm}
-        llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
+        compiler.deftypes.llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
 {$endif llvm}
         compiler.deftypes.cansichartype:=corddef.create(uchar,0,255,true,compiler);
         compiler.deftypes.cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
@@ -555,7 +555,7 @@ implementation
         addtype('LongBool',compiler.deftypes.bool32type);
         addtype('QWordBool',compiler.deftypes.bool64type);
 {$ifdef llvm}
-        addtype('LLVMBool1',llvmbool1type);
+        addtype('LLVMBool1',compiler.deftypes.llvmbool1type);
 {$endif llvm}
         addtype('Byte',u8inttype);
         addtype('ShortInt',s8inttype);
@@ -616,7 +616,7 @@ implementation
         addtype('$longbool',compiler.deftypes.bool32type);
         addtype('$qwordbool',compiler.deftypes.bool64type);
 {$ifdef llvm}
-        addtype('$llvmbool1',llvmbool1type);
+        addtype('$llvmbool1',compiler.deftypes.llvmbool1type);
         llvm_metadatatype:=cformaldef.create(false,compiler);
         { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
         addtype('$metadata',llvm_metadatatype);
@@ -816,7 +816,7 @@ implementation
         loadtype('__m256i',x86_m256itype);
 {$endif x86}
 {$ifdef llvm}
-        loadtype('llvmbool1',llvmbool1type);
+        loadtype('llvmbool1',compiler.deftypes.llvmbool1type);
         loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
 {$ifdef wasm}
