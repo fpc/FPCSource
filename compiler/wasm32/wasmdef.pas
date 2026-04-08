@@ -6,7 +6,8 @@ interface
 
 uses
   sysutils, symtype, symsym, symdef, symconst, constexp
-  ,defutil, procdefutil, cclasses;
+  ,defutil, procdefutil, cclasses,
+  compilerbase;
 
 type
 
@@ -44,7 +45,12 @@ type
 
 implementation
 
+  uses
+    compiler;
+
   function get_para_push_size(def: tdef): tdef;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       result:=def;
       if def.typ=orddef then
