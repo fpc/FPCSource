@@ -411,7 +411,7 @@ implementation
                       R_ADDRESSREGISTER:
                         begin
                           size:=4;
-                          def:=compiler.deftypes.voidpointertype;
+                          def:=_compiler.deftypes.voidpointertype;
                         end;
                       R_FPUREGISTER:
                         case getsubreg(ra.reg) of
