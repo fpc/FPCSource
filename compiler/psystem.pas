@@ -314,7 +314,7 @@ implementation
         compiler.deftypes.pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
         compiler.deftypes.pasbool64type:=corddef.create(pasbool64,0,1,true,compiler);
         compiler.deftypes.bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
-        bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
+        compiler.deftypes.bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
         bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
         bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
 {$ifdef llvm}
@@ -551,7 +551,7 @@ implementation
         addtype('Boolean32',compiler.deftypes.pasbool32type);
         addtype('Boolean64',compiler.deftypes.pasbool64type);
         addtype('ByteBool',compiler.deftypes.bool8type);
-        addtype('WordBool',bool16type);
+        addtype('WordBool',compiler.deftypes.bool16type);
         addtype('LongBool',bool32type);
         addtype('QWordBool',bool64type);
 {$ifdef llvm}
@@ -612,7 +612,7 @@ implementation
         addtype('$boolean32',compiler.deftypes.pasbool32type);
         addtype('$boolean64',compiler.deftypes.pasbool64type);
         addtype('$bytebool',compiler.deftypes.bool8type);
-        addtype('$wordbool',bool16type);
+        addtype('$wordbool',compiler.deftypes.bool16type);
         addtype('$longbool',bool32type);
         addtype('$qwordbool',bool64type);
 {$ifdef llvm}
@@ -783,7 +783,7 @@ implementation
         loadtype('boolean32',compiler.deftypes.pasbool32type);
         loadtype('boolean64',compiler.deftypes.pasbool64type);
         loadtype('bytebool',compiler.deftypes.bool8type);
-        loadtype('wordbool',bool16type);
+        loadtype('wordbool',compiler.deftypes.bool16type);
         loadtype('longbool',bool32type);
         loadtype('qwordbool',bool64type);
         loadtype('char_pointer',compiler.deftypes.charpointertype);

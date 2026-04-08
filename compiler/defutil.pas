@@ -1528,7 +1528,7 @@ implementation
                  bool8bit:
                    result:=compiler.deftypes.bool8type;
                  bool16bit:
-                   result:=bool16type;
+                   result:=compiler.deftypes.bool16type;
                  bool32bit:
                    result:=bool32type;
                  bool64bit:

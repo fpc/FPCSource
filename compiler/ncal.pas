@@ -486,7 +486,7 @@ implementation
 
             { force automatable boolean type }
             else if is_boolean(para.left.resultdef) then
-              inserttypeconv_internal(para.left,bool16type,compiler)
+              inserttypeconv_internal(para.left,compiler.deftypes.bool16type,compiler)
 
             { force automatable float type }
             else if is_extended(para.left.resultdef)
