@@ -1257,7 +1257,7 @@ implementation
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
                           para:=compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctypeconvnode_internal(
-                            compiler.cloadnode(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
+                            compiler.cloadnode(currpara,currpara.owner),compiler.deftypes.cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
                           para)
                         else
                           para:=compiler.ccallparanode(compiler.cloadnode(currpara,currpara.owner),para);

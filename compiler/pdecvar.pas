@@ -470,7 +470,7 @@ implementation
                       parser.ptype.single_type(hdef,[]);
                   end
                 else
-                  hdef:=cformaltype;
+                  hdef:=compiler.deftypes.cformaltype;
                 for i:=0 to sc.count-1 do
                   tparavarsym(sc[i]).vardef:=hdef;
               until not parser.pbase.try_to_consume(_SEMICOLON);

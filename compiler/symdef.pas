@@ -1164,7 +1164,8 @@ interface
 {$ifdef wasm}
          wasmvoidexternreftype,
 {$endif wasm}
-         cundefinedtype: tdef;
+         cundefinedtype,
+         cformaltype: tdef;         { unique formal definition }
        end;
 
 
@@ -1191,7 +1192,6 @@ interface
 
 
     { default types }
-       cformaltype,               { unique formal definition }
        ctypedformaltype,          { unique typed formal definition }
        voidtype,                  { Void (procedure) }
        cansichartype,             { Char }
@@ -9764,7 +9764,7 @@ implementation
        compiler.deftypes.wasmvoidexternreftype:=nil;
 {$endif wasm}
        compiler.deftypes.cundefinedtype:=nil;
-       cformaltype:=nil;               { unique formal definition }
+       compiler.deftypes.cformaltype:=nil;               { unique formal definition }
        ctypedformaltype:=nil;          { unique typed formal definition }
        voidtype:=nil;                  { Void (procedure) }
        cansichartype:=nil;             { Char }

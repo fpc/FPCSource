@@ -541,7 +541,7 @@ implementation
               end;
            end
           else
-           hdef:=cformaltype;
+           hdef:=compiler.deftypes.cformaltype;
 
           if assigned(hdef.typesym) then
             check_hints(hdef.typesym,hdef.typesym.symoptions,hdef.typesym.deprecatedmsg);
