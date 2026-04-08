@@ -2481,7 +2481,7 @@ implementation
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
                        compiler.verbose.CGMessage(parser_e_range_check_error);
 {$if defined(i8086)}
-                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 16)+vl.uvalue,compiler.deftypes.voidfarpointertype);
 {$elseif defined(i386)}
                      hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,compiler.deftypes.voidnearfspointertype);
 {$else}

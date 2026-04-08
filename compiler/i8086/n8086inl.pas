@@ -108,7 +108,7 @@ implementation
              if addr_node_resultdef.typ=pointerdef then
                inserttypeconv_internal(result,tcpupointerdef.getreusablex86(tpointerdef(addr_node_resultdef).pointeddef,x86pt_far,compiler),compiler)
              else
-               inserttypeconv_internal(result,voidfarpointertype,compiler);
+               inserttypeconv_internal(result,compiler.deftypes.voidfarpointertype,compiler);
            end;
        end;
 

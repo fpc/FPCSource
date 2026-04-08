@@ -367,7 +367,7 @@ implementation
   function tcpuprocdef.address_type: tdef;
     begin
       if is_far then
-        result:=voidfarpointertype
+        result:=compiler.deftypes.voidfarpointertype
       else
         result:=compiler.deftypes.voidnearpointertype;
     end;
@@ -459,7 +459,7 @@ implementation
     begin
       if is_addressonly then
         if is_far then
-          result:=voidfarpointertype
+          result:=compiler.deftypes.voidfarpointertype
         else
           begin
             { near }

@@ -258,7 +258,7 @@ implementation
           internalerror(2015120101)
         else
           if is_proc_far(tabstractprocdef(size)) then
-            size:=voidfarpointertype
+            size:=compiler.deftypes.voidfarpointertype
           else
             size:=compiler.deftypes.voidnearpointertype;
 
