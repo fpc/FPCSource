@@ -767,6 +767,8 @@ implementation
 
 
   function get_para_push_size(def: tdef): tdef;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       result:=def;
       if def.typ=orddef then
