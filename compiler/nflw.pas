@@ -2681,7 +2681,7 @@ implementation
                  { addr }
                  typecheckpass(right);
                  set_varstate(right,vs_read,[vsf_must_be_valid]);
-                 inserttypeconv(right,voidcodepointertype,compiler);
+                 inserttypeconv(right,compiler.deftypes.voidcodepointertype,compiler);
 
                  { frame }
                  if assigned(third) then

@@ -139,7 +139,7 @@ begin
 
     Header := TAsmList.Create;
     New_Section(Header, Sec_Code, 'FPC_INIT_FUNC_TABLE', 1);
-    Header.Concat(TAI_Symbol.CreateName_Global('FPC_INIT_FUNC_TABLE', AT_FUNCTION, 0, VoidCodePointerType));
+    Header.Concat(TAI_Symbol.CreateName_Global('FPC_INIT_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 
     InitList.InsertList(Header);
     Header.Free;
@@ -148,7 +148,7 @@ begin
 
     Header := TAsmList.Create;
     New_Section(Header, Sec_Code, 'FPC_FINALIZE_FUNC_TABLE', 1);
-    Header.Concat(TAI_Symbol.CreateName_Global('FPC_FINALIZE_FUNC_TABLE', AT_FUNCTION, 0, VoidCodePointerType));
+    Header.Concat(TAI_Symbol.CreateName_Global('FPC_FINALIZE_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 
     FinalList.InsertList(Header);
     Header.Free;

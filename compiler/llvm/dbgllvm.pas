@@ -1443,7 +1443,7 @@ implementation
           end
         else
           begin
-            appenddef_array_internal(list,def,voidcodepointertype,1,2);
+            appenddef_array_internal(list,def,compiler.deftypes.voidcodepointertype,1,2);
           end;
       end;
 

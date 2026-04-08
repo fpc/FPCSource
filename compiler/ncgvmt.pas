@@ -266,7 +266,7 @@ implementation
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
          tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1,compiler),compiler));
-         tcb.queue_init(voidcodepointertype);
+         tcb.queue_init(compiler.deftypes.voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
 
@@ -327,7 +327,7 @@ implementation
          tcb.maybe_begin_aggregate(entrydef);
          { write integer dispatch number }
          tcb.emit_tai(Tai_const.Create_32bit(p^.data.messageinf.i),u32inttype);
-         tcb.queue_init(voidcodepointertype);
+         tcb.queue_init(compiler.deftypes.voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
 
@@ -356,7 +356,7 @@ implementation
                 method : codepointer;
              end;
          }
-         msginttabledef:=get_recorddef(itp_vmt_intern_msgint_table,[u32inttype,voidcodepointertype],0);
+         msginttabledef:=get_recorddef(itp_vmt_intern_msgint_table,[u32inttype,compiler.deftypes.voidcodepointertype],0);
          { from objpas.inc:
              TMsgInt = record
                 count : longint;
@@ -519,12 +519,12 @@ implementation
                 lists^.pubmethodstcb.queue_init(compiler.deftypes.charpointertype);
                 lists^.pubmethodstcb.queue_emit_asmsym(l,namedef);
                 if po_abstractmethod in pd.procoptions then
-                  lists^.pubmethodstcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)
+                  lists^.pubmethodstcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype)
                 else
                   begin
                     { convert the procdef in a generic voidcodepointer, same
                       reason as above }
-                    lists^.pubmethodstcb.queue_init(voidcodepointertype);
+                    lists^.pubmethodstcb.queue_init(compiler.deftypes.voidcodepointertype);
                     lists^.pubmethodstcb.queue_emit_proc(pd);
                   end;
                 lists^.pubmethodstcb.maybe_end_aggregate(lists^.methodnamerec);
@@ -558,7 +558,7 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype,compiler),voidcodepointertype],1);
+              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype,compiler),compiler.deftypes.voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
@@ -1236,7 +1236,7 @@ implementation
           end;
          { write virtual methods }
          writevirtualmethods(tcb);
-         tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+         tcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
 
          tcb.maybe_end_aggregate(vmtdef);
 

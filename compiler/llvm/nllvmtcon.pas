@@ -827,11 +827,11 @@ implementation
       if not assigned(l.asmblocklabel) or
          not l.asmblocklabel.defined_in_asmstatement then
         begin
-          ai:=taillvm.blockaddress(voidcodepointertype,
+          ai:=taillvm.blockaddress(compiler.deftypes.voidcodepointertype,
               current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
             );
-          emit_tai(ai,voidcodepointertype);
+          emit_tai(ai,compiler.deftypes.voidcodepointertype);
           fqueue_offset:=low(fqueue_offset);
         end
       else

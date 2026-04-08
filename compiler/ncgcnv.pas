@@ -619,9 +619,9 @@ interface
                     procvarselfname:='self';
                   end;
                 hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(procvarrectype,compiler),href);
-                tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
-                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),voidcodepointertype,left.location.reference,tmpreg);
-                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
+                tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
+                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),compiler.deftypes.voidcodepointertype,left.location.reference,tmpreg);
+                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
@@ -635,8 +635,8 @@ interface
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidpointertype);
       hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidpointertype,0,location.registerhi);
-      location.register:=hlcg.getaddressregister(current_asmdata.currasmlist,voidcodepointertype);
-      hlcg.a_load_const_reg(current_asmdata.currasmlist,voidcodepointertype,0,location.register);
+      location.register:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype);
+      hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype,0,location.register);
     end;
 
     procedure tcgtypeconvnode.second_bool_to_int;

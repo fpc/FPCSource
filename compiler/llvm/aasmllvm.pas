@@ -815,7 +815,7 @@ implementation
             end;
           la_blockaddress:
             case opnr of
-              1: result:=voidcodepointertype
+              1: result:=compiler.deftypes.voidcodepointertype
               else
                 internalerror(2015111904);
             end

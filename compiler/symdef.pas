@@ -1138,7 +1138,8 @@ interface
        tdefaulttypes = class
          voidpointertype,           { pointer for Void-pointeddef }
          charpointertype,           { pointer for Char-pointeddef }
-         widecharpointertype: tdef; { pointer for WideChar-pointeddef }
+         widecharpointertype,       { pointer for WideChar-pointeddef }
+         voidcodepointertype: tdef; { pointer to code; corresponds to System.CodePointer }
        end;
 
 
@@ -1165,7 +1166,6 @@ interface
 
 
     { default types }
-       voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
        voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
        parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
@@ -6344,7 +6344,7 @@ implementation
 
     function tabstractprocdef.address_type: tdef;
       begin
-        result:=voidcodepointertype;
+        result:=compiler.deftypes.voidcodepointertype;
       end;
 
 
@@ -7834,18 +7834,18 @@ implementation
          { we return false for is_addressonly for a block (because it's not a
            simple pointer to a function), but they are handled as implicit
            pointers to a datastructure that contains everything ->
-           compiler.deftypes.voidpointertype.size instead of voidcodepointertype.size }
+           compiler.deftypes.voidpointertype.size instead of compiler.deftypes.voidcodepointertype.size }
          if po_is_block in procoptions then
            size:=compiler.deftypes.voidpointertype.size
          else if not is_addressonly then
            begin
              if is_nested_pd(self) then
-               size:=voidcodepointertype.size+parentfpvoidpointertype.size
+               size:=compiler.deftypes.voidcodepointertype.size+parentfpvoidpointertype.size
              else
-               size:=voidcodepointertype.size+compiler.deftypes.voidpointertype.size;
+               size:=compiler.deftypes.voidcodepointertype.size+compiler.deftypes.voidpointertype.size;
            end
          else
-           size:=voidcodepointertype.size;
+           size:=compiler.deftypes.voidcodepointertype.size;
       end;
 
 
@@ -8566,13 +8566,13 @@ implementation
         case objecttype of
         odt_class:
           { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=index*voidcodepointertype.size+10*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*compiler.deftypes.voidcodepointertype.size+10*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba,odt_dispinterface:
-          vmtmethodoffset:=index*voidcodepointertype.size;
+          vmtmethodoffset:=index*compiler.deftypes.voidcodepointertype.size;
         odt_javaclass,
         odt_interfacejava:
           { invalid }
@@ -8580,9 +8580,9 @@ implementation
         else
           { the +2*sizeof(pint) is size and -size }
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+2*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*compiler.deftypes.voidcodepointertype.size+2*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+1*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*compiler.deftypes.voidcodepointertype.size+1*compiler.deftypes.voidpointertype.size+2*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
@@ -9738,7 +9738,7 @@ implementation
        compiler.deftypes.voidpointertype:=nil;           { pointer for Void-pointeddef }
        compiler.deftypes.charpointertype:=nil;           { pointer for Char-pointeddef }
        compiler.deftypes.widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
-       voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
+       compiler.deftypes.voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
        voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
        parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}

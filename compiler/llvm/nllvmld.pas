@@ -127,13 +127,13 @@ procedure tllvmloadnode.pass_generate_code;
         end;
       labelsym:
         begin
-          selfreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
-          ai:=taillvm.blockaddress(voidcodepointertype,
+          selfreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
+          ai:=taillvm.blockaddress(compiler.deftypes.voidcodepointertype,
               current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               location.reference.symbol
             );
           current_asmdata.CurrAsmList.concat(
-            taillvm.op_reg_tai_size(la_bitcast,selfreg,ai,voidcodepointertype)
+            taillvm.op_reg_tai_size(la_bitcast,selfreg,ai,compiler.deftypes.voidcodepointertype)
           );
           reference_reset_base(location.reference,selfreg,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
         end;

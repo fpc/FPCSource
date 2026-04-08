@@ -1235,7 +1235,7 @@ implementation
                     compiler.current_module.addimportedsym(entry^.initpd.procsym);
                 end
               else
-                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
               if assigned(entry^.finipd) then
                 begin
                   unitinits.emit_procdef_const(entry^.finipd);
@@ -1243,7 +1243,7 @@ implementation
                     compiler.current_module.addimportedsym(entry^.finipd.procsym);
                 end
               else
-                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
             end
           else
             begin
@@ -1254,19 +1254,19 @@ implementation
                   nameinit:=entry^.initfunc;
                   unitinits.emit_tai(
                     Tai_const.Createname(nameinit,AT_FUNCTION,0),
-                    voidcodepointertype);
+                    compiler.deftypes.voidcodepointertype);
                 end
               else
-                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
               if entry^.finifunc<>'' then
                 begin
                   namefini:=entry^.finifunc;
                   unitinits.emit_tai(
                     Tai_const.Createname(namefini,AT_FUNCTION,0),
-                    voidcodepointertype);
+                    compiler.deftypes.voidcodepointertype);
                 end
               else
-                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
               if entry^.module<>compiler.current_module then
                 add_initfinal_import(entry^.module.localsymtable);
             end;
@@ -1464,7 +1464,7 @@ implementation
           begin
             tcb.emit_tai(
               Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0),
-              voidcodepointertype);
+              compiler.deftypes.voidcodepointertype);
             inc(count);
           end;
          hp:=tused_unit(hp.next);
@@ -1474,7 +1474,7 @@ implementation
        begin
          tcb.emit_tai(
            Tai_const.Createname(make_mangledname(prefix,compiler.current_module.localsymtable,''),0),
-           voidcodepointertype);
+           compiler.deftypes.voidcodepointertype);
          inc(count);
        end;
       { Insert TableCount at start }

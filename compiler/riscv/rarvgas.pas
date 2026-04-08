@@ -355,7 +355,7 @@ unit rarvgas;
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,voidcodepointertype);
+                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
                   end
                 else
                   inc(oper.opr.val,l);

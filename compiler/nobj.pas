@@ -897,7 +897,7 @@ implementation
             cprocvardef.getreusableprocaddr(pvmtentry(_class.vmtentries[i])^.procdef,pc_address_only,compiler)
           );
         { the VMT ends with a nil pointer }
-        vmtdef.add_field_by_def('',voidcodepointertype);
+        vmtdef.add_field_by_def('',compiler.deftypes.voidcodepointertype);
       end;
 
 

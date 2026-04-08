@@ -820,7 +820,7 @@ implementation
         if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(compiler.deftypes.voidpointertype)) then
           tcb.emit_tai(tai_const.Create_int_dataptr(value),compiler.deftypes.voidpointertype)
         else
-          tcb.emit_tai(tai_const.Create_int_codeptr(value),voidcodepointertype);
+          tcb.emit_tai(tai_const.Create_int_codeptr(value),compiler.deftypes.voidcodepointertype);
         result:=resultdef.size;
       end;
 
@@ -1580,7 +1580,7 @@ implementation
         if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(compiler.deftypes.voidpointertype)) then
           tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
-          tcb.emit_tai(tai_const.Create_nil_codeptr,voidcodepointertype);
+          tcb.emit_tai(tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype);
         result:=resultdef.size;
       end;
 

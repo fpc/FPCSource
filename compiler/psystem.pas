@@ -191,17 +191,17 @@ implementation
       begin
 {$ifdef i8086}
         if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
-          voidcodepointertype:=voidfarpointertype
+          compiler.deftypes.voidcodepointertype:=voidfarpointertype
         else if compiler.globals.current_settings.x86memorymodel=mm_tiny then
-          voidcodepointertype:=voidnearpointertype
+          compiler.deftypes.voidcodepointertype:=voidnearpointertype
         else
-          voidcodepointertype:=voidnearcspointertype;
+          compiler.deftypes.voidcodepointertype:=voidnearcspointertype;
         voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
-        voidcodepointertype:=compiler.deftypes.voidpointertype;
+        compiler.deftypes.voidcodepointertype:=compiler.deftypes.voidpointertype;
         voidstackpointertype:=compiler.deftypes.voidpointertype;
 {$endif i8086}
-        case voidcodepointertype.size of
+        case compiler.deftypes.voidcodepointertype.size of
           2:
             begin
               codeptruinttype:=u16inttype;
@@ -699,13 +699,13 @@ implementation
           end;
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,compiler.deftypes.voidpointertype,[]));
         methodpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$nestedprocpointer',nestedprocpointertype);

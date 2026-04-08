@@ -311,7 +311,7 @@ implementation
                     tcb.emit_ord_const(def.callerargareasize,sizesinttype);
                     maybe_add_comment(tcb,#9'invoke helper');
                     if def.invoke_helper=nil then
-                      tcb.emit_tai(Tai_const.Create_nil_dataptr,voidcodepointertype)
+                      tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidcodepointertype)
                     else
                       tcb.emit_procdef_const(def.invoke_helper);
                     maybe_add_comment(tcb,#9'name');
@@ -614,7 +614,7 @@ implementation
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
             datatcb.emit_ord_const(list.count,u32inttype);
 
-            entrydef:=get_recorddef(itp_init_mop_offset_entry,[voidcodepointertype,sizeuinttype],defaultpacking);
+            entrydef:=get_recorddef(itp_init_mop_offset_entry,[compiler.deftypes.voidcodepointertype,sizeuinttype],defaultpacking);
 
             for i:=0 to list.count-1 do
               begin
@@ -622,7 +622,7 @@ implementation
 
                 datatcb.maybe_begin_aggregate(entrydef);
 
-                datatcb.queue_init(voidcodepointertype);
+                datatcb.queue_init(compiler.deftypes.voidcodepointertype);
                 datatcb.queue_emit_proc(entry^.pd);
 
                 datatcb.queue_init(sizeuinttype);
@@ -1714,7 +1714,7 @@ implementation
             for mop := succ(low(tmanagementoperator)) to high(tmanagementoperator) do
             begin
               if not (mop in trecordsymtable(def.symtable).managementoperators) then
-                tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)
+                tcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.voidcodepointertype)
               else
                 begin
                   procdef := search_management_operator(mop, def);

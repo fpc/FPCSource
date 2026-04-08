@@ -112,7 +112,7 @@ implementation
 
       header:=TAsmList.create;
       new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
-      header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
+      header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
       initList.insertList(header);
       header.free;
@@ -121,7 +121,7 @@ implementation
 
       header:=TAsmList.create;
       new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
-      header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
+      header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
       finalList.insertList(header);
       header.free;

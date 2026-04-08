@@ -378,7 +378,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
         tcb.queue_init(compiler.deftypes.charpointertype);
         tcb.queue_emit_asmsym(defs[i].encsym,defs[i].encdef);
         { mangled name of the method }
-        tcb.queue_init(voidcodepointertype);
+        tcb.queue_init(compiler.deftypes.voidcodepointertype);
         tcb.queue_emit_proc(defs[i].def);
       end;
 
@@ -1045,13 +1045,13 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     { pointer to the super_class name if any, nil otherwise }
     if assigned(superStrSym) then
       begin
-        tcb.queue_init(voidcodepointertype);
+        tcb.queue_init(compiler.deftypes.voidcodepointertype);
         tcb.queue_emit_asmsym(superStrSym,superStrDef)
       end
     else
-      tcb.emit_tai(Tai_const.Create_nil_dataptr,voidcodepointertype);
+      tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidcodepointertype);
     { pointer to the class name }
-    tcb.queue_init(voidcodepointertype);
+    tcb.queue_init(compiler.deftypes.voidcodepointertype);
     tcb.queue_emit_asmsym(classStrSym,classStrDef);
     { version is always 0 currently }
     tcb.emit_ord_const(0,u32inttype);

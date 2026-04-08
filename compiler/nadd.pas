@@ -3305,8 +3305,8 @@ const
               begin
                 if tprocvardef(rd).is_addressonly then
                   begin
-                    inserttypeconv_internal(right,voidcodepointertype,compiler);
-                    inserttypeconv_internal(left,voidcodepointertype,compiler);
+                    inserttypeconv_internal(right,compiler.deftypes.voidcodepointertype,compiler);
+                    inserttypeconv_internal(left,compiler.deftypes.voidcodepointertype,compiler);
                   end
                 else
                   begin
@@ -3955,13 +3955,13 @@ const
                   valid_for_var(compiler.aktassignmentnode.left,false) then
                 begin
                   para:=compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(right,voidcodepointertype),
+                          compiler.ctypeconvnode_internal(right,compiler.deftypes.voidcodepointertype),
                         compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(left,voidcodepointertype),
+                          compiler.ctypeconvnode_internal(left,compiler.deftypes.voidcodepointertype),
                         compiler.ccallparanode(
                           compiler.caddrnode_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal)),
                         compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,voidcodepointertype),nil)
+                          compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,compiler.deftypes.voidcodepointertype),nil)
                         )));
                   result:=compiler.ccallnode_intern(
                             'fpc_dynarray_concat',
@@ -3986,13 +3986,13 @@ const
                       compiler.ccallparanode(genintconstnode(0,compiler),
                         compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
                   para:=compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(right,voidcodepointertype),
+                          compiler.ctypeconvnode_internal(right,compiler.deftypes.voidcodepointertype),
                         compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(left,voidcodepointertype),
+                          compiler.ctypeconvnode_internal(left,compiler.deftypes.voidcodepointertype),
                         compiler.ccallparanode(
                           compiler.caddrnode_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal)),
                         compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidcodepointertype),nil)
+                          compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),compiler.deftypes.voidcodepointertype),nil)
                         )));
                   addstatement(
                     newstatement,

@@ -52,7 +52,7 @@ interface
         When stored in a LOC_REGISTER tlocation, these types use both register
         and registerhi with the following sizes:
 
-        register   - cgsize = int_cgsize(voidcodepointertype.size)
+        register   - cgsize = int_cgsize(compiler.deftypes.voidcodepointertype.size)
         registerhi - cgsize = int_cgsize(compiler.deftypes.voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
                               (check d.size to determine which one of the two)
         }
@@ -352,12 +352,12 @@ implementation
       if is_methodptr_like_type(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tmpref:=ref;
-          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
-          inc(tmpref.offset,voidcodepointertype.size);
+          a_load_reg_ref(list,compiler.deftypes.voidcodepointertype,compiler.deftypes.voidcodepointertype,loc.register,tmpref);
+          inc(tmpref.offset,compiler.deftypes.voidcodepointertype.size);
           { the second part could be either self or parentfp }
-          if tosize.size=(voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
+          if tosize.size=(compiler.deftypes.voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
             a_load_reg_ref(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,loc.registerhi,tmpref)
-          else if tosize.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+          else if tosize.size=(compiler.deftypes.voidcodepointertype.size+parentfpvoidpointertype.size) then
             a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
           else
             internalerror(2014052201);
@@ -704,12 +704,12 @@ implementation
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
 
-          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,l.register,tmpref);
-          inc(tmpref.offset,voidcodepointertype.size);
+          a_load_reg_ref(list,compiler.deftypes.voidcodepointertype,compiler.deftypes.voidcodepointertype,l.register,tmpref);
+          inc(tmpref.offset,compiler.deftypes.voidcodepointertype.size);
           { the second part could be either self or parentfp }
-          if size.size=(voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
+          if size.size=(compiler.deftypes.voidcodepointertype.size+compiler.deftypes.voidpointertype.size) then
             a_load_reg_ref(list,compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype,l.registerhi,tmpref)
-          else if size.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+          else if size.size=(compiler.deftypes.voidcodepointertype.size+parentfpvoidpointertype.size) then
             a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,l.registerhi,tmpref)
           else
             internalerror(2014052202);

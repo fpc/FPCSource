@@ -617,7 +617,7 @@ implementation
                     if anf_ofs in addrnodeflags then
                       result:=compiler.ctypeconvnode_internal(left,tabstractprocdef(left.resultdef).ofs_address_type)
                     else
-                      result:=compiler.ctypeconvnode_internal(left,voidcodepointertype);
+                      result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.voidcodepointertype);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -783,7 +783,7 @@ implementation
 
     procedure taddrnode.set_labelsym_resultdef;
       begin
-        resultdef:=voidcodepointertype;
+        resultdef:=compiler.deftypes.voidcodepointertype;
       end;
 
 

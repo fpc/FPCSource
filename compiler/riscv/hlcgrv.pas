@@ -152,9 +152,9 @@ implementation
         make_global:=true;
 
       if make_global then
-        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,voidcodepointertype))
+        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,compiler.deftypes.voidcodepointertype))
       else
-        list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,voidcodepointertype));
+        list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }

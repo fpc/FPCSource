@@ -1989,23 +1989,27 @@ end;
    end;
 
    procedure ConcatPublic(p:TAsmList;const s : string);
+   var
+     compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname_global(s,AT_LABEL,0,voidcodepointertype));
+       p.concat(Tai_symbol.Createname_global(s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
    end;
 
    procedure ConcatLocal(p:TAsmList;const s : string);
+   var
+     compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   {*********************************************************************}
   { PROCEDURE ConcatLocal                                               }
   {  Description: This routine emits an local    definition to the      }
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname(s,AT_LABEL,0,voidcodepointertype));
+       p.concat(Tai_symbol.Createname(s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
    end;
 
 
