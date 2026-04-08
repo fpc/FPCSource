@@ -1191,7 +1191,8 @@ interface
          s24inttype,                { 24-Bit signed integer }
          u32inttype,                { 32-Bit unsigned integer }
          s32inttype,                { 32-Bit signed integer }
-         u40inttype: tdef;          { 40-Bit unsigned integer }
+         u40inttype,                { 40-Bit unsigned integer }
+         s40inttype: tdef;          { 40-Bit signed integer }
        end;
 
 
@@ -1218,7 +1219,6 @@ interface
 
 
     { default types }
-       s40inttype,                { 40-Bit signed integer }
        u48inttype,                { 48-Bit unsigned integer }
        s48inttype,                { 48-Bit signed integer }
        u56inttype,                { 56-Bit unsigned integer }
@@ -9791,7 +9791,7 @@ implementation
        compiler.deftypes.u32inttype:=nil;                { 32-Bit unsigned integer }
        compiler.deftypes.s32inttype:=nil;                { 32-Bit signed integer }
        compiler.deftypes.u40inttype:=nil;                { 40-Bit unsigned integer }
-       s40inttype:=nil;                { 40-Bit signed integer }
+       compiler.deftypes.s40inttype:=nil;                { 40-Bit signed integer }
        u48inttype:=nil;                { 48-Bit unsigned integer }
        s48inttype:=nil;                { 48-Bit signed integer }
        u56inttype:=nil;                { 56-Bit unsigned integer }
