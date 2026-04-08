@@ -1386,7 +1386,7 @@ implementation
                 { ndim }
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }
-                a_load_const_stack(list,cwidechartype,ord(jvmarrtype_setlength(eledef)),R_INTREGISTER);
+                a_load_const_stack(list,compiler.deftypes.cwidechartype,ord(jvmarrtype_setlength(eledef)),R_INTREGISTER);
                 adddefaultlenparas:=false;
                 procname:='FPC_SETLENGTH_DYNARR_MULTIDIM';
               end;
@@ -2235,8 +2235,8 @@ implementation
           { needs to mask out the sign in the top 16 bits }
           ((fromcgsize=OS_S8) and
            (tocgsize=OS_16)) or
-          ((tosize=cwidechartype) and
-           (fromsize<>cwidechartype))) then
+          ((tosize=compiler.deftypes.cwidechartype) and
+           (fromsize<>compiler.deftypes.cwidechartype))) then
         case tocgsize of
           OS_8:
             a_op_const_stack(list,OP_AND,s32inttype,255);

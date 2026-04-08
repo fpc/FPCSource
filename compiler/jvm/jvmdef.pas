@@ -556,7 +556,7 @@ implementation
                 uwidechar:
                   begin
                     objdef:=tobjectdef(search_system_type('JLCHARACTER').typedef);
-                    paradef:=cwidechartype;
+                    paradef:=compiler.deftypes.cwidechartype;
                   end;
                 else
                   begin

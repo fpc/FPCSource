@@ -259,7 +259,7 @@ implementation
               initnode:=compiler.ccallparanode(genintconstnode(ndim,compiler),initnode);
               initnode:=compiler.ccallparanode(
                 compiler.cordconstnode(ord(jvmarrtype_setlength(eledef)),
-                  cwidechartype,false),
+                  compiler.deftypes.cwidechartype,false),
                 initnode);
               initnodefinished:=true;
             end

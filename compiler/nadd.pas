@@ -2573,15 +2573,15 @@ const
                    begin
                      inserttypeconv(left,cunicodestringtype,compiler);
                      if (torddef(rd).ordtype<>uwidechar) then
-                       inserttypeconv(right,cwidechartype,compiler);
+                       inserttypeconv(right,compiler.deftypes.cwidechartype,compiler);
                      resultdef:=cunicodestringtype;
                    end
                  else
                    begin
                      if (torddef(ld).ordtype<>uwidechar) then
-                       inserttypeconv(left,cwidechartype,compiler);
+                       inserttypeconv(left,compiler.deftypes.cwidechartype,compiler);
                      if (torddef(rd).ordtype<>uwidechar) then
-                       inserttypeconv(right,cwidechartype,compiler);
+                       inserttypeconv(right,compiler.deftypes.cwidechartype,compiler);
                    end;
                end
              { is there a currency type ? }

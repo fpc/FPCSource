@@ -321,7 +321,7 @@ implementation
         llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
 {$endif llvm}
         compiler.deftypes.cansichartype:=corddef.create(uchar,0,255,true,compiler);
-        cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
+        compiler.deftypes.cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
         cshortstringtype:=cstringdef.createshort(255,true,compiler);
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=cstringdef.createlong(-1,true,compiler);
@@ -422,7 +422,7 @@ implementation
         set_default_int_types;
         { some other definitions }
         compiler.deftypes.charpointertype:=cpointerdef.create(compiler.deftypes.cansichartype,compiler);
-        compiler.deftypes.widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
+        compiler.deftypes.widecharpointertype:=cpointerdef.create(compiler.deftypes.cwidechartype,compiler);
 {$ifdef i8086}
         compiler.deftypes.parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_ss,compiler);
 {$else i8086}
@@ -566,7 +566,7 @@ implementation
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
         addtype('AnsiChar',compiler.deftypes.cansichartype);
-        addtype('WideChar',cwidechartype);
+        addtype('WideChar',compiler.deftypes.cwidechartype);
         addtype('Text',cfiledef.createtext(compiler));
         addtype('TypedFile',cfiledef.createtyped(compiler.deftypes.voidtype,compiler));
         if f_variants in compiler.globals.features then
@@ -599,7 +599,7 @@ implementation
         addtype('$uint128',u128inttype);
         addtype('$int128',s128inttype);
         addtype('$ansichar',compiler.deftypes.cansichartype);
-        addtype('$widechar',cwidechartype);
+        addtype('$widechar',compiler.deftypes.cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
         addtype('$ansistring',cansistringtype);
@@ -761,7 +761,7 @@ implementation
         loadtype('void',compiler.deftypes.voidtype);
         loadtype('void_pointer',compiler.deftypes.voidpointertype);
         loadtype('ansichar',compiler.deftypes.cansichartype);
-        loadtype('widechar',cwidechartype);
+        loadtype('widechar',compiler.deftypes.cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);
         loadtype('ansistring',cansistringtype);

@@ -330,7 +330,7 @@ interface
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
                   compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
+                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
                 end
                else
                 begin
@@ -718,7 +718,7 @@ interface
          reference_reset(hr,2,[]);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
          compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
-         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
 

@@ -665,7 +665,7 @@ implementation
               eledef:=compiler.deftypes.cansichartype;
             st_widestring,
             st_unicodestring:
-              eledef:=cwidechartype;
+              eledef:=compiler.deftypes.cwidechartype;
           end;
         else
           internalerror(2014062203);

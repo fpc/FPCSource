@@ -1690,7 +1690,7 @@ implementation
              st_ansistring:
                streledef:=acompiler.deftypes.cansichartype;
              st_unicodestring:
-               streledef:=cwidechartype;
+               streledef:=acompiler.deftypes.cwidechartype;
              else
                internalerror(2016082301);
            end;
@@ -1709,7 +1709,7 @@ implementation
              targetinfos[acompiler.target.info.system]^.alignment.recordalignmin,acompiler);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
-           streledef:=cwidechartype;
+           streledef:=acompiler.deftypes.cwidechartype;
          end;
        { data (include zero terminator) }
        result.add_field_by_def('',carraydef.getreusable(streledef,len+1,acompiler));
@@ -1756,7 +1756,7 @@ implementation
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-           datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
+           datatcb.emit_tai(Tai_const.Create_32bit(strlength*compiler.deftypes.cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
            string_symofs:=get_string_symofs(st_widestring,true,compiler.target);
@@ -1776,14 +1776,14 @@ implementation
          begin
            result:=datatcb.emit_string_const_common(st_unicodestring,strlength,encoding,startlab);
          end;
-       if cwidechartype.size = 2 then
+       if compiler.deftypes.cwidechartype.size = 2 then
          begin
-           datadef:=carraydef.getreusable(cwidechartype,strlength+1,compiler);
+           datadef:=carraydef.getreusable(compiler.deftypes.cwidechartype,strlength+1,compiler);
            datatcb.maybe_begin_aggregate(datadef);
            for i:=0 to strlength-1 do
-             datatcb.emit_tai(Tai_const.Create_16bit(data.data[i]),cwidechartype);
+             datatcb.emit_tai(Tai_const.Create_16bit(data.data[i]),compiler.deftypes.cwidechartype);
            { ending #0 }
-           datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
+           datatcb.emit_tai(Tai_const.Create_16bit(0),compiler.deftypes.cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
            unicodestrrecdef:=datatcb.end_anonymous_record;
          end

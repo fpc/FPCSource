@@ -1168,7 +1168,8 @@ interface
          cformaltype,               { unique formal definition }
          ctypedformaltype,          { unique typed formal definition }
          voidtype,                  { Void (procedure) }
-         cansichartype: tdef;       { Char }
+         cansichartype,             { Char }
+         cwidechartype: tdef;       { WideChar }
        end;
 
 
@@ -1195,8 +1196,7 @@ interface
 
 
     { default types }
-       cwidechartype,             { WideChar }
-       cchartype,                 { either compiler.deftypes.cansichartype or cwidechartype. Do not free }
+       cchartype,                 { either compiler.deftypes.cansichartype or compiler.deftypes.cwidechartype. Do not free }
        pasbool1type,              { boolean type }
        pasbool8type,
        pasbool16type,
@@ -2976,7 +2976,7 @@ implementation
             result:=compiler.deftypes.cansichartype;
           st_unicodestring,
           st_widestring:
-            result:=cwidechartype;
+            result:=compiler.deftypes.cwidechartype;
         end;
       end;
 
@@ -9768,8 +9768,8 @@ implementation
        compiler.deftypes.ctypedformaltype:=nil;          { unique typed formal definition }
        compiler.deftypes.voidtype:=nil;                  { Void (procedure) }
        compiler.deftypes.cansichartype:=nil;             { Char }
-       cwidechartype:=nil;             { WideChar }
-       cchartype:=nil;                 { either compiler.deftypes.cansichartype or cwidechartype. Do not free }
+       compiler.deftypes.cwidechartype:=nil;             { WideChar }
+       cchartype:=nil;                 { either compiler.deftypes.cansichartype or compiler.deftypes.cwidechartype. Do not free }
        pasbool1type:=nil;              { boolean type }
        pasbool8type:=nil;
        pasbool16type:=nil;

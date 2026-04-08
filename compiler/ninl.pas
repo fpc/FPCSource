@@ -936,7 +936,7 @@ implementation
                     uwidechar :
                       begin
                         name := procprefixes[do_read]+'widechar';
-                        readfunctype:=cwidechartype;
+                        readfunctype:=compiler.deftypes.cwidechartype;
                       end;
                     scurrency:
                       begin

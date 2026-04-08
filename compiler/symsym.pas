@@ -2754,7 +2754,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valuews:=pw;
-         constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw),acompiler);
+         constdef:=carraydef.getreusable(acompiler.deftypes.cwidechartype,getlengthwidestring(pw),acompiler);
          constdefderef.reset;
          value.len:=getlengthwidestring(pw);
       end;
@@ -2911,7 +2911,7 @@ implementation
           constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constwresourcestring,constguid:
             constdef:=tdef(constdefderef.resolve);
           constwstring:
-            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(value.valuews),compiler);
+            constdef:=carraydef.getreusable(compiler.deftypes.cwidechartype,getlengthwidestring(value.valuews),compiler);
           else
             internalerror(2015120801);
         end

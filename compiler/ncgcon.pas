@@ -251,7 +251,7 @@ implementation
            cst_widestring,
            cst_unicodestring:
              begin
-               elementdef:=cwidechartype;
+               elementdef:=compiler.deftypes.cwidechartype;
                strpointerdef:=compiler.deftypes.widecharpointertype;
              end;
            else
@@ -271,7 +271,7 @@ implementation
               pool := current_asmdata.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
-                entry := pool.FindOrAdd(pointer(valuews.data),len*cwidechartype.size)
+                entry := pool.FindOrAdd(pointer(valuews.data),len*compiler.deftypes.cwidechartype.size)
               else
               if cst_type = cst_ansistring then
                 entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(pointer(valueas),len,tstringdef(resultdef).encoding))

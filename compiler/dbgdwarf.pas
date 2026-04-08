@@ -1806,7 +1806,7 @@ implementation
            begin
              { looks like a pwidechar }
              append_entry(DW_TAG_pointer_type,false,[]);
-             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype));
+             append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.cwidechartype));
              finish_entry;
            end;
         end;
@@ -2311,7 +2311,7 @@ implementation
                         st_widestring,st_unicodestring:
                           begin
                             inc(offset,(symlist^.value.svalue-1)*2);
-                            currdef:=cwidechartype;
+                            currdef:=compiler.deftypes.cwidechartype;
                           end;
                         st_shortstring:
                           begin
@@ -4248,11 +4248,11 @@ implementation
            end;
          st_unicodestring:
            begin
-             addstringdef('UnicodeString',cwidechartype,true,-1);
+             addstringdef('UnicodeString',compiler.deftypes.cwidechartype,true,-1);
            end;
          st_widestring:
            begin
-             addstringdef('WideString',cwidechartype,true,-1)
+             addstringdef('WideString',compiler.deftypes.cwidechartype,true,-1)
            end;
         end;
       end;

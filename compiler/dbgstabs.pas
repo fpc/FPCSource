@@ -650,7 +650,7 @@ implementation
          st_widestring:
            begin
              { looks like a pwidechar }
-             ss:='*'+def_stab_number(cwidechartype);
+             ss:='*'+def_stab_number(compiler.deftypes.cwidechartype);
            end;
         end;
         write_def_stabstr(list,def,ss);
@@ -1014,7 +1014,7 @@ implementation
           stringdef :
             begin
               if tstringdef(def).stringtype in [st_widestring,st_unicodestring] then
-                appenddef(list,cwidechartype)
+                appenddef(list,compiler.deftypes.cwidechartype)
               else
                 begin
                   appenddef(list,compiler.deftypes.cansichartype);

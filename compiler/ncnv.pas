@@ -569,7 +569,7 @@ implementation
                         if compiler.globals.block_type<>bt_const then
                           inserttypeconv(p2,compiler.deftypes.cansichartype,compiler);
                         if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
-                          incompatibletypes(cwidechartype,compiler.deftypes.cansichartype);
+                          incompatibletypes(compiler.deftypes.cwidechartype,compiler.deftypes.cansichartype);
                       end;
 
                     getrange(p2.resultdef,lr,hr);
@@ -582,7 +582,7 @@ implementation
                            if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                              begin
                                compiler.globals.current_filepos:=p3.fileinfo;
-                               incompatibletypes(cwidechartype,compiler.deftypes.cansichartype);
+                               incompatibletypes(compiler.deftypes.cwidechartype,compiler.deftypes.cansichartype);
                              end;
                          end;
                        { this isn't good, you'll get problems with
@@ -1505,7 +1505,7 @@ implementation
               begin
                 hp:=compiler.cordconstnode(
                       asciichar2unicode(chr(tordconstnode(left).value.uvalue)),
-                      cwidechartype,true);
+                      compiler.deftypes.cwidechartype,true);
                 result:=hp;
               end
              else

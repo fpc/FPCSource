@@ -1348,7 +1348,7 @@ implementation
                   st_unicodestring,
                   st_widestring :
                     begin
-                      elementdef:=cwidechartype;
+                      elementdef:=compiler.deftypes.cwidechartype;
                       elementptrdef:=compiler.deftypes.widecharpointertype;
                     end;
                   st_ansistring,

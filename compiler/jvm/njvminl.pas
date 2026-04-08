@@ -213,7 +213,7 @@ implementation
             { construct the call to
                 fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
             result:=compiler.ccallnode_intern('FPC_DYNARRAY_COPY',
-              compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),cwidechartype,false),
+              compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),compiler.deftypes.cwidechartype,false),
                 compiler.ccallparanode(genintconstnode(ndims,compiler),
                   compiler.ccallparanode(len,
                     compiler.ccallparanode(start,
@@ -500,7 +500,7 @@ implementation
             { prepend ndim }
             newparas:=compiler.ccallparanode(compiler.cordconstnode(ndims,s32inttype,false),newparas);
             { prepend eletype }
-            newparas:=compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),cwidechartype,false),newparas);
+            newparas:=compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),compiler.deftypes.cwidechartype,false),newparas);
           end
         else
           begin

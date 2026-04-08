@@ -613,9 +613,9 @@ implementation
         else if is_pchar(def) or is_chararray(def) or is_open_chararray(def) then
           result:=compiler.deftypes.cansichartype
         else if is_pwidechar(def) or is_pwidechar(def) or is_open_widechararray(def) then
-          result:=cwidechartype
+          result:=compiler.deftypes.cwidechartype
         else if def=java_jlstring then
-          result:=cwidechartype
+          result:=compiler.deftypes.cwidechartype
         else
           internalerror(2023012501);
       end;
@@ -1534,7 +1534,7 @@ implementation
                  uchar:
                    result:=compiler.deftypes.cansichartype;
                  uwidechar:
-                   result:=cwidechartype;
+                   result:=compiler.deftypes.cwidechartype;
                  scurrency:
                    result:=s64currencytype;
                  else

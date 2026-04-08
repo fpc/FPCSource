@@ -1423,7 +1423,7 @@ implementation
              // Todo: dynamic length "array"
              dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
              dinode.addenum('tag','DW_TAG_pointer_type');
-             dinode.addmetadatarefto('baseType',def_meta_node(cwidechartype));
+             dinode.addmetadatarefto('baseType',def_meta_node(compiler.deftypes.cwidechartype));
              list.concat(dinode);
            end;
         end;

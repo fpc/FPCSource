@@ -4269,7 +4269,7 @@ implementation
              _CWSTRING:
                begin
                  if getlengthwidestring(current_scanner.patternw)=1 then
-                   p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true)
+                   p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),compiler.deftypes.cwidechartype,true)
                  else
                    p1:=compiler.cstringconstnode_unistr(current_scanner.patternw);
                  parser.pbase.consume(_CWSTRING);
@@ -4282,7 +4282,7 @@ implementation
 
              _CWCHAR:
                begin
-                 p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true);
+                 p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),compiler.deftypes.cwidechartype,true);
                  parser.pbase.consume(_CWCHAR);
                  if current_scanner.token=_POINT then
                    begin

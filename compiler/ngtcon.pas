@@ -695,7 +695,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            uwidechar :
              begin
                 if is_constcharnode(node) then
-                  inserttypeconv(node,cwidechartype,compiler);
+                  inserttypeconv(node,compiler.deftypes.cwidechartype,compiler);
                 if is_constwidecharnode(node) then
                   ftcb.emit_ord_const(word(tordconstnode(node).value.svalue),def)
                 else
@@ -937,12 +937,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                      pw:=tstringconstnode(node).valuews;
                      { include terminating #0 }
-                     datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1,compiler);
+                     datadef:=carraydef.getreusable(compiler.deftypes.cwidechartype,tstringconstnode(node).len+1,compiler);
                      datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
-                       datatcb.emit_tai(Tai_const.Create_16bit(pw.data[i]),cwidechartype);
+                       datatcb.emit_tai(Tai_const.Create_16bit(pw.data[i]),compiler.deftypes.cwidechartype);
                      { ending #0 }
-                     datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
+                     datatcb.emit_tai(Tai_const.Create_16bit(0),compiler.deftypes.cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
                      { concat add the string data to the fdatalist }
                      ftcb.finish_internal_data_builder(datatcb,ll,datadef,compiler.globals.const_align(sizeof(pint)));
@@ -1423,7 +1423,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
                     2:
                       begin
-                        inserttypeconv(n,cwidechartype,compiler);
+                        inserttypeconv(n,compiler.deftypes.cwidechartype,compiler);
                         if not is_constwidecharnode(n) then
                           internalerror(2010033001);
                         widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);

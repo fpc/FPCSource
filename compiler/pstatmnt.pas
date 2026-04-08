@@ -213,14 +213,14 @@ implementation
                begin
                   if (p.nodetype=rangen) then
                     begin
-                       trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,cwidechartype);
-                       trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,cwidechartype);
+                       trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,compiler.deftypes.cwidechartype);
+                       trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,compiler.deftypes.cwidechartype);
                        do_typecheckpass(trangenode(p).left);
                        do_typecheckpass(trangenode(p).right);
                     end
                   else
                     begin
-                       p:=compiler.ctypeconvnode(p,cwidechartype);
+                       p:=compiler.ctypeconvnode(p,compiler.deftypes.cwidechartype);
                        do_typecheckpass(p);
                     end;
                end

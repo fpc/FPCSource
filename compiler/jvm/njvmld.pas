@@ -111,7 +111,7 @@ function tjvmassignmentnode.pass_1: tnode;
             word(unicodestr[x]):=1234;
         }
         if is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
-          inserttypeconv_explicit(right,cwidechartype,compiler)
+          inserttypeconv_explicit(right,compiler.deftypes.cwidechartype,compiler)
         else
           inserttypeconv_explicit(right,compiler.deftypes.cansichartype,compiler);
         result:=compiler.ccallnode_intern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
