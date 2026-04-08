@@ -1349,7 +1349,7 @@ implementation
                   st_widestring :
                     begin
                       elementdef:=cwidechartype;
-                      elementptrdef:=widecharpointertype;
+                      elementptrdef:=compiler.deftypes.widecharpointertype;
                     end;
                   st_ansistring,
                   st_longstring,

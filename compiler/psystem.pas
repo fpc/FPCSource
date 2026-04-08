@@ -422,7 +422,7 @@ implementation
         set_default_int_types;
         { some other definitions }
         compiler.deftypes.charpointertype:=cpointerdef.create(cansichartype,compiler);
-        widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
+        compiler.deftypes.widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
 {$ifdef i8086}
         parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
 {$else i8086}
@@ -623,7 +623,7 @@ implementation
         addtype('LLVMMetadata',llvm_metadatatype);
 {$endif llvm}
         addtype('$char_pointer',compiler.deftypes.charpointertype);
-        addtype('$widechar_pointer',widecharpointertype);
+        addtype('$widechar_pointer',compiler.deftypes.widecharpointertype);
         addtype('$parentfp_void_pointer',parentfpvoidpointertype);
 {$ifdef x86}
         addtype('$void_nearpointer',voidnearpointertype);
@@ -787,7 +787,7 @@ implementation
         loadtype('longbool',bool32type);
         loadtype('qwordbool',bool64type);
         loadtype('char_pointer',compiler.deftypes.charpointertype);
-        loadtype('widechar_pointer',widecharpointertype);
+        loadtype('widechar_pointer',compiler.deftypes.widecharpointertype);
         loadtype('parentfp_void_pointer',parentfpvoidpointertype);
 {$ifdef x86}
         loadtype('void_nearpointer',voidnearpointertype);

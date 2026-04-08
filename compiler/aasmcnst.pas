@@ -1472,7 +1472,7 @@ implementation
          st_unicodestring:
            begin
              elesize:=2;
-             charptrdef:=widecharpointertype;
+             charptrdef:=compiler.deftypes.widecharpointertype;
            end
          else
            internalerror(2014080401);
@@ -1763,7 +1763,7 @@ implementation
            if string_symofs=0 then
              begin
                { yes }
-               datatcb.emit_tai(Tai_label.Create(result.lab),widecharpointertype);
+               datatcb.emit_tai(Tai_label.Create(result.lab),compiler.deftypes.widecharpointertype);
                { allocate a separate label for the start of the data (see
                  emit_string_const_common() for explanation) }
                startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);

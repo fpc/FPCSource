@@ -252,7 +252,7 @@ implementation
            cst_unicodestring:
              begin
                elementdef:=cwidechartype;
-               strpointerdef:=widecharpointertype;
+               strpointerdef:=compiler.deftypes.widecharpointertype;
              end;
            else
              internalerror(2014032803);

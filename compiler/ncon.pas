@@ -1234,7 +1234,7 @@ implementation
             begin
               winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in compiler.target.info.flags);
               labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],valuews,tstringdef(resultdef).encoding,winlikewidestring);
-              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,widecharpointertype);
+              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,compiler.deftypes.widecharpointertype);
               result:=compiler.deftypes.voidpointertype.size;
             end;
         end;

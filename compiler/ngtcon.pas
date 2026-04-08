@@ -632,14 +632,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                            if ll.ofs<>0 then
                              internalerror(2012051704);
                            current_asmdata.WideInits.Concat(
-                              TTCInitItem.Create(tcsym,curoffset,ll.lab,widecharpointertype)
+                              TTCInitItem.Create(tcsym,curoffset,ll.lab,compiler.deftypes.widecharpointertype)
                            );
                            ll.lab:=nil;
                            ll.ofs:=0;
                            Include(tcsym.varoptions,vo_force_finalize);
                          end;
                      end;
-                  ftcb.emit_string_offset(ll,strlength,def.stringtype,winlike,widecharpointertype);
+                  ftcb.emit_string_offset(ll,strlength,def.stringtype,winlike,compiler.deftypes.widecharpointertype);
                 end;
               else
                 internalerror(200107081);

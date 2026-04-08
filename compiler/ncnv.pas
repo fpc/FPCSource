@@ -811,7 +811,7 @@ implementation
                   p:=compiler.ctypeconvnode_internal(p,compiler.deftypes.charpointertype)
                 else
                   if is_widechararray(p.resultdef) then
-                    p:=compiler.ctypeconvnode_internal(p,widecharpointertype)
+                    p:=compiler.ctypeconvnode_internal(p,compiler.deftypes.widecharpointertype)
                 else
                   compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
               end;
