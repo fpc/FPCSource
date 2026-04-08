@@ -1756,7 +1756,7 @@ implementation
             DW_AT_byte_size,DW_FORM_udata,def.size,
             DW_AT_byte_stride,DW_FORM_udata,1
             ]);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(cansichartype));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.cansichartype));
           finish_entry;
           append_entry(DW_TAG_subrange_type,false,[
             DW_AT_lower_bound,DW_FORM_udata,1,
@@ -1798,7 +1798,7 @@ implementation
            begin
              { looks like a pchar }
              append_entry(DW_TAG_pointer_type,false,[]);
-             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cansichartype));
+             append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.cansichartype));
              finish_entry;
            end;
          st_unicodestring,
@@ -2316,12 +2316,12 @@ implementation
                         st_shortstring:
                           begin
                             inc(offset,symlist^.value.svalue);
-                            currdef:=cansichartype;
+                            currdef:=compiler.deftypes.cansichartype;
                           end;
                         st_ansistring:
                           begin
                             inc(offset,symlist^.value.svalue-1);
-                            currdef:=cansichartype;
+                            currdef:=compiler.deftypes.cansichartype;
                           end;
                         else
                           Internalerror(2022070502);
@@ -4232,19 +4232,19 @@ implementation
         case def.stringtype of
           st_shortstring:
             begin
-              addstringdef('ShortString',cansichartype,false,1);
+              addstringdef('ShortString',compiler.deftypes.cansichartype,false,1);
             end;
           st_longstring:
             begin
 {$ifdef cpu64bitaddr}
-              addstringdef('LongString',cansichartype,false,8);
+              addstringdef('LongString',compiler.deftypes.cansichartype,false,8);
 {$else cpu64bitaddr}
-              addstringdef('LongString',cansichartype,false,4);
+              addstringdef('LongString',compiler.deftypes.cansichartype,false,4);
 {$endif cpu64bitaddr}
            end;
          st_ansistring:
            begin
-             addstringdef('AnsiString',cansichartype,true,-1);
+             addstringdef('AnsiString',compiler.deftypes.cansichartype,true,-1);
            end;
          st_unicodestring:
            begin

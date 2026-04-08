@@ -1355,7 +1355,7 @@ implementation
                   st_longstring,
                   st_shortstring :
                     begin
-                      elementdef:=cansichartype;
+                      elementdef:=compiler.deftypes.cansichartype;
                       elementptrdef:=compiler.deftypes.charpointertype;
                     end;
                 end;

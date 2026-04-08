@@ -148,7 +148,7 @@ implementation
       tcb.emit_tai(tai_const.Create_32bit_unaligned(length(notename)),defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(length(strtable)+32),defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(1),defu32);
-      defstr:=carraydef.getreusable(cansichartype,length(notename),compiler);
+      defstr:=carraydef.getreusable(compiler.deftypes.cansichartype,length(notename),compiler);
       tcb.maybe_begin_aggregate(defstr);
       tcb.emit_tai(Tai_string.Create(notename),defstr);
       tcb.maybe_begin_aggregate(defu32);

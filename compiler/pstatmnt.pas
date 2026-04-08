@@ -230,13 +230,13 @@ implementation
                    begin
                       if (p.nodetype=ordconstn) then
                         begin
-                           p:=compiler.ctypeconvnode(p,cansichartype);
+                           p:=compiler.ctypeconvnode(p,compiler.deftypes.cansichartype);
                            do_typecheckpass(p);
                         end
                       else if (p.nodetype=rangen) then
                         begin
-                           trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,cansichartype);
-                           trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,cansichartype);
+                           trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,compiler.deftypes.cansichartype);
+                           trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,compiler.deftypes.cansichartype);
                            do_typecheckpass(trangenode(p).left);
                            do_typecheckpass(trangenode(p).right);
                         end;

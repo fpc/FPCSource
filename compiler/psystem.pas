@@ -320,7 +320,7 @@ implementation
 {$ifdef llvm}
         llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
 {$endif llvm}
-        cansichartype:=corddef.create(uchar,0,255,true,compiler);
+        compiler.deftypes.cansichartype:=corddef.create(uchar,0,255,true,compiler);
         cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
         cshortstringtype:=cstringdef.createshort(255,true,compiler);
         { should we give a length to the default long and ansi string definition ?? }
@@ -421,7 +421,7 @@ implementation
 {$endif loongarch64}
         set_default_int_types;
         { some other definitions }
-        compiler.deftypes.charpointertype:=cpointerdef.create(cansichartype,compiler);
+        compiler.deftypes.charpointertype:=cpointerdef.create(compiler.deftypes.cansichartype,compiler);
         compiler.deftypes.widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
 {$ifdef i8086}
         compiler.deftypes.parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_near_ss,compiler);
@@ -439,9 +439,9 @@ implementation
   {$ifdef i8086}
         compiler.deftypes.voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_far,compiler);
         compiler.deftypes.voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.voidtype,x86pt_huge,compiler);
-        compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
-        compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
-        compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
+        compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_near,compiler);
+        compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_far,compiler);
+        compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(compiler.deftypes.cansichartype,x86pt_huge,compiler);
         compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
         compiler.deftypes.wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
         compiler.deftypes.longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
@@ -467,7 +467,7 @@ implementation
 {$endif wasm}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray(compiler);
-        tarraydef(openchararraytype).elementdef:=cansichartype;
+        tarraydef(openchararraytype).elementdef:=compiler.deftypes.cansichartype;
         cfiletype:=cfiledef.createuntyped(compiler);
         if f_variants in compiler.globals.features then
           begin
@@ -565,7 +565,7 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
-        addtype('AnsiChar',cansichartype);
+        addtype('AnsiChar',compiler.deftypes.cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext(compiler));
         addtype('TypedFile',cfiledef.createtyped(compiler.deftypes.voidtype,compiler));
@@ -598,7 +598,7 @@ implementation
         addtype('$int64',s64inttype);
         addtype('$uint128',u128inttype);
         addtype('$int128',s128inttype);
-        addtype('$ansichar',cansichartype);
+        addtype('$ansichar',compiler.deftypes.cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
@@ -760,7 +760,7 @@ implementation
         loadtype('typedformal',compiler.deftypes.ctypedformaltype);
         loadtype('void',compiler.deftypes.voidtype);
         loadtype('void_pointer',compiler.deftypes.voidpointertype);
-        loadtype('ansichar',cansichartype);
+        loadtype('ansichar',compiler.deftypes.cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);

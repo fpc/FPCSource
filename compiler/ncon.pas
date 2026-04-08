@@ -998,7 +998,7 @@ implementation
             begin
               { handle and store as array[0..len-1] of char }
               resultdef:=carraydef.create(0,len-1,s32inttype,compiler);
-              tarraydef(resultdef).elementdef:=cansichartype;
+              tarraydef(resultdef).elementdef:=compiler.deftypes.cansichartype;
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :

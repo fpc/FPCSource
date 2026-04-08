@@ -113,7 +113,7 @@ function tjvmassignmentnode.pass_1: tnode;
         if is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
           inserttypeconv_explicit(right,cwidechartype,compiler)
         else
-          inserttypeconv_explicit(right,cansichartype,compiler);
+          inserttypeconv_explicit(right,compiler.deftypes.cansichartype,compiler);
         result:=compiler.ccallnode_intern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
           compiler.ccallparanode(right,
             compiler.ccallparanode(tvecnode(target).right,
@@ -130,7 +130,7 @@ function tjvmassignmentnode.pass_1: tnode;
         { prevent errors in case of an expression such as
             byte(str[x]):=12;
         }
-        inserttypeconv_explicit(right,cansichartype,compiler);
+        inserttypeconv_explicit(right,compiler.deftypes.cansichartype,compiler);
         { call ShortstringClass(@shortstring).setChar(index,char) }
         tvecnode(target).left:=compiler.caddrnode_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }

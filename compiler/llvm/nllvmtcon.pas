@@ -662,7 +662,7 @@ implementation
             st_shortstring,
             st_longstring,
             st_ansistring:
-              eledef:=cansichartype;
+              eledef:=compiler.deftypes.cansichartype;
             st_widestring,
             st_unicodestring:
               eledef:=cwidechartype;

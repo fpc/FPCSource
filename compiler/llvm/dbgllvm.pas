@@ -1377,7 +1377,7 @@ implementation
           if (slen=0) or
              (slen>maxlen) then
             slen:=maxlen;
-          appenddef_array_internal(list,def,cansichartype,0,slen);
+          appenddef_array_internal(list,def,compiler.deftypes.cansichartype,0,slen);
         end;
 
       var
@@ -1414,7 +1414,7 @@ implementation
              // Todo: dynamic length "array"
              dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
              dinode.addenum('tag','DW_TAG_pointer_type');
-             dinode.addmetadatarefto('baseType',def_meta_node(cansichartype));
+             dinode.addmetadatarefto('baseType',def_meta_node(compiler.deftypes.cansichartype));
              list.concat(dinode);
            end;
          st_unicodestring,

@@ -849,7 +849,7 @@ implementation
              internalerror(2014070105);
            lString:=tai_string(tai_simpletypedconst(fvalues[0]).val);
            len:=lString.len;
-           tai_simpletypedconst(fvalues[0]).fdef:=carraydef.getreusable(cansichartype,len,compiler);
+           tai_simpletypedconst(fvalues[0]).fdef:=carraydef.getreusable(compiler.deftypes.cansichartype,len,compiler);
          end;
      end;
 
@@ -1688,7 +1688,7 @@ implementation
            { elements }
            case typ of
              st_ansistring:
-               streledef:=cansichartype;
+               streledef:=acompiler.deftypes.cansichartype;
              st_unicodestring:
                streledef:=cwidechartype;
              else
@@ -1729,7 +1729,7 @@ implementation
        result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
        { add room for the #0-terminator }
-       datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
+       datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler);
        datatcb.maybe_begin_aggregate(datadef);
        ts:=tai_string.Create_Data(data,len,true);
        datatcb.emit_tai(ts,datadef);
@@ -1856,21 +1856,21 @@ implementation
          functionality in place yet to reuse shortstringdefs of the same length
          and neither the lowlevel nor the llvm typedconst builder cares about
          this difference }
-       result:=carraydef.getreusable(cansichartype,length(str)+1,compiler);
+       result:=carraydef.getreusable(compiler.deftypes.cansichartype,length(str)+1,compiler);
        maybe_begin_aggregate(result);
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
-         emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str),compiler));
+         emit_tai(Tai_string.Create(str),carraydef.getreusable(compiler.deftypes.cansichartype,length(str),compiler));
        maybe_end_aggregate(result);
      end;
 
 
    function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
      begin
-       result:=carraydef.getreusable(cansichartype,len+1,compiler);
+       result:=carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler);
        maybe_begin_aggregate(result);
        if len=0 then
-         emit_tai(Tai_const.Create_8bit(0),cansichartype)
+         emit_tai(Tai_const.Create_8bit(0),compiler.deftypes.cansichartype)
        else
          emit_tai(Tai_string.Create_Data(str,len,true),result);
        maybe_end_aggregate(result);
@@ -1943,7 +1943,7 @@ implementation
 
            { include length and terminating zero for quick conversion to pchar }
            l:=length(str);
-           datadef:=carraydef.getreusable(cansichartype,l+2,compiler);
+           datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,l+2,compiler);
 
            { we start a new constbuilder as we don't know whether we're called
              from inside an internal constbuilder }

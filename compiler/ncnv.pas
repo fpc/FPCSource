@@ -567,9 +567,9 @@ implementation
                     if is_widechar(p2.resultdef) then
                       begin
                         if compiler.globals.block_type<>bt_const then
-                          inserttypeconv(p2,cansichartype,compiler);
+                          inserttypeconv(p2,compiler.deftypes.cansichartype,compiler);
                         if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
-                          incompatibletypes(cwidechartype,cansichartype);
+                          incompatibletypes(cwidechartype,compiler.deftypes.cansichartype);
                       end;
 
                     getrange(p2.resultdef,lr,hr);
@@ -578,11 +578,11 @@ implementation
                        if is_widechar(p3.resultdef) then
                          begin
                            if compiler.globals.block_type<>bt_const then
-                             inserttypeconv(p3,cansichartype,compiler);
+                             inserttypeconv(p3,compiler.deftypes.cansichartype,compiler);
                            if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                              begin
                                compiler.globals.current_filepos:=p3.fileinfo;
-                               incompatibletypes(cwidechartype,cansichartype);
+                               incompatibletypes(cwidechartype,compiler.deftypes.cansichartype);
                              end;
                          end;
                        { this isn't good, you'll get problems with
@@ -1497,7 +1497,7 @@ implementation
                   compiler.verbose.Message(type_w_unicode_data_loss);
                 hp:=compiler.cordconstnode(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
-                      cansichartype,true);
+                      compiler.deftypes.cansichartype,true);
                 result:=hp;
               end
              else if (torddef(resultdef).ordtype=uwidechar) and

@@ -4257,7 +4257,7 @@ implementation
 
              _CCHAR :
                begin
-                 p1:=compiler.cordconstnode(ord(current_scanner.pattern[1]),cansichartype,true);
+                 p1:=compiler.cordconstnode(ord(current_scanner.pattern[1]),compiler.deftypes.cansichartype,true);
                  parser.pbase.consume(_CCHAR);
                  if current_scanner.token=_POINT then
                    begin

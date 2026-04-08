@@ -245,7 +245,7 @@ implementation
            cst_conststring,
            cst_ansistring:
              begin
-               elementdef:=cansichartype;
+               elementdef:=compiler.deftypes.cansichartype;
                strpointerdef:=compiler.deftypes.charpointertype;
              end;
            cst_widestring,
@@ -332,9 +332,9 @@ implementation
                            l:=len;
 
                           { include length and terminating zero for quick conversion to pchar }
-                          datadef:=carraydef.getreusable(cansichartype,l+2,compiler);
+                          datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,l+2,compiler);
                           datatcb.maybe_begin_aggregate(datadef);
-                          datatcb.emit_tai(Tai_const.Create_8bit(l),cansichartype);
+                          datatcb.emit_tai(Tai_const.Create_8bit(l),compiler.deftypes.cansichartype);
                           t:=Tai_string.Create_Data(asconstpchar,l,true);
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
@@ -350,7 +350,7 @@ implementation
                             string can be used for pchar assignments (but it's
                             also used for array-of-char assignments, in which
                             case the terminating #0 is not part of the data) }
-                          datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
+                          datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler);
                           datatcb.maybe_begin_aggregate(datadef);
                           t:=Tai_string.Create_Data(asconstpchar,len,true);
                           datatcb.emit_tai(t,datadef);

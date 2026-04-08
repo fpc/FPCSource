@@ -1459,7 +1459,7 @@ implementation
                      if (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                        begin
                          compiler.verbose.Message(parser_w_widechar_set_reduced);
-                         def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true,compiler);
+                         def:=csetdef.create(compiler.deftypes.cansichartype,torddef(compiler.deftypes.cansichartype).low.svalue,torddef(compiler.deftypes.cansichartype).high.svalue,true,compiler);
                        end
                      else
                        compiler.verbose.Message(sym_e_ill_type_decl_set);

@@ -911,10 +911,10 @@ implementation
               { an open string has at least size 2                      }
               trash_small(stat,
                 compiler.cvecnode(trashn.getcopy,genintconstnode(0,compiler)),
-                compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
+                compiler.cordconstnode(tconstexprint(byte(trashintval)),compiler.deftypes.cansichartype,false));
               trash_small(stat,
                 compiler.cvecnode(trashn,genintconstnode(1,compiler)),
-                compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
+                compiler.cordconstnode(tconstexprint(byte(trashintval)),compiler.deftypes.cansichartype,false));
             end;
         end
       else
@@ -1515,7 +1515,7 @@ implementation
           begin
             { address to initialize }
             tcb.queue_init(compiler.deftypes.voidpointertype);
-            rawdatadef:=carraydef.getreusable(cansichartype,tstaticvarsym(item.sym).vardef.size,compiler);
+            rawdatadef:=carraydef.getreusable(compiler.deftypes.cansichartype,tstaticvarsym(item.sym).vardef.size,compiler);
             tcb.queue_vecn(rawdatadef,item.offset);
             tcb.queue_typeconvn(cpointerdef.getreusable(tstaticvarsym(item.sym).vardef,compiler),cpointerdef.getreusable(rawdatadef,compiler));
             tcb.queue_emit_staticvar(tstaticvarsym(item.sym));
@@ -1658,7 +1658,7 @@ implementation
       while (length(s) mod 2) <> 0 do
         s:=s+' ';
 {$endif m68k}
-      def:=carraydef.getreusable(cansichartype,length(s),compiler);
+      def:=carraydef.getreusable(compiler.deftypes.cansichartype,length(s),compiler);
       tcb.maybe_begin_aggregate(def);
       tcb.emit_tai(Tai_string.Create(s),def);
       tcb.maybe_end_aggregate(def);
@@ -1702,7 +1702,7 @@ implementation
          { note: won't work for m68k amigaos or morphos. (KB) }
          str(compiler.globals.stacksize,s);
          s:='$STACK: '+s+#0;
-         def:=carraydef.getreusable(cansichartype,length(s),compiler);
+         def:=carraydef.getreusable(compiler.deftypes.cansichartype,length(s),compiler);
          tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
          tcb.maybe_begin_aggregate(def);
          tcb.emit_tai(Tai_string.Create(s),def);

@@ -2742,7 +2742,7 @@ implementation
          if assigned(def) then
            constdef:=def
          else
-           constdef:=carraydef.getreusable(cansichartype,l,acompiler);
+           constdef:=carraydef.getreusable(acompiler.deftypes.cansichartype,l,acompiler);
          constdefderef.reset;
          value.len:=l;
       end;

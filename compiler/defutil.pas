@@ -603,13 +603,15 @@ implementation
       end;
 
     function chartype_for_stringlike(def : tdef) : tdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if is_string(def) then
           result:=tstringdef(def).get_default_char_type
         else if is_anychar(def) then
           result:=def
         else if is_pchar(def) or is_chararray(def) or is_open_chararray(def) then
-          result:=cansichartype
+          result:=compiler.deftypes.cansichartype
         else if is_pwidechar(def) or is_pwidechar(def) or is_open_widechararray(def) then
           result:=cwidechartype
         else if def=java_jlstring then
@@ -1495,6 +1497,8 @@ implementation
       The subrange-bounds shall be of compatible ordinal-types, and the range-type (see 6.4.2.1) of the ordinal-types shall
       be designated the host-type of the subrange-type. }
     function get_iso_range_type(def: tdef): tdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         case def.typ of
@@ -1528,7 +1532,7 @@ implementation
                  bool64bit:
                    result:=bool64type;
                  uchar:
-                   result:=cansichartype;
+                   result:=compiler.deftypes.cansichartype;
                  uwidechar:
                    result:=cwidechartype;
                  scurrency:

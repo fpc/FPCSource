@@ -819,7 +819,7 @@ implementation
                (tstringconstnode(right).len=0) then
               begin
                 hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(compiler.deftypes.charpointertype),left.location.reference);
-                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,0,left.location.reference);
+                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,0,left.location.reference);
               end
             { char loading }
             else if is_char(right.resultdef) then
@@ -838,7 +838,7 @@ implementation
                   begin
                     href:=left.location.reference;
                     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(compiler.deftypes.charpointertype),href);
-                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
+                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,1,href);
                     inc(href.offset,1);
                     href.alignment:=1;
                     case right.location.loc of
@@ -849,13 +849,13 @@ implementation
                           r:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_8);
 {$else not cpuhighleveltarget}
                           r:=hlcg.getintregister(current_asmdata.CurrAsmList,u8inttype);
-                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,cansichartype,u8inttype,right.location.register,r);
+                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,u8inttype,right.location.register,r);
 {$endif cpuhighleveltarget}
                           hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
-                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,cansichartype,cansichartype,right.location.reference,href);
+                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,compiler.deftypes.cansichartype,compiler.deftypes.cansichartype,right.location.reference,href);
                       else
                         internalerror(200205111);
                     end;

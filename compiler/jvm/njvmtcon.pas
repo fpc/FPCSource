@@ -214,7 +214,7 @@ implementation
                end
             else if is_constwidecharnode(n) and (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) then
                begin
-                 inserttypeconv(n,cansichartype,compiler);
+                 inserttypeconv(n,compiler.deftypes.cansichartype,compiler);
                  if not is_constcharnode(n) then
                    internalerror(2010033007);
                  ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
@@ -235,12 +235,12 @@ implementation
               begin
                 if i<len then
                   begin
-                    tc_emit_arr_strconst_ele(pbyte(ca)^,torddef(cansichartype));
+                    tc_emit_arr_strconst_ele(pbyte(ca)^,torddef(compiler.deftypes.cansichartype));
                     inc(ca);
                   end
                 else
                   {Fill the remaining positions with #0.}
-                  tc_emit_arr_strconst_ele(0,torddef(cansichartype));
+                  tc_emit_arr_strconst_ele(0,torddef(compiler.deftypes.cansichartype));
               end;
             n.free;
           end;

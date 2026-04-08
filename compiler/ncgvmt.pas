@@ -250,10 +250,10 @@ implementation
            writenames(tcb,p^.l);
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,p^.nl);
          len:=length(p^.data.messageinf.str^);
-         datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1,compiler));
-         datatcb.emit_tai(Tai_string.Create_Data(@p^.data.messageinf.str^[0],len+1,false),carraydef.getreusable(cansichartype,len+1,compiler));
-         datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1,compiler));
-         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1,compiler),sizeof(pint));
+         datatcb.maybe_begin_aggregate(carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler));
+         datatcb.emit_tai(Tai_string.Create_Data(@p^.data.messageinf.str^[0],len+1,false),carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler));
+         datatcb.maybe_end_aggregate(carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler));
+         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler),sizeof(pint));
          if assigned(p^.r) then
            writenames(tcb,p^.r);
       end;
@@ -265,7 +265,7 @@ implementation
 
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
-         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1,compiler),compiler));
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.cansichartype,length(p^.data.messageinf.str^)+1,compiler),compiler));
          tcb.queue_init(compiler.deftypes.voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -853,7 +853,7 @@ implementation
             siidstr,
             AT_DATA,
             true),
-          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(nonuniqueintf.iidstr^)+1,compiler),compiler));
+          cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.cansichartype,length(nonuniqueintf.iidstr^)+1,compiler),compiler));
         { IType }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);

@@ -195,7 +195,7 @@ procedure TObjCCodeGenUtils.objcreatestringpoolentryintern(p: pchar; len: longin
         def:=cpointerdef.getreusable(def,compiler);
       end
     else
-      def:=cpointerdef.getreusable(carraydef.getreusable(cansichartype,len+1,compiler),compiler);
+      def:=cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler),compiler);
     sym:=TAsmLabel(Entry^.Data);
   end;
 

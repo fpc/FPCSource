@@ -589,7 +589,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   { fill with spaces if size is shorter }
                   fillchar(paddedstrdata[strlength+1],defsize-strlength-1,' ');
                   paddedstrdata[strlength+1]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_Data(@paddedstrdata[0],defsize,false),carraydef.getreusable(cansichartype,defsize+1,compiler));
+                  ftcb.emit_tai(Tai_string.Create_Data(@paddedstrdata[0],defsize,false),carraydef.getreusable(compiler.deftypes.cansichartype,defsize+1,compiler));
                   ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
@@ -683,7 +683,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            uchar :
              begin
                 if is_constwidecharnode(node) then
-                  inserttypeconv(node,cansichartype,compiler);
+                  inserttypeconv(node,compiler.deftypes.cansichartype,compiler);
                 if is_constcharnode(node) or
                   ((m_delphi in compiler.globals.current_settings.modeswitches) and
                    is_constwidecharnode(node) and
@@ -890,7 +890,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   if (m_tp7 in compiler.globals.current_settings.modeswitches) and
                      (len>255) then
                     len:=255;
-                  datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
+                  datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,len+1,compiler);
                   datatcb.maybe_begin_aggregate(datadef);
                   if len>0 then
                     datatcb.emit_tai(Tai_string.Create_Data(@tstringconstnode(node).valueas[0],len,true),datadef)
@@ -900,7 +900,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end
               else if is_constcharnode(node) then
                 begin
-                  datadef:=carraydef.getreusable(cansichartype,2,compiler);
+                  datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,2,compiler);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
                   datatcb.maybe_end_aggregate(datadef);
@@ -908,7 +908,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                 begin
                   compiler.verbose.Message(parser_e_illegal_expression);
-                  datadef:=carraydef.getreusable(cansichartype,1,compiler);
+                  datadef:=carraydef.getreusable(compiler.deftypes.cansichartype,1,compiler);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
               { we now emit the address of the first element of the array
@@ -1439,7 +1439,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   case char_size of
                     1:
                       begin
-                        inserttypeconv(n,cansichartype,compiler);
+                        inserttypeconv(n,compiler.deftypes.cansichartype,compiler);
                         if not is_constcharnode(n) then
                           internalerror(2010033006);
                         ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
