@@ -442,7 +442,7 @@ implementation
         compiler.deftypes.charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near,compiler);
         compiler.deftypes.charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far,compiler);
         compiler.deftypes.charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge,compiler);
-        bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
+        compiler.deftypes.bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far,compiler);
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far,compiler);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far,compiler);
   {$endif i8086}
@@ -639,7 +639,7 @@ implementation
         addtype('$char_nearpointer',compiler.deftypes.charnearpointertype);
         addtype('$char_farpointer',compiler.deftypes.charfarpointertype);
         addtype('$char_hugepointer',compiler.deftypes.charhugepointertype);
-        addtype('$byte_farpointer',bytefarpointertype);
+        addtype('$byte_farpointer',compiler.deftypes.bytefarpointertype);
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
@@ -803,7 +803,7 @@ implementation
         loadtype('char_nearpointer',compiler.deftypes.charnearpointertype);
         loadtype('char_farpointer',compiler.deftypes.charfarpointertype);
         loadtype('char_hugepointer',compiler.deftypes.charhugepointertype);
-        loadtype('byte_farpointer',bytefarpointertype);
+        loadtype('byte_farpointer',compiler.deftypes.bytefarpointertype);
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
