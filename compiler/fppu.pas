@@ -2543,7 +2543,7 @@ var
         if check_loadfrompackage then
         begin
           { No need to do anything, restore situation and exit. }
-          set_current_module(from_module);
+          set_current_module(old_module);
           {$IFDEF DEBUG_PPU_CYCLES}
           writeln('PPUALGO tppumodule.loadppu from package: ',modulename^,' (',statestr,') used by "',from_module.modulename^,'" (',from_module.statestr,')');
           {$ENDIF}
