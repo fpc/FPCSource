@@ -2510,6 +2510,8 @@ var
     function tppumodule.loadppu(from_module : tmodule) : boolean;
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
+      var
+        old_module: tmodule;
       begin
         Result:=false;
 
@@ -2535,6 +2537,7 @@ var
 
         loadedfrommodule:=from_module;
 
+        old_module:=current_module;
         set_current_module(self);
 
         if check_loadfrompackage then
@@ -2573,7 +2576,7 @@ var
 
         Result:=continueloadppu;
 
-        set_current_module(from_module);
+        set_current_module(old_module);
       end;
 
     function tppumodule.get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
