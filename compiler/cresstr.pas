@@ -173,6 +173,9 @@ uses
         resstrdef: tdef;
         tcb : ttai_typedconstbuilder;
         enc : tstringencoding;
+        charlen : longint;
+        st : tstringtype;
+        strcharpointertype: tdef;
 
       begin
         resstrdef:=search_system_type('TRESOURCESTRINGRECORD').typedef;
@@ -204,13 +207,19 @@ uses
               begin
               if R.isUnicode and assigned(R.WValue) then
                 begin
-                enc:=tstringdef(cunicodestringtype).encoding;
-                valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
+                  enc:=tstringdef(cunicodestringtype).encoding;
+                  valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
+                  charlen:=getlengthwidestring(R.WValue);
+                  st:=st_unicodestring;
+                  strcharpointertype:=widecharpointertype;;
                 end
               else
                 begin
-                if assigned(R.AValue) then
-                  valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage)
+                  if assigned(R.AValue) then
+                    valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage);
+                  charlen:=R.Len;
+                  st:=st_ansistring;
+                  strcharpointertype:=charpointertype;;
                 end;
               end;
             current_asmdata.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
@@ -218,7 +227,7 @@ uses
             {
               Resourcestring index:
                   TResourceStringRecord = Packed Record
-                     Name,
+                     Name: AnsiString;
                      CurrentValue,
                      DefaultValue : AnsiString/Widestring;
                      HashValue    : LongWord;
@@ -226,8 +235,8 @@ uses
             }
             tcb.maybe_begin_aggregate(resstrdef);
             tcb.emit_string_offset(namelab,length(R.name),st_ansistring,false,charpointertype);
-            tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
-            tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
+            tcb.emit_string_offset(valuelab,charlen,st,false,strcharpointertype);
+            tcb.emit_string_offset(valuelab,charlen,st,false,strcharpointertype);
             tcb.emit_ord_const(R.hash,u32inttype);
             tcb.maybe_end_aggregate(resstrdef);
             current_asmdata.asmlists[al_resourcestrings].concatList(
