@@ -1203,7 +1203,7 @@ implementation
           if signed then
             calcsize:=s64inttype
           else
-            calcsize:=u64inttype;
+            calcsize:=compiler.deftypes.u64inttype;
         8:
           if signed then
             calcsize:=s128inttype
@@ -1302,7 +1302,7 @@ implementation
       sourcepara.Alignment:=-source.alignment;
       a_loadaddr_ref_cgpara(list,size,dest,destpara);
       a_loadaddr_ref_cgpara(list,size,source,sourcepara);
-      a_load_const_cgpara(list,u64inttype,size.size,sizepara);
+      a_load_const_cgpara(list,compiler.deftypes.u64inttype,size.size,sizepara);
       a_load_const_cgpara(list,compiler.deftypes.llvmbool1type,ord((vol_read in source.volatility) or (vol_write in dest.volatility)),volatilepara);
       g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@volatilepara],nil).resetiftemp;
       sourcepara.done;

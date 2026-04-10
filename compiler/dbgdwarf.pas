@@ -1542,7 +1542,7 @@ implementation
                if def.min<0 then
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(s64inttype))
                else
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u64inttype));
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u64inttype));
             else
               Internalerror(2025041701);
           end;
@@ -1785,7 +1785,7 @@ implementation
                  number that should be enough for most constant strings
               }
 {$ifdef cpu64bitaddr}
-              addnormalstringdef('LongString',u64inttype,qword(1024*1024));
+              addnormalstringdef('LongString',compiler.deftypes.u64inttype,qword(1024*1024));
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
               addnormalstringdef('LongString',compiler.deftypes.u32inttype,cardinal(1024*1024));

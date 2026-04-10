@@ -1541,7 +1541,7 @@ implementation
               4:
                 tcb.emit_ord_const(longword(setval),compiler.deftypes.u32inttype);
               8:
-                tcb.emit_ord_const(qword(setval),u64inttype);
+                tcb.emit_ord_const(qword(setval),compiler.deftypes.u64inttype);
               else
                 internalerror(2019070802);
             end;

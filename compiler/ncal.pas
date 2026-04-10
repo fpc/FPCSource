@@ -419,7 +419,7 @@ implementation
               1..4:
                 assign_type:=compiler.deftypes.u32inttype;
               8:
-                assign_type:=u64inttype;
+                assign_type:=compiler.deftypes.u64inttype;
               else
                 internalerror(2007042801);
             end;

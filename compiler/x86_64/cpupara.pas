@@ -207,7 +207,7 @@ unit cpupara;
                    not is_implicit_pointer_object_type(cl.def) and
                    not is_dynamicstring(cl.def) and
                    not is_dynamic_array(cl.def)) then
-                 cl.def:=u64inttype;
+                 cl.def:=compiler.deftypes.u64inttype;
              end;
          end;
 
@@ -1507,7 +1507,7 @@ unit cpupara;
                         begin
                           paraloc^.size:=OS_64;
                           if paraloc^.def.size<>8 then
-                            paraloc^.def:=u64inttype;
+                            paraloc^.def:=compiler.deftypes.u64inttype;
                         end
                       else if result.intsize in [1,2,4] then
                         begin
@@ -1758,7 +1758,7 @@ unit cpupara;
                   begin
                     loc[0].typ:=X86_64_INTEGER_CLASS;
                     paracgsize:=OS_64;
-                    paralocdef:=u64inttype;
+                    paralocdef:=compiler.deftypes.u64inttype;
                   end
                 else
                   begin
@@ -1829,7 +1829,7 @@ unit cpupara;
                               if loc[locidx].typ=X86_64_INTEGER_CLASS then
                                 begin
                                   paraloc^.size:=OS_INT;
-                                  paraloc^.def:=u64inttype;
+                                  paraloc^.def:=compiler.deftypes.u64inttype;
                                   subreg:=R_SUBWHOLE;
                                 end
                               else
@@ -1870,7 +1870,7 @@ unit cpupara;
                               if paraloc^.size=OS_C64 then
                                 begin
                                   paraloc^.size:=OS_64;
-                                  paraloc^.def:=u64inttype;
+                                  paraloc^.def:=compiler.deftypes.u64inttype;
                                 end;
                               subreg:=cgsize2subreg(R_INTREGISTER,paraloc^.size);
                             end;
@@ -1989,7 +1989,7 @@ unit cpupara;
                           if paracgsize=OS_C64 then
                             begin
                               paraloc^.size:=OS_64;
-                              paraloc^.def:=u64inttype;
+                              paraloc^.def:=compiler.deftypes.u64inttype;
                             end;
 
                           {Hack alert!!! We should modify int_cgsize to handle OS_128,

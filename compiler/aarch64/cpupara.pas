@@ -322,7 +322,7 @@ unit cpupara;
             (result.def.size<8) and is_ordinal(result.def) then
            begin
              result.location^.size:=OS_64;
-             result.location^.def:=u64inttype;
+             result.location^.def:=compiler.deftypes.u64inttype;
            end;
 {$endif}
       end;
@@ -490,7 +490,7 @@ unit cpupara;
                if paralen>4 then
                  begin
                    paraloc^.size:=OS_INT;
-                   paraloc^.def:=u64inttype;
+                   paraloc^.def:=compiler.deftypes.u64inttype;
                  end
                else
                  begin
@@ -510,7 +510,7 @@ unit cpupara;
                      OS_8,OS_16,OS_32:
                        begin
                          paraloc^.size:=OS_64;
-                         paraloc^.def:=u64inttype;
+                         paraloc^.def:=compiler.deftypes.u64inttype;
                        end;
                      OS_S8,OS_S16,OS_S32:
                        begin
@@ -535,7 +535,7 @@ unit cpupara;
                              not is_special_array(locdef)) then
                            begin
                              paraloc^.size:=OS_64;
-                             paraloc^.def:=u64inttype;
+                             paraloc^.def:=compiler.deftypes.u64inttype;
                            end
                        end;
                    end;

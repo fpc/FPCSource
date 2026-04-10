@@ -1751,7 +1751,7 @@ const
                            4:
                              inttype:=compiler.deftypes.u32inttype;
                            8:
-                             inttype:=u64inttype;
+                             inttype:=compiler.deftypes.u64inttype;
                            else
                              Internalerror(2020060101);
                          end;
@@ -2660,9 +2660,9 @@ const
              else if ((torddef(rd).ordtype=u64bit) or (torddef(ld).ordtype=u64bit)) then
                begin
                   if (torddef(ld).ordtype<>u64bit) then
-                   inserttypeconv(left,u64inttype,compiler);
+                   inserttypeconv(left,compiler.deftypes.u64inttype,compiler);
                   if (torddef(rd).ordtype<>u64bit) then
-                   inserttypeconv(right,u64inttype,compiler);
+                   inserttypeconv(right,compiler.deftypes.u64inttype,compiler);
                end
              { is there a larger int? }
              else if is_oversizedint(rd) or is_oversizedint(ld) then

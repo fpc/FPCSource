@@ -695,7 +695,7 @@ implementation
           in_wasm32_i64_atomic_rmw_xchg:
             begin
               CheckParameters(2);
-              resultdef:=u64inttype;
+              resultdef:=compiler.deftypes.u64inttype;
             end;
           in_wasm32_i32_atomic_rmw8_cmpxchg_u,
           in_wasm32_i32_atomic_rmw16_cmpxchg_u,
@@ -710,7 +710,7 @@ implementation
           in_wasm32_i64_atomic_rmw_cmpxchg:
             begin
               CheckParameters(3);
-              resultdef:=u64inttype;
+              resultdef:=compiler.deftypes.u64inttype;
             end;
           in_wasm32_memory_atomic_wait32,
           in_wasm32_memory_atomic_wait64:
@@ -736,7 +736,7 @@ implementation
           in_i64_atomic_load:
             begin
               CheckParameters(1);
-              resultdef:=u64inttype;
+              resultdef:=compiler.deftypes.u64inttype;
             end;
           in_i32_atomic_store8,
           in_i32_atomic_store16,

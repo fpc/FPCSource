@@ -249,7 +249,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u64inttype,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u64inttype,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 

@@ -402,9 +402,9 @@ implementation
              else
                begin
                   if (ld.ordtype<>u64bit) then
-                    inserttypeconv(left,u64inttype,compiler);
+                    inserttypeconv(left,compiler.deftypes.u64inttype,compiler);
                   if (rd.ordtype<>u64bit) then
-                    inserttypeconv(right,u64inttype,compiler);
+                    inserttypeconv(right,compiler.deftypes.u64inttype,compiler);
                end;
              resultdef:=left.resultdef;
            end

@@ -381,7 +381,7 @@ implementation
              if is_signed(left.resultdef) then
                opdef:=s64inttype
              else
-               opdef:=u64inttype;
+               opdef:=compiler.deftypes.u64inttype;
 
              { this code valid for 64-bit cpu's only ,
                otherwise helpers are called in pass_1
@@ -561,7 +561,7 @@ implementation
               end
             else
               begin
-                opdef:=u64inttype;
+                opdef:=compiler.deftypes.u64inttype;
                 opsize:=OS_64;
               end;
             shiftcountdef:=opdef;

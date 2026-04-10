@@ -456,7 +456,7 @@ unit cpupara;
                   if paracgsize=OS_F64 then
                     begin
                       paracgsize:=OS_64;
-                      paradef:=u64inttype;
+                      paradef:=compiler.deftypes.u64inttype;
                     end
                   else
                     begin

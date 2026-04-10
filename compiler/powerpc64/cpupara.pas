@@ -656,7 +656,7 @@ implemented
       begin
         loc:=LOC_REGISTER;
         paracgsize:=OS_64;
-        locdef:=u64inttype;
+        locdef:=compiler.deftypes.u64inttype;
       end;
     { In case of po_delphi_nested_cc, the parent frame pointer
       is always passed on the stack. }
@@ -682,7 +682,7 @@ implemented
         begin
           paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
           paraloc^.size := OS_INT;
-          paraloc^.def := u64inttype;
+          paraloc^.def := compiler.deftypes.u64inttype;
         end
       else if (paracgsize in [OS_NO, OS_128, OS_S128]) then
         begin

@@ -553,7 +553,7 @@ implementation
         else if (l>=low(int64)) and (h<=high(int64)) then
          def:=s64inttype
         else
-         def:=u64inttype;
+         def:=compiler.deftypes.u64inttype;
       end;
 
 
@@ -1838,7 +1838,7 @@ implementation
           OS_S32:
             result:=torddef(compiler.deftypes.s32inttype);
           OS_64:
-            result:=torddef(u64inttype);
+            result:=torddef(compiler.deftypes.u64inttype);
           OS_S64:
             result:=torddef(s64inttype);
           else
@@ -1977,7 +1977,7 @@ implementation
           s64bit:
             result:=torddef(s64inttype);
           u64bit:
-            result:=torddef(u64inttype);
+            result:=torddef(compiler.deftypes.u64inttype);
           else
             begin
               { avoid warning }
@@ -2002,7 +2002,7 @@ implementation
             u32bit:
               result:=torddef(s64inttype);
             s64bit:
-              result:=torddef(u64inttype);
+              result:=torddef(compiler.deftypes.u64inttype);
             else
               ;
           end;

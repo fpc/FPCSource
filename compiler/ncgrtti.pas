@@ -1439,8 +1439,8 @@ implementation
             case deftrans of
               otUQWord:
                 begin
-                  tcb.emit_ord_const(min,u64inttype);
-                  tcb.emit_ord_const(max,u64inttype);
+                  tcb.emit_ord_const(min,compiler.deftypes.u64inttype);
+                  tcb.emit_ord_const(max,compiler.deftypes.u64inttype);
                 end;
               otSQWord:
                 begin

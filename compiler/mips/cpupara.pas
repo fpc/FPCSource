@@ -419,7 +419,7 @@ implementation
                    if paralen>4 then
                      begin
                        paraloc^.size:=OS_64;
-                       paraloc^.def:=u64inttype;
+                       paraloc^.def:=compiler.deftypes.u64inttype;
                      end
                  end
                else

@@ -736,7 +736,7 @@ implementation
             u64bit :
               begin
                 func_suffix := 'qword';
-                readfunctype:=u64inttype;
+                readfunctype:=compiler.deftypes.u64inttype;
               end;
             s32bit:
               begin
@@ -2565,7 +2565,7 @@ implementation
                           pasbool64 :
                             begin
                               { change to qword() }
-                              result:=compiler.ctypeconvnode_internal(left,u64inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.u64inttype);
                               left:=nil;
                             end;
                           bool8bit:
@@ -4156,7 +4156,7 @@ implementation
                    if not is_integer(left.resultdef) then
                      compiler.verbose.CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                    if torddef(left.resultdef).ordtype in [u64bit, s64bit] then
-                     resultdef:=u64inttype
+                     resultdef:=compiler.deftypes.u64inttype
                    else
                      resultdef:=compiler.deftypes.u32inttype
                  end;
