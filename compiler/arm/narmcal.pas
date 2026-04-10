@@ -97,7 +97,7 @@ implementation
               location_allocate_register(current_asmdata.CurrAsmList,location,compiler.deftypes.s32inttype,false);
             OS_64,
             OS_F64:
-              location_allocate_register(current_asmdata.CurrAsmList,location,s64inttype,false);
+              location_allocate_register(current_asmdata.CurrAsmList,location,compiler.deftypes.s64inttype,false);
             else
               internalerror(2010053008);
           end

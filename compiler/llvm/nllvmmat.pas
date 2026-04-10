@@ -144,7 +144,7 @@ begin
       begin
         { sc80floattype instead of _size, see comment in thlcgllvm.a_loadfpu_ref_reg }
         _size:=sc80floattype;
-        current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,minusonereg,s64inttype,-1,_size));
+        current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,minusonereg,compiler.deftypes.s64inttype,-1,_size));
       end;
 {$ifdef cpuextended}
     s80real,sc80real:

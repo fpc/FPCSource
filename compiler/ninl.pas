@@ -731,7 +731,7 @@ implementation
             s64bit:
               begin
                 func_suffix := 'int64';
-                readfunctype:=s64inttype;
+                readfunctype:=compiler.deftypes.s64inttype;
               end;
             u64bit :
               begin
@@ -2589,7 +2589,7 @@ implementation
                           bool64bit :
                             begin
                               { change to int64() }
-                              result:=compiler.ctypeconvnode_internal(left,s64inttype);
+                              result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.s64inttype);
                               left:=nil;
                             end;
                           uvoid :
@@ -2815,10 +2815,10 @@ implementation
                       if (vr>=9223372036854775807.99) or (vr<=-9223372036854775808.0) then
                         begin
                           compiler.verbose.Message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.0','9223372036854775807.99..');
-                          result:=compiler.cordconstnode(1,s64inttype,false)
+                          result:=compiler.cordconstnode(1,compiler.deftypes.s64inttype,false)
                         end
                       else
-                        result:=compiler.cordconstnode(trunc(vr),s64inttype,true)
+                        result:=compiler.cordconstnode(trunc(vr),compiler.deftypes.s64inttype,true)
                     end
                 end;
               in_round_real :
@@ -2831,10 +2831,10 @@ implementation
                       if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                         begin
                           compiler.verbose.Message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.49..','9223372036854775807.49..');
-                          result:=compiler.cordconstnode(1,s64inttype,false)
+                          result:=compiler.cordconstnode(1,compiler.deftypes.s64inttype,false)
                         end
                       else
-                        result:=compiler.cordconstnode(round(vr),s64inttype,true)
+                        result:=compiler.cordconstnode(round(vr),compiler.deftypes.s64inttype,true)
                     end
                 end;
               in_frac_real :
@@ -3462,9 +3462,9 @@ implementation
                                    compiler.cmoddivnode(divn,
                                      compiler.caddnode(addn,
                                        compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
-                                         left.resultdef).elepackedbitsize,s64inttype,true)),
-                                       compiler.cordconstnode(a,s64inttype,true)),
-                                     compiler.cordconstnode(8,s64inttype,true)),
+                                         left.resultdef).elepackedbitsize,compiler.deftypes.s64inttype,true)),
+                                       compiler.cordconstnode(a,compiler.deftypes.s64inttype,true)),
+                                     compiler.cordconstnode(8,compiler.deftypes.s64inttype,true)),
                                    sizesinttype);
 }
                             end;
@@ -4047,15 +4047,15 @@ implementation
                   if (inlinenumber=in_trunc_real) and
                      is_currency(temp_pnode^.resultdef) then
                     begin
-                      result:=compiler.cmoddivnode(divn,compiler.ctypeconvnode_internal(temp_pnode^.getcopy,s64inttype),genintconstnode(10000,compiler));
+                      result:=compiler.cmoddivnode(divn,compiler.ctypeconvnode_internal(temp_pnode^.getcopy,compiler.deftypes.s64inttype),genintconstnode(10000,compiler));
                       exit;
                     end
                   else if is_fpucomp(temp_pnode^.resultdef) then
                     begin
-                      result:=compiler.ctypeconvnode_internal(temp_pnode^.getcopy,s64inttype);
+                      result:=compiler.ctypeconvnode_internal(temp_pnode^.getcopy,compiler.deftypes.s64inttype);
                       exit;
                     end;
-                  resultdef:=s64inttype;
+                  resultdef:=compiler.deftypes.s64inttype;
                 end;
 
               in_pi_real :

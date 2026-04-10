@@ -795,7 +795,7 @@ implementation
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
                                  '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;32;$3,384,256;'+
                                  'NAME:ar$1;0;255;$4,640,2048;;',[def_stab_number(compiler.deftypes.s32inttype),
-                                 def_stab_number(s64inttype),
+                                 def_stab_number(compiler.deftypes.s64inttype),
                                  def_stab_number(compiler.deftypes.u8inttype),
                                  def_stab_number(compiler.deftypes.cansichartype)]);
 {$else cpu64bitaddr}
@@ -1027,7 +1027,7 @@ implementation
             begin
               appenddef(list,compiler.deftypes.s32inttype);
 {$ifdef cpu64bitaddr}
-              appenddef(list,s64inttype);
+              appenddef(list,compiler.deftypes.s64inttype);
 {$endif cpu64bitaddr}
               appenddef(list,compiler.deftypes.u8inttype);
               appenddef(list,compiler.deftypes.cansichartype);

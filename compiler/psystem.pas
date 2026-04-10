@@ -145,13 +145,13 @@ implementation
       begin
 {$ifdef cpu64bitalu}
         aluuinttype:=compiler.deftypes.u64inttype;
-        alusinttype:=s64inttype;
+        alusinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitalu}
 {$ifdef cpu64bitaddr}
         sizeuinttype:=compiler.deftypes.u64inttype;
-        sizesinttype:=s64inttype;
+        sizesinttype:=compiler.deftypes.s64inttype;
         uinttype:=compiler.deftypes.u64inttype;
-        sinttype:=s64inttype;
+        sinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
         sizeuinttype:=compiler.deftypes.u32inttype;
@@ -215,7 +215,7 @@ implementation
           8:
             begin
               codeptruinttype:=compiler.deftypes.u64inttype;
-              codeptrsinttype:=s64inttype;
+              codeptrsinttype:=compiler.deftypes.s64inttype;
             end;
           else
             Internalerror(2015112106);
@@ -234,7 +234,7 @@ implementation
           8:
             begin
               ptruinttype:=compiler.deftypes.u64inttype;
-              ptrsinttype:=s64inttype;
+              ptrsinttype:=compiler.deftypes.s64inttype;
             end;
           else
             Internalerror(2016100301);
@@ -301,7 +301,7 @@ implementation
         compiler.deftypes.s56inttype:=corddef.create(customint,-(int64(1) shl 55),int64(1) shl 55 - 1,true,compiler);
         compiler.deftypes.u56inttype:=corddef.create(customint,0,int64(1) shl 56 - 1,true,compiler);
         compiler.deftypes.u64inttype:=corddef.create(u64bit,low(qword),high(qword),true,compiler);
-        s64inttype:=corddef.create(s64bit,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64inttype:=corddef.create(s64bit,low(int64),high(int64),true,compiler);
         { upper/lower bound not yet properly set for 128 bit types, as we don't
           support them yet at the Pascal level (nor for tconstexprint); they're
           only used internally by the high level code generator for LLVM to
@@ -564,7 +564,7 @@ implementation
         addtype('LongWord',compiler.deftypes.u32inttype);
         addtype('LongInt',compiler.deftypes.s32inttype);
         addtype('QWord',compiler.deftypes.u64inttype);
-        addtype('Int64',s64inttype);
+        addtype('Int64',compiler.deftypes.s64inttype);
         addtype('AnsiChar',compiler.deftypes.cansichartype);
         addtype('WideChar',compiler.deftypes.cwidechartype);
         addtype('Text',cfiledef.createtext(compiler));
@@ -595,7 +595,7 @@ implementation
         addtype('$sint56',compiler.deftypes.s56inttype);
         addtype('$uint56',compiler.deftypes.u56inttype);
         addtype('$qword',compiler.deftypes.u64inttype);
-        addtype('$int64',s64inttype);
+        addtype('$int64',compiler.deftypes.s64inttype);
         addtype('$uint128',u128inttype);
         addtype('$int128',s128inttype);
         addtype('$ansichar',compiler.deftypes.cansichartype);
@@ -752,7 +752,7 @@ implementation
         loadtype('uint56',compiler.deftypes.u56inttype);
         loadtype('sint56',compiler.deftypes.s56inttype);
         loadtype('qword',compiler.deftypes.u64inttype);
-        loadtype('int64',s64inttype);
+        loadtype('int64',compiler.deftypes.s64inttype);
         loadtype('uint128',u128inttype);
         loadtype('int128',s128inttype);
         loadtype('undefined',compiler.deftypes.cundefinedtype);

@@ -84,7 +84,7 @@ implementation
             { hack to avoid double division by 10000, as it's
               already done by typecheckpass.resultdef_int_to_real }
             if is_currency(left.resultdef) then
-              left.resultdef := s64inttype
+              left.resultdef := compiler.deftypes.s64inttype
             else if not is_signed(left.resultdef) then
               begin
                 fname := 'fpc_qword_to_double';
@@ -102,7 +102,7 @@ implementation
             if is_signed(left.resultdef) then
               inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
             else
-              inserttypeconv(left,s64inttype,compiler);
+              inserttypeconv(left,compiler.deftypes.s64inttype,compiler);
             firstpass(left);
           end;
         result := nil;

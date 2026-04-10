@@ -1197,7 +1197,8 @@ interface
          s48inttype,                { 48-Bit signed integer }
          u56inttype,                { 56-Bit unsigned integer }
          s56inttype,                { 56-Bit signed integer }
-         u64inttype: tdef;          { 64-bit unsigned integer }
+         u64inttype,                { 64-bit unsigned integer }
+         s64inttype: tdef;          { 64-bit signed integer }
        end;
 
 
@@ -1224,7 +1225,6 @@ interface
 
 
     { default types }
-       s64inttype,                { 64-bit signed integer }
        u128inttype,               { 128-bit unsigned integer }
        s128inttype,               { 128-bit signed integer }
        s32floattype,              { 32 bit floating point number }
@@ -9797,7 +9797,7 @@ implementation
        compiler.deftypes.u56inttype:=nil;                { 56-Bit unsigned integer }
        compiler.deftypes.s56inttype:=nil;                { 56-Bit signed integer }
        compiler.deftypes.u64inttype:=nil;                { 64-bit unsigned integer }
-       s64inttype:=nil;                { 64-bit signed integer }
+       compiler.deftypes.s64inttype:=nil;                { 64-bit signed integer }
        u128inttype:=nil;               { 128-bit unsigned integer }
        s128inttype:=nil;               { 128-bit signed integer }
        s32floattype:=nil;              { 32 bit floating point number }

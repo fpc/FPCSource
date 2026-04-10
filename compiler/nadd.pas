@@ -2397,8 +2397,8 @@ const
                 end
               else
                 begin
-                  left.resultdef := s64inttype;
-                  right.resultdef := s64inttype;
+                  left.resultdef := compiler.deftypes.s64inttype;
+                  right.resultdef := compiler.deftypes.s64inttype;
                 end;
             if compiler.globals.current_settings.fputype=fpu_none then
               begin
@@ -2652,9 +2652,9 @@ const
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
                begin
                   if (torddef(ld).ordtype<>s64bit) then
-                   inserttypeconv(left,s64inttype,compiler);
+                   inserttypeconv(left,compiler.deftypes.s64inttype,compiler);
                   if (torddef(rd).ordtype<>s64bit) then
-                   inserttypeconv(right,s64inttype,compiler);
+                   inserttypeconv(right,compiler.deftypes.s64inttype,compiler);
                end
              { is there a unsigned 64 bit type ? }
              else if ((torddef(rd).ordtype=u64bit) or (torddef(ld).ordtype=u64bit)) then
@@ -4288,7 +4288,7 @@ const
                 { generic handling replaces this node with call to fpc_mul_int64,
                   whose result is int64 }
                 if is_currency(resultdef) then
-                  resultdef:=s64inttype;
+                  resultdef:=compiler.deftypes.s64inttype;
                 exit;
               end;
 
@@ -4296,8 +4296,8 @@ const
               parameters to s64bit, so they are not converted }
             if is_currency(resultdef) then
               begin
-                left.resultdef:=s64inttype;
-                right.resultdef:=s64inttype;
+                left.resultdef:=compiler.deftypes.s64inttype;
+                right.resultdef:=compiler.deftypes.s64inttype;
               end;
 
             { otherwise, create the parameters for the helper }

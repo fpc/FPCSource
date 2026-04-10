@@ -479,7 +479,7 @@ implementation
         cgsize:=def_cgsize(size)
       else
         begin
-          resize_stack_int_val(list,compiler.deftypes.u32inttype,s64inttype,false);
+          resize_stack_int_val(list,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
           cgsize:=OS_S64;
         end;
       case cgsize of
@@ -512,9 +512,9 @@ implementation
             if op=OP_NOT then
               begin
                 if not is_pasbool(size) then
-                  a_load_const_stack(list,s64inttype,-1,R_INTREGISTER)
+                  a_load_const_stack(list,compiler.deftypes.s64inttype,-1,R_INTREGISTER)
                 else
-                  a_load_const_stack(list,s64inttype,1,R_INTREGISTER);
+                  a_load_const_stack(list,compiler.deftypes.s64inttype,1,R_INTREGISTER);
                 op:=OP_XOR;
               end;
             if TOpCG2LAsmOp[op]=A_None then
@@ -2211,7 +2211,7 @@ implementation
           incstack(list,1);
           { if it was an unsigned 32 bit value, remove sign extension }
           if fromcgsize=OS_32 then
-            a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
+            a_op_const_stack(list,OP_AND,compiler.deftypes.s64inttype,cardinal($ffffffff));
         end;
       { Conversions between 32 and 64 bit types have been completely handled
         above. We still may have to truncate or sign extend in case the
@@ -2498,7 +2498,7 @@ implementation
         begin
           { needs zero-extension to 64 bit, because the JVM only supports
             signed divisions }
-          resize_stack_int_val(list,compiler.deftypes.u32inttype,s64inttype,false);
+          resize_stack_int_val(list,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
           op:=OP_IDIV;
           isdivu32:=true;
         end

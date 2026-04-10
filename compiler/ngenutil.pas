@@ -898,7 +898,7 @@ implementation
                   compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s32inttype),
                     genintconstnode(longint(trashintval),compiler));
                 8: trash_small(stat,
-                  compiler.ctypeconvnode_internal(trashn,s64inttype),
+                  compiler.ctypeconvnode_internal(trashn,compiler.deftypes.s64inttype),
                     genintconstnode(int64(trashintval),compiler));
                 else
                   trash_large(stat,trashn,genintconstnode(size,compiler),trashintval);

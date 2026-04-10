@@ -271,7 +271,7 @@ unit cpupara;
             if result.def.size<8 then
               begin
                 result.typ:=X86_64_INTEGER_CLASS;
-                result.def:=s64inttype;
+                result.def:=compiler.deftypes.s64inttype;
               end;
             exit
           end
@@ -281,7 +281,7 @@ unit cpupara;
             if result.def.size<8 then
               begin
                 result.typ:=X86_64_INTEGER_CLASS;
-                result.def:=s64inttype;
+                result.def:=compiler.deftypes.s64inttype;
               end;
             exit
           end;
@@ -549,7 +549,7 @@ unit cpupara;
               X86_64_INTEGERSI_CLASS:
                 begin
                   classes[0].typ:=X86_64_INTEGER_CLASS;
-                  classes[0].def:=s64inttype;
+                  classes[0].def:=compiler.deftypes.s64inttype;
                 end;
               X86_64_SSESF_CLASS:
                 begin
@@ -565,7 +565,7 @@ unit cpupara;
               X86_64_INTEGERSI_CLASS:
                 begin
                   classes[1].typ:=X86_64_INTEGER_CLASS;
-                  classes[1].def:=s64inttype;
+                  classes[1].def:=compiler.deftypes.s64inttype;
                 end;
               X86_64_SSESF_CLASS:
                 begin

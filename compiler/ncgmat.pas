@@ -379,7 +379,7 @@ implementation
          if is_64bit(resultdef) then
            begin
              if is_signed(left.resultdef) then
-               opdef:=s64inttype
+               opdef:=compiler.deftypes.s64inttype
              else
                opdef:=compiler.deftypes.u64inttype;
 
@@ -556,7 +556,7 @@ implementation
           begin
             if is_signed(left.resultdef) then
               begin
-                opdef:=s64inttype;
+                opdef:=compiler.deftypes.s64inttype;
                 opsize:=OS_S64;
               end
             else

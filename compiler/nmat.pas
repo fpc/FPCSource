@@ -395,9 +395,9 @@ implementation
              if is_signed(rd) or is_signed(ld) then
                begin
                   if (ld.ordtype<>s64bit) then
-                    inserttypeconv(left,s64inttype,compiler);
+                    inserttypeconv(left,compiler.deftypes.s64inttype,compiler);
                   if (rd.ordtype<>s64bit) then
-                    inserttypeconv(right,s64inttype,compiler);
+                    inserttypeconv(right,compiler.deftypes.s64inttype,compiler);
                end
              else
                begin
@@ -563,8 +563,8 @@ implementation
           parameters to s64bit, so they are not converted }
         if nf_is_currency in flags then
           begin
-            left.resultdef:=s64inttype;
-            right.resultdef:=s64inttype;
+            left.resultdef:=compiler.deftypes.s64inttype;
+            right.resultdef:=compiler.deftypes.s64inttype;
           end;
 
         { otherwise create a call to a helper }
@@ -1165,7 +1165,7 @@ implementation
          else if is_oversizedord(left.resultdef) then
            begin
              if is_64bit(left.resultdef) then
-               inserttypeconv(left,s64inttype,compiler)
+               inserttypeconv(left,compiler.deftypes.s64inttype,compiler)
              else if is_32bit(left.resultdef) then
                inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
              else if is_16bit(left.resultdef) then
@@ -1295,7 +1295,7 @@ implementation
         else if is_oversizedord(left.resultdef) then
           begin
             if is_64bit(left.resultdef) then
-              inserttypeconv(left,s64inttype,compiler)
+              inserttypeconv(left,compiler.deftypes.s64inttype,compiler)
             else if is_32bit(left.resultdef) then
               inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
             else if is_16bit(left.resultdef) then

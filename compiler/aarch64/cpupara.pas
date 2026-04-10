@@ -515,7 +515,7 @@ unit cpupara;
                      OS_S8,OS_S16,OS_S32:
                        begin
                          paraloc^.size:=OS_S64;
-                         paraloc^.def:=s64inttype;
+                         paraloc^.def:=compiler.deftypes.s64inttype;
                        end;
                      OS_F32:
                        begin

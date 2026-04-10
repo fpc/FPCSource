@@ -1444,8 +1444,8 @@ implementation
                 end;
               otSQWord:
                 begin
-                  tcb.emit_ord_const(min,s64inttype);
-                  tcb.emit_ord_const(max,s64inttype);
+                  tcb.emit_ord_const(min,compiler.deftypes.s64inttype);
+                  tcb.emit_ord_const(max,compiler.deftypes.s64inttype);
                 end;
               else
                 begin

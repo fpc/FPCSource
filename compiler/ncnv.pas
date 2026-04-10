@@ -3109,7 +3109,7 @@ implementation
                            4 :
                              hdef:=compiler.deftypes.s32inttype;
                            8 :
-                             hdef:=s64inttype;
+                             hdef:=compiler.deftypes.s64inttype;
                          end;
                          { we need explicit, because it can also be an enum }
                          if assigned(hdef) then
@@ -3982,7 +3982,7 @@ implementation
                 { hack to avoid double division by 10000, as it's
                   already done by typecheckpass.resultdef_int_to_real }
                 if is_currency(left.resultdef) then
-                  left.resultdef := s64inttype;
+                  left.resultdef := compiler.deftypes.s64inttype;
                 if is_signed(left.resultdef) then
                   fname:='i64to'
                 else
@@ -4016,7 +4016,7 @@ implementation
                 { hack to avoid double division by 10000, as it's
                   already done by typecheckpass.resultdef_int_to_real }
                 if is_currency(left.resultdef) then
-                  left.resultdef := s64inttype;
+                  left.resultdef := compiler.deftypes.s64inttype;
                 if is_signed(left.resultdef) then
                   fname:='int64_to_'
                 else

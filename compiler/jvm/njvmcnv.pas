@@ -688,7 +688,7 @@ implementation
             if srcsize=4 then
               signeddef:=compiler.deftypes.s32inttype
             else
-              signeddef:=s64inttype;
+              signeddef:=compiler.deftypes.s64inttype;
             hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,signeddef,OC_GTE,0,left.location,l1);
             if srcsize=4 then
               thlcgjvm(hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,4294967296.0)
@@ -959,7 +959,7 @@ implementation
         begin
           if tsetdef(resultdef).elementdef.typ=enumdef then
             begin
-              inserttypeconv_explicit(left,s64inttype,compiler);
+              inserttypeconv_explicit(left,compiler.deftypes.s64inttype,compiler);
               enumclassdef:=tcpuenumdef(tenumdef(tsetdef(resultdef).elementdef).getbasedef).classdef;
               mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(enumclassdef));
               helpername:='fpcLongToEnumSet';
@@ -979,7 +979,7 @@ implementation
               else
                 begin
                   helpername:='fpc_long_to_bitset';
-                  inserttypeconv_explicit(left,s64inttype,compiler);
+                  inserttypeconv_explicit(left,compiler.deftypes.s64inttype,compiler);
                 end;
               result:=compiler.ccallnode_intern(helpername,
                 compiler.ccallparanode(genintconstnode(resultdef.size,compiler),

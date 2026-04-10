@@ -709,13 +709,13 @@ implementation
                 if op=OP_NOT then
                   begin
                     { not = xor -1 for integer }
-                    a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                    a_load_const_stack(list,compiler.deftypes.s64inttype,-1,R_INTREGISTER);
                     op:=OP_XOR;
                   end
                 else if op=OP_NEG then
                   begin
                     { neg = *(-1) }
-                    a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                    a_load_const_stack(list,compiler.deftypes.s64inttype,-1,R_INTREGISTER);
                     op:=OP_MUL;
                   end;
                 if TOpCG2LAsmOp[op]=A_None then

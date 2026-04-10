@@ -568,7 +568,7 @@ implementation
                        (torddef(def).ordtype in [s64bit,u64bit,scurrency,bool64bit,pasbool64]) then
                       begin
                         objdef:=tobjectdef(search_system_type('JLLONG').typedef);
-                        paradef:=s64inttype;
+                        paradef:=compiler.deftypes.s64inttype;
                       end
                     else
                       begin

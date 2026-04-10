@@ -613,7 +613,7 @@ implemented
       if side=callerside then
         begin
           paralen:=8;
-          paradef:=s64inttype;
+          paradef:=compiler.deftypes.s64inttype;
           paracgsize:=OS_S64;
         end
       else

@@ -81,7 +81,7 @@ implementation
             { hack to avoid double division by 10000, as it's
               already done by typecheckpass.resultdef_int_to_real }
             if is_currency(left.resultdef) then
-              left.resultdef := s64inttype;
+              left.resultdef := compiler.deftypes.s64inttype;
             if is_signed(left.resultdef) then
               fname := 'fpc_int64_to_double'
             else

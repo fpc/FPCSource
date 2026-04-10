@@ -403,7 +403,7 @@ implementation
                           R_SUBQ:
                             begin
                               size:=8;
-                              def:=s64inttype;
+                              def:=_compiler.deftypes.s64inttype;
                             end;
                           else
                             internalerror(2020120803);

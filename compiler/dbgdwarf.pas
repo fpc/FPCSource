@@ -1540,7 +1540,7 @@ implementation
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u32inttype));
             8:
                if def.min<0 then
-                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(s64inttype))
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.s64inttype))
                else
                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.u64inttype));
             else
