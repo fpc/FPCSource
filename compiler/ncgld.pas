@@ -447,7 +447,7 @@ implementation
              begin
                 if tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring] then
                   begin
-                     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
+                     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(compiler.deftypes.cansistringtype),compiler.deftypes.cansistringtype.size,[]);
                      indirect:=(tf_supports_packages in compiler.target.info.flags) and
                                  (compiler.target.info.system in systems_indirect_var_imports) and
                                  (cs_imported_data in localswitches) and

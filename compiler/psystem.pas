@@ -325,7 +325,7 @@ implementation
         compiler.deftypes.cshortstringtype:=cstringdef.createshort(255,true,compiler);
         { should we give a length to the default long and ansi string definition ?? }
         compiler.deftypes.clongstringtype:=cstringdef.createlong(-1,true,compiler);
-        cansistringtype:=cstringdef.createansi(0,true,compiler);
+        compiler.deftypes.cansistringtype:=cstringdef.createansi(0,true,compiler);
         if compiler.target.info.system in systems_windows then
           cwidestringtype:=cstringdef.createwide(true,compiler)
         else
@@ -540,7 +540,7 @@ implementation
 {$ifdef support_longstring}
         addtype('LongString',compiler.deftypes.clongstringtype);
 {$endif support_longstring}
-        addtype('AnsiString',cansistringtype);
+        addtype('AnsiString',compiler.deftypes.cansistringtype);
         addtype('WideString',cwidestringtype);
         addtype('UnicodeString',cunicodestringtype);
 
@@ -602,7 +602,7 @@ implementation
         addtype('$widechar',compiler.deftypes.cwidechartype);
         addtype('$shortstring',compiler.deftypes.cshortstringtype);
         addtype('$longstring',compiler.deftypes.clongstringtype);
-        addtype('$ansistring',cansistringtype);
+        addtype('$ansistring',compiler.deftypes.cansistringtype);
         addtype('$widestring',cwidestringtype);
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
@@ -764,7 +764,7 @@ implementation
         loadtype('widechar',compiler.deftypes.cwidechartype);
         loadtype('shortstring',compiler.deftypes.cshortstringtype);
         loadtype('longstring',compiler.deftypes.clongstringtype);
-        loadtype('ansistring',cansistringtype);
+        loadtype('ansistring',compiler.deftypes.cansistringtype);
         loadtype('widestring',cwidestringtype);
         loadtype('unicodestring',cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);

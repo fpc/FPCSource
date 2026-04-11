@@ -215,7 +215,7 @@ implementation
                   if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                     def:=cunicodestringtype
                   else
-                    def:=cansistringtype
+                    def:=compiler.deftypes.cansistringtype
                 end
               else
                 def:=compiler.deftypes.cshortstringtype;
@@ -2629,14 +2629,14 @@ implementation
                          if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                            strdef:=cunicodestringtype
                          else
-                           strdef:=cansistringtype
+                           strdef:=compiler.deftypes.cansistringtype
                        else
                          strdef:=compiler.deftypes.cshortstringtype;
                      cst_shortstring:
                        strdef:=compiler.deftypes.cshortstringtype;
                      cst_ansistring:
                        { use getansistringdef? }
-                       strdef:=cansistringtype;
+                       strdef:=compiler.deftypes.cansistringtype;
                      cst_widestring:
                        strdef:=cwidestringtype;
                      cst_unicodestring:

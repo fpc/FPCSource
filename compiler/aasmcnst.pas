@@ -1510,7 +1510,7 @@ implementation
    function ttai_typedconstbuilder.get_dynstring_def_for_type(stringtype: tstringtype; winlikewidestring: boolean): tstringdef;
      begin
        if stringtype=st_ansistring then
-         result:=tstringdef(cansistringtype)
+         result:=tstringdef(compiler.deftypes.cansistringtype)
        else if (stringtype=st_unicodestring) or
                ((stringtype=st_widestring) and
                 not winlikewidestring) then

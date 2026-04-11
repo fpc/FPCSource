@@ -1207,7 +1207,8 @@ interface
          sc80floattype,             { 80 bit floating point number but stored like in C }
          s64currencytype,           { pointer to a currency type }
          cshortstringtype,          { pointer to type of short string const   }
-         clongstringtype: tdef;     { pointer to type of long string const   }
+         clongstringtype,           { pointer to type of long string const   }
+         cansistringtype: tdef;     { pointer to type of ansi string const  }
        end;
 
 
@@ -1236,7 +1237,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       cansistringtype,           { pointer to type of ansi string const  }
        cwidestringtype,           { pointer to type of wide string const  }
        cunicodestringtype,
        openshortstringtype,       { pointer to type of an open shortstring,
@@ -1534,7 +1534,7 @@ implementation
             result:=tstringdef(compiler.current_module.ansistrdef);
           end
         else
-          result:=tstringdef(cansistringtype);
+          result:=tstringdef(compiler.deftypes.cansistringtype);
       end;
 
     function getparaencoding(def:tdef):tstringencoding; inline;
@@ -2993,7 +2993,7 @@ implementation
           st_longstring:
             internalerror(2021040801);
           st_ansistring:
-            result:=cansistringtype;
+            result:=compiler.deftypes.cansistringtype;
           st_widestring:
             result:=cwidestringtype;
           st_unicodestring:
@@ -9809,7 +9809,7 @@ implementation
        compiler.deftypes.s64currencytype:=nil;           { pointer to a currency type }
        compiler.deftypes.cshortstringtype:=nil;          { pointer to type of short string const   }
        compiler.deftypes.clongstringtype:=nil;           { pointer to type of long string const   }
-       cansistringtype:=nil;           { pointer to type of ansi string const  }
+       compiler.deftypes.cansistringtype:=nil;           { pointer to type of ansi string const  }
        cwidestringtype:=nil;           { pointer to type of wide string const  }
        cunicodestringtype:=nil;
        openshortstringtype:=nil;

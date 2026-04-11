@@ -833,7 +833,7 @@ uses
                   if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                     newtype:=cunicodestringtype.typesym
                   else
-                    newtype:=cansistringtype.typesym;
+                    newtype:=compiler.deftypes.cansistringtype.typesym;
                 end
               else
                 newtype:=compiler.deftypes.cshortstringtype.typesym;
