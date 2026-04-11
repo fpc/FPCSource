@@ -2965,8 +2965,10 @@ begin
         MoveCStr(B[2], '[~'+ClickC[LowAscii]+'~]', CFrame);
     if PWindow(Owner)^.Flags and wfZoom <> 0 then
     begin
-      MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
+      if Width - 5 >= 0 then { safety check, write array B in bounds }
+        MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
       Owner^.SizeLimits(Min, Max);
+      if Width - 4 >= 0 then { safety check, write array B in bounds }
       if FrameMode and fmZoomClicked <> 0 then
 {$ifdef FV_UNICODE}
         B[Width - 4].ExtendedGraphemeCluster := ClickC[LowAscii]
