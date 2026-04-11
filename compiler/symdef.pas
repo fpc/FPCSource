@@ -1206,7 +1206,8 @@ interface
          //TODO:s80floattype,              { 80 bit floating point number }
          sc80floattype,             { 80 bit floating point number but stored like in C }
          s64currencytype,           { pointer to a currency type }
-         cshortstringtype: tdef;    { pointer to type of short string const   }
+         cshortstringtype,          { pointer to type of short string const   }
+         clongstringtype: tdef;     { pointer to type of long string const   }
        end;
 
 
@@ -1235,7 +1236,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       clongstringtype,           { pointer to type of long string const   }
        cansistringtype,           { pointer to type of ansi string const  }
        cwidestringtype,           { pointer to type of wide string const  }
        cunicodestringtype,
@@ -9808,7 +9808,7 @@ implementation
        compiler.deftypes.sc80floattype:=nil;             { 80 bit floating point number but stored like in C }
        compiler.deftypes.s64currencytype:=nil;           { pointer to a currency type }
        compiler.deftypes.cshortstringtype:=nil;          { pointer to type of short string const   }
-       clongstringtype:=nil;           { pointer to type of long string const   }
+       compiler.deftypes.clongstringtype:=nil;           { pointer to type of long string const   }
        cansistringtype:=nil;           { pointer to type of ansi string const  }
        cwidestringtype:=nil;           { pointer to type of wide string const  }
        cunicodestringtype:=nil;

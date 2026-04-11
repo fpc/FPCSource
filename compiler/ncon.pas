@@ -1013,7 +1013,7 @@ implementation
           cst_widestring :
             resultdef:=cwidestringtype;
           cst_longstring :
-            resultdef:=clongstringtype;
+            resultdef:=compiler.deftypes.clongstringtype;
         end;
       end;
 

@@ -3042,9 +3042,9 @@ const
                   st_longstring :
                     begin
                       if not(is_longstring(rd)) then
-                        inserttypeconv(right,clongstringtype,compiler);
+                        inserttypeconv(right,compiler.deftypes.clongstringtype,compiler);
                       if not(is_longstring(ld)) then
-                        inserttypeconv(left,clongstringtype,compiler);
+                        inserttypeconv(left,compiler.deftypes.clongstringtype,compiler);
                      end;
                    st_shortstring :
                      begin

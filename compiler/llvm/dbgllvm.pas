@@ -2399,7 +2399,7 @@ implementation
               if (sym.value.len<255) then
                 usedef:=compiler.deftypes.cshortstringtype
               else
-                usedef:=clongstringtype;
+                usedef:=compiler.deftypes.clongstringtype;
             end;
           constresourcestring,
           constwstring:
