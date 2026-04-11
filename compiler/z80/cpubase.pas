@@ -182,7 +182,7 @@ unit cpubase;
       { Defines the default address size for a processor, }
       OS_ADDR = OS_16;
       { the natural int size for a processor,
-        has to match osuinttype/ossinttype as initialized in psystem,
+        has to match osuinttype/compiler.deftypes.ossinttype as initialized in psystem,
         initially, this was OS_16/OS_S16 on avr, but experience has
         proven that it is better to make it 8 Bit thus having the same
         size as a register.

@@ -103,12 +103,12 @@ implementation
              character occupies 2 bytes, on a 32 bit platform you can express
              the maximum length using 31 bits. On a 64 bit platform, it may be
              32 bits. This means that regardless of the platform, a location
-             with size OS_SINT/ossinttype can hold the length without
-             overflowing (this code returns an ossinttype value) }
+             with size OS_SINT/compiler.deftypes.ossinttype can hold the length without
+             overflowing (this code returns an compiler.deftypes.ossinttype value) }
            if is_widestring(left.resultdef) then
              lendef:=compiler.deftypes.u32inttype
            else
-             lendef:=ossinttype;
+             lendef:=compiler.deftypes.ossinttype;
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
            hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);

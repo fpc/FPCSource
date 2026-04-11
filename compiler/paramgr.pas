@@ -475,7 +475,7 @@ implementation
         paraloc: pcgparalocation;
       begin
         result.init(compiler.target);
-        result.def:=ossinttype;
+        result.def:=compiler.deftypes.ossinttype;
         result.intsize:=result.def.size;
         result.size:=def_cgsize(result.def);
         result.alignment:=result.def.alignment;

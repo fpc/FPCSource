@@ -399,7 +399,7 @@ implementation
               if is_signed(left.resultdef) then
                 begin
                   opsize:=OS_SINT;
-                  opdef:=ossinttype;
+                  opdef:=compiler.deftypes.ossinttype;
                 end
               else
                 begin

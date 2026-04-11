@@ -285,10 +285,10 @@ implementation
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        { length in dynamic arrays is at offset -ossinttype.size }
-        thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,left.resultdef,ossinttype.size);
+        { length in dynamic arrays is at offset -compiler.deftypes.ossinttype.size }
+        thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,left.resultdef,compiler.deftypes.ossinttype.size);
         { load length }
-        if ossinttype.size=8 then
+        if compiler.deftypes.ossinttype.size=8 then
           current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i64_load,0))
         else
           current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_load,0));
@@ -1051,12 +1051,12 @@ implementation
               character occupies 2 bytes, on a 32 bit platform you can express
               the maximum length using 31 bits. On a 64 bit platform, it may be
               32 bits. This means that regardless of the platform, a location
-              with size OS_SINT/ossinttype can hold the length without
-              overflowing (this code returns an ossinttype value) }
+              with size OS_SINT/compiler.deftypes.ossinttype can hold the length without
+              overflowing (this code returns an compiler.deftypes.ossinttype value) }
             if is_widestring(left.resultdef) then
               lendef:=compiler.deftypes.u32inttype
             else
-              lendef:=ossinttype;
+              lendef:=compiler.deftypes.ossinttype;
             { volatility of the ansistring/widestring refers to the volatility of the
               string pointer, not of the string data }
             hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);

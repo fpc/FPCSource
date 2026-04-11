@@ -91,8 +91,8 @@ implementation
       procedure tllvmexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
         begin
           if not assigned(exceptionreasontype) then
-            exceptionreasontype:=ossinttype;
-          tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
+            exceptionreasontype:=compiler.deftypes.ossinttype;
+          tg.gethltemp(list,compiler.deftypes.ossinttype,compiler.deftypes.ossinttype.size,tt_persistent,t.reasonbuf);
         end;
 
 
@@ -126,9 +126,9 @@ implementation
             the exception block by catching an exception -> do the same here, so
             we can share that generic code; llvm will optimise it away. The
             reasonbuf is later also used for break/continue/... }
-          reg:=hlcg.getintregister(list,ossinttype);
-          hlcg.a_load_const_reg(list,ossinttype,1,reg);
-          hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+          reg:=hlcg.getintregister(list,compiler.deftypes.ossinttype);
+          hlcg.a_load_const_reg(list,compiler.deftypes.ossinttype,1,reg);
+          hlcg.g_exception_reason_save(list,compiler.deftypes.ossinttype,compiler.deftypes.ossinttype,reg,t.reasonbuf);
           { There can only be a landingpad if there were any invokes in the try-block,
             as otherwise we get an error; we can also generate exceptions from
             invalid memory accesses and the like, but LLVM cannot model that
@@ -186,9 +186,9 @@ implementation
           hlcg.g_call_system_proc(list,'FPC_DUMMYPOTENTIALRAISE',[],nil).resetiftemp;
 
           { record that no exception happened in the reason buf }
-          reg:=hlcg.getintregister(list,ossinttype);
-          hlcg.a_load_const_reg(list,ossinttype,0,reg);
-          hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+          reg:=hlcg.getintregister(list,compiler.deftypes.ossinttype);
+          hlcg.a_load_const_reg(list,compiler.deftypes.ossinttype,0,reg);
+          hlcg.g_exception_reason_save(list,compiler.deftypes.ossinttype,compiler.deftypes.ossinttype,reg,t.reasonbuf);
           inherited;
           if exceptframekind=tek_except then
             hlcg.a_jmp_always(list,endlabel);

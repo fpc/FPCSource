@@ -1226,7 +1226,9 @@ interface
          colevarianttype,
          { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
          sinttype,
-         uinttype: tdef;
+         uinttype,
+         { integer types corresponding to OS_SINT/OS_INT }
+         ossinttype: tdef;
        end;
 
 
@@ -1255,8 +1257,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { integer types corresponding to OS_SINT/OS_INT }
-       ossinttype,
        osuinttype,
        { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
        alusinttype,
@@ -9826,7 +9826,7 @@ implementation
        compiler.deftypes.sinttype:=nil;
        compiler.deftypes.uinttype:=nil;
        { integer types corresponding to OS_SINT/OS_INT }
-       ossinttype:=nil;
+       compiler.deftypes.ossinttype:=nil;
        osuinttype:=nil;
        { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
        alusinttype:=nil;

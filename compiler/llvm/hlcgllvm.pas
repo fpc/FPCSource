@@ -626,8 +626,8 @@ implementation
       declared one }
     if pd.generate_safecall_wrapper then
       begin
-        hlretdef:=ossinttype;
-        llvmretdef:=ossinttype;
+        hlretdef:=compiler.deftypes.ossinttype;
+        llvmretdef:=compiler.deftypes.ossinttype;
       end
     else
       begin
@@ -1175,7 +1175,7 @@ implementation
       signed,
       docheck: boolean;
     begin
-      docheck:=size.size>=ossinttype.size;
+      docheck:=size.size>=compiler.deftypes.ossinttype.size;
       if not setflags or
          not docheck then
         begin

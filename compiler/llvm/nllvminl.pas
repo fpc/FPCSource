@@ -383,7 +383,7 @@ implementation
            if is_widestring(left.resultdef) then
              lendef:=compiler.deftypes.u32inttype
            else
-             lendef:=ossinttype;
+             lendef:=compiler.deftypes.ossinttype;
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
              left.resultdef,cpointerdef.getreusable(lendef,compiler),true);
            current_asmdata.getjumplabel(nillab);

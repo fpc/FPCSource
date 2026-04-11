@@ -533,7 +533,7 @@ implementation
     procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
       begin
         if not assigned(exceptionreasontype) then
-          exceptionreasontype:=ossinttype;
+          exceptionreasontype:=compiler.deftypes.ossinttype;
         tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
       end;
 
@@ -577,9 +577,9 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
         if exceptframekind<>tek_except then
           begin
-            reg:=hlcg.getintregister(list,ossinttype);
-            hlcg.a_load_const_reg(list,ossinttype,1,reg);
-            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+            reg:=hlcg.getintregister(list,compiler.deftypes.ossinttype);
+            hlcg.a_load_const_reg(list,compiler.deftypes.ossinttype,1,reg);
+            hlcg.g_exception_reason_save(list,compiler.deftypes.ossinttype,compiler.deftypes.ossinttype,reg,t.reasonbuf);
           end;
       end;
 
@@ -610,9 +610,9 @@ implementation
         if exceptframekind<>tek_except then
           begin
             { record that no exception happened in the reason buf, in case we are in a try block of a finally statement }
-            reg:=hlcg.getintregister(list,ossinttype);
-            hlcg.a_load_const_reg(list,ossinttype,0,reg);
-            hlcg.g_exception_reason_save(list,ossinttype,ossinttype,reg,t.reasonbuf);
+            reg:=hlcg.getintregister(list,compiler.deftypes.ossinttype);
+            hlcg.a_load_const_reg(list,compiler.deftypes.ossinttype,0,reg);
+            hlcg.g_exception_reason_save(list,compiler.deftypes.ossinttype,compiler.deftypes.ossinttype,reg,t.reasonbuf);
           end;
         inherited;
         if exceptframekind=tek_except then

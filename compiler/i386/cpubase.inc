@@ -74,7 +74,7 @@
       {# Defines the default address size for a processor, }
       OS_ADDR = OS_32;
       {# the natural int size for a processor,
-         has to match osuinttype/ossinttype as initialized in psystem }
+         has to match osuinttype/compiler.deftypes.ossinttype as initialized in psystem }
       OS_INT = OS_32;
       OS_SINT = OS_S32;
       {# the maximum float size for a processor,           }

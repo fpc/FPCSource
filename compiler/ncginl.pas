@@ -294,8 +294,8 @@ implementation
              character occupies 2 bytes, on a 32 bit platform you can express
              the maximum length using 31 bits. On a 64 bit platform, it may be
              32 bits. This means that regardless of the platform, a location
-             with size OS_SINT/ossinttype can hold the length without
-             overflowing (this code returns an ossinttype value) }
+             with size OS_SINT/compiler.deftypes.ossinttype can hold the length without
+             overflowing (this code returns an compiler.deftypes.ossinttype value) }
            if is_widestring(left.resultdef) then
              lendef:=compiler.deftypes.u32inttype
            else
@@ -342,7 +342,7 @@ implementation
         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,nillab);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
-        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizesinttype.size,ctempposinvalid,ossinttype.alignment,[]);
+        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizesinttype.size,ctempposinvalid,compiler.deftypes.ossinttype.alignment,[]);
         { if the string pointer is nil, the length is 0 -> reuse the register
           that originally held the string pointer for the length, so that we
           can keep the original nil/0 as length in that case }

@@ -1568,12 +1568,12 @@ implementation
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_C,donelab);
-        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-ossinttype.size+1,ctempposinvalid,ossinttype.alignment,[]);
+        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-compiler.deftypes.ossinttype.size+1,ctempposinvalid,compiler.deftypes.ossinttype.alignment,[]);
         { if the string pointer is nil, the length is 0 -> reuse the register
           that originally held the string pointer for the length, so that we
           can keep the original nil/0 as length in that case }
         hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
-        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ossinttype,resultdef,href,hregister);
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.ossinttype,resultdef,href,hregister);
 
         cg.a_label(current_asmdata.CurrAsmList,donelab);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));

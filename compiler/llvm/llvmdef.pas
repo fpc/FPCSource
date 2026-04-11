@@ -971,7 +971,7 @@ implementation
             if not def.generate_safecall_wrapper then
               usedef:=llvmgetcgparadef(def.funcretloc[useside],false,useside)
             else
-              usedef:=ossinttype;
+              usedef:=compiler.deftypes.ossinttype;
             llvmextractvalueextinfo(def.returndef,usedef,signext);
             { specifying result sign extention information for an alias causes
               an error for some reason }
