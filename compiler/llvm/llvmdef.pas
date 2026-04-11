@@ -200,12 +200,12 @@ implementation
              (fromsize.typ=floatdef) then
             begin
               if tfloatdef(fromsize).floattype in [s64comp,s64currency] then
-                fromsize:=sc80floattype;
+                fromsize:=compiler.deftypes.sc80floattype;
               { at the value level, s80real and sc80real are the same }
               if tfloatdef(fromsize).floattype<>s80real then
                 frombytesize:=fromsize.size
               else
-                frombytesize:=sc80floattype.size;
+                frombytesize:=compiler.deftypes.sc80floattype.size;
             end
           else
             frombytesize:=fromsize.size;
@@ -214,11 +214,11 @@ implementation
              (tosize.typ=floatdef) then
             begin
               if tfloatdef(tosize).floattype in [s64comp,s64currency] then
-                tosize:=sc80floattype;
+                tosize:=compiler.deftypes.sc80floattype;
               if tfloatdef(tosize).floattype<>s80real then
                 tobytesize:=tosize.size
               else
-                tobytesize:=sc80floattype.size;
+                tobytesize:=compiler.deftypes.sc80floattype.size;
             end
           else
             tobytesize:=tosize.size;

@@ -598,7 +598,7 @@ implementation
           s80real:
             tcb.emit_tai(tai_realconst.create_s80real(value_real,s80floattype.size),typedef);
           sc80real:
-            tcb.emit_tai(tai_realconst.create_s80real(value_real,sc80floattype.size),typedef);
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,compiler.deftypes.sc80floattype.size),typedef);
           s64comp:
             { the round is necessary for native compilers where comp isn't a float }
             tcb.emit_tai(tai_realconst.create_s64compreal(round(value_real)),typedef);

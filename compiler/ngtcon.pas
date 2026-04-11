@@ -761,7 +761,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            s80real :
              ftcb.emit_tai(tai_realconst.create_s80real(value,s80floattype.size),def);
            sc80real :
-             ftcb.emit_tai(tai_realconst.create_s80real(value,sc80floattype.size),def);
+             ftcb.emit_tai(tai_realconst.create_s80real(value,compiler.deftypes.sc80floattype.size),def);
            s64comp :
              { the round is necessary for native compilers where comp isn't a float }
              ftcb.emit_tai(tai_realconst.create_s64compreal(round(value)),def);

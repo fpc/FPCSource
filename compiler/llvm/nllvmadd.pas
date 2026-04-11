@@ -300,7 +300,7 @@ implementation
 
       { see comment in thlcgllvm.a_loadfpu_ref_reg }
       if tfloatdef(left.resultdef).floattype in [s64comp,s64currency] then
-        size:=sc80floattype
+        size:=compiler.deftypes.sc80floattype
       else
         size:=left.resultdef;
 

@@ -1201,7 +1201,10 @@ interface
          s64inttype,                { 64-bit signed integer }
          u128inttype,               { 128-bit unsigned integer }
          s128inttype,               { 128-bit signed integer }
-         s32floattype: tdef;        { 32 bit floating point number }
+         s32floattype,              { 32 bit floating point number }
+         //TODO:s64floattype,              { 64 bit floating point number }
+         //TODO:s80floattype,              { 80 bit floating point number }
+         sc80floattype: tdef;       { 80 bit floating point number but stored like in C }
        end;
 
 
@@ -1230,7 +1233,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       sc80floattype,             { 80 bit floating point number but stored like in C }
        s64currencytype,           { pointer to a currency type }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
@@ -9803,7 +9805,7 @@ implementation
        compiler.deftypes.s32floattype:=nil;              { 32 bit floating point number }
        s64floattype:=nil;              { 64 bit floating point number }
        s80floattype:=nil;              { 80 bit floating point number }
-       sc80floattype:=nil;             { 80 bit floating point number but stored like in C }
+       compiler.deftypes.sc80floattype:=nil;             { 80 bit floating point number but stored like in C }
        s64currencytype:=nil;           { pointer to a currency type }
        cshortstringtype:=nil;          { pointer to type of short string const   }
        clongstringtype:=nil;           { pointer to type of long string const   }

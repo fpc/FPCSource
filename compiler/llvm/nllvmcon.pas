@@ -203,8 +203,8 @@ implementation
            { comp and currency are handled as int64 at the llvm level }
            s64comp,
            s64currency:
-             { sc80floattype instead of resultdef, see comment in thlcgllvm.a_loadfpu_ref_reg }
-             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,compiler.deftypes.s64inttype,round(value_real),sc80floattype));
+             { compiler.deftypes.sc80floattype instead of resultdef, see comment in thlcgllvm.a_loadfpu_ref_reg }
+             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,compiler.deftypes.s64inttype,round(value_real),compiler.deftypes.sc80floattype));
 {$ifdef cpuextended}
            s80real,sc80real:
              current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,location.register,resultdef,value_real,resultdef));
