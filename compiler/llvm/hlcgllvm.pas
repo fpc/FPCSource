@@ -1208,7 +1208,7 @@ implementation
           if signed then
             calcsize:=s128inttype
           else
-            calcsize:=u128inttype;
+            calcsize:=compiler.deftypes.u128inttype;
         else
           internalerror(2015122503);
       end;

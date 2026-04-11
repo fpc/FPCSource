@@ -306,7 +306,7 @@ implementation
           support them yet at the Pascal level (nor for tconstexprint); they're
           only used internally by the high level code generator for LLVM to
           implement overflow checking }
-        u128inttype:=corddef.create(u128bit,0,0,true,compiler);
+        compiler.deftypes.u128inttype:=corddef.create(u128bit,0,0,true,compiler);
         s128inttype:=corddef.create(s128bit,0,0,true,compiler);
         compiler.deftypes.pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
         compiler.deftypes.pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
@@ -596,7 +596,7 @@ implementation
         addtype('$uint56',compiler.deftypes.u56inttype);
         addtype('$qword',compiler.deftypes.u64inttype);
         addtype('$int64',compiler.deftypes.s64inttype);
-        addtype('$uint128',u128inttype);
+        addtype('$uint128',compiler.deftypes.u128inttype);
         addtype('$int128',s128inttype);
         addtype('$ansichar',compiler.deftypes.cansichartype);
         addtype('$widechar',compiler.deftypes.cwidechartype);
@@ -753,7 +753,7 @@ implementation
         loadtype('sint56',compiler.deftypes.s56inttype);
         loadtype('qword',compiler.deftypes.u64inttype);
         loadtype('int64',compiler.deftypes.s64inttype);
-        loadtype('uint128',u128inttype);
+        loadtype('uint128',compiler.deftypes.u128inttype);
         loadtype('int128',s128inttype);
         loadtype('undefined',compiler.deftypes.cundefinedtype);
         loadtype('formal',compiler.deftypes.cformaltype);
