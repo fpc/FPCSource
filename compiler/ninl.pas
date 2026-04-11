@@ -946,7 +946,7 @@ implementation
                         { iso pascal needs a different handler }
                         if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
                           name:=name+'_iso';
-                        readfunctype:=s64currencytype;
+                        readfunctype:=compiler.deftypes.s64currencytype;
                         is_real:=true;
                       end;
                     pasbool1,

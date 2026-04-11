@@ -342,82 +342,82 @@ implementation
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if compiler.target.info.system=system_x86_64_win64 then
           begin
-            s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+            compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
             pbestrealtype:=@s64floattype;
           end
         else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-          s64currencytype:=cfloatdef.create(s64currency,true,compiler);
+          compiler.deftypes.s64currencytype:=cfloatdef.create(s64currency,true,compiler);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif powerpc}
 {$ifdef POWERPC64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif POWERPC64}
 {$ifdef sparc}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif sparc}
 {$ifdef sparc64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif sparc64}
 {$ifdef m68k}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif}
 {$ifdef arm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif arm}
 {$ifdef aarch64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif aarch64}
 {$ifdef avr}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
         s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif avr}
 {$ifdef z80}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
         s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif z80}
 {$ifdef mips}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif mips}
 {$ifdef riscv32}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif riscv32}
 {$ifdef riscv64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif riscv64}
 {$ifdef jvm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif jvm}
 {$ifdef wasm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif wasm}
 {$ifdef xtensa}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif xtensa}
 {$ifdef loongarch64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
+        compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif loongarch64}
         set_default_int_types;
         { some other definitions }
@@ -514,7 +514,7 @@ implementation
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
           addtype('Comp',cfloatdef.create(s64comp,true,compiler));
 {$endif x86}
-        addtype('Currency',s64currencytype);
+        addtype('Currency',compiler.deftypes.s64currencytype);
         addtype('Pointer',compiler.deftypes.voidpointertype);
 {$ifdef x86}
         addtype('NearPointer',compiler.deftypes.voidnearpointertype);
@@ -669,7 +669,7 @@ implementation
             addtype('$s80real',s80floattype);
             addtype('$sc80real',compiler.deftypes.sc80floattype);
           end;
-        addtype('$s64currency',s64currencytype);
+        addtype('$s64currency',compiler.deftypes.s64currencytype);
         if not(compiler.target.info.system in systems_managed_vm) then
           begin
             { Add a type for virtual method tables }
@@ -776,7 +776,7 @@ implementation
             loadtype('s80real',s80floattype);
             loadtype('sc80real',compiler.deftypes.sc80floattype);
           end;
-        loadtype('s64currency',s64currencytype);
+        loadtype('s64currency',compiler.deftypes.s64currencytype);
         loadtype('boolean',compiler.deftypes.pasbool1type);
         loadtype('boolean8',compiler.deftypes.pasbool8type);
         loadtype('boolean16',compiler.deftypes.pasbool16type);

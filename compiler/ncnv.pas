@@ -1639,7 +1639,7 @@ implementation
               begin
                 result:=compiler.cinlinenode(in_round_real,false,left);
                 { Internal type cast to currency }
-                result:=compiler.ctypeconvnode_internal(result,s64currencytype);
+                result:=compiler.ctypeconvnode_internal(result,compiler.deftypes.s64currencytype);
                 left:=nil;
               end
           end

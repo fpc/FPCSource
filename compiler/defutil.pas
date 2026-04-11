@@ -444,14 +444,16 @@ implementation
 
     { returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         case s64currencytype.typ of
+         case compiler.deftypes.s64currencytype.typ of
            orddef :
              result:=(def.typ=orddef) and
-                     (torddef(s64currencytype).ordtype=torddef(def).ordtype);
+                     (torddef(compiler.deftypes.s64currencytype).ordtype=torddef(def).ordtype);
            floatdef :
              result:=(def.typ=floatdef) and
-                     (tfloatdef(s64currencytype).floattype=tfloatdef(def).floattype);
+                     (tfloatdef(compiler.deftypes.s64currencytype).floattype=tfloatdef(def).floattype);
            else
              internalerror(200304222);
          end;
@@ -1540,7 +1542,7 @@ implementation
                  uwidechar:
                    result:=compiler.deftypes.cwidechartype;
                  scurrency:
-                   result:=s64currencytype;
+                   result:=compiler.deftypes.s64currencytype;
                  else
                    internalerror(2018010901);
                end;

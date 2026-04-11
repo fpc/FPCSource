@@ -937,7 +937,7 @@ implementation
                          (not(m_tp7 in compiler.globals.current_settings.modeswitches))) and
                         (is_integer(def_from) or
                          (is_currency(def_from) and
-                          (s64currencytype.typ = floatdef))) then
+                          (compiler.deftypes.s64currencytype.typ = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
 
@@ -948,7 +948,7 @@ implementation
                            eq:=te_convert_l4;
                        end
                      else if is_currency(def_from)
-                             { and (s64currencytype.typ = orddef)) } then
+                             { and (compiler.deftypes.s64currencytype.typ = orddef)) } then
                        begin
                          { prefer conversion to orddef in this case, unless    }
                          { the orddef < currency (then it will get convert l3, }

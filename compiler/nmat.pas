@@ -381,9 +381,9 @@ implementation
             (rd.ordtype=scurrency) then
            begin
              if (ld.ordtype<>scurrency) then
-              inserttypeconv(left,s64currencytype,compiler);
+              inserttypeconv(left,compiler.deftypes.s64currencytype,compiler);
              if (rd.ordtype<>scurrency) then
-              inserttypeconv(right,s64currencytype,compiler);
+              inserttypeconv(right,compiler.deftypes.s64currencytype,compiler);
              resultdef:=left.resultdef;
            end
          else
@@ -456,7 +456,7 @@ implementation
             not(nf_is_currency in flags) and
             is_currency(resultdef) then
           begin
-            hp:=compiler.caddnode(muln,getcopy,compiler.cordconstnode(10000,s64currencytype,false));
+            hp:=compiler.caddnode(muln,getcopy,compiler.cordconstnode(10000,compiler.deftypes.s64currencytype,false));
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;

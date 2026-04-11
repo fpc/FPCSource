@@ -86,7 +86,7 @@ implementation
           result:=compiler.ctypeconvnode_internal(left,s64floattype);
           { turn into currency with conversion, which will divide by 10000
             (regular typecast) }
-          result:=compiler.ctypeconvnode(result,s64currencytype);
+          result:=compiler.ctypeconvnode(result,compiler.deftypes.s64currencytype);
           exit;
         end;
       { The only other thing we have to take care of: convert values < 32 bit

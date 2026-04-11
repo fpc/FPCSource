@@ -2309,10 +2309,10 @@ const
            else
             if (is_currency(right.resultdef) or
                 is_currency(left.resultdef)) and
-               ((s64currencytype.typ = floatdef) or
+               ((compiler.deftypes.s64currencytype.typ = floatdef) or
                 (nodetype <> slashn)) then
              begin
-               resultrealdef:=s64currencytype;
+               resultrealdef:=compiler.deftypes.s64currencytype;
                inserttypeconv(right,resultrealdef,compiler);
                inserttypeconv(left,resultrealdef,compiler);
              end
@@ -2389,7 +2389,7 @@ const
               { However, since this is already a division, both divisions by     }
               { 10000 are eliminated when we divide the results -> we can skip   }
               { them.                                                            }
-              if s64currencytype.typ = floatdef then
+              if compiler.deftypes.s64currencytype.typ = floatdef then
                 begin
                   { there's no s64comptype or so, how do we avoid the type conversion?
                   left.resultdef := s64comptype;
@@ -2588,9 +2588,9 @@ const
              else if ((torddef(rd).ordtype=scurrency) or (torddef(ld).ordtype=scurrency)) then
                begin
                   if (torddef(ld).ordtype<>scurrency) then
-                   inserttypeconv(left,s64currencytype,compiler);
+                   inserttypeconv(left,compiler.deftypes.s64currencytype,compiler);
                   if (torddef(rd).ordtype<>scurrency) then
-                   inserttypeconv(right,s64currencytype,compiler);
+                   inserttypeconv(right,compiler.deftypes.s64currencytype,compiler);
                end
              { leave some constant integer expressions alone in case the
                resultdef of the integer types doesn't influence the outcome,
@@ -3392,14 +3392,14 @@ const
               slashn :
                 begin
                   { slashn will only work with floats }
-                  hp:=compiler.caddnode(muln,getcopy,compiler.crealconstnode(10000.0,s64currencytype));
+                  hp:=compiler.caddnode(muln,getcopy,compiler.crealconstnode(10000.0,compiler.deftypes.s64currencytype));
                   include(hp.flags,nf_is_currency);
                   result:=hp;
                 end;
               muln :
                 begin
                   hp:=nil;
-                  if s64currencytype.typ=floatdef then
+                  if compiler.deftypes.s64currencytype.typ=floatdef then
                     begin
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       { int64(...) causes a cast on currency, so it is the currency value multiplied by 10000 }
@@ -3426,7 +3426,7 @@ const
                         end
                       else
                         begin
-                          hp:=compiler.caddnode(slashn,getcopy,compiler.crealconstnode(10000.0,s64currencytype));
+                          hp:=compiler.caddnode(slashn,getcopy,compiler.crealconstnode(10000.0,compiler.deftypes.s64currencytype));
                           include(hp.flags,nf_is_currency);
                         end;
                     end
@@ -3462,7 +3462,7 @@ const
                         end
                       else
                         begin
-                          hp:=compiler.cmoddivnode(divn,getcopy,compiler.cordconstnode(10000,s64currencytype,false));
+                          hp:=compiler.cmoddivnode(divn,getcopy,compiler.cordconstnode(10000,compiler.deftypes.s64currencytype,false));
                           include(hp.flags,nf_is_currency);
                         end
                     end;
