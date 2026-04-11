@@ -1206,7 +1206,7 @@ implementation
             calcsize:=compiler.deftypes.u64inttype;
         8:
           if signed then
-            calcsize:=s128inttype
+            calcsize:=compiler.deftypes.s128inttype
           else
             calcsize:=compiler.deftypes.u128inttype;
         else
