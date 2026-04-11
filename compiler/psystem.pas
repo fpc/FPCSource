@@ -466,8 +466,8 @@ implementation
         compiler.deftypes.wasmvoidexternreftype:=tcpupointerdefclass.create_externref(compiler.deftypes.voidtype,compiler);
 {$endif wasm}
         set_default_ptr_types;
-        openchararraytype:=carraydef.create_openarray(compiler);
-        tarraydef(openchararraytype).elementdef:=compiler.deftypes.cansichartype;
+        compiler.deftypes.openchararraytype:=carraydef.create_openarray(compiler);
+        tarraydef(compiler.deftypes.openchararraytype).elementdef:=compiler.deftypes.cansichartype;
         cfiletype:=cfiledef.createuntyped(compiler);
         if f_variants in compiler.globals.features then
           begin
@@ -655,7 +655,7 @@ implementation
         addtype('$wasm_void_externref',compiler.deftypes.wasmvoidexternreftype);
         addtype('WasmExternRef',compiler.deftypes.wasmvoidexternreftype);
 {$endif wasm}
-        addtype('$openchararray',openchararraytype);
+        addtype('$openchararray',compiler.deftypes.openchararraytype);
         addtype('$file',cfiletype);
         if f_variants in compiler.globals.features then
           begin
@@ -768,7 +768,7 @@ implementation
         loadtype('widestring',compiler.deftypes.cwidestringtype);
         loadtype('unicodestring',compiler.deftypes.cunicodestringtype);
         loadtype('openshortstring',compiler.deftypes.openshortstringtype);
-        loadtype('openchararray',openchararraytype);
+        loadtype('openchararray',compiler.deftypes.openchararraytype);
         if compiler.globals.init_settings.fputype <> fpu_none then
           begin
             loadtype('s32real',compiler.deftypes.s32floattype);
