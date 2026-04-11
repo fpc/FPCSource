@@ -200,6 +200,7 @@ type
     MinFixedArenaSize = 8 * 1024;
     MaxFixedArenaSize = 64 * 1024;
     MaxKeptFixedArenas = 4;
+    MaxOutcomingToFreeBytes = 8 * 1024; { Batch up to this much outcoming frees per thread. }
 
     { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
       = VarSizeToBinIndex(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2), roundUp := true) or so.
@@ -395,16 +396,22 @@ type
       varFree: VarFreeMap;
 
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      toFree: pFreeChunk; { Free requests from other threads, atomic. }
-      { Note it’s better to physically place toFree on a separate or cold cache line to avoid false sharing.
+      incomingToFree: pFreeChunk; { Free requests from other threads, atomic. }
+      { Note it’s better to physically place incomingToFree on a separate or cold cache line to avoid false sharing.
         Presently, it physically resides between the last bins of varFree and allocatedByFullArenas, both of which are not the hottest places.
-        Ideally 64-byte padding can be added before and after toFree (assuming 64-byte cache lines), but this means using extra 128 bytes.
-        Or even more ideally, “toFree: record ... end align 64” could be used, but threadvar alignment is presently broken anyway. }
+        Ideally 64-byte padding can be added before and after incomingToFree (assuming 64-byte cache lines), but this means using extra 128 bytes.
+        Or even more ideally, “incomingToFree: record ... end align 64” could be used, but threadvar alignment is presently broken anyway. }
     {$endif FPC_HAS_FEATURE_THREADING}
 
       { Only to calculate preferable new fixed arena sizes...
         (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
       allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
+
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      { Outcoming to-free requests from this thread, batched to reduce lock & atomic usage at the cost of keeping up to MaxOutcomingToFreeBytes per thread. }
+      outcomingToFree: pFreeChunk;
+      outcomingToFreeBytes: SizeUint;
+    {$endif FPC_HAS_FEATURE_THREADING}
 
     {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
       prev, next: pThreadState; { For gs.threads. }
@@ -434,9 +441,11 @@ type
       procedure UpdateMaxStats(hugeUsed: SizeUint);
 
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      procedure PushToFree(p: pFreeChunk);
-      procedure FlushToFree;
+      procedure PushIncomingToFree(first, last: pFreeChunk);
+      procedure FlushIncomingToFree;
       class procedure FreeToFreeList(tf: pFreeChunk); static;
+      function PushOutcomingToFree(p: pointer; size: SizeUint): SizeUint;
+      procedure FlushOutcomingToFree; { Must be performed inside gs.lock. }
 
       procedure Orphan;
       procedure AdoptArena(arena: pFixedArena);
@@ -735,9 +744,6 @@ type
   var
     i: SizeInt;
     fix: pFixedArena;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    tf: pFreeChunk;
-  {$endif}
     vf: pFreeVarChunk;
   {$ifndef HAS_SYSOSFREE}
     hf: pFreeVarHugeChunk;
@@ -799,6 +805,25 @@ type
       needLE := true;
     end;
 
+  {$ifdef FPC_HAS_FEATURE_THREADING}
+    procedure DumpToFree(tf: pFreeChunk; const preface: shortstring);
+    begin
+      if not Assigned(tf) then
+        exit;
+      MaybeLE;
+      write(f, preface);
+      repeat
+        if pCommonHeader(pointer(tf) - CommonHeaderSize)^.h and FixedFlag <> 0 then
+          write(f, ' f ', CommonHeaderSize + SysMemSize(tf))
+        else
+          write(f, ' v ', VarHeaderSize + SysMemSize(tf));
+        tf := tf^.next;
+      until not Assigned(tf);
+      writeln(f);
+      needLE := true;
+    end;
+  {$endif FPC_HAS_FEATURE_THREADING}
+
   {$ifndef HAS_SYSOSFREE}
     procedure DumpHugeSizeFlags(h: pVarHugeHeader);
     begin
@@ -838,7 +863,7 @@ type
         writeln(f);
         fix := partialArenas[i];
         repeat
-          writeln(f, 'arena size = ', pVarHeader(fix)[-1].ch.h and VarSizeMask - VarHeaderSize - FixedArenaDataOffset, ', usedSizeMinus1 = ', fix^.usedSizeMinus1, ', almostFullThreshold = ', fix^.almostFullThreshold);
+          writeln(f, '  partial arena: size = ', pVarHeader(fix)[-1].ch.h and VarSizeMask - VarHeaderSize - FixedArenaDataOffset, ', usedSizeMinus1 = ', fix^.usedSizeMinus1, ', almostFullThreshold = ', fix^.almostFullThreshold);
           fix := fix^.next;
         until not Assigned(fix);
       end
@@ -940,20 +965,8 @@ type
   {$endif not HAS_SYSOSFREE}
   {$ifdef FPC_HAS_FEATURE_THREADING}
     DumpVarFree(gs.varFree, 'Orphaned varFree');
-    tf := toFree;
-    if Assigned(tf) then
-    begin
-      MaybeLE;
-      write(f, 'To-free:');
-      repeat
-        if pCommonHeader(pointer(tf) - CommonHeaderSize)^.h and FixedFlag <> 0 then
-          write(f, ' f ', CommonHeaderSize + SysMemSize(tf))
-        else
-          write(f, ' v ', VarHeaderSize + SysMemSize(tf));
-        tf := tf^.next;
-      until not Assigned(tf);
-      writeln(f);
-    end;
+    DumpToFree(incomingToFree, 'Incoming to-free:');
+    DumpToFree(outcomingToFree, 'Outcoming to-free:');
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 {$endif DEBUG_HEAP_INC}
@@ -980,9 +993,9 @@ type
     if not Assigned(arena) then
     begin
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      if Assigned(toFree) then
+      if Assigned(incomingToFree) then
       begin
-        FlushToFree;
+        FlushIncomingToFree;
         arena := partialArenas[sizeIndex];
       end;
       if not Assigned(arena) then
@@ -1010,7 +1023,7 @@ type
           arena^.almostFullThreshold := pVarHeader(arena)[-1].ch.h and VarSizeMask - 2 * IndexToSize(sizeIndex) - (VarHeaderSize + FixedArenaDataOffset); { available space - 2 * chunk size. }
         end;
 
-        { Add arena to partialArenas[sizeIndex], which is nil. Careful: AllocVar above should not call FlushToFree, or this assumption might be violated. }
+        { Add arena to partialArenas[sizeIndex], which is nil. Careful: AllocVar above should not call FlushIncomingToFree, or this assumption might be violated. }
         arena^.prev := nil;
         arena^.next := nil;
         partialArenas[sizeIndex] := arena;
@@ -1058,74 +1071,69 @@ type
     sizeIndex: SizeUint;
     usedSizeMinus1: int32;
     arena, prevArena, nextArena: pFixedArena;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    ts: pThreadState;
-  {$endif FPC_HAS_FEATURE_THREADING}
   begin
     arena := p - pCommonHeader(p - CommonHeaderSize)^.h shr FixedArenaOffsetShift;
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self. }
-    if pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState <> @self then
+    { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self.
+      Due to how FPC code generator works, placing the = branch first saves a register, allowing “arena” register to be volatile.
+      (And also usually saves a taken jump that would otherwise jump over the PushOutcomingToFree branch.) }
+    if pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState = @self then
     begin
-      EnterCriticalSection(gs.lock);
-      ts := pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState;
-      if Assigned(ts) then
-      begin
-        { Despite atomic Push lock must be held as otherwise target thread might end and destroy its threadState.
-          However, target thread won’t block to free p, so PushToFree instantly invalidates p. }
-        result := IndexToSize(pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask) - CommonHeaderSize;
-        ts^.PushToFree(p);
-        LeaveCriticalSection(gs.lock);
-        exit;
-      end;
-      AdoptVarOwner(arena); { ...And continue! }
-      LeaveCriticalSection(gs.lock);
-    end;
   {$endif FPC_HAS_FEATURE_THREADING}
 
-    pFreeChunk(p)^.next := arena^.firstFreeChunk;
-    arena^.firstFreeChunk := p;
-    sizeIndex := pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask;
-    result := IndexToSize(sizeIndex);
-    dec(used, result);
+      pFreeChunk(p)^.next := arena^.firstFreeChunk;
+      arena^.firstFreeChunk := p;
+      sizeIndex := pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask;
+      result := IndexToSize(sizeIndex);
+      dec(used, result);
 
-    usedSizeMinus1 := int32(arena^.usedSizeMinus1) - int32(result);
-    arena^.usedSizeMinus1 := uint32(usedSizeMinus1);
-    dec(result, CommonHeaderSize);
+      usedSizeMinus1 := int32(arena^.usedSizeMinus1) - int32(result);
+      arena^.usedSizeMinus1 := uint32(usedSizeMinus1);
+      dec(result, CommonHeaderSize);
 
-    { “(usedSizeMinus1 = -1) or (usedSizeMinus1 >= arena^.almostFullThreshold)” as 1 comparison. }
-    if uint32(usedSizeMinus1) >= arena^.almostFullThreshold then
-      if usedSizeMinus1 <> -1 then
-      begin
-        dec(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
-        { Add arena to partialArenas[sizeIndex]. }
-        nextArena := partialArenas[sizeIndex];
-        arena^.prev := nil;
-        arena^.next := nextArena;
-        if Assigned(nextArena) then
-          nextArena^.prev := arena;
-        partialArenas[sizeIndex] := arena;
-      end else
-      begin
-        { Remove arena from partialArenas[sizeIndex], add to emptyArenas (maybe). }
-        prevArena := arena^.prev;
-        nextArena := arena^.next;
-        if Assigned(prevArena) then
-          prevArena^.next := nextArena
-        else
-          partialArenas[sizeIndex] := nextArena;
-        if Assigned(nextArena) then
-          nextArena^.prev := prevArena;
-
-        if nEmptyArenas < MaxKeptFixedArenas then
+      { “(usedSizeMinus1 = -1) or (usedSizeMinus1 >= arena^.almostFullThreshold)” as 1 comparison. }
+      if uint32(usedSizeMinus1) >= arena^.almostFullThreshold then
+        if usedSizeMinus1 <> -1 then
         begin
-          arena^.next := emptyArenas;
-          emptyArenas := arena;
-          inc(nEmptyArenas);
+          dec(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
+          { Add arena to partialArenas[sizeIndex]. }
+          nextArena := partialArenas[sizeIndex];
+          arena^.prev := nil;
+          arena^.next := nextArena;
+          if Assigned(nextArena) then
+            nextArena^.prev := arena;
+          partialArenas[sizeIndex] := arena;
         end else
-          FreeVar(arena);
-      end;
+        begin
+          { Remove arena from partialArenas[sizeIndex], add to emptyArenas (maybe). }
+          prevArena := arena^.prev;
+          nextArena := arena^.next;
+          if Assigned(prevArena) then
+            prevArena^.next := nextArena
+          else
+            partialArenas[sizeIndex] := nextArena;
+          if Assigned(nextArena) then
+            nextArena^.prev := prevArena;
+
+          if nEmptyArenas < MaxKeptFixedArenas then
+          begin
+            arena^.next := emptyArenas;
+            emptyArenas := arena;
+            inc(nEmptyArenas);
+          end else
+          begin
+            FreeVar(arena);
+          {$ifdef FPC_HAS_FEATURE_THREADING}
+            if Assigned(incomingToFree) then
+              FlushIncomingToFree; { To occasionally call this on mass freeing... }
+          {$endif FPC_HAS_FEATURE_THREADING}
+          end;
+        end;
+  {$ifdef FPC_HAS_FEATURE_THREADING}
+    end else
+      result := PushOutcomingToFree(p, IndexToSize(pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask)) - CommonHeaderSize;
+  {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
   procedure HeapInc.ThreadState.FreeEmptyArenas;
@@ -1318,27 +1326,10 @@ type
   var
     fSizeFlags, hNext, prevSize: SizeUint;
     osChunk, osPrev, osNext: pVarOSChunk;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    pts: ^pThreadState;
-  {$endif FPC_HAS_FEATURE_THREADING}
   begin
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    pts := @pVarOSChunk(p + pVarHeader(p - VarHeaderSize)^.ofsToOs)^.threadState;
-    if pts^ <> @self then
-    begin
-      EnterCriticalSection(gs.lock);
-      if Assigned(pts^) then
-      begin
-        { Despite atomic Push lock must be held as otherwise target thread might end and destroy its threadState.
-          However, target thread won’t block to free p, so PushToFree instantly invalidates p. }
-        result := pVarHeader(p - VarHeaderSize)^.ch.h and VarSizeMask - VarHeaderSize;
-        pts^^.PushToFree(p);
-        LeaveCriticalSection(gs.lock);
-        exit;
-      end;
-      AdoptVarOwner(p); { ...And continue! }
-      LeaveCriticalSection(gs.lock);
-    end;
+    if pVarOSChunk(p + pVarHeader(p - VarHeaderSize)^.ofsToOs)^.threadState <> @self then
+      exit(PushOutcomingToFree(p, pVarHeader(p - VarHeaderSize)^.ch.h and VarSizeMask) - VarHeaderSize);
   {$endif FPC_HAS_FEATURE_THREADING}
 
     fSizeFlags := pVarHeader(p - VarHeaderSize)^.ch.h;
@@ -1663,20 +1654,20 @@ type
   end;
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  procedure HeapInc.ThreadState.PushToFree(p: pFreeChunk);
+  procedure HeapInc.ThreadState.PushIncomingToFree(first, last: pFreeChunk);
   var
     nx: pFreeChunk;
   begin
     repeat
-      nx := toFree;
-      p^.next := nx;
-      WriteBarrier; { Write p after p^.next. }
-    until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (toFree, p, nx) = nx;
+      nx := incomingToFree;
+      last^.next := nx;
+      WriteBarrier; { Write first after last^.next. }
+    until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (incomingToFree, first, nx) = nx;
   end;
 
-  procedure HeapInc.ThreadState.FlushToFree;
+  procedure HeapInc.ThreadState.FlushIncomingToFree;
   begin
-    FreeToFreeList({$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (toFree, nil));
+    FreeToFreeList({$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (incomingToFree, nil));
   end;
 
   class procedure HeapInc.ThreadState.FreeToFreeList(tf: pFreeChunk);
@@ -1692,14 +1683,78 @@ type
     end;
   end;
 
+  function HeapInc.ThreadState.PushOutcomingToFree(p: pointer; size: SizeUint): SizeUint;
+  begin
+    inc(outcomingToFreeBytes, size);
+    pFreeChunk(p)^.next := outcomingToFree;
+    outcomingToFree := p;
+    if outcomingToFreeBytes > MaxOutcomingToFreeBytes then
+    begin
+      EnterCriticalSection(gs.lock);
+      FlushOutcomingToFree;
+      LeaveCriticalSection(gs.lock);
+      if Assigned(incomingToFree) then { Note it is crucial for certain cases like mass freeing of dead workers data... }
+        FlushIncomingToFree;
+    end;
+    result := size;
+  end;
+
+  procedure HeapInc.ThreadState.FlushOutcomingToFree;
+  var
+    ts, runTs: pThreadState;
+    cur, runFirst, runLast: pFreeChunk;
+    vc: pointer;
+  begin
+    { Iterate outcomingToFree list, look at threadStates. FlushOutcomingToFree is performed under the lock, so threadStates are stable.
+
+      Collect sequential items with identical threadStates (= runTs) into runFirst / runLast, then push them into runTs^.incomingToFree.
+
+      If threadState is nil (thread is orphaned), adopt by itself first; still push into own incomingToFree for simplicity.
+
+      Careful: if not pushing into own incomingToFree and instead directly calling SysFreeMem,
+      FlushOutcomingToFree will not work from other threads, so DoneHeapProcessWide must be adjusted
+      (must steal outcomingToFree like it steals incomingToFree, instead of simply calling FlushOutcomingToFree).
+
+      As an alternative to detecting only consecutive runs,
+      it might be worth it to aggressively collect all outcomingToFree items having a particular threadState to minimize the amount of PushIncomingToFree calls. }
+    cur := outcomingToFree;
+    outcomingToFree := nil;
+    outcomingToFreeBytes := 0;
+    runTs := nil;
+    repeat { FlushOutcomingToFree is supposedly always prefaced with a check for non-empty outcomingToFree. }
+      vc := cur;
+      if pCommonHeader(vc - CommonHeaderSize)^.h and FixedFlag <> 0 then
+        dec(vc, pCommonHeader(vc - CommonHeaderSize)^.h shr FixedArenaOffsetShift);
+      ts := pVarOSChunk(vc + pVarHeader(vc - VarHeaderSize)^.ofsToOs)^.threadState;
+      if not Assigned(ts) then
+      begin
+        AdoptVarOwner(vc);
+        ts := @self;
+      end;
+      if ts <> runTs then
+      begin
+        if Assigned(runTs) then
+          runTs^.PushIncomingToFree(runFirst, runLast);
+        runTs := ts;
+        runFirst := cur;
+      end;
+      runLast := cur;
+      cur := cur^.next;
+    until not Assigned(cur);
+    if Assigned(runTs) then
+      runTs^.PushIncomingToFree(runFirst, runLast);
+  end;
+
   procedure HeapInc.ThreadState.Orphan;
   var
     vOs: pVarOSChunk;
   begin
     if gs.lockUse <> 0 then
       EnterCriticalSection(HeapInc.gs.lock);
-    if assigned(toFree) then
-      FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
+    if Assigned(outcomingToFree) then
+      FlushOutcomingToFree; { Presently, might push to own incomingToFree, so must be performed first. }
+    if Assigned(incomingToFree) then
+      FlushIncomingToFree; { Performing it under gs.lock guarantees there will be no new incomingToFree requests. }
     FreeEmptyArenas; { Has to free all empty arenas, otherwise the chunk that contains only empty arenas can leak. }
 
 {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
@@ -2234,8 +2289,8 @@ begin
   if size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize then
     exit(ts^.AllocFixed(size));
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  if Assigned(ts^.toFree) then
-    ts^.FlushToFree;
+  if Assigned(ts^.incomingToFree) then
+    ts^.FlushIncomingToFree;
 {$endif}
   if (size < GrowHeapSize2 div 2) { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
     and (size <= HeapInc.MaxVarHeaderAndPayload - HeapInc.VarHeaderSize) then
@@ -2310,8 +2365,8 @@ begin
   begin
     ts := @HeapInc.thisTs;
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    if Assigned(ts^.toFree) then
-      ts^.FlushToFree;
+    if Assigned(ts^.incomingToFree) then
+      ts^.FlushIncomingToFree;
   {$endif FPC_HAS_FEATURE_THREADING}
     if h >= HeapInc.VarSizeQuant then
       newp := ts^.TryResizeVar(result, size)
@@ -2382,7 +2437,7 @@ procedure DoneHeapProcessWide;
 {$ifdef HAS_SYSOSFREE}
 var
   thisTs, nextTs, ts: HeapInc.pThreadState;
-  stolenTf: HeapInc.pFreeChunk;
+  stolenIncomingTf: HeapInc.pFreeChunk;
 {$endif HAS_SYSOSFREE}
 begin
   if HeapInc.gs.lockUse <> HeapInc.gs.LockInitializedProcessWide then
@@ -2391,11 +2446,11 @@ begin
   { We need to free all lingering data of all threads: to-free lists, empty arenas, “freeOS1”s.
 
     For each particular thread ts, this is what ts^.Orphan does, but ts^.Orphan can’t be (easily) called from another thread:
-    it calls ts^.FlushToFree which calls SysFreeMem which is hardcoded to work with HeapInc.thisTs.
+    it calls ts^.FlushIncomingToFree which calls SysFreeMem which is hardcoded to work with HeapInc.thisTs.
     It’s not worth redesigning, or the common case of SysFreeMem that must indeed work with HeapInc.thisTs will be slower.
 
-    So we steal and zero ts^.toFree (ts^.FlushToFree is the only thing that prevents ts^.Orphan from working from threads other than ts), call ts^.Orphan,
-    then manually complete toFree requests on our behalf.
+    So we steal and zero ts^.incomingToFree (ts^.FlushIncomingToFree is the only thing that prevents ts^.Orphan from working from threads other than ts),
+    call ts^.Orphan, then manually complete incomingToFree requests on our behalf.
 
     This entire thing is just to handle the case of unloading a DLL before terminating the thread that used this DLL
     (https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/1173). }
@@ -2406,12 +2461,14 @@ begin
   begin
     ts := nextTs;
     nextTs := ts^.next;
-    if ts = thisTs then { Used for executing toFrees and is orphaned the last. }
+    if ts = thisTs then { Used for executing outcomingToFree / incomingToFree and is orphaned the last. }
       continue;
-    stolenTf := ts^.toFree;
-    ts^.toFree := nil;
+    if Assigned(ts^.outcomingToFree) then
+      ts^.FlushOutcomingToFree; { Careful: might push to own ts^.incomingToFree, so must be performed first. See also the comment in FlushOutcomingToFree. }
+    stolenIncomingTf := ts^.incomingToFree;
+    ts^.incomingToFree := nil;
     ts^.Orphan;
-    HeapInc.ThreadState.FreeToFreeList(stolenTf);
+    HeapInc.ThreadState.FreeToFreeList(stolenIncomingTf);
   end;
   thisTs^.Orphan;
 {$endif HAS_SYSOSFREE}
