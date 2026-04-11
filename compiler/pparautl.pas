@@ -478,7 +478,7 @@ implementation
                  begin
 {$ifdef cpu8bitalu}
                    if is_shortstring(vardef) then
-                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,aluuinttype,[vo_is_high_para,vo_is_hidden_para])
+                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,compiler.deftypes.aluuinttype,[vo_is_high_para,vo_is_hidden_para])
                    else
 {$endif cpu8bitalu}
                      hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);

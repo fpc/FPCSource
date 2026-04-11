@@ -720,17 +720,17 @@ implementation
            warning }
 {$push}
 {$warn 6018 off}
-         { we can reuse hreg only if aluuinttype and get_address_type have the same size/type }
-         if aluuinttype.size<>get_address_type.size then
+         { we can reuse hreg only if compiler.deftypes.aluuinttype and get_address_type have the same size/type }
+         if compiler.deftypes.aluuinttype.size<>get_address_type.size then
            begin
-             sref.bitindexreg := hlcg.getintregister(current_asmdata.CurrAsmList,aluuinttype);
-             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,get_address_type,aluuinttype,hreg,sref.bitindexreg);
+             sref.bitindexreg := hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.aluuinttype);
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,get_address_type,compiler.deftypes.aluuinttype,hreg,sref.bitindexreg);
            end
          else
            sref.bitindexreg:=hreg;
 {$pop}
 
-         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,aluuinttype,(1 shl (3+alignpower))-1,sref.bitindexreg);
+         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,compiler.deftypes.aluuinttype,(1 shl (3+alignpower))-1,sref.bitindexreg);
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then

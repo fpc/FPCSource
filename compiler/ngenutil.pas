@@ -1219,9 +1219,9 @@ implementation
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
       { tablecount }
-      unitinits.emit_ord_const(entries.count,aluuinttype);
+      unitinits.emit_ord_const(entries.count,compiler.deftypes.aluuinttype);
       { initcount (initialised at run time }
-      unitinits.emit_ord_const(0,aluuinttype);
+      unitinits.emit_ord_const(0,compiler.deftypes.aluuinttype);
 
       for i:=0 to entries.count-1 do
         begin
