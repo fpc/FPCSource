@@ -526,12 +526,12 @@ type
                         addstatement(calccodestatements,
                           compiler.cinlinenode_intern(in_dec_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))))
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,compiler.deftypes.sizeuinttype,false),nil))))
                       else
                         addstatement(calccodestatements,
                           compiler.cinlinenode_intern(in_inc_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,compiler.deftypes.sizeuinttype,false),nil))));
 
                       addstatement(initcodestatements,tempnode);
 
@@ -549,7 +549,7 @@ type
                             nt:=subn;
                           nn:=compiler.caddnode_internal(nt,
                              compiler.ctypeconvnode_internal(nn,compiler.deftypes.voidpointertype),
-                             compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false));
+                             compiler.cordconstnode(tcgvecnode(n).get_mul_size,compiler.deftypes.sizeuinttype,false));
                         end;
                       addstatement(initcodestatements,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),nn));
 

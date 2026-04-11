@@ -614,7 +614,7 @@ implementation
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
             datatcb.emit_ord_const(list.count,compiler.deftypes.u32inttype);
 
-            entrydef:=get_recorddef(itp_init_mop_offset_entry,[compiler.deftypes.voidcodepointertype,sizeuinttype],defaultpacking);
+            entrydef:=get_recorddef(itp_init_mop_offset_entry,[compiler.deftypes.voidcodepointertype,compiler.deftypes.sizeuinttype],defaultpacking);
 
             for i:=0 to list.count-1 do
               begin
@@ -625,8 +625,8 @@ implementation
                 datatcb.queue_init(compiler.deftypes.voidcodepointertype);
                 datatcb.queue_emit_proc(entry^.pd);
 
-                datatcb.queue_init(sizeuinttype);
-                datatcb.queue_emit_ordconst(entry^.offset,sizeuinttype);
+                datatcb.queue_init(compiler.deftypes.sizeuinttype);
+                datatcb.queue_emit_ordconst(entry^.offset,compiler.deftypes.sizeuinttype);
 
                 datatcb.maybe_end_aggregate(entrydef);
 
@@ -724,7 +724,7 @@ implementation
             sym:=tsym(fields[i]);
             maybe_add_comment(tcb,'RTTI begin field '+tostr(i)+': '+sym.prettyname);
             write_rtti_reference(tcb,tfieldvarsym(sym).vardef,rt);
-            tcb.emit_ord_const(tfieldvarsym(sym).fieldoffset,sizeuinttype);
+            tcb.emit_ord_const(tfieldvarsym(sym).fieldoffset,compiler.deftypes.sizeuinttype);
             maybe_add_comment(tcb,'RTTI end field '+tostr(i)+': '+sym.prettyname);
           end;
         fields.free;
@@ -875,7 +875,7 @@ implementation
             }
             tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_field]+tostr(fldsym.fieldoffset),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
             { FieldOffset }
-            tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),sizeuinttype);
+            tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),compiler.deftypes.sizeuinttype);
             { FieldType: PPTypeInfo }
             if is_objc_class_or_protocol(fldsym.vardef) then
               tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(compiler.deftypes.voidpointertype,fullrtti,true)),compiler.deftypes.voidpointertype)
@@ -1599,9 +1599,9 @@ implementation
                  targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
                { total size = elecount * elesize of the first arraydef }
-               tcb.emit_tai(Tai_const.Create_sizeint(def.elecount*def.elesize),sizeuinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(def.elecount*def.elesize),compiler.deftypes.sizeuinttype);
                { total element count }
-               tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),compiler.deftypes.sizeuinttype);
                { last dimension element type }
                if is_objc_class_or_protocol(curdef.elementdef) then
                  tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(compiler.deftypes.voidpointertype,rt,true)),compiler.deftypes.voidpointertype)
@@ -1641,7 +1641,7 @@ implementation
                  targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
                { size of elements }
-               tcb.emit_tai(Tai_const.Create_sizeint(def.elesize),sizeuinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(def.elesize),compiler.deftypes.sizeuinttype);
                { element type }
                write_rtti_reference(tcb,def.elementdef,rt);
                { variant type }

@@ -712,7 +712,7 @@ implementation
                         }
                         datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
                           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-                        datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
+                        datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),compiler.deftypes.sizeuinttype);
                         classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                         if classindex=-1 then
                           internalerror(200611033);
@@ -827,7 +827,7 @@ implementation
           etStandard:
             begin
               tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
-              tcb.emit_tai(Tai_const.Create_sizeint(AImplIntf.VtblImplIntf.IOffset),sizeuinttype);
+              tcb.emit_tai(Tai_const.Create_sizeint(AImplIntf.VtblImplIntf.IOffset),compiler.deftypes.sizeuinttype);
             end;
           etStaticMethodResult, etStaticMethodClass:
             begin
@@ -840,7 +840,7 @@ implementation
             begin
               tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              tcb.emit_tai(Tai_const.Create_sizeint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),sizeuinttype);
+              tcb.emit_tai(Tai_const.Create_sizeint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),compiler.deftypes.sizeuinttype);
             end;
         end;
 
@@ -898,7 +898,7 @@ implementation
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
         datatcb.begin_anonymous_record('',default_settings.packrecords,1,
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-        datatcb.emit_tai(Tai_const.Create_sizeint(_class.ImplementedInterfaces.count),sizeuinttype);
+        datatcb.emit_tai(Tai_const.Create_sizeint(_class.ImplementedInterfaces.count),compiler.deftypes.sizeuinttype);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
         if _class.ImplementedInterfaces.count>0 then

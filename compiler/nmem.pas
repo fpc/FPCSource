@@ -1175,7 +1175,7 @@ implementation
                         not is_constnode(right) then
                        inserttypeconv(right,sizesinttype,compiler)
                      else
-                       inserttypeconv(right,sizeuinttype,compiler)
+                       inserttypeconv(right,compiler.deftypes.sizeuinttype,compiler)
                    end
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,

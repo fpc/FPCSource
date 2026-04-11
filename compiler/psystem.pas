@@ -148,13 +148,13 @@ implementation
         compiler.deftypes.alusinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitalu}
 {$ifdef cpu64bitaddr}
-        sizeuinttype:=compiler.deftypes.u64inttype;
+        compiler.deftypes.sizeuinttype:=compiler.deftypes.u64inttype;
         sizesinttype:=compiler.deftypes.s64inttype;
         compiler.deftypes.uinttype:=compiler.deftypes.u64inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
-        sizeuinttype:=compiler.deftypes.u32inttype;
+        compiler.deftypes.sizeuinttype:=compiler.deftypes.u32inttype;
         sizesinttype:=compiler.deftypes.s32inttype;
         compiler.deftypes.uinttype:=compiler.deftypes.u32inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s32inttype;
@@ -166,7 +166,7 @@ implementation
         compiler.deftypes.alusinttype:=compiler.deftypes.s32inttype;
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
-        sizeuinttype:=compiler.deftypes.u16inttype;
+        compiler.deftypes.sizeuinttype:=compiler.deftypes.u16inttype;
         sizesinttype:=compiler.deftypes.s16inttype;
 {$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}

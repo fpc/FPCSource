@@ -1232,7 +1232,9 @@ interface
          osuinttype,
          { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
          alusinttype,
-         aluuinttype: tdef;
+         aluuinttype,
+         { integer types corresponding to SizeInt and SizeUInt for the target platform }
+         sizeuinttype: tdef;
        end;
 
 
@@ -1261,8 +1263,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { integer types corresponding to SizeInt and SizeUInt for the target platform }
-       sizeuinttype,
        sizesinttype,
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
@@ -1656,7 +1656,7 @@ implementation
         fields.add(countdef);
         if count>0 then
           begin
-            arrdef:=carraydef.create(0,count-1,sizeuinttype,compiler);
+            arrdef:=carraydef.create(0,count-1,compiler.deftypes.sizeuinttype,compiler);
             arrdef.elementdef:=elementdef;
             fields.add(arrdef);
           end
@@ -9832,7 +9832,7 @@ implementation
        compiler.deftypes.alusinttype:=nil;
        compiler.deftypes.aluuinttype:=nil;
        { integer types corresponding to SizeInt and SizeUInt for the target platform }
-       sizeuinttype:=nil;
+       compiler.deftypes.sizeuinttype:=nil;
        sizesinttype:=nil;
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype:=nil;
