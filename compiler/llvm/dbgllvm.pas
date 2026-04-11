@@ -2397,7 +2397,7 @@ implementation
                 entire length of the string as well, and 256 does not fit in
                 a byte }
               if (sym.value.len<255) then
-                usedef:=cshortstringtype
+                usedef:=compiler.deftypes.cshortstringtype
               else
                 usedef:=clongstringtype;
             end;

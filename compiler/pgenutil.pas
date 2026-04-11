@@ -836,7 +836,7 @@ uses
                     newtype:=cansistringtype.typesym;
                 end
               else
-                newtype:=cshortstringtype.typesym;
+                newtype:=compiler.deftypes.cshortstringtype.typesym;
             end
           else if def.typ=stringdef then
             newtype:=tstringdef(def).get_default_string_type.typesym

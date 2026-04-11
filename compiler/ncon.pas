@@ -1002,7 +1002,7 @@ implementation
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :
-            resultdef:=cshortstringtype;
+            resultdef:=compiler.deftypes.cshortstringtype;
           cst_ansistring :
             if not assigned(astringdef) then
               resultdef:=getansistringdef

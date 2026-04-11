@@ -163,7 +163,7 @@ implementation
       var
          p : tnode;
       begin
-         def:=cshortstringtype;
+         def:=compiler.deftypes.cshortstringtype;
          parser.pbase.consume(_STRING);
          if current_scanner.token=_LECKKLAMMER then
            begin
@@ -218,7 +218,7 @@ implementation
                     def:=cansistringtype
                 end
               else
-                def:=cshortstringtype;
+                def:=compiler.deftypes.cshortstringtype;
             end;
        end;
 
@@ -2631,9 +2631,9 @@ implementation
                          else
                            strdef:=cansistringtype
                        else
-                         strdef:=cshortstringtype;
+                         strdef:=compiler.deftypes.cshortstringtype;
                      cst_shortstring:
-                       strdef:=cshortstringtype;
+                       strdef:=compiler.deftypes.cshortstringtype;
                      cst_ansistring:
                        { use getansistringdef? }
                        strdef:=cansistringtype;

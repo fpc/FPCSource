@@ -511,7 +511,7 @@ implementation
                             into regular shortstring parameters (seems to be what
                             Delphi also does) }
                         if is_open_string(hdef) then
-                          hdef:=cshortstringtype;
+                          hdef:=compiler.deftypes.cshortstringtype;
                        end;
                       else
                         ;

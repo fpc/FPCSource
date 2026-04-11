@@ -558,7 +558,7 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype,compiler),compiler.deftypes.voidcodepointertype],1);
+              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(compiler.deftypes.cshortstringtype,compiler),compiler.deftypes.voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
@@ -847,7 +847,7 @@ implementation
         { IIDStr }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDSTRREF') as tfieldvarsym;
         siidstr:=make_mangledname('IIDSTR',nonuniqueintf.owner,nonuniqueintf.objname^);
-        tcb.queue_init(cpointerdef.getreusable(cshortstringtype,compiler));
+        tcb.queue_init(cpointerdef.getreusable(compiler.deftypes.cshortstringtype,compiler));
         tcb.queue_emit_asmsym(
           current_asmdata.RefAsmSymbol(
             siidstr,
@@ -1180,7 +1180,7 @@ implementation
          if is_class(_class) then
           begin
             { pointer to class name string }
-            tcb.queue_init(cpointerdef.getreusable(cshortstringtype,compiler));
+            tcb.queue_init(cpointerdef.getreusable(compiler.deftypes.cshortstringtype,compiler));
             tcb.queue_emit_asmsym(classnamelabel,classnamedef);
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then

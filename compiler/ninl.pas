@@ -710,7 +710,7 @@ implementation
         if (n.nodetype=stringconstn) then
           if is_chararray(n.resultdef) then
             if (tstringconstnode(n).len<=255) then
-              inserttypeconv(n,cshortstringtype,compiler)
+              inserttypeconv(n,compiler.deftypes.cshortstringtype,compiler)
             else
               inserttypeconv(n,getansistringdef,compiler)
           else if is_widechararray(n.resultdef) then
@@ -2033,7 +2033,7 @@ implementation
         else
          if is_char(paradef) then
            begin
-             resultdef:=cshortstringtype;
+             resultdef:=compiler.deftypes.cshortstringtype;
              func:='fpc_char_copy';
            end
         else
@@ -2054,7 +2054,7 @@ implementation
           end
         else if counter in [2..3] then
           begin
-            resultdef:=cshortstringtype;
+            resultdef:=compiler.deftypes.cshortstringtype;
             func:='fpc_shortstr_copy';
           end
         else if counter<=maxargs then
@@ -4115,7 +4115,7 @@ implementation
                         begin
                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                            { must always be a string }
-                           inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype,compiler);
+                           inserttypeconv(tcallparanode(tcallparanode(left).right).left,compiler.deftypes.cshortstringtype,compiler);
                          end
                        else
                          compiler.verbose.CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
@@ -5359,7 +5359,7 @@ implementation
         else if is_unicodestring(resultdef) then
           result:=compiler.ccallnode_intern('fpc_unicodestr_copy',paras)
           { can't check for resultdef = compiler.deftypes.cansichartype, because resultdef=
-            cshortstringtype here }
+            compiler.deftypes.cshortstringtype here }
         else if is_char(paradef) then
           result:=compiler.ccallnode_intern('fpc_char_copy',paras)
         else if is_dynamic_array(resultdef) then
@@ -5973,7 +5973,7 @@ implementation
                             is_chararray(result.resultdef) or
                             is_char(result.resultdef)
                            ) then
-                       inserttypeconv(result,cshortstringtype,compiler);
+                       inserttypeconv(result,compiler.deftypes.cshortstringtype,compiler);
                    end;
                end;
            end;

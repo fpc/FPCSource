@@ -2547,10 +2547,10 @@ const
                begin
                  if nodetype=addn then
                   begin
-                    resultdef:=cshortstringtype;
+                    resultdef:=compiler.deftypes.cshortstringtype;
                     if not(is_constcharnode(left) and is_constcharnode(right)) then
                      begin
-                       inserttypeconv(left,cshortstringtype,compiler);
+                       inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
 {$ifdef addstringopt}
                        hp := genaddsstringcharoptnode(self);
                        result := hp;
@@ -3049,10 +3049,10 @@ const
                    st_shortstring :
                      begin
                        if not(is_shortstring(ld)) then
-                         inserttypeconv(left,cshortstringtype,compiler);
+                         inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
                        { don't convert char, that can be handled by the optimized node }
                        if not(is_shortstring(rd) or is_char(rd)) then
-                         inserttypeconv(right,cshortstringtype,compiler);
+                         inserttypeconv(right,compiler.deftypes.cshortstringtype,compiler);
                      end;
                 end;
               end
@@ -3365,7 +3365,7 @@ const
                   begin
                     { for strings, return is always a 255 char string }
                     if is_shortstring(left.resultdef) then
-                      resultdef:=cshortstringtype
+                      resultdef:=compiler.deftypes.cshortstringtype
                     else
                     { for ansistrings set resultdef to assignment left node
                       if it is an assignment and left node expects ansistring }
@@ -4836,7 +4836,7 @@ const
                        { Fix right to be shortstring }
                        if is_char(right.resultdef) then
                         begin
-                          inserttypeconv(right,cshortstringtype,compiler);
+                          inserttypeconv(right,compiler.deftypes.cshortstringtype,compiler);
                           firstpass(right);
                         end;
                      end;

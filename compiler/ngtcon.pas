@@ -1688,7 +1688,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-            inserttypeconv(n,cshortstringtype,compiler);
+            inserttypeconv(n,compiler.deftypes.cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
@@ -2098,7 +2098,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-            inserttypeconv(n,cshortstringtype,compiler);
+            inserttypeconv(n,compiler.deftypes.cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else

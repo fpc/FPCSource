@@ -134,9 +134,9 @@ begin
   updatecurmaxlen;
   { left and right are already firstpass'ed by taddnode.pass_1 }
   if not is_shortstring(left.resultdef) then
-   inserttypeconv(left,cshortstringtype,compiler);
+   inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
   if not is_shortstring(right.resultdef) then
-   inserttypeconv(right,cshortstringtype,compiler);
+   inserttypeconv(right,compiler.deftypes.cshortstringtype,compiler);
   resultdef := left.resultdef;
 end;
 

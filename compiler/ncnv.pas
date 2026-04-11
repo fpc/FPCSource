@@ -1249,7 +1249,7 @@ implementation
                  if tstringconstnode(left).len>255 then
                    inserttypeconv(left,getansistringdef,compiler)
                  else
-                   inserttypeconv(left,cshortstringtype,compiler);
+                   inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
                end;
            end;
         if is_widechar(tarraydef(resultdef).elementdef) then
@@ -1835,7 +1835,7 @@ implementation
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=compiler.cstringconstnode_str(tobjectdef(left.resultdef).iidstr^);
-            tstringconstnode(result).changestringtype(cshortstringtype);
+            tstringconstnode(result).changestringtype(compiler.deftypes.cshortstringtype);
           end
         else
           internalerror(2013112913);
@@ -3944,7 +3944,7 @@ implementation
         if resultdef.size <> 1 then
           begin
             { convert first to string, then to chararray }
-            inserttypeconv(left,cshortstringtype,compiler);
+            inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
             inserttypeconv(left,resultdef,compiler);
             result:=left;
             left := nil;
@@ -5013,7 +5013,7 @@ implementation
                         if assigned(tobjectdef(right.resultdef).iidstr) then
                           begin
                             hp:=compiler.cstringconstnode_str(tobjectdef(right.resultdef).iidstr^);
-                            tstringconstnode(hp).changestringtype(cshortstringtype);
+                            tstringconstnode(hp).changestringtype(compiler.deftypes.cshortstringtype);
                             right.free;
                             right:=hp;
                           end

@@ -60,7 +60,7 @@ begin
   { update the curmaxlen field (before converting to a string!) }
   updatecurmaxlen;
   if not is_shortstring(left.resultdef) then
-    inserttypeconv(left,cshortstringtype,compiler);
+    inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
   resultdef:=left.resultdef;
 end;
 
@@ -91,8 +91,8 @@ begin
   if not(tg.istemp(left.location.reference) and
          (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
-       tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,href);
-       hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(cshortstringtype));
+       tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.cshortstringtype,256,tt_normal,href);
+       hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(compiler.deftypes.cshortstringtype));
        tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
        location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);

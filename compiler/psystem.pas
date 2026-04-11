@@ -322,7 +322,7 @@ implementation
 {$endif llvm}
         compiler.deftypes.cansichartype:=corddef.create(uchar,0,255,true,compiler);
         compiler.deftypes.cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
-        cshortstringtype:=cstringdef.createshort(255,true,compiler);
+        compiler.deftypes.cshortstringtype:=cstringdef.createshort(255,true,compiler);
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=cstringdef.createlong(-1,true,compiler);
         cansistringtype:=cstringdef.createansi(0,true,compiler);
@@ -536,7 +536,7 @@ implementation
         addtype('__m256d',x86_m256dtype);
         addtype('__m256i',x86_m256itype);
 {$endif x86}
-        addtype('ShortString',cshortstringtype);
+        addtype('ShortString',compiler.deftypes.cshortstringtype);
 {$ifdef support_longstring}
         addtype('LongString',clongstringtype);
 {$endif support_longstring}
@@ -600,7 +600,7 @@ implementation
         addtype('$int128',compiler.deftypes.s128inttype);
         addtype('$ansichar',compiler.deftypes.cansichartype);
         addtype('$widechar',compiler.deftypes.cwidechartype);
-        addtype('$shortstring',cshortstringtype);
+        addtype('$shortstring',compiler.deftypes.cshortstringtype);
         addtype('$longstring',clongstringtype);
         addtype('$ansistring',cansistringtype);
         addtype('$widestring',cwidestringtype);
@@ -688,7 +688,7 @@ implementation
               (object) or the class name (class). We can't easily create separate
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
-            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype,compiler),[]));
+            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(compiler.deftypes.cshortstringtype,compiler),[]));
             vmtarraytype:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
@@ -762,7 +762,7 @@ implementation
         loadtype('void_pointer',compiler.deftypes.voidpointertype);
         loadtype('ansichar',compiler.deftypes.cansichartype);
         loadtype('widechar',compiler.deftypes.cwidechartype);
-        loadtype('shortstring',cshortstringtype);
+        loadtype('shortstring',compiler.deftypes.cshortstringtype);
         loadtype('longstring',clongstringtype);
         loadtype('ansistring',cansistringtype);
         loadtype('widestring',cwidestringtype);

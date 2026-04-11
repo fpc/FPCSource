@@ -1124,7 +1124,7 @@ implementation
              if tstringconstnode(left).len>255 then
                inserttypeconv(left,getansistringdef,compiler)
              else
-               inserttypeconv(left,cshortstringtype,compiler);
+               inserttypeconv(left,compiler.deftypes.cshortstringtype,compiler);
            end;
 
          { In p[1] p is always valid, it is not possible to
