@@ -645,14 +645,14 @@ in_x86_cvtsd2si
 : //var r0:sreg;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=sinttype;
+    resultdef:=compiler.deftypes.sinttype;
   end;
 in_x86_cvtsd2si_from_mem
 ,in_x86_cvttsd2si_from_mem
 : //var r0:sreg;r1:ptr64;
   begin
     CheckParameters(2);
-    resultdef:=sinttype;
+    resultdef:=compiler.deftypes.sinttype;
   end;
 in_x86_cvtsi2sd
 : //var r0:f64;r1:r32;

@@ -222,7 +222,7 @@ unit cpupara;
            (result.intsize>0) and
            (result.intsize<sizeof(aint)) then
           begin
-            result.def:=sinttype;
+            result.def:=compiler.deftypes.sinttype;
             result.intsize:=sizeof(aint);
             retcgsize:=OS_SINT;
             result.size:=retcgsize;

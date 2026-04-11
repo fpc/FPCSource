@@ -2254,7 +2254,7 @@ const
                (right.resultdef.typ=orddef) then
              begin
                { insert explicit typecast to default signed int }
-               left:=compiler.ctypeconvnode_internal(left,sinttype);
+               left:=compiler.ctypeconvnode_internal(left,compiler.deftypes.sinttype);
                typecheckpass(left);
              end
             else
@@ -2262,7 +2262,7 @@ const
                 (right.resultdef.typ=enumdef) then
               begin
                 { insert explicit typecast to default signed int }
-                right:=compiler.ctypeconvnode_internal(right,sinttype);
+                right:=compiler.ctypeconvnode_internal(right,compiler.deftypes.sinttype);
                 typecheckpass(right);
               end;
           end;
@@ -2709,7 +2709,7 @@ const
                         (nodetype in [orn,xorn]) then
                        include(flags,nf_internal);
                      { get next larger signed int type }
-                     nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
+                     nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(uinttype),false);
                      inserttypeconv(left,nd,compiler);
                      inserttypeconv(right,nd,compiler);
                    end
@@ -2721,7 +2721,7 @@ const
                        inserttypeconv(right,uinttype,compiler);
                    end;
                end
-             { generic ord conversion is sinttype }
+             { generic ord conversion is compiler.deftypes.sinttype }
              else
                begin
                  { When there is a signed type or there is a minus operation
@@ -2736,8 +2736,8 @@ const
 {$endif}
                     (nodetype=subn) then
                    begin
-                     inserttypeconv(right,sinttype,compiler);
-                     inserttypeconv(left,sinttype,compiler);
+                     inserttypeconv(right,compiler.deftypes.sinttype,compiler);
+                     inserttypeconv(left,compiler.deftypes.sinttype,compiler);
                    end
                  else
                    begin
@@ -3341,8 +3341,8 @@ const
          { generic conversion, this is for error recovery }
          else
           begin
-            inserttypeconv(left,sinttype,compiler);
-            inserttypeconv(right,sinttype,compiler);
+            inserttypeconv(left,compiler.deftypes.sinttype,compiler);
+            inserttypeconv(right,compiler.deftypes.sinttype,compiler);
           end;
 
          if cmp_of_disjunct_ranges(res) and not(nf_internal in flags) then
@@ -3678,7 +3678,7 @@ const
               valid_for_var(compiler.aktassignmentnode.left,false) then
             begin
               result:=compiler.ccallnode_intern(n,
-                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                 compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                 compiler.ccallparanode(right,
                 compiler.ccallparanode(left,nil))))
@@ -3701,7 +3701,7 @@ const
               addstatement(newstatement,temp);
 
               addstatement(newstatement,compiler.ccallnode_intern(n,
-                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                 compiler.ccallparanode(compiler.ctemprefnode(temp),
                 compiler.ccallparanode(right,
                 compiler.ccallparanode(left,nil)))))
@@ -3749,7 +3749,7 @@ const
                     internalerror(2013112911);
                 end;
                 result := compiler.ccallnode_internres(procname,
-                  compiler.ccallparanode(compiler.cordconstnode(left.resultdef.size,sinttype,false),
+                  compiler.ccallparanode(compiler.cordconstnode(left.resultdef.size,compiler.deftypes.sinttype,false),
                   compiler.ccallparanode(right,
                   compiler.ccallparanode(left,nil))),resultdef);
                 { left and right are reused as parameters }
@@ -3774,14 +3774,14 @@ const
                 begin
                   { adjust for set base }
                   tsetelementnode(right).left:=compiler.caddnode(subn,
-                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                    compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
+                    compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
 
                   if no_temp then
                     begin
                       result:=compiler.ccallnode_intern('fpc_varset_create_element',
                         compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
-                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                         compiler.ccallparanode(tsetelementnode(right).left,nil))));
                       include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                     end
@@ -3795,7 +3795,7 @@ const
 
                       addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_create_element',
                         compiler.ccallparanode(compiler.ctemprefnode(temp),
-                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                         compiler.ccallparanode(tsetelementnode(right).left,nil))))
                       );
 
@@ -3819,16 +3819,16 @@ const
                             begin
                               { adjust for set base }
                               tsetelementnode(right).left:=compiler.caddnode(subn,
-                                compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
 
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
-                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
-                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,compiler.deftypes.sinttype),
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
 
                               result:=compiler.ccallnode_intern('fpc_varset_set_range',
-                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                                 compiler.ccallparanode(tsetelementnode(right).right,
                                 compiler.ccallparanode(tsetelementnode(right).left,
                                 compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
@@ -3844,12 +3844,12 @@ const
                                 begin
                                   { adjust for set base }
                                   tsetelementnode(right).left:=compiler.caddnode(subn,
-                                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                                    compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
+                                    compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
 
                                   result:=compiler.ccallnode_intern('fpc_varset_set',
-                                    compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
-                                    compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
+                                    compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
+                                    compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
                                     compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                                     compiler.ccallparanode(left,nil)))));
                                 end;
@@ -3861,8 +3861,8 @@ const
                         begin
                           { adjust for set base }
                           tsetelementnode(right).left:=compiler.caddnode(subn,
-                            compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                            compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                            compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
+                            compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
 
                           result:=internalstatements(compiler,newstatement);
 
@@ -3875,10 +3875,10 @@ const
                             begin
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
-                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
-                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,compiler.deftypes.sinttype),
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,compiler.deftypes.sinttype,false));
                               addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set_range',
-                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
                                 compiler.ccallparanode(tsetelementnode(right).right,
                                 compiler.ccallparanode(tsetelementnode(right).left,
                                 compiler.ccallparanode(compiler.ctemprefnode(temp),
@@ -3887,8 +3887,8 @@ const
                             end
                           else
                             addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set',
-                              compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
-                              compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
+                              compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
+                              compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,compiler.deftypes.sinttype),
                               compiler.ccallparanode(compiler.ctemprefnode(temp),
                               compiler.ccallparanode(left,nil)))))
                             );

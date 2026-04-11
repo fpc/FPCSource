@@ -1236,7 +1236,7 @@ implementation
                             begin
                               minvalue:=min(TConstExprInt(Tarraydef(left.resultdef).lowrange),torddef(right.resultdef).low);
                               maxvalue:=max(TConstExprInt(Tarraydef(left.resultdef).highrange),torddef(right.resultdef).high);
-                              if maxvalue>torddef(sinttype).high then
+                              if maxvalue>torddef(compiler.deftypes.sinttype).high then
                                 newordtyp:=Torddef(right.resultdef).ordtype
                               else
                                 newordtyp:=range_to_basetype(minvalue,maxvalue);
@@ -1274,7 +1274,7 @@ implementation
                inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type,compiler);
              else
                {Others, (are there any?) indexes to aint.}
-               inserttypeconv(right,sinttype,compiler);
+               inserttypeconv(right,compiler.deftypes.sinttype,compiler);
            end;
 
          { although we never put regular arrays or shortstrings in registers,

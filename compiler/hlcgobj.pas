@@ -1571,11 +1571,11 @@ implementation
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
           valuereg:=getintregister(list,tosize);
-          a_load_subsetref_reg(list,sinttype,tosize,tmpsref,valuereg);
+          a_load_subsetref_reg(list,compiler.deftypes.sinttype,tosize,tmpsref,valuereg);
           tmpsref.bitlen:=sref.bitlen-AIntBits;
           inc(tmpsref.ref.offset,AIntBits div 8);
           extra_value_reg:=getintregister(list,tosize);
-          a_load_subsetref_reg(list,sinttype,tosize,tmpsref,extra_value_reg);
+          a_load_subsetref_reg(list,compiler.deftypes.sinttype,tosize,tmpsref,extra_value_reg);
           { can't use a_load_reg_subsetreg to merge the results, as that one
             does not support sizes > AIntBits either }
           tmpreg:=getintregister(list,tosize);
@@ -4195,15 +4195,15 @@ implementation
       { read/write operations on one register make the life of the register allocator hard }
       if not(lenloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
-          lenreg:=getintregister(list,sinttype);
-          a_load_loc_reg(list,sinttype,sinttype,lenloc,lenreg);
+          lenreg:=getintregister(list,compiler.deftypes.sinttype);
+          a_load_loc_reg(list,compiler.deftypes.sinttype,compiler.deftypes.sinttype,lenloc,lenreg);
         end
       else
         lenreg:=lenloc.register;
 
-      sizereg:=getintregister(list,sinttype);
-      a_op_const_reg_reg(list,OP_ADD,sinttype,1,lenreg,sizereg);
-      a_op_const_reg(list,OP_IMUL,sinttype,arrdef.elesize,sizereg);
+      sizereg:=getintregister(list,compiler.deftypes.sinttype);
+      a_op_const_reg_reg(list,OP_ADD,compiler.deftypes.sinttype,1,lenreg,sizereg);
+      a_op_const_reg(list,OP_IMUL,compiler.deftypes.sinttype,arrdef.elesize,sizereg);
       { load source }
       ptrarrdef:=cpointerdef.getreusable(arrdef,compiler);
       sourcereg:=getaddressregister(list,ptrarrdef);
@@ -4213,7 +4213,7 @@ implementation
       pd:=search_system_proc('fpc_getmem');
       cgpara1.init(compiler.target);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
-      a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
+      a_load_reg_cgpara(list,compiler.deftypes.sinttype,sizereg,cgpara1);
       paramanager.freecgpara(list,cgpara1);
       getmemres:=g_call_system_proc(list,pd,[@cgpara1],ptrarrdef);
       cgpara1.done;

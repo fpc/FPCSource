@@ -308,13 +308,13 @@ interface
           {# returns the appropriate int type for pointer arithmetic with the given pointer type.
              When adding or subtracting a number to/from a pointer, this function returns the
              int type to which that number has to be converted, before the operation can be performed.
-             Normally, this is sinttype, except on i8086, where it takes into account the
+             Normally, this is compiler.deftypes.sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
           function pointer_arithmetic_int_type:tdef;virtual;
           {# the unsigned version of pointer_arithmetic_int_type. Used with inc/dec. }
           function pointer_arithmetic_uint_type:tdef;virtual;
           {# returns the int type produced when subtracting two pointers of the given type.
-             Normally, this is sinttype, except on i8086, where it takes into account the
+             Normally, this is compiler.deftypes.sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
           function pointer_subtraction_result_type:tdef;virtual;
           function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
@@ -1223,7 +1223,9 @@ interface
          typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
          { we use only one variant def for every variant class }
          cvarianttype,
-         colevarianttype: tdef;
+         colevarianttype,
+         { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
+         sinttype: tdef;
        end;
 
 
@@ -1252,8 +1254,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
-       sinttype,
        uinttype,
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype,
@@ -9823,7 +9823,7 @@ implementation
        compiler.deftypes.cvarianttype:=nil;
        compiler.deftypes.colevarianttype:=nil;
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
-       sinttype:=nil;
+       compiler.deftypes.sinttype:=nil;
        uinttype:=nil;
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype:=nil;

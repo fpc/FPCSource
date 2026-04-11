@@ -519,7 +519,7 @@ implementation
                    (left.resultdef.size<=sizeof(aint)) then
                   begin
                     opsize:=OS_SINT;
-                    opdef:=sinttype;
+                    opdef:=compiler.deftypes.sinttype;
                   end
                 else
                   begin

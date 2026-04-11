@@ -2188,7 +2188,7 @@ implementation
             assnode:=nil;
 
           { get temp for array of lengths }
-          temp2:=compiler.ctempcreatenode(sinttype,sinttype.size,tt_persistent,false);
+          temp2:=compiler.ctempcreatenode(compiler.deftypes.sinttype,compiler.deftypes.sinttype.size,tt_persistent,false);
           addstatement(newstatement,temp2);
 
           { one dimensional }
@@ -4168,7 +4168,7 @@ implementation
                           compiler.verbose.Message(parser_e_invalid_integer);
                           parser.pbase.consume(_INTCONST);
                           l:=1;
-                          p1:=compiler.cordconstnode(l,sinttype,true);
+                          p1:=compiler.cordconstnode(l,compiler.deftypes.sinttype,true);
                        end
                      else
                        begin

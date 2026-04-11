@@ -178,7 +178,7 @@ implementation
          { variants must be accepted, but first they must be converted to integer }
          if caseexpr.resultdef.typ=variantdef then
            begin
-             caseexpr:=compiler.ctypeconvnode_internal(caseexpr,sinttype);
+             caseexpr:=compiler.ctypeconvnode_internal(caseexpr,compiler.deftypes.sinttype);
              do_typecheckpass(caseexpr);
            end;
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);

@@ -149,7 +149,7 @@ function GetTypeDef(const ATyp: string): string;
       'r64':   exit('compiler.deftypes.u64inttype');
       'rs64':  exit('compiler.deftypes.s64inttype');
       'reg':   exit('uinttype');
-      'sreg':  exit('sinttype');
+      'sreg':  exit('compiler.deftypes.sinttype');
       'f32':   exit('compiler.deftypes.s32floattype');
       'f64':   exit('s64floattype');
       'mm':    exit('x86_m64type');
@@ -276,7 +276,7 @@ function GetLocStatement(AIndex: longint; const ATyp: string; AConst: boolean): 
       'r64':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u64inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'rs64':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.u64inttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'reg':   exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,uinttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
-      'sreg':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,sinttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
+      'sreg':  exit(format('hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[%d].location, paraarray[%d].resultdef,compiler.deftypes.sinttype,%s);', [AIndex+1, AIndex+1, BoolToStr(aconst,'true','false')]));
       'f32':   exit(format('location_force_mmreg(current_asmdata.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
       'f64':   exit(format('location_force_mmreg(current_asmdata.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));
       'mm':    exit(format('location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[%d].location, %s);', [AIndex+1, BoolToStr(aconst,'true','false')]));

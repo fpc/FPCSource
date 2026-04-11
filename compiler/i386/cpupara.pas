@@ -362,7 +362,7 @@ unit cpupara;
            (result.intsize>0) and
            (result.intsize<sizeof(aint)) then
           begin
-            result.def:=sinttype;
+            result.def:=compiler.deftypes.sinttype;
             result.intsize:=sizeof(aint);
             retcgsize:=OS_SINT;
             result.size:=retcgsize;
@@ -492,7 +492,7 @@ unit cpupara;
                (paralen < sizeof(aint)) then
               begin
                 paracgsize:=OS_SINT;
-                paradef:=sinttype;
+                paradef:=compiler.deftypes.sinttype;
               end;
             { Copy to stack? }
             if (paracgsize=OS_NO) or

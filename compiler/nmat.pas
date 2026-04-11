@@ -314,9 +314,9 @@ implementation
 
          { we need 2 orddefs always }
          if (left.resultdef.typ<>orddef) then
-           inserttypeconv(left,sinttype,compiler);
+           inserttypeconv(left,compiler.deftypes.sinttype,compiler);
          if (right.resultdef.typ<>orddef) then
-           inserttypeconv(right,sinttype,compiler);
+           inserttypeconv(right,compiler.deftypes.sinttype,compiler);
          if compiler.verbose.codegenerror then
            exit;
 
@@ -428,7 +428,7 @@ implementation
            begin
               compiler.verbose.CGMessage(type_h_mixed_signed_unsigned);
               { get a signed int, larger than the native int }
-              nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
+              nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(uinttype),false);
               if (ld.ordtype<>nd.ordtype) then
                 inserttypeconv(left,nd,compiler);
               if (rd.ordtype<>nd.ordtype) then
@@ -438,10 +438,10 @@ implementation
          else
            begin
               { Make everything always default signed int }
-              if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
-                inserttypeconv(right,sinttype,compiler);
-              if not(ld.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
-                inserttypeconv(left,sinttype,compiler);
+              if not(rd.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(uinttype).ordtype]) then
+                inserttypeconv(right,compiler.deftypes.sinttype,compiler);
+              if not(ld.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(uinttype).ordtype]) then
+                inserttypeconv(left,compiler.deftypes.sinttype,compiler);
               resultdef:=right.resultdef;
            end;
 
@@ -917,7 +917,7 @@ implementation
              if not(mmx_type(left.resultdef) in [mmxu16bit,mmxs16bit,mmxfixed16,mmxu32bit,mmxs32bit,mmxu64bit,mmxs64bit]) then
                compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
              if not(is_mmx_able_array(right.resultdef)) then
-               inserttypeconv(right,sinttype,compiler);
+               inserttypeconv(right,compiler.deftypes.sinttype,compiler);
            end
          else
 {$endif SUPPORT_MMX}
@@ -934,7 +934,7 @@ implementation
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                      inserttypeconv(left,compiler.deftypes.s32inttype,compiler)
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
-                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true),compiler);
+                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(compiler.deftypes.sinttype),true),compiler);
 {$else}
                      internalerror(2013031301);
 {$endif}
@@ -951,7 +951,7 @@ implementation
                    end
                end;
 
-             inserttypeconv(right,sinttype,compiler);
+             inserttypeconv(right,compiler.deftypes.sinttype,compiler);
            end;
 
          resultdef:=left.resultdef;
@@ -1176,7 +1176,7 @@ implementation
            end
          else if (left.resultdef.typ=orddef) then
            begin
-             inserttypeconv(left,sinttype,compiler);
+             inserttypeconv(left,compiler.deftypes.sinttype,compiler);
              resultdef:=left.resultdef
            end
          else
@@ -1307,7 +1307,7 @@ implementation
           end
         else if (left.resultdef.typ=orddef) then
           begin
-            inserttypeconv(left,sinttype,compiler);
+            inserttypeconv(left,compiler.deftypes.sinttype,compiler);
             result:=left;
             left:=nil;
           end

@@ -1971,7 +1971,7 @@ implementation
     function ttypeconvnode.typecheck_variant_to_enum : tnode;
 
       begin
-        result := compiler.ctypeconvnode_internal(left,sinttype);
+        result := compiler.ctypeconvnode_internal(left,compiler.deftypes.sinttype);
         result := compiler.ctypeconvnode_internal(result,resultdef);
         typecheckpass(result);
         { left is reused }
@@ -1982,7 +1982,7 @@ implementation
     function ttypeconvnode.typecheck_enum_to_variant : tnode;
 
       begin
-        result := compiler.ctypeconvnode_internal(left,sinttype);
+        result := compiler.ctypeconvnode_internal(left,compiler.deftypes.sinttype);
         result := compiler.ctypeconvnode_internal(result,compiler.deftypes.cvarianttype);
         typecheckpass(result);
         { left is reused }
@@ -2004,7 +2004,7 @@ implementation
         addstatement(newstatement,temp);
 
         { get temp for array of lengths }
-        temp2:=compiler.ctempcreatenode(sinttype,sinttype.size,tt_persistent,false);
+        temp2:=compiler.ctempcreatenode(compiler.deftypes.sinttype,compiler.deftypes.sinttype.size,tt_persistent,false);
         addstatement(newstatement,temp2);
 
         { one dimensional }
@@ -2108,7 +2108,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
+        temp2:=compiler.ctempcreatenode_value(compiler.deftypes.sinttype,compiler.deftypes.sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
         addstatement(newstatement,temp2);
 
         { create call to fpc_dynarr_setlength }
@@ -2180,7 +2180,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
+        temp2:=compiler.ctempcreatenode_value(compiler.deftypes.sinttype,compiler.deftypes.sinttype.size,tt_persistent,false,compiler.cordconstnode(paracount,compiler.deftypes.s32inttype,true));
         addstatement(newstatement,temp2);
 
         { add assignment statements }
@@ -4325,10 +4325,10 @@ implementation
             addstatement(newstatement,temp);
 
             addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_load',
-              compiler.ccallparanode(compiler.cordconstnode(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,sinttype,false),
-              compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
+              compiler.ccallparanode(compiler.cordconstnode(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,compiler.deftypes.sinttype,false),
+              compiler.ccallparanode(compiler.cordconstnode(resultdef.size,compiler.deftypes.sinttype,false),
               compiler.ccallparanode(compiler.ctemprefnode(temp),
-              compiler.ccallparanode(compiler.cordconstnode(left.resultdef.size,sinttype,false),
+              compiler.ccallparanode(compiler.cordconstnode(left.resultdef.size,compiler.deftypes.sinttype,false),
               compiler.ccallparanode(left,nil))))))
             );
             addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));

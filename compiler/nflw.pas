@@ -580,8 +580,8 @@ implementation
 
         { create a loop counter: signed integer with size of string length }
         loopvar := compiler.ctempcreatenode(
-          sinttype,
-          sinttype.size,
+          compiler.deftypes.sinttype,
+          compiler.deftypes.sinttype.size,
           tt_persistent,true);
 
         addstatement(loopstatement,loopvar);
@@ -2493,7 +2493,7 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         result:=compiler.ccallnode_intern('fpc_longjmp',
-                          compiler.ccallparanode(compiler.cordconstnode(1,sinttype,true),
+                          compiler.ccallparanode(compiler.cordconstnode(1,compiler.deftypes.sinttype,true),
                           compiler.ccallparanode(compiler.cloadnode(labelsym.jumpbuf,labelsym.jumpbuf.owner),
                         nil)));
                       end

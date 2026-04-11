@@ -1546,7 +1546,7 @@ in_x86_cvtsd2si
 
     for i := 1 to 2 do secondpass(paraarray[i]);
 
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,sinttype,false);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.sinttype,false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,paraarray[2].location.register,paraarray[1].location.register));
@@ -1566,7 +1566,7 @@ in_x86_cvtsd2si_from_mem
 
     for i := 1 to 2 do secondpass(paraarray[i]);
 
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,sinttype,false);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.sinttype,false);
     location_make_ref(paraarray[2].location);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,paraarray[2].location.reference,paraarray[1].location.register));

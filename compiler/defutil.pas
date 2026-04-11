@@ -1512,9 +1512,9 @@ implementation
              begin
                if is_integer(def) then
                  begin
-                   if (torddef(def).low>=torddef(sinttype).low) and
-                      (torddef(def).high<=torddef(sinttype).high) then
-                     result:=sinttype
+                   if (torddef(def).low>=torddef(compiler.deftypes.sinttype).low) and
+                      (torddef(def).high<=torddef(compiler.deftypes.sinttype).high) then
+                     result:=compiler.deftypes.sinttype
                    else
                      range_to_type(torddef(def).low,torddef(def).high,result);
                  end
@@ -2012,6 +2012,8 @@ implementation
 
 
     function calc_not_ordvalue(var v:Tconstexprint;var def:tdef):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(def) or (def.typ<>orddef) then
           exit(false);
@@ -2056,7 +2058,7 @@ implementation
               else
                 begin
                   v:=int64(not int64(v));
-                  def:=get_common_intdef(torddef(def),torddef(sinttype),false);
+                  def:=get_common_intdef(torddef(def),torddef(compiler.deftypes.sinttype),false);
                 end;
             end;
           else

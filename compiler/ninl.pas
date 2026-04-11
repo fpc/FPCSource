@@ -771,7 +771,7 @@ implementation
             s8bit:
               begin
                 func_suffix := 'sint';
-                readfunctype := sinttype;
+                readfunctype := compiler.deftypes.sinttype;
               end;
             u64bit,
             u32bit,
@@ -1752,7 +1752,7 @@ implementation
           { because code is a var parameter, it must match types exactly    }
           { however, since it will return values >= 0, both signed and      }
           { and unsigned ints of the same size are fine. Since the formal   }
-          { code para type is sinttype, insert a typecoversion to sint for  }
+          { code para type is compiler.deftypes.sinttype, insert a typecoversion to sint for  }
           { unsigned para's  }
           begin
             codepara.left := compiler.ctypeconvnode_internal(codepara.left,valsinttype);
@@ -1887,7 +1887,7 @@ implementation
            while assigned(ppn.right) do
             begin
               set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
-              inserttypeconv(ppn.left,sinttype,compiler);
+              inserttypeconv(ppn.left,compiler.deftypes.sinttype,compiler);
               inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
@@ -2630,7 +2630,7 @@ implementation
                   if (left.nodetype=ordconstn) then
                      begin
                        result:=compiler.cordconstnode(
-                         tordconstnode(left).value,sinttype,true);
+                         tordconstnode(left).value,compiler.deftypes.sinttype,true);
                      end
                    else if (m_mac in compiler.globals.current_settings.modeswitches) and
                            (left.ndoetype=pointerconstn) then
@@ -2652,7 +2652,7 @@ implementation
                         if (left.nodetype=stringconstn) then
                           begin
                             result:=compiler.cordconstnode(
-                              tstringconstnode(left).len,sinttype,true);
+                              tstringconstnode(left).len,compiler.deftypes.sinttype,true);
                           end;
                       end;
                     orddef :
@@ -2661,7 +2661,7 @@ implementation
                         if is_char(left.resultdef) or
                            is_widechar(left.resultdef) then
                          begin
-                           result:=compiler.cordconstnode(1,sinttype,false);
+                           result:=compiler.cordconstnode(1,compiler.deftypes.sinttype,false);
                          end
                       end;
                     arraydef :
@@ -2669,7 +2669,7 @@ implementation
                         if (left.nodetype=stringconstn) then
                           begin
                             result:=compiler.cordconstnode(
-                              tstringconstnode(left).len,sinttype,true);
+                              tstringconstnode(left).len,compiler.deftypes.sinttype,true);
                           end
                         else if not is_open_array(left.resultdef) and
                            not is_array_of_const(left.resultdef) and
@@ -3581,7 +3581,7 @@ implementation
                            hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
                              result:=compiler.caddnode(addn,hightree,
-                               compiler.cordconstnode(1,sinttype,false));
+                               compiler.cordconstnode(1,compiler.deftypes.sinttype,false));
                            exit;
                          end
                         { Length() for dynamic arrays is inlined }
@@ -3813,7 +3813,7 @@ implementation
                               if [cs_check_range,cs_check_overflow]*localswitches<>[] then
                                 internalerror(2017032701);
                               if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
-                                inserttypeconv(tcallparanode(left).left,sinttype,compiler)
+                                inserttypeconv(tcallparanode(left).left,compiler.deftypes.sinttype,compiler)
                               else
                                 inserttypeconv(tcallparanode(left).left,tcallparanode(tcallparanode(left).right).left.resultdef,compiler);
                             end
@@ -3991,7 +3991,7 @@ implementation
                               begin
                                 result:=compiler.cinlinenode(in_length_x,false,left);
                                 if cs_zerobasedstrings in compiler.globals.current_settings.localswitches then
-                                  result:=compiler.caddnode(subn,result,compiler.cordconstnode(1,sinttype,false));
+                                  result:=compiler.caddnode(subn,result,compiler.cordconstnode(1,compiler.deftypes.sinttype,false));
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
@@ -4391,7 +4391,7 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := compiler.ctypeconvnode_internal(compiler.cshlshrnode(shrn,left,
-                    compiler.cordconstnode(shiftconst,sinttype,false)),resultdef)
+                    compiler.cordconstnode(shiftconst,compiler.deftypes.sinttype,false)),resultdef)
               else
                 result := compiler.ctypeconvnode_internal(left,resultdef);
               left := nil;
@@ -4502,11 +4502,11 @@ implementation
                   hp:=compiler.cordconstnode(1,hdef,false);
                   typecheckpass(hp);
                   if not is_integer(hp.resultdef) then
-                    inserttypeconv_internal(hp,sinttype,compiler);
+                    inserttypeconv_internal(hp,compiler.deftypes.sinttype,compiler);
 
                   { avoid type errors from the addn/subn }
                   if not is_integer(left.resultdef) then
-                    inserttypeconv_internal(left,sinttype,compiler);
+                    inserttypeconv_internal(left,compiler.deftypes.sinttype,compiler);
 
                   { addition/subtraction depending on succ/pred }
                   if inlinenumber=in_succ_x then
@@ -5109,8 +5109,8 @@ implementation
          { avoid type errors from the addn/subn }
          if not is_integer(resultnode.resultdef) then
            begin
-             inserttypeconv_internal(hp,sinttype,compiler);
-             inserttypeconv_internal(hpp,sinttype,compiler);
+             inserttypeconv_internal(hp,compiler.deftypes.sinttype,compiler);
+             inserttypeconv_internal(hpp,compiler.deftypes.sinttype,compiler);
            end;
 
          { addition/subtraction depending on inc/dec }
@@ -5259,7 +5259,7 @@ implementation
            newblock:=internalstatements(compiler,newstatement);
 
            { get temp for array of lengths }
-           temp:=compiler.ctempcreatenode(carraydef.getreusable(sinttype,dims,compiler),dims*sinttype.size,tt_persistent,false);
+           temp:=compiler.ctempcreatenode(carraydef.getreusable(compiler.deftypes.sinttype,dims,compiler),dims*compiler.deftypes.sinttype.size,tt_persistent,false);
            addstatement(newstatement,temp);
 
            { load array of lengths }
@@ -5287,7 +5287,7 @@ implementation
                        genintconstnode(0,compiler)
                      )),
                   compiler.ccallparanode(compiler.cordconstnode
-                     (dims,sinttype,true),
+                     (dims,compiler.deftypes.sinttype,true),
                   compiler.ccallparanode(compiler.caddrnode_internal
                      (compiler.crttinode(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
                   compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,compiler.deftypes.voidpointertype),nil))));
@@ -5347,7 +5347,7 @@ implementation
         { fill up third parameter }
         if counter=2 then
           begin
-            paras:=compiler.ccallparanode(compiler.cordconstnode(torddef(sinttype).high,sinttype,false),paras);
+            paras:=compiler.ccallparanode(compiler.cordconstnode(torddef(compiler.deftypes.sinttype).high,compiler.deftypes.sinttype,false),paras);
             counter:=3;
           end;
 
@@ -5365,7 +5365,7 @@ implementation
         else if is_dynamic_array(resultdef) then
           begin
             { create statements with call }
-            elesizeppn:=compiler.cordconstnode(tarraydef(paradef).elesize,sinttype,false);
+            elesizeppn:=compiler.cordconstnode(tarraydef(paradef).elesize,compiler.deftypes.sinttype,false);
             if is_managed_type(tarraydef(paradef).elementdef) then
               eletypeppn:=compiler.caddrnode_internal(
                 compiler.crttinode(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal))
@@ -5376,13 +5376,13 @@ implementation
               1:
                 begin
                   { copy the whole array using [0..high(sizeint)] range }
-                  countppn:=compiler.cordconstnode(torddef(sinttype).high,sinttype,false);
-                  lowppn:=compiler.cordconstnode(0,sinttype,false);
+                  countppn:=compiler.cordconstnode(torddef(compiler.deftypes.sinttype).high,compiler.deftypes.sinttype,false);
+                  lowppn:=compiler.cordconstnode(0,compiler.deftypes.sinttype,false);
                 end;
               2:
                 begin
                   { copy the array using [low..high(sizeint)] range }
-                  countppn:=compiler.cordconstnode(torddef(sinttype).high,sinttype,false);
+                  countppn:=compiler.cordconstnode(torddef(compiler.deftypes.sinttype).high,compiler.deftypes.sinttype,false);
                   lowppn:=tcallparanode(paras).left.getcopy;
                 end;
               3:
@@ -5610,8 +5610,8 @@ implementation
            if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_insert');
            write_system_parameter_lists('fpc_ansistr_insert');
-           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+sinttype.typename+');');
-           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Element;var Dynamic Array;'+sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+compiler.deftypes.sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Element;var Dynamic Array;'+compiler.deftypes.sinttype.typename+');');
          end;
 
        var
@@ -5749,7 +5749,7 @@ implementation
            if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_delete');
            write_system_parameter_lists('fpc_ansistr_delete');
-           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+compiler.deftypes.sinttype.typename+';'+compiler.deftypes.sinttype.typename+');');
          end;
 
        var
@@ -6041,10 +6041,10 @@ implementation
          getrange(packednode.resultdef,plorange,phirange);
          { does not really need to be registered, but then we would have to
            record it elsewhere so it still can be freed }
-         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true,compiler);
+         temprangedef:=corddef.create(torddef(compiler.deftypes.sinttype).ordtype,ulorange,uhirange,true,compiler);
          sourcevecindex := compiler.ctemprefnode(loopvar);
-         targetvecindex := compiler.ctypeconvnode_internal(index.getcopy,sinttype);
-         targetvecindex := compiler.caddnode(subn,targetvecindex,compiler.cordconstnode(plorange,sinttype,true));
+         targetvecindex := compiler.ctypeconvnode_internal(index.getcopy,compiler.deftypes.sinttype);
+         targetvecindex := compiler.caddnode(subn,targetvecindex,compiler.cordconstnode(plorange,compiler.deftypes.sinttype,true));
          targetvecindex := compiler.caddnode(addn,targetvecindex,compiler.ctemprefnode(loopvar));
          targetvecindex := compiler.ctypeconvnode(targetvecindex,temprangedef);
          targetvecindex := compiler.ctypeconvnode_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef);
