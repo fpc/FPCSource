@@ -471,7 +471,7 @@ implementation
         compiler.deftypes.cfiletype:=cfiledef.createuntyped(compiler);
         if f_variants in compiler.globals.features then
           begin
-            cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
+            compiler.deftypes.cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
             colevarianttype:=cvariantdef.create(vt_olevariant,compiler);
           end;
 
@@ -571,7 +571,7 @@ implementation
         addtype('TypedFile',cfiledef.createtyped(compiler.deftypes.voidtype,compiler));
         if f_variants in compiler.globals.features then
           begin
-            addtype('Variant',cvarianttype);
+            addtype('Variant',compiler.deftypes.cvarianttype);
             addtype('OleVariant',colevarianttype);
           end;
         { Internal types }
@@ -659,7 +659,7 @@ implementation
         addtype('$file',compiler.deftypes.cfiletype);
         if f_variants in compiler.globals.features then
           begin
-            addtype('$variant',cvarianttype);
+            addtype('$variant',compiler.deftypes.cvarianttype);
             addtype('$olevariant',colevarianttype);
           end;
         if compiler.globals.init_settings.fputype<>fpu_none then
@@ -835,7 +835,7 @@ implementation
           end;
         if f_variants in compiler.globals.features then
           begin
-            loadtype('variant',cvarianttype);
+            loadtype('variant',compiler.deftypes.cvarianttype);
             loadtype('olevariant',colevarianttype);
           end;
         loadtype('methodpointer',compiler.deftypes.methodpointertype);

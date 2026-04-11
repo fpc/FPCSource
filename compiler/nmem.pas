@@ -1377,7 +1377,7 @@ implementation
                  end;
              end;
            variantdef :
-             resultdef:=cvarianttype;
+             resultdef:=compiler.deftypes.cvarianttype;
            else
              compiler.verbose.CGMessage(type_e_array_required);
         end;

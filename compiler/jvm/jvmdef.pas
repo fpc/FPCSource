@@ -725,7 +725,7 @@ implementation
                 end;
               variantdef :
                 begin
-                  result:=cvarianttype;
+                  result:=compiler.deftypes.cvarianttype;
                 end;
               classrefdef :
                 begin

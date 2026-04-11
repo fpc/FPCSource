@@ -2119,8 +2119,8 @@ implementation
                    (countindices,compiler.deftypes.s32inttype,true),
                 compiler.ccallparanode(compiler.caddrnode_internal
                (compiler.cvecnode(compiler.ctemprefnode(temp),genintconstnode(0,compiler))),
-                compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
-                compiler.ccallparanode(compiler.ctypeconvnode_internal(p1,cvarianttype)
+                compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,compiler.deftypes.cvarianttype),
+                compiler.ccallparanode(compiler.ctypeconvnode_internal(p1,compiler.deftypes.cvarianttype)
                   ,nil))));
 
              addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_put',paras));
@@ -2129,7 +2129,7 @@ implementation
          else
            begin
              { create temp for result }
-             tempresultvariant:=compiler.ctempcreatenode(cvarianttype,cvarianttype.size,tt_persistent,true);
+             tempresultvariant:=compiler.ctempcreatenode(compiler.deftypes.cvarianttype,compiler.deftypes.cvarianttype.size,tt_persistent,true);
              addstatement(newstatement,tempresultvariant);
 
              { create call to fpc_vararray_get }
@@ -2825,7 +2825,7 @@ implementation
                               { this is only an approximation
                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
                               if afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
-                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
+                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,compiler.deftypes.cvarianttype)
                               else
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,compiler.deftypes.voidtype);
                             end;
@@ -3229,7 +3229,7 @@ implementation
                  else
                    begin
                      { We need to know if this unit uses Variants }
-                     if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
+                     if ((hdef=compiler.deftypes.cvarianttype) or (hdef=colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(compiler.current_module.moduleflags,mf_uses_variants);
                      result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);

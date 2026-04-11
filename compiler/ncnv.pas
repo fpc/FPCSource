@@ -1983,7 +1983,7 @@ implementation
 
       begin
         result := compiler.ctypeconvnode_internal(left,sinttype);
-        result := compiler.ctypeconvnode_internal(result,cvarianttype);
+        result := compiler.ctypeconvnode_internal(result,compiler.deftypes.cvarianttype);
         typecheckpass(result);
         { left is reused }
         left := nil;

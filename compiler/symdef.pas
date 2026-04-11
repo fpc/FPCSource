@@ -1220,7 +1220,9 @@ interface
          methodpointertype,         { typecasting of methodpointers to extract self }
          nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
          hresultdef,
-         typekindtype: tdef;        { def of TTypeKind for correct handling of GetTypeKind parameters }
+         typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
+         { we use only one variant def for every variant class }
+         cvarianttype: tdef;
        end;
 
 
@@ -1249,8 +1251,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { we use only one variant def for every variant class }
-       cvarianttype,
        colevarianttype,
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype,
@@ -9820,7 +9820,7 @@ implementation
        compiler.deftypes.hresultdef:=nil;
        compiler.deftypes.typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }
-       cvarianttype:=nil;
+       compiler.deftypes.cvarianttype:=nil;
        colevarianttype:=nil;
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype:=nil;
