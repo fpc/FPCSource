@@ -1219,7 +1219,8 @@ interface
                                     { used for stabs }
          methodpointertype,         { typecasting of methodpointers to extract self }
          nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
-         hresultdef: tdef;
+         hresultdef,
+         typekindtype: tdef;        { def of TTypeKind for correct handling of GetTypeKind parameters }
        end;
 
 
@@ -1248,7 +1249,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
@@ -9818,7 +9818,7 @@ implementation
        compiler.deftypes.methodpointertype:=nil;         { typecasting of methodpointers to extract self }
        compiler.deftypes.nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
        compiler.deftypes.hresultdef:=nil;
-       typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
+       compiler.deftypes.typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }
        cvarianttype:=nil;
        colevarianttype:=nil;

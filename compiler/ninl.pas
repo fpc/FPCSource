@@ -3628,7 +3628,7 @@ implementation
                   if compiler.target.info.system in systems_managed_vm then
                     compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=typekindtype;
+                  resultdef:=compiler.deftypes.typekindtype;
                 end;
 
               in_ismanagedtype_x:
@@ -4455,7 +4455,7 @@ implementation
 
           in_gettypekind_x:
             begin
-              sym:=tenumdef(typekindtype).int2enumsym(get_typekind(left.resultdef));
+              sym:=tenumdef(compiler.deftypes.typekindtype).int2enumsym(get_typekind(left.resultdef));
               if not assigned(sym) then
                 internalerror(2017081101);
               if sym.typ<>enumsym then

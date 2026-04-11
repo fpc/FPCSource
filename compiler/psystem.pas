@@ -841,7 +841,7 @@ implementation
         loadtype('methodpointer',compiler.deftypes.methodpointertype);
         loadtype('nestedprocpointer',compiler.deftypes.nestedprocpointertype);
         loadtype('HRESULT',compiler.deftypes.hresultdef);
-        loadtype('TTYPEKIND',typekindtype);
+        loadtype('TTYPEKIND',compiler.deftypes.typekindtype);
         set_default_int_types;
         set_default_ptr_types;
         compiler.set_current_module(oldcurrentmodule);
