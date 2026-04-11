@@ -1516,7 +1516,7 @@ implementation
                 not winlikewidestring) then
          result:=tstringdef(cunicodestringtype)
        else if stringtype=st_widestring then
-         result:=tstringdef(cwidestringtype)
+         result:=tstringdef(compiler.deftypes.cwidestringtype)
        else
          internalerror(2015122101);
      end;

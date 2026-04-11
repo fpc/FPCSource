@@ -2020,7 +2020,7 @@ implementation
           end
         else if is_widestring(paradef) then
           begin
-           resultdef:=cwidestringtype;
+           resultdef:=compiler.deftypes.cwidestringtype;
            func:='fpc_widestr_copy';
           end
         else if is_unicodestring(paradef) or

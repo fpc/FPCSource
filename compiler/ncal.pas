@@ -482,7 +482,7 @@ implementation
 
             { insert some extra casts }
             if para.left.nodetype=stringconstn then
-              inserttypeconv_internal(para.left,cwidestringtype,compiler)
+              inserttypeconv_internal(para.left,compiler.deftypes.cwidestringtype,compiler)
 
             { force automatable boolean type }
             else if is_boolean(para.left.resultdef) then
@@ -494,7 +494,7 @@ implementation
               inserttypeconv_internal(para.left,s64floattype,compiler)
 
             else if is_shortstring(para.left.resultdef) then
-              inserttypeconv_internal(para.left,cwidestringtype,compiler)
+              inserttypeconv_internal(para.left,compiler.deftypes.cwidestringtype,compiler)
 
             { skip this check if we've already typecasted to automatable type }
             else if (para.left.nodetype<>nothingn) and (not is_automatable(para.left.resultdef)) then

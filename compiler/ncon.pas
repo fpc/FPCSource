@@ -1011,7 +1011,7 @@ implementation
           cst_unicodestring :
             resultdef:=cunicodestringtype;
           cst_widestring :
-            resultdef:=cwidestringtype;
+            resultdef:=compiler.deftypes.cwidestringtype;
           cst_longstring :
             resultdef:=compiler.deftypes.clongstringtype;
         end;

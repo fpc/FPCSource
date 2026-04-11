@@ -2638,7 +2638,7 @@ implementation
                        { use getansistringdef? }
                        strdef:=compiler.deftypes.cansistringtype;
                      cst_widestring:
-                       strdef:=cwidestringtype;
+                       strdef:=compiler.deftypes.cwidestringtype;
                      cst_unicodestring:
                        strdef:=cunicodestringtype;
                      cst_longstring:

@@ -2343,8 +2343,8 @@ const
             is_widechar(right.resultdef) or
             is_widechar(left.resultdef)) then
           begin
-            inserttypeconv(right,cwidestringtype,compiler);
-            inserttypeconv(left,cwidestringtype,compiler);
+            inserttypeconv(right,compiler.deftypes.cwidestringtype,compiler);
+            inserttypeconv(left,compiler.deftypes.cwidestringtype,compiler);
           end;
 
         { load easier access variables }
@@ -2999,9 +2999,9 @@ const
                   st_widestring :
                     begin
                       if not(is_widestring(rd)) then
-                        inserttypeconv(right,cwidestringtype,compiler);
+                        inserttypeconv(right,compiler.deftypes.cwidestringtype,compiler);
                       if not(is_widestring(ld)) then
-                        inserttypeconv(left,cwidestringtype,compiler);
+                        inserttypeconv(left,compiler.deftypes.cwidestringtype,compiler);
                     end;
                   st_unicodestring :
                     begin

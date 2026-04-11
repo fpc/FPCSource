@@ -1208,7 +1208,8 @@ interface
          s64currencytype,           { pointer to a currency type }
          cshortstringtype,          { pointer to type of short string const   }
          clongstringtype,           { pointer to type of long string const   }
-         cansistringtype: tdef;     { pointer to type of ansi string const  }
+         cansistringtype,           { pointer to type of ansi string const  }
+         cwidestringtype: tdef;     { pointer to type of wide string const  }
        end;
 
 
@@ -1237,7 +1238,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       cwidestringtype,           { pointer to type of wide string const  }
        cunicodestringtype,
        openshortstringtype,       { pointer to type of an open shortstring,
                                     needed for readln() }
@@ -2995,7 +2995,7 @@ implementation
           st_ansistring:
             result:=compiler.deftypes.cansistringtype;
           st_widestring:
-            result:=cwidestringtype;
+            result:=compiler.deftypes.cwidestringtype;
           st_unicodestring:
             result:=cunicodestringtype;
         end
@@ -9810,7 +9810,7 @@ implementation
        compiler.deftypes.cshortstringtype:=nil;          { pointer to type of short string const   }
        compiler.deftypes.clongstringtype:=nil;           { pointer to type of long string const   }
        compiler.deftypes.cansistringtype:=nil;           { pointer to type of ansi string const  }
-       cwidestringtype:=nil;           { pointer to type of wide string const  }
+       compiler.deftypes.cwidestringtype:=nil;           { pointer to type of wide string const  }
        cunicodestringtype:=nil;
        openshortstringtype:=nil;
        openchararraytype:=nil;

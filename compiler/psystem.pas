@@ -327,9 +327,9 @@ implementation
         compiler.deftypes.clongstringtype:=cstringdef.createlong(-1,true,compiler);
         compiler.deftypes.cansistringtype:=cstringdef.createansi(0,true,compiler);
         if compiler.target.info.system in systems_windows then
-          cwidestringtype:=cstringdef.createwide(true,compiler)
+          compiler.deftypes.cwidestringtype:=cstringdef.createwide(true,compiler)
         else
-          cwidestringtype:=cstringdef.createunicode(true,compiler);
+          compiler.deftypes.cwidestringtype:=cstringdef.createunicode(true,compiler);
         cunicodestringtype:=cstringdef.createunicode(true,compiler);
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0,true,compiler);
@@ -541,7 +541,7 @@ implementation
         addtype('LongString',compiler.deftypes.clongstringtype);
 {$endif support_longstring}
         addtype('AnsiString',compiler.deftypes.cansistringtype);
-        addtype('WideString',cwidestringtype);
+        addtype('WideString',compiler.deftypes.cwidestringtype);
         addtype('UnicodeString',cunicodestringtype);
 
         addtype('OpenString',openshortstringtype);
@@ -603,7 +603,7 @@ implementation
         addtype('$shortstring',compiler.deftypes.cshortstringtype);
         addtype('$longstring',compiler.deftypes.clongstringtype);
         addtype('$ansistring',compiler.deftypes.cansistringtype);
-        addtype('$widestring',cwidestringtype);
+        addtype('$widestring',compiler.deftypes.cwidestringtype);
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',compiler.deftypes.pasbool1type);
@@ -765,7 +765,7 @@ implementation
         loadtype('shortstring',compiler.deftypes.cshortstringtype);
         loadtype('longstring',compiler.deftypes.clongstringtype);
         loadtype('ansistring',compiler.deftypes.cansistringtype);
-        loadtype('widestring',cwidestringtype);
+        loadtype('widestring',compiler.deftypes.cwidestringtype);
         loadtype('unicodestring',cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
