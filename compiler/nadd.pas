@@ -3119,7 +3119,7 @@ const
             if not(nodetype in [equaln,unequaln]) then
               compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             { find proc field in methodpointer record }
-            hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
+            hsym:=tfieldvarsym(trecorddef(compiler.deftypes.methodpointertype).symtable.Find('proc'));
             if not assigned(hsym) then
               internalerror(200412043);
             { For methodpointers compare only tmethodpointer.proc }
@@ -3128,7 +3128,7 @@ const
               begin
                 right:=compiler.csubscriptnode(
                            hsym,
-                           compiler.ctypeconvnode_internal(right,methodpointertype));
+                           compiler.ctypeconvnode_internal(right,compiler.deftypes.methodpointertype));
                 typecheckpass(right);
                end;
             if (ld.typ=procvardef) and
@@ -3136,7 +3136,7 @@ const
               begin
                 left:=compiler.csubscriptnode(
                           hsym,
-                          compiler.ctypeconvnode_internal(left,methodpointertype));
+                          compiler.ctypeconvnode_internal(left,compiler.deftypes.methodpointertype));
                 typecheckpass(left);
               end;
             if lt=niln then
@@ -3311,17 +3311,17 @@ const
                 else
                   begin
                     { find proc field in methodpointer record }
-                    hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
+                    hsym:=tfieldvarsym(trecorddef(compiler.deftypes.methodpointertype).symtable.Find('proc'));
                     if not assigned(hsym) then
                       internalerror(2004120405);
                     { Compare tmehodpointer(left).proc }
                     right:=compiler.csubscriptnode(
                                  hsym,
-                                 compiler.ctypeconvnode_internal(right,methodpointertype));
+                                 compiler.ctypeconvnode_internal(right,compiler.deftypes.methodpointertype));
                     typecheckpass(right);
                     left:=compiler.csubscriptnode(
                                  hsym,
-                                 compiler.ctypeconvnode_internal(left,methodpointertype));
+                                 compiler.ctypeconvnode_internal(left,compiler.deftypes.methodpointertype));
                      typecheckpass(left);
                   end;
               end

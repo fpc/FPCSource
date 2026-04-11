@@ -701,8 +701,8 @@ implementation
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,compiler.deftypes.voidpointertype,[]));
-        methodpointertype:=crecorddef.create('',hrecst,compiler);
-        addtype('$methodpointer',methodpointertype);
+        compiler.deftypes.methodpointertype:=crecorddef.create('',hrecst,compiler);
+        addtype('$methodpointer',compiler.deftypes.methodpointertype);
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
@@ -838,7 +838,7 @@ implementation
             loadtype('variant',cvarianttype);
             loadtype('olevariant',colevarianttype);
           end;
-        loadtype('methodpointer',methodpointertype);
+        loadtype('methodpointer',compiler.deftypes.methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);

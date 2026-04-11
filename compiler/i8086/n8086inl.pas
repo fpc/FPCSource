@@ -170,7 +170,7 @@ implementation
                         is_nested_pd(tabstractprocdef(left.resultdef)) then
                        begin
                          if tabstractprocdef(left.resultdef).is_methodpointer then
-                           procpointertype:=methodpointertype
+                           procpointertype:=compiler.deftypes.methodpointertype
                          else
                            procpointertype:=nestedprocpointertype;
                          { find proc field in methodpointer record }

@@ -138,7 +138,7 @@ implementation
               if not assigned(tmethoddef) then
                 tmethoddef:=search_system_type('TMETHOD').typedef;
               result:=
-                (def2=methodpointertype) or
+                (def2=compiler.deftypes.methodpointertype) or
                 (def2=tmethoddef) or
                 ((def2.typ=procvardef) and
                  (po_methodpointer in tprocvardef(def2).procoptions));

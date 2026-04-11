@@ -232,9 +232,9 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment,href.volatility);
     location.reference:=href;
-    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(methodpointertype,compiler),href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'self',href);
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'proc',href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'self',href);
   end;
 
 

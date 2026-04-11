@@ -1215,8 +1215,9 @@ interface
                                       needed for readln() }
          openchararraytype,         { pointer to type of an open array of char,
                                       needed for readln() }
-         cfiletype: tdef;           { get the same definition for all file }
+         cfiletype,                 { get the same definition for all file }
                                     { used for stabs }
+         methodpointertype: tdef;   { typecasting of methodpointers to extract self }
        end;
 
 
@@ -1245,7 +1246,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       methodpointertype,         { typecasting of methodpointers to extract self }
        nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef,
        typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
@@ -9815,7 +9815,7 @@ implementation
        compiler.deftypes.openshortstringtype:=nil;
        compiler.deftypes.openchararraytype:=nil;
        compiler.deftypes.cfiletype:=nil;
-       methodpointertype:=nil;         { typecasting of methodpointers to extract self }
+       compiler.deftypes.methodpointertype:=nil;         { typecasting of methodpointers to extract self }
        nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef:=nil;
        typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }

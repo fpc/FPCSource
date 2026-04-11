@@ -849,7 +849,7 @@ implementation
               else
                 { ... but if it's a procedure of object, that will only return
                   the procedure address -> cast to tmethod instead }
-                trashn:=compiler.ctypeconvnode_explicit(trashn,methodpointertype);
+                trashn:=compiler.ctypeconvnode_explicit(trashn,compiler.deftypes.methodpointertype);
             end;
           if is_managed_type(p.vardef) then
             begin

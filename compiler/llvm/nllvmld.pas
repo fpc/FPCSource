@@ -118,9 +118,9 @@ procedure tllvmloadnode.pass_generate_code;
               else
                 selfdef:=cpointerdef.getreusable(left.resultdef,compiler);
               mpref:=href;
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(methodpointertype,compiler),mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(methodpointertype),procreg,'proc',mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(methodpointertype),selfreg,'self',mpref);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(compiler.deftypes.methodpointertype),procreg,'proc',mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(compiler.deftypes.methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment,href.volatility);
               location.reference:=href;
             end;

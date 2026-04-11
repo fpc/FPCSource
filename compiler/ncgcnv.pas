@@ -615,7 +615,7 @@ interface
                   end
                 else
                   begin
-                    procvarrectype:=trecorddef(methodpointertype);
+                    procvarrectype:=trecorddef(compiler.deftypes.methodpointertype);
                     procvarselfname:='self';
                   end;
                 hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(procvarrectype,compiler),href);

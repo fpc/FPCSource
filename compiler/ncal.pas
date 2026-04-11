@@ -2554,7 +2554,7 @@ implementation
       begin
         { Load tmehodpointer(right).self }
         result:=genloadfield(compiler.ctypeconvnode_internal(
-          right.getcopy,methodpointertype),
+          right.getcopy,compiler.deftypes.methodpointertype),
           'self');
       end;
 
