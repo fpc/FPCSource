@@ -182,7 +182,7 @@ implementation
         alusinttype:=compiler.deftypes.s8inttype;
 {$endif cpu8bitalu}
 
-        osuinttype:=compiler.deftypes.uinttype;
+        compiler.deftypes.osuinttype:=compiler.deftypes.uinttype;
         compiler.deftypes.ossinttype:=compiler.deftypes.sinttype;
       end;
 

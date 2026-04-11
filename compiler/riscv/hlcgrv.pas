@@ -75,15 +75,15 @@ implementation
       if is_signed(subsetsize) then
         begin
          { sign extend }
-         a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-loadbitsize+sref.startbit,valuereg);
-         a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+         a_op_const_reg(list,OP_SHL,compiler.deftypes.osuinttype,AIntBits-loadbitsize+sref.startbit,valuereg);
+         a_op_const_reg(list,OP_SAR,compiler.deftypes.osuinttype,AIntBits-sref.bitlen,valuereg);
         end
       else
         begin
-          a_op_const_reg(list,OP_SHL,osuinttype,restbits,valuereg);
+          a_op_const_reg(list,OP_SHL,compiler.deftypes.osuinttype,restbits,valuereg);
           { mask other bits }
           if (sref.bitlen<>AIntBits) then
-            a_op_const_reg(list,OP_AND,osuinttype,(aword(1) shl sref.bitlen)-1,valuereg);
+            a_op_const_reg(list,OP_AND,compiler.deftypes.osuinttype,(aword(1) shl sref.bitlen)-1,valuereg);
         end;
       { use subsetreg routine, it may have been overridden with an optimized version }
       fromsreg.subsetreg:=extra_value_reg;

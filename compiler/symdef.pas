@@ -1228,7 +1228,8 @@ interface
          sinttype,
          uinttype,
          { integer types corresponding to OS_SINT/OS_INT }
-         ossinttype: tdef;
+         ossinttype,
+         osuinttype: tdef;
        end;
 
 
@@ -1257,7 +1258,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       osuinttype,
        { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
        alusinttype,
        aluuinttype,
@@ -9827,7 +9827,7 @@ implementation
        compiler.deftypes.uinttype:=nil;
        { integer types corresponding to OS_SINT/OS_INT }
        compiler.deftypes.ossinttype:=nil;
-       osuinttype:=nil;
+       compiler.deftypes.osuinttype:=nil;
        { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
        alusinttype:=nil;
        aluuinttype:=nil;

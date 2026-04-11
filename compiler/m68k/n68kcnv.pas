@@ -178,7 +178,7 @@ implementation
           end;
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,osuinttype,false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.osuinttype,false);
 
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:

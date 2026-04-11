@@ -88,7 +88,7 @@ implementation
               (left.location.sref.bitlen=1) and (left.location.sref.bitindexreg=NR_NO) then
               begin
                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,osuinttype,left.location.sref.ref,tmpreg);
+                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
                 current_asmdata.getjumplabel(truelabel);
                 current_asmdata.getjumplabel(falselabel);

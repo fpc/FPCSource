@@ -498,7 +498,7 @@ interface
         begin
           { LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
         end;
 
       if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
@@ -507,7 +507,7 @@ interface
         is_64bit(resultdef)) then
         begin
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EDX);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EDX);
           reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           if use_ref then
@@ -530,7 +530,7 @@ interface
           { Allocate EAX. }
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
           { Load the right value. }
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EAX);
           { Also allocate EDX, since it is also modified by a mul (JM). }
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
 

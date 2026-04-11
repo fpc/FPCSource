@@ -495,7 +495,7 @@ implementation
                          begin
                            paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
                            paraloc^.size := OS_INT;
-                           paraloc^.def := osuinttype;
+                           paraloc^.def := compiler.deftypes.osuinttype;
                          end;
                        inc(intparareg);
                        inc(intparasize,align(tcgsize2size[paraloc^.size],mips_sizeof_register_param));

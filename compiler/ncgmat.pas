@@ -404,7 +404,7 @@ implementation
               else
                 begin
                   opsize:=OS_INT;
-                  opdef:=osuinttype;
+                  opdef:=compiler.deftypes.osuinttype;
                 end;
 
               { put numerator in register }
@@ -444,7 +444,7 @@ implementation
                   if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                     begin
                       hdenom := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hdenom);
+                      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,hdenom);
                     end
                   else
                     hdenom:=right.location.register;

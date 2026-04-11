@@ -501,7 +501,7 @@ implementation
                   if (paralen > 4) then
                     begin
                       paraloc^.size := OS_INT;
-                      paraloc^.def := osuinttype;
+                      paraloc^.def := compiler.deftypes.osuinttype;
                     end
                   else
                     begin
