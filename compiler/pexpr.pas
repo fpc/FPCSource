@@ -4226,7 +4226,7 @@ implementation
 
              _FILE :
                begin
-                 hdef:=cfiletype;
+                 hdef:=compiler.deftypes.cfiletype;
                  parser.pbase.consume(_FILE);
                  { FILE can be also a type cast }
                  if parser.pbase.try_to_consume(_LKLAMMER) then

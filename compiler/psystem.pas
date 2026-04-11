@@ -468,7 +468,7 @@ implementation
         set_default_ptr_types;
         compiler.deftypes.openchararraytype:=carraydef.create_openarray(compiler);
         tarraydef(compiler.deftypes.openchararraytype).elementdef:=compiler.deftypes.cansichartype;
-        cfiletype:=cfiledef.createuntyped(compiler);
+        compiler.deftypes.cfiletype:=cfiledef.createuntyped(compiler);
         if f_variants in compiler.globals.features then
           begin
             cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
@@ -656,7 +656,7 @@ implementation
         addtype('WasmExternRef',compiler.deftypes.wasmvoidexternreftype);
 {$endif wasm}
         addtype('$openchararray',compiler.deftypes.openchararraytype);
-        addtype('$file',cfiletype);
+        addtype('$file',compiler.deftypes.cfiletype);
         if f_variants in compiler.globals.features then
           begin
             addtype('$variant',cvarianttype);
@@ -822,7 +822,7 @@ implementation
 {$ifdef wasm}
         loadtype('wasm_void_externref',compiler.deftypes.wasmvoidexternreftype);
 {$endif wasm}
-        loadtype('file',cfiletype);
+        loadtype('file',compiler.deftypes.cfiletype);
         if compiler.target.info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'
         else

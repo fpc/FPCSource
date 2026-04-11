@@ -552,7 +552,7 @@ implementation
                          def:=cfiledef.createtyped(t2,compiler);
                       end
                     else
-                      def:=cfiletype;
+                      def:=compiler.deftypes.cfiletype;
                  end;
 
                _ID:

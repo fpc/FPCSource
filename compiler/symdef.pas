@@ -1213,8 +1213,10 @@ interface
          cunicodestringtype,
          openshortstringtype,       { pointer to type of an open shortstring,
                                       needed for readln() }
-         openchararraytype: tdef;   { pointer to type of an open array of char,
+         openchararraytype,         { pointer to type of an open array of char,
                                       needed for readln() }
+         cfiletype: tdef;           { get the same definition for all file }
+                                    { used for stabs }
        end;
 
 
@@ -1243,8 +1245,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       cfiletype,                 { get the same definition for all file }
-                                  { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
        nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef,
@@ -9814,7 +9814,7 @@ implementation
        compiler.deftypes.cunicodestringtype:=nil;
        compiler.deftypes.openshortstringtype:=nil;
        compiler.deftypes.openchararraytype:=nil;
-       cfiletype:=nil;
+       compiler.deftypes.cfiletype:=nil;
        methodpointertype:=nil;         { typecasting of methodpointers to extract self }
        nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef:=nil;
