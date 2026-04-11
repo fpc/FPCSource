@@ -1210,7 +1210,9 @@ interface
          clongstringtype,           { pointer to type of long string const   }
          cansistringtype,           { pointer to type of ansi string const  }
          cwidestringtype,           { pointer to type of wide string const  }
-         cunicodestringtype: tdef;
+         cunicodestringtype,
+         openshortstringtype: tdef; { pointer to type of an open shortstring,
+                                      needed for readln() }
        end;
 
 
@@ -1239,8 +1241,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       openshortstringtype,       { pointer to type of an open shortstring,
-                                    needed for readln() }
        openchararraytype,         { pointer to type of an open array of char,
                                     needed for readln() }
        cfiletype,                 { get the same definition for all file }
@@ -9812,7 +9812,7 @@ implementation
        compiler.deftypes.cansistringtype:=nil;           { pointer to type of ansi string const  }
        compiler.deftypes.cwidestringtype:=nil;           { pointer to type of wide string const  }
        compiler.deftypes.cunicodestringtype:=nil;
-       openshortstringtype:=nil;
+       compiler.deftypes.openshortstringtype:=nil;
        openchararraytype:=nil;
        cfiletype:=nil;
        methodpointertype:=nil;         { typecasting of methodpointers to extract self }

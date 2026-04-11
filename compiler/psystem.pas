@@ -332,7 +332,7 @@ implementation
           compiler.deftypes.cwidestringtype:=cstringdef.createunicode(true,compiler);
         compiler.deftypes.cunicodestringtype:=cstringdef.createunicode(true,compiler);
         { length=0 for shortstring is open string (needed for readln(string) }
-        openshortstringtype:=cstringdef.createshort(0,true,compiler);
+        compiler.deftypes.openshortstringtype:=cstringdef.createshort(0,true,compiler);
         if compiler.target.info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'
         else
@@ -544,7 +544,7 @@ implementation
         addtype('WideString',compiler.deftypes.cwidestringtype);
         addtype('UnicodeString',compiler.deftypes.cunicodestringtype);
 
-        addtype('OpenString',openshortstringtype);
+        addtype('OpenString',compiler.deftypes.openshortstringtype);
         addtype('Boolean',compiler.deftypes.pasbool1type);
         addtype('Boolean8',compiler.deftypes.pasbool8type);
         addtype('Boolean16',compiler.deftypes.pasbool16type);
@@ -605,7 +605,7 @@ implementation
         addtype('$ansistring',compiler.deftypes.cansistringtype);
         addtype('$widestring',compiler.deftypes.cwidestringtype);
         addtype('$unicodestring',compiler.deftypes.cunicodestringtype);
-        addtype('$openshortstring',openshortstringtype);
+        addtype('$openshortstring',compiler.deftypes.openshortstringtype);
         addtype('$boolean',compiler.deftypes.pasbool1type);
         addtype('$boolean8',compiler.deftypes.pasbool8type);
         addtype('$boolean16',compiler.deftypes.pasbool16type);
@@ -767,7 +767,7 @@ implementation
         loadtype('ansistring',compiler.deftypes.cansistringtype);
         loadtype('widestring',compiler.deftypes.cwidestringtype);
         loadtype('unicodestring',compiler.deftypes.cunicodestringtype);
-        loadtype('openshortstring',openshortstringtype);
+        loadtype('openshortstring',compiler.deftypes.openshortstringtype);
         loadtype('openchararray',openchararraytype);
         if compiler.globals.init_settings.fputype <> fpu_none then
           begin

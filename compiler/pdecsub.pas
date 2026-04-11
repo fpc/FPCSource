@@ -501,7 +501,7 @@ implementation
                             become an openstring there, while here it can }
                           if (cs_openstring in compiler.globals.current_settings.localswitches) and
                              (tstringdef(hdef).len=255) then
-                            hdef:=openshortstringtype
+                            hdef:=compiler.deftypes.openshortstringtype
                         end;
                       vs_value:
                        begin
