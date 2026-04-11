@@ -149,13 +149,13 @@ implementation
 {$endif cpu64bitalu}
 {$ifdef cpu64bitaddr}
         compiler.deftypes.sizeuinttype:=compiler.deftypes.u64inttype;
-        sizesinttype:=compiler.deftypes.s64inttype;
+        compiler.deftypes.sizesinttype:=compiler.deftypes.s64inttype;
         compiler.deftypes.uinttype:=compiler.deftypes.u64inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
         compiler.deftypes.sizeuinttype:=compiler.deftypes.u32inttype;
-        sizesinttype:=compiler.deftypes.s32inttype;
+        compiler.deftypes.sizesinttype:=compiler.deftypes.s32inttype;
         compiler.deftypes.uinttype:=compiler.deftypes.u32inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s32inttype;
 {$endif cpu32bitaddr}
@@ -167,7 +167,7 @@ implementation
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
         compiler.deftypes.sizeuinttype:=compiler.deftypes.u16inttype;
-        sizesinttype:=compiler.deftypes.s16inttype;
+        compiler.deftypes.sizesinttype:=compiler.deftypes.s16inttype;
 {$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}
         compiler.deftypes.uinttype:=compiler.deftypes.u16inttype;
@@ -680,8 +680,8 @@ implementation
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
             systemunit.insertsym(ctypesym.create('$'+pvmt_name,pvmttype));
-            addfield(hrecst,cfieldvarsym.create('$length',vs_value,sizesinttype,[]));
-            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,sizesinttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$length',vs_value,compiler.deftypes.sizesinttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,compiler.deftypes.sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
             { it seems vmttype is used both for TP objects and Delphi classes,
               so the next entry could either be the first virtual method (vm1)

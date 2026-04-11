@@ -878,11 +878,13 @@ implementation
 
     { true, if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         { check for sizesinttype is needed, because for unsigned the high
+         { check for compiler.deftypes.sizesinttype is needed, because for unsigned the high
            range is also -1 ! (PFV) }
          result:=(p.typ=arraydef) and
-                 (tarraydef(p).rangedef=sizesinttype) and
+                 (tarraydef(p).rangedef=compiler.deftypes.sizesinttype) and
                  (ado_OpenArray in tarraydef(p).arrayoptions) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
       end;
@@ -1403,6 +1405,8 @@ implementation
 
     { return the range from def in l and h }
     procedure getrange(def : tdef;out l, h : TConstExprInt);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.typ of
           orddef :
@@ -1422,8 +1426,8 @@ implementation
             end;
           undefineddef:
             begin
-              l:=torddef(sizesinttype).low;
-              h:=torddef(sizesinttype).high;
+              l:=torddef(compiler.deftypes.sizesinttype).low;
+              h:=torddef(compiler.deftypes.sizesinttype).high;
             end;
           else
             internalerror(200611054);
@@ -1432,6 +1436,8 @@ implementation
 
 
     procedure getrangedefmasksize(def: tdef; out rangedef: tdef; out mask: TConstExprInt; out size: longint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.typ of
           orddef, enumdef:
@@ -1454,7 +1460,7 @@ implementation
             end;
           undefineddef:
             begin
-              rangedef:=sizesinttype;
+              rangedef:=compiler.deftypes.sizesinttype;
               size:=rangedef.size;
               mask:=-1;
             end;

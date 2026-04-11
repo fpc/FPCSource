@@ -1949,7 +1949,7 @@ implementation
 
         procedure write_dynarray_copy;
           begin
-            compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Copy(Dynamic Array;'+sizesinttype.typename+'=`<low>`;'+sizesinttype.typename+'=`<length>`);');
+            compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Copy(Dynamic Array;'+compiler.deftypes.sizesinttype.typename+'=`<low>`;'+compiler.deftypes.sizesinttype.typename+'=`<length>`);');
           end;
 
         begin
@@ -2675,7 +2675,7 @@ implementation
                            not is_array_of_const(left.resultdef) and
                            not is_dynamic_array(left.resultdef) then
                           result:=genintconstnode(tarraydef(left.resultdef).highrange-
-                            tarraydef(left.resultdef).lowrange+1,sizesinttype,compiler);
+                            tarraydef(left.resultdef).lowrange+1,compiler.deftypes.sizesinttype,compiler);
                       end;
                     else
                       ;
@@ -3441,13 +3441,13 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=compiler.caddnode(addn,hightree,
-                                         compiler.cordconstnode(1,sizesinttype,false));
+                                         compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
                                 hp:=compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
-                                  left.resultdef).elesize,sizesinttype,true));
+                                  left.resultdef).elesize,compiler.deftypes.sizesinttype,true));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -3455,24 +3455,24 @@ implementation
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := compiler.cordconstnode(left.resultdef.size,sizesinttype,true);
+                              hp := compiler.cordconstnode(left.resultdef.size,compiler.deftypes.sizesinttype,true);
 {
                               hp:=
-                                 compiler.ctypeconvnode_explicit(sizesinttype,
+                                 compiler.ctypeconvnode_explicit(compiler.deftypes.sizesinttype,
                                    compiler.cmoddivnode(divn,
                                      compiler.caddnode(addn,
                                        compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
                                          left.resultdef).elepackedbitsize,compiler.deftypes.s64inttype,true)),
                                        compiler.cordconstnode(a,compiler.deftypes.s64inttype,true)),
                                      compiler.cordconstnode(8,compiler.deftypes.s64inttype,true)),
-                                   sizesinttype);
+                                   compiler.deftypes.sizesinttype);
 }
                             end;
                         result:=hp;
                       end;
                    end
                   else
-                   resultdef:=sizesinttype;
+                   resultdef:=compiler.deftypes.sizesinttype;
                 end;
 
               in_typeof_x:
@@ -3605,7 +3605,7 @@ implementation
                   if is_shortstring(left.resultdef) then
                     resultdef:=compiler.deftypes.u8inttype
                   else
-                    resultdef:=sizesinttype;
+                    resultdef:=compiler.deftypes.sizesinttype;
                 end;
 
               in_typeinfo_x:
@@ -3970,7 +3970,7 @@ implementation
                            else
                              begin
                                set_varstate(left,vs_read,[]);
-                               resultdef:=sizesinttype;
+                               resultdef:=compiler.deftypes.sizesinttype;
                              end;
                          end;
                       end;
@@ -5682,7 +5682,7 @@ implementation
                  if is_dynamic_array(first) then
                    datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),compiler.deftypes.voidpointertype)
                  else
-                   datan:=compiler.caddrnode_internal(compiler.cvecnode(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false)));
+                   datan:=compiler.caddrnode_internal(compiler.cvecnode(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,compiler.deftypes.sizesinttype,false)));
                  datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
                end
              else if isconstr then
@@ -5707,7 +5707,7 @@ implementation
                      inserttypeconv(datan,tarraydef(second).elementdef,compiler);
                      datan:=compiler.caddrnode_internal(datan);
                    end;
-                 datacountn:=compiler.cordconstnode(1,sizesinttype,false);
+                 datacountn:=compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false);
                end;
              procname:='fpc_dynarray_insert';
              { recreate the parameters as array pointer, source, data, count, typeinfo }

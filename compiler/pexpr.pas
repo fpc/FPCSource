@@ -516,7 +516,7 @@ implementation
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1,compiler);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
-                    statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,sizesinttype,true));
+                    statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,compiler.deftypes.sizesinttype,true));
                   { type sym is a generic parameter }
                   if assigned(p1.resultdef.typesym) and (sp_generic_para in p1.resultdef.typesym.symoptions) then
                     include(statement_syssym.flags,nf_generic_para);
@@ -538,12 +538,12 @@ implementation
                      not((p1.nodetype = subscriptn) and
                          is_packed_record_or_object(tsubscriptnode(p1).left.resultdef))) then
                    begin
-                     statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype,compiler);
+                     statement_syssym:=genintconstnode(p1.resultdef.size,compiler.deftypes.sizesinttype,compiler);
                      if (l = in_bitsizeof_x) then
-                       statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,sizesinttype,true));
+                       statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,compiler.deftypes.sizesinttype,true));
                    end
                  else
-                   statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype,compiler);
+                   statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,compiler.deftypes.sizesinttype,compiler);
                  { type def is a struct with generic fields }
                  if df_has_generic_fields in p1.resultdef.defoptions then
                     include(statement_syssym.flags,nf_generic_para);

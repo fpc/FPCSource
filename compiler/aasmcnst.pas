@@ -1237,10 +1237,10 @@ implementation
 {$ifdef cpu64bitaddr}
          _compiler.deftypes.s32inttype.size +
 {$else !cpu64bitaddr}
-         sizesinttype.size +
+         _compiler.deftypes.sizesinttype.size +
 {$endif !cpu64bitaddr}
          { length }
-         sizesinttype.size;
+         _compiler.deftypes.sizesinttype.size;
        unicodestring_header_size:=ansistring_header_size;
        case typ of
          st_ansistring:
@@ -1259,12 +1259,14 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_dynarray_header_size:pint;
+     var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        result:=
          { reference count }
          ptrsinttype.size +
          { high value }
-         sizesinttype.size;
+         _compiler.deftypes.sizesinttype.size;
      end;
 
 
@@ -1485,11 +1487,11 @@ implementation
        emit_tai(tai_const.Create_32bit(-1),compiler.deftypes.s32inttype);
        inc(result.ofs,compiler.deftypes.s32inttype.size);
 {$else !cpu64bitaddr}
-       emit_tai(tai_const.create_sizeint(-1),sizesinttype);
-       inc(result.ofs,sizesinttype.size);
+       emit_tai(tai_const.create_sizeint(-1),compiler.deftypes.sizesinttype);
+       inc(result.ofs,compiler.deftypes.sizesinttype.size);
 {$endif !cpu64bitaddr}
-       emit_tai(tai_const.create_sizeint(len),sizesinttype);
-       inc(result.ofs,sizesinttype.size);
+       emit_tai(tai_const.create_sizeint(len),compiler.deftypes.sizesinttype);
+       inc(result.ofs,compiler.deftypes.sizesinttype.size);
        if string_symofs=0 then
          begin
            { results in slightly more efficient code }
@@ -1700,10 +1702,10 @@ implementation
 {$ifdef cpu64bitaddr}
            result.add_field_by_def('',acompiler.deftypes.s32inttype);
 {$else !cpu64bitaddr}
-           result.add_field_by_def('',sizesinttype);
+           result.add_field_by_def('',acompiler.deftypes.sizesinttype);
 {$endif !cpu64bitaddr}
            { length in elements }
-           result.add_field_by_def('',sizesinttype);
+           result.add_field_by_def('',acompiler.deftypes.sizesinttype);
          end
        else
          begin
@@ -1818,11 +1820,11 @@ implementation
          constant string }
        begin_anonymous_record('',1,sizeof(TConstPtrUInt),1);
        dynarray_symofs:=get_dynarray_symofs(compiler.target);
-       { what to do if ptrsinttype <> sizesinttype??? }
+       { what to do if ptrsinttype <> compiler.deftypes.sizesinttype??? }
        emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
        inc(result.ofs,ptrsinttype.size);
-       arrlengthloc:=emit_placeholder(sizesinttype);
-       inc(result.ofs,sizesinttype.size);
+       arrlengthloc:=emit_placeholder(compiler.deftypes.sizesinttype);
+       inc(result.ofs,compiler.deftypes.sizesinttype.size);
        if dynarray_symofs=0 then
          begin
            { results in slightly more efficient code }
@@ -1843,7 +1845,7 @@ implementation
    function ttai_typedconstbuilder.end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder;llofs:tasmlabofs):tdef;
      begin
        { we emit the high value, not the count }
-       arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
+       arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),compiler.deftypes.sizesinttype);
        arrlengthloc.free;
        arrlengthloc := nil;
        if get_dynarray_symofs(compiler.target)=0 then

@@ -2530,7 +2530,7 @@ implementation
                 begin
                   maybe_load_in_temp(p);
                   hightree:=compiler.caddnode(subn,geninlinenode(in_length_x,false,p.getcopy,compiler),
-                                            compiler.cordconstnode(1,sizesinttype,false));
+                                            compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
                   loadconst:=false;
                 end;
            end;
@@ -2538,13 +2538,13 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=compiler.cordconstnode(len,sizesinttype,true)
+          hightree:=compiler.cordconstnode(len,compiler.deftypes.sizesinttype,true)
         else
           begin
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=compiler.ctypeconvnode_internal(hightree,sizesinttype);
+            hightree:=compiler.ctypeconvnode_internal(hightree,compiler.deftypes.sizesinttype);
           end;
         result:=hightree;
       end;

@@ -1337,7 +1337,7 @@ implementation
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,compiler.deftypes.voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-      placeholder:=tcb.emit_placeholder(sizesinttype);
+      placeholder:=tcb.emit_placeholder(compiler.deftypes.sizesinttype);
 
       hp:=tused_unit(compiler.usedunits.first);
       while assigned(hp) do
@@ -1363,7 +1363,7 @@ implementation
           inc(count);
         end;
       { set the count at the start }
-      placeholder.replace(tai_const.Create_sizeint(count),sizesinttype);
+      placeholder.replace(tai_const.Create_sizeint(count),compiler.deftypes.sizesinttype);
       placeholder.free;
       placeholder := nil;
       { insert in data segment }
@@ -1455,7 +1455,7 @@ implementation
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin
       );
       { placeholder for the count }
-      countplaceholder:=tcb.emit_placeholder(sizesinttype);
+      countplaceholder:=tcb.emit_placeholder(compiler.deftypes.sizesinttype);
       count:=0;
       hp:=tused_unit(compiler.usedunits.first);
       while assigned(hp) do
@@ -1478,7 +1478,7 @@ implementation
          inc(count);
        end;
       { Insert TableCount at start }
-      countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
+      countplaceholder.replace(Tai_const.Create_sizeint(count),compiler.deftypes.sizesinttype);
       countplaceholder.free;
       countplaceholder := nil;
       { insert in data segment }
@@ -1574,7 +1574,7 @@ implementation
       hp:=tmodule(compiler.loaded_units.first);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-      countplaceholder:=tcb.emit_placeholder(sizesinttype);
+      countplaceholder:=tcb.emit_placeholder(compiler.deftypes.sizesinttype);
       while assigned(hp) do
         begin
           if mf_has_resourcestrings in hp.moduleflags then
@@ -1592,7 +1592,7 @@ implementation
           hp:=tmodule(hp.next);
         end;
       { Insert TableCount at start }
-      countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
+      countplaceholder.replace(Tai_const.Create_sizeint(count),compiler.deftypes.sizesinttype);
       countplaceholder.free;
       countplaceholder := nil;
       { Add to data segment }

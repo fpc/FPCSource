@@ -1726,7 +1726,7 @@ implementation
                   compiler.verbose.Message(parser_e_packed_dynamic_open_array);
                 arrdef.lowrange:=0;
                 arrdef.highrange:=-1;
-                arrdef.rangedef:=sizesinttype;
+                arrdef.rangedef:=compiler.deftypes.sizesinttype;
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
              end;

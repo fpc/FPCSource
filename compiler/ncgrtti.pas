@@ -308,7 +308,7 @@ implementation
                     maybe_add_comment(tcb,#9'param count');
                     tcb.emit_ord_const(def.paras.count,compiler.deftypes.u16inttype);
                     maybe_add_comment(tcb,#9'caller args size');
-                    tcb.emit_ord_const(def.callerargareasize,sizesinttype);
+                    tcb.emit_ord_const(def.callerargareasize,compiler.deftypes.sizesinttype);
                     maybe_add_comment(tcb,#9'invoke helper');
                     if def.invoke_helper=nil then
                       tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidcodepointertype)
@@ -1551,7 +1551,7 @@ implementation
              internaltypeprefixName[itp_rtti_set_inner],
              defaultpacking,reqalign,
              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-           tcb.emit_ord_const(def.size,sizesinttype);
+           tcb.emit_ord_const(def.size,compiler.deftypes.sizesinttype);
            write_rtti_reference(tcb,def.elementdef,rt);
            tcb.end_anonymous_record;
            tcb.end_anonymous_record;

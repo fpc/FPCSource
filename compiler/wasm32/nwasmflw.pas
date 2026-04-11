@@ -268,7 +268,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in compiler.target.info.flags then
-                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
@@ -325,7 +325,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in compiler.target.info.flags then
-                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
@@ -382,7 +382,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in compiler.target.info.flags then
-                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
@@ -439,7 +439,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in compiler.target.info.flags then
-                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,compiler.deftypes.sizesinttype,false));
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',

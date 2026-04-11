@@ -1234,7 +1234,8 @@ interface
          alusinttype,
          aluuinttype,
          { integer types corresponding to SizeInt and SizeUInt for the target platform }
-         sizeuinttype: tdef;
+         sizeuinttype,
+         sizesinttype: tdef;
        end;
 
 
@@ -1263,7 +1264,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       sizesinttype,
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,
@@ -4470,7 +4470,7 @@ implementation
 
     constructor tarraydef.create_openarray(acompiler:TCompilerBase);
       begin
-        self.create(0,-1,sizesinttype,acompiler);
+        self.create(0,-1,acompiler.deftypes.sizesinttype,acompiler);
         include(arrayoptions,ado_OpenArray);
       end;
 
@@ -4502,7 +4502,7 @@ implementation
             { do not simply push/pop compiler.current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(acompiler).symtablestack:=nil;
-            result:=carraydef.create(0,elems-1,sizesinttype,acompiler);
+            result:=carraydef.create(0,elems-1,acompiler.deftypes.sizesinttype,acompiler);
             result.elementdef:=def;
             result.arrayoptions:=options;
             setup_reusable_def(def,result,res,oldsymtablestack,acompiler);
@@ -9833,7 +9833,7 @@ implementation
        compiler.deftypes.aluuinttype:=nil;
        { integer types corresponding to SizeInt and SizeUInt for the target platform }
        compiler.deftypes.sizeuinttype:=nil;
-       sizesinttype:=nil;
+       compiler.deftypes.sizesinttype:=nil;
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype:=nil;
        ptrsinttype:=nil;

@@ -1173,7 +1173,7 @@ implementation
                    begin
                      if is_signed(right.resultdef) and
                         not is_constnode(right) then
-                       inserttypeconv(right,sizesinttype,compiler)
+                       inserttypeconv(right,compiler.deftypes.sizesinttype,compiler)
                      else
                        inserttypeconv(right,compiler.deftypes.sizeuinttype,compiler)
                    end
@@ -1245,7 +1245,7 @@ implementation
                             newordtyp:=Torddef(right.resultdef).ordtype;
                         end
                      else
-                       newordtyp:=torddef(sizesinttype).ordtype;
+                       newordtyp:=torddef(compiler.deftypes.sizesinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),

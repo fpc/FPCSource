@@ -2135,12 +2135,12 @@ implementation
               { load destination }
               a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,dest,cgpara2);
               { load size }
-              a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
+              a_load_const_cgpara(list,compiler.deftypes.sizesinttype,size.size,cgpara3);
             end
           else
             begin
               { load size }
-              a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
+              a_load_const_cgpara(list,compiler.deftypes.sizesinttype,size.size,cgpara3);
               { load destination }
               a_loadaddr_ref_cgpara(list,compiler.deftypes.voidtype,dest,cgpara2);
               { load source }

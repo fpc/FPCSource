@@ -1228,7 +1228,7 @@ implementation
             aitconst_16bit:
               def:=compiler.deftypes.s16inttype;
             else
-              def:=sizesinttype;
+              def:=compiler.deftypes.sizesinttype;
           end;
           if cv.uvalue>get_max_value(def).uvalue then
             def:=get_unsigned_inttype(def);

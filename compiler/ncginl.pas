@@ -299,7 +299,7 @@ implementation
            if is_widestring(left.resultdef) then
              lendef:=compiler.deftypes.u32inttype
            else
-             lendef:=sizesinttype;
+             lendef:=compiler.deftypes.sizesinttype;
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
            hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
@@ -342,12 +342,12 @@ implementation
         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,nillab);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
-        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizesinttype.size,ctempposinvalid,compiler.deftypes.ossinttype.alignment,[]);
+        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-compiler.deftypes.sizesinttype.size,ctempposinvalid,compiler.deftypes.ossinttype.alignment,[]);
         { if the string pointer is nil, the length is 0 -> reuse the register
           that originally held the string pointer for the length, so that we
           can keep the original nil/0 as length in that case }
         hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
-        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,sizesinttype,resultdef,href,hregister);
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.sizesinttype,resultdef,href,hregister);
         hlcg.a_jmp_always(current_asmdata.CurrAsmList,donelab);
 
         cg.a_label(current_asmdata.CurrAsmList,nillab);

@@ -2159,7 +2159,7 @@ const
 
             { we use the fact that insert() caps the index to avoid a copy }
             para:=compiler.ccallparanode(
-                    compiler.cordconstnode(index,sizesinttype,false),
+                    compiler.cordconstnode(index,compiler.deftypes.sizesinttype,false),
                     compiler.ccallparanode(
                       compiler.aktassignmentnode.left.getcopy,
                       compiler.ccallparanode(

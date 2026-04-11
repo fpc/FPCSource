@@ -1143,8 +1143,8 @@ implementation
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         tcb.emit_ord_const(tObjectSymtable(_class.symtable).datasize,sizesinttype);
-         tcb.emit_ord_const(-int64(tObjectSymtable(_class.symtable).datasize),sizesinttype);
+         tcb.emit_ord_const(tObjectSymtable(_class.symtable).datasize,compiler.deftypes.sizesinttype);
+         tcb.emit_ord_const(-int64(tObjectSymtable(_class.symtable).datasize),compiler.deftypes.sizesinttype);
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin

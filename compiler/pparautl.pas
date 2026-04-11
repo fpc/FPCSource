@@ -481,7 +481,7 @@ implementation
                      hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,compiler.deftypes.aluuinttype,[vo_is_high_para,vo_is_hidden_para])
                    else
 {$endif cpu8bitalu}
-                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
+                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,compiler.deftypes.sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
                    hvs.symoptions:=[];
                    owner.insertsym(hvs);
                    { don't place to register if it will be accessed from implicit finally block }
