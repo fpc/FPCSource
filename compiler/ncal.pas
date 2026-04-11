@@ -457,7 +457,7 @@ implementation
         if useresult then
           begin
             { get temp for the result }
-            result_data:=compiler.ctempcreatenode(colevarianttype,colevarianttype.size,tt_persistent,true);
+            result_data:=compiler.ctempcreatenode(compiler.deftypes.colevarianttype,compiler.deftypes.colevarianttype.size,tt_persistent,true);
             addstatement(statements,result_data);
           end;
 

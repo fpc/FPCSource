@@ -472,7 +472,7 @@ implementation
         if f_variants in compiler.globals.features then
           begin
             compiler.deftypes.cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
-            colevarianttype:=cvariantdef.create(vt_olevariant,compiler);
+            compiler.deftypes.colevarianttype:=cvariantdef.create(vt_olevariant,compiler);
           end;
 
 {$ifdef cpufpemu}
@@ -572,7 +572,7 @@ implementation
         if f_variants in compiler.globals.features then
           begin
             addtype('Variant',compiler.deftypes.cvarianttype);
-            addtype('OleVariant',colevarianttype);
+            addtype('OleVariant',compiler.deftypes.colevarianttype);
           end;
         { Internal types }
         addtype('$undefined',compiler.deftypes.cundefinedtype);
@@ -660,7 +660,7 @@ implementation
         if f_variants in compiler.globals.features then
           begin
             addtype('$variant',compiler.deftypes.cvarianttype);
-            addtype('$olevariant',colevarianttype);
+            addtype('$olevariant',compiler.deftypes.colevarianttype);
           end;
         if compiler.globals.init_settings.fputype<>fpu_none then
           begin
@@ -836,7 +836,7 @@ implementation
         if f_variants in compiler.globals.features then
           begin
             loadtype('variant',compiler.deftypes.cvarianttype);
-            loadtype('olevariant',colevarianttype);
+            loadtype('olevariant',compiler.deftypes.colevarianttype);
           end;
         loadtype('methodpointer',compiler.deftypes.methodpointertype);
         loadtype('nestedprocpointer',compiler.deftypes.nestedprocpointertype);

@@ -1222,7 +1222,8 @@ interface
          hresultdef,
          typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
          { we use only one variant def for every variant class }
-         cvarianttype: tdef;
+         cvarianttype,
+         colevarianttype: tdef;
        end;
 
 
@@ -1251,7 +1252,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       colevarianttype,
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype,
        uinttype,
@@ -9821,7 +9821,7 @@ implementation
        compiler.deftypes.typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }
        compiler.deftypes.cvarianttype:=nil;
-       colevarianttype:=nil;
+       compiler.deftypes.colevarianttype:=nil;
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype:=nil;
        uinttype:=nil;

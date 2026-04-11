@@ -3229,7 +3229,7 @@ implementation
                  else
                    begin
                      { We need to know if this unit uses Variants }
-                     if ((hdef=compiler.deftypes.cvarianttype) or (hdef=colevarianttype)) and
+                     if ((hdef=compiler.deftypes.cvarianttype) or (hdef=compiler.deftypes.colevarianttype)) and
                         not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(compiler.current_module.moduleflags,mf_uses_variants);
                      result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);

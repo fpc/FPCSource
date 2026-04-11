@@ -1501,7 +1501,7 @@ implementation
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
 {
-            if ((pd.returndef=compiler.deftypes.cvarianttype) or (pd.returndef=colevarianttype)) and
+            if ((pd.returndef=compiler.deftypes.cvarianttype) or (pd.returndef=compiler.deftypes.colevarianttype)) and
                not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               include(compiler.current_module.moduleflags,mf_uses_variants);
 }
