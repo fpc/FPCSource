@@ -957,7 +957,7 @@ implementation
                LOC_CREGISTER,
                LOC_REGISTER:
                  begin
-                   if not(is_constnode(right)) or (tarraydef(left.resultdef).elementdef.size<>alusinttype.size) then
+                   if not(is_constnode(right)) or (tarraydef(left.resultdef).elementdef.size<>compiler.deftypes.alusinttype.size) then
                      begin
                        hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
                        location_copy(location,left.location);

@@ -145,7 +145,7 @@ implementation
       begin
 {$ifdef cpu64bitalu}
         aluuinttype:=compiler.deftypes.u64inttype;
-        alusinttype:=compiler.deftypes.s64inttype;
+        compiler.deftypes.alusinttype:=compiler.deftypes.s64inttype;
 {$endif cpu64bitalu}
 {$ifdef cpu64bitaddr}
         sizeuinttype:=compiler.deftypes.u64inttype;
@@ -163,7 +163,7 @@ implementation
         compiler.deftypes.uinttype:=compiler.deftypes.u32inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s32inttype;
         aluuinttype:=compiler.deftypes.u32inttype;
-        alusinttype:=compiler.deftypes.s32inttype;
+        compiler.deftypes.alusinttype:=compiler.deftypes.s32inttype;
 {$endif cpu32bitalu}
 {$ifdef cpu16bitaddr}
         sizeuinttype:=compiler.deftypes.u16inttype;
@@ -173,13 +173,13 @@ implementation
         compiler.deftypes.uinttype:=compiler.deftypes.u16inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s16inttype;
         aluuinttype:=compiler.deftypes.u16inttype;
-        alusinttype:=compiler.deftypes.s16inttype;
+        compiler.deftypes.alusinttype:=compiler.deftypes.s16inttype;
 {$endif cpu16bitalu}
 {$ifdef cpu8bitalu}
         compiler.deftypes.uinttype:=compiler.deftypes.u8inttype;
         compiler.deftypes.sinttype:=compiler.deftypes.s8inttype;
         aluuinttype:=compiler.deftypes.u8inttype;
-        alusinttype:=compiler.deftypes.s8inttype;
+        compiler.deftypes.alusinttype:=compiler.deftypes.s8inttype;
 {$endif cpu8bitalu}
 
         compiler.deftypes.osuinttype:=compiler.deftypes.uinttype;

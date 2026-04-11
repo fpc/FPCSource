@@ -960,9 +960,9 @@ implementation
                  if def_cgsize(resultdef) in [OS_64,OS_S64] then
                    begin
                      if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
-                       not(equal_defs(compiler.symtablestack,op2.resultdef,alusinttype)) then
+                       not(equal_defs(compiler.symtablestack,op2.resultdef,compiler.deftypes.alusinttype)) then
                        hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
-                                               op2.resultdef,alusinttype,true);
+                                               op2.resultdef,compiler.deftypes.alusinttype,true);
                      cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
                                              joinreg64(op2.location.register,NR_NO),op1.location.register64,
                                              location.register64);

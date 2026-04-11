@@ -475,8 +475,8 @@ implementation
                 loctcb.emit_ord_const(locs[i].loctype,compiler.deftypes.u8inttype);
                 loctcb.emit_ord_const(locs[i].regsub,compiler.deftypes.u8inttype);
                 loctcb.emit_ord_const(locs[i].regindex,compiler.deftypes.u16inttype);
-                { the corresponding type for aint is alusinttype }
-                loctcb.emit_ord_const(locs[i].offset,alusinttype);
+                { the corresponding type for aint is compiler.deftypes.alusinttype }
+                loctcb.emit_ord_const(locs[i].offset,compiler.deftypes.alusinttype);
                 loctcb.end_anonymous_record;
               end;
             datadef:=loctcb.end_anonymous_record;
