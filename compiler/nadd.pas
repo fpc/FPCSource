@@ -2330,8 +2330,8 @@ const
            (is_unicodestring(right.resultdef) or
             is_unicodestring(left.resultdef)) then
           begin
-            inserttypeconv(right,cunicodestringtype,compiler);
-            inserttypeconv(left,cunicodestringtype,compiler);
+            inserttypeconv(right,compiler.deftypes.cunicodestringtype,compiler);
+            inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
           end;
 
         { If both operands are constant and there is a widechar
@@ -2571,10 +2571,10 @@ const
                  { widechar+widechar gives unicodestring }
                  if nodetype=addn then
                    begin
-                     inserttypeconv(left,cunicodestringtype,compiler);
+                     inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
                      if (torddef(rd).ordtype<>uwidechar) then
                        inserttypeconv(right,compiler.deftypes.cwidechartype,compiler);
-                     resultdef:=cunicodestringtype;
+                     resultdef:=compiler.deftypes.cunicodestringtype;
                    end
                  else
                    begin
@@ -3006,9 +3006,9 @@ const
                   st_unicodestring :
                     begin
                       if not(is_unicodestring(rd)) then
-                        inserttypeconv(right,cunicodestringtype,compiler);
+                        inserttypeconv(right,compiler.deftypes.cunicodestringtype,compiler);
                       if not(is_unicodestring(ld)) then
-                        inserttypeconv(left,cunicodestringtype,compiler);
+                        inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
                     end;
                   st_ansistring :
                     begin

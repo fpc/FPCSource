@@ -373,7 +373,7 @@ implementation
                if tconstsym(symtableentry).consttyp=constresourcestring then
                  resultdef:=getansistringdef
                else if tconstsym(symtableentry).consttyp=constwresourcestring then
-                 resultdef:=cunicodestringtype
+                 resultdef:=compiler.deftypes.cunicodestringtype
                else
                  internalerror(22799);
              end;

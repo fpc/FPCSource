@@ -714,7 +714,7 @@ implementation
             else
               inserttypeconv(n,getansistringdef,compiler)
           else if is_widechararray(n.resultdef) then
-            inserttypeconv(n,cunicodestringtype,compiler);
+            inserttypeconv(n,compiler.deftypes.cunicodestringtype,compiler);
       end;
 
 
@@ -2027,7 +2027,7 @@ implementation
             is_widechararray(paradef) or
             is_pwidechar(paradef) then
           begin
-            resultdef:=cunicodestringtype;
+            resultdef:=compiler.deftypes.cunicodestringtype;
             func:='fpc_unicodestr_copy';
           end
         else

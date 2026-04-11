@@ -831,7 +831,7 @@ uses
               if (cs_refcountedstrings in compiler.globals.current_settings.localswitches) then
                 begin
                   if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
-                    newtype:=cunicodestringtype.typesym
+                    newtype:=compiler.deftypes.cunicodestringtype.typesym
                   else
                     newtype:=compiler.deftypes.cansistringtype.typesym;
                 end

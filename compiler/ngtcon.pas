@@ -927,7 +927,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
                   { convert to unicodestring stringconstn }
-                  inserttypeconv(node,cunicodestringtype,compiler);
+                  inserttypeconv(node,compiler.deftypes.cunicodestringtype,compiler);
                   if (node.nodetype=stringconstn) and
                      (tstringconstnode(node).cst_type in [cst_widestring,cst_unicodestring]) then
                    begin
@@ -1400,7 +1400,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      end;
                     2:
                       begin
-                        inserttypeconv(n,cunicodestringtype,compiler);
+                        inserttypeconv(n,compiler.deftypes.cunicodestringtype,compiler);
                         if n.nodetype<>stringconstn then
                           internalerror(2010033009);
                         if tstringconstnode(n).valuews.len>0 then

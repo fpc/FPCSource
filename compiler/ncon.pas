@@ -1009,7 +1009,7 @@ implementation
             else
               resultdef:=astringdef;
           cst_unicodestring :
-            resultdef:=cunicodestringtype;
+            resultdef:=compiler.deftypes.cunicodestringtype;
           cst_widestring :
             resultdef:=compiler.deftypes.cwidestringtype;
           cst_longstring :

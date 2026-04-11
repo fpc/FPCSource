@@ -209,7 +209,7 @@ uses
               begin
               if R.isUnicode and assigned(R.WValue) then
                 begin
-                enc:=tstringdef(cunicodestringtype).encoding;
+                enc:=tstringdef(compiler.deftypes.cunicodestringtype).encoding;
                 valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
                 end
               else

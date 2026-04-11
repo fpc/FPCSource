@@ -1243,7 +1243,7 @@ implementation
                end;
              { Convert to wide/short/ansistring and call default helper }
              if is_widechar(tarraydef(resultdef).elementdef) then
-               inserttypeconv(left,cunicodestringtype,compiler)
+               inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler)
              else
                begin
                  if tstringconstnode(left).len>255 then
@@ -1685,10 +1685,10 @@ implementation
 
       begin
          result:=nil;
-         { handle any constants via cunicodestringtype because the compiler
+         { handle any constants via compiler.deftypes.cunicodestringtype because the compiler
            cannot convert arbitrary unicodechar constants at compile time to
            a shortstring (since it doesn't know the code page to use) }
-         inserttypeconv(left,cunicodestringtype,compiler);
+         inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for further conversion }
@@ -1702,7 +1702,7 @@ implementation
       begin
          result:=nil;
          if is_pwidechar(resultdef) then
-           inserttypeconv(left,cunicodestringtype,compiler)
+           inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler)
          else
            if is_pchar(resultdef) and
               (is_widestring(left.resultdef) or

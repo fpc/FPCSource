@@ -330,7 +330,7 @@ implementation
           compiler.deftypes.cwidestringtype:=cstringdef.createwide(true,compiler)
         else
           compiler.deftypes.cwidestringtype:=cstringdef.createunicode(true,compiler);
-        cunicodestringtype:=cstringdef.createunicode(true,compiler);
+        compiler.deftypes.cunicodestringtype:=cstringdef.createunicode(true,compiler);
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0,true,compiler);
         if compiler.target.info.system=system_i386_watcom then
@@ -542,7 +542,7 @@ implementation
 {$endif support_longstring}
         addtype('AnsiString',compiler.deftypes.cansistringtype);
         addtype('WideString',compiler.deftypes.cwidestringtype);
-        addtype('UnicodeString',cunicodestringtype);
+        addtype('UnicodeString',compiler.deftypes.cunicodestringtype);
 
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',compiler.deftypes.pasbool1type);
@@ -604,7 +604,7 @@ implementation
         addtype('$longstring',compiler.deftypes.clongstringtype);
         addtype('$ansistring',compiler.deftypes.cansistringtype);
         addtype('$widestring',compiler.deftypes.cwidestringtype);
-        addtype('$unicodestring',cunicodestringtype);
+        addtype('$unicodestring',compiler.deftypes.cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',compiler.deftypes.pasbool1type);
         addtype('$boolean8',compiler.deftypes.pasbool8type);
@@ -766,7 +766,7 @@ implementation
         loadtype('longstring',compiler.deftypes.clongstringtype);
         loadtype('ansistring',compiler.deftypes.cansistringtype);
         loadtype('widestring',compiler.deftypes.cwidestringtype);
-        loadtype('unicodestring',cunicodestringtype);
+        loadtype('unicodestring',compiler.deftypes.cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
         if compiler.globals.init_settings.fputype <> fpu_none then

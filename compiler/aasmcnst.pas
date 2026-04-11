@@ -1514,7 +1514,7 @@ implementation
        else if (stringtype=st_unicodestring) or
                ((stringtype=st_widestring) and
                 not winlikewidestring) then
-         result:=tstringdef(cunicodestringtype)
+         result:=tstringdef(compiler.deftypes.cunicodestringtype)
        else if stringtype=st_widestring then
          result:=tstringdef(compiler.deftypes.cwidestringtype)
        else

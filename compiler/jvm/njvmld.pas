@@ -75,7 +75,7 @@ uses
 function tjvmassignmentnode.direct_shortstring_assignment: boolean;
   begin
     if maybe_find_real_class_definition(right.resultdef,false)=java_jlstring then
-      inserttypeconv_explicit(right,cunicodestringtype,compiler);
+      inserttypeconv_explicit(right,compiler.deftypes.cunicodestringtype,compiler);
     result:=right.resultdef.typ=stringdef;
   end;
 

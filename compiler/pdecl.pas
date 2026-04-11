@@ -1428,7 +1428,7 @@ implementation
                                begin
                                // For unicode rtl, resourcestrings are unicodestrings
                                if cst_type in [cst_conststring,cst_longstring, cst_shortstring,cst_ansistring] then
-                                 changestringtype(cunicodestringtype);
+                                 changestringtype(compiler.deftypes.cunicodestringtype);
                                initwidestring(pw);
                                copywidestring(valuews,pw);
                                sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw,compiler);

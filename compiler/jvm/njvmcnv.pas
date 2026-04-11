@@ -184,7 +184,7 @@ implementation
      begin
        if (left.nodetype = stringconstn) and
           (tstringconstnode(left).cst_type=cst_conststring) then
-         inserttypeconv(left,cunicodestringtype,compiler);
+         inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
        { even constant strings have to be handled via a helper }
        if is_widechar(tarraydef(resultdef).elementdef) then
          chartype:='widechar'
@@ -209,7 +209,7 @@ implementation
        if (maybe_find_real_class_definition(resultdef,false)=java_jlstring) or
           (maybe_find_real_class_definition(left.resultdef,false)=java_jlstring) then
          begin
-           left:=compiler.ctypeconvnode(left,cunicodestringtype);
+           left:=compiler.ctypeconvnode(left,compiler.deftypes.cunicodestringtype);
            left.flags:=flags;
            result:=compiler.ctypeconvnode(left,resultdef);
            result.flags:=flags;
@@ -225,7 +225,7 @@ implementation
       { make sure the generic code gets a stringdef }
       if self.totypedef=java_jlstring then
         begin
-          inserttypeconv(left,cunicodestringtype,compiler);
+          inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
           inserttypeconv(left,totypedef,compiler);
           result:=left;
           left:=nil;
@@ -303,7 +303,7 @@ implementation
              not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring])) or
             is_constcharnode(left)) and
            (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
-          inserttypeconv(left,cunicodestringtype,compiler);
+          inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
       end;
 
 

@@ -213,7 +213,7 @@ implementation
               if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                 begin
                   if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
-                    def:=cunicodestringtype
+                    def:=compiler.deftypes.cunicodestringtype
                   else
                     def:=compiler.deftypes.cansistringtype
                 end
@@ -2627,7 +2627,7 @@ implementation
                      cst_conststring:
                        if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                          if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
-                           strdef:=cunicodestringtype
+                           strdef:=compiler.deftypes.cunicodestringtype
                          else
                            strdef:=compiler.deftypes.cansistringtype
                        else
@@ -2640,7 +2640,7 @@ implementation
                      cst_widestring:
                        strdef:=compiler.deftypes.cwidestringtype;
                      cst_unicodestring:
-                       strdef:=cunicodestringtype;
+                       strdef:=compiler.deftypes.cunicodestringtype;
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
