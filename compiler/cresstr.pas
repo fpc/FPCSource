@@ -203,6 +203,9 @@ uses
             tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_item,tcalo_data_force_indirect]);
             valuelab.lab:=nil;
             valuelab.ofs:=0;
+            charlen:=R.Len;
+            st:=st_ansistring;
+            strcharpointertype:=charpointertype;;
             if (R.len<>0) then
               begin
               if R.isUnicode and assigned(R.WValue) then
@@ -217,9 +220,6 @@ uses
                 begin
                   if assigned(R.AValue) then
                     valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage);
-                  charlen:=R.Len;
-                  st:=st_ansistring;
-                  strcharpointertype:=charpointertype;;
                 end;
               end;
             current_asmdata.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
