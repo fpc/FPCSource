@@ -1225,7 +1225,8 @@ interface
          cvarianttype,
          colevarianttype,
          { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
-         sinttype: tdef;
+         sinttype,
+         uinttype: tdef;
        end;
 
 
@@ -1254,7 +1255,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       uinttype,
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype,
        osuinttype,
@@ -9824,7 +9824,7 @@ implementation
        compiler.deftypes.colevarianttype:=nil;
        { default integer type, normally compiler.deftypes.s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        compiler.deftypes.sinttype:=nil;
-       uinttype:=nil;
+       compiler.deftypes.uinttype:=nil;
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype:=nil;
        osuinttype:=nil;

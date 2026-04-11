@@ -969,7 +969,7 @@ in_x86_cvtsi2ss
     for i := 1 to 2 do secondpass(paraarray[i]);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,uinttype,true);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,paraarray[2].location.register,paraarray[1].location.register));
   end;
@@ -1171,7 +1171,7 @@ in_x86_pinsrw_mmx
     for i := 1 to 3 do secondpass(paraarray[i]);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,uinttype,true);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(op,S_NO,GetConstInt(paraarray[3]),paraarray[2].location.register,paraarray[1].location.register));
   end;
@@ -2060,7 +2060,7 @@ in_x86_pinsrq
     for i := 1 to 3 do secondpass(paraarray[i]);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,uinttype,true);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(op,S_NO,GetConstInt(paraarray[3]),paraarray[2].location.register,paraarray[1].location.register));
   end;

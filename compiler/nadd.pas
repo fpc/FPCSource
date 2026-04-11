@@ -2674,15 +2674,15 @@ const
              { is there a native unsigned int? }
              else if is_nativeuint(rd) or is_nativeuint(ld) then
                begin
-                 { convert positive constants to uinttype }
+                 { convert positive constants to compiler.deftypes.uinttype }
                  if (not is_nativeuint(ld)) and
                     is_constintnode(left) and
                     (tordconstnode(left).value >= 0) then
-                   inserttypeconv(left,uinttype,compiler);
+                   inserttypeconv(left,compiler.deftypes.uinttype,compiler);
                  if (not is_nativeuint(rd)) and
                     is_constintnode(right) and
                     (tordconstnode(right).value >= 0) then
-                   inserttypeconv(right,uinttype,compiler);
+                   inserttypeconv(right,compiler.deftypes.uinttype,compiler);
                  { when one of the operand is signed or the operation is subn then perform
                    the operation in a larger signed type, can't use rd/ld here because there
                    could be already typeconvs inserted.
@@ -2709,16 +2709,16 @@ const
                         (nodetype in [orn,xorn]) then
                        include(flags,nf_internal);
                      { get next larger signed int type }
-                     nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(uinttype),false);
+                     nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(compiler.deftypes.uinttype),false);
                      inserttypeconv(left,nd,compiler);
                      inserttypeconv(right,nd,compiler);
                    end
                  else
                    begin
                      if not is_nativeuint(left.resultdef) then
-                       inserttypeconv(left,uinttype,compiler);
+                       inserttypeconv(left,compiler.deftypes.uinttype,compiler);
                      if not is_nativeuint(right.resultdef) then
-                       inserttypeconv(right,uinttype,compiler);
+                       inserttypeconv(right,compiler.deftypes.uinttype,compiler);
                    end;
                end
              { generic ord conversion is compiler.deftypes.sinttype }
@@ -2741,8 +2741,8 @@ const
                    end
                  else
                    begin
-                     inserttypeconv(right,uinttype,compiler);
-                     inserttypeconv(left,uinttype,compiler);
+                     inserttypeconv(right,compiler.deftypes.uinttype,compiler);
+                     inserttypeconv(left,compiler.deftypes.uinttype,compiler);
                    end;
                end;
            end

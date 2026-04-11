@@ -604,14 +604,14 @@ implementation
                   compiler.ccallparanode(
                     compiler.cstringconstnode_str(tstaticvarsym(p).Name),
                   compiler.ccallparanode(
-                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,compiler.deftypes.uinttype,false),
                   compiler.ccallparanode(
                     compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_iso',
                   compiler.ccallparanode(
-                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,compiler.deftypes.uinttype,false),
                   compiler.ccallparanode(
                     compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil))));
@@ -623,14 +623,14 @@ implementation
                   compiler.ccallparanode(
                     compiler.cstringconstnode_str(tstaticvarsym(p).Name),
                   compiler.ccallparanode(
-                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,compiler.deftypes.uinttype,false),
                   compiler.ccallparanode(
                     compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_iso',
                   compiler.ccallparanode(
-                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,compiler.deftypes.uinttype,false),
                   compiler.ccallparanode(
                     compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil))));
@@ -1812,7 +1812,7 @@ implementation
        else if (tprocdef(pd).proctypeoption=potype_pkgstub) and
            (compiler.target.info.system in systems_all_windows+systems_nativent) then
          begin
-           pvs:=cparavarsym.create('HINSTANCE',1,vs_const,uinttype,[]);
+           pvs:=cparavarsym.create('HINSTANCE',1,vs_const,compiler.deftypes.uinttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLREASON',2,vs_const,compiler.deftypes.u32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);

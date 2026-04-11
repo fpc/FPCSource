@@ -779,7 +779,7 @@ implementation
             u8bit:
               begin
                 func_suffix := 'uint';
-                readfunctype := uinttype;
+                readfunctype := compiler.deftypes.uinttype;
               end;
             else
               internalerror(2013032601);

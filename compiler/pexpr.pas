@@ -724,7 +724,7 @@ implementation
               include(taddrnode(p1).addrnodeflags,anf_ofs);
               got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
-              inserttypeconv_internal(p1,uinttype,compiler);
+              inserttypeconv_internal(p1,compiler.deftypes.uinttype,compiler);
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;

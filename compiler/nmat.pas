@@ -348,10 +348,10 @@ implementation
              (not is_signed(ld) and
               (rd.size >= ld.size))) then
            begin
-             if rd.size<uinttype.size then
+             if rd.size<compiler.deftypes.uinttype.size then
                begin
-                 inserttypeconv(left,uinttype,compiler);
-                 inserttypeconv(right,uinttype,compiler);
+                 inserttypeconv(left,compiler.deftypes.uinttype,compiler);
+                 inserttypeconv(right,compiler.deftypes.uinttype,compiler);
                end
              else
                inserttypeconv(left,rd,compiler);
@@ -364,10 +364,10 @@ implementation
              (not is_signed(rd) and
               (ld.size >= rd.size))) then
            begin
-             if ld.size<uinttype.size then
+             if ld.size<compiler.deftypes.uinttype.size then
                begin
-                 inserttypeconv(left,uinttype,compiler);
-                 inserttypeconv(right,uinttype,compiler);
+                 inserttypeconv(left,compiler.deftypes.uinttype,compiler);
+                 inserttypeconv(right,compiler.deftypes.uinttype,compiler);
                end
              else
                inserttypeconv(right,ld,compiler);
@@ -428,7 +428,7 @@ implementation
            begin
               compiler.verbose.CGMessage(type_h_mixed_signed_unsigned);
               { get a signed int, larger than the native int }
-              nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(uinttype),false);
+              nd:=get_common_intdef(torddef(compiler.deftypes.sinttype),torddef(compiler.deftypes.uinttype),false);
               if (ld.ordtype<>nd.ordtype) then
                 inserttypeconv(left,nd,compiler);
               if (rd.ordtype<>nd.ordtype) then
@@ -438,9 +438,9 @@ implementation
          else
            begin
               { Make everything always default signed int }
-              if not(rd.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(uinttype).ordtype]) then
+              if not(rd.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(compiler.deftypes.uinttype).ordtype]) then
                 inserttypeconv(right,compiler.deftypes.sinttype,compiler);
-              if not(ld.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(uinttype).ordtype]) then
+              if not(ld.ordtype in [torddef(compiler.deftypes.sinttype).ordtype,torddef(compiler.deftypes.uinttype).ordtype]) then
                 inserttypeconv(left,compiler.deftypes.sinttype,compiler);
               resultdef:=right.resultdef;
            end;
@@ -944,7 +944,7 @@ implementation
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                      inserttypeconv(left,compiler.deftypes.u32inttype,compiler);
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
-                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true),compiler);
+                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(compiler.deftypes.uinttype),true),compiler);
 {$else}
                      internalerror(2013031302);
 {$endif}

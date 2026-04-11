@@ -538,7 +538,7 @@ implementation
                    (left.resultdef.size<=sizeof(aint)) then
                   begin
                     opsize:=OS_INT;
-                    opdef:=uinttype;
+                    opdef:=compiler.deftypes.uinttype;
                   end
                 else
                   begin

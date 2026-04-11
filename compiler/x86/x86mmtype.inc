@@ -441,14 +441,14 @@ in_x86_cvtss2si
 : //out r0:reg;r1:f32;
   begin
     CheckParameters(1);
-    resultdef:=uinttype;
+    resultdef:=compiler.deftypes.uinttype;
   end;
 in_x86_cvtss2si_from_mem
 ,in_x86_cvttss2si_from_mem
 : //out r0:reg;r1:ptr32;
   begin
     CheckParameters(1);
-    resultdef:=uinttype;
+    resultdef:=compiler.deftypes.uinttype;
   end;
 in_x86_cvtpi2ps
 ,in_x86_cvtpi2pd
@@ -502,7 +502,7 @@ in_x86_pextrw_mmx
 : //out r0:reg;r1:mm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=uinttype;
+    resultdef:=compiler.deftypes.uinttype;
   end;
 in_x86_pinsrw_mmx
 : //var r0:mm;r1:reg;imm:i32;
@@ -514,7 +514,7 @@ in_x86_pmovmskb_mmx
 : //out r0:reg;r1:mm;
   begin
     CheckParameters(1);
-    resultdef:=uinttype;
+    resultdef:=compiler.deftypes.uinttype;
   end;
 in_x86_pshufw
 : //out r0:mm;r1:mm;imm:i32;

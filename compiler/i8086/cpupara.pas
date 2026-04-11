@@ -513,7 +513,7 @@ unit cpupara;
                         if paralen>=sizeof(aint) then
                           begin
                             l:=sizeof(aint);
-                            paraloc^.def:=uinttype;
+                            paraloc^.def:=compiler.deftypes.uinttype;
                           end
                         else
                           begin
@@ -709,7 +709,7 @@ unit cpupara;
                                       if paralen>=sizeof(aint) then
                                         begin
                                           l:=sizeof(aint);
-                                          paraloc^.def:=uinttype;
+                                          paraloc^.def:=compiler.deftypes.uinttype;
                                         end
                                       else
                                         begin

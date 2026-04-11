@@ -1394,7 +1394,7 @@ implementation
 {$ifdef cpu8bitalu}
                exprtype:=compiler.deftypes.u16inttype;
 {$else cpu8bitalu}
-               exprtype:=uinttype;
+               exprtype:=compiler.deftypes.uinttype;
 {$endif cpu8bitalu}
                { create word(byte(char) shl 8 or 1) for little endian machines}
                { and word(byte(char) or 256) for big endian machines          }

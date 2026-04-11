@@ -1180,7 +1180,7 @@ implementation
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                     convert indexes into these arrays to aword.}
-                   inserttypeconv(right,uinttype,compiler)
+                   inserttypeconv(right,compiler.deftypes.uinttype,compiler)
                  { note: <> rather than </>, because indexing e.g. an array 0..0
                      must not result in truncating the indexing value from 2/4/8
                      bytes to 1 byte (with range checking off, the full index
@@ -1269,7 +1269,7 @@ implementation
                  inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true,compiler),compiler)
                else
                  {Convert indexes into dynamically allocated strings to aword.}
-                 inserttypeconv(right,uinttype,compiler);
+                 inserttypeconv(right,compiler.deftypes.uinttype,compiler);
              pointerdef:
                inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type,compiler);
              else
