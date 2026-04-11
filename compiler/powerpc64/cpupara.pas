@@ -750,7 +750,7 @@ implemented
             else
               paraloc^.size:=int_float_cgsize(paralen);
             case paraloc^.size of
-              OS_F32: paraloc^.def:=s32floattype;
+              OS_F32: paraloc^.def:=compiler.deftypes.s32floattype;
               OS_F64: paraloc^.def:=s64floattype;
               else
                 internalerror(2013060122);

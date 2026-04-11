@@ -511,7 +511,7 @@ unit cpupara;
                (classes[i-1].typ<>X86_64_SSEUP_CLASS) then
               begin
                 classes[i].typ:=X86_64_SSE_CLASS;
-                classes[i].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                classes[i].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
               end;
 
             (*  If X86_64_X87UP_CLASS isn't preceded by X86_64_X87_CLASS,
@@ -554,7 +554,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[0].typ:=X86_64_SSE_CLASS;
-                  classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                  classes[0].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
                 end;
               else
                 ;
@@ -570,7 +570,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[1].typ:=X86_64_SSE_CLASS;
-                  classes[1].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                  classes[1].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
                 end;
               else
                 ;
@@ -952,7 +952,7 @@ unit cpupara;
                             fields, we need a 64 bit rather than a 32 bit load }
                           classes[0].typ:=X86_64_SSE_CLASS;
 
-                        classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                        classes[0].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
                       end;
                     result:=1;
                   end;
@@ -982,9 +982,9 @@ unit cpupara;
                 s128real:
                   begin
                     classes[0].typ:=X86_64_SSE_CLASS;
-                    classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                    classes[0].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
                     classes[1].typ:=X86_64_SSEUP_CLASS;
-                    classes[1].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
+                    classes[1].def:=carraydef.getreusable_no_free(compiler.deftypes.s32floattype,2,compiler);
                     result:=2;
                   end;
               end;

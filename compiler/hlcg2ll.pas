@@ -1317,7 +1317,7 @@ implementation
                if (l.size in [OS_32,OS_S32]) then
                  begin
                    size:=cgsize_orddef(l.size);
-                   newsize:=s32floattype;
+                   newsize:=compiler.deftypes.s32floattype;
                  end
                else if (l.size in [OS_64,OS_S64]) then
                  begin

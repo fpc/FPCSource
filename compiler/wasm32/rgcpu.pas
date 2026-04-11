@@ -418,7 +418,7 @@ implementation
                           R_SUBFS:
                             begin
                               size:=4;
-                              def:=s32floattype;
+                              def:=_compiler.deftypes.s32floattype;
                             end;
                           R_SUBFD:
                             begin

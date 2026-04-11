@@ -262,14 +262,14 @@ implementation
         begin
           if compiler.globals.init_settings.fputype<>fpu_none then
             begin
-              s32floattype:=cfloatdef.create(s32real,true,compiler);
+              compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
               s64floattype:=cfloatdef.create(s64real,true,compiler);
               s80floattype:=cfloatdef.create(s80real,true,compiler);
               sc80floattype:=cfloatdef.create(sc80real,true,compiler);
             end
           else
             begin
-              s32floattype:=nil;
+              compiler.deftypes.s32floattype:=nil;
               s64floattype:=nil;
               s80floattype:=nil;
               sc80floattype:=nil;
@@ -378,14 +378,14 @@ implementation
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif aarch64}
 {$ifdef avr}
-        s32floattype:=cfloatdef.create(s32real,true,compiler);
+        compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
         s80floattype:=cfloatdef.create(s80real,true,compiler);
         sc80floattype:=cfloatdef.create(sc80real,true,compiler);
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif avr}
 {$ifdef z80}
-        s32floattype:=cfloatdef.create(s32real,true,compiler);
+        compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
         s80floattype:=cfloatdef.create(s80real,true,compiler);
         sc80floattype:=cfloatdef.create(sc80real,true,compiler);
@@ -454,13 +454,13 @@ implementation
         x86_m256dtype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
         x86_m256itype:=carraydef.create_vector(0,7,compiler.deftypes.s32inttype,compiler);
 
-        tarraydef(x86_m64type).elementdef:=s32floattype;
-        tarraydef(x86_m128type).elementdef:=s32floattype;
+        tarraydef(x86_m64type).elementdef:=compiler.deftypes.s32floattype;
+        tarraydef(x86_m128type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(x86_m128dtype).elementdef:=s64floattype;
-        tarraydef(x86_m128itype).elementdef:=s32floattype;
-        tarraydef(x86_m256type).elementdef:=s32floattype;
+        tarraydef(x86_m128itype).elementdef:=compiler.deftypes.s32floattype;
+        tarraydef(x86_m256type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(x86_m256dtype).elementdef:=s64floattype;
-        tarraydef(x86_m256itype).elementdef:=s32floattype;
+        tarraydef(x86_m256itype).elementdef:=compiler.deftypes.s32floattype;
 {$endif x86}
 {$ifdef wasm}
         compiler.deftypes.wasmvoidexternreftype:=tcpupointerdefclass.create_externref(compiler.deftypes.voidtype,compiler);
@@ -481,10 +481,10 @@ implementation
           difference is that direct calls to the emulator are generated
         if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           begin
-            addtype('Single',s32floattype);
+            addtype('Single',compiler.deftypes.s32floattype);
             { extended size is the best real type for the target }
-            addtype('Real',s32floattype);
-            pbestrealtype:=@s32floattype;
+            addtype('Real',compiler.deftypes.s32floattype);
+            pbestrealtype:=@compiler.deftypes.s32floattype;
             { extended size is the best real type for the target }
             addtype('Extended',pbestrealtype^);
           end
@@ -493,7 +493,7 @@ implementation
 {$endif cpufpemu}
         if compiler.globals.init_settings.fputype<>fpu_none then
           begin
-            addtype('Single',s32floattype);
+            addtype('Single',compiler.deftypes.s32floattype);
             addtype('Double',s64floattype);
             { extended size is the best real type for the target }
             addtype('Extended',pbestrealtype^);
@@ -664,7 +664,7 @@ implementation
           end;
         if compiler.globals.init_settings.fputype<>fpu_none then
           begin
-            addtype('$s32real',s32floattype);
+            addtype('$s32real',compiler.deftypes.s32floattype);
             addtype('$s64real',s64floattype);
             addtype('$s80real',s80floattype);
             addtype('$sc80real',sc80floattype);
@@ -771,7 +771,7 @@ implementation
         loadtype('openchararray',openchararraytype);
         if compiler.globals.init_settings.fputype <> fpu_none then
           begin
-            loadtype('s32real',s32floattype);
+            loadtype('s32real',compiler.deftypes.s32floattype);
             loadtype('s64real',s64floattype);
             loadtype('s80real',s80floattype);
             loadtype('sc80real',sc80floattype);

@@ -610,7 +610,7 @@ implementation
                 s32real:
                   begin
                     objdef:=tobjectdef(search_system_type('JLFLOAT').typedef);
-                    paradef:=s32floattype;
+                    paradef:=compiler.deftypes.s32floattype;
                   end;
                 s64real:
                   begin

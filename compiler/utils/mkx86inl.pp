@@ -150,7 +150,7 @@ function GetTypeDef(const ATyp: string): string;
       'rs64':  exit('compiler.deftypes.s64inttype');
       'reg':   exit('uinttype');
       'sreg':  exit('sinttype');
-      'f32':   exit('s32floattype');
+      'f32':   exit('compiler.deftypes.s32floattype');
       'f64':   exit('s64floattype');
       'mm':    exit('x86_m64type');
       'implicit_xmm0',

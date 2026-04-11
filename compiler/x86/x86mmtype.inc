@@ -58,7 +58,7 @@ in_x86_movss_to_val
 : //out r0:f32;r1:xmm;
   begin
     CheckParameters(1);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_movss_from_val
 : //out r0:xmm;r1:f32;
@@ -232,7 +232,7 @@ in_x86_addss
 : //var r0:f32;r1:f32;
   begin
     CheckParameters(2);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_addss_from_mem
 ,in_x86_subss_from_mem
@@ -247,7 +247,7 @@ in_x86_addss_from_mem
 : //var r0:f32;r1:ptr32;
   begin
     CheckParameters(2);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_addps_from_mem
 ,in_x86_subps_from_mem
@@ -381,13 +381,13 @@ in_x86_cmpss
 : //var r0:f32;r1:f32;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_cmpss_from_mem
 : //var r0:f32;r1:ptr32;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_cmpps
 ,in_x86_shufps
@@ -434,7 +434,7 @@ in_x86_cvtsi2ss
 : //var r0:f32;r1:reg;
   begin
     CheckParameters(2);
-    resultdef:=s32floattype;
+    resultdef:=compiler.deftypes.s32floattype;
   end;
 in_x86_cvtss2si
 ,in_x86_cvttss2si

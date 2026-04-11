@@ -91,7 +91,7 @@ implementation
                 result := compiler.ccallnode_intern(fname,compiler.ccallparanode(left,nil));
                 left:=nil;
                 if (tfloatdef(resultdef).floattype=s32real) then
-                  inserttypeconv(result,s32floattype,compiler);
+                  inserttypeconv(result,compiler.deftypes.s32floattype,compiler);
                 firstpass(result);
                 exit;
               end;
