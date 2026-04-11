@@ -707,8 +707,8 @@ implementation
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,compiler.deftypes.voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,compiler.deftypes.parentfpvoidpointertype,[]));
-        nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
-        addtype('$nestedprocpointer',nestedprocpointertype);
+        compiler.deftypes.nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
+        addtype('$nestedprocpointer',compiler.deftypes.nestedprocpointertype);
         compiler.symtablestack.pop(systemunit);
       end;
 
@@ -839,7 +839,7 @@ implementation
             loadtype('olevariant',colevarianttype);
           end;
         loadtype('methodpointer',compiler.deftypes.methodpointertype);
-        loadtype('nestedprocpointer',nestedprocpointertype);
+        loadtype('nestedprocpointer',compiler.deftypes.nestedprocpointertype);
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;

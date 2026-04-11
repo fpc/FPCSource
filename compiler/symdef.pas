@@ -1217,7 +1217,8 @@ interface
                                       needed for readln() }
          cfiletype,                 { get the same definition for all file }
                                     { used for stabs }
-         methodpointertype: tdef;   { typecasting of methodpointers to extract self }
+         methodpointertype,         { typecasting of methodpointers to extract self }
+         nestedprocpointertype:tdef;{ typecasting of nestedprocpointers to extract parentfp }
        end;
 
 
@@ -1246,7 +1247,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef,
        typekindtype,              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }
@@ -9816,7 +9816,7 @@ implementation
        compiler.deftypes.openchararraytype:=nil;
        compiler.deftypes.cfiletype:=nil;
        compiler.deftypes.methodpointertype:=nil;         { typecasting of methodpointers to extract self }
-       nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
+       compiler.deftypes.nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef:=nil;
        typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
        { we use only one variant def for every variant class }

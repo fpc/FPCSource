@@ -2563,7 +2563,7 @@ implementation
       begin
         { Load tnestedprocpointer(right).parentfp }
         result:=genloadfield(compiler.ctypeconvnode_internal(
-          right.getcopy,nestedprocpointertype),
+          right.getcopy,compiler.deftypes.nestedprocpointertype),
           'parentfp');
       end;
 

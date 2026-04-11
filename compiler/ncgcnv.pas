@@ -610,7 +610,7 @@ interface
                 href:=location.reference;
                 if is_nested_pd(tabstractprocdef(resultdef)) then
                   begin
-                    procvarrectype:=trecorddef(nestedprocpointertype);
+                    procvarrectype:=trecorddef(compiler.deftypes.nestedprocpointertype);
                     procvarselfname:='parentfp';
                   end
                 else

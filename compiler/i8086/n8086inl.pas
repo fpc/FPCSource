@@ -172,7 +172,7 @@ implementation
                          if tabstractprocdef(left.resultdef).is_methodpointer then
                            procpointertype:=compiler.deftypes.methodpointertype
                          else
-                           procpointertype:=nestedprocpointertype;
+                           procpointertype:=compiler.deftypes.nestedprocpointertype;
                          { find proc field in methodpointer record }
                          hsym:=tfieldvarsym(trecorddef(procpointertype).symtable.Find('proc'));
                          if not assigned(hsym) then
