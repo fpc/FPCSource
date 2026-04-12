@@ -204,17 +204,17 @@ implementation
         case compiler.deftypes.voidcodepointertype.size of
           2:
             begin
-              codeptruinttype:=compiler.deftypes.u16inttype;
+              compiler.deftypes.codeptruinttype:=compiler.deftypes.u16inttype;
               codeptrsinttype:=compiler.deftypes.s16inttype;
             end;
           4:
             begin
-              codeptruinttype:=compiler.deftypes.u32inttype;
+              compiler.deftypes.codeptruinttype:=compiler.deftypes.u32inttype;
               codeptrsinttype:=compiler.deftypes.s32inttype;
             end;
           8:
             begin
-              codeptruinttype:=compiler.deftypes.u64inttype;
+              compiler.deftypes.codeptruinttype:=compiler.deftypes.u64inttype;
               codeptrsinttype:=compiler.deftypes.s64inttype;
             end;
           else

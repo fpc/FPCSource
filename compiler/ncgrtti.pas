@@ -991,7 +991,7 @@ implementation
            until not assigned(hpropsym);
            if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin
-               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),codeptruinttype);
+               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),compiler.deftypes.codeptruinttype);
                typvalue:=3;
              end
            { also for accessing class fields }
@@ -1034,7 +1034,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                tcb.emit_tai(Tai_const.Create_int_codeptr(address),codeptruinttype);
+                tcb.emit_tai(Tai_const.Create_int_codeptr(address),compiler.deftypes.codeptruinttype);
                 typvalue:=0;
              end
            else
@@ -1045,7 +1045,7 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                    tcb.queue_init(codeptruinttype);
+                    tcb.queue_init(compiler.deftypes.codeptruinttype);
                     tcb.queue_emit_proc(tprocdef(propaccesslist.procdef));
                     typvalue:=1;
                   end
@@ -1055,7 +1055,7 @@ implementation
                     extnumber:=tprocdef(propaccesslist.procdef).extnumber;
                     tcb.emit_tai(Tai_const.Create_int_codeptr(
                       tobjectdef(tprocdef(propaccesslist.procdef).struct).vmtmethodoffset(extnumber)),
-                      codeptruinttype);
+                      compiler.deftypes.codeptruinttype);
                     { register for wpo }
                     tobjectdef(tprocdef(propaccesslist.procdef).struct).register_vmt_call(extnumber);
                     {$ifdef vtentry}
@@ -1154,7 +1154,7 @@ implementation
             if not(ppo_stored in sym.propoptions) then
               begin
                 { no, so put a constant zero }
-                tcb.emit_tai(Tai_const.Create_nil_codeptr,codeptruinttype);
+                tcb.emit_tai(Tai_const.Create_nil_codeptr,compiler.deftypes.codeptruinttype);
                 proctypesinfo:=proctypesinfo or (3 shl 4);
               end
             else

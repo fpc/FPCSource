@@ -1238,7 +1238,9 @@ interface
          sizesinttype,
          { unsigned and signed ord type with the same size as a pointer }
          ptruinttype,
-         ptrsinttype: tdef;
+         ptrsinttype,
+         { unsigned and signed ord type with the same size as a codepointer }
+         codeptruinttype: tdef;
        end;
 
 
@@ -1267,8 +1269,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { unsigned and signed ord type with the same size as a codepointer }
-       codeptruinttype,
        codeptrsinttype,
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
@@ -9838,7 +9838,7 @@ implementation
        compiler.deftypes.ptruinttype:=nil;
        compiler.deftypes.ptrsinttype:=nil;
        { unsigned and signed ord type with the same size as a codepointer }
-       codeptruinttype:=nil;
+       compiler.deftypes.codeptruinttype:=nil;
        codeptrsinttype:=nil;
        { several types to simulate more or less C++ objects for GDB }
        vmttype:=nil;
