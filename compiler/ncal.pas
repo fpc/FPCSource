@@ -436,7 +436,7 @@ implementation
           if is_interfacecom_or_dispinterface(sourcedef) then
             begin
               { distinct IDispatch and IUnknown interfaces }
-              if def_is_related(tobjectdef(sourcedef),interface_idispatch) then
+              if def_is_related(tobjectdef(sourcedef),compiler.deftypes.interface_idispatch) then
                 result:=vardispatch
               else
                 result:=varunknown;

@@ -1256,6 +1256,8 @@ interface
          class_tcustomattribute : tobjectdef;
          { pointer to the ancestor of all COM interfaces }
          interface_iunknown : tobjectdef;
+         { pointer to the ancestor of all dispinterfaces }
+         interface_idispatch : tobjectdef;
        end;
 
 
@@ -1284,8 +1286,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { pointer to the ancestor of all dispinterfaces }
-       interface_idispatch : tobjectdef;
        { pointer to the TGUID type
          of all interfaces         }
        rec_tguid : trecorddef;
@@ -8066,7 +8066,7 @@ implementation
                   compiler.deftypes.interface_iunknown:=self
                 else
                 if (objname^='IDISPATCH') then
-                  interface_idispatch:=self;
+                  compiler.deftypes.interface_idispatch:=self;
              if (objecttype=odt_javaclass) and
                 not(oo_is_formal in objectoptions) then
                begin
@@ -9851,7 +9851,7 @@ implementation
        compiler.deftypes.class_tobject:=nil;
        compiler.deftypes.class_tcustomattribute:=nil;
        compiler.deftypes.interface_iunknown:=nil;
-       interface_idispatch:=nil;
+       compiler.deftypes.interface_idispatch:=nil;
        rec_tguid:=nil;
        rec_jmp_buf:=nil;
        rec_exceptaddr:=nil;

@@ -717,7 +717,7 @@ implementation
                 if compiler.current_objectdef<>compiler.deftypes.interface_iunknown then
                   childof:=compiler.deftypes.interface_iunknown;
               odt_dispinterface:
-                childof:=interface_idispatch;
+                childof:=compiler.deftypes.interface_idispatch;
               odt_objcclass:
                 compiler.verbose.CGMessage(parser_h_no_objc_parent);
               odt_javaclass:
@@ -1593,7 +1593,7 @@ implementation
                       compiler.deftypes.interface_iunknown:=compiler.current_objectdef
                     else
                     if (compiler.current_structdef.objname^='IDISPATCH') then
-                      interface_idispatch:=compiler.current_objectdef;
+                      compiler.deftypes.interface_idispatch:=compiler.current_objectdef;
                   odt_class :
                     if (compiler.current_structdef.objname^='TOBJECT') then
                       compiler.deftypes.class_tobject:=compiler.current_objectdef;
