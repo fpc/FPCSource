@@ -91,11 +91,11 @@ implementation
 
     procedure twasmexceptionstatehandler_noexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
       begin
-        if not assigned(exceptionreasontype) then
-          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
+        if not assigned(compiler.deftypes.exceptionreasontype) then
+          compiler.deftypes.exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
         reference_reset(t.envbuf,0,[]);
         reference_reset(t.jmpbuf,0,[]);
-        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
+        tg.gethltemp(list,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype.size,tt_persistent,t.reasonbuf);
       end;
 
     procedure twasmexceptionstatehandler_noexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);

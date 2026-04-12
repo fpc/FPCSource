@@ -1246,7 +1246,9 @@ interface
          vmttype,
          vmtarraytype,
          { type of classrefs, used for stabs }
-         pvmttype: tdef;
+         pvmttype,
+         { return type of the setjmp function }
+         exceptionreasontype      : tdef;
        end;
 
 
@@ -1274,9 +1276,7 @@ interface
 
     { default types }
        s64floattype,              { 64 bit floating point number }
-       s80floattype,              { 80 bit floating point number }
-       { return type of the setjmp function }
-       exceptionreasontype      : tdef;
+       s80floattype: tdef;        { 80 bit floating point number }
 
        { pointer to the ancestor of all classes }
        class_tobject : tobjectdef;
@@ -9846,7 +9846,7 @@ implementation
        { type of classrefs, used for stabs }
        compiler.deftypes.pvmttype:=nil;
        { return type of the setjmp function }
-       exceptionreasontype:=nil;
+       compiler.deftypes.exceptionreasontype:=nil;
 
        class_tobject:=nil;
        class_tcustomattribute:=nil;

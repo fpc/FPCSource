@@ -1088,9 +1088,9 @@ implementation
           var
             reasonreg : tregister;
           begin
-            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
             current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
@@ -1099,9 +1099,9 @@ implementation
           var
             reasonreg : tregister;
           begin
-            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
@@ -1174,7 +1174,7 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
@@ -1182,7 +1182,7 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,4,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
@@ -1190,14 +1190,14 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,3,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,2,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1260,9 +1260,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1271,9 +1271,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1282,9 +1282,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
@@ -1368,14 +1368,14 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the 'catch' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
@@ -1383,7 +1383,7 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,4,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
@@ -1391,14 +1391,14 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,3,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,2,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1462,9 +1462,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1473,9 +1473,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1484,9 +1484,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
@@ -1564,12 +1564,12 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
         { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the inner 'try..end_try' block }
@@ -1580,7 +1580,7 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,4,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
@@ -1588,14 +1588,14 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,3,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,2,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1661,9 +1661,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1672,9 +1672,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
@@ -1683,9 +1683,9 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
@@ -1768,7 +1768,7 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the inner 'try..end_try' block }
@@ -1777,7 +1777,7 @@ implementation
 
         { exceptionreason:=1 (exception) }
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
@@ -1785,7 +1785,7 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,4,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
@@ -1793,14 +1793,14 @@ implementation
         if in_loop then
           hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,3,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,2,excepttemps.reasonbuf);
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
