@@ -529,7 +529,7 @@ implementation
                     encodedstr:=encodedstr+'*';
                 end
               else if is_objcclass(tclassrefdef(def).pointeddef) then
-                llvmaddencodedtype_intern(objc_idtype,flags-[lef_removeouterpointer],encodedstr)
+                llvmaddencodedtype_intern(compiler.deftypes.objc_idtype,flags-[lef_removeouterpointer],encodedstr)
               else if not(lef_removeouterpointer in flags) then
                 encodedstr:=encodedstr+'i8*'
               else

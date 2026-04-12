@@ -1673,9 +1673,9 @@ implementation
                            end
                          { id = generic class instance. metaclasses are also
                            class instances themselves.  }
-                         else if ((def_from=objc_idtype) and
+                         else if ((def_from=compiler.deftypes.objc_idtype) and
                                   (def_to=compiler.deftypes.objc_metaclasstype)) or
-                                 ((def_to=objc_idtype) and
+                                 ((def_to=compiler.deftypes.objc_idtype) and
                                   (def_from=compiler.deftypes.objc_metaclasstype)) then
                            begin
                              doconv:=tc_equal;
@@ -1723,13 +1723,13 @@ implementation
                          eq:=te_convert_l5;
                        end
                      else if (is_objc_class_or_protocol(def_from) and
-                              (def_to=objc_idtype)) or
+                              (def_to=compiler.deftypes.objc_idtype)) or
                              { classrefs are also instances in Objective-C,
                                hence they're also assignment-compatible with
                                id }
                              (is_objcclassref(def_from) and
                               ((def_to=compiler.deftypes.objc_metaclasstype) or
-                               (def_to=objc_idtype))) then
+                               (def_to=compiler.deftypes.objc_idtype))) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
@@ -1927,7 +1927,7 @@ implementation
                      end
                    { All Objective-C classes are compatible with ID }
                    else if is_objc_class_or_protocol(def_to) and
-                           (def_from=objc_idtype) then
+                           (def_from=compiler.deftypes.objc_idtype) then
                       begin
                        doconv:=tc_equal;
                        eq:=te_convert_l2;
@@ -2060,7 +2060,7 @@ implementation
                  end
                else
                  { id is compatible with all classref types }
-                 if (def_from=objc_idtype) then
+                 if (def_from=compiler.deftypes.objc_idtype) then
                    begin
                      doconv:=tc_equal;
                      eq:=te_convert_l1;
@@ -2899,7 +2899,7 @@ implementation
           end;
 
         if (realself.objecttype in [odt_objcclass,odt_objcprotocol]) and
-           (otherdef=objc_idtype) then
+           (otherdef=compiler.deftypes.objc_idtype) then
           begin
             result:=true;
             exit;

@@ -429,7 +429,7 @@ implementation
                if (loadnf_load_addr in loadnodeflags) then
                  resultdef:=cpointerdef.getreusable(resultdef,compiler);
 
-               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) and (resultdef=objc_idtype) and
+               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) and (resultdef=compiler.deftypes.objc_idtype) and
                  (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                  resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct,compiler)
              end;

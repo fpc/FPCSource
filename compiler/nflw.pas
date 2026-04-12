@@ -421,7 +421,7 @@ implementation
          addstatement(mainstatement,state);
          { the temporary items array }
          itemsarraydef:=carraydef.create(1,16,compiler.deftypes.u32inttype,compiler);
-         itemsarraydef.elementdef:=objc_idtype;
+         itemsarraydef.elementdef:=compiler.deftypes.objc_idtype;
          items:=compiler.ctempcreatenode(itemsarraydef,itemsarraydef.size,tt_persistent,false);
          addstatement(mainstatement,items);
          typecheckpass(tnode(items));

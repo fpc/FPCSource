@@ -141,8 +141,8 @@ implementation
                      { find/add necessary classref/classname pool entries }
                      compiler.objcgutl.objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
-                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,objc_idtype.alignment,[]);
-                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,objc_idtype,objc_idtype,href,location.register);
+                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,compiler.deftypes.objc_idtype.alignment,[]);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.objc_idtype,compiler.deftypes.objc_idtype,href,location.register);
                end;
            end
          else

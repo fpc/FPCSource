@@ -2522,7 +2522,7 @@ implementation
                   (m_autoderef in compiler.globals.current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
                     below for supporting id.anyobjcmethod isn't triggered }
-                  (p1.resultdef<>objc_idtype) then
+                  (p1.resultdef<>compiler.deftypes.objc_idtype) then
                  begin
                    p1:=compiler.cderefnode(p1);
                    do_typecheckpass(p1);
@@ -2943,7 +2943,7 @@ implementation
                     end;
                   pointerdef:
                     begin
-                      if (p1.resultdef=objc_idtype) then
+                      if (p1.resultdef=compiler.deftypes.objc_idtype) then
                         begin
                           { objc's id type can be used to call any
                             Objective-C method of any Objective-C class

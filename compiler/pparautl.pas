@@ -239,7 +239,7 @@ implementation
 
                 if (po_classmethod in pd.procoptions) then
                   { compatible with what gcc does }
-                  hdef:=objc_idtype
+                  hdef:=compiler.deftypes.objc_idtype
                 else
                   hdef:=tprocdef(pd).struct;
 

@@ -214,7 +214,7 @@ implementation
             begin
               if is_pchar(def) then
                 encodedstr:=encodedstr+'*'
-              else if (def=objc_idtype) then
+              else if (def=compiler.deftypes.objc_idtype) then
                 encodedstr:=encodedstr+'@'
               else if (def=objc_seltype) then
                 encodedstr:=encodedstr+':'

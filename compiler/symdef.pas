@@ -1270,7 +1270,8 @@ interface
 
          { Objective-C base types }
          objc_metaclasstype,
-         objc_superclasstype: tpointerdef;
+         objc_superclasstype,
+         objc_idtype: tpointerdef;
        end;
 
 
@@ -1299,7 +1300,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       objc_idtype,
        objc_seltype              : tpointerdef;
        objc_objecttype           : trecorddef;
        { base type of @protocol(protocolname) Objective-C statements }
@@ -9643,7 +9643,7 @@ implementation
       begin
         compiler.deftypes.objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS',true).typedef);
         compiler.deftypes.objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER',true).typedef);
-        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID',true).typedef);
+        compiler.deftypes.objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID',true).typedef);
         objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL',true).typedef);
         objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT',true).typedef);
       end;
@@ -9859,7 +9859,7 @@ implementation
        compiler.deftypes.rec_exceptaddr:=nil;
        compiler.deftypes.objc_metaclasstype:=nil;
        compiler.deftypes.objc_superclasstype:=nil;
-       objc_idtype:=nil;
+       compiler.deftypes.objc_idtype:=nil;
        objc_seltype:=nil;
        objc_objecttype:=nil;
        objc_protocoltype:=nil;

@@ -1390,7 +1390,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_weak],compiler);
     tcb.maybe_begin_aggregate(prottype);
     { protocol's isa - always nil }
-    tcb.emit_tai(Tai_const.Create_nil_dataptr,objc_idtype);
+    tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.objc_idtype);
     { name }
     objcreatestringpoolentry(protocol.objextname^,sp_objcclassnames,sec_objc_class_names,namesym,namedef);
     tcb.queue_init(compiler.deftypes.charpointertype);
@@ -1548,7 +1548,7 @@ begin
         case fs.vardef.typ of
           pointerdef,
           classrefdef:
-            if (fs.vardef=objc_idtype) or
+            if (fs.vardef=compiler.deftypes.objc_idtype) or
                (fs.vardef=compiler.deftypes.objc_metaclasstype) then
               includelen:=1;
           recorddef:

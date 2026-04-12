@@ -148,7 +148,7 @@ end;
           )
         else
           begin
-            result:=compiler.cderefnode(compiler.ctypeconvnode_internal(n,objc_idtype));
+            result:=compiler.cderefnode(compiler.ctypeconvnode_internal(n,compiler.deftypes.objc_idtype));
             result:=compiler.csubscriptnode(vs,result);
           end;
       end;
