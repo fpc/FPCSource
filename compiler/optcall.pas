@@ -40,6 +40,7 @@ unit optcall;
       verbose,globals,
       defutil,defcmp,
       symconst,symtype,symdef,symsym,
+      parabase,paramgr,
       procinfo,
       nutils,
       fmodule,
@@ -100,7 +101,12 @@ unit optcall;
       begin
         result:=fen_false;
         if n.nodetype=calln then
-          tcallnode(n).order_parameters;
+          begin
+            { re-init varargs paraloc that may have been invalidated by inlining }
+            if assigned(tcallnode(n).varargsparas) then
+              paramanager.create_varargs_paraloc_info(tcallnode(n).procdefinition,callerside,tcallnode(n).varargsparas);
+            tcallnode(n).order_parameters;
+          end;
       end;
 
 
