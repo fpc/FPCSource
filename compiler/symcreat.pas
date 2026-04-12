@@ -2266,7 +2266,7 @@ implementation
       if attrs.count=0 then
         exit;
       { if this isn't set then this unit shouldn't have any attributes }
-      if not assigned(class_tcustomattribute) then
+      if not assigned(compiler.deftypes.class_tcustomattribute) then
         internalerror(2019071003);
       for i:=0 to attrs.count-1 do
         begin
@@ -2287,7 +2287,7 @@ implementation
           pd.proctypeoption:=potype_function;
           pd.proccalloption:=pocall_default;
           include(pd.procoptions,po_hascallingconvention);
-          pd.returndef:=class_tcustomattribute;
+          pd.returndef:=compiler.deftypes.class_tcustomattribute;
           compiler.parser.pparautl.insert_funcret_para(pd);
           pd.calcparas;
           pd.forwarddef:=false;

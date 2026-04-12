@@ -114,9 +114,9 @@ implementation
 
     function TDeclarationParser.is_system_custom_attribute_descendant(def:tdef):boolean;
     begin
-      if not assigned(class_tcustomattribute) then
-        class_tcustomattribute:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
-      Result:=def_is_related(def,class_tcustomattribute);
+      if not assigned(compiler.deftypes.class_tcustomattribute) then
+        compiler.deftypes.class_tcustomattribute:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
+      Result:=def_is_related(def,compiler.deftypes.class_tcustomattribute);
     end;
 
     function TDeclarationParser.readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
@@ -523,7 +523,7 @@ implementation
               { Check if the attribute class is related to TCustomAttribute }
               if not is_system_custom_attribute_descendant(od) then
                 begin
-                  incompatibletypes(od,class_tcustomattribute);
+                  incompatibletypes(od,compiler.deftypes.class_tcustomattribute);
                   read_attr_paras.free; // no nil needed
                   continue;
                 end;

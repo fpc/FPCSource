@@ -1252,6 +1252,8 @@ interface
 
          { pointer to the ancestor of all classes }
          class_tobject : tobjectdef;
+         { pointer to the base type for custom attributes }
+         class_tcustomattribute : tobjectdef;
        end;
 
 
@@ -1280,8 +1282,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { pointer to the base type for custom attributes }
-       class_tcustomattribute : tobjectdef;
        { pointer to the ancestor of all COM interfaces }
        interface_iunknown : tobjectdef;
        { pointer to the ancestor of all dispinterfaces }
@@ -9849,7 +9849,7 @@ implementation
        compiler.deftypes.exceptionreasontype:=nil;
 
        compiler.deftypes.class_tobject:=nil;
-       class_tcustomattribute:=nil;
+       compiler.deftypes.class_tcustomattribute:=nil;
        interface_iunknown:=nil;
        interface_idispatch:=nil;
        rec_tguid:=nil;
