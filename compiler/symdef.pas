@@ -1244,7 +1244,9 @@ interface
          codeptrsinttype,
          { several types to simulate more or less C++ objects for GDB }
          vmttype,
-         vmtarraytype: tdef;
+         vmtarraytype,
+         { type of classrefs, used for stabs }
+         pvmttype: tdef;
        end;
 
 
@@ -1273,8 +1275,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { type of classrefs, used for stabs }
-       pvmttype,
        { return type of the setjmp function }
        exceptionreasontype      : tdef;
 
@@ -9844,7 +9844,7 @@ implementation
        compiler.deftypes.vmttype:=nil;
        compiler.deftypes.vmtarraytype:=nil;
        { type of classrefs, used for stabs }
-       pvmttype:=nil;
+       compiler.deftypes.pvmttype:=nil;
        { return type of the setjmp function }
        exceptionreasontype:=nil;
 

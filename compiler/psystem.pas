@@ -675,14 +675,14 @@ implementation
             { Add a type for virtual method tables }
             hrecst:=trecordsymtable.create('',compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
             compiler.deftypes.vmttype:=crecorddef.create('',hrecst,compiler);
-            pvmttype:=cpointerdef.create(compiler.deftypes.vmttype,compiler);
+            compiler.deftypes.pvmttype:=cpointerdef.create(compiler.deftypes.vmttype,compiler);
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
-            systemunit.insertsym(ctypesym.create('$'+pvmt_name,pvmttype));
+            systemunit.insertsym(ctypesym.create('$'+pvmt_name,compiler.deftypes.pvmttype));
             addfield(hrecst,cfieldvarsym.create('$length',vs_value,compiler.deftypes.sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,compiler.deftypes.sizesinttype,[]));
-            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,compiler.deftypes.pvmttype,[]));
             { it seems compiler.deftypes.vmttype is used both for TP objects and Delphi classes,
               so the next entry could either be the first virtual method (vm1)
               (object) or the class name (class). We can't easily create separate
@@ -694,7 +694,7 @@ implementation
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,compiler.deftypes.vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',compiler.deftypes.vmttype);
             compiler.deftypes.vmtarraytype:=carraydef.create(0,1,compiler.deftypes.s32inttype,compiler);
-            tarraydef(compiler.deftypes.vmtarraytype).elementdef:=pvmttype;
+            tarraydef(compiler.deftypes.vmtarraytype).elementdef:=compiler.deftypes.pvmttype;
             addtype('$vtblarray',compiler.deftypes.vmtarraytype);
           end;
         { Add a type for methodpointers }
@@ -829,7 +829,7 @@ implementation
           pvmt_name:='pvmt';
         if not(compiler.target.info.system in systems_managed_vm) then
           begin
-            loadtype(pvmt_name,pvmttype);
+            loadtype(pvmt_name,compiler.deftypes.pvmttype);
             loadtype('vtblarray',compiler.deftypes.vmtarraytype);
             loadtype('__vtbl_ptr_type',compiler.deftypes.vmttype);
           end;

@@ -195,7 +195,7 @@ implementation
 
     procedure TDebugInfo.appenddef_classref(list:TAsmList;def: tclassrefdef);
       begin
-        appenddef_pointer(list,tpointerdef(pvmttype));
+        appenddef_pointer(list,tpointerdef(compiler.deftypes.pvmttype));
       end;
 
 

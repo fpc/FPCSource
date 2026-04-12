@@ -1033,7 +1033,7 @@ implementation
               appenddef(list,compiler.deftypes.cansichartype);
             end;
           classrefdef :
-            appenddef(list,pvmttype);
+            appenddef(list,compiler.deftypes.pvmttype);
           pointerdef :
             appenddef(list,tpointerdef(def).pointeddef);
           setdef :
@@ -1487,12 +1487,12 @@ implementation
               begin
                 if (sym.localloc.loc=LOC_REFERENCE) then
                   ss:=sym_stabstr_evaluate(sym,'"pvmt:p$1",'+base_stabs_str(localvarsymref_stab,'0','0','$2'),
-                    [def_stab_number(pvmttype),getoffsetstr(sym.localloc.reference)])
+                    [def_stab_number(compiler.deftypes.pvmttype),getoffsetstr(sym.localloc.reference)])
                 else
                   begin
                     regidx:=findreg_by_number(sym.localloc.register);
                     ss:=sym_stabstr_evaluate(sym,'"pvmt:r$1",'+base_stabs_str(regvar_stab,'0','0','$2'),
-                      [def_stab_number(pvmttype),tostr(regstabs_table[regidx])]);
+                      [def_stab_number(compiler.deftypes.pvmttype),tostr(regstabs_table[regidx])]);
                   end
                 end
             else
