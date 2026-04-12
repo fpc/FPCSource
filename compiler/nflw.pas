@@ -2805,7 +2805,7 @@ implementation
 
     procedure ttryexceptnode.adjust_estimated_stack_size;
       begin
-        inc(compiler.current_procinfo.estimatedtempsize,rec_jmp_buf.size*2);
+        inc(compiler.current_procinfo.estimatedtempsize,compiler.deftypes.rec_jmp_buf.size*2);
       end;
 
 
@@ -2902,7 +2902,7 @@ implementation
 
     procedure ttryfinallynode.adjust_estimated_stack_size;
       begin
-        inc(compiler.current_procinfo.estimatedtempsize,rec_jmp_buf.size);
+        inc(compiler.current_procinfo.estimatedtempsize,compiler.deftypes.rec_jmp_buf.size);
       end;
 
 

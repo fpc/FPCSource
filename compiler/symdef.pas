@@ -1261,6 +1261,9 @@ interface
          { pointer to the TGUID type
            of all interfaces         }
          rec_tguid : trecorddef;
+
+         { jump buffer type, used by setjmp }
+         rec_jmp_buf : trecorddef;
        end;
 
 
@@ -1289,9 +1292,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-       { jump buffer type, used by setjmp }
-       rec_jmp_buf : trecorddef;
 
        { system.texceptaddr type, used by fpc_pushexceptaddr }
        rec_exceptaddr: trecorddef;
@@ -5647,9 +5647,9 @@ implementation
                 (upper(typename)='TGUID') then
                compiler.deftypes.rec_tguid:=self
              { JMP_BUF }
-             else if not assigned(rec_jmp_buf) and
+             else if not assigned(compiler.deftypes.rec_jmp_buf) and
                 (upper(typename)='JMP_BUF') then
-               rec_jmp_buf:=self
+               compiler.deftypes.rec_jmp_buf:=self
              else if not assigned(rec_exceptaddr) and
                 (upper(typename)='TEXCEPTADDR') then
                rec_exceptaddr:=self;
@@ -9853,7 +9853,7 @@ implementation
        compiler.deftypes.interface_iunknown:=nil;
        compiler.deftypes.interface_idispatch:=nil;
        compiler.deftypes.rec_tguid:=nil;
-       rec_jmp_buf:=nil;
+       compiler.deftypes.rec_jmp_buf:=nil;
        rec_exceptaddr:=nil;
        objc_metaclasstype:=nil;
        objc_superclasstype:=nil;

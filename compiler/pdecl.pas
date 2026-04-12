@@ -448,12 +448,12 @@ implementation
                   begin
                     if compiler.symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
                         compiler.nodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -1042,9 +1042,9 @@ implementation
                      (gentypename='TGUID') and
                      (hdef.size=16) then
                     compiler.deftypes.rec_tguid:=trecorddef(hdef)
-                  else if not assigned(rec_jmp_buf) and
+                  else if not assigned(compiler.deftypes.rec_jmp_buf) and
                      (gentypename='JMP_BUF') then
-                    rec_jmp_buf:=trecorddef(hdef)
+                    compiler.deftypes.rec_jmp_buf:=trecorddef(hdef)
                   else if not assigned(rec_exceptaddr) and
                      (gentypename='TEXCEPTADDR') then
                     rec_exceptaddr:=trecorddef(hdef);

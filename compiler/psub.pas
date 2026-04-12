@@ -2523,7 +2523,7 @@ implementation
           compiler.verbose.Message1(cg_f_internal_type_not_found,'TEXCEPTADDR');
         if not assigned(compiler.deftypes.rec_tguid) then
           compiler.verbose.Message1(cg_f_internal_type_not_found,'TGUID');
-        if not assigned(rec_jmp_buf) then
+        if not assigned(compiler.deftypes.rec_jmp_buf) then
           compiler.verbose.Message1(cg_f_internal_type_not_found,'JMP_BUF');
 {$endif}
 
