@@ -204,6 +204,9 @@ begin
       SysInitUnit:='si_dll';
       si_cprt:='si_dll';
       si_gprt:='si_dll';
+      { DragonFly dllprt0 calls libc _init_tls }
+      if target_info.system in systems_dragonfly then
+        linklibc:=true;
     end
   else
     begin
@@ -346,6 +349,10 @@ begin
 
   if not LdSupportsNoResponseFile then
    LinkRes.Add(')');
+
+  { DragonFly dllprt0 calls libc _init_tls }
+  if isdll and (target_info.system in systems_dragonfly) then
+    SharedLibFiles.Concat('c');
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
