@@ -441,8 +441,8 @@ implementation
               compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_default_unicodestring];
 
         { default the extended RTTI options to that of TObject }
-        if assigned(class_tobject) then
-          compiler.current_module.rtti_directive.options:=class_tobject.rtti.options;
+        if assigned(compiler.deftypes.class_tobject) then
+          compiler.current_module.rtti_directive.options:=compiler.deftypes.class_tobject.rtti.options;
       end;
 
 

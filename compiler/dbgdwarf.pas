@@ -1877,7 +1877,7 @@ implementation
               ]);
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(pint)));
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(class_tobject));
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(compiler.deftypes.class_tobject));
             finish_entry;
 
             finish_children;

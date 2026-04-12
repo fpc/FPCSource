@@ -5582,7 +5582,7 @@ implementation
          if not assigned(left) or
             assigned(tcallparanode(left).right) then
            compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'FpcInternalBox');
-         resultdef:=class_tobject;
+         resultdef:=compiler.deftypes.class_tobject;
        end;
 
 

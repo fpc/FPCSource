@@ -552,7 +552,7 @@ uses
                             if (oo_is_forward in paraobjdef.objectoptions) and
                                 (df_genconstraint in formaldef.defoptions) then
                               begin
-                                if (formalobjdef.childof=class_tobject) and
+                                if (formalobjdef.childof=compiler.deftypes.class_tobject) and
                                     not formalobjdef.implements_any_interfaces then
                                   continue;
                               end;
@@ -2492,7 +2492,7 @@ uses
                 begin
                   if basedef.typ=errordef then
                     { don't pass an errordef as a parent to a tobjectdef }
-                    basedef:=class_tobject
+                    basedef:=compiler.deftypes.class_tobject
                   else
                     if (basedef.typ<>objectdef) or
                         not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then

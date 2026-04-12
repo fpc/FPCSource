@@ -630,7 +630,7 @@ implementation
                                  is set, see below
                                }
                                intfchildof:=childof;
-                               childof:=class_tobject;
+                               childof:=compiler.deftypes.class_tobject;
                             end
                           else
                             compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
@@ -711,8 +711,8 @@ implementation
           begin
             case compiler.current_objectdef.objecttype of
               odt_class:
-                if compiler.current_objectdef<>class_tobject then
-                  childof:=class_tobject;
+                if compiler.current_objectdef<>compiler.deftypes.class_tobject then
+                  childof:=compiler.deftypes.class_tobject;
               odt_interfacecom:
                 if compiler.current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
@@ -723,7 +723,7 @@ implementation
               odt_javaclass:
                 { inherit from TObject by default for compatibility }
                 if compiler.current_objectdef<>java_jlobject then
-                  childof:=class_tobject;
+                  childof:=compiler.deftypes.class_tobject;
               else
                 ;
             end;
@@ -1596,11 +1596,11 @@ implementation
                       interface_idispatch:=compiler.current_objectdef;
                   odt_class :
                     if (compiler.current_structdef.objname^='TOBJECT') then
-                      class_tobject:=compiler.current_objectdef;
+                      compiler.deftypes.class_tobject:=compiler.current_objectdef;
                   odt_javaclass:
                     begin
                       if (compiler.current_structdef.objname^='TOBJECT') then
-                        class_tobject:=compiler.current_objectdef
+                        compiler.deftypes.class_tobject:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLOBJECT') then
                         java_jlobject:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLTHROWABLE') then
@@ -1772,11 +1772,11 @@ implementation
                 compiler.current_structdef.apply_rtti_directive(compiler.current_objectdef.childof.rtti);
 
             { generate TObject VMT space }
-            { We must insert the VMT at the start for system.tobject, and class_tobject was already set.
+            { We must insert the VMT at the start for system.tobject, and compiler.deftypes.class_tobject was already set.
               The cs_compilesystem is superfluous, but we add it for safety.
 
             }
-            if (compiler.current_objectdef=class_tobject) and (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
+            if (compiler.current_objectdef=compiler.deftypes.class_tobject) and (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               compiler.current_objectdef.insertvmt;
 
             { parse and insert object members }

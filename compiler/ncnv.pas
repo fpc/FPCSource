@@ -2623,7 +2623,7 @@ implementation
                               set }
                             if not assigned(tprocdef(pd).struct) then
                               { simply add a TObject as Self parameter }
-                              tprocdef(pd).struct:=class_tobject;
+                              tprocdef(pd).struct:=compiler.deftypes.class_tobject;
 
                             compiler.parser.pparautl.insert_self_and_vmt_para(pd);
 

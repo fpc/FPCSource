@@ -1249,6 +1249,9 @@ interface
          pvmttype,
          { return type of the setjmp function }
          exceptionreasontype      : tdef;
+
+         { pointer to the ancestor of all classes }
+         class_tobject : tobjectdef;
        end;
 
 
@@ -1277,9 +1280,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-       { pointer to the ancestor of all classes }
-       class_tobject : tobjectdef;
        { pointer to the base type for custom attributes }
        class_tcustomattribute : tobjectdef;
        { pointer to the ancestor of all COM interfaces }
@@ -8059,7 +8059,7 @@ implementation
              if (childof=nil) and
                 (objecttype in [odt_class,odt_javaclass]) and
                 (objname^='TOBJECT') then
-               class_tobject:=self;
+               compiler.deftypes.class_tobject:=self;
              if (childof=nil) and
                 (objecttype=odt_interfacecom) then
                 if (objname^='IUNKNOWN') then
@@ -9848,7 +9848,7 @@ implementation
        { return type of the setjmp function }
        compiler.deftypes.exceptionreasontype:=nil;
 
-       class_tobject:=nil;
+       compiler.deftypes.class_tobject:=nil;
        class_tcustomattribute:=nil;
        interface_iunknown:=nil;
        interface_idispatch:=nil;

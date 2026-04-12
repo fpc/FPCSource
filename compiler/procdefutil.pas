@@ -1354,7 +1354,7 @@ implementation
       capturer_def:=tobjectdef(capturer_sym.vardef);
 
       { Neither TInterfacedObject, nor TCapturer have a custom constructor }
-      ctor:=tprocsym(class_tobject.symtable.Find('CREATE'));
+      ctor:=tprocsym(compiler.deftypes.class_tobject.symtable.Find('CREATE'));
       if not assigned(ctor) then
         internalerror(2022010801);
 
