@@ -205,17 +205,17 @@ implementation
           2:
             begin
               compiler.deftypes.codeptruinttype:=compiler.deftypes.u16inttype;
-              codeptrsinttype:=compiler.deftypes.s16inttype;
+              compiler.deftypes.codeptrsinttype:=compiler.deftypes.s16inttype;
             end;
           4:
             begin
               compiler.deftypes.codeptruinttype:=compiler.deftypes.u32inttype;
-              codeptrsinttype:=compiler.deftypes.s32inttype;
+              compiler.deftypes.codeptrsinttype:=compiler.deftypes.s32inttype;
             end;
           8:
             begin
               compiler.deftypes.codeptruinttype:=compiler.deftypes.u64inttype;
-              codeptrsinttype:=compiler.deftypes.s64inttype;
+              compiler.deftypes.codeptrsinttype:=compiler.deftypes.s64inttype;
             end;
           else
             Internalerror(2015112106);
