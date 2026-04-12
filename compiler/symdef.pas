@@ -1274,6 +1274,8 @@ interface
          objc_idtype,
          objc_seltype              : tpointerdef;
          objc_objecttype           : trecorddef;
+         { base type of @protocol(protocolname) Objective-C statements }
+         objc_protocoltype         : tobjectdef;
        end;
 
 
@@ -1302,8 +1304,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { base type of @protocol(protocolname) Objective-C statements }
-       objc_protocoltype         : tobjectdef;
        { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
        objc_fastenumeration      : tobjectdef;
        objc_fastenumerationstate : trecorddef;
@@ -8095,7 +8095,7 @@ implementation
          if (childof=nil) and
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then
-           objc_protocoltype:=self;
+           compiler.deftypes.objc_protocoltype:=self;
 
          writing_class_record_dbginfo:=false;
        end;
@@ -9862,7 +9862,7 @@ implementation
        compiler.deftypes.objc_idtype:=nil;
        compiler.deftypes.objc_seltype:=nil;
        compiler.deftypes.objc_objecttype:=nil;
-       objc_protocoltype:=nil;
+       compiler.deftypes.objc_protocoltype:=nil;
        objc_fastenumeration:=nil;
        objc_fastenumerationstate:=nil;
 

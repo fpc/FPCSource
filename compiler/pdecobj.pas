@@ -1631,7 +1631,7 @@ implementation
                 case compiler.current_objectdef.objecttype of
                   odt_objcclass:
                     if (compiler.current_objectdef.objname^='Protocol') then
-                      objc_protocoltype:=compiler.current_objectdef;
+                      compiler.deftypes.objc_protocoltype:=compiler.current_objectdef;
                   else
                     ;
                 end;
