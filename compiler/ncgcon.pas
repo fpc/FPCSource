@@ -515,7 +515,7 @@ implementation
                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                  datatcb.emit_guid_const(value);
                  current_asmdata.asmlists[al_typedconsts].concatList(
-                   datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,compiler.globals.const_align(16)));
+                   datatcb.get_final_asmlist(lastlabel,compiler.deftypes.rec_tguid,sec_rodata_norel,lastlabel.name,compiler.globals.const_align(16)));
                  datatcb.free;
                  datatcb := nil;
                  lab_set:=lastlabel;

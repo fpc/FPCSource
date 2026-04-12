@@ -1258,6 +1258,9 @@ interface
          interface_iunknown : tobjectdef;
          { pointer to the ancestor of all dispinterfaces }
          interface_idispatch : tobjectdef;
+         { pointer to the TGUID type
+           of all interfaces         }
+         rec_tguid : trecorddef;
        end;
 
 
@@ -1286,9 +1289,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { pointer to the TGUID type
-         of all interfaces         }
-       rec_tguid : trecorddef;
 
        { jump buffer type, used by setjmp }
        rec_jmp_buf : trecorddef;
@@ -5643,9 +5643,9 @@ implementation
             (owner.name^='SYSTEM') then
            begin
              { TGUID  }
-             if not assigned(rec_tguid) and
+             if not assigned(compiler.deftypes.rec_tguid) and
                 (upper(typename)='TGUID') then
-               rec_tguid:=self
+               compiler.deftypes.rec_tguid:=self
              { JMP_BUF }
              else if not assigned(rec_jmp_buf) and
                 (upper(typename)='JMP_BUF') then
@@ -9852,7 +9852,7 @@ implementation
        compiler.deftypes.class_tcustomattribute:=nil;
        compiler.deftypes.interface_iunknown:=nil;
        compiler.deftypes.interface_idispatch:=nil;
-       rec_tguid:=nil;
+       compiler.deftypes.rec_tguid:=nil;
        rec_jmp_buf:=nil;
        rec_exceptaddr:=nil;
        objc_metaclasstype:=nil;

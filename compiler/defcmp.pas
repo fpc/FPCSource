@@ -1962,7 +1962,7 @@ implementation
                           end;
                      end
                    { Interface 2 GUID handling }
-                   else if (def_to=tdef(rec_tguid)) and
+                   else if (def_to=tdef(compiler.deftypes.rec_tguid)) and
                            (fromtreetype=typen) and
                            is_interface(def_from) and
                            assigned(tobjectdef(def_from).iidguid) then
@@ -2117,7 +2117,7 @@ implementation
            recorddef :
              begin
                { interface -> guid }
-               if (def_to=rec_tguid) and
+               if (def_to=compiler.deftypes.rec_tguid) and
                   (is_interfacecom_or_dispinterface(def_from)) then
                 begin
                   doconv:=tc_intf_2_guid;

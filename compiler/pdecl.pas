@@ -1038,10 +1038,10 @@ implementation
                  assigned(hdef) and
                  (hdef.typ=recorddef) then
                 begin
-                  if not assigned(rec_tguid) and
+                  if not assigned(compiler.deftypes.rec_tguid) and
                      (gentypename='TGUID') and
                      (hdef.size=16) then
-                    rec_tguid:=trecorddef(hdef)
+                    compiler.deftypes.rec_tguid:=trecorddef(hdef)
                   else if not assigned(rec_jmp_buf) and
                      (gentypename='JMP_BUF') then
                     rec_jmp_buf:=trecorddef(hdef)

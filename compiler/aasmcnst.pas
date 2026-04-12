@@ -1886,22 +1886,22 @@ implementation
        i: longint;
        field: tfieldvarsym;
      begin
-       maybe_begin_aggregate(rec_tguid);
+       maybe_begin_aggregate(compiler.deftypes.rec_tguid);
        { variant record -> must specify which fields get initialised }
-       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA1'));
+       next_field:=tfieldvarsym(compiler.deftypes.rec_tguid.symtable.Find('DATA1'));
        emit_tai(Tai_const.Create_32bit(longint(guid.D1)),compiler.deftypes.u32inttype);
-       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA2'));
+       next_field:=tfieldvarsym(compiler.deftypes.rec_tguid.symtable.Find('DATA2'));
        emit_tai(Tai_const.Create_16bit(guid.D2),compiler.deftypes.u16inttype);
-       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA3'));
+       next_field:=tfieldvarsym(compiler.deftypes.rec_tguid.symtable.Find('DATA3'));
        emit_tai(Tai_const.Create_16bit(guid.D3),compiler.deftypes.u16inttype);
-       field:=tfieldvarsym(rec_tguid.symtable.Find('DATA4'));
+       field:=tfieldvarsym(compiler.deftypes.rec_tguid.symtable.Find('DATA4'));
        next_field:=field;
        { the array }
        maybe_begin_aggregate(field.vardef);
        for i:=Low(guid.D4) to High(guid.D4) do
          emit_tai(Tai_const.Create_8bit(guid.D4[i]),compiler.deftypes.u8inttype);
        maybe_end_aggregate(field.vardef);
-       maybe_end_aggregate(rec_tguid);
+       maybe_end_aggregate(compiler.deftypes.rec_tguid);
      end;
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);

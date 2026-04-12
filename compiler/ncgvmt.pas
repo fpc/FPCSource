@@ -812,10 +812,10 @@ implementation
           begin
             siid:=make_mangledname('IID',nonuniqueintf.owner,nonuniqueintf.objname^);
             tcb.emit_tai(Tai_const.Create_sym_offset(
-              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid,compiler));
+              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(compiler.deftypes.rec_tguid,compiler));
           end
         else
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid,compiler));
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(compiler.deftypes.rec_tguid,compiler));
 
         { VTable }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
@@ -932,10 +932,10 @@ implementation
           s:=make_mangledname('IID',_class.owner,_class.objname^);
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           tcb.emit_guid_const(_class.iidguid^);
-          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,rec_tguid);
+          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,compiler.deftypes.rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
             sym,
-            rec_tguid,
+            compiler.deftypes.rec_tguid,
             sec_rodata,
             s,
             sizeof(pint)));

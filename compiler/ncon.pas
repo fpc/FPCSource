@@ -1629,7 +1629,7 @@ implementation
     function tguidconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resultdef:=rec_tguid;
+        resultdef:=compiler.deftypes.rec_tguid;
       end;
 
 
