@@ -674,8 +674,8 @@ implementation
           begin
             { Add a type for virtual method tables }
             hrecst:=trecordsymtable.create('',compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
-            vmttype:=crecorddef.create('',hrecst,compiler);
-            pvmttype:=cpointerdef.create(vmttype,compiler);
+            compiler.deftypes.vmttype:=crecorddef.create('',hrecst,compiler);
+            pvmttype:=cpointerdef.create(compiler.deftypes.vmttype,compiler);
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
@@ -683,7 +683,7 @@ implementation
             addfield(hrecst,cfieldvarsym.create('$length',vs_value,compiler.deftypes.sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,compiler.deftypes.sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
-            { it seems vmttype is used both for TP objects and Delphi classes,
+            { it seems compiler.deftypes.vmttype is used both for TP objects and Delphi classes,
               so the next entry could either be the first virtual method (vm1)
               (object) or the class name (class). We can't easily create separate
               vtable formats for both, as gdb is hard coded to search for
@@ -692,7 +692,7 @@ implementation
             vmtarraytype:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
-            addtype('$__vtbl_ptr_type',vmttype);
+            addtype('$__vtbl_ptr_type',compiler.deftypes.vmttype);
             vmtarraytype:=carraydef.create(0,1,compiler.deftypes.s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
             addtype('$vtblarray',vmtarraytype);
@@ -831,7 +831,7 @@ implementation
           begin
             loadtype(pvmt_name,pvmttype);
             loadtype('vtblarray',vmtarraytype);
-            loadtype('__vtbl_ptr_type',vmttype);
+            loadtype('__vtbl_ptr_type',compiler.deftypes.vmttype);
           end;
         if f_variants in compiler.globals.features then
           begin

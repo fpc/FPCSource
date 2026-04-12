@@ -1233,7 +1233,7 @@ implementation
            assigned(def.owner) and
            assigned(def.owner.name) then
           list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
-                 def_stab_number(vmttype)+'",'+
+                 def_stab_number(compiler.deftypes.vmttype)+'",'+
                  base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname))));
       end;
 

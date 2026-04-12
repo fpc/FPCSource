@@ -1241,7 +1241,9 @@ interface
          ptrsinttype,
          { unsigned and signed ord type with the same size as a codepointer }
          codeptruinttype,
-         codeptrsinttype: tdef;
+         codeptrsinttype,
+         { several types to simulate more or less C++ objects for GDB }
+         vmttype: tdef;
        end;
 
 
@@ -1270,8 +1272,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       { several types to simulate more or less C++ objects for GDB }
-       vmttype,
        vmtarraytype,
        { type of classrefs, used for stabs }
        pvmttype,
@@ -9841,7 +9841,7 @@ implementation
        compiler.deftypes.codeptruinttype:=nil;
        compiler.deftypes.codeptrsinttype:=nil;
        { several types to simulate more or less C++ objects for GDB }
-       vmttype:=nil;
+       compiler.deftypes.vmttype:=nil;
        vmtarraytype:=nil;
        { type of classrefs, used for stabs }
        pvmttype:=nil;
