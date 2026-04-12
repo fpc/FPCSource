@@ -169,7 +169,7 @@ unit cgexcept;
       begin
         if not assigned(compiler.deftypes.exceptionreasontype) then
           compiler.deftypes.exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
-        tg.gethltemp(list,rec_exceptaddr,rec_exceptaddr.size,tt_persistent,t.envbuf);
+        tg.gethltemp(list,compiler.deftypes.rec_exceptaddr,compiler.deftypes.rec_exceptaddr.size,tt_persistent,t.envbuf);
         tg.gethltemp(list,compiler.deftypes.rec_jmp_buf,compiler.deftypes.rec_jmp_buf.size,tt_persistent,t.jmpbuf);
         tg.gethltemp(list,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype.size,tt_persistent,t.reasonbuf);
       end;
@@ -209,11 +209,11 @@ unit cgexcept;
             { setjmp buffer }
             hlcg.a_loadaddr_ref_cgpara(list,compiler.deftypes.rec_jmp_buf,t.jmpbuf,paraloc2);
             { exception address chain entry }
-            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
+            hlcg.a_loadaddr_ref_cgpara(list,compiler.deftypes.rec_exceptaddr,t.envbuf,paraloc3);
           end
         else
           begin
-            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
+            hlcg.a_loadaddr_ref_cgpara(list,compiler.deftypes.rec_exceptaddr,t.envbuf,paraloc3);
             hlcg.a_loadaddr_ref_cgpara(list,compiler.deftypes.rec_jmp_buf,t.jmpbuf,paraloc2);
             hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
           end;

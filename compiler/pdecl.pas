@@ -1045,9 +1045,9 @@ implementation
                   else if not assigned(compiler.deftypes.rec_jmp_buf) and
                      (gentypename='JMP_BUF') then
                     compiler.deftypes.rec_jmp_buf:=trecorddef(hdef)
-                  else if not assigned(rec_exceptaddr) and
+                  else if not assigned(compiler.deftypes.rec_exceptaddr) and
                      (gentypename='TEXCEPTADDR') then
-                    rec_exceptaddr:=trecorddef(hdef);
+                    compiler.deftypes.rec_exceptaddr:=trecorddef(hdef);
                 end;
             end;
            if assigned(hdef) then

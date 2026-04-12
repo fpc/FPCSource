@@ -1264,6 +1264,9 @@ interface
 
          { jump buffer type, used by setjmp }
          rec_jmp_buf : trecorddef;
+
+         { system.texceptaddr type, used by fpc_pushexceptaddr }
+         rec_exceptaddr: trecorddef;
        end;
 
 
@@ -1292,9 +1295,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-       { system.texceptaddr type, used by fpc_pushexceptaddr }
-       rec_exceptaddr: trecorddef;
 
        { Objective-C base types }
        objc_metaclasstype,
@@ -5650,9 +5650,9 @@ implementation
              else if not assigned(compiler.deftypes.rec_jmp_buf) and
                 (upper(typename)='JMP_BUF') then
                compiler.deftypes.rec_jmp_buf:=self
-             else if not assigned(rec_exceptaddr) and
+             else if not assigned(compiler.deftypes.rec_exceptaddr) and
                 (upper(typename)='TEXCEPTADDR') then
-               rec_exceptaddr:=self;
+               compiler.deftypes.rec_exceptaddr:=self;
            end;
       end;
 
@@ -9854,7 +9854,7 @@ implementation
        compiler.deftypes.interface_idispatch:=nil;
        compiler.deftypes.rec_tguid:=nil;
        compiler.deftypes.rec_jmp_buf:=nil;
-       rec_exceptaddr:=nil;
+       compiler.deftypes.rec_exceptaddr:=nil;
        objc_metaclasstype:=nil;
        objc_superclasstype:=nil;
        objc_idtype:=nil;

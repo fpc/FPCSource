@@ -2519,7 +2519,7 @@ implementation
         { check if the definitions of certain types are available which might not be available in older rtls and
           which are assigned "on the fly" in types_dec }
 {$if not defined(jvm) and not defined(wasm)}
-        if not assigned(rec_exceptaddr) then
+        if not assigned(compiler.deftypes.rec_exceptaddr) then
           compiler.verbose.Message1(cg_f_internal_type_not_found,'TEXCEPTADDR');
         if not assigned(compiler.deftypes.rec_tguid) then
           compiler.verbose.Message1(cg_f_internal_type_not_found,'TGUID');
