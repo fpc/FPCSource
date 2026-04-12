@@ -1549,7 +1549,7 @@ begin
           pointerdef,
           classrefdef:
             if (fs.vardef=objc_idtype) or
-               (fs.vardef=objc_metaclasstype) then
+               (fs.vardef=compiler.deftypes.objc_metaclasstype) then
               includelen:=1;
           recorddef:
             TODO: bitpacking -> offset differences

@@ -1267,6 +1267,9 @@ interface
 
          { system.texceptaddr type, used by fpc_pushexceptaddr }
          rec_exceptaddr: trecorddef;
+
+         { Objective-C base types }
+         objc_metaclasstype: tpointerdef;
        end;
 
 
@@ -1295,9 +1298,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-       { Objective-C base types }
-       objc_metaclasstype,
        objc_superclasstype,
        objc_idtype,
        objc_seltype              : tpointerdef;
@@ -9638,8 +9638,10 @@ implementation
       end;
 
     procedure loadobjctypes;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS',true).typedef);
+        compiler.deftypes.objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS',true).typedef);
         objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER',true).typedef);
         objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID',true).typedef);
         objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL',true).typedef);
@@ -9855,7 +9857,7 @@ implementation
        compiler.deftypes.rec_tguid:=nil;
        compiler.deftypes.rec_jmp_buf:=nil;
        compiler.deftypes.rec_exceptaddr:=nil;
-       objc_metaclasstype:=nil;
+       compiler.deftypes.objc_metaclasstype:=nil;
        objc_superclasstype:=nil;
        objc_idtype:=nil;
        objc_seltype:=nil;

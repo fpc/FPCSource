@@ -1674,9 +1674,9 @@ implementation
                          { id = generic class instance. metaclasses are also
                            class instances themselves.  }
                          else if ((def_from=objc_idtype) and
-                                  (def_to=objc_metaclasstype)) or
+                                  (def_to=compiler.deftypes.objc_metaclasstype)) or
                                  ((def_to=objc_idtype) and
-                                  (def_from=objc_metaclasstype)) then
+                                  (def_from=compiler.deftypes.objc_metaclasstype)) then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l2;
@@ -1728,7 +1728,7 @@ implementation
                                hence they're also assignment-compatible with
                                id }
                              (is_objcclassref(def_from) and
-                              ((def_to=objc_metaclasstype) or
+                              ((def_to=compiler.deftypes.objc_metaclasstype) or
                                (def_to=objc_idtype))) then
                        begin
                          doconv:=tc_equal;

@@ -218,7 +218,7 @@ implementation
                 encodedstr:=encodedstr+'@'
               else if (def=objc_seltype) then
                 encodedstr:=encodedstr+':'
-              else if (def=objc_metaclasstype) then
+              else if (def=compiler.deftypes.objc_metaclasstype) then
                 encodedstr:=encodedstr+'#'
               else
                 begin
