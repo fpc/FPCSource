@@ -469,7 +469,7 @@ implementation
 
   function thlcgwasm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
-      a_load_reg_stack(list, ptrsinttype, reg);
+      a_load_reg_stack(list, compiler.deftypes.ptrsinttype, reg);
       if pd.typ=procvardef then
         current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_call_indirect,tcpuprocvardef(pd).create_functype))
       else

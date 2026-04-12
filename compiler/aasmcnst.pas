@@ -1264,7 +1264,7 @@ implementation
      begin
        result:=
          { reference count }
-         ptrsinttype.size +
+         _compiler.deftypes.ptrsinttype.size +
          { high value }
          _compiler.deftypes.sizesinttype.size;
      end;
@@ -1820,9 +1820,9 @@ implementation
          constant string }
        begin_anonymous_record('',1,sizeof(TConstPtrUInt),1);
        dynarray_symofs:=get_dynarray_symofs(compiler.target);
-       { what to do if ptrsinttype <> compiler.deftypes.sizesinttype??? }
-       emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
-       inc(result.ofs,ptrsinttype.size);
+       { what to do if compiler.deftypes.ptrsinttype <> compiler.deftypes.sizesinttype??? }
+       emit_tai(tai_const.create_sizeint(-1),compiler.deftypes.ptrsinttype);
+       inc(result.ofs,compiler.deftypes.ptrsinttype.size);
        arrlengthloc:=emit_placeholder(compiler.deftypes.sizesinttype);
        inc(result.ofs,compiler.deftypes.sizesinttype.size);
        if dynarray_symofs=0 then

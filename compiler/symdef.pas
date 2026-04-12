@@ -1237,7 +1237,8 @@ interface
          sizeuinttype,
          sizesinttype,
          { unsigned and signed ord type with the same size as a pointer }
-         ptruinttype: tdef;
+         ptruinttype,
+         ptrsinttype: tdef;
        end;
 
 
@@ -1266,7 +1267,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       ptrsinttype,
        { unsigned and signed ord type with the same size as a codepointer }
        codeptruinttype,
        codeptrsinttype,
@@ -4199,7 +4199,7 @@ implementation
 
     function tpointerdef.pointer_arithmetic_int_type:tdef;
       begin
-        result:=ptrsinttype;
+        result:=compiler.deftypes.ptrsinttype;
       end;
 
 
@@ -4211,7 +4211,7 @@ implementation
 
     function tpointerdef.pointer_subtraction_result_type:tdef;
       begin
-        result:=ptrsinttype;
+        result:=compiler.deftypes.ptrsinttype;
       end;
 
 
@@ -4223,7 +4223,7 @@ implementation
 
     function tpointerdef.converted_pointer_to_array_range_type:tdef;
       begin
-        result:=ptrsinttype;
+        result:=compiler.deftypes.ptrsinttype;
       end;
 
 
@@ -9836,7 +9836,7 @@ implementation
        compiler.deftypes.sizesinttype:=nil;
        { unsigned and signed ord type with the same size as a pointer }
        compiler.deftypes.ptruinttype:=nil;
-       ptrsinttype:=nil;
+       compiler.deftypes.ptrsinttype:=nil;
        { unsigned and signed ord type with the same size as a codepointer }
        codeptruinttype:=nil;
        codeptrsinttype:=nil;

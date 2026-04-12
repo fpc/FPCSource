@@ -4294,7 +4294,7 @@ implementation
                           if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
                             compiler.verbose.CGMessagePos(fileinfo,type_e_ordinal_expr_expected);
                           resultdef:=compiler.deftypes.voidpointertype;
-                          convdef:=ptrsinttype;
+                          convdef:=compiler.deftypes.ptrsinttype;
                         end;
                       { left gets changed -> must be unique }
                       set_unique(tcallparanode(left).left);

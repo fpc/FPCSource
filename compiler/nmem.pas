@@ -1257,8 +1257,8 @@ implementation
                    begin
                      inserttypeconv(right,htype,compiler);
                      { insert type conversion so cse can pick it up }
-                     if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in compiler.globals.current_settings.localswitches) then
-                       inserttypeconv_internal(right,ptrsinttype,compiler);
+                     if (htype.size<compiler.deftypes.ptrsinttype.size) and is_integer(htype) and not(cs_check_range in compiler.globals.current_settings.localswitches) then
+                       inserttypeconv_internal(right,compiler.deftypes.ptrsinttype,compiler);
                    end;
                end;
              stringdef:

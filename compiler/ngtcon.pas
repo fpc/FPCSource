@@ -837,18 +837,18 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (node.nodetype = pointerconstn) then
           begin
             ftcb.queue_init(def);
-            ftcb.queue_typeconvn(ptrsinttype,def);
+            ftcb.queue_typeconvn(compiler.deftypes.ptrsinttype,def);
             {$if sizeof(TConstPtrUInt)=8}
-              ftcb.queue_emit_ordconst(int64(tpointerconstnode(node).value),ptrsinttype);
+              ftcb.queue_emit_ordconst(int64(tpointerconstnode(node).value),compiler.deftypes.ptrsinttype);
             {$else}
               {$if sizeof(TConstPtrUInt)=4}
-                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),ptrsinttype);
+                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),compiler.deftypes.ptrsinttype);
               {$else}
                 {$if sizeof(TConstPtrUInt)=2}
-                  ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),ptrsinttype);
+                  ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),compiler.deftypes.ptrsinttype);
                 {$else}
                   {$if sizeof(TConstPtrUInt)=1}
-                    ftcb.queue_emit_ordconst(shortint(tpointerconstnode(node).value),ptrsinttype);
+                    ftcb.queue_emit_ordconst(shortint(tpointerconstnode(node).value),compiler.deftypes.ptrsinttype);
                   {$else}
                     internalerror(200404122);
             {$endif} {$endif} {$endif} {$endif}

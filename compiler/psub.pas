@@ -622,9 +622,9 @@ implementation
                     addstatement(newstatement,compiler.cifnode(
                         compiler.caddnode(gtn,
                             compiler.ctypeconvnode_internal(
-                              load_vmt_pointer_node,ptrsinttype),
+                              load_vmt_pointer_node,compiler.deftypes.ptrsinttype),
                             compiler.ctypeconvnode_internal(
-                              compiler.cnilnode,ptrsinttype)),
+                              compiler.cnilnode,compiler.deftypes.ptrsinttype)),
                         compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil));
                   end
@@ -794,7 +794,7 @@ implementation
             constructionsuccessful:=nil;
             if is_class(procdef.struct) then
               begin
-                constructionsuccessful:=clocalvarsym.create(internaltypeprefixName[itp_vmt_afterconstruction_local],vs_value,ptrsinttype,[]);
+                constructionsuccessful:=clocalvarsym.create(internaltypeprefixName[itp_vmt_afterconstruction_local],vs_value,compiler.deftypes.ptrsinttype,[]);
                 procdef.localst.insertsym(constructionsuccessful,false);
                 srsym:=search_struct_member(procdef.struct,'AFTERCONSTRUCTION');
                 if not assigned(srsym) or

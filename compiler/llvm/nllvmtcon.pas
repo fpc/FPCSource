@@ -653,7 +653,7 @@ implementation
       vecindex:=index.svalue;
       if def.typ=arraydef then
         dec(vecindex,tarraydef(def).lowrange);
-      ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,vecindex,true);
+      ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,compiler.deftypes.ptrsinttype,vecindex,true);
       case def.typ of
         arraydef:
           eledef:=tarraydef(def).elementdef;
@@ -689,9 +689,9 @@ implementation
       { update range checking info }
       inherited;
       if index.svalue<>low(int64) then
-        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,-index.svalue,false)
+        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,compiler.deftypes.ptrsinttype,-index.svalue,false)
       else
-        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,index.svalue,false);
+        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,compiler.deftypes.ptrsinttype,index.svalue,false);
       aityped:=wrap_with_type(ai,def);
       update_queued_tai(def,aityped,ai,1);
     end;
@@ -730,7 +730,7 @@ implementation
                   llvmfielddef:=compiler.deftypes.u8inttype;
                 end;
               { add the offset }
-              getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
+              getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,compiler.deftypes.ptrsinttype,vs.offsetfromllvmfield,true);
               { ... and set the result type of the getelementptr }
               getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(compiler.deftypes.u8inttype,compiler));
               llvmfielddef:=compiler.deftypes.u8inttype;

@@ -710,8 +710,8 @@ implementation
     begin
       if tosize=llvm_metadatatype then
         internalerror(2019122804);
-      if tosize.size<=ptrsinttype.size then
-        fromsize:=ptrsinttype
+      if tosize.size<=compiler.deftypes.ptrsinttype.size then
+        fromsize:=compiler.deftypes.ptrsinttype
       else
         fromsize:=tosize;
       list.concat(taillvm.op_reg_size_const_size(llvmconvop(fromsize,tosize,false),register,fromsize,a,tosize))
@@ -864,9 +864,9 @@ implementation
          (fromsize.size<tosize.size) then
         begin
           tmpreg:=getintregister(list,fromsize);
-          a_load_reg_reg(list,fromsize,ptrsinttype,reg1,tmpreg);
+          a_load_reg_reg(list,fromsize,compiler.deftypes.ptrsinttype,reg1,tmpreg);
           reg1:=tmpreg;
-          fromsize:=ptrsinttype;
+          fromsize:=compiler.deftypes.ptrsinttype;
         end;
       { reg2 = bitcast fromsize reg1 to tosize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
