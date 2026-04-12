@@ -1273,6 +1273,7 @@ interface
          objc_superclasstype,
          objc_idtype,
          objc_seltype              : tpointerdef;
+         objc_objecttype           : trecorddef;
        end;
 
 
@@ -1301,7 +1302,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       objc_objecttype           : trecorddef;
        { base type of @protocol(protocolname) Objective-C statements }
        objc_protocoltype         : tobjectdef;
        { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
@@ -9645,7 +9645,7 @@ implementation
         compiler.deftypes.objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER',true).typedef);
         compiler.deftypes.objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID',true).typedef);
         compiler.deftypes.objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL',true).typedef);
-        objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT',true).typedef);
+        compiler.deftypes.objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT',true).typedef);
       end;
 
 
@@ -9861,7 +9861,7 @@ implementation
        compiler.deftypes.objc_superclasstype:=nil;
        compiler.deftypes.objc_idtype:=nil;
        compiler.deftypes.objc_seltype:=nil;
-       objc_objecttype:=nil;
+       compiler.deftypes.objc_objecttype:=nil;
        objc_protocoltype:=nil;
        objc_fastenumeration:=nil;
        objc_fastenumerationstate:=nil;

@@ -134,7 +134,7 @@ end;
       var
         vs         : tsym;
       begin
-        vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
+        vs:=tsym(tabstractrecorddef(compiler.deftypes.objc_objecttype).symtable.Find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(200911301);
