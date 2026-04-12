@@ -216,7 +216,7 @@ implementation
                 encodedstr:=encodedstr+'*'
               else if (def=compiler.deftypes.objc_idtype) then
                 encodedstr:=encodedstr+'@'
-              else if (def=objc_seltype) then
+              else if (def=compiler.deftypes.objc_seltype) then
                 encodedstr:=encodedstr+':'
               else if (def=compiler.deftypes.objc_metaclasstype) then
                 encodedstr:=encodedstr+'#'

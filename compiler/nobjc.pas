@@ -119,7 +119,7 @@ function tobjcselectornode.pass_typecheck: tnode;
       else
         compiler.verbose.CGMessage(type_e_expected_objc_method);
     end;
-    resultdef:=objc_seltype;
+    resultdef:=compiler.deftypes.objc_seltype;
   end;
 
 

@@ -228,12 +228,12 @@ implementation
                 not assigned(pd.parast.find(name_self)) then
               begin
                 { insert Objective-C self and selector parameters }
-                vs:=cparavarsym.create('$'+name_cmd,paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+                vs:=cparavarsym.create('$'+name_cmd,paranr_objc_cmd,vs_value,compiler.deftypes.objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
                 pd.parast.insertsym(vs);
                 { make accessible to code }
                 sl:=tpropaccesslist.create;
                 sl.addsym(sl_load,vs);
-                aliasvs:=cabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
+                aliasvs:=cabsolutevarsym.create_ref('_CMD',compiler.deftypes.objc_seltype,sl);
                 include(aliasvs.varoptions,vo_is_msgsel);
                 tlocalsymtable(tprocdef(pd).localst).insertsym(aliasvs);
 
