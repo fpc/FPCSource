@@ -853,7 +853,7 @@ implementation
               not assigned(def.childof) or
               not(oo_has_vmt in def.childof.objectoptions)
              ) then
-            ss:=ss+'$vf'+def_stab_classnumber(def)+':'+def_stab_number(vmtarraytype)+','+tostr(def.vmt_offset*8)+';';
+            ss:=ss+'$vf'+def_stab_classnumber(def)+':'+def_stab_number(compiler.deftypes.vmtarraytype)+','+tostr(def.vmt_offset*8)+';';
           def.symtable.symList.ForEachCall(@method_add_stabstr,@ss);
           if (oo_has_vmt in def.objectoptions) then
             begin
@@ -1091,7 +1091,7 @@ implementation
                       ;
                   end;
                 end;
-              appenddef(list,vmtarraytype);
+              appenddef(list,compiler.deftypes.vmtarraytype);
               if assigned(tobjectdef(def).ImplementedInterfaces) then
                 for i:=0 to tobjectdef(def).ImplementedInterfaces.Count-1 do
                   appenddef(list,TImplementedInterface(tobjectdef(def).ImplementedInterfaces[i]).IntfDef);

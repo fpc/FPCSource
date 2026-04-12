@@ -689,13 +689,13 @@ implementation
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
             addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(compiler.deftypes.cshortstringtype,compiler),[]));
-            vmtarraytype:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
-            tarraydef(vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
-            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
+            compiler.deftypes.vmtarraytype:=carraydef.create(0,0,compiler.deftypes.s32inttype,compiler);
+            tarraydef(compiler.deftypes.vmtarraytype).elementdef:=compiler.deftypes.voidpointertype;
+            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,compiler.deftypes.vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',compiler.deftypes.vmttype);
-            vmtarraytype:=carraydef.create(0,1,compiler.deftypes.s32inttype,compiler);
-            tarraydef(vmtarraytype).elementdef:=pvmttype;
-            addtype('$vtblarray',vmtarraytype);
+            compiler.deftypes.vmtarraytype:=carraydef.create(0,1,compiler.deftypes.s32inttype,compiler);
+            tarraydef(compiler.deftypes.vmtarraytype).elementdef:=pvmttype;
+            addtype('$vtblarray',compiler.deftypes.vmtarraytype);
           end;
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
@@ -830,7 +830,7 @@ implementation
         if not(compiler.target.info.system in systems_managed_vm) then
           begin
             loadtype(pvmt_name,pvmttype);
-            loadtype('vtblarray',vmtarraytype);
+            loadtype('vtblarray',compiler.deftypes.vmtarraytype);
             loadtype('__vtbl_ptr_type',compiler.deftypes.vmttype);
           end;
         if f_variants in compiler.globals.features then

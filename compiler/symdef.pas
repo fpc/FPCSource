@@ -1243,7 +1243,8 @@ interface
          codeptruinttype,
          codeptrsinttype,
          { several types to simulate more or less C++ objects for GDB }
-         vmttype: tdef;
+         vmttype,
+         vmtarraytype: tdef;
        end;
 
 
@@ -1272,7 +1273,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
-       vmtarraytype,
        { type of classrefs, used for stabs }
        pvmttype,
        { return type of the setjmp function }
@@ -9842,7 +9842,7 @@ implementation
        compiler.deftypes.codeptrsinttype:=nil;
        { several types to simulate more or less C++ objects for GDB }
        compiler.deftypes.vmttype:=nil;
-       vmtarraytype:=nil;
+       compiler.deftypes.vmtarraytype:=nil;
        { type of classrefs, used for stabs }
        pvmttype:=nil;
        { return type of the setjmp function }
