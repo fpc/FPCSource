@@ -714,8 +714,8 @@ implementation
                 if compiler.current_objectdef<>compiler.deftypes.class_tobject then
                   childof:=compiler.deftypes.class_tobject;
               odt_interfacecom:
-                if compiler.current_objectdef<>interface_iunknown then
-                  childof:=interface_iunknown;
+                if compiler.current_objectdef<>compiler.deftypes.interface_iunknown then
+                  childof:=compiler.deftypes.interface_iunknown;
               odt_dispinterface:
                 childof:=interface_idispatch;
               odt_objcclass:
@@ -1590,7 +1590,7 @@ implementation
                 case compiler.current_objectdef.objecttype of
                   odt_interfacecom :
                     if (compiler.current_structdef.objname^='IUNKNOWN') then
-                      interface_iunknown:=compiler.current_objectdef
+                      compiler.deftypes.interface_iunknown:=compiler.current_objectdef
                     else
                     if (compiler.current_structdef.objname^='IDISPATCH') then
                       interface_idispatch:=compiler.current_objectdef;

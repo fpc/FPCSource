@@ -496,7 +496,7 @@ uses
                                       (df_genconstraint in formalobjdef.defoptions) and
                                       (
                                         (formalobjdef.objecttype=odt_interfacecom) and
-                                        (formalobjdef.childof=interface_iunknown)
+                                        (formalobjdef.childof=compiler.deftypes.interface_iunknown)
                                       )
                                       or
                                       (

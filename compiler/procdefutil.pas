@@ -177,7 +177,7 @@ implementation
         name:=anon_funcref_prefix+fileinfo_to_suffix(compiler.globals.current_filepos)
       else
         name:=n;
-      intfdef:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,true,compiler);
+      intfdef:=cobjectdef.create(odt_interfacecom,name,compiler.deftypes.interface_iunknown,true,compiler);
       include(intfdef.objectoptions,oo_is_funcref);
       include(intfdef.objectoptions,oo_is_invokable);
       include(intfdef.objectoptions,oo_has_virtual);
@@ -346,7 +346,7 @@ implementation
 
       name:='$'+name;
 
-      result:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,false,compiler);
+      result:=cobjectdef.create(odt_interfacecom,name,compiler.deftypes.interface_iunknown,false,compiler);
       include(result.objectoptions,oo_is_funcref);
       include(result.objectoptions,oo_is_invokable);
 
@@ -523,9 +523,9 @@ implementation
           addsymref(result);
 
           if st.symtabletype=localsymtable then
-            keepalive:=clocalvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[vo_is_internal])
+            keepalive:=clocalvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,compiler.deftypes.interface_iunknown,[vo_is_internal])
           else
-            keepalive:=cstaticvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[vo_is_internal]);
+            keepalive:=cstaticvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,compiler.deftypes.interface_iunknown,[vo_is_internal]);
           keepalive.fileinfo:=pd.fileinfo;
           st.insertsym(keepalive);
           addsymref(keepalive);
@@ -707,7 +707,7 @@ implementation
                         internalerror(2022011604);
                     end;
                   { add the keep alive IUnknown symbol }
-                  fieldsym:=cfieldvarsym.create('$'+outer_self_field_name+keepalive_suffix,vs_value,interface_iunknown,[]);
+                  fieldsym:=cfieldvarsym.create('$'+outer_self_field_name+keepalive_suffix,vs_value,compiler.deftypes.interface_iunknown,[]);
                   fieldsym.fileinfo:=sym.fileinfo;
                   subcapturer.symtable.insertsym(fieldsym);
                   tabstractrecordsymtable(subcapturer.symtable).addfield(fieldsym,vis_public);

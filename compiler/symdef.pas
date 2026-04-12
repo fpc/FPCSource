@@ -1254,6 +1254,8 @@ interface
          class_tobject : tobjectdef;
          { pointer to the base type for custom attributes }
          class_tcustomattribute : tobjectdef;
+         { pointer to the ancestor of all COM interfaces }
+         interface_iunknown : tobjectdef;
        end;
 
 
@@ -1282,8 +1284,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { pointer to the ancestor of all COM interfaces }
-       interface_iunknown : tobjectdef;
        { pointer to the ancestor of all dispinterfaces }
        interface_idispatch : tobjectdef;
        { pointer to the TGUID type
@@ -8063,7 +8063,7 @@ implementation
              if (childof=nil) and
                 (objecttype=odt_interfacecom) then
                 if (objname^='IUNKNOWN') then
-                  interface_iunknown:=self
+                  compiler.deftypes.interface_iunknown:=self
                 else
                 if (objname^='IDISPATCH') then
                   interface_idispatch:=self;
@@ -8635,7 +8635,7 @@ implementation
                 hp:=childof;
                 while assigned(hp) do
                   begin
-                    if hp=interface_iunknown then
+                    if hp=compiler.deftypes.interface_iunknown then
                       begin
                         needs_inittable:=true;
                         exit;
@@ -9850,7 +9850,7 @@ implementation
 
        compiler.deftypes.class_tobject:=nil;
        compiler.deftypes.class_tcustomattribute:=nil;
-       interface_iunknown:=nil;
+       compiler.deftypes.interface_iunknown:=nil;
        interface_idispatch:=nil;
        rec_tguid:=nil;
        rec_jmp_buf:=nil;

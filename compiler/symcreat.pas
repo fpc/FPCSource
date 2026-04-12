@@ -1580,12 +1580,14 @@ implementation
   // return parent Interface def, but skip iunknown.
 
   function getparent_interface_def(odef : tobjectdef) : tobjectdef;
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   begin
     if (odef.getparentdef is tobjectdef) then
       begin
       result:=odef.getparentdef as tobjectdef;
-      if result=interface_iunknown then
+      if result=compiler.deftypes.interface_iunknown then
         result:=Nil;
       end
     else
