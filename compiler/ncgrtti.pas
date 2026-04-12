@@ -716,7 +716,7 @@ implementation
         if parentrtti then
           begin
             write_rtti_reference(tcb,tobjectdef(def).childof,rt);
-            tcb.emit_ord_const(0,ptruinttype);
+            tcb.emit_ord_const(0,compiler.deftypes.ptruinttype);
           end;
         { fields }
         for i:=0 to fields.count-1 do
@@ -2417,7 +2417,7 @@ implementation
                 begin
                   while o<tenumsym(syms[i]).value do
                     begin
-                      tcb.emit_tai(Tai_const.create_nil_dataptr,ptruinttype);
+                      tcb.emit_tai(Tai_const.create_nil_dataptr,compiler.deftypes.ptruinttype);
                       inc(o);
                     end;
                   inc(o);

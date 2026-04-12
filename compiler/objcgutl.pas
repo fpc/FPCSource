@@ -508,9 +508,9 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: TAsmList;
 
     if (abi=oa_fragile) then
       { From Clang: next, always nil}
-      tcb.emit_tai(tai_const.Create_nil_dataptr,ptruinttype);
+      tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.ptruinttype);
     { From Clang: protocols count}
-    tcb.emit_tai(Tai_const.Create_int_dataptr(protolist.Count),ptruinttype);
+    tcb.emit_tai(Tai_const.Create_int_dataptr(protolist.Count),compiler.deftypes.ptruinttype);
     for i:=0 to protolist.Count-1 do
       begin
         protodef:=(protolist[i] as TImplementedInterface).IntfDef;
@@ -1140,9 +1140,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
       C_alignment,1,
       targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
     { version number = 7 (always, both for gcc and clang) }
-    tcb.emit_ord_const(7,ptruinttype);
+    tcb.emit_ord_const(7,compiler.deftypes.ptruinttype);
     { sizeof(objc_module): 4 pointer-size entities }
-    tcb.emit_ord_const(sizeof(pint)*4,ptruinttype);
+    tcb.emit_ord_const(sizeof(pint)*4,compiler.deftypes.ptruinttype);
     { used to be file name, now unused (points to empty string) }
     objcreatestringpoolentry('',sp_objcclassnames,sec_objc_class_names,lab,def);
     tcb.emit_tai(Tai_const.Create_sym(lab),def);
@@ -1278,11 +1278,11 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
                 vis:=AB_PRIVATE_EXTERN
               else
                 vis:=AB_GLOBAL;
-              vars[vcnt].offssym:=current_asmdata.DefineAsmSymbol(prefix+vf.RealName,vis,AT_DATA,ptruinttype);
-              tcb.emit_tai(tai_const.Create_int_dataptr(vf.fieldoffset),ptruinttype);
+              vars[vcnt].offssym:=current_asmdata.DefineAsmSymbol(prefix+vf.RealName,vis,AT_DATA,compiler.deftypes.ptruinttype);
+              tcb.emit_tai(tai_const.Create_int_dataptr(vf.fieldoffset),compiler.deftypes.ptruinttype);
               list.concatList(
                 tcb.get_final_asmlist(
-                  vars[vcnt].offssym,ptruinttype,
+                  vars[vcnt].offssym,compiler.deftypes.ptruinttype,
                   sec_objc_const,'_OBJC_IVAR_OFFSETS',sizeof(pint)
                 )
               );
@@ -1314,7 +1314,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
 
     { we use compiler.deftypes.voidpointertype for all elements so that we can reuse the
       recorddef for all ivar tables with the same number of elements }
-    pptruinttype:=cpointerdef.getreusable(ptruinttype,compiler);
+    pptruinttype:=cpointerdef.getreusable(compiler.deftypes.ptruinttype,compiler);
     for i:=0 to vcnt-1 do
       begin
         { reference to the offset }

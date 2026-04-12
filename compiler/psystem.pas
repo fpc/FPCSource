@@ -223,17 +223,17 @@ implementation
         case compiler.deftypes.voidpointertype.size of
           2:
             begin
-              ptruinttype:=compiler.deftypes.u16inttype;
+              compiler.deftypes.ptruinttype:=compiler.deftypes.u16inttype;
               ptrsinttype:=compiler.deftypes.s16inttype;
             end;
           4:
             begin
-              ptruinttype:=compiler.deftypes.u32inttype;
+              compiler.deftypes.ptruinttype:=compiler.deftypes.u32inttype;
               ptrsinttype:=compiler.deftypes.s32inttype;
             end;
           8:
             begin
-              ptruinttype:=compiler.deftypes.u64inttype;
+              compiler.deftypes.ptruinttype:=compiler.deftypes.u64inttype;
               ptrsinttype:=compiler.deftypes.s64inttype;
             end;
           else

@@ -69,9 +69,9 @@ implementation
     var
       tmpvalue: tregister;
     begin
-      tmpvalue:=getintregister(list,ptruinttype);
+      tmpvalue:=getintregister(list,compiler.deftypes.ptruinttype);
       //list.concat(tai_comment.create(strpnew('a_bit_set_reg_reg: called!')));
-      a_load_const_reg(list,ptruinttype,destsize.size*8-1,tmpvalue);
+      a_load_const_reg(list,compiler.deftypes.ptruinttype,destsize.size*8-1,tmpvalue);
       a_op_reg_reg(list,OP_SUB,bitnumbersize,bitnumber,tmpvalue);
       list.concat(taicpu.op_reg_reg(bit_set_clr_instr[doset],S_NO,tmpvalue,dest));
     end;
@@ -93,8 +93,8 @@ implementation
       sref:=get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref);
       tcg68k(cg).fixref(list,sref.ref,false);
 
-      tmpvalue:=getintregister(list,ptruinttype);
-      a_load_const_reg(list,ptruinttype,7,tmpvalue);
+      tmpvalue:=getintregister(list,compiler.deftypes.ptruinttype);
+      a_load_const_reg(list,compiler.deftypes.ptruinttype,7,tmpvalue);
       a_op_reg_reg(list,OP_SUB,fromsize,sref.bitindexreg,tmpvalue);
 
       { memory accesses of bset/bclr are always byte, so no alignment problem }

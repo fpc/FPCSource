@@ -155,10 +155,10 @@ implementation
           locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
           if indirect then
             current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef,compiler),
-              locref^,ptruinttype,constarrayoffset,true))
+              locref^,compiler.deftypes.ptruinttype,constarrayoffset,true))
           else
             current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
-              locref^,ptruinttype,constarrayoffset,false));
+              locref^,compiler.deftypes.ptruinttype,constarrayoffset,false));
           reference_reset_base(locref^,hreg,0,locref^.temppos,locref^.alignment,locref^.volatility);
         end;
 
@@ -198,8 +198,8 @@ implementation
         internalerror(2013102602);
       if constarrayoffset<>0 then
         begin
-          hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,ptruinttype,constarrayoffset,maybe_const_reg,hreg);
+          hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,compiler.deftypes.ptruinttype,constarrayoffset,maybe_const_reg,hreg);
           maybe_const_reg:=hreg;
           constarrayoffset:=0;
         end;
@@ -211,13 +211,13 @@ implementation
           { get address of indexed array element and convert pointer to array into
             pointer to the elementdef in the process }
           current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,cpointerdef.getreusable(left.resultdef,compiler),
-            location.reference,ptruinttype,maybe_const_reg,true));
+            location.reference,compiler.deftypes.ptruinttype,maybe_const_reg,true));
           arraytopointerconverted:=true;
         end
       else
         { the array is already a pointer -> just index }
         current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,left.resultdef,
-          location.reference,ptruinttype,maybe_const_reg,false));
+          location.reference,compiler.deftypes.ptruinttype,maybe_const_reg,false));
       reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
@@ -251,13 +251,13 @@ implementation
       { adjust the index by subtracting the lower bound of the array and adding
         any constant adjustments }
       sref.ref:=location.reference;
-      hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
+      hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,compiler.deftypes.ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
       constarrayoffset:=0;
 
       { multiply index with bitsize of every element }
-      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,ptruinttype,l,hreg,hreg2);
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,compiler.deftypes.ptruinttype,l,hreg,hreg2);
       hreg:=hreg2;
 
       { keep alignment for index }
@@ -271,20 +271,20 @@ implementation
         value: divide the index by 8 (we're working with a bitpacked array here,
         all quantities are expressed in bits), and then by the size of the
         chunks (alignpower) }
-      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,hreg2);
-      offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,ptruinttype,alignpower,hreg2,offsetreg);
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,compiler.deftypes.ptruinttype,3+alignpower,hreg,hreg2);
+      offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,compiler.deftypes.ptruinttype,alignpower,hreg2,offsetreg);
       { index the array using this chunk index }
       basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize,compiler));
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef,compiler),
-        sref.ref,ptruinttype,offsetreg,true));
+        sref.ref,compiler.deftypes.ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
       reference_reset_base(sref.ref,basereg,0,sref.ref.temppos,sref.ref.alignment,sref.ref.volatility);
       { calculate the bit index inside that chunk: mask out
         the chunk index part }
-      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,ptruinttype,(1 shl (3+alignpower))-1,hreg,hreg2);
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,compiler.deftypes.ptruinttype,(1 shl (3+alignpower))-1,hreg,hreg2);
       sref.bitindexreg:=hreg2;
       sref.startbit:=0;
       sref.bitlen:=resultdef.packedbitsize;

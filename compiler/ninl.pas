@@ -2619,7 +2619,7 @@ implementation
                       begin
                         if m_mac in compiler.globals.current_settings.modeswitches then
                           begin
-                            result:=compiler.ctypeconvnode_internal(left,ptruinttype);
+                            result:=compiler.ctypeconvnode_internal(left,compiler.deftypes.ptruinttype);
                             left:=nil;
                           end
                       end;
@@ -2635,7 +2635,7 @@ implementation
                    else if (m_mac in compiler.globals.current_settings.modeswitches) and
                            (left.ndoetype=pointerconstn) then
                        result:=compiler.cordconstnode(
-                         tpointerconstnode(left).value,ptruinttype,true);
+                         tpointerconstnode(left).value,compiler.deftypes.ptruinttype,true);
 *)
                 end;
               in_chr_byte:

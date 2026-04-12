@@ -2638,7 +2638,7 @@ implementation
         list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
       if wasmAlwayInMem(size) then
-        size:=ptruinttype;
+        size:=compiler.deftypes.ptruinttype;
       decstack(list,1+extra_slots);
     end;
 
@@ -2665,7 +2665,7 @@ implementation
 
       { avoid problems with getting the size of an open array etc }
       if wasmAlwayInMem(size) then
-        size:=ptruinttype;
+        size:=compiler.deftypes.ptruinttype;
       incstack(list,1-extra_slots);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);

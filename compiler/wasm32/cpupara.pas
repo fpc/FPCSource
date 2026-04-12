@@ -261,7 +261,7 @@ implementation
                 { passed via array reference (instead of creating a new array
                   type for every single parameter, use java_jlobject) }
                 paracgsize:=OS_ADDR;
-                paradef:=ptruinttype;
+                paradef:=compiler.deftypes.ptruinttype;
               end
             else if push_addr_param(hp.varspez, hp.vardef,p.proccalloption) then
               begin

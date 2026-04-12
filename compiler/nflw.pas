@@ -430,15 +430,15 @@ implementation
          addstatement(mainstatement,expressiontemp);
          { currentamount temp (not really clean: we use ptruint instead of
            culong) }
-         currentamount:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
+         currentamount:=compiler.ctempcreatenode(compiler.deftypes.ptruinttype,compiler.deftypes.ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(currentamount));
          addstatement(mainstatement,currentamount);
          { mutationcheck temp (idem) }
-         mutationcheck:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
+         mutationcheck:=compiler.ctempcreatenode(compiler.deftypes.ptruinttype,compiler.deftypes.ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(mutationcheck));
          addstatement(mainstatement,mutationcheck);
          { innerloopcounter temp (idem) }
-         innerloopcounter:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
+         innerloopcounter:=compiler.ctempcreatenode(compiler.deftypes.ptruinttype,compiler.deftypes.ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(innerloopcounter));
          addstatement(mainstatement,innerloopcounter);
          { initialise the state with 0 }
@@ -486,7 +486,7 @@ implementation
           compiler.ctemprefnode(mutationcheck),hp));
         { initialise innerloopcounter }
         addstatement(outerloopbodystatement,compiler.cassignmentnode(
-          compiler.ctemprefnode(innerloopcounter),compiler.cordconstnode(-1,ptruinttype,false)));
+          compiler.ctemprefnode(innerloopcounter),compiler.cordconstnode(-1,compiler.deftypes.ptruinttype,false)));
 
         { and now the inner loop, again adding the repeat/until afterwards }
         innerloop:=internalstatements(compiler,innerloopbodystatement);

@@ -1673,10 +1673,10 @@ implementation
         begin
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-          tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.stacksize),ptruinttype);
-          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
+          tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.stacksize),compiler.deftypes.ptruinttype);
+          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
-            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',compiler.globals.const_align(sizeof(pint)))
+            tcb.get_final_asmlist(sym,compiler.deftypes.ptruinttype,sec_data,'__stklen',compiler.globals.const_align(sizeof(pint)))
           );
           tcb.free;
           tcb := nil;
@@ -1717,10 +1717,10 @@ implementation
 {$ENDIF POWERPC}
       { Initial heapsize }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-      tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.heapsize),ptruinttype);
-      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
+      tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.heapsize),compiler.deftypes.ptruinttype);
+      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',compiler.globals.const_align(sizeof(pint)))
+        tcb.get_final_asmlist(sym,compiler.deftypes.ptruinttype,sec_data,'__heapsize',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
       tcb := nil;

@@ -558,8 +558,8 @@ implementation
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
              reference_reset_symbol(tmpref,asmsym,0,compiler.deftypes.voidpointertype.alignment,[]);
              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),location.reference);
-             location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
+             location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.ptruinttype,compiler.deftypes.ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end

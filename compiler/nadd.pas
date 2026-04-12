@@ -524,7 +524,7 @@ const
                         compiler.ctypeconvnode_internal(
                           compiler.cderefnode(
                             compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,compiler.deftypes.voidpointertype),
-                              compiler.cordconstnode(sizeof(uint32),ptruinttype,false))
+                              compiler.cordconstnode(sizeof(uint32),compiler.deftypes.ptruinttype,false))
                           ),compiler.deftypes.u32inttype
                         ),
                         compiler.cordconstnode(0,compiler.deftypes.u32inttype,false))

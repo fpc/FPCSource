@@ -1081,17 +1081,17 @@ implementation
         optimization) }
       if def2regtyp(size)=R_ADDRESSREGISTER then
         begin
-          opsize:=ptruinttype;
+          opsize:=compiler.deftypes.ptruinttype;
 
-          tmpreg1:=getintregister(list,ptruinttype);
-          a_load_reg_reg(list,size,ptruinttype,src1,tmpreg1);
+          tmpreg1:=getintregister(list,compiler.deftypes.ptruinttype);
+          a_load_reg_reg(list,size,compiler.deftypes.ptruinttype,src1,tmpreg1);
           src1:=tmpreg1;
 
-          tmpreg1:=getintregister(list,ptruinttype);
-          a_load_reg_reg(list,size,ptruinttype,src2,tmpreg1);
+          tmpreg1:=getintregister(list,compiler.deftypes.ptruinttype);
+          a_load_reg_reg(list,size,compiler.deftypes.ptruinttype,src2,tmpreg1);
           src2:=tmpreg1;
 
-          dst:=getintregister(list,ptruinttype);
+          dst:=getintregister(list,compiler.deftypes.ptruinttype);
         end;
      if topcg2llvmop[op]<>la_none then
        list.concat(taillvm.op_reg_size_reg_reg(topcg2llvmop[op],dst,opsize,src2,src1))
@@ -2105,37 +2105,37 @@ implementation
 
         Assumptions:
           * symbol/base register: always type "ptrdef"
-          * index/offset: always type "ptruinttype" (llvm bitcode has no sign information, so sign doesn't matter) }
-      hreg1:=getintregister(list,ptruinttype);
+          * index/offset: always type "compiler.deftypes.ptruinttype" (llvm bitcode has no sign information, so sign doesn't matter) }
+      hreg1:=getintregister(list,compiler.deftypes.ptruinttype);
       if assigned(ref.symbol) then
         begin
           if ref.base<>NR_NO then
             internalerror(2012111301);
           reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment,ref.volatility);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,ptrdef,tmpref,ptruinttype,0,true));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,ptrdef,tmpref,compiler.deftypes.ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
         begin
-          a_load_reg_reg(list,ptrdef,ptruinttype,ref.base,hreg1);
+          a_load_reg_reg(list,ptrdef,compiler.deftypes.ptruinttype,ref.base,hreg1);
         end
       else
         { for absolute addresses }
-        a_load_const_reg(list,ptruinttype,0,hreg1);
+        a_load_const_reg(list,compiler.deftypes.ptruinttype,0,hreg1);
       if ref.index<>NR_NO then
         begin
           { SSA... }
-          hreg2:=getintregister(list,ptruinttype);
-          a_op_reg_reg_reg(list,OP_ADD,ptruinttype,ref.index,hreg1,hreg2);
+          hreg2:=getintregister(list,compiler.deftypes.ptruinttype);
+          a_op_reg_reg_reg(list,OP_ADD,compiler.deftypes.ptruinttype,ref.index,hreg1,hreg2);
           hreg1:=hreg2;
         end;
       if ref.offset<>0 then
         begin
-          hreg2:=getintregister(list,ptruinttype);
-          a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
+          hreg2:=getintregister(list,compiler.deftypes.ptruinttype);
+          a_op_const_reg_reg(list,OP_ADD,compiler.deftypes.ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
       hreg2:=getaddressregister(list,ptrdef);
-      a_load_reg_reg(list,ptruinttype,ptrdef,hreg1,hreg2);
+      a_load_reg_reg(list,compiler.deftypes.ptruinttype,ptrdef,hreg1,hreg2);
       reference_reset_base(result,ptrdef,hreg2,0,ref.temppos,ref.alignment,ref.volatility);
     end;
 

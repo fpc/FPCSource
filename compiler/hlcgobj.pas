@@ -2726,9 +2726,9 @@ implementation
       result.startbit:=0;
       result.bitlen:=1;
 
-      tmpreg:=getintregister(list,ptruinttype);
-      a_load_reg_reg(list,bitnumbersize,ptruinttype,bitnumber,tmpreg);
-      a_op_const_reg(list,OP_SHR,ptruinttype,3,tmpreg);
+      tmpreg:=getintregister(list,compiler.deftypes.ptruinttype);
+      a_load_reg_reg(list,bitnumbersize,compiler.deftypes.ptruinttype,bitnumber,tmpreg);
+      a_op_const_reg(list,OP_SHR,compiler.deftypes.ptruinttype,3,tmpreg);
 
       { don't assign to ref.base, that one is for pointers and this is an index
         (important for platforms like LLVM) }
