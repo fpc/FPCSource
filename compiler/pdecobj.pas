@@ -1610,7 +1610,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='JLSTRING') then
                         compiler.deftypes.java_jlstring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='ANSISTRINGCLASS') then
-                        java_ansistring:=compiler.current_objectdef
+                        compiler.deftypes.java_ansistring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='SHORTSTRINGCLASS') then
                         java_shortstring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLENUM') then

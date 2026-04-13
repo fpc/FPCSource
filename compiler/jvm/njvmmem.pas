@@ -373,7 +373,7 @@ implementation
           begin
             case tstringdef(left.resultdef).stringtype of
               st_ansistring:
-                stringclass:=java_ansistring;
+                stringclass:=compiler.deftypes.java_ansistring;
               st_unicodestring,
               st_widestring:
                 stringclass:=compiler.deftypes.java_jlstring;

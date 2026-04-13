@@ -574,7 +574,7 @@ implementation
               --> return lentemp
             }
             if is_ansistring(left.resultdef) then
-              stringclass:=java_ansistring
+              stringclass:=compiler.deftypes.java_ansistring
             else
               stringclass:=compiler.deftypes.java_jlstring;
             newblock:=internalstatements(compiler,newstatement);

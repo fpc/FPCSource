@@ -229,7 +229,7 @@ implementation
                 st_unicodestring:
                   result:=jvmaddencodedtype(compiler.deftypes.java_jlstring,false,encodedstr,forcesignature,founderror);
                 st_ansistring:
-                  result:=jvmaddencodedtype(java_ansistring,false,encodedstr,forcesignature,founderror);
+                  result:=jvmaddencodedtype(compiler.deftypes.java_ansistring,false,encodedstr,forcesignature,founderror);
                 st_shortstring:
                   result:=jvmaddencodedtype(java_shortstring,false,encodedstr,forcesignature,founderror);
                 else
@@ -701,7 +701,7 @@ implementation
                     st_unicodestring:
                       result:=compiler.deftypes.java_jlstring;
                     st_ansistring:
-                      result:=java_ansistring;
+                      result:=compiler.deftypes.java_ansistring;
                     st_shortstring:
                       result:=java_shortstring;
                     else

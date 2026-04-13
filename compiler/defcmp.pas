@@ -2838,7 +2838,7 @@ implementation
              (otherdef=compiler.deftypes.java_jlstring))) or
            ((curdef.stringtype=st_ansistring) and
             ((otherdef=compiler.deftypes.java_jlobject) or
-             (otherdef=java_ansistring))));
+             (otherdef=compiler.deftypes.java_ansistring))));
       end;
 
 

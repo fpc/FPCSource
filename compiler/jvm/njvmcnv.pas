@@ -535,7 +535,7 @@ implementation
             result:=nil;
             exit;
           end;
-        ps:=search_struct_member(java_ansistring,'INTERNCHARS');
+        ps:=search_struct_member(compiler.deftypes.java_ansistring,'INTERNCHARS');
         if not assigned(ps) or
            (ps.typ<>procsym) then
           internalerror(2011081401);
@@ -544,7 +544,7 @@ implementation
           with a single #0 }
         result:=compiler.ccallnode(compiler.ccallparanode(left,nil),tprocsym(ps),
           ps.owner,
-          compiler.cloadvmtaddrnode(compiler.ctypenode(java_ansistring)),[],nil);
+          compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
         result:=compiler.ctypeconvnode_explicit(result,resultdef);
         { reused }
@@ -1049,7 +1049,7 @@ implementation
           begin
             result:=true;
             if is_ansistring(def1) and
-               (def2=java_ansistring) then
+               (def2=compiler.deftypes.java_ansistring) then
               exit;
             if is_wide_or_unicode_string(def1) and
                (def2=compiler.deftypes.java_jlstring) then

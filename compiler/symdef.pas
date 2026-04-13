@@ -1301,6 +1301,8 @@ interface
          java_juenumset            : tobjectdef;
          { java.util.BitSet }
          java_jubitset             : tobjectdef;
+         { FPC java implementation of ansistrings }
+         java_ansistring           : tobjectdef;
        end;
 
 
@@ -1329,8 +1331,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { FPC java implementation of ansistrings }
-       java_ansistring           : tobjectdef;
        { FPC java implementation of shortstrings }
        java_shortstring          : tobjectdef;
        { FPC java procvar base class }
@@ -8079,7 +8079,7 @@ implementation
                  else if (objname^='JLSTRING') then
                    compiler.deftypes.java_jlstring:=self
                  else if (objname^='ANSISTRINGCLASS') then
-                   java_ansistring:=self
+                   compiler.deftypes.java_ansistring:=self
                  else if (objname^='SHORTSTRINGCLASS') then
                    java_shortstring:=self
                  else if (objname^='JLENUM') then
@@ -9880,7 +9880,7 @@ implementation
        compiler.deftypes.java_jlenum:=nil;
        compiler.deftypes.java_juenumset:=nil;
        compiler.deftypes.java_jubitset:=nil;
-       java_ansistring:=nil;
+       compiler.deftypes.java_ansistring:=nil;
        java_shortstring:=nil;
        java_procvarbase:=nil;
 

@@ -2464,7 +2464,7 @@ implementation
       else if is_wide_or_unicode_string(checkdef) then
         checkdef:=compiler.deftypes.java_jlstring
       else if is_ansistring(checkdef) then
-        checkdef:=java_ansistring
+        checkdef:=compiler.deftypes.java_ansistring
       else if is_shortstring(checkdef) then
         checkdef:=java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
