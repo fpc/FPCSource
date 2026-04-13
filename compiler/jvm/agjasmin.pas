@@ -551,7 +551,7 @@ implementation
                   if toplevelowner.symtabletype=globalsymtable then
                     writer.AsmWrite('public ');
                   writer.AsmWriteln(obj.jvm_full_typename(true));
-                  superclass:=java_fpcbaserecordtype;
+                  superclass:=compiler.deftypes.java_fpcbaserecordtype;
                 end;
               objectdef:
                 begin

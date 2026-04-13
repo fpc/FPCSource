@@ -183,7 +183,7 @@ interface
     { Checks whether to defs are related to each other. Thereby the following  }
     { cases of curdef are implemented:                                         }
     { - stringdef: on JVM JLObject, JLString and AnsiString are compatible     }
-    { - recorddef: on JVM records are compatible to java_fpcbaserecordtype     }
+    { - recorddef: on JVM records are compatible to compiler.deftypes.java_fpcbaserecordtype     }
     {              and JLObject                                                }
     { - objectdef: if it inherits from otherdef or they are equal              }
     function def_is_related(curdef,otherdef:tdef):boolean;
@@ -2847,7 +2847,7 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { records are implemented via classes in the JVM target, and are
-          all descendents of the java_fpcbaserecordtype class }
+          all descendents of the compiler.deftypes.java_fpcbaserecordtype class }
         result:=false;
         if (compiler.target.info.system in systems_jvm) then
           begin
@@ -2855,7 +2855,7 @@ implementation
               begin
                 otherdef:=compiler.symtablestack.find_real_class_definition(tobjectdef(otherdef),false);
                 if (otherdef=compiler.deftypes.java_jlobject) or
-                   (otherdef=java_fpcbaserecordtype) then
+                   (otherdef=compiler.deftypes.java_fpcbaserecordtype) then
                   result:=true
               end;
           end;

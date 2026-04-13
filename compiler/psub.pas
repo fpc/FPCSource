@@ -579,7 +579,7 @@ implementation
                          if is_javaclass(compiler.current_structdef) then
                            srsym:=search_struct_member_no_helper(tobjectdef(compiler.current_structdef).childof,'CREATE')
                          else
-                           srsym:=search_struct_member_no_helper(java_fpcbaserecordtype,'CREATE');
+                           srsym:=search_struct_member_no_helper(compiler.deftypes.java_fpcbaserecordtype,'CREATE');
                          if assigned(srsym) and
                             (srsym.typ=procsym) then
                            begin

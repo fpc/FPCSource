@@ -1113,7 +1113,7 @@ implementation
             exit;
           if (fromdef.typ=pointerdef) and
              (tpointerdef(fromdef).pointeddef.typ=recorddef) and
-             (todef=java_fpcbaserecordtype) then
+             (todef=compiler.deftypes.java_fpcbaserecordtype) then
             exit;
           { all classrefs are currently java.lang.Class at the bytecode level }
           if (fromdef.typ=classrefdef) and
@@ -1135,7 +1135,7 @@ implementation
                 check_array_type_equality(todef,fromdef) then
                exit;
              if is_record(fromdef) and
-                (todef=java_fpcbaserecordtype) then
+                (todef=compiler.deftypes.java_fpcbaserecordtype) then
                exit;
             end;
           result:=false;

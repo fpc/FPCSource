@@ -1291,6 +1291,8 @@ interface
          java_jlobject             : tobjectdef;
          { java.lang.Throwable }
          java_jlthrowable          : tobjectdef;
+         { FPC base type for records }
+         java_fpcbaserecordtype    : tobjectdef;
        end;
 
 
@@ -1319,8 +1321,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { FPC base type for records }
-       java_fpcbaserecordtype    : tobjectdef;
        { java.lang.String }
        java_jlstring             : tobjectdef;
        { java.lang.Enum }
@@ -8075,7 +8075,7 @@ implementation
                  else if (objname^='JLTHROWABLE') then
                    compiler.deftypes.java_jlthrowable:=self
                  else if (objname^='FPCBASERECORDTYPE') then
-                   java_fpcbaserecordtype:=self
+                   compiler.deftypes.java_fpcbaserecordtype:=self
                  else if (objname^='JLSTRING') then
                    java_jlstring:=self
                  else if (objname^='ANSISTRINGCLASS') then
@@ -9875,7 +9875,7 @@ implementation
        { Java base types }
        compiler.deftypes.java_jlobject:=nil;
        compiler.deftypes.java_jlthrowable:=nil;
-       java_fpcbaserecordtype:=nil;
+       compiler.deftypes.java_fpcbaserecordtype:=nil;
        java_jlstring:=nil;
        java_jlenum:=nil;
        java_juenumset:=nil;

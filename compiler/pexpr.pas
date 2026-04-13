@@ -3947,7 +3947,7 @@ implementation
                           hclassdef:=hclassdef.childof;
                       end
                     else if compiler.target.info.system in systems_jvm then
-                      hclassdef:=java_fpcbaserecordtype
+                      hclassdef:=compiler.deftypes.java_fpcbaserecordtype
                     else
                       internalerror(2012012401);
                     spezcontext:=nil;

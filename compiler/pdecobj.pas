@@ -1606,7 +1606,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='JLTHROWABLE') then
                         compiler.deftypes.java_jlthrowable:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='FPCBASERECORDTYPE') then
-                        java_fpcbaserecordtype:=compiler.current_objectdef
+                        compiler.deftypes.java_fpcbaserecordtype:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLSTRING') then
                         java_jlstring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='ANSISTRINGCLASS') then
