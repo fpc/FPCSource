@@ -1309,7 +1309,8 @@ interface
          java_procvarbase          : tobjectdef;
 
          { x86 vector types }
-         x86_m64type: tdef;
+         x86_m64type,
+         x86_m128type: tdef;
        end;
 
 
@@ -1338,7 +1339,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       x86_m128type,
        x86_m128dtype,
        x86_m128itype,
        x86_m256type,
@@ -9886,7 +9886,7 @@ implementation
 
        { x86 vector types }
        compiler.deftypes.x86_m64type:=nil;
-       x86_m128type:=nil;
+       compiler.deftypes.x86_m128type:=nil;
        x86_m128dtype:=nil;
        x86_m128itype:=nil;
        x86_m256type:=nil;

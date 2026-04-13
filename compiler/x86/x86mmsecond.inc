@@ -1883,7 +1883,7 @@ in_x86_blendvps
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[3].location, true);
     hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_XMM0);
-    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,x86_m128type,paraarray[3].location,NR_XMM0,nil);
+    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,compiler.deftypes.x86_m128type,paraarray[3].location,NR_XMM0,nil);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,paraarray[2].location.register,paraarray[1].location.register));
     hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_XMM0);
@@ -1909,7 +1909,7 @@ in_x86_blendvps_from_mem
     location_make_ref(paraarray[2].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[3].location, true);
     hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_XMM0);
-    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,x86_m128type,paraarray[3].location,NR_XMM0,nil);
+    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,compiler.deftypes.x86_m128type,paraarray[3].location,NR_XMM0,nil);
     location:=paraarray[1].location;
     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,paraarray[2].location.reference,paraarray[1].location.register));
     hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_XMM0);

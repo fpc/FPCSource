@@ -12,7 +12,7 @@ in_x86_movss
 : //out r0:xmm;r1:ptr32;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_movaps
 ,in_x86_movups
@@ -29,7 +29,7 @@ in_x86_movaps
 : //out r0:xmm;r1:ptr128;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_movss_to_mem
 ,in_x86_movapd_to_mem
@@ -64,7 +64,7 @@ in_x86_movss_from_val
 : //out r0:xmm;r1:f32;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_movlps
 ,in_x86_movhps
@@ -77,7 +77,7 @@ in_x86_movlps
 : //var r0:xmm;r1:ptr64;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_movlps_to_mem
 ,in_x86_movhps_to_mem
@@ -218,7 +218,7 @@ in_x86_movlhps
 : //var r0:xmm;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_addss
 ,in_x86_subss
@@ -375,7 +375,7 @@ in_x86_addps_from_mem
 : //var r0:xmm;r1:ptr128;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_cmpss
 : //var r0:f32;r1:f32;imm:i32;
@@ -408,7 +408,7 @@ in_x86_cmpps
 : //var r0:xmm;r1:xmm;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_cmpps_from_mem
 ,in_x86_shufps_from_mem
@@ -428,7 +428,7 @@ in_x86_cmpps_from_mem
 : //var r0:xmm;r1:ptr128;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_cvtsi2ss
 : //var r0:f32;r1:reg;
@@ -455,7 +455,7 @@ in_x86_cvtpi2ps
 : //var r0:xmm;r1:mm;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_cvtps2pi
 ,in_x86_cvttps2pi
@@ -545,7 +545,7 @@ in_x86_movsd_from_val
 : //out r0:xmm;r1:f64;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_addsd
 ,in_x86_divsd
@@ -600,7 +600,7 @@ in_x86_sqrtpd
 : //out r0:xmm;r1:xmm;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_sqrtsd
 : //out r0:f64;r1:f64;
@@ -671,7 +671,7 @@ in_x86_movd_from_reg
 : //out r0:xmm;r1:r32;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_movq_from_mem
 ,in_x86_movddup_from_mem
@@ -684,7 +684,7 @@ in_x86_movq_from_mem
 : //out r0:xmm;r1:ptr64;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_pmovmskb
 : //var r0:r32;r1:xmm;
@@ -704,13 +704,13 @@ in_x86_pinsrw_sse2
 : //var r0:xmm;r1:r32;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_pinsrw_from_mem
 : //var r0:xmm;r1:ptr16;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_psllw_sse2_imm
 ,in_x86_pslld_sse2_imm
@@ -725,7 +725,7 @@ in_x86_psllw_sse2_imm
 : //var r0:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_maskmovdqu
 : //addr:edi_ptr;r0:xmm;r1:xmm;
@@ -737,7 +737,7 @@ in_x86_movq2dq
 : //out r0:xmm;r1:mm;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_pshufhw
 ,in_x86_pshuflw
@@ -748,7 +748,7 @@ in_x86_pshufhw
 : //out r0:xmm;r1:xmm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_pshufhw_from_mem
 ,in_x86_pshuflw_from_mem
@@ -758,7 +758,7 @@ in_x86_pshufhw_from_mem
 : //out r0:xmm;r1:ptr128;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_blendvps
 ,in_x86_blendvpd
@@ -766,7 +766,7 @@ in_x86_blendvps
 : //var r0:xmm;r1:xmm;mask:implicit_xmm0;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_blendvps_from_mem
 ,in_x86_blendvpd_from_mem
@@ -774,13 +774,13 @@ in_x86_blendvps_from_mem
 : //var r0:xmm;r1:ptr128;mask:implicit_xmm0;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_roundss_from_mem
 : //out r0:xmm;r1:ptr32;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_roundsd
 : //out r0:f64;r1:f64;imm:i32;
@@ -799,7 +799,7 @@ in_x86_insertps_from_mem
 : //var r0:xmm;r1:ptr32;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 in_x86_extractps
 ,in_x86_pextrd
@@ -819,14 +819,14 @@ in_x86_pinsrb_from_mem
 : //var r0:xmm;r1:ptr8;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 {$ifdef X86_64}
 in_x86_pinsrq
 : //var r0:xmm;r1:reg;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 {$endif}
 {$ifdef X86_64}
@@ -834,7 +834,7 @@ in_x86_pinsrq_from_mem
 : //var r0:xmm;r1:ptr64;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;
 {$endif}
 in_x86_pextrb
@@ -876,5 +876,5 @@ in_x86_pmovsxbq_from_mem
 : //out r0:xmm;r1:ptr16;
   begin
     CheckParameters(1);
-    resultdef:=x86_m128type;
+    resultdef:=compiler.deftypes.x86_m128type;
   end;

@@ -154,7 +154,7 @@ function GetTypeDef(const ATyp: string): string;
       'f64':   exit('s64floattype');
       'mm':    exit('compiler.deftypes.x86_m64type');
       'implicit_xmm0',
-      'xmm':   exit('x86_m128type');
+      'xmm':   exit('compiler.deftypes.x86_m128type');
       'i32':   exit('compiler.deftypes.s32inttype');
 
       'edi_ptr':   exit('compiler.deftypes.voidpointertype');
@@ -285,7 +285,7 @@ function GetLocStatement(AIndex: longint; const ATyp: string; AConst: boolean): 
       'implicit_xmm0':
         exit(format('location_force_mmreg(current_asmdata.CurrAsmList, paraarray[%d].location, %s);'+LineEnding+
                     '    hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_XMM0);'+LineEnding+
-                    '    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[%d].resultdef,x86_m128type,paraarray[%d].location,NR_XMM0,nil);',
+                    '    hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,paraarray[%d].resultdef,compiler.deftypes.x86_m128type,paraarray[%d].location,NR_XMM0,nil);',
                       [AIndex+1, BoolToStr(aconst,'true','false'), AIndex+1, AIndex+1]));
       'edi_ptr':
         exit(format('hlcg.getcpuregister(current_asmdata.CurrAsmList,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});'+LineEnding+
