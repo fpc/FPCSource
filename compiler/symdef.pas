@@ -1314,7 +1314,8 @@ interface
          x86_m128dtype,
          x86_m128itype,
          x86_m256type,
-         x86_m256dtype: tdef;
+         x86_m256dtype,
+         x86_m256itype             : tdef;
        end;
 
 
@@ -1343,7 +1344,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       x86_m256itype             : tdef;
 
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
@@ -9891,7 +9891,7 @@ implementation
        compiler.deftypes.x86_m128itype:=nil;
        compiler.deftypes.x86_m256type:=nil;
        compiler.deftypes.x86_m256dtype:=nil;
-       x86_m256itype:=nil;
+       compiler.deftypes.x86_m256itype:=nil;
     end;
 
 end.
