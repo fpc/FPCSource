@@ -30,6 +30,9 @@ begin
       AddUnit('libvlc');
       end;
 
+    P.ExamplePath.Add('example/');
+    P.Targets.AddExampleProgram('testvlc.pp');
+
     P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
