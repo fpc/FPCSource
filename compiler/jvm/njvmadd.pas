@@ -124,7 +124,7 @@ interface
         begin
           result:=compiler.ccallnode_internmethod(left,'CLONE',nil);
           if isenum then
-            inserttypeconv_explicit(result,java_juenumset,compiler)
+            inserttypeconv_explicit(result,compiler.deftypes.java_juenumset,compiler)
           else
             inserttypeconv_explicit(result,java_jubitset,compiler);
           if isenum then
@@ -132,7 +132,7 @@ interface
               { all enum instance methods return a boolean, while we are
                 interested in the resulting set }
               block:=internalstatements(compiler,stat);
-              temp:=compiler.ctempcreatenode(java_juenumset,4,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(compiler.deftypes.java_juenumset,4,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,compiler.cassignmentnode(
                 compiler.ctemprefnode(temp),result));
@@ -174,12 +174,12 @@ interface
             include(taddrnode(left).addrnodeflags,anf_typedaddr);
             if isenum then
               begin
-                inserttypeconv_explicit(left,java_juenumset,compiler);
+                inserttypeconv_explicit(left,compiler.deftypes.java_juenumset,compiler);
                 if right.resultdef.typ=setdef then
                   begin
                     right:=compiler.caddrnode_internal(right);
                     include(taddrnode(right).addrnodeflags,anf_typedaddr);
-                    inserttypeconv_explicit(right,java_juenumset,compiler);
+                    inserttypeconv_explicit(right,compiler.deftypes.java_juenumset,compiler);
                   end;
               end
             else
@@ -233,7 +233,7 @@ interface
                   if isenum then
                     begin
                       inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef,compiler);
-                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
+                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_juenumset));
                     end
                   else
                     begin
@@ -286,7 +286,7 @@ interface
                           if isenum then
                             begin
                               inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef,compiler);
-                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
+                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_juenumset));
                             end
                           else
                             begin

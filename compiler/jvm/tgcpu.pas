@@ -141,7 +141,7 @@ unit tgcpu;
                   list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true),AT_METADATA)));
                   thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                   { call tenumset.noneOf() class method }
-                  sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));
+                  sym:=tsym(tobjectdef(compiler.deftypes.java_juenumset).symtable.find('NONEOF'));
                   if assigned(sym) and
                      (sym.typ=procsym) then
                     begin

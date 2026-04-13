@@ -375,7 +375,7 @@ implementation
                 else
                   begin
                     helpername:='fpcEnumSetToEnumSet';
-                    setclassdef:=java_juenumset;
+                    setclassdef:=compiler.deftypes.java_juenumset;
                   end;
                 left:=compiler.caddrnode_internal(left);
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
@@ -933,7 +933,7 @@ implementation
         begin
          if tsetdef(left.resultdef).elementdef.typ=enumdef then
            begin
-             setconvdef:=java_juenumset;
+             setconvdef:=compiler.deftypes.java_juenumset;
              helpername:='fpc_enumset_to_'
            end
          else
@@ -1065,12 +1065,12 @@ implementation
                     if not assigned(tsetdef(tpointerdef(def1).pointeddef).elementdef) then
                       begin
                         if (def2=java_jubitset) or
-                           (def2=java_juenumset) then
+                           (def2=compiler.deftypes.java_juenumset) then
                           exit;
                       end
                     else if tsetdef(tpointerdef(def1).pointeddef).elementdef.typ=enumdef then
                       begin
-                        if def2=java_juenumset then
+                        if def2=compiler.deftypes.java_juenumset then
                           exit;
                       end
                     else if def2=java_jubitset then

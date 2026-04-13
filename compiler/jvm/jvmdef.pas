@@ -337,7 +337,7 @@ implementation
                   if forcesignature then
                     jvmaddencodedsignature(def,false,encodedstr)
                   else
-                    result:=jvmaddencodedtype(java_juenumset,false,encodedstr,forcesignature,founderror)
+                    result:=jvmaddencodedtype(compiler.deftypes.java_juenumset,false,encodedstr,forcesignature,founderror)
                 end
               else
                 result:=jvmaddencodedtype(java_jubitset,false,encodedstr,forcesignature,founderror)
@@ -736,7 +736,7 @@ implementation
               setdef :
                 begin
                   if tsetdef(def).elementdef.typ=enumdef then
-                    result:=java_juenumset
+                    result:=compiler.deftypes.java_juenumset
                   else
                     result:=java_jubitset;
                 end;

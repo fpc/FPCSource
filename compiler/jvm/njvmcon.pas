@@ -316,7 +316,7 @@ implementation
         hassinglerun:=find_single_elements_run(0, start, len);
         if hassinglerun then
           begin
-            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
+            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_juenumset));
             if len=0 then
               begin
                 enumele:=compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));

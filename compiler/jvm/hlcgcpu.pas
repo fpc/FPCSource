@@ -2455,7 +2455,7 @@ implementation
       else if checkdef.typ=setdef then
         begin
           if tsetdef(checkdef).elementdef.typ=enumdef then
-            checkdef:=java_juenumset
+            checkdef:=compiler.deftypes.java_juenumset
           else
             checkdef:=java_jubitset;
         end

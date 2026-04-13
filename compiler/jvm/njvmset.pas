@@ -90,7 +90,7 @@ implementation
         if isenum then
           begin
             inserttypeconv_explicit(left,compiler.deftypes.java_jlenum,compiler);
-            inserttypeconv_explicit(right,java_juenumset,compiler);
+            inserttypeconv_explicit(right,compiler.deftypes.java_juenumset,compiler);
           end
         else
           begin

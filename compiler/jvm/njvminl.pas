@@ -373,7 +373,7 @@ implementation
         include(taddrnode(setpara).addrnodeflags,anf_typedaddr);
         if seteledef.typ=enumdef then
           begin
-            inserttypeconv_explicit(setpara,java_juenumset,compiler);
+            inserttypeconv_explicit(setpara,compiler.deftypes.java_juenumset,compiler);
             inserttypeconv_explicit(valuepara.left,tcpuenumdef(tenumdef(seteledef).getbasedef).classdef,compiler);
           end
         else
