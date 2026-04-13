@@ -2834,10 +2834,10 @@ implementation
         result:=
           (compiler.target.info.system in systems_jvm) and
           (((curdef.stringtype in [st_unicodestring,st_widestring]) and
-            ((otherdef=java_jlobject) or
+            ((otherdef=compiler.deftypes.java_jlobject) or
              (otherdef=java_jlstring))) or
            ((curdef.stringtype=st_ansistring) and
-            ((otherdef=java_jlobject) or
+            ((otherdef=compiler.deftypes.java_jlobject) or
              (otherdef=java_ansistring))));
       end;
 
@@ -2854,7 +2854,7 @@ implementation
             if otherdef.typ=objectdef then
               begin
                 otherdef:=compiler.symtablestack.find_real_class_definition(tobjectdef(otherdef),false);
-                if (otherdef=java_jlobject) or
+                if (otherdef=compiler.deftypes.java_jlobject) or
                    (otherdef=java_fpcbaserecordtype) then
                   result:=true
               end;

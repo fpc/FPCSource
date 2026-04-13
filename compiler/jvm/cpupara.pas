@@ -255,9 +255,9 @@ implementation
             if push_copyout_param(hp.varspez,hp.vardef,p.proccalloption) then
               begin
                 { passed via array reference (instead of creating a new array
-                  type for every single parameter, use java_jlobject) }
+                  type for every single parameter, use compiler.deftypes.java_jlobject) }
                 paracgsize:=OS_ADDR;
-                paradef:=java_jlobject;
+                paradef:=compiler.deftypes.java_jlobject;
               end
             else if jvmimplicitpointertype(hp.vardef) then
               begin

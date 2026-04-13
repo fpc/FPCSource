@@ -875,7 +875,7 @@ implementation
              jvmimplicitpointertype(paradef) then
             begin
               paraname:='@'+paraname;
-              paradef:=java_jlobject;
+              paradef:=compiler.deftypes.java_jlobject;
             end;
           if paradef.typ in [orddef,floatdef] then
             begin

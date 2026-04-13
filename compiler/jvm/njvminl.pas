@@ -217,7 +217,7 @@ implementation
                 compiler.ccallparanode(genintconstnode(ndims,compiler),
                   compiler.ccallparanode(len,
                     compiler.ccallparanode(start,
-                      compiler.ccallparanode(compiler.ctypeconvnode_explicit(arr,java_jlobject),nil)
+                      compiler.ccallparanode(compiler.ctypeconvnode_explicit(arr,compiler.deftypes.java_jlobject),nil)
                     )
                   )
                 )
@@ -481,7 +481,7 @@ implementation
                 begin
                   { expects JLObject }
                   setlenroutine:='FPC_SETLENGTH_DYNARR_GENERIC';
-                  objarraydef:=java_jlobject;
+                  objarraydef:=compiler.deftypes.java_jlobject;
                 end
               end;
           end;
@@ -802,7 +802,7 @@ implementation
             thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
           end
         else if is_ansistring(target.resultdef) then
-          thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER)
+          thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,0,R_ADDRESSREGISTER)
         else if is_dynamic_array(target.resultdef) then
           begin
             thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,0,R_INTREGISTER);

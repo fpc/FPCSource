@@ -70,7 +70,7 @@ unit tgcpu;
         sym: tsym;
         pd: tprocdef;
       begin
-        gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+        gettemp(list,compiler.deftypes.java_jlobject.size,compiler.deftypes.java_jlobject.alignment,temptype,ref);
         list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
@@ -91,7 +91,7 @@ unit tgcpu;
         hlcg.a_call_name(list,pd,pd.mangledname,[],nil,false);
         thlcgjvm(hlcg).decstack(list,1);
         { store reference to instance }
-        thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+        thlcgjvm(hlcg).a_load_stack_ref(list,compiler.deftypes.java_jlobject,ref,0);
       end;
 
 
@@ -109,7 +109,7 @@ unit tgcpu;
               if not is_dynamic_array(def) then
                 begin
                   { allocate an array of the right size }
-                  gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+                  gettemp(list,compiler.deftypes.java_jlobject.size,compiler.deftypes.java_jlobject.alignment,temptype,ref);
                   ndim:=0;
                   eledef:=def;
                   repeat
@@ -124,7 +124,7 @@ unit tgcpu;
                         is_dynamic_array(eledef);
                   eledef:=tarraydef(def).elementdef;
                   thlcgjvm(hlcg).g_newarray(list,def,ndim);
-                  thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+                  thlcgjvm(hlcg).a_load_stack_ref(list,compiler.deftypes.java_jlobject,ref,0);
                   result:=true;
                 end;
             end;
@@ -177,8 +177,8 @@ unit tgcpu;
                   thlcgjvm(hlcg).decstack(list,1);
                 end;
               { store reference to instance }
-              gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
-              thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+              gettemp(list,compiler.deftypes.java_jlobject.size,compiler.deftypes.java_jlobject.alignment,temptype,ref);
+              thlcgjvm(hlcg).a_load_stack_ref(list,compiler.deftypes.java_jlobject,ref,0);
               result:=true;
             end;
           procvardef:
@@ -193,7 +193,7 @@ unit tgcpu;
             begin
               if is_shortstring(def) then
                 begin
-                  gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+                  gettemp(list,compiler.deftypes.java_jlobject.size,compiler.deftypes.java_jlobject.alignment,temptype,ref);
                   { add the maxlen parameter (compiler.deftypes.s8inttype because parameters must
                     be sign extended) }
                   thlcgjvm(hlcg).a_load_const_stack(list,compiler.deftypes.s8inttype,shortint(tstringdef(def).len),R_INTREGISTER);
@@ -210,7 +210,7 @@ unit tgcpu;
                   { static calls method replaces parameter with string instance
                     -> no change in stack height }
                   { store reference to instance }
-                  thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+                  thlcgjvm(hlcg).a_load_stack_ref(list,compiler.deftypes.java_jlobject,ref,0);
                   result:=true;
                 end;
             end;

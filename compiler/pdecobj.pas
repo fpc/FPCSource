@@ -722,7 +722,7 @@ implementation
                 compiler.verbose.CGMessage(parser_h_no_objc_parent);
               odt_javaclass:
                 { inherit from TObject by default for compatibility }
-                if compiler.current_objectdef<>java_jlobject then
+                if compiler.current_objectdef<>compiler.deftypes.java_jlobject then
                   childof:=compiler.deftypes.class_tobject;
               else
                 ;
@@ -1602,7 +1602,7 @@ implementation
                       if (compiler.current_structdef.objname^='TOBJECT') then
                         compiler.deftypes.class_tobject:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLOBJECT') then
-                        java_jlobject:=compiler.current_objectdef
+                        compiler.deftypes.java_jlobject:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='FPCBASERECORDTYPE') then

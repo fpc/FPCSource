@@ -164,10 +164,10 @@ function tjvmassignmentnode.pass_1: tnode;
               tt_persistent,false,right);
             addstatement(stat,tempn);
             right:=compiler.caddrnode(compiler.ctemprefnode(tempn));
-            inserttypeconv_explicit(right,java_jlobject,compiler);
+            inserttypeconv_explicit(right,compiler.deftypes.java_jlobject,compiler);
             addstatement(stat,compiler.ctempdeletenode_normal_temp(tempn));
             addstatement(stat,compiler.ctypeconvnode_explicit(
-              compiler.caddrnode(compiler.ctemprefnode(tempn)),java_jlobject));
+              compiler.caddrnode(compiler.ctemprefnode(tempn)),compiler.deftypes.java_jlobject));
             right:=block;
           end;
         typecheckpass(right);
@@ -263,15 +263,15 @@ procedure tjvmloadnode.pass_generate_code;
           generate_nested_access(tabstractnormalvarsym(symtableentry));
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
         location.reference.arrayreftype:=art_indexconst;
-        location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
         location.reference.indexoffset:=0;
         { load the field from the nestedfpstruct, or the parameter location.
           In both cases, the result is an array of one element containing the
           parameter value }
         if assigned(left) then
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,left.location,location.reference.base)
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,left.location,location.reference.base)
         else
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
       end
     else if symtableentry.typ=procsym then
       { handled in tjvmcnvnode.first_proc_to_procvar }
@@ -288,8 +288,8 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
     basereg: tregister;
   begin
     { arrays are implicitly dereferenced }
-    basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,ref,basereg);
+    basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
+    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,basereg);
     reference_reset_base(ref,basereg,0,ctempposinvalid,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;

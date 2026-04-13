@@ -131,7 +131,7 @@ implementation
             result:=
               ((def2.typ=procvardef) and
                tprocvardef(def2).is_addressonly) or
-              (def2=java_jlobject) or
+              (def2=compiler.deftypes.java_jlobject) or
               (def2=compiler.deftypes.voidpointertype)
           else if po_methodpointer in tprocvardef(def1).procoptions then
             begin
@@ -457,7 +457,7 @@ implementation
         if is_nested_pd(procdef) then
           internalerror(2011072607);
         { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
-        constrparas:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(procload,java_jlobject),nil);
+        constrparas:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(procload,compiler.deftypes.java_jlobject),nil);
         if not assigned(procdef.import_name) then
           constrparas:=compiler.ccallparanode(compiler.cstringconstnode_str(procdef.procsym.realname),constrparas)
         else
@@ -714,8 +714,8 @@ implementation
       var
         r: Treference;
       begin
-        tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
-        hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+        tg.gethltemp(current_asmdata.currasmlist,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,r);
+        hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,0,r);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
         location.reference:=r;
       end;
@@ -833,15 +833,15 @@ implementation
         { doesn't change stack height: one int replaced by one reference }
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         { store the data in the newly created array }
-        basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);
+        basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,basereg);
         reference_reset_base(arrayref,basereg,0,ctempposinvalid,4,[]);
         arrayref.arrayreftype:=art_indexconst;
         arrayref.indexoffset:=0;
         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
         location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4,[]);
-        tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,4,tt_normal,location.reference);
-        hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,basereg,location.reference);
+        tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,4,tt_normal,location.reference);
+        hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,basereg,location.reference);
       end;
 
 
@@ -1096,7 +1096,7 @@ implementation
             fromdef:=tcpuprocvardef(fromdef).classdef;
           if todef.typ=procvardef then
             todef:=tcpuprocvardef(todef).classdef;
-          if (todef=java_jlobject) or
+          if (todef=compiler.deftypes.java_jlobject) or
              (todef=compiler.deftypes.voidpointertype) then
             exit;
           if compare_defs(fromdef,todef,nothingn)>=te_equal then

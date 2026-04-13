@@ -215,6 +215,8 @@ implementation
 
     function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: TSymStr; forcesignature: boolean; out founderror: tdef): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         c: char;
       begin
         result:=true;
@@ -271,7 +273,7 @@ implementation
           pointerdef :
             begin
               if is_voidpointer(def) then
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
+                result:=jvmaddencodedtype(compiler.deftypes.java_jlobject,false,encodedstr,forcesignature,founderror)
               else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
                 result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror)
               else
@@ -343,7 +345,7 @@ implementation
           formaldef :
             begin
               { var/const/out x: JLObject }
-              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
+              result:=jvmaddencodedtype(compiler.deftypes.java_jlobject,false,encodedstr,forcesignature,founderror);
             end;
           arraydef :
             begin
@@ -713,7 +715,7 @@ implementation
               pointerdef :
                 begin
                   if def=compiler.deftypes.voidpointertype then
-                    result:=java_jlobject
+                    result:=compiler.deftypes.java_jlobject
                   else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
                     result:=tpointerdef(def).pointeddef
                   else
@@ -740,7 +742,7 @@ implementation
                 end;
               formaldef :
                 begin
-                  result:=java_jlobject;
+                  result:=compiler.deftypes.java_jlobject;
                 end;
               arraydef :
                 begin
@@ -990,7 +992,7 @@ implementation
                       internalerror(2011040701);
                     constpointer,
                     constnil:
-                      result:=jvmencodetype(java_jlobject,withsignature);
+                      result:=jvmencodetype(compiler.deftypes.java_jlobject,withsignature);
                     constwstring,
                     conststring:
                       result:=jvmencodetype(java_jlstring,withsignature);

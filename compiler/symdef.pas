@@ -1285,6 +1285,10 @@ interface
          { a unique def to identify any kind of metadata }
          llvm_metadatatype         : tdef;
 {$endif llvm}
+
+         { Java base types }
+         { java.lang.Object }
+         java_jlobject             : tobjectdef;
        end;
 
 
@@ -1313,10 +1317,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-       { Java base types }
-       { java.lang.Object }
-       java_jlobject             : tobjectdef;
        { java.lang.Throwable }
        java_jlthrowable          : tobjectdef;
        { FPC base type for records }
@@ -8071,7 +8071,7 @@ implementation
                 not(oo_is_formal in objectoptions) then
                begin
                  if (objname^='JLOBJECT') then
-                   java_jlobject:=self
+                   compiler.deftypes.java_jlobject:=self
                  else if (objname^='JLTHROWABLE') then
                    java_jlthrowable:=self
                  else if (objname^='FPCBASERECORDTYPE') then
@@ -9873,7 +9873,7 @@ implementation
 {$endif llvm}
 
        { Java base types }
-       java_jlobject:=nil;
+       compiler.deftypes.java_jlobject:=nil;
        java_jlthrowable:=nil;
        java_fpcbaserecordtype:=nil;
        java_jlstring:=nil;

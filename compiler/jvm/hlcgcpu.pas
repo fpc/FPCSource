@@ -736,7 +736,7 @@ implementation
               end;
             enumdef:
               begin
-                a_load_ref_stack(list,java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
+                a_load_ref_stack(list,compiler.deftypes.java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
                 g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
               end;
             stringdef:
@@ -780,7 +780,7 @@ implementation
       current_asmdata.getjumplabel(endlab);
 
       { if assigned(arr) ... }
-      a_load_loc_stack(list,java_jlobject,arrloc);
+      a_load_loc_stack(list,compiler.deftypes.java_jlobject,arrloc);
       list.concat(taicpu.op_none(a_dup));
       incstack(list,1);
       list.concat(taicpu.op_sym(a_ifnull,nillab));
@@ -1135,7 +1135,7 @@ implementation
         return that pointer) }
       if not jvmimplicitpointertype(fromsize) then
         internalerror(2010120534);
-      a_load_ref_reg(list,java_jlobject,java_jlobject,ref,r);
+      a_load_ref_reg(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,r);
     end;
 
   procedure thlcgjvm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
@@ -1347,8 +1347,8 @@ implementation
       adddefaultlenparas: boolean;
     begin
       { load copy helper parameters on the stack }
-      a_load_ref_stack(list,java_jlobject,source,prepare_stack_for_ref(list,source,false));
-      a_load_ref_stack(list,java_jlobject,dest,prepare_stack_for_ref(list,dest,false));
+      a_load_ref_stack(list,compiler.deftypes.java_jlobject,source,prepare_stack_for_ref(list,source,false));
+      a_load_ref_stack(list,compiler.deftypes.java_jlobject,dest,prepare_stack_for_ref(list,dest,false));
       { call copy helper }
       eledef:=tarraydef(size).elementdef;
       ndim:=1;
@@ -1663,7 +1663,7 @@ implementation
       if name<>'fpc_initialize_array' then
         exit;
       { put array on the stack }
-      a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
+      a_load_ref_stack(list,compiler.deftypes.java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
       { in case it's an open array whose elements are regular arrays, put the
         dimension of the regular arrays on the stack (otherwise pass 0) }
       normaldim:=0;
@@ -1698,7 +1698,7 @@ implementation
         begin
           if get_enum_init_val_ref(t,eleref) then
             begin
-              a_load_ref_stack(list,java_jlobject,eleref,prepare_stack_for_ref(list,eleref,false));
+              a_load_ref_stack(list,compiler.deftypes.java_jlobject,eleref,prepare_stack_for_ref(list,eleref,false));
               g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
             end;
         end
@@ -1731,7 +1731,7 @@ implementation
             end
           else
             internalerror(2013113008);
-          a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
+          a_load_ref_stack(list,compiler.deftypes.java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
           a_call_name(list,pd,pd.mangledname,[],nil,false);
           { parameter removed, no result }
           decstack(list,1);
@@ -1804,10 +1804,10 @@ implementation
               { passed by reference in array of single element; l contains the
                 base address of the array }
               location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
-              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,tmploc.reference.temppos,4,ref.volatility);
+              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,compiler.deftypes.java_jlobject),0,tmploc.reference.temppos,4,ref.volatility);
               tmploc.reference.arrayreftype:=art_indexconst;
               tmploc.reference.indexoffset:=0;
-              a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
+              a_load_loc_reg(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,l,tmploc.reference.base);
             end
           else
             tmploc:=l;
@@ -1818,7 +1818,7 @@ implementation
           begin
             { the implicit pointer is in a register and has to be in a
               reference -> create a reference and put it there }
-            location_force_mem(list,tmploc,java_jlobject);
+            location_force_mem(list,tmploc,compiler.deftypes.java_jlobject);
             ref:=tmploc.reference;
           end;
         LOC_REFERENCE,
@@ -1843,7 +1843,7 @@ implementation
       stackslots: longint;
     begin
       { temporary reference for passing to concatcopy }
-      tg.gethltemp(list,java_jlobject,java_jlobject.size,tt_persistent,localref);
+      tg.gethltemp(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_persistent,localref);
       stackslots:=prepare_stack_for_ref(list,localref,false);
       { create the local copy of the array (lenloc is invalid, get length
         directly from the array) }
@@ -1851,11 +1851,11 @@ implementation
       arrloc.reference:=ref;
       g_getarraylen(list,arrloc);
       g_newarray(list,arrdef,1);
-      a_load_stack_ref(list,java_jlobject,localref,stackslots);
+      a_load_stack_ref(list,compiler.deftypes.java_jlobject,localref,stackslots);
       { copy the source array to the destination }
       g_concatcopy(list,arrdef,ref,localref);
       { and put the array pointer in the register as expected by the caller }
-      a_load_ref_reg(list,java_jlobject,java_jlobject,localref,destreg);
+      a_load_ref_reg(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,localref,destreg);
     end;
 
   procedure thlcgjvm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
@@ -1968,7 +1968,7 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
-        size:=java_jlobject;
+        size:=compiler.deftypes.java_jlobject;
       decstack(list,1+ord(size.size>4));
     end;
 
@@ -1987,7 +1987,7 @@ implementation
         list.concat(taicpu.op_none(opc));
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
-        size:=java_jlobject;
+        size:=compiler.deftypes.java_jlobject;
       decstack(list,1+ord(size.size>4)+extra_slots);
     end;
 
@@ -2000,7 +2000,7 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
-        size:=java_jlobject;
+        size:=compiler.deftypes.java_jlobject;
       incstack(list,1+ord(size.size>4));
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
@@ -2021,7 +2021,7 @@ implementation
         list.concat(taicpu.op_none(opc));
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
-        size:=java_jlobject;
+        size:=compiler.deftypes.java_jlobject;
       incstack(list,1+ord(size.size>4)-extra_slots);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
@@ -2316,7 +2316,7 @@ implementation
       ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
       { only copy the reference, not the actual data }
-      a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
+      a_load_ref_ref(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tmpref,ref);
       { remains live since there's still a reference to the created
         entity }
       tg.ungettemp(list,tmpref);
@@ -2327,7 +2327,7 @@ implementation
     begin
       destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
-      a_load_ref_ref(list,java_jlobject,java_jlobject,initref,destbaseref);
+      a_load_ref_ref(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,initref,destbaseref);
     end;
 
 
@@ -2449,7 +2449,7 @@ implementation
         checkdef:=tpointerdef(checkdef).pointeddef;
       if (checkdef=compiler.deftypes.voidpointertype) or
          (checkdef.typ=formaldef) then
-        checkdef:=java_jlobject
+        checkdef:=compiler.deftypes.java_jlobject
       else if checkdef.typ=enumdef then
         checkdef:=tcpuenumdef(checkdef).classdef
       else if checkdef.typ=setdef then

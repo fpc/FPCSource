@@ -230,7 +230,7 @@ implementation
         implicitptrpara:=jvmimplicitpointertype(orgparadef);
         { create the array temp that that will serve as the parameter }
         if parasym.vardef.typ=formaldef then
-          arreledef:=java_jlobject
+          arreledef:=compiler.deftypes.java_jlobject
         else if implicitptrpara then
           arreledef:=cpointerdef.getreusable(orgparadef,compiler)
         else
@@ -274,7 +274,7 @@ implementation
                     left:=compiler.cinlinenode(in_box_x,false,compiler.ccallparanode(left,nil));
                     typecheckpass(left);
                   end;
-                left:=compiler.ctypeconvnode_explicit(left,java_jlobject);
+                left:=compiler.ctypeconvnode_explicit(left,compiler.deftypes.java_jlobject);
               end;
             { put the parameter value in the array }
             addstatement(initstat,compiler.cassignmentnode(
@@ -418,7 +418,7 @@ implementation
         if not jvmimplicitpointertype(realresdef) then
           tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
         else
-          tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,java_jlobject.size,tt_normal,location.reference);
+          tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,location.reference);
       end;
 
 

@@ -253,7 +253,7 @@ implementation
               initnode:=compiler.ccallparanode(
                 compiler.ctypeconvnode_explicit(
                   compiler.caddrnode_internal(compiler.ctemprefnode(temp)),
-                  java_jlobject),
+                  compiler.deftypes.java_jlobject),
                 nil);
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
               initnode:=compiler.ccallparanode(genintconstnode(ndim,compiler),initnode);
@@ -296,7 +296,7 @@ implementation
 
           if assigned(initnode) and
              not initnodefinished then
-            initnode:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(initnode,java_jlobject),nil);
+            initnode:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(initnode,compiler.deftypes.java_jlobject),nil);
           addstatement(stat,compiler.cassignmentnode(
             compiler.cloadnode(vs,vs.owner),
             compiler.ccallnode_internmethod(

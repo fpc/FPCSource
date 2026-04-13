@@ -579,7 +579,7 @@ implementation
                         writer.AsmWriteLn(obj.jvm_full_typename(true));
                         { interfaces must always specify Java.lang.object as
                           superclass }
-                        superclass:=java_jlobject;
+                        superclass:=compiler.deftypes.java_jlobject;
                       end
                     else
                       internalerror(2011010906);

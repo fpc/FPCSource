@@ -129,7 +129,7 @@ implementation
                not(resultdef.typ in [orddef,floatdef]) and
                not is_voidpointer(resultdef) and
                ((resultdef.typ<>objectdef) or
-                (compiler.symtablestack.find_real_class_definition(tobjectdef(resultdef),false)<>java_jlobject)) then
+                (compiler.symtablestack.find_real_class_definition(tobjectdef(resultdef),false)<>compiler.deftypes.java_jlobject)) then
               location.reference.checkcast:=true;
           end
       end;
@@ -256,7 +256,7 @@ implementation
                 else
                   { convert contents to plain pointer }
                   begin
-                    result:=compiler.ctypeconvnode_explicit(left,java_jlobject);
+                    result:=compiler.ctypeconvnode_explicit(left,compiler.deftypes.java_jlobject);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end;
@@ -435,7 +435,7 @@ implementation
           location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility);
         { don't use left.resultdef, because it may be an open or regular array,
           and then asking for the size doesn't make any sense }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,java_jlobject,java_jlobject,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,true);
         location.reference.base:=left.location.register;
         secondpass(right);
         if (right.expectloc=LOC_JUMP)<>

@@ -1193,7 +1193,7 @@ implementation
           def: tobjectdef;
           typesym: ttypesym;
         begin
-          { java_jlobject may not have been parsed yet (system unit); in any
+          { compiler.deftypes.java_jlobject may not have been parsed yet (system unit); in any
             case, we only use this to refer to the class type, so inheritance
             does not matter }
           def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil,true,compiler);
