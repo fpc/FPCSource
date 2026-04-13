@@ -20,7 +20,7 @@ type
   TTest1Helper = record helper for TTest1
   end;
 
-  TTest2Helper = record helpen(TTest1Helper) for TTest2
+  TTest2Helper = record helper(TTest1Helper) for TTest2
   end;
 
 begin
