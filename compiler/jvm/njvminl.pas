@@ -378,7 +378,7 @@ implementation
           end
         else
           begin
-            inserttypeconv_explicit(setpara,java_jubitset,compiler);
+            inserttypeconv_explicit(setpara,compiler.deftypes.java_jubitset,compiler);
             inserttypeconv_explicit(valuepara.left,compiler.deftypes.s32inttype,compiler);
           end;
         if inlinenumber=in_include_x_y then

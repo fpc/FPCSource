@@ -155,14 +155,14 @@ unit tgcpu;
                 end
               else
                 begin
-                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(java_jubitset.jvm_full_typename(true),AT_METADATA)));
+                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(compiler.deftypes.java_jubitset.jvm_full_typename(true),AT_METADATA)));
                   { the constructor doesn't return anything, so put a duplicate of the
                     self pointer on the evaluation stack for use as function result
                     after the constructor has run }
                   list.concat(taicpu.op_none(a_dup));
                   thlcgjvm(hlcg).incstack(list,2);
                   { call the constructor }
-                  sym:=tsym(java_jubitset.symtable.find('CREATE'));
+                  sym:=tsym(compiler.deftypes.java_jubitset.symtable.find('CREATE'));
                   if assigned(sym) and
                      (sym.typ=procsym) then
                     begin

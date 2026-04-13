@@ -370,7 +370,7 @@ implementation
                 if tsetdef(left.resultdef).elementdef.typ<>enumdef then
                   begin
                     helpername:='fpcBitSetToEnumSet';
-                    setclassdef:=java_jubitset;
+                    setclassdef:=compiler.deftypes.java_jubitset;
                   end
                 else
                   begin
@@ -938,7 +938,7 @@ implementation
            end
          else
            begin
-             setconvdef:=java_jubitset;
+             setconvdef:=compiler.deftypes.java_jubitset;
              helpername:='fpc_bitset_to_'
            end;
          if left.resultdef.size<=4 then
@@ -1064,7 +1064,7 @@ implementation
                   begin
                     if not assigned(tsetdef(tpointerdef(def1).pointeddef).elementdef) then
                       begin
-                        if (def2=java_jubitset) or
+                        if (def2=compiler.deftypes.java_jubitset) or
                            (def2=compiler.deftypes.java_juenumset) then
                           exit;
                       end
@@ -1073,7 +1073,7 @@ implementation
                         if def2=compiler.deftypes.java_juenumset then
                           exit;
                       end
-                    else if def2=java_jubitset then
+                    else if def2=compiler.deftypes.java_jubitset then
                       exit;
                   end;
               end;

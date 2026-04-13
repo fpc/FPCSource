@@ -2457,7 +2457,7 @@ implementation
           if tsetdef(checkdef).elementdef.typ=enumdef then
             checkdef:=compiler.deftypes.java_juenumset
           else
-            checkdef:=java_jubitset;
+            checkdef:=compiler.deftypes.java_jubitset;
         end
       else if checkdef.typ=procvardef then
         checkdef:=tcpuprocvardef(checkdef).classdef

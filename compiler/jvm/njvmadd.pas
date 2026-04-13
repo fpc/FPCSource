@@ -126,7 +126,7 @@ interface
           if isenum then
             inserttypeconv_explicit(result,compiler.deftypes.java_juenumset,compiler)
           else
-            inserttypeconv_explicit(result,java_jubitset,compiler);
+            inserttypeconv_explicit(result,compiler.deftypes.java_jubitset,compiler);
           if isenum then
             begin
               { all enum instance methods return a boolean, while we are
@@ -184,12 +184,12 @@ interface
               end
             else
               begin
-                inserttypeconv_explicit(left,java_jubitset,compiler);
+                inserttypeconv_explicit(left,compiler.deftypes.java_jubitset,compiler);
                 if right.resultdef.typ=setdef then
                   begin
                     right:=compiler.caddrnode_internal(right);
                     include(taddrnode(right).addrnodeflags,anf_typedaddr);
-                    inserttypeconv_explicit(right,java_jubitset,compiler);
+                    inserttypeconv_explicit(right,compiler.deftypes.java_jubitset,compiler);
                   end;
               end;
           end
@@ -239,7 +239,7 @@ interface
                     begin
                       { for boolean, char, etc }
                       inserttypeconv_explicit(tsetelementnode(right).left,compiler.deftypes.s32inttype,compiler);
-                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
+                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_jubitset));
                     end;
                   paras:=compiler.ccallparanode(tsetelementnode(right).left,nil);
                   tsetelementnode(right).left:=nil;
@@ -291,7 +291,7 @@ interface
                           else
                             begin
                               inserttypeconv_explicit(tsetelementnode(right).right,compiler.deftypes.s32inttype,compiler);
-                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
+                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_jubitset));
                             end;
                           paras:=compiler.ccallparanode(compiler.ccallnode_internmethod(tmpn,'RANGE',compiler.ccallparanode(tsetelementnode(right).right,paras)),nil);
                           tsetelementnode(right).right:=nil;

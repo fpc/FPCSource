@@ -1618,7 +1618,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='JUENUMSET') then
                         compiler.deftypes.java_juenumset:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='FPCBITSET') then
-                        java_jubitset:=compiler.current_objectdef
+                        compiler.deftypes.java_jubitset:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='FPCBASEPROCVARTYPE') then
                         java_procvarbase:=compiler.current_objectdef;
                     end;

@@ -340,7 +340,7 @@ implementation
                     result:=jvmaddencodedtype(compiler.deftypes.java_juenumset,false,encodedstr,forcesignature,founderror)
                 end
               else
-                result:=jvmaddencodedtype(java_jubitset,false,encodedstr,forcesignature,founderror)
+                result:=jvmaddencodedtype(compiler.deftypes.java_jubitset,false,encodedstr,forcesignature,founderror)
             end;
           formaldef :
             begin
@@ -738,7 +738,7 @@ implementation
                   if tsetdef(def).elementdef.typ=enumdef then
                     result:=compiler.deftypes.java_juenumset
                   else
-                    result:=java_jubitset;
+                    result:=compiler.deftypes.java_jubitset;
                 end;
               formaldef :
                 begin

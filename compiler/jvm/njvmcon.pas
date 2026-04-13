@@ -294,7 +294,7 @@ implementation
       begin
         if value_set^=[] then
           begin
-            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
+            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(compiler.deftypes.java_jubitset));
             result:=compiler.ccallnode_internmethod(mp,'CREATE',nil);
             exit;
           end;
