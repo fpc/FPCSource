@@ -1303,6 +1303,8 @@ interface
          java_jubitset             : tobjectdef;
          { FPC java implementation of ansistrings }
          java_ansistring           : tobjectdef;
+         { FPC java implementation of shortstrings }
+         java_shortstring          : tobjectdef;
        end;
 
 
@@ -1331,8 +1333,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { FPC java implementation of shortstrings }
-       java_shortstring          : tobjectdef;
        { FPC java procvar base class }
        java_procvarbase          : tobjectdef;
 
@@ -8081,7 +8081,7 @@ implementation
                  else if (objname^='ANSISTRINGCLASS') then
                    compiler.deftypes.java_ansistring:=self
                  else if (objname^='SHORTSTRINGCLASS') then
-                   java_shortstring:=self
+                   compiler.deftypes.java_shortstring:=self
                  else if (objname^='JLENUM') then
                    compiler.deftypes.java_jlenum:=self
                  else if (objname^='JUENUMSET') then
@@ -9881,7 +9881,7 @@ implementation
        compiler.deftypes.java_juenumset:=nil;
        compiler.deftypes.java_jubitset:=nil;
        compiler.deftypes.java_ansistring:=nil;
-       java_shortstring:=nil;
+       compiler.deftypes.java_shortstring:=nil;
        java_procvarbase:=nil;
 
        { x86 vector types }

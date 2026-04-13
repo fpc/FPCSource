@@ -1057,7 +1057,7 @@ implementation
             if def1.typ=pointerdef then
               begin
                 if is_shortstring(tpointerdef(def1).pointeddef) and
-                   (def2=java_shortstring) then
+                   (def2=compiler.deftypes.java_shortstring) then
                   exit;
                 { pointer-to-set to JUEnumSet/JUBitSet }
                 if (tpointerdef(def1).pointeddef.typ=setdef) then
@@ -1084,7 +1084,7 @@ implementation
           begin
             result:=true;
             if is_shortstring(def1) and
-               (def2=java_shortstring) then
+               (def2=compiler.deftypes.java_shortstring) then
               exit;
             result:=false;
           end;

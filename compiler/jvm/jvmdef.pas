@@ -231,7 +231,7 @@ implementation
                 st_ansistring:
                   result:=jvmaddencodedtype(compiler.deftypes.java_ansistring,false,encodedstr,forcesignature,founderror);
                 st_shortstring:
-                  result:=jvmaddencodedtype(java_shortstring,false,encodedstr,forcesignature,founderror);
+                  result:=jvmaddencodedtype(compiler.deftypes.java_shortstring,false,encodedstr,forcesignature,founderror);
                 else
                   { May be handled via wrapping later  }
                   result:=false;
@@ -703,7 +703,7 @@ implementation
                     st_ansistring:
                       result:=compiler.deftypes.java_ansistring;
                     st_shortstring:
-                      result:=java_shortstring;
+                      result:=compiler.deftypes.java_shortstring;
                     else
                       internalerror(2011072409);
                   end;

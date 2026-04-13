@@ -379,7 +379,7 @@ implementation
                 stringclass:=compiler.deftypes.java_jlstring;
               st_shortstring:
                 begin
-                  stringclass:=java_shortstring;
+                  stringclass:=compiler.deftypes.java_shortstring;
                   left:=compiler.caddrnode_internal(left);
                   { avoid useless typecheck when casting to shortstringclass }
                   include(taddrnode(left).addrnodeflags,anf_typedaddr);

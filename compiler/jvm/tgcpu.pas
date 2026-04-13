@@ -198,7 +198,7 @@ unit tgcpu;
                     be sign extended) }
                   thlcgjvm(hlcg).a_load_const_stack(list,compiler.deftypes.s8inttype,shortint(tstringdef(def).len),R_INTREGISTER);
                   { call the constructor }
-                  sym:=tsym(tobjectdef(java_shortstring).symtable.find('CREATEEMPTY'));
+                  sym:=tsym(tobjectdef(compiler.deftypes.java_shortstring).symtable.find('CREATEEMPTY'));
                   if assigned(sym) and
                      (sym.typ=procsym) then
                     begin

@@ -1480,7 +1480,7 @@ implementation
         { result }
         a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
         { call fpcDeepCopy helper }
-        srsym:=search_struct_member(java_shortstring,'FPCDEEPCOPY');
+        srsym:=search_struct_member(compiler.deftypes.java_shortstring,'FPCDEEPCOPY');
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
           compiler.verbose.Message1(cg_f_unknown_compilerproc,'ShortstringClass.FpcDeepCopy');
@@ -2466,7 +2466,7 @@ implementation
       else if is_ansistring(checkdef) then
         checkdef:=compiler.deftypes.java_ansistring
       else if is_shortstring(checkdef) then
-        checkdef:=java_shortstring;
+        checkdef:=compiler.deftypes.java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
         list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
       else if checkdef.typ=classrefdef then

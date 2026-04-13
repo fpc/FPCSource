@@ -621,13 +621,13 @@ implementation
           end
         else if is_shortstring(left.resultdef) then
           begin
-            psym:=search_struct_member(tabstractrecorddef(java_shortstring),'LENGTH');
+            psym:=search_struct_member(tabstractrecorddef(compiler.deftypes.java_shortstring),'LENGTH');
             if not assigned(psym) or
                (psym.typ<>procsym) then
               internalerror(2011052402);
             result:=
               compiler.ccallnode(nil,tprocsym(psym),psym.owner,
-                compiler.ctypeconvnode_explicit(compiler.caddrnode_internal(left),java_shortstring),[],nil);
+                compiler.ctypeconvnode_explicit(compiler.caddrnode_internal(left),compiler.deftypes.java_shortstring),[],nil);
             { reused }
             left:=nil;
           end

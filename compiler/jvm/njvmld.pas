@@ -135,8 +135,8 @@ function tjvmassignmentnode.pass_1: tnode;
         tvecnode(target).left:=compiler.caddrnode_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }
         include(taddrnode(tvecnode(target).left).addrnodeflags,anf_typedaddr);
-        inserttypeconv_explicit(tvecnode(target).left,java_shortstring,compiler);
-        psym:=search_struct_member(tabstractrecorddef(java_shortstring),'SETCHAR');
+        inserttypeconv_explicit(tvecnode(target).left,compiler.deftypes.java_shortstring,compiler);
+        psym:=search_struct_member(tabstractrecorddef(compiler.deftypes.java_shortstring),'SETCHAR');
         if not assigned(psym) or
            (psym.typ<>procsym) then
           internalerror(2011052408);

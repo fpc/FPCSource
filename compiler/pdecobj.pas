@@ -1612,7 +1612,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='ANSISTRINGCLASS') then
                         compiler.deftypes.java_ansistring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='SHORTSTRINGCLASS') then
-                        java_shortstring:=compiler.current_objectdef
+                        compiler.deftypes.java_shortstring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLENUM') then
                         compiler.deftypes.java_jlenum:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JUENUMSET') then
