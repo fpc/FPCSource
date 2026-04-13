@@ -463,14 +463,14 @@ in_x86_cvtps2pi
 : //out r0:mm;r1:xmm;
   begin
     CheckParameters(1);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_cvtps2pi_from_mem
 ,in_x86_cvttps2pi_from_mem
 : //out r0:mm;r1:ptr64;
   begin
     CheckParameters(1);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_pmulhuw_mmx
 ,in_x86_psadbw_mmx
@@ -483,7 +483,7 @@ in_x86_pmulhuw_mmx
 : //var r0:mm;r1:mm;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_pmulhuw_mmx_from_mem
 ,in_x86_psadbw_mmx_from_mem
@@ -496,7 +496,7 @@ in_x86_pmulhuw_mmx_from_mem
 : //var r0:mm;r1:ptr64;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_pextrw_mmx
 : //out r0:reg;r1:mm;imm:i32;
@@ -508,7 +508,7 @@ in_x86_pinsrw_mmx
 : //var r0:mm;r1:reg;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_pmovmskb_mmx
 : //out r0:reg;r1:mm;
@@ -520,13 +520,13 @@ in_x86_pshufw
 : //out r0:mm;r1:mm;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_pshufw_from_mem
 : //out r0:mm;r1:ptr64;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_movmskpd
 ,in_x86_movd_to_reg
@@ -631,14 +631,14 @@ in_x86_cvtpd2pi
 : //var r0:mm;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_cvtpd2pi_from_mem
 ,in_x86_cvttpd2pi_from_mem
 : //var r0:mm;r1:ptr128;
   begin
     CheckParameters(2);
-    resultdef:=x86_m64type;
+    resultdef:=compiler.deftypes.x86_m64type;
   end;
 in_x86_cvtsd2si
 ,in_x86_cvttsd2si
