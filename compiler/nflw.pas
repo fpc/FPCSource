@@ -351,7 +351,7 @@ implementation
           record }
         maybeloadcocoatypes;
         if not assigned(compiler.deftypes.objc_fastenumeration) or
-           not assigned(objc_fastenumerationstate) then
+           not assigned(compiler.deftypes.objc_fastenumerationstate) then
           begin
             result:=compiler.cerrornode;
             compiler.verbose.MessagePos(expr.fileinfo,parser_e_objc_missing_enumeration_defs);
@@ -416,7 +416,7 @@ implementation
 
          result:=internalstatements(compiler,mainstatement);
          { the fast enumeration state }
-         state:=compiler.ctempcreatenode(objc_fastenumerationstate,objc_fastenumerationstate.size,tt_persistent,false);
+         state:=compiler.ctempcreatenode(compiler.deftypes.objc_fastenumerationstate,compiler.deftypes.objc_fastenumerationstate.size,tt_persistent,false);
          typecheckpass(tnode(state));
          addstatement(mainstatement,state);
          { the temporary items array }
@@ -444,7 +444,7 @@ implementation
          { initialise the state with 0 }
          addstatement(mainstatement,compiler.ccallnode_internfromunit('SYSTEM','FILLCHAR',
            compiler.ccallparanode(genintconstnode(0,compiler),
-             compiler.ccallparanode(genintconstnode(objc_fastenumerationstate.size,compiler),
+             compiler.ccallparanode(genintconstnode(compiler.deftypes.objc_fastenumerationstate.size,compiler),
                compiler.ccallparanode(compiler.ctemprefnode(state),nil)
              )
            )

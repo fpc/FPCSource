@@ -1278,6 +1278,7 @@ interface
          objc_protocoltype         : tobjectdef;
          { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
          objc_fastenumeration      : tobjectdef;
+         objc_fastenumerationstate : trecorddef;
        end;
 
 
@@ -1306,7 +1307,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       objc_fastenumerationstate : trecorddef;
 
 {$ifdef llvm}
        { llvm types }
@@ -9669,9 +9669,9 @@ implementation
           compiler.deftypes.objc_fastenumeration:=nil;
         tsym:=search_named_unit_globaltype(cocoaunit,'NSFASTENUMERATIONSTATE',false);
         if assigned(tsym) then
-          objc_fastenumerationstate:=trecorddef(tsym.typedef)
+          compiler.deftypes.objc_fastenumerationstate:=trecorddef(tsym.typedef)
         else
-          objc_fastenumerationstate:=nil;
+          compiler.deftypes.objc_fastenumerationstate:=nil;
       end;
 
 
@@ -9864,7 +9864,7 @@ implementation
        compiler.deftypes.objc_objecttype:=nil;
        compiler.deftypes.objc_protocoltype:=nil;
        compiler.deftypes.objc_fastenumeration:=nil;
-       objc_fastenumerationstate:=nil;
+       compiler.deftypes.objc_fastenumerationstate:=nil;
 
 {$ifdef llvm}
        { llvm types }
