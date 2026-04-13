@@ -594,6 +594,8 @@ implementation
       end;
 
     function is_stringlike(def : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result := is_string(def) or
                   is_anychar(def) or
@@ -603,7 +605,7 @@ implementation
                   is_widechararray(def) or
                   is_open_chararray(def) or
                   is_open_widechararray(def) or
-                  (def=java_jlstring);
+                  (def=compiler.deftypes.java_jlstring);
       end;
 
     function chartype_for_stringlike(def : tdef) : tdef;
@@ -618,7 +620,7 @@ implementation
           result:=compiler.deftypes.cansichartype
         else if is_pwidechar(def) or is_pwidechar(def) or is_open_widechararray(def) then
           result:=compiler.deftypes.cwidechartype
-        else if def=java_jlstring then
+        else if def=compiler.deftypes.java_jlstring then
           result:=compiler.deftypes.cwidechartype
         else
           internalerror(2023012501);

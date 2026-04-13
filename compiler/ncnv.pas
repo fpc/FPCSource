@@ -359,7 +359,7 @@ implementation
 
           Also, in case the deftyp changes, don't ignore because lots of code
           expects that if the resultdef is set to e.g. stringdef, it remains
-          that way (e.g., in case of Java where java_jlstring equals
+          that way (e.g., in case of Java where compiler.deftypes.java_jlstring equals
           unicodestring according to equal_defs, but an add node for strings
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(compiler.symtablestack,p.resultdef,def) and

@@ -905,7 +905,7 @@ implementation
                         doconv:=tc_intf_2_string;
                         eq:=te_convert_l1;
                       end
-                     else if (def_from=java_jlstring) then
+                     else if (def_from=compiler.deftypes.java_jlstring) then
                        begin
                          if is_wide_or_unicode_string(def_to) then
                            begin
@@ -1860,7 +1860,7 @@ implementation
                   eq:=te_convert_l3;
                 end
                { string -> java.lang.string }
-               else if (def_to=java_jlstring) and
+               else if (def_to=compiler.deftypes.java_jlstring) and
                        ((def_from.typ=stringdef) or
                         (fromtreetype=stringconstn)) then
                  begin
@@ -1878,7 +1878,7 @@ implementation
                        eq:=te_convert_l2;
                      end;
                  end
-               else if (def_to=java_jlstring) and
+               else if (def_to=compiler.deftypes.java_jlstring) and
                        is_anychar(def_from) then
                  begin
                    doconv:=tc_char_2_string;
@@ -2835,7 +2835,7 @@ implementation
           (compiler.target.info.system in systems_jvm) and
           (((curdef.stringtype in [st_unicodestring,st_widestring]) and
             ((otherdef=compiler.deftypes.java_jlobject) or
-             (otherdef=java_jlstring))) or
+             (otherdef=compiler.deftypes.java_jlstring))) or
            ((curdef.stringtype=st_ansistring) and
             ((otherdef=compiler.deftypes.java_jlobject) or
              (otherdef=java_ansistring))));

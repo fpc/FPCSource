@@ -551,7 +551,7 @@ implementation
                                is_implicit_pointer_object_type(rd) or
                                (rd.typ=pointerdef) or
                                (rt=niln) or
-                               ((ld=java_jlstring) and
+                               ((ld=compiler.deftypes.java_jlstring) and
                                 is_stringlike(rd))
                              )
                            ) and

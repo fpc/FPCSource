@@ -227,7 +227,7 @@ implementation
                 { translated into java.lang.String }
                 st_widestring,
                 st_unicodestring:
-                  result:=jvmaddencodedtype(java_jlstring,false,encodedstr,forcesignature,founderror);
+                  result:=jvmaddencodedtype(compiler.deftypes.java_jlstring,false,encodedstr,forcesignature,founderror);
                 st_ansistring:
                   result:=jvmaddencodedtype(java_ansistring,false,encodedstr,forcesignature,founderror);
                 st_shortstring:
@@ -699,7 +699,7 @@ implementation
                     { translated into java.lang.String }
                     st_widestring,
                     st_unicodestring:
-                      result:=java_jlstring;
+                      result:=compiler.deftypes.java_jlstring;
                     st_ansistring:
                       result:=java_ansistring;
                     st_shortstring:
@@ -995,7 +995,7 @@ implementation
                       result:=jvmencodetype(compiler.deftypes.java_jlobject,withsignature);
                     constwstring,
                     conststring:
-                      result:=jvmencodetype(java_jlstring,withsignature);
+                      result:=jvmencodetype(compiler.deftypes.java_jlstring,withsignature);
                     constresourcestring:
                       internalerror(2011040702);
                     else

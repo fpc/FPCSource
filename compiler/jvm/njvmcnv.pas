@@ -206,8 +206,8 @@ implementation
    function tjvmtypeconvnode.typecheck_string_to_string: tnode;
      begin
        { make sure the generic code gets a stringdef }
-       if (maybe_find_real_class_definition(resultdef,false)=java_jlstring) or
-          (maybe_find_real_class_definition(left.resultdef,false)=java_jlstring) then
+       if (maybe_find_real_class_definition(resultdef,false)=compiler.deftypes.java_jlstring) or
+          (maybe_find_real_class_definition(left.resultdef,false)=compiler.deftypes.java_jlstring) then
          begin
            left:=compiler.ctypeconvnode(left,compiler.deftypes.cunicodestringtype);
            left.flags:=flags;
@@ -223,7 +223,7 @@ implementation
    function tjvmtypeconvnode.typecheck_char_to_string: tnode;
     begin
       { make sure the generic code gets a stringdef }
-      if self.totypedef=java_jlstring then
+      if self.totypedef=compiler.deftypes.java_jlstring then
         begin
           inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
           inserttypeconv(left,totypedef,compiler);
@@ -302,7 +302,7 @@ implementation
         if ((is_conststringnode(left) and
              not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring])) or
             is_constcharnode(left)) and
-           (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
+           (maybe_find_real_class_definition(resultdef,false)=compiler.deftypes.java_jlstring) then
           inserttypeconv(left,compiler.deftypes.cunicodestringtype,compiler);
       end;
 
@@ -1052,7 +1052,7 @@ implementation
                (def2=java_ansistring) then
               exit;
             if is_wide_or_unicode_string(def1) and
-               (def2=java_jlstring) then
+               (def2=compiler.deftypes.java_jlstring) then
               exit;
             if def1.typ=pointerdef then
               begin

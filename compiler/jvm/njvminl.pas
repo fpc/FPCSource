@@ -576,7 +576,7 @@ implementation
             if is_ansistring(left.resultdef) then
               stringclass:=java_ansistring
             else
-              stringclass:=java_jlstring;
+              stringclass:=compiler.deftypes.java_jlstring;
             newblock:=internalstatements(compiler,newstatement);
             { store left into a temp since it may contain a function call
               (which must not be evaluated twice) }

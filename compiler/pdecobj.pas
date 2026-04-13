@@ -1608,7 +1608,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='FPCBASERECORDTYPE') then
                         compiler.deftypes.java_fpcbaserecordtype:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='JLSTRING') then
-                        java_jlstring:=compiler.current_objectdef
+                        compiler.deftypes.java_jlstring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='ANSISTRINGCLASS') then
                         java_ansistring:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='SHORTSTRINGCLASS') then

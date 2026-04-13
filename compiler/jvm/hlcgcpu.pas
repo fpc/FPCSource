@@ -2462,7 +2462,7 @@ implementation
       else if checkdef.typ=procvardef then
         checkdef:=tcpuprocvardef(checkdef).classdef
       else if is_wide_or_unicode_string(checkdef) then
-        checkdef:=java_jlstring
+        checkdef:=compiler.deftypes.java_jlstring
       else if is_ansistring(checkdef) then
         checkdef:=java_ansistring
       else if is_shortstring(checkdef) then

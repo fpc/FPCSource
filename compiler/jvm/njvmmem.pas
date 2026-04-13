@@ -376,7 +376,7 @@ implementation
                 stringclass:=java_ansistring;
               st_unicodestring,
               st_widestring:
-                stringclass:=java_jlstring;
+                stringclass:=compiler.deftypes.java_jlstring;
               st_shortstring:
                 begin
                   stringclass:=java_shortstring;
