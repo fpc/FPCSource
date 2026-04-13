@@ -350,7 +350,7 @@ implementation
         { Requires the NSFastEnumeration protocol and NSFastEnumerationState
           record }
         maybeloadcocoatypes;
-        if not assigned(objc_fastenumeration) or
+        if not assigned(compiler.deftypes.objc_fastenumeration) or
            not assigned(objc_fastenumerationstate) then
           begin
             result:=compiler.cerrornode;
@@ -426,7 +426,7 @@ implementation
          addstatement(mainstatement,items);
          typecheckpass(tnode(items));
          { temp for the expression/collection through which we iterate }
-         expressiontemp:=compiler.ctempcreatenode(objc_fastenumeration,objc_fastenumeration.size,tt_persistent,true);
+         expressiontemp:=compiler.ctempcreatenode(compiler.deftypes.objc_fastenumeration,compiler.deftypes.objc_fastenumeration.size,tt_persistent,true);
          addstatement(mainstatement,expressiontemp);
          { currentamount temp (not really clean: we use ptruint instead of
            culong) }
@@ -462,7 +462,7 @@ implementation
                  compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(state)),nil)
                )
              );
-         sym:=search_struct_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
+         sym:=search_struct_member(compiler.deftypes.objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);

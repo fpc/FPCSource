@@ -1276,6 +1276,8 @@ interface
          objc_objecttype           : trecorddef;
          { base type of @protocol(protocolname) Objective-C statements }
          objc_protocoltype         : tobjectdef;
+         { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
+         objc_fastenumeration      : tobjectdef;
        end;
 
 
@@ -1304,8 +1306,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
-       objc_fastenumeration      : tobjectdef;
        objc_fastenumerationstate : trecorddef;
 
 {$ifdef llvm}
@@ -9656,7 +9656,7 @@ implementation
         tsym: ttypesym;
         cocoaunit: string[15];
       begin
-        if assigned(objc_fastenumeration) then
+        if assigned(compiler.deftypes.objc_fastenumeration) then
           exit;
         if not(compiler.target.info.system in [system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) then
           cocoaunit:='COCOAALL'
@@ -9664,9 +9664,9 @@ implementation
           cocoaunit:='IPHONEALL';
         tsym:=search_named_unit_globaltype(cocoaunit,'NSFASTENUMERATIONPROTOCOL',false);
         if assigned(tsym) then
-          objc_fastenumeration:=tobjectdef(tsym.typedef)
+          compiler.deftypes.objc_fastenumeration:=tobjectdef(tsym.typedef)
         else
-          objc_fastenumeration:=nil;
+          compiler.deftypes.objc_fastenumeration:=nil;
         tsym:=search_named_unit_globaltype(cocoaunit,'NSFASTENUMERATIONSTATE',false);
         if assigned(tsym) then
           objc_fastenumerationstate:=trecorddef(tsym.typedef)
@@ -9863,7 +9863,7 @@ implementation
        compiler.deftypes.objc_seltype:=nil;
        compiler.deftypes.objc_objecttype:=nil;
        compiler.deftypes.objc_protocoltype:=nil;
-       objc_fastenumeration:=nil;
+       compiler.deftypes.objc_fastenumeration:=nil;
        objc_fastenumerationstate:=nil;
 
 {$ifdef llvm}
