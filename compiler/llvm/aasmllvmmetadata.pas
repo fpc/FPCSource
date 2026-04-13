@@ -204,9 +204,11 @@ implementation
     compiler;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if assigned(metadata) then
-        result:=tai_simpletypedconst.create(llvm_metadatatype, tai_llvmmetadatareftypedconst.create(metadata))
+        result:=tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype, tai_llvmmetadatareftypedconst.create(metadata))
       else
         result:=nil
     end;
@@ -232,7 +234,7 @@ implementation
 
   constructor tai_llvmbasemetadatanode.create(acompiler: TCompilerBase);
     begin
-      inherited create(tck_array, llvm_metadatatype, acompiler);
+      inherited create(tck_array, compiler.deftypes.llvm_metadatatype, acompiler);
       typ:=ait_llvmmetadatanode;
     end;
 
@@ -325,10 +327,12 @@ implementation
     end;
 
   constructor tllvmspecialisedmetaitem.createmetadataref(const aitemname: TSymStr; aival: tai_llvmmetadatareftypedconst);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       fitemname:=aitemname;
       fitemkind:=lsmik_metadataref;
-      inherited create(llvm_metadatatype,aival);
+      inherited create(compiler.deftypes.llvm_metadatatype,aival);
     end;
 
   constructor tllvmspecialisedmetaitem.createstring(const aitemname: TSymStr; const stringval: TSymStr);

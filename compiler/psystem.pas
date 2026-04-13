@@ -617,10 +617,10 @@ implementation
         addtype('$qwordbool',compiler.deftypes.bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',compiler.deftypes.llvmbool1type);
-        llvm_metadatatype:=cformaldef.create(false,compiler);
+        compiler.deftypes.llvm_metadatatype:=cformaldef.create(false,compiler);
         { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
-        addtype('$metadata',llvm_metadatatype);
-        addtype('LLVMMetadata',llvm_metadatatype);
+        addtype('$metadata',compiler.deftypes.llvm_metadatatype);
+        addtype('LLVMMetadata',compiler.deftypes.llvm_metadatatype);
 {$endif llvm}
         addtype('$char_pointer',compiler.deftypes.charpointertype);
         addtype('$widechar_pointer',compiler.deftypes.widecharpointertype);
@@ -817,7 +817,7 @@ implementation
 {$endif x86}
 {$ifdef llvm}
         loadtype('llvmbool1',compiler.deftypes.llvmbool1type);
-        loadtype('metadata',llvm_metadatatype);
+        loadtype('metadata',compiler.deftypes.llvm_metadatatype);
 {$endif llvm}
 {$ifdef wasm}
         loadtype('wasm_void_externref',compiler.deftypes.wasmvoidexternreftype);

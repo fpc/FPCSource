@@ -264,17 +264,17 @@ implementation
                   asanglobal:=tai_llvmunnamedmetadatanode.create;
                   current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobal);
                   asanglobal.addvalue(tai_simpletypedconst.create(cpointerdef.getreusable(hpdecl.def,compiler),tai_const.Create_sym(hpdecl.namesym)));
-                  asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(globalfileloc)));
+                  asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,llvm_getmetadatareftypedconst(globalfileloc)));
                   if assigned(hpdecl.sym) then
-                    asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.sym.RealName)))
+                    asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,tai_string.Create(hpdecl.sym.RealName)))
                   else
-                    asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.namesym.Name)));
+                    asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,tai_string.Create(hpdecl.namesym.Name)));
                   { dynamic init }
                   asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvmbool1type,tai_const.Create_8bit(ord(false))));
                   { no asan }
                   asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvmbool1type,tai_const.Create_8bit(ord((ldf_vectorized in taillvmdecl(hp).flags)))));
 
-                  asanglobals.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(asanglobal)));
+                  asanglobals.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,llvm_getmetadatareftypedconst(asanglobal)));
                 end;
               hp:=tai(hp.next);
             end;

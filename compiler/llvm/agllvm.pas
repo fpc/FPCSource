@@ -352,7 +352,7 @@ implementation
              owner.writer.AsmWrite(', ');
            para:=pllvmcallpara(paras[i]);
            if (lcp_metadata in para^.flags) and
-              (para^.def<>llvm_metadatatype) then
+              (para^.def<>compiler.deftypes.llvm_metadatatype) then
              begin
                owner.writer.AsmWrite('metadata ')
              end;
@@ -397,7 +397,7 @@ implementation
                  tmpinline:=1;
                  tmpasmblock:=false;
                  hp:=para^.val.ai;
-                 if para^.def<>llvm_metadatatype then
+                 if para^.def<>compiler.deftypes.llvm_metadatatype then
                    metadatakind:=mk_none
                  else
                    metadatakind:=mk_normal;
@@ -1068,7 +1068,7 @@ implementation
           defstr: TSymStr;
           first, gotstring, isspecialised: boolean;
         begin
-          if (hp.def<>llvm_metadatatype) and (metadatakind<mk_specialised) then
+          if (hp.def<>compiler.deftypes.llvm_metadatatype) and (metadatakind<mk_specialised) then
             begin
               defstr:=llvmencodetypename(hp.def)
             end

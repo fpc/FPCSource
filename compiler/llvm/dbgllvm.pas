@@ -393,7 +393,7 @@ implementation
         if not(cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           exit;
         if is_void(def.returndef) then
-          types.addvalue(tai_simpletypedconst.create(llvm_metadatatype,nil))
+          types.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,nil))
         else
           types.addvalue(def_meta_ref(def.returndef));
         for i:=0 to def.paras.count-1 do

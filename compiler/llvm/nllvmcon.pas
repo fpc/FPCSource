@@ -65,7 +65,7 @@ implementation
     constructor tllvmstringconstnode.createpchar(s: pchar; l: longint; def: tdef; acompiler: TCompilerBase);
       begin
         inherited;
-        if def=llvm_metadatatype then
+        if def=compiler.deftypes.llvm_metadatatype then
           begin
             { astringdef is only used if the constant type is ansistring }
             cst_type:=cst_ansistring;
@@ -76,19 +76,19 @@ implementation
 
     function tllvmstringconstnode.pass_typecheck: tnode;
       begin
-        if astringdef<>llvm_metadatatype then
+        if astringdef<>compiler.deftypes.llvm_metadatatype then
           begin
             result:=inherited;
             exit;
           end;
-        resultdef:=llvm_metadatatype;
+        resultdef:=compiler.deftypes.llvm_metadatatype;
         result:=nil;
       end;
 
 
     function tllvmstringconstnode.pass_1: tnode;
       begin
-        if astringdef<>llvm_metadatatype then
+        if astringdef<>compiler.deftypes.llvm_metadatatype then
           begin
             result:=inherited;
             exit;
@@ -103,7 +103,7 @@ implementation
         datadef, resptrdef: tdef;
         hreg: tregister;
       begin
-        if astringdef=llvm_metadatatype then
+        if astringdef=compiler.deftypes.llvm_metadatatype then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
             location.register:=tllvmmetadata.getpcharreg(@valueas[0],len);

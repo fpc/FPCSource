@@ -1279,6 +1279,12 @@ interface
          { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
          objc_fastenumeration      : tobjectdef;
          objc_fastenumerationstate : trecorddef;
+
+{$ifdef llvm}
+         { llvm types }
+         { a unique def to identify any kind of metadata }
+         llvm_metadatatype         : tdef;
+{$endif llvm}
        end;
 
 
@@ -1307,12 +1313,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-
-{$ifdef llvm}
-       { llvm types }
-       { a unique def to identify any kind of metadata }
-       llvm_metadatatype         : tdef;
-{$endif llvm}
 
        { Java base types }
        { java.lang.Object }
@@ -9869,7 +9869,7 @@ implementation
 {$ifdef llvm}
        { llvm types }
        { a unique def to identify any kind of metadata }
-       llvm_metadatatype:=nil;
+       compiler.deftypes.llvm_metadatatype:=nil;
 {$endif llvm}
 
        { Java base types }

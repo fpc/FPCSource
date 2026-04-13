@@ -77,7 +77,7 @@ unit llvmpara;
 
   function tllvmparamanager.push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
     begin
-      if def<>llvm_metadatatype then
+      if def<>compiler.deftypes.llvm_metadatatype then
         begin
           result:=inherited;
           exit;
@@ -144,7 +144,7 @@ unit llvmpara;
                     internalerror(2019011902);
                   reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
                 end
-              else if paraloc^.def=llvm_metadatatype then
+              else if paraloc^.def=compiler.deftypes.llvm_metadatatype then
                 begin
                   paraloc^.Loc:=LOC_REGISTER;
                   // will be overwritten with a "register" whose superregister is an index in the LLVM metadata table

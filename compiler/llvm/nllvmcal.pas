@@ -28,7 +28,8 @@ interface
     uses
       parabase,
       ncal,ncgcal,
-      cgutils;
+      cgutils,
+      compilerbase;
 
     type
       tllvmcallparanode = class(tcgcallparanode)
@@ -49,11 +50,12 @@ implementation
      uses
        verbose,
        aasmbase,aasmdata,aasmllvm,
-       symconst,symdef;
+       symconst,symdef,
+       compiler;
 
     procedure tllvmcallparanode.push_formal_para;
       begin
-        if parasym.vardef<>llvm_metadatatype then
+        if parasym.vardef<>compiler.deftypes.llvm_metadatatype then
           begin;
             inherited;
             exit;

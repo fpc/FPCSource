@@ -373,7 +373,7 @@ implementation
         if ((lef_removeouterpointer in flags) or
             (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion])) and
            is_address(def) and
-           (def<>llvm_metadatatype) then
+           (def<>compiler.deftypes.llvm_metadatatype) then
           def_is_address:=true
         else if lef_removeouterpointer in flags then
           internalerror(2022060813);
@@ -547,7 +547,7 @@ implementation
             end;
           formaldef :
             begin
-              if def<>llvm_metadatatype then
+              if def<>compiler.deftypes.llvm_metadatatype then
                 { var/const/out x (always treated as "pass by reference" -> don't
                   add extra "*" here) }
                 encodedstr:=encodedstr+'i8'
@@ -824,7 +824,7 @@ implementation
           { implicit zero/sign extension for ABI compliance? }
           if not first then
              encodedstr:=encodedstr+', ';
-          if (hp.vardef=llvm_metadatatype) or
+          if (hp.vardef=compiler.deftypes.llvm_metadatatype) or
              not((llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
                  ((vo_is_funcret in hp.varoptions) or
                   compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) or

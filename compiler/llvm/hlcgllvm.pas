@@ -204,7 +204,7 @@ implementation
 
   procedure thlcgllvm.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
     begin
-      if size<>llvm_metadatatype then
+      if size<>compiler.deftypes.llvm_metadatatype then
         begin
           inherited;
           exit;
@@ -548,7 +548,7 @@ implementation
         while assigned(paraloc) do
           begin
             new(callpara,init(paraloc^.def,std_param_align,lve_none,[]));
-            if paras[i]^.def=llvm_metadatatype then
+            if paras[i]^.def=compiler.deftypes.llvm_metadatatype then
               include(callpara^.flags,lcp_metadata);
             callpara^.def:=paraloc^.def;
             { if the paraloc doesn't contain the value itself, it's a byval
@@ -708,7 +708,7 @@ implementation
     var
       fromsize: tdef;
     begin
-      if tosize=llvm_metadatatype then
+      if tosize=compiler.deftypes.llvm_metadatatype then
         internalerror(2019122804);
       if tosize.size<=compiler.deftypes.ptrsinttype.size then
         fromsize:=compiler.deftypes.ptrsinttype
@@ -755,8 +755,8 @@ implementation
       hreg2: tregister;
       tmpsize: tdef;
     begin
-      if (fromsize=llvm_metadatatype) or
-         (tosize=llvm_metadatatype) then
+      if (fromsize=compiler.deftypes.llvm_metadatatype) or
+         (tosize=compiler.deftypes.llvm_metadatatype) then
         internalerror(2019122812);
       sref:=make_simple_ref(list,ref,tosize);
       hreg:=register;
@@ -828,8 +828,8 @@ implementation
       tmpreg: tregister;
       tmpintdef: tdef;
     begin
-      if (fromsize=llvm_metadatatype) or
-         (tosize=llvm_metadatatype) then
+      if (fromsize=compiler.deftypes.llvm_metadatatype) or
+         (tosize=compiler.deftypes.llvm_metadatatype) then
         internalerror(2019122805);
       op:=llvmconvop(fromsize,tosize,true);
       { converting from pointer to something else and vice versa is only
@@ -975,8 +975,8 @@ implementation
       sref: treference;
       hreg: tregister;
     begin
-      if (fromsize=llvm_metadatatype) or
-         (tosize=llvm_metadatatype) then
+      if (fromsize=compiler.deftypes.llvm_metadatatype) or
+         (tosize=compiler.deftypes.llvm_metadatatype) then
         internalerror(2019122803);
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
@@ -1478,9 +1478,9 @@ implementation
       tmploc.register:=fromreg;
       gen_load_loc_cgpara(list,fromsize,tmploc,frompara);
       if roundingmode then
-        a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
+        a_load_reg_cgpara(list,compiler.deftypes.llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
       exceptmode:=llvm_constrainedexceptmodestring;
-      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg(exceptmode),exceptpara);
+      a_load_reg_cgpara(list,compiler.deftypes.llvm_metadatatype,tllvmmetadata.getstringreg(exceptmode),exceptpara);
       if roundingmode then
         respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil)
       else

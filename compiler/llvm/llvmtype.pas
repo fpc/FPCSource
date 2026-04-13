@@ -221,7 +221,7 @@ implementation
           end;
         def.stab_number:=1;
         { this is an internal llvm type }
-        if def=llvm_metadatatype then
+        if def=compiler.deftypes.llvm_metadatatype then
           exit;
         if def.dbg_state=dbg_state_unused then
           begin
