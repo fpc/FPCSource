@@ -1620,7 +1620,7 @@ implementation
                       else if (compiler.current_objectdef.objname^='FPCBITSET') then
                         compiler.deftypes.java_jubitset:=compiler.current_objectdef
                       else if (compiler.current_objectdef.objname^='FPCBASEPROCVARTYPE') then
-                        java_procvarbase:=compiler.current_objectdef;
+                        compiler.deftypes.java_procvarbase:=compiler.current_objectdef;
                     end;
                   else
                     ;

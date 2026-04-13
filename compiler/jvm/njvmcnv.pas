@@ -251,7 +251,7 @@ implementation
             { todo }
             internalerror(2011072406)
           else
-            tcpuprocvardef(resultdef).classdef:=java_procvarbase;
+            tcpuprocvardef(resultdef).classdef:=compiler.deftypes.java_procvarbase;
         end;
     end;
 
@@ -402,7 +402,7 @@ implementation
         if assigned(result) then
           exit;
         if not assigned(tcpuprocvardef(resultdef).classdef) then
-          tcpuprocvardef(resultdef).classdef:=java_procvarbase;
+          tcpuprocvardef(resultdef).classdef:=compiler.deftypes.java_procvarbase;
         result:=compiler.ccallnode_internmethod(
           compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }

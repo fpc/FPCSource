@@ -1305,6 +1305,8 @@ interface
          java_ansistring           : tobjectdef;
          { FPC java implementation of shortstrings }
          java_shortstring          : tobjectdef;
+         { FPC java procvar base class }
+         java_procvarbase          : tobjectdef;
        end;
 
 
@@ -1333,8 +1335,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { FPC java procvar base class }
-       java_procvarbase          : tobjectdef;
 
        { x86 vector types }
        x86_m64type,
@@ -8089,7 +8089,7 @@ implementation
                  else if (objname^='FPCBITSET') then
                    compiler.deftypes.java_jubitset:=self
                  else if (objname^='FPCBASEPROCVARTYPE') then
-                   java_procvarbase:=self;
+                   compiler.deftypes.java_procvarbase:=self;
                end;
            end;
          if (childof=nil) and
@@ -9882,7 +9882,7 @@ implementation
        compiler.deftypes.java_jubitset:=nil;
        compiler.deftypes.java_ansistring:=nil;
        compiler.deftypes.java_shortstring:=nil;
-       java_procvarbase:=nil;
+       compiler.deftypes.java_procvarbase:=nil;
 
        { x86 vector types }
        x86_m64type:=nil;

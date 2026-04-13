@@ -358,7 +358,7 @@ implementation
         { create new class (different internal name than pvar to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        pvclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true,compiler);
+        pvclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,compiler.deftypes.java_procvarbase,true,compiler);
         tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
