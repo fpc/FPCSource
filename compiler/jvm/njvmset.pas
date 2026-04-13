@@ -89,7 +89,7 @@ implementation
         include(taddrnode(right).addrnodeflags,anf_typedaddr);
         if isenum then
           begin
-            inserttypeconv_explicit(left,java_jlenum,compiler);
+            inserttypeconv_explicit(left,compiler.deftypes.java_jlenum,compiler);
             inserttypeconv_explicit(right,java_juenumset,compiler);
           end
         else

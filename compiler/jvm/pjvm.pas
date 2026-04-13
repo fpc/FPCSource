@@ -171,7 +171,7 @@ implementation
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        enumclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true,compiler);
+        enumclass:=cobjectdef.create(odt_javaclass,'$'+compiler.current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,compiler.deftypes.java_jlenum,true,compiler);
         tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
