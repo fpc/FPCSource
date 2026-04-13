@@ -1289,6 +1289,8 @@ interface
          { Java base types }
          { java.lang.Object }
          java_jlobject             : tobjectdef;
+         { java.lang.Throwable }
+         java_jlthrowable          : tobjectdef;
        end;
 
 
@@ -1317,8 +1319,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       { java.lang.Throwable }
-       java_jlthrowable          : tobjectdef;
        { FPC base type for records }
        java_fpcbaserecordtype    : tobjectdef;
        { java.lang.String }
@@ -8073,7 +8073,7 @@ implementation
                  if (objname^='JLOBJECT') then
                    compiler.deftypes.java_jlobject:=self
                  else if (objname^='JLTHROWABLE') then
-                   java_jlthrowable:=self
+                   compiler.deftypes.java_jlthrowable:=self
                  else if (objname^='FPCBASERECORDTYPE') then
                    java_fpcbaserecordtype:=self
                  else if (objname^='JLSTRING') then
@@ -9874,7 +9874,7 @@ implementation
 
        { Java base types }
        compiler.deftypes.java_jlobject:=nil;
-       java_jlthrowable:=nil;
+       compiler.deftypes.java_jlthrowable:=nil;
        java_fpcbaserecordtype:=nil;
        java_jlstring:=nil;
        java_jlenum:=nil;

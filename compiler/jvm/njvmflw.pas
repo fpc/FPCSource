@@ -132,7 +132,7 @@ implementation
            exit;
          { Java exceptions must descend from java.lang.Throwable }
          if assigned(left) and
-            not def_is_related(left.resultdef,java_jlthrowable) then
+            not def_is_related(left.resultdef,compiler.deftypes.java_jlthrowable) then
            compiler.verbose.MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'class(JLThrowable)');
          { Java exceptions cannot be raised "at" a specific location }
          if assigned(right) then
@@ -157,7 +157,7 @@ implementation
             thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
           end
         else
-          thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,java_jlthrowable,current_except_loc);
+          thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_athrow));
         thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
       end;
@@ -234,9 +234,9 @@ implementation
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
              prev_except_loc:=current_except_loc;
              location_reset_ref(current_except_loc,LOC_REFERENCE,OS_ADDR,4,[]);
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),java_jlthrowable,current_except_loc.reference);
+             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.java_jlthrowable,current_except_loc.reference);
              thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-             thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,java_jlthrowable,current_except_loc);
+             thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
              { and generate the exception handling code }
@@ -484,14 +484,14 @@ implementation
              current_asmdata.CurrAsmList.concat(tai_jcatch.create(
                'all',begintrylabel,endtrylabel,finallyexceptlabel));
              { store the generated exception object to a temp }
-             exceptreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlthrowable);
+             exceptreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable);
              thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlthrowable,exceptreg);
+             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
              { generate the finally code again }
              secondpass(finallycodecopy);
              finallycodecopy.free;
              { reraise the exception }
-             thlcgjvm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,java_jlthrowable,exceptreg);
+             thlcgjvm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_athrow));
              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
            end;
