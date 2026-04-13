@@ -449,7 +449,7 @@ implementation
         compiler.deftypes.x86_m64type:=carraydef.create_vector(0,1,compiler.deftypes.s32inttype,compiler);
         compiler.deftypes.x86_m128type:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
         compiler.deftypes.x86_m128dtype:=carraydef.create_vector(0,1,compiler.deftypes.s32inttype,compiler);
-        x86_m128itype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
+        compiler.deftypes.x86_m128itype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
         x86_m256type:=carraydef.create_vector(0,7,compiler.deftypes.s32inttype,compiler);
         x86_m256dtype:=carraydef.create_vector(0,3,compiler.deftypes.s32inttype,compiler);
         x86_m256itype:=carraydef.create_vector(0,7,compiler.deftypes.s32inttype,compiler);
@@ -457,7 +457,7 @@ implementation
         tarraydef(compiler.deftypes.x86_m64type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(compiler.deftypes.x86_m128type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(compiler.deftypes.x86_m128dtype).elementdef:=s64floattype;
-        tarraydef(x86_m128itype).elementdef:=compiler.deftypes.s32floattype;
+        tarraydef(compiler.deftypes.x86_m128itype).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(x86_m256type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(x86_m256dtype).elementdef:=s64floattype;
         tarraydef(x86_m256itype).elementdef:=compiler.deftypes.s32floattype;
@@ -531,7 +531,7 @@ implementation
         addtype('__m64',compiler.deftypes.x86_m64type);
         addtype('__m128', compiler.deftypes.x86_m128type);
         addtype('__m128d',compiler.deftypes.x86_m128dtype);
-        addtype('__m128i',x86_m128itype);
+        addtype('__m128i',compiler.deftypes.x86_m128itype);
         addtype('__m256', x86_m256type);
         addtype('__m256d',x86_m256dtype);
         addtype('__m256i',x86_m256itype);
@@ -646,7 +646,7 @@ implementation
         addtype('$__m64',  compiler.deftypes.x86_m64type);
         addtype('$__m128', compiler.deftypes.x86_m128type);
         addtype('$__m128d',compiler.deftypes.x86_m128dtype);
-        addtype('$__m128i',x86_m128itype);
+        addtype('$__m128i',compiler.deftypes.x86_m128itype);
         addtype('$__m256', x86_m256type);
         addtype('$__m256d',x86_m256dtype);
         addtype('$__m256i',x86_m256itype);
@@ -810,7 +810,7 @@ implementation
         loadtype('__m64',  compiler.deftypes.x86_m64type);
         loadtype('__m128', compiler.deftypes.x86_m128type);
         loadtype('__m128d',compiler.deftypes.x86_m128dtype);
-        loadtype('__m128i',x86_m128itype);
+        loadtype('__m128i',compiler.deftypes.x86_m128itype);
         loadtype('__m256', x86_m256type);
         loadtype('__m256d',x86_m256dtype);
         loadtype('__m256i',x86_m256itype);

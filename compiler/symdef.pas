@@ -1311,7 +1311,8 @@ interface
          { x86 vector types }
          x86_m64type,
          x86_m128type,
-         x86_m128dtype: tdef;
+         x86_m128dtype,
+         x86_m128itype: tdef;
        end;
 
 
@@ -1340,7 +1341,6 @@ interface
     { default types }
        s64floattype,              { 64 bit floating point number }
        s80floattype: tdef;        { 80 bit floating point number }
-       x86_m128itype,
        x86_m256type,
        x86_m256dtype,
        x86_m256itype             : tdef;
@@ -9888,7 +9888,7 @@ implementation
        compiler.deftypes.x86_m64type:=nil;
        compiler.deftypes.x86_m128type:=nil;
        compiler.deftypes.x86_m128dtype:=nil;
-       x86_m128itype:=nil;
+       compiler.deftypes.x86_m128itype:=nil;
        x86_m256type:=nil;
        x86_m256dtype:=nil;
        x86_m256itype:=nil;
