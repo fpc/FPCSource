@@ -2021,7 +2021,7 @@ implementation
           result:=compiler.crealconstnode(d,compiler.deftypes.s32floattype)
         else if (compiler.globals.current_settings.minfpconstprec=s64real) and
                 (d = double(d)) then
-          result:=compiler.crealconstnode(d,s64floattype)
+          result:=compiler.crealconstnode(d,compiler.deftypes.s64floattype)
         else
           result:=compiler.crealconstnode(d,compiler.deftypes.pbestrealtype^);
         val(current_scanner.pattern,cur,code);

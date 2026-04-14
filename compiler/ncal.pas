@@ -491,7 +491,7 @@ implementation
             { force automatable float type }
             else if is_extended(para.left.resultdef)
                 and (compiler.globals.current_settings.fputype<>fpu_none) then
-              inserttypeconv_internal(para.left,s64floattype,compiler)
+              inserttypeconv_internal(para.left,compiler.deftypes.s64floattype,compiler)
 
             else if is_shortstring(para.left.resultdef) then
               inserttypeconv_internal(para.left,compiler.deftypes.cwidestringtype,compiler)

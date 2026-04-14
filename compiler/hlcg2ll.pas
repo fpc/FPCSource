@@ -1306,7 +1306,7 @@ implementation
               reg:=cg.getmmregister(list,OS_F64);
               cg64.a_loadmm_intreg64_reg(list,OS_F64,l.register64,reg);
               l.size:=OS_F64;
-              size:=s64floattype;
+              size:=compiler.deftypes.s64floattype;
             end
           else
 {$endif not cpu64bitalu}
@@ -1322,7 +1322,7 @@ implementation
                else if (l.size in [OS_64,OS_S64]) then
                  begin
                    size:=cgsize_orddef(l.size);
-                   newsize:=s64floattype;
+                   newsize:=compiler.deftypes.s64floattype;
                  end
                else
                  newsize:=size;

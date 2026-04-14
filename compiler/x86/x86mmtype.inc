@@ -539,7 +539,7 @@ in_x86_movsd_to_val
 : //out r0:f64;r1:xmm;
   begin
     CheckParameters(1);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_movsd_from_val
 : //out r0:xmm;r1:f64;
@@ -557,7 +557,7 @@ in_x86_addsd
 : //var r0:f64;r1:f64;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_addsd_from_mem
 ,in_x86_divsd_from_mem
@@ -569,14 +569,14 @@ in_x86_addsd_from_mem
 : //var r0:f64;r1:ptr64;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_maxsd
 ,in_x86_mulsd
 : //var r0:f64;r1:xmm;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_sqrtpd
 ,in_x86_movddup
@@ -606,25 +606,25 @@ in_x86_sqrtsd
 : //out r0:f64;r1:f64;
   begin
     CheckParameters(1);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_sqrtsd_from_mem
 : //out r0:f64;r1:ptr64;
   begin
     CheckParameters(1);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_cmpsd
 : //var r0:f64;r1:f64;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_cmpsd_from_mem
 : //var r0:f64;r1:ptr64;imm:i32;
   begin
     CheckParameters(3);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_cvtpd2pi
 ,in_x86_cvttpd2pi
@@ -658,14 +658,14 @@ in_x86_cvtsi2sd
 : //var r0:f64;r1:r32;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_cvtsi2sd_from_mem
 ,in_x86_cvtss2sd_from_mem
 : //var r0:f64;r1:ptr32;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_movd_from_reg
 : //out r0:xmm;r1:r32;
@@ -786,13 +786,13 @@ in_x86_roundsd
 : //out r0:f64;r1:f64;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_roundsd_from_mem
 : //out r0:f64;r1:ptr64;imm:i32;
   begin
     CheckParameters(2);
-    resultdef:=s64floattype;
+    resultdef:=compiler.deftypes.s64floattype;
   end;
 in_x86_insertps_from_mem
 ,in_x86_pinsrd_from_mem

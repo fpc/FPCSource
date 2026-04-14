@@ -488,7 +488,7 @@ implementation
                   begin
                     paraloc^.size := int_float_cgsize(record_offset);
                     if record_offset = 8 then
-                      paraloc^.def := s64floattype
+                      paraloc^.def := compiler.deftypes.s64floattype
                     else
                       paraloc^.def := compiler.deftypes.s32floattype;
                     para_same_num := 0;
@@ -504,7 +504,7 @@ implementation
                 else if((paracgsize = OS_F128) and (para_same_num = 2)) then
                   begin
                     paraloc^.size := OS_FLOAT;
-                    paraloc^.def := s64floattype;
+                    paraloc^.def := compiler.deftypes.s64floattype;
                   end
                 else if((paracgsize = OS_F64) and (para_same_num = 2)) then
                   begin
@@ -536,7 +536,7 @@ implementation
                       paraloc^.size:=int_float_cgsize(paralen);
                       case paraloc^.size of
                         OS_F32: paraloc^.def:=compiler.deftypes.s32floattype;
-                        OS_F64: paraloc^.def:=s64floattype;
+                        OS_F64: paraloc^.def:=compiler.deftypes.s64floattype;
                       else
                         internalerror(2022111923);
                       end;

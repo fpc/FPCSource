@@ -4635,7 +4635,7 @@ implementation
           else if (l.size in [OS_64,OS_S64]) then
             begin
               size:=cgsize_orddef(l.size);
-              newsize:=s64floattype;
+              newsize:=compiler.deftypes.s64floattype;
             end
           else
             newsize:=size;
@@ -4643,7 +4643,7 @@ implementation
             4:
               newsize:=compiler.deftypes.s32floattype;
             8:
-              newsize:=s64floattype;
+              newsize:=compiler.deftypes.s64floattype;
             else
               newsize:=size;
           end;

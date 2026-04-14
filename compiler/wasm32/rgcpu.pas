@@ -423,7 +423,7 @@ implementation
                           R_SUBFD:
                             begin
                               size:=8;
-                              def:=s64floattype;
+                              def:=_compiler.deftypes.s64floattype;
                             end;
                           else
                             internalerror(2020120804);

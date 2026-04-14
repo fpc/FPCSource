@@ -307,7 +307,7 @@ unit cpupara;
         else
           result:=class2;
         result.typ:=X86_64_SSE_CLASS;
-        result.def:=s64floattype;
+        result.def:=compiler.deftypes.s64floattype;
       end;
 
 

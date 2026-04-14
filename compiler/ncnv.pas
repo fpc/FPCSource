@@ -833,7 +833,7 @@ implementation
                   compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
                     and (compiler.globals.current_settings.fputype<>fpu_none) then
-                  p:=compiler.ctypeconvnode(p,s64floattype);
+                  p:=compiler.ctypeconvnode(p,compiler.deftypes.s64floattype);
               end;
             floatdef :
               if not(iscvarargs) then
@@ -849,7 +849,7 @@ implementation
                   if (tfloatdef(p.resultdef).floattype in [s32real,s64currency]) or
                      (is_constrealnode(p) and
                       not(nf_explicit in p.flags)) then
-                    p:=compiler.ctypeconvnode(p,s64floattype);
+                    p:=compiler.ctypeconvnode(p,compiler.deftypes.s64floattype);
                 end;
             procvardef :
               p:=compiler.ctypeconvnode(p,compiler.deftypes.voidpointertype);

@@ -2274,13 +2274,13 @@ const
         { use extended as default real type only when the x87 fpu is used }
   {$if defined(i386) or defined(i8086)}
         if not(compiler.globals.current_settings.fputype=fpu_x87) then
-          resultrealdef:=s64floattype
+          resultrealdef:=compiler.deftypes.s64floattype
         else
           resultrealdef:=compiler.deftypes.pbestrealtype^;
   {$endif i386 or i8086}
   {$ifdef x86_64}
         { x86-64 has no x87 only mode, so use always double as default }
-        resultrealdef:=s64floattype;
+        resultrealdef:=compiler.deftypes.s64floattype;
   {$endif x86_6}
 {$else not x86}
         resultrealdef:=compiler.deftypes.pbestrealtype^;

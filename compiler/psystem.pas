@@ -263,14 +263,14 @@ implementation
           if compiler.globals.init_settings.fputype<>fpu_none then
             begin
               compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
-              s64floattype:=cfloatdef.create(s64real,true,compiler);
+              compiler.deftypes.s64floattype:=cfloatdef.create(s64real,true,compiler);
               compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
               compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
             end
           else
             begin
               compiler.deftypes.s32floattype:=nil;
-              s64floattype:=nil;
+              compiler.deftypes.s64floattype:=nil;
               compiler.deftypes.s80floattype:=nil;
               compiler.deftypes.sc80floattype:=nil;
             end;
@@ -343,7 +343,7 @@ implementation
         if compiler.target.info.system=system_x86_64_win64 then
           begin
             compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
-            compiler.deftypes.pbestrealtype:=@s64floattype;
+            compiler.deftypes.pbestrealtype:=@compiler.deftypes.s64floattype;
           end
         else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
@@ -379,14 +379,14 @@ implementation
 {$endif aarch64}
 {$ifdef avr}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
-        s64floattype:=cfloatdef.create(s64real,true,compiler);
+        compiler.deftypes.s64floattype:=cfloatdef.create(s64real,true,compiler);
         compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
         compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif avr}
 {$ifdef z80}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
-        s64floattype:=cfloatdef.create(s64real,true,compiler);
+        compiler.deftypes.s64floattype:=cfloatdef.create(s64real,true,compiler);
         compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
         compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
@@ -456,10 +456,10 @@ implementation
 
         tarraydef(compiler.deftypes.x86_m64type).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(compiler.deftypes.x86_m128type).elementdef:=compiler.deftypes.s32floattype;
-        tarraydef(compiler.deftypes.x86_m128dtype).elementdef:=s64floattype;
+        tarraydef(compiler.deftypes.x86_m128dtype).elementdef:=compiler.deftypes.s64floattype;
         tarraydef(compiler.deftypes.x86_m128itype).elementdef:=compiler.deftypes.s32floattype;
         tarraydef(compiler.deftypes.x86_m256type).elementdef:=compiler.deftypes.s32floattype;
-        tarraydef(compiler.deftypes.x86_m256dtype).elementdef:=s64floattype;
+        tarraydef(compiler.deftypes.x86_m256dtype).elementdef:=compiler.deftypes.s64floattype;
         tarraydef(compiler.deftypes.x86_m256itype).elementdef:=compiler.deftypes.s32floattype;
 {$endif x86}
 {$ifdef wasm}
@@ -494,14 +494,14 @@ implementation
         if compiler.globals.init_settings.fputype<>fpu_none then
           begin
             addtype('Single',compiler.deftypes.s32floattype);
-            addtype('Double',s64floattype);
+            addtype('Double',compiler.deftypes.s64floattype);
             { extended size is the best real type for the target }
             addtype('Extended',compiler.deftypes.pbestrealtype^);
             { CExtended corresponds to the C version of the Extended type
               (either "long double" or "double") }
             if compiler.target.info.system in systems_android then
               { Android has "long double"="double" even for x86 }
-              addtype('CExtended',s64floattype)
+              addtype('CExtended',compiler.deftypes.s64floattype)
             else
               if tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real then
                 addtype('CExtended',compiler.deftypes.sc80floattype)
@@ -665,7 +665,7 @@ implementation
         if compiler.globals.init_settings.fputype<>fpu_none then
           begin
             addtype('$s32real',compiler.deftypes.s32floattype);
-            addtype('$s64real',s64floattype);
+            addtype('$s64real',compiler.deftypes.s64floattype);
             addtype('$s80real',compiler.deftypes.s80floattype);
             addtype('$sc80real',compiler.deftypes.sc80floattype);
           end;
@@ -732,7 +732,7 @@ implementation
       begin
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if compiler.target.info.system=system_x86_64_win64 then
-          compiler.deftypes.pbestrealtype:=@s64floattype;
+          compiler.deftypes.pbestrealtype:=@compiler.deftypes.s64floattype;
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=compiler.current_module;
@@ -772,7 +772,7 @@ implementation
         if compiler.globals.init_settings.fputype <> fpu_none then
           begin
             loadtype('s32real',compiler.deftypes.s32floattype);
-            loadtype('s64real',s64floattype);
+            loadtype('s64real',compiler.deftypes.s64floattype);
             loadtype('s80real',compiler.deftypes.s80floattype);
             loadtype('sc80real',compiler.deftypes.sc80floattype);
           end;

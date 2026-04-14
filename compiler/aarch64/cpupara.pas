@@ -525,7 +525,7 @@ unit cpupara;
                      OS_F64:
                        begin
                          paraloc^.size:=OS_F64;
-                         paraloc^.def:=s64floattype;
+                         paraloc^.def:=compiler.deftypes.s64floattype;
                        end;
                      else
                        begin

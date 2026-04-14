@@ -617,7 +617,7 @@ implementation
                 s64real:
                   begin
                     objdef:=tobjectdef(search_system_type('JLDOUBLE').typedef);
-                    paradef:=s64floattype;
+                    paradef:=compiler.deftypes.s64floattype;
                   end;
                 else
                   internalerror(2011052102);
@@ -987,7 +987,7 @@ implementation
                     constord:
                       result:=jvmencodetype(compiler.deftypes.s32inttype,withsignature);
                     constreal:
-                      result:=jvmencodetype(s64floattype,withsignature);
+                      result:=jvmencodetype(compiler.deftypes.s64floattype,withsignature);
                     constset:
                       internalerror(2011040701);
                     constpointer,
