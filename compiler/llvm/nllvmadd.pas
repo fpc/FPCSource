@@ -99,8 +99,8 @@ implementation
               iscompcurrency:=tfloatdef(left.resultdef).floattype in [s64currency,s64comp];
               if iscompcurrency then
                 begin
-                  inserttypeconv_internal(left,s80floattype,compiler);
-                  inserttypeconv_internal(right,s80floattype,compiler);
+                  inserttypeconv_internal(left,compiler.deftypes.s80floattype,compiler);
+                  inserttypeconv_internal(right,compiler.deftypes.s80floattype,compiler);
                 end;
               exceptmode:=llvm_constrainedexceptmodestring;
               result:=compiler.ccallnode_intern(intrname,

@@ -596,7 +596,7 @@ implementation
           s64real:
             tcb.emit_tai(tai_realconst.create_s64real(value_real),typedef);
           s80real:
-            tcb.emit_tai(tai_realconst.create_s80real(value_real,s80floattype.size),typedef);
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,compiler.deftypes.s80floattype.size),typedef);
           sc80real:
             tcb.emit_tai(tai_realconst.create_s80real(value_real,compiler.deftypes.sc80floattype.size),typedef);
           s64comp:

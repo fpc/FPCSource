@@ -1127,7 +1127,7 @@ implementation
               returndef/parameter declaration. }
             if (usedef.typ=floatdef) and
                (tfloatdef(usedef).floattype in [s64comp,s64currency]) then
-              usedef:=s80floattype;
+              usedef:=compiler.deftypes.s80floattype;
             result:=usedef;
             exit
           end;

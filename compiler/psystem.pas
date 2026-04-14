@@ -264,14 +264,14 @@ implementation
             begin
               compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
               s64floattype:=cfloatdef.create(s64real,true,compiler);
-              s80floattype:=cfloatdef.create(s80real,true,compiler);
+              compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
               compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
             end
           else
             begin
               compiler.deftypes.s32floattype:=nil;
               s64floattype:=nil;
-              s80floattype:=nil;
+              compiler.deftypes.s80floattype:=nil;
               compiler.deftypes.sc80floattype:=nil;
             end;
         end;
@@ -380,14 +380,14 @@ implementation
 {$ifdef avr}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
-        s80floattype:=cfloatdef.create(s80real,true,compiler);
+        compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
         compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif avr}
 {$ifdef z80}
         compiler.deftypes.s32floattype:=cfloatdef.create(s32real,true,compiler);
         s64floattype:=cfloatdef.create(s64real,true,compiler);
-        s80floattype:=cfloatdef.create(s80real,true,compiler);
+        compiler.deftypes.s80floattype:=cfloatdef.create(s80real,true,compiler);
         compiler.deftypes.sc80floattype:=cfloatdef.create(sc80real,true,compiler);
         compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif z80}
@@ -666,7 +666,7 @@ implementation
           begin
             addtype('$s32real',compiler.deftypes.s32floattype);
             addtype('$s64real',s64floattype);
-            addtype('$s80real',s80floattype);
+            addtype('$s80real',compiler.deftypes.s80floattype);
             addtype('$sc80real',compiler.deftypes.sc80floattype);
           end;
         addtype('$s64currency',compiler.deftypes.s64currencytype);
@@ -773,7 +773,7 @@ implementation
           begin
             loadtype('s32real',compiler.deftypes.s32floattype);
             loadtype('s64real',s64floattype);
-            loadtype('s80real',s80floattype);
+            loadtype('s80real',compiler.deftypes.s80floattype);
             loadtype('sc80real',compiler.deftypes.sc80floattype);
           end;
         loadtype('s64currency',compiler.deftypes.s64currencytype);

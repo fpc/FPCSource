@@ -759,7 +759,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 {$endif ARM}
                ftcb.emit_tai(tai_realconst.create_s64real(ts64real(value)),def);
            s80real :
-             ftcb.emit_tai(tai_realconst.create_s80real(value,s80floattype.size),def);
+             ftcb.emit_tai(tai_realconst.create_s80real(value,compiler.deftypes.s80floattype.size),def);
            sc80real :
              ftcb.emit_tai(tai_realconst.create_s80real(value,compiler.deftypes.sc80floattype.size),def);
            s64comp :

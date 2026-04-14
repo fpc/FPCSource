@@ -1350,7 +1350,7 @@ implementation
          (tosize.typ=floatdef) and
          (tfloatdef(tosize).floattype in [s64comp,s64currency]);
        if tocompcurr then
-         tosize:=s80floattype;
+         tosize:=compiler.deftypes.s80floattype;
        { don't generate different code for loading e.g. extended into cextended,
          but to take care of loading e.g. comp (=int64) into double }
        if (fromsize.size<>tosize.size) then
@@ -1394,7 +1394,7 @@ implementation
          (tosize.typ=floatdef) and
          (tfloatdef(tosize).floattype in [s64comp,s64currency]);
        if fromcompcurr then
-         fromsize:=s80floattype;
+         fromsize:=compiler.deftypes.s80floattype;
        href:=make_simple_ref(list,ref,tosize);
        { don't generate different code for loading e.g. extended into cextended,
          but to take care of storing e.g. comp (=int64) into double  }
@@ -1750,7 +1750,7 @@ implementation
         size for extended, which is usually larger) into an extended }
       if (llvmfield.def.typ=floatdef) and
          (tfloatdef(llvmfield.def).floattype=s80real) then
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.u8inttype,10,compiler),compiler),cpointerdef.getreusable(s80floattype,compiler),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(compiler.deftypes.u8inttype,10,compiler),compiler),cpointerdef.getreusable(compiler.deftypes.s80floattype,compiler),recref);
       { if it doesn't match the requested field exactly (variant record),
         adjust the type of the pointer }
       if (field.offsetfromllvmfield<>0) or

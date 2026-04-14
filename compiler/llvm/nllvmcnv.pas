@@ -201,7 +201,7 @@ procedure tllvmtypeconvnode.second_int_to_real;
     if not(tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
       llvmtodef:=resultdef
     else
-      llvmtodef:=s80floattype;
+      llvmtodef:=compiler.deftypes.s80floattype;
     location_reset(location,LOC_FPUREGISTER,def_cgsize(llvmtodef));
     location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,llvmtodef);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);

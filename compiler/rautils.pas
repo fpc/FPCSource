@@ -1960,7 +1960,7 @@ end;
            else
 {$endif ARM}
              p.concat(tai_realconst.create_s64real(value));
-          s80real : p.concat(tai_realconst.create_s80real(value,s80floattype.size));
+          s80real : p.concat(tai_realconst.create_s80real(value,compiler.deftypes.s80floattype.size));
           sc80real : p.concat(tai_realconst.create_s80real(value,compiler.deftypes.sc80floattype.size));
           s64comp : p.concat(tai_realconst.create_s64compreal(trunc(value)));
           else

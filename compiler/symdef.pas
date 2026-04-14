@@ -1205,7 +1205,7 @@ interface
          s128inttype,               { 128-bit signed integer }
          s32floattype,              { 32 bit floating point number }
          //TODO:s64floattype,              { 64 bit floating point number }
-         //TODO:s80floattype,              { 80 bit floating point number }
+         s80floattype,              { 80 bit floating point number }
          sc80floattype,             { 80 bit floating point number but stored like in C }
          s64currencytype,           { pointer to a currency type }
          cshortstringtype,          { pointer to type of short string const   }
@@ -1348,8 +1348,7 @@ interface
 
 
     { default types }
-       s64floattype,              { 64 bit floating point number }
-       s80floattype: tdef;        { 80 bit floating point number }
+       s64floattype: tdef;        { 64 bit floating point number }
 
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
@@ -9827,7 +9826,7 @@ implementation
        compiler.deftypes.s128inttype:=nil;               { 128-bit signed integer }
        compiler.deftypes.s32floattype:=nil;              { 32 bit floating point number }
        s64floattype:=nil;              { 64 bit floating point number }
-       s80floattype:=nil;              { 80 bit floating point number }
+       compiler.deftypes.s80floattype:=nil;              { 80 bit floating point number }
        compiler.deftypes.sc80floattype:=nil;             { 80 bit floating point number but stored like in C }
        compiler.deftypes.s64currencytype:=nil;           { pointer to a currency type }
        compiler.deftypes.cshortstringtype:=nil;          { pointer to type of short string const   }
