@@ -1145,7 +1145,7 @@ implementation
              if not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) and
                (cs_excessprecision in compiler.globals.current_settings.localswitches) then
                begin
-                 inserttypeconv(left,pbestrealtype^,compiler);
+                 inserttypeconv(left,compiler.deftypes.pbestrealtype^,compiler);
                  resultdef:=left.resultdef
                end;
            end

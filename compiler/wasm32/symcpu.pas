@@ -209,10 +209,6 @@ type
   end;
   tcpusyssymclass = class of tcpusyssym;
 
-
-const
-  pbestrealtype : ^tdef = @s64floattype;
-
   {# Returns true if p is a WebAssembly funcref reference type }
   function is_wasm_funcref(p : tdef): boolean;
 

@@ -152,11 +152,11 @@ implementation
         if signed then
           tempconst :=
             compiler.crealconstnode(double(tdummyarray(dummy1)),
-            pbestrealtype^)
+            compiler.deftypes.pbestrealtype^)
         else
           tempconst :=
             compiler.crealconstnode(double(tdummyarray(dummy2)),
-            pbestrealtype^);
+            compiler.deftypes.pbestrealtype^);
 
         typecheckpass(tempconst);
         firstpass(tempconst);

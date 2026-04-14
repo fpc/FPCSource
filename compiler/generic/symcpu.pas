@@ -168,10 +168,6 @@ type
   tcpusyssymclass = class of tcpusyssym;
 
 
-const
-  pbestrealtype : ^tdef = {@<somestandardfloattype>}nil;
-
-
 implementation
 
 begin

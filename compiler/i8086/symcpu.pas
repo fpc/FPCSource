@@ -223,10 +223,6 @@ type
   tcpusyssymclass = class of tcpusyssym;
 
 
-const
-   pbestrealtype : ^tdef = @s80floattype;
-
-
   function is_proc_far(p: tabstractprocdef): boolean;
 
   {# Returns true if p is a far proc var }

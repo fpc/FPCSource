@@ -194,7 +194,7 @@ implementation
 
      function tx86inlinenode.first_pi : tnode;
       begin
-        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+        if (tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
             first_pi := nil;
@@ -215,7 +215,7 @@ implementation
             exit;
           end;
 {$endif i8086}
-        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+        if (tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
             first_arctan_real := nil;
@@ -253,7 +253,7 @@ implementation
 
      function tx86inlinenode.first_ln_real : tnode;
       begin
-        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+        if (tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
             first_ln_real := nil;
@@ -272,7 +272,7 @@ implementation
             exit;
           end;
 {$endif i8086}
-        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+        if (tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -291,7 +291,7 @@ implementation
             exit;
           end;
 {$endif i8086}
-        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+        if (tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;

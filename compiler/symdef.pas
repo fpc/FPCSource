@@ -1135,6 +1135,8 @@ interface
        end;
 
 
+       { tdefaulttypes }
+
        tdefaulttypes = class
          voidpointertype,           { pointer for Void-pointeddef }
          charpointertype,           { pointer for Char-pointeddef }
@@ -1316,6 +1318,10 @@ interface
          x86_m256type,
          x86_m256dtype,
          x86_m256itype             : tdef;
+
+         pbestrealtype : ^tdef;
+
+         constructor Create;
        end;
 
 
@@ -1984,6 +1990,21 @@ implementation
             ) then
           { nested helpers will be removed as well }
           remove_helpers_and_generics(st);
+      end;
+
+
+{****************************************************************************
+                     tdefaulttypes
+****************************************************************************}
+
+
+    constructor tdefaulttypes.Create;
+      begin
+{$ifdef x86}
+        pbestrealtype:=@s80floattype;
+{$else x86}
+        pbestrealtype:=@s64floattype;
+{$endif x86}
       end;
 
 

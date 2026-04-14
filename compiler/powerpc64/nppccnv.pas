@@ -136,7 +136,7 @@ begin
   if (not signed) then begin
     // allocate temp for constant value used for unsigned 64 bit ints
     tempconst :=
-      compiler.crealconstnode(convconst, pbestrealtype^);
+      compiler.crealconstnode(convconst, compiler.deftypes.pbestrealtype^);
     typecheckpass(tempconst);
     firstpass(tempconst);
     secondpass(tempconst);

@@ -839,7 +839,7 @@ implementation
               if not(iscvarargs) then
                 begin
                   if not(is_currency(p.resultdef)) then
-                    p:=compiler.ctypeconvnode(p,pbestrealtype^);
+                    p:=compiler.ctypeconvnode(p,compiler.deftypes.pbestrealtype^);
                 end
               else
                 begin

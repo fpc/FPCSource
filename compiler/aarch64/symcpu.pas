@@ -134,10 +134,6 @@ type
   end;
 
 
-const
-  pbestrealtype : ^tdef = @s64floattype;
-
-
 implementation
 
 begin

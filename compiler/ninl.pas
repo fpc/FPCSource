@@ -870,7 +870,7 @@ implementation
                   else
                     begin
                       name := procprefixes[do_read]+'float';
-                      readfunctype:=pbestrealtype^;
+                      readfunctype:=compiler.deftypes.pbestrealtype^;
                     end;
                   { iso pascal needs a different handler }
                   if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
@@ -2149,7 +2149,7 @@ implementation
 
       procedure setconstrealvalue(r : bestreal);
         begin
-           result:=compiler.crealconstnode(r,pbestrealtype^);
+           result:=compiler.crealconstnode(r,compiler.deftypes.pbestrealtype^);
         end;
 
 
@@ -2158,18 +2158,18 @@ implementation
           if r<=0.0 then
             if compiler.globals.floating_point_range_check_error then
                begin
-                 result:=compiler.crealconstnode(0,pbestrealtype^);
+                 result:=compiler.crealconstnode(0,compiler.deftypes.pbestrealtype^);
                  compiler.verbose.CGMessage(type_e_wrong_math_argument)
                end
             else
               begin
                 if r=0.0 then
-                  result:=compiler.crealconstnode(MathNegInf.Value,pbestrealtype^)
+                  result:=compiler.crealconstnode(MathNegInf.Value,compiler.deftypes.pbestrealtype^)
                 else
-                  result:=compiler.crealconstnode(MathQNaN.Value,pbestrealtype^)
+                  result:=compiler.crealconstnode(MathQNaN.Value,compiler.deftypes.pbestrealtype^)
               end
           else
-            result:=compiler.crealconstnode(ln(r),pbestrealtype^)
+            result:=compiler.crealconstnode(ln(r),compiler.deftypes.pbestrealtype^)
         end;
 
 
@@ -2178,13 +2178,13 @@ implementation
           if r<0.0 then
             if compiler.globals.floating_point_range_check_error then
                begin
-                 result:=compiler.crealconstnode(0,pbestrealtype^);
+                 result:=compiler.crealconstnode(0,compiler.deftypes.pbestrealtype^);
                  compiler.verbose.CGMessage(type_e_wrong_math_argument)
                end
             else
-              result:=compiler.crealconstnode(MathQNaN.Value,pbestrealtype^)
+              result:=compiler.crealconstnode(MathQNaN.Value,compiler.deftypes.pbestrealtype^)
           else
-            result:=compiler.crealconstnode(sqrt(r),pbestrealtype^)
+            result:=compiler.crealconstnode(sqrt(r),compiler.deftypes.pbestrealtype^)
         end;
 
 
@@ -2798,11 +2798,11 @@ implementation
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                     begin
-                      result:=compiler.crealconstnode(exp(getconstrealvalue),pbestrealtype^);
+                      result:=compiler.crealconstnode(exp(getconstrealvalue),compiler.deftypes.pbestrealtype^);
                       if (trealconstnode(result).value_real=MathInf.Value) and
                          compiler.globals.floating_point_range_check_error then
                         begin
-                          result:=compiler.crealconstnode(0,pbestrealtype^);
+                          result:=compiler.crealconstnode(0,compiler.deftypes.pbestrealtype^);
                           compiler.verbose.CGMessage(parser_e_range_check_error);
                         end;
                     end
@@ -3282,7 +3282,7 @@ implementation
               { for variant parameters; the rest has been converted by the
                 call node already }
               if not(p.nodetype in [ordconstn,realconstn]) then
-                inserttypeconv(P,pbestrealtype^,compiler);
+                inserttypeconv(P,compiler.deftypes.pbestrealtype^,compiler);
               result:=p.resultdef
             end;
         end;
@@ -4022,8 +4022,8 @@ implementation
                   { converting an int64 to double on platforms without }
                   { extended can cause precision loss                  }
                   if not(temp_pnode^.nodetype in [ordconstn,realconstn]) then
-                    inserttypeconv(temp_pnode^,pbestrealtype^,compiler);
-                  resultdef:=pbestrealtype^;
+                    inserttypeconv(temp_pnode^,compiler.deftypes.pbestrealtype^,compiler);
+                  resultdef:=compiler.deftypes.pbestrealtype^;
                 end;
 
               in_trunc_real,
@@ -4060,7 +4060,7 @@ implementation
 
               in_pi_real :
                 begin
-                  resultdef:=pbestrealtype^;
+                  resultdef:=compiler.deftypes.pbestrealtype^;
                 end;
 
               in_abs_long:
@@ -4810,7 +4810,7 @@ implementation
 
     function tinlinenode.first_pi : tnode;
       begin
-        result:=compiler.crealconstnode(getpi,pbestrealtype^);
+        result:=compiler.crealconstnode(getpi,compiler.deftypes.pbestrealtype^);
       end;
 
 

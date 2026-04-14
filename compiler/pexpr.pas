@@ -2023,7 +2023,7 @@ implementation
                 (d = double(d)) then
           result:=compiler.crealconstnode(d,s64floattype)
         else
-          result:=compiler.crealconstnode(d,pbestrealtype^);
+          result:=compiler.crealconstnode(d,compiler.deftypes.pbestrealtype^);
         val(current_scanner.pattern,cur,code);
         if code=0 then
           trealconstnode(result).value_currency:=cur;
@@ -2611,7 +2611,7 @@ implementation
                    else
                      begin
                        { just convert the ordconst to a realconst }
-                       p2:=compiler.crealconstnode(tordconstnode(p1).value,pbestrealtype^);
+                       p2:=compiler.crealconstnode(tordconstnode(p1).value,compiler.deftypes.pbestrealtype^);
                        p1.free;
                        p1:=p2;
                        again:=false;
@@ -4173,7 +4173,7 @@ implementation
                      else
                        begin
                           parser.pbase.consume(_INTCONST);
-                          p1:=compiler.crealconstnode(d,pbestrealtype^);
+                          p1:=compiler.crealconstnode(d,compiler.deftypes.pbestrealtype^);
                        end;
                    end
                  else

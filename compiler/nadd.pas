@@ -182,7 +182,7 @@ const
                 if (tfloatdef(t1).floattype in [s64comp,s64currency]) or
                   (tfloatdef(t2).floattype in [s64comp,s64currency]) or
                   (cs_excessprecision in compiler.globals.current_settings.localswitches) then
-                  result:=pbestrealtype^
+                  result:=compiler.deftypes.pbestrealtype^
                 else
                   if floatweight[tfloatdef(t2).floattype]>floatweight[tfloatdef(t1).floattype] then
                     result:=t2;
@@ -759,7 +759,7 @@ const
           begin
             if compiler.globals.floating_point_range_check_error then
                begin
-                 result:=compiler.crealconstnode(1,pbestrealtype^);
+                 result:=compiler.crealconstnode(1,compiler.deftypes.pbestrealtype^);
                  compiler.verbose.Message(parser_e_division_by_zero);
                  exit;
                end;
@@ -2276,14 +2276,14 @@ const
         if not(compiler.globals.current_settings.fputype=fpu_x87) then
           resultrealdef:=s64floattype
         else
-          resultrealdef:=pbestrealtype^;
+          resultrealdef:=compiler.deftypes.pbestrealtype^;
   {$endif i386 or i8086}
   {$ifdef x86_64}
         { x86-64 has no x87 only mode, so use always double as default }
         resultrealdef:=s64floattype;
   {$endif x86_6}
 {$else not x86}
-        resultrealdef:=pbestrealtype^;
+        resultrealdef:=compiler.deftypes.pbestrealtype^;
 {$endif not x86}
 
         if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
@@ -2297,7 +2297,7 @@ const
              begin
                if cs_excessprecision in compiler.globals.current_settings.localswitches then
                  begin
-                   resultrealdef:=pbestrealtype^;
+                   resultrealdef:=compiler.deftypes.pbestrealtype^;
                    inserttypeconv(right,resultrealdef,compiler);
                    inserttypeconv(left,resultrealdef,compiler);
                  end

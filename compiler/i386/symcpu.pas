@@ -177,10 +177,6 @@ type
   tcpusyssymclass = class of tcpusyssym;
 
 
-const
-  pbestrealtype : ^tdef = @s80floattype;
-
-
 implementation
 
 {****************************************************************************

@@ -343,7 +343,7 @@ implementation
         if compiler.target.info.system=system_x86_64_win64 then
           begin
             compiler.deftypes.s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
-            pbestrealtype:=@s64floattype;
+            compiler.deftypes.pbestrealtype:=@s64floattype;
           end
         else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
@@ -484,9 +484,9 @@ implementation
             addtype('Single',compiler.deftypes.s32floattype);
             { extended size is the best real type for the target }
             addtype('Real',compiler.deftypes.s32floattype);
-            pbestrealtype:=@compiler.deftypes.s32floattype;
+            compiler.deftypes.pbestrealtype:=@compiler.deftypes.s32floattype;
             { extended size is the best real type for the target }
-            addtype('Extended',pbestrealtype^);
+            addtype('Extended',compiler.deftypes.pbestrealtype^);
           end
         else
         *)
@@ -496,17 +496,17 @@ implementation
             addtype('Single',compiler.deftypes.s32floattype);
             addtype('Double',s64floattype);
             { extended size is the best real type for the target }
-            addtype('Extended',pbestrealtype^);
+            addtype('Extended',compiler.deftypes.pbestrealtype^);
             { CExtended corresponds to the C version of the Extended type
               (either "long double" or "double") }
             if compiler.target.info.system in systems_android then
               { Android has "long double"="double" even for x86 }
               addtype('CExtended',s64floattype)
             else
-              if tfloatdef(pbestrealtype^).floattype=s80real then
+              if tfloatdef(compiler.deftypes.pbestrealtype^).floattype=s80real then
                 addtype('CExtended',compiler.deftypes.sc80floattype)
               else
-                addtype('CExtended',pbestrealtype^);
+                addtype('CExtended',compiler.deftypes.pbestrealtype^);
           end;
 {$ifdef x86}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
@@ -732,7 +732,7 @@ implementation
       begin
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if compiler.target.info.system=system_x86_64_win64 then
-          pbestrealtype:=@s64floattype;
+          compiler.deftypes.pbestrealtype:=@s64floattype;
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=compiler.current_module;
