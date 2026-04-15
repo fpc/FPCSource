@@ -43,31 +43,31 @@ type
     next: PJSList;
   end;
 
-function jack_slist_alloc: PJSList; inline;
-function jack_slist_prepend (list: PJSList; data: Pointer): PJSList; inline;
-function jack_slist_next(list: PJSList): PJSList; inline;
-function jack_slist_last (list: PJSList): PJSList; inline;
+function jack_slist_alloc: PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+function jack_slist_prepend (list: PJSList; data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+function jack_slist_next(list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+function jack_slist_last (list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_remove_link (list: PJSList;
-                                 link: PJSList): PJSList; inline;
-procedure jack_slist_free (list: PJSList); inline;
-procedure jack_slist_free_1 (list: PJSList); inline;
+                                 link: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+procedure jack_slist_free (list: PJSList); {$IFDEF INLINE_JACK} inline; {$ENDIF}
+procedure jack_slist_free_1 (list: PJSList); {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_remove (list: PJSList;
-                            data: Pointer): PJSList; inline;
-function jack_slist_length (list: PJSList): cuint; inline;
+                            data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+function jack_slist_length (list: PJSList): cuint; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_find (list: PJSList;
-                          data: Pointer): PJSList; inline;
-function jack_slist_copy (list: PJSList): PJSList; inline;
+                          data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
+function jack_slist_copy (list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_append (list: PJSList;
-                            data: Pointer): PJSList; inline;
+                            data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_sort_merge (l1: PJSList;
                                 l2: PJSList;
-                                compare_func: JCompareFunc): PJSList; inline;
+                                compare_func: JCompareFunc): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 function jack_slist_sort (list: PJSList;
-                          compare_func: JCompareFunc): PJSList; inline;
+                          compare_func: JCompareFunc): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 
 implementation
 
-function jack_slist_alloc: PJSList; inline;
+function jack_slist_alloc: PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   new_list: PJSList;
 begin
@@ -80,7 +80,7 @@ begin
   jack_slist_alloc := new_list;
 end;
 
-function jack_slist_prepend (list: PJSList; data: Pointer): PJSList; inline;
+function jack_slist_prepend (list: PJSList; data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   new_list: PJSList;
 begin
@@ -94,7 +94,7 @@ begin
   jack_slist_prepend := new_list;
 end;
 
-function jack_slist_next(list: PJSList): PJSList; inline;
+function jack_slist_next(list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 begin
   if list <> nil then
     jack_slist_next := list^.next
@@ -102,7 +102,7 @@ begin
     jack_slist_next := nil;
 end;
 
-function jack_slist_last (list: PJSList): PJSList; inline;
+function jack_slist_last (list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 begin
   if list <> nil then
   begin
@@ -114,7 +114,7 @@ begin
 end;
 
 function jack_slist_remove_link (list: PJSList;
-                                 link: PJSList): PJSList; inline;
+                                 link: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   tmp: PJSList;
   prev: PJSList;
@@ -142,7 +142,7 @@ begin
   jack_slist_remove_link := list;
 end;
 
-procedure jack_slist_free (list: PJSList); inline;
+procedure jack_slist_free (list: PJSList); {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   next: PJSList;
 begin
@@ -154,14 +154,14 @@ begin
   end;
 end;
 
-procedure jack_slist_free_1 (list: PJSList); inline;
+procedure jack_slist_free_1 (list: PJSList); {$IFDEF INLINE_JACK} inline; {$ENDIF}
 begin
   if list <> nil then
     Dispose(list);
 end;
 
 function jack_slist_remove (list: PJSList;
-                            data: Pointer): PJSList; inline;
+                            data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   tmp: PJSList;
   prev: PJSList;
@@ -191,7 +191,7 @@ begin
   jack_slist_remove := list;
 end;
 
-function jack_slist_length (list: PJSList): cuint; inline;
+function jack_slist_length (list: PJSList): cuint; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   length: cuint;
 begin
@@ -206,7 +206,7 @@ begin
 end;
 
 function jack_slist_find (list: PJSList;
-                          data: Pointer): PJSList; inline;
+                          data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 begin
   while list <> nil do
   begin
@@ -218,7 +218,7 @@ begin
   jack_slist_find := list;
 end;
 
-function jack_slist_copy (list: PJSList): PJSList; inline;
+function jack_slist_copy (list: PJSList): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   new_list: PJSList = nil;
   last: PJSList;
@@ -242,7 +242,7 @@ begin
 end;
 
 function jack_slist_append (list: PJSList;
-                            data: Pointer): PJSList; inline;
+                            data: Pointer): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   new_list: PJSList;
   last: PJSList;
@@ -263,7 +263,7 @@ end;
 
 function jack_slist_sort_merge (l1: PJSList;
                                 l2: PJSList;
-                                compare_func: JCompareFunc): PJSList; inline;
+                                compare_func: JCompareFunc): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   list: JSList;
   l: PJSList;
@@ -294,7 +294,7 @@ begin
 end;
 
 function jack_slist_sort (list: PJSList;
-                          compare_func: JCompareFunc): PJSList; inline;
+                          compare_func: JCompareFunc): PJSList; {$IFDEF INLINE_JACK} inline; {$ENDIF}
 var
   l1, l2: PJSList;
 begin

@@ -59,7 +59,7 @@ interface
         procedure add_entry_exit_code;
         procedure translate_registers(p:TObject;list:pointer);
         procedure setup_tempgen;
-        procedure OptimizeNodeTree;
+        procedure TransformNodeTree;
         procedure convert_captured_syms;
         function block(islibrary : boolean) : tnode;
         function generate_bodyentry_block:tnode;
@@ -1216,7 +1216,7 @@ implementation
       end;
 
 
-    procedure tcgprocinfo.OptimizeNodeTree;
+    procedure tcgprocinfo.TransformNodeTree;
       var
         i : integer;
         UserCode : TNode;
@@ -2072,7 +2072,7 @@ implementation
         if compiler.verbose.paraprintnodetree <> 0 then
           printproc( 'after the firstpass');
 
-        OptimizeNodeTree;
+        TransformNodeTree;
 
         { unit static/global symtables might contain threadvars which are not explicitly used but which might
           require a tls register, so check for such variables }

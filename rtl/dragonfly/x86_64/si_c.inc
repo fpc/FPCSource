@@ -7,9 +7,11 @@ var
   progname: PAnsiChar = #0#0; cvar; public name '__progname';
   dynamic : PAnsiChar;  external name '_DYNAMIC'; // #pragma weak
 
+{$linklib c}
+
 procedure atexit(prc:TCleanup); cdecl external name 'atexit';
 procedure cleanup(prc:TCleanup); cdecl external name 'cleanup';
-procedure init_tls; cdecl; external name 'init_tls';
+procedure init_tls; cdecl; external name '_init_tls';
 procedure fini; cdecl; external name '_fini';
 procedure init; cdecl; external name '_init';
 procedure libc_exit(exitcode:longint);cdecl; external name 'exit';

@@ -15,7 +15,8 @@ uses
   tests.generics.sets,
   tests.generics.queue,
   tests.generics.stack,
-  tests.generics.dictionary
+  tests.generics.dictionary,
+  tests.generics.dictionary2
   ;
 
 var

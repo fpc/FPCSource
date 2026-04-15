@@ -609,7 +609,8 @@ begin
     (LTarget='iphonesim') or
     (LTarget='darwin') or
     (LTarget='aix') or
-    (LTarget='android');
+    (LTarget='android') or
+    (LTarget='dragonfly');
 
   { Set ExeExt for CompilerTarget.
     This list has been set up 2013-01 using the information in

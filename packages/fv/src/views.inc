@@ -2965,8 +2965,10 @@ begin
         MoveCStr(B[2], '[~'+ClickC[LowAscii]+'~]', CFrame);
     if PWindow(Owner)^.Flags and wfZoom <> 0 then
     begin
-      MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
+      if Width - 5 >= 0 then { safety check, write array B in bounds }
+        MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
       Owner^.SizeLimits(Min, Max);
+      if Width - 4 >= 0 then { safety check, write array B in bounds }
       if FrameMode and fmZoomClicked <> 0 then
 {$ifdef FV_UNICODE}
         B[Width - 4].ExtendedGraphemeCluster := ClickC[LowAscii]
@@ -4109,7 +4111,14 @@ PROCEDURE TWindow.Zoom;
 VAR R: TRect; Max, Min: TPoint;
 BEGIN
    SizeLimits(Min, Max);                              { Return size limits }
+   GetBounds(R);
    If ((Size.X <> Max.X) OR (Size.Y <> Max.Y))        { Larger size possible }
+     OR ( { Sometimes maximized window can be stuck off screen after
+            terminal resize. Detect the case and move to (0,0) position. }
+          (Size.X = Max.X) AND (Size.Y = Max.Y) AND
+          (R.A.X = ZoomRect.A.X ) AND (R.B.X = ZoomRect.B.X ) AND
+          (R.A.Y = ZoomRect.A.Y ) AND (R.B.Y = ZoomRect.B.Y )
+        )
    Then Begin
      GetBounds(ZoomRect);                             { Get zoom bounds }
      R.A.X := 0;                                      { Zero x origin }

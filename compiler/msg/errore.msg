@@ -4075,6 +4075,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 6*2Avasm_Use vasm to assemble
 8*2Anasm_Assemble using Nasm
 8*2Anasmobj_Assemble using Nasm
+8*2Aomf Assemble using internal OMF object writer
 A*2Aas_Assemble using GNU AS
 A*2Aas-darwin_Assemble using GNU AS for Darwin targets
 A*2Aclang_Assemble using clang
@@ -4592,6 +4593,7 @@ W*2XlS<x>_LLVM utilities suffix (e.g. -17 in case llvm-mc is called llvm-mc-17)
 **2XLA_Define library substitutions for linking
 **2XLD_Exclude default order of standard libraries
 **2XLO_Define order of library linking
+**2XLL_Link using ld.lld GNU compatible LLVM linker (Linux and some BSD targets, experimental)
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)

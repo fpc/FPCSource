@@ -2510,6 +2510,8 @@ var
     function tppumodule.loadppu(from_module : tmodule) : boolean;
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
+      var
+        old_module: tmodule;
       begin
         Result:=false;
 
@@ -2535,12 +2537,13 @@ var
 
         loadedfrommodule:=from_module;
 
+        old_module:=compiler.current_module;
         compiler.set_current_module(self);
 
         if check_loadfrompackage then
         begin
           { No need to do anything, restore situation and exit. }
-          compiler.set_current_module(from_module);
+          compiler.set_current_module(old_module);
           {$IFDEF DEBUG_PPU_CYCLES}
           writeln('PPUALGO tppumodule.loadppu from package: ',modulename^,' (',statestr,') used by "',from_module.modulename^,'" (',from_module.statestr,')');
           {$ENDIF}
@@ -2573,7 +2576,7 @@ var
 
         Result:=continueloadppu;
 
-        compiler.set_current_module(from_module);
+        compiler.set_current_module(old_module);
       end;
 
     function tppumodule.get_check_uses(out check_impl_uses, check_crc: boolean): boolean;

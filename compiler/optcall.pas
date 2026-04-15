@@ -59,6 +59,7 @@ type
       verbose,globals,
       defutil,defcmp,
       symconst,symtype,symdef,symsym,
+      parabase,paramgr,
       procinfo,
       fmodule,
       pass_1,
@@ -125,7 +126,12 @@ type
       begin
         result:=fen_false;
         if n.nodetype=calln then
-          tcallnode(n).order_parameters;
+          begin
+            { re-init varargs paraloc that may have been invalidated by inlining }
+            if assigned(tcallnode(n).varargsparas) then
+              compiler.paramanager.create_varargs_paraloc_info(tcallnode(n).procdefinition,callerside,tcallnode(n).varargsparas);
+            tcallnode(n).order_parameters;
+          end;
       end;
 
 

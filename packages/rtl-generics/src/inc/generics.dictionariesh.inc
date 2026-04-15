@@ -189,12 +189,18 @@ type
     FItemsThreshold: SizeInt;
 
     procedure Resize(ANewSize: SizeInt);
-    procedure PrepareAddingItem;
+    function PrepareAddingItem: boolean;
+    procedure InternalDoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32; var ABucketIndex: SizeInt); inline;
   protected
     function RealItemsLength: SizeInt; virtual;
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
     function FindBucketIndex(const AKey: TKey): SizeInt; overload; inline;
+    function FindBucketIndex(const AKey: TKey; out AHash: UInt32): SizeInt; overload; inline;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt; virtual;
+    function GetKeyFromBucket(ABucketIndex: SizeInt): TKey; inline;
+    function GetValueFromBucket(ABucketIndex: SizeInt): TValue; inline;
+    function GetMutableValueFromBucket(ABucketIndex: SizeInt): PValue; inline;
   public
     type
       // Enumerators
@@ -241,7 +247,9 @@ type
   protected
      // useful for using dictionary as array
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; virtual;
-    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; virtual;
+    function DoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32; ABucketIndex: SizeInt): SizeInt; virtual; overload;
+    function DoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32): SizeInt; overload;
+    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; virtual; overload;
 
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
 
@@ -261,6 +269,7 @@ type
     function ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
     procedure Clear; override;
     procedure TrimExcess;
+    function GetOrAddMutableValue(const AKey: TKey): PValue; inline;
     function GetMutableValue(const AKey: TKey): PValue; inline;
     function TryGetMutableValue(const AKey: TKey; out APValue: PValue): Boolean;
     function TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
@@ -288,6 +297,8 @@ type
     procedure NotifyIndexChange(AFrom, ATo: SizeInt); virtual;
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; override;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
   end;
 
   // More info and TODO
@@ -320,6 +331,8 @@ type
   protected
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   end;
@@ -331,6 +344,8 @@ type
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function FindBucketIndex(const AItems: TArray<TItem>;
       const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
       const AKey: TKey; out AHash: UInt32): SizeInt; override;
   end;
@@ -347,6 +362,8 @@ type
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   strict protected
