@@ -224,7 +224,12 @@ unit i_bsd;
             res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
+{$if defined(FreeBSD) and defined(POWERPC64) and defined(FPC_LITTLE_ENDIAN)}
+            { on a FreeBSD little endian powerpc64 platform -> use little endian as default }
+	    endian       : endian_little;
+{$else}
             endian       : endian_big;
+{$endif}
             alignment    :
               (
                 procalign       : 8;
@@ -914,10 +919,6 @@ initialization
 {$endif cpupowerpc32}
 {$ifdef cpupowerpc64}
   {$ifdef FreeBSD}
-    { on a little endian PPC64 platform -> use little endian as default }
-    {$ifdef FPC_LITTLE_ENDIAN}
-      system_powerpc64_freebsd_info.endian:=endian_little;
-    {$endif}
     set_source_info(system_powerpc64_freebsd_info);
   {$endif FreeBSD}
 {$endif powerpc64}
