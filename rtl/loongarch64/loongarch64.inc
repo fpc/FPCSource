@@ -426,7 +426,7 @@ function fpc_atomic_add_64 (var Target: int64;Value : int64) : int64; assembler;
   asm
 {$ifdef CPULOONGARCH_HAS_ATOMIC}
     amadd_db.d $a2, $a1, $a0
-    add.d $a0, $a1, $a2
+    move $a0, $a2
 {$else CPULOONGARCH_HAS_ATOMIC}
     dbar 0
   .LLoop:
@@ -434,7 +434,7 @@ function fpc_atomic_add_64 (var Target: int64;Value : int64) : int64; assembler;
     add.d $a3, $a1, $a2
     sc.d $a3, $a0, 0
     beqz $a3, .LLoop
-    add.d $a0, $a1, $a2
+    move $a0, $a2
     dbar 0
 {$endif CPULOONGARCH_HAS_ATOMIC}
   end;
