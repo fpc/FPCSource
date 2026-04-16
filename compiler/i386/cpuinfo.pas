@@ -112,6 +112,7 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
+var
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -126,6 +127,7 @@ Const
      pocall_mwpascal
    ];
 
+const
    cputypestr : array[tcputype] of string[16] = ('',
      '80386',
      '80486',
@@ -239,7 +241,7 @@ type
        CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1  { BSR/F does not change the destination if ZF is set }
       );
 
- const
+ var
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { cpu_386       } [CPUX86_HAS_BTX],
@@ -267,6 +269,7 @@ type
      { cpu_zen5      } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_SSSE3,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
+ const
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
      { fpu_none      } [],
      { fpu_x87       } [],

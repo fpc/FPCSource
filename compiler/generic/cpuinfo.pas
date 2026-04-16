@@ -81,6 +81,7 @@ Const
    cputypestr : array[tcputype] of string[8] = ('none','generic');
    fputypestr : array[tfputype] of string[6] = ('none','soft');
 
+var
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_safecall,
@@ -93,6 +94,7 @@ Const
      pocall_softfloat
    ];
 
+const
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+

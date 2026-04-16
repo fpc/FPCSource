@@ -245,7 +245,7 @@ type
       destructor  Done; virtual;
     end;
 
-const
+var
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
@@ -282,7 +282,7 @@ uses
   symsym,symdef,symtype,symbase,defutil,
   compiler;
 
-const
+var
   RModuleNameCollection: TStreamRec = (
      ObjType: 3001;
      VmtLink: Ofs(TypeOf(TModuleNameCollection)^);

@@ -239,6 +239,7 @@ unit cpubase;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
 
+    var
       { Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
       RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
       NR_FRAME_POINTER_REG: tregister = NR_NO;
@@ -250,6 +251,7 @@ unit cpubase;
       RS_PIC_OFFSET_REG: tsuperregister = RS_NO;
       NR_PIC_OFFSET_REG: tregister = NR_NO;
 
+    const
       { Return address for DWARF }
       NR_RETURN_ADDRESS_REG = NR_A0;
       RS_RETURN_ADDRESS_REG = RS_A0;

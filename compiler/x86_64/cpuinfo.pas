@@ -114,6 +114,7 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
+var
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -132,6 +133,7 @@ Const
      pocall_vectorcall
    ];
 
+const
    cputypestr : array[tcputype] of string[16] = ('',
      'ATHLON64',
      'X86-64',
@@ -272,6 +274,7 @@ type
    cpu_x86_64_v3_flags = cpu_x86_64_v2_flags+[CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_OSXSAVE]; { most is in the fpu flags here }
    cpu_x86_64_v4_flags = cpu_x86_64_v3_flags; { everything is in the fpu flags here }
 
+ var
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { Athlon64      } cpu_x86_64_v1_flags,
@@ -298,6 +301,7 @@ type
      { cpu_zen5      } cpu_x86_64_v4_flags
    );
 
+ const
    fpu_x86_64_v1_flags = [];
    fpu_x86_64_v2_flags = fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSE4_1,FPUX86_HAS_SSE4_2,FPUX86_HAS_SSSE3];
    fpu_x86_64_v3_flags = fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_F16C,FPUX86_HAS_AVX2];

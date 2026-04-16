@@ -2638,6 +2638,7 @@ type
 const
   {Should contain the number of procedure directives we support.}
   num_proc_directives=55;
+var
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (

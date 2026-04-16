@@ -166,7 +166,7 @@ interface
     end;
     tnodeutilsclass = class of tnodeutils;
 
-  const
+  var
     cnodeutils: tnodeutilsclass = tnodeutils;
 
 

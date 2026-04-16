@@ -119,9 +119,11 @@ interface
        CP_UTF16BE = 1201;
        CP_NONE  = 65535;
 
+    var
        { by default no local variable trashing }
        localvartrashing: longint = -1;
 
+    const
        nroftrashvalues = 4;
        trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
 
@@ -462,9 +464,10 @@ Const
        { (this will be prefixed with the compiler.target.info.cprefix)                }
        defaultmainaliasname = 'main';
 
+    const
        custom_attribute_suffix = 'ATTRIBUTE';
 
-    const
+    var
       default_settings : TSettings = (
         alignment : (
           procalign : 0;
@@ -2165,7 +2168,7 @@ implementation
      pinitdoneentry=^tinitdoneentry;
 
 
-   const
+   var
      initdoneprocs : TFPList = nil;
 
 

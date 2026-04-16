@@ -35,13 +35,14 @@ uses
   finput,
   compilerbase;
 
-const
+var
   { RHIDE expect gcc like error output }
   fatalstr      : string[6] = 'Fatal:';
   errorstr      : string[6] = 'Error:';
   warningstr    : string[8] = 'Warning:';
   notestr       : string[5] = 'Note:';
   hintstr       : string[5] = 'Hint:';
+const
   warningerrorstr    : string[29] = 'Warning: (treated as error)';
   noteerrorstr       : string[27] = 'Note: (treated as error)';
   hinterrorstr       : string[27] = 'Hint: (treated as error)';
@@ -133,7 +134,7 @@ type
   topeninputfilefunc = function(const filename: TPathStr): tinputfile;
   tgetnamedfiletimefunc = function(const filename: TPathStr): longint;
 
-const
+var
   do_status        : tstatusfunction  = @def_status;
   do_comment       : tcommentfunction = @def_comment;
   do_internalerror : tinternalerrorfunction = @def_internalerror deprecated 'use do_internalerrorex';

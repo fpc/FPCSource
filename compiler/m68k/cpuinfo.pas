@@ -81,6 +81,7 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
+var
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -95,6 +96,7 @@ Const
      pocall_syscall
    ];
 
+const
    cputypestr : array[tcputype] of string[8] = ('',
      '68000',
      '68020',
@@ -184,7 +186,7 @@ type
       FPUM68K_HAS_FINTRZ           { FPU supports the FINT/FINTRZ instruction }
      );
 
-const
+var
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
       { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR,CPUM68K_HAS_MULIMM,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_BYTEWORDMATH,CPUM68K_HAS_LONGENCODING],
@@ -198,6 +200,7 @@ const
       { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_TSTAREG]
     );
 
+const
   { on m68k, Motorola provided a software-library, which provides full '881/2 instruction set
     compatibility on 040/060 FPU types via emulation for user code compatibility. this is slow
     though, so this capabilities list contains the capabilities supported in the hardware itself }

@@ -44,8 +44,6 @@ interface
     type
       tmsgqueueevent = procedure(const s:TMsgStr;v,w:longint) of object;
 
-    type
-
       { TVerbose }
 
       TVerbose = class

@@ -164,7 +164,7 @@ implementation
       compiler;
 
 
-    const
+    var
       current_procdef : tprocdef = nil;
 
     function GetOffsetStr(reference : TReference) : string;

@@ -629,7 +629,7 @@ unit rgobj;
           ungetcpuregister(list,newreg(regtype,i,defaultsub));
     end;
 
-    const
+    var
       rtindex : longint = 0;
     procedure trgobj.do_register_allocation(list:TAsmList;headertai:tai);
       var

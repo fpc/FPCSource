@@ -56,7 +56,7 @@ implementation
    dos;
 {$endif defined(GO32V2) or defined(WATCOM)}
 
-const
+var
   CachedIsATTY : Boolean = false;
   IsATTYValue : Boolean = false;
 
