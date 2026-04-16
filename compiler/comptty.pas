@@ -72,7 +72,7 @@ const
   ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;
 
 function WindowsIsATTY(var t : text) : Boolean; inline;
-const
+var 
   dwMode: dword = 0;
 begin
   WindowsIsATTY := false;
