@@ -28,6 +28,10 @@
 { We don't want C operators to be used inside the compiler }
 {$COPERATORS OFF}
 
+{ We don't want assignments to typed consts. In such cases, an initialized var
+  should be used instead. }
+{$WRITEABLECONST OFF}
+
 { This define enables codepage-aware compiler messages handling. Turning it on
   forces code page conversion from the codepage, specified in the .msg file to
   CP_ACP, before printing the message to the console. Enable this for host

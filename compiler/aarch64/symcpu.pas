@@ -134,7 +134,7 @@ type
   end;
 
 
-const
+var
   pbestrealtype : ^tdef = @s64floattype;
 
 

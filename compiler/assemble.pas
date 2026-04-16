@@ -855,9 +855,8 @@ Implementation
       end;
 
 
-    const
-      lastas  : byte=255;
     var
+      lastas  : byte=255;
       LastASBin : TCmdStr;
     Function TExternalAssembler.FindAssembler:string;
       var

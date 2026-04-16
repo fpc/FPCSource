@@ -85,7 +85,7 @@ implementation
 
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
 
-    const
+    var
        { true, if the inherited call is anonymous }
        anon_inherited : boolean = false;
        { last def found, only used by anon. inherited calls to insert proper type casts }

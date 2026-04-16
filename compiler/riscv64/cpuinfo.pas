@@ -60,6 +60,7 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
   {$POP}
 
+var
   { calling conventions supported by the code generator }
   supported_calling_conventions: tproccalloptions = [
     pocall_internproc,
@@ -74,6 +75,7 @@ Const
     pocall_mwpascal
     ];
 
+const
   cputypestr: array[tcputype] of string[10] = ('',
     'RV64IMAC',
     'RV64IMA',
@@ -101,7 +103,7 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_opt_stackframe];
 
- const
+ var
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none       } [],
        { cpu_rv64imac   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],

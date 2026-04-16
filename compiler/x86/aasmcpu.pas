@@ -717,7 +717,7 @@ interface
         next : PExternChain;
       end;
 
-    const
+    var
       FEC : PExternChain = nil;
 
     procedure AddSymbol(symname : string; defined : boolean);

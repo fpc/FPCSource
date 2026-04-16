@@ -209,7 +209,7 @@ type
   tcpusyssymclass = class of tcpusyssym;
 
 
-const
+var
   pbestrealtype : ^tdef = @s64floattype;
 
   {# Returns true if p is a WebAssembly funcref reference type }

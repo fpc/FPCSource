@@ -145,6 +145,7 @@ Const
    );
    {$POP}
 
+var
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -158,6 +159,7 @@ Const
      pocall_mwpascal
    ];
 
+const
    cputypestr : array[tcputype] of string[24] = ('',
      'RV32IMAC',
      'RV32IMAC_ZICSR_ZIFENCEI',
@@ -191,7 +193,7 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_opt_stackframe];
 
- const
+ var
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none      } [],
        { cpu_rv32imac  } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],

@@ -143,6 +143,7 @@ const
 
 const
   firsttoken : boolean = TRUE;
+var
   operandnum : byte = 0;
 
     procedure tm68kmotreader.SetupTables;

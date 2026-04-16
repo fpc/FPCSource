@@ -173,7 +173,7 @@ type
   tcpusyssymclass = class of tcpusyssym;
 
 
-const
+var
    pbestrealtype : ^tdef = @s64floattype;
 
 

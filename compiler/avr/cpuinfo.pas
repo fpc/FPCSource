@@ -429,6 +429,7 @@ Const
    { target cpu string (used by compiler options) }
    target_cpu_string = 'avr';
 
+var
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -442,6 +443,7 @@ Const
      pocall_softfloat
    ];
 
+const
    cputypestr : array[tcputype] of string[9] = ('',
      'AVRTINY',
      'AVR1',
@@ -889,7 +891,7 @@ Const
        CPUAVR_NOMEMMAPPED_REGS  // Core registers not accessible in data space
       );
 
- const
+ var
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none      } [],
        { cpu_avrtiny   } [CPUAVR_16_REGS,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],

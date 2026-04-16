@@ -1118,9 +1118,10 @@ Implementation
         MakeStaticLibrary:=success;
       end;
 
+    var
+      pid: SizeUInt = 0;
+
     function TExternalLinker.UniqueName(const str: TCmdStr): TCmdStr;
-      const
-        pid: SizeUInt = 0;
       begin
         if pid=0 then
           pid:=GetProcessID;

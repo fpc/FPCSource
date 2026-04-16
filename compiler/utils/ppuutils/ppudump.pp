@@ -612,9 +612,10 @@ const
   end;
 {$POP}
 
-const has_errors : boolean = false;
-      has_warnings : boolean = false;
-      has_more_infos : boolean = false;
+var
+  has_errors : boolean = false;
+  has_warnings : boolean = false;
+  has_more_infos : boolean = false;
 
 procedure SetHasErrors;
 begin

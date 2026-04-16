@@ -36,6 +36,7 @@ interface
          a ; on the statement before }
        endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT,_FINALLY];
 
+    var
        { true, if we are after an assignment }
        afterassignment : boolean = false;
 
@@ -54,7 +55,6 @@ interface
        { special for function reference vars }
        getfuncrefdef : tobjectdef = nil;
 
-    var
        { for operators }
        optoken : ttoken;
 

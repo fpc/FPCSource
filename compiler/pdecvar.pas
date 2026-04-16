@@ -917,7 +917,7 @@ implementation
        end;
 
 
-    const
+    var
        variantrecordlevel : longint = 0;
 
 
