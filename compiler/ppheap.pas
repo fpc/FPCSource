@@ -141,7 +141,7 @@ implementation
       end;
 
 
-  const
+  var
      pp_heap_inited : boolean = false;
 
   procedure pp_heap_init;
