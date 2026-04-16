@@ -501,7 +501,6 @@ Const
     var
       LTOExt: TCmdStr = '';
 
-    const
       default_settings : TSettings = (
         alignment : (
           procalign : 0;
@@ -714,7 +713,6 @@ Const
 {$endif defined(LLVM) and not defined(GENERIC_CPU)}
       );
 
-    var
       starttime  : real;
       startsystime : TSystemTime;
 
