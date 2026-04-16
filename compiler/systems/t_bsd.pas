@@ -759,11 +759,6 @@ initialization
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  {$ifdef freebsd}
-    {$if defined(powerpc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
-      system_powerpc64_freebsd_info.endian:=endian_little;
-    {$endif powerpc64le}
- {$endif freebsd}
   RegisterImport(system_powerpc64_freebsd,timportlibbsd);
   RegisterExport(system_powerpc64_freebsd,texportlibbsd);
   RegisterTarget(system_powerpc64_freebsd_info);
