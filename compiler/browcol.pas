@@ -244,7 +244,7 @@ type
       destructor  Done; virtual;
     end;
 
-const
+var
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
@@ -280,7 +280,7 @@ uses
   aasmbase,aasmtai,aasmdata,paramgr,
   symsym,symdef,symtype,symbase,defutil;
 
-const
+var
   RModuleNameCollection: TStreamRec = (
      ObjType: 3001;
      VmtLink: Ofs(TypeOf(TModuleNameCollection)^);
