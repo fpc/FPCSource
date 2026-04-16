@@ -528,7 +528,7 @@ interface
             idtxt  : 'AS-CLANG';
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
-            supported_targets : [system_x86_64_linux, system_x86_64_freebsd, system_x86_64_netbsd, system_x86_64_openbsd];
+            supported_targets : [system_x86_64_linux, system_x86_64_freebsd, system_x86_64_netbsd, system_x86_64_openbsd, system_x86_64_dragonfly];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : '.L';
             labelmaxlen : -1;
