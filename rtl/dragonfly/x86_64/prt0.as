@@ -1,6 +1,7 @@
 	.file	"crt1.c"
-	.section	.note.ABI-tag,"a",@progbits
+	.section	.note.tag,"a",@progbits
 	.p2align 2
+.globl abitag
 	.type	abitag, @object
 	.size	abitag, 28
 abitag:
