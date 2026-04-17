@@ -398,7 +398,7 @@ implementation
                       { system.char? (char=widechar comes from the implicit
                         uachar/uuchar unit -> override) }
                       if (current_scanner.pattern='CHAR') and
-                         (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                         (tmodule(tunitsym(srsym).module).globalsymtable=compiler.systemunit) then
                         begin
                           if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                             searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
@@ -426,7 +426,7 @@ implementation
                       if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
                         compiler.verbose.Message(parser_e_nostringaliasinsystem);
                       { system.string? }
-                      if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
+                      if tmodule(tunitsym(srsym).module).globalsymtable=compiler.systemunit then
                         begin
                           if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                             begin

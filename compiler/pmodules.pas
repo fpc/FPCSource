@@ -404,14 +404,14 @@ implementation
         { are we compiling the system unit? }
         if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
          begin
-           systemunit:=tglobalsymtable(curr.localsymtable);
+           tcompiler(compiler).systemunit:=tglobalsymtable(curr.localsymtable);
            { create system defines }
            parser.psystem.create_intern_types;
            parser.psystem.create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
-           compiler.generrorsym.owner:=systemunit;
-           compiler.generrordef.owner:=systemunit;
+           compiler.generrorsym.owner:=compiler.systemunit;
+           compiler.generrordef.owner:=compiler.systemunit;
            exit;
          end;
 
@@ -419,7 +419,7 @@ implementation
           internal types from the system unit }
         Sys:=AddUnit(curr,'system');
         Result:=Assigned(Sys) and (Sys.State in [ms_processed,ms_compiled]);
-        systemunit:=tglobalsymtable(compiler.symtablestack.top);
+        tcompiler(compiler).systemunit:=tglobalsymtable(compiler.symtablestack.top);
 
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
@@ -431,8 +431,8 @@ implementation
 
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
-        compiler.generrorsym.owner:=systemunit;
-        compiler.generrordef.owner:=systemunit;
+        compiler.generrorsym.owner:=compiler.systemunit;
+        compiler.generrordef.owner:=compiler.systemunit;
         // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
         { TODO: Check if we should also do this for mode macpas }
         if not (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
@@ -2125,7 +2125,7 @@ type
              { this means the SYSTEM unit *must* be part of one of the required
                packages, so load it }
              AddUnit(curr,'system',false);
-             systemunit:=tglobalsymtable(compiler.symtablestack.top);
+             tcompiler(compiler).systemunit:=tglobalsymtable(compiler.symtablestack.top);
              parser.psystem.load_intern_types;
              { system unit is loaded, now insert feature defines }
              for feature:=low(tfeature) to high(tfeature) do
@@ -2151,9 +2151,9 @@ type
                          parser.pbase.consume(_ID);
                        end;
                      hp:=AddUnit(curr,module_name);
-                     if (hp.modulename^='SYSTEM') and not assigned(systemunit) then
+                     if (hp.modulename^='SYSTEM') and not assigned(compiler.systemunit) then
                        begin
-                         systemunit:=tglobalsymtable(hp.globalsymtable);
+                         tcompiler(compiler).systemunit:=tglobalsymtable(hp.globalsymtable);
                          parser.psystem.load_intern_types;
                        end;
                    end
@@ -2289,9 +2289,9 @@ type
          uu:=tused_unit(compiler.usedunits.first);
          while assigned(uu) do
            begin
-             if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then
+             if not assigned(compiler.systemunit) and (uu.u.modulename^='SYSTEM') then
                begin
-                 systemunit:=tglobalsymtable(uu.u.globalsymtable);
+                 tcompiler(compiler).systemunit:=tglobalsymtable(uu.u.globalsymtable);
                  parser.psystem.load_intern_types;
                end;
              if not assigned(uu.u.package) then

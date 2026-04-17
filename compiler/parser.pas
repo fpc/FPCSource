@@ -527,7 +527,7 @@ implementation
        { reset symtable }
          tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
          tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
-         systemunit:=nil;
+         tcompiler(compiler).systemunit:=nil;
          compiler.globals.current_settings.defproccall:=compiler.globals.init_settings.defproccall;
          compiler.globals.current_exceptblock:=0;
          pstatmnt.exceptblockcounter:=0;

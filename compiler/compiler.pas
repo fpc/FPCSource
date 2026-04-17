@@ -240,6 +240,8 @@ type
 
     FDefTypes: tdefaulttypes;
 
+    FSystemUnit: tglobalsymtable; { pointer to the system unit }
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -319,6 +321,7 @@ type
     property generrorsym: tsym read Fgenerrorsym write Fgenerrorsym;
     property generrordef: tdef read Fgenerrordef write Fgenerrordef;
     property DefTypes: tdefaulttypes read FDefTypes;
+    property SystemUnit: tglobalsymtable read FSystemUnit write FSystemUnit;
   end;
 
   { TCompilerHelper }
@@ -368,6 +371,7 @@ type
     function GetSwitches: TSwitchesHandler; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetSysSymList: tsyssymlist; inline;
+    function GetSystemUnit: tglobalsymtable; inline;
     function GetTarget: TCompilerTarget; inline;
     function GetTG: ttgobj; inline;
     function GetTime: TCompilerTime; inline;
@@ -541,6 +545,7 @@ type
     property generrorsym: tsym read Getgenerrorsym;
     property generrordef: tdef read Getgenerrordef;
     property DefTypes: tdefaulttypes read GetDefTypes;
+    property SystemUnit: tglobalsymtable read GetSystemUnit;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -1315,6 +1320,11 @@ end;
 function TCompilerHelper.GetSysSymList: tsyssymlist; inline;
 begin
   Result := TCompiler(Self).SysSymList;
+end;
+
+function TCompilerHelper.GetSystemUnit: tglobalsymtable; inline;
+begin
+  Result := TCompiler(Self).SystemUnit;
 end;
 
 function TCompilerHelper.GetTarget: TCompilerTarget; inline;

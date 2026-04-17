@@ -1830,7 +1830,7 @@ type
                         { system.char? (char=widechar comes from the implicit
                           uachar/uuchar unit -> override) }
                         if (current_scanner.preproc_pattern='CHAR') and
-                           (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                           (tmodule(tunitsym(srsym).module).globalsymtable=compiler.systemunit) then
                           begin
                             if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                               searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
@@ -1842,7 +1842,7 @@ type
                       _STRING:
                         begin
                           { system.string? }
-                          if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
+                          if tmodule(tunitsym(srsym).module).globalsymtable=compiler.systemunit then
                             begin
                               if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                                 begin

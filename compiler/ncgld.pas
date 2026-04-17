@@ -311,11 +311,11 @@ implementation
              { FPC_THREADVAR_RELOCATE is nil? }
              issystemunit:=(
                              assigned(compiler.current_module.globalsymtable) and
-                             (compiler.current_module.globalsymtable=systemunit)
+                             (compiler.current_module.globalsymtable=compiler.systemunit)
                            ) or
                            (
                              not assigned(compiler.current_module.globalsymtable) and
-                             (compiler.current_module.localsymtable=systemunit)
+                             (compiler.current_module.localsymtable=compiler.systemunit)
                            );
              indirect:=(tf_supports_packages in compiler.target.info.flags) and
                          (compiler.target.info.system in systems_indirect_var_imports) and

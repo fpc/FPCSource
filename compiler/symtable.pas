@@ -310,9 +310,6 @@ interface
           constructor create(adefowner:tdef;acompiler: TCompilerBase);
        end;
 
-    var
-       systemunit     : tglobalsymtable; { pointer to the system unit }
-
     type
        tsymbol_search_flag = (
          ssf_search_option,
@@ -3147,16 +3144,18 @@ implementation
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      if systemunit=nil then
+      if compiler.systemunit=nil then
        compiler.verbose.Message(sym_f_systemunitnotloaded);
     end;
 
     procedure write_system_parameter_lists(const name:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         srsym:tprocsym;
       begin
         check_systemunit_loaded;
-        srsym:=tprocsym(systemunit.find(name));
+        srsym:=tprocsym(compiler.systemunit.find(name));
         if not assigned(srsym) or not (srsym.typ=procsym) then
           internalerror(2016060302);
         srsym.write_parameter_lists(nil);
@@ -4476,7 +4475,7 @@ implementation
         sym : tsym;
       begin
         check_systemunit_loaded;
-        sym:=tsym(systemunit.Find(s));
+        sym:=tsym(compiler.systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
           compiler.verbose.Message1(cg_f_unknown_system_type,s);
@@ -4491,7 +4490,7 @@ implementation
         sym : tsym;
       begin
         check_systemunit_loaded;
-        sym:=tsym(systemunit.Find(s));
+        sym:=tsym(compiler.systemunit.Find(s));
         if not assigned(sym) then
           result:=nil
         else
@@ -4533,10 +4532,10 @@ implementation
         srsym: tsym;
       begin
         check_systemunit_loaded;
-        srsym:=tsym(systemunit.find(s));
+        srsym:=tsym(compiler.systemunit.find(s));
         if not assigned(srsym) and
            (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
-          srsym:=tsym(systemunit.Find(upper(s)));
+          srsym:=tsym(compiler.systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
           compiler.verbose.Message1(cg_f_unknown_compilerproc,s);
@@ -5182,7 +5181,7 @@ implementation
      begin
        { Reset symbolstack }
        tcompiler(compiler).symtablestack:=nil;
-       systemunit:=nil;
+       tcompiler(compiler).systemunit:=nil;
        { create error syms and def }
        tcompiler(compiler).generrorsym:=terrorsym.create;
        tcompiler(compiler).generrordef:=cerrordef.create(compiler);

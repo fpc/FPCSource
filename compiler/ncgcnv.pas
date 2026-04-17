@@ -88,7 +88,7 @@ interface
                   (compiler.target.info.system in systems_indirect_var_imports) and
                   (
                     not assigned(compiler.current_module) or
-                    (compiler.current_module.globalsymtable<>systemunit)
+                    (compiler.current_module.globalsymtable<>compiler.systemunit)
                   );
       end;
 

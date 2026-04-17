@@ -1648,14 +1648,14 @@ implementation
        var
          srsym: tsym;
        begin
-         srsym := tsym(systemunit.Find(name));
+         srsym := tsym(acompiler.systemunit.Find(name));
          { in case we are looking for a non-external compilerproc of which we
            only have parsed the declaration until now (the symbol name will
            still be uppercased, because it needs to be matched when we
            encounter the implementation) }
          if not assigned(srsym) and
             (cs_compilesystem in acompiler.globals.current_settings.moduleswitches) then
-           srsym := tsym(systemunit.Find(upper(name)));
+           srsym := tsym(acompiler.systemunit.Find(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            acompiler.verbose.Message1(cg_f_unknown_compilerproc,name);

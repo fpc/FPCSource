@@ -320,9 +320,9 @@ implementation
            (tstringconstnode(left).len=0) then
           begin
             if tstringconstnode(left).cst_type=cst_ansistring then
-              vs:=tstaticvarsym(systemunit.Find('FPC_EMPTYANSICHAR'))
+              vs:=tstaticvarsym(compiler.systemunit.Find('FPC_EMPTYANSICHAR'))
             else
-              vs:=tstaticvarsym(systemunit.Find('FPC_EMPTYWIDECHAR'));
+              vs:=tstaticvarsym(compiler.systemunit.Find('FPC_EMPTYWIDECHAR'));
             if not assigned(vs) then
               internalerror(2012052605);
             result:=compiler.caddrnode(compiler.cloadnode(vs,vs.owner));

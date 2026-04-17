@@ -130,7 +130,7 @@ implementation
       if (scopecount=0) then
         exit;
       hdir:=cai_seh_directive.create_name(ash_handler,'__FPC_specific_handler');
-      if not systemunit.iscurrentunit then
+      if not compiler.systemunit.iscurrentunit then
         compiler.current_module.add_extern_asmsym('__FPC_specific_handler',AB_EXTERNAL,AT_FUNCTION);
       hdir.data.flags:=unwindflags;
       list.concat(hdir);

@@ -5849,7 +5849,7 @@ implementation
     begin
       pd:=search_system_proc(procname);
       pd.init_paraloc_info(callerside);
-      if systemunit<>compiler.current_module.globalsymtable then
+      if compiler.systemunit<>compiler.current_module.globalsymtable then
         compiler.current_module.addimportedsym(pd.procsym);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
@@ -5860,7 +5860,7 @@ implementation
         override, if any, is g_call_system_proc_intern (and that none of
         the g_call_system_proc variants should be made virtual) }
       pd.init_paraloc_info(callerside);
-      if systemunit<>compiler.current_module.globalsymtable then
+      if compiler.systemunit<>compiler.current_module.globalsymtable then
         compiler.current_module.addimportedsym(pd.procsym);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;

@@ -1039,7 +1039,7 @@ implementation
            else if (cs_opt_remove_empty_proc in compiler.globals.current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              begin
                procname:='FPC_EMPTYMETHOD';
-               if compiler.current_module.globalsymtable<>systemunit then
+               if compiler.current_module.globalsymtable<>compiler.systemunit then
                  compiler.current_module.add_extern_asmsym(procname,AB_EXTERNAL,AT_FUNCTION);
              end
            else if not compiler.wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then

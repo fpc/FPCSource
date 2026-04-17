@@ -1684,7 +1684,7 @@ unit scandir;
         options: array[trtti_option] of boolean;
       begin
         { the system unit has not yet loaded which means the directive is misplaced}
-        if systemunit=nil then
+        if compiler.systemunit=nil then
           begin
             compiler.verbose.Message(scan_e_misplaced_rtti_directive);
             exit;
