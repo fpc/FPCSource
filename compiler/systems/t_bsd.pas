@@ -216,6 +216,10 @@ begin
       SysInitUnit:='si_prc';
       si_cprt:='si_c';
       si_gprt:='si_g';
+      { DragonFly needs cprt0 in SharedLibs is not empty }
+      if (target_info.system in systems_dragonfly) and
+        not(SharedLibFiles.empty) then
+        linklibc:=true;
     end;
   // this one is a bit complex.
   // Only reorder for now if -XL or -XO params are given
@@ -350,6 +354,11 @@ begin
   if not LdSupportsNoResponseFile then
    LinkRes.Add(')');
 
+  { DragonFly needs to use cprt0 }
+  if (target_info.system in systems_dragonfly) and
+     not SharedLibFiles.Empty then
+    SharedLibFiles.Concat('c');
+
   { DragonFly dllprt0 calls libc _init_tls }
   if isdll and (target_info.system in systems_dragonfly) then
     SharedLibFiles.Concat('c');
@@ -462,7 +471,10 @@ begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
-{ Create some replacements }
+  { Call again in case something needs to be modified }
+  InitSysInitUnitName;
+
+  { Create some replacements }
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
@@ -608,6 +620,9 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  { Call again in case something needs to be modified }
+  InitSysInitUnitName;
+
   GCSectionsStr:='';
   mapstr:='';
   ltostr:='';
