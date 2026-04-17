@@ -196,8 +196,7 @@ type
 
   const
     SysOSAllocQuant = 64 * 1024;
-    FixedArenaSizeQuant = 4 * 1024;
-    MinFixedArenaSize = 8 * 1024;
+    MinFixedArenaSize = 5 * 1024 + 15 * 32; { Tuned so that first ChooseFixedArenaSize(SizeMinus1ToIndex(MaxFixedHeaderAndPayload - 1)) fits 10 fixed chunks of the maximum size. }
     MaxFixedArenaSize = 64 * 1024;
     MaxKeptFixedArenas = 4;
     MaxOutcomingToFreeBytes = 8 * 1024; { Batch up to this much outcoming frees per thread. }
@@ -205,28 +204,23 @@ type
     { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
       = VarSizeToBinIndex(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2), roundUp := true) or so.
       Pure functions could be useful to calculate these with less hardcoding... }
-    MinArenaBinIndex = 96;
+    MinArenaBinIndex = 78;
     { Maximum size that can be added by AllocVar(isArenaMask := High(SizeUint)) to the original request.
       BinIndexToVarSize(MinArenaBinIndex) - 1 is possibly the (minimal) ideal value because it guarantees that
       there will be no tail left unusable for further arenas, but can be arbitrary. }
-    MaxArenaOverallocation = 7968 - 1;
+    MaxArenaOverallocation = 5536 - 1;
 
   { Adjustable part ends here~ }
 
   const
-    SizeIndexBits = 1 + trunc(ln(FixedSizesCount - 1) /  ln(2));
-    SizeIndexMask = 1 shl SizeIndexBits - 1;
-    FixedBitPos = {$if SizeIndexBits >= 4} SizeIndexBits {$else} 4 {$endif}; { Variable chunks use 4 low bits for used / last / prev. free / fixed arena. }
-    FixedFlag = 1 shl FixedBitPos;
-    FixedArenaOffsetShift = {$if FixedBitPos + 1 >= 5} FixedBitPos + 1 {$else} 5 {$endif}; { VarSizeQuant is expected to be 2^5. }
-
-    UsedFlag = 1 shl 0;
-    PrevIsFreeFlag = 1 shl 1;
-    FixedArenaFlag = 1 shl 2;
+    FixedFlag = 1 shl 0;
+    UsedFlag = 1 shl 1;
+    PrevIsFreeFlag = 1 shl 2;
+    FixedArenaFlag = 1 shl 3;
   {$ifndef HAS_SYSOSFREE}
-    HugeLastFlag = 1 shl 2;
+    HugeLastFlag = 1 shl 3;
   {$endif}
-    VarSizeQuant = 1 shl FixedArenaOffsetShift; {$if VarSizeQuant <> 32} {$error Should in principle work but explanations below assume exactly 32. :)} {$endif}
+    VarSizeQuant = 1 shl 5; {$if VarSizeQuant <> 32} {$error Should in principle work but explanations below assume exactly 32. :)} {$endif}
     VarSizeMask = uint32(-VarSizeQuant);
     TrailingSentinelChunkSize = 0; { VarOSChunks end in a permanently used block of size 0 (TrailingSentinelChunkSize). This replaces explicit LastFlag. }
 
@@ -244,7 +238,7 @@ type
       32 sizes in the range +1 .. 524 288 (2^19) rounded up to the multiple of 16 384 = 2^14, + 2^10 + .. + 2^18, max = 1 047 552 = %1111 1111 1100 0000 0000 }
 
     FirstVarRangeP2 = 10;
-    FirstVarStepP2 = FixedArenaOffsetShift; {$if FirstVarStepP2 <> 5} {$error :|} {$endif}
+    FirstVarStepP2 = 5; {$if 1 shl FirstVarStepP2 <> VarSizeQuant} {$error :|} {$endif}
     VarSizeClassesCount = 10;
     VarSizesPerClass = 32;
     VarSizesCount = VarSizeClassesCount * VarSizesPerClass;
@@ -262,23 +256,21 @@ type
   type
     { Common header of any memory chunk, residing immediately to the left of the ~payload~ (block).
 
-      Fixed chunk header, assuming SizeIndexBits = 4:
-      h[0:3] = size index (= h and SizeIndexMask)
-      h[4] = 1 (h and FixedFlag <> 0)
-      h[5:31] — offset in the FixedArena (= h shr FixedArenaOffsetShift)
+      Fixed chunk header:
+      h[0] = 1 (h and FixedFlag <> 0)
+      h[0:31] = FixedFlag plus negative offset from the user part of this chunk to containing FixedArena: arena = <user pointer> + int32(h[0:31]) - FixedFlag.
 
-      Variable chunk header, assuming SizeIndexBits = 4:
-      h[0] = used flag (h and UsedFlag <> 0)
-      h[1] = previous is free flag (h and PrevIsFreeFlag <> 0)
-      h[2] = fixed arena flag (h and FixedArenaFlag <> 0)
-      h[3] = 0 (unused)
-      h[4] = 0 (h and FixedFlag = 0)
+      Variable chunk header:
+      h[0] = 0 (h and FixedFlag = 0)
+      h[1] = used flag (h and UsedFlag <> 0)
+      h[2] = previous is free flag (h and PrevIsFreeFlag <> 0)
+      h[3] = fixed arena flag (h and FixedArenaFlag <> 0)
+      h[4] = 0 (unused)
       h[5:31] = size, rounded up to 32 (VarSizeQuant), shr 5; in other words, size = h and VarSizeMask.
 
       Huge chunk header:
-      h[0:3] = 0 (if HAS_SYSOSFREE).
-      h[0:3] = UsedFlag, PrevIsFreeFlag, HugeLastFlag, 0 (if not HAS_SYSOSFREE).
-      h[4] = 0 (h and FixedFlag = 0)
+      h[0:4] = 0 (if HAS_SYSOSFREE).
+      h[0:4] = 0, UsedFlag, PrevIsFreeFlag, HugeLastFlag, (if not HAS_SYSOSFREE).
       h[5:31] = 0 — distinguishes huge chunks from variable chunks that can’t have 0, checked as h < VarSizeQuant. }
 
     pCommonHeader = ^CommonHeader;
@@ -324,8 +316,10 @@ type
         “formattedSize” is a virtual value, too; it equals to usedSizeMinus1 + 1 + <total size of the freelist> and is used only when said freelist is empty, so is in practice int32(usedSizeMinus1) + 1 (see AllocFixed). }
 
       firstFreeChunk: pFreeChunk;
-      usedSizeMinus1, almostFullThreshold: uint32;
       prev, next: pFixedArena;
+      usedSizeMinus1, almostFullThreshold: uint32;
+      sizeIndex, chunkSize: uint16;
+      sizeWithoutTrailingPadding: record end;
     end;
 
     pVarOSChunk = ^VarOSChunk;
@@ -424,7 +418,7 @@ type
       procedure Dump(var f: text);
     {$endif}
 
-      function ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint;
+      function ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint; inline;
       function AllocFixed(size: SizeUint): pointer; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       function FreeFixed(p: pointer): SizeUint; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       procedure FreeEmptyArenas;
@@ -555,7 +549,7 @@ type
   const
     CommonHeaderSize = sizeof(CommonHeader);
   {$if MinFixedHeaderAndPayload < CommonHeaderSize + sizeof(FreeChunk)} {$error MinFixedHeaderAndPayload does not fit CommonHeader + FreeChunk.} {$endif}
-    FixedArenaDataOffset = (sizeof(FixedArena) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
+    FixedArenaDataOffset = (PtrUint(@FixedArena(nil^).sizeWithoutTrailingPadding) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
     VarHeaderSize = sizeof(VarHeader);
     FreeVarTailSize = sizeof(FreeVarTail);
     VarOSChunkDataOffset = (sizeof(VarOSChunk) + VarHeaderSize + Alignment - 1) and -Alignment - VarHeaderSize;
@@ -974,18 +968,16 @@ type
 
   function HeapInc.ThreadState.ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint;
   begin
-    result := (allocatedByFullArenas[sizeIndex] div 8 + (FixedArenaSizeQuant - 1)) and SizeUint(-FixedArenaSizeQuant); { 12.5% of memory allocated by the size. }
-    if result < MinFixedArenaSize then
-      result := MinFixedArenaSize;
-    if result > MaxFixedArenaSize then
-      result := MaxFixedArenaSize;
-    dec(result, result shr (FirstVarRangeP2 - FirstVarStepP2)); { Prettier fit into OS chunks. }
+    result := MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2) + { Prettier fit of MinFixedArenaSize & MaxFixedArenaSize into OS chunks. }
+      allocatedByFullArenas[sizeIndex] div 16; { 6.25% of memory allocated by the size. }
+    if result > MaxFixedArenaSize - MaxFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2) then
+      result := MaxFixedArenaSize - MaxFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2);
   end;
 
   function HeapInc.ThreadState.AllocFixed(size: SizeUint): pointer;
   var
     sizeIndex, sizeUp, statv: SizeUint;
-    usedSizeMinus1: int32;
+    chunkSize, usedSizeMinus1: int32;
     arena, nextArena: pFixedArena;
   begin
     sizeIndex := SizeMinus1ToIndex(size + (CommonHeaderSize - 1));
@@ -1012,16 +1004,19 @@ type
           arena := AllocVar(ChooseFixedArenaSize(sizeIndex), High(SizeUint));
           if not Assigned(arena) then
             exit(nil);
-          { Size index of the first chunk in the arena is used to determine if it can be reused. Set a purposely mismatching value for freshly allocated arena. }
-          pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h := uint32(not sizeIndex);
+          { Size index is used to determine if the arena requires reformatting. Set a purposely mismatching value for freshly allocated arena. }
+          arena^.sizeIndex := uint16(-1);
         end;
-        if pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask = uint32(sizeIndex) then
-          { Lucky! Just don’t reset the chunk and use its old freelist. }
-        else
+        { Reset the freelist for locality regardless of matching sizeIndex. }
+        arena^.firstFreeChunk := nil;
+        arena^.usedSizeMinus1 := uint32(-1);
+        if arena^.sizeIndex <> uint32(sizeIndex) then { ...but maybe skip full formatting. }
         begin
-          arena^.firstFreeChunk := nil;
-          arena^.usedSizeMinus1 := uint32(-1);
-          arena^.almostFullThreshold := pVarHeader(arena)[-1].ch.h and VarSizeMask - 2 * IndexToSize(sizeIndex) - (VarHeaderSize + FixedArenaDataOffset); { available space - 2 * chunk size. }
+          chunkSize := IndexToSize(sizeIndex);
+          arena^.chunkSize := chunkSize;
+          inc(chunkSize, chunkSize);
+          arena^.almostFullThreshold := pVarHeader(arena)[-1].ch.h and VarSizeMask - uint32(chunkSize) - (VarHeaderSize + FixedArenaDataOffset); { available space - 2 * chunk size. }
+          arena^.sizeIndex := sizeIndex;
         end;
 
         { Add arena to partialArenas[sizeIndex], which is nil. Careful: AllocVar above should not call FlushIncomingToFree, or this assumption might be violated. }
@@ -1031,7 +1026,7 @@ type
       end;
     end;
 
-    sizeUp := IndexToSize(sizeIndex); { Not reusing the “size” variable saved a register at the time of writing this comment. }
+    sizeUp := arena^.chunkSize; { Not reusing the “size” variable saved a register at the time of writing this comment. }
     inc(used, sizeUp);
 
     { arena from partialArenas has either free chunk or free unformatted space for a new chunk. }
@@ -1048,8 +1043,7 @@ type
     begin
       { Freelist is empty, so “formattedSize” = usedSizeMinus1 + 1. This “+ 1” is folded into constants. }
       result := pointer(arena) + (FixedArenaDataOffset + CommonHeaderSize + 1) + usedSizeMinus1;
-      pCommonHeader(result - CommonHeadersize)^.h := uint32(int32(sizeIndex) + int32(usedSizeMinus1 shl FixedArenaOffsetShift) +
-        (FixedFlag + (FixedArenaDataOffset + CommonHeaderSize + 1) shl FixedArenaOffsetShift) { ← const });
+      pCommonHeader(result - CommonHeadersize)^.h := uint32(pointer(arena) - result + FixedFlag);
       if usedSizeMinus1 < int32(arena^.almostFullThreshold) then { Arena is still not full? }
         exit;
     end;
@@ -1073,7 +1067,7 @@ type
     usedSizeMinus1: int32;
     arena, prevArena, nextArena: pFixedArena;
   begin
-    arena := p - pCommonHeader(p - CommonHeaderSize)^.h shr FixedArenaOffsetShift;
+    arena := p + int32(pCommonHeader(p - CommonHeaderSize)^.h) - FixedFlag;
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
     { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self.
@@ -1085,8 +1079,7 @@ type
 
       pFreeChunk(p)^.next := arena^.firstFreeChunk;
       arena^.firstFreeChunk := p;
-      sizeIndex := pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask;
-      result := IndexToSize(sizeIndex);
+      result := arena^.chunkSize;
       dec(used, result);
 
       usedSizeMinus1 := int32(arena^.usedSizeMinus1) - int32(result);
@@ -1095,6 +1088,8 @@ type
 
       { “(usedSizeMinus1 = -1) or (usedSizeMinus1 >= arena^.almostFullThreshold)” as 1 comparison. }
       if uint32(usedSizeMinus1) >= arena^.almostFullThreshold then
+      begin
+        sizeIndex := arena^.sizeIndex;
         if usedSizeMinus1 <> -1 then
         begin
           dec(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
@@ -1131,9 +1126,10 @@ type
           {$endif FPC_HAS_FEATURE_THREADING}
           end;
         end;
+      end;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     end else
-      result := PushOutcomingToFree(p, IndexToSize(pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask)) - CommonHeaderSize;
+      result := PushOutcomingToFree(p, pFixedArena(p + int32(pCommonHeader(p - CommonHeaderSize)^.h) - FixedFlag)^.chunkSize) - CommonHeaderSize;
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
@@ -1709,7 +1705,7 @@ type
     repeat { FlushOutcomingToFree is supposedly always prefaced with a check for non-empty outcomingToFree. }
       vc := cur;
       if pCommonHeader(vc - CommonHeaderSize)^.h and FixedFlag <> 0 then
-        dec(vc, pCommonHeader(vc - CommonHeaderSize)^.h shr FixedArenaOffsetShift);
+        vc := vc + int32(pCommonHeader(vc - CommonHeaderSize)^.h) - FixedFlag;
       ts := pVarOSChunk(vc + pVarHeader(vc - VarHeaderSize)^.ofsToOs)^.threadState;
       if not Assigned(ts) then
       begin
@@ -1772,11 +1768,11 @@ type
     sizeIndex: SizeUint;
     nextArena: pFixedArena;
   begin
-    sizeIndex := pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask;
+    sizeIndex := arena^.sizeIndex;
     inc(used, arena^.usedSizeMinus1 + 1); { maxUsed is updated at the end of AdoptVarOwner. }
 
     { Orphan frees all empty arenas, so adopted arena can’t be empty. }
-    if arena^.usedSizeMinus1 < arena^.almostFullThreshold + IndexToSize(sizeIndex) then
+    if arena^.usedSizeMinus1 < arena^.almostFullThreshold + arena^.chunkSize then
     begin
       { Add arena to partialArenas[sizeIndex]. }
       nextArena := partialArenas[sizeIndex];
@@ -2318,7 +2314,7 @@ begin
     exit(0);
   h := HeapInc.pCommonHeader(p - HeapInc.CommonHeaderSize)^.h;
   if h and HeapInc.FixedFlag <> 0 then
-    result := HeapInc.IndexToSize(h and HeapInc.SizeIndexMask) - HeapInc.CommonHeaderSize
+    result := HeapInc.pFixedArena(p + int32(h) - HeapInc.FixedFlag)^.chunkSize - HeapInc.CommonHeaderSize
   else if h >= HeapInc.VarSizeQuant then
     result := h and uint32(HeapInc.VarSizeMask) - HeapInc.VarHeaderSize
   else
@@ -2352,7 +2348,7 @@ begin
   if h and HeapInc.FixedFlag <> 0 then
   begin
     if (size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize)
-      and (h and HeapInc.SizeIndexMask = HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1))) then
+      and (HeapInc.pFixedArena(p + int32(h) - HeapInc.FixedFlag)^.sizeIndex = HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1))) then
       exit;
   end else
   begin
