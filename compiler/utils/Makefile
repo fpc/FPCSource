@@ -3931,9 +3931,9 @@ ppu$(PPUEXT): ../ppu.pas
 ppudump$(EXEEXT): ppuutils/ppudump.pp ppu$(PPUEXT)
 	$(COMPILER) ppuutils/ppudump.pp -Fu../llvm -Fu../generic -dGENERIC_CPU -Fi..
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
-	$(COMPILER) ppufiles.pp -Fu../generic -dGENERIC_CPU -Fi..
+	$(COMPILER) ppufiles.pp -Fu../llvm -Fu../generic -dGENERIC_CPU -Fi..
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
-	$(COMPILER) ppumove.pp -Fu../generic -dGENERIC_CPU -Fi..
+	$(COMPILER) ppumove.pp -Fu../llvm -Fu../generic -dGENERIC_CPU -Fi..
 endif
 msg2inc$(EXEEXT): $(COMPILER_UNITTARGETDIR) msg2inc.pp
 gppc386$(EXEEXT): $(COMPILER_UNITTARGETDIR) gppc386.pp
