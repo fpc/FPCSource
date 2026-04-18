@@ -1,7 +1,7 @@
 {$mode delphi}
 
 type
-(* {$IFDEF FPK}
+(* {$IFDEF FPC}
   y = class; { shouldn't be necessary }
 {$ENDIF} *)
   x = class of y;

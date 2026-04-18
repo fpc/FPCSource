@@ -2,7 +2,7 @@
 
 type
  (*
- {$IFDEF FPK}
+ {$IFDEF FPC}
  SomeClass = class; { this line shouldn't be necessary }
  {$ENDIF}
  *)
