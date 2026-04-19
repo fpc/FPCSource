@@ -85,6 +85,7 @@ symbol_order*.fpc
 /compiler/utils/ppufiles
 /compiler/utils/ppumove
 /compiler/utils/mkx86inl
+/compiler/html
 /packages/fpmake
 /packages/fpmkunit/units_bs
 /rtl/Package.fpc
