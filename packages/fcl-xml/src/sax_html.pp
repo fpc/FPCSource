@@ -31,7 +31,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils, XmlReader;
 
 type
 
@@ -69,7 +69,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Parse(AInput: TSAXInputSource); override; overload;
+    procedure Parse(AInput: TXmlInputSource); override; overload;
 
     property EndOfStream: Boolean read FEndOfStream;
     property ScannerContext: THTMLScannerContext read FScannerContext;
@@ -155,7 +155,7 @@ begin
   end;
 end;
 
-procedure THTMLReader.Parse(AInput: TSAXInputSource);
+procedure THTMLReader.Parse(AInput: TXmlInputSource);
 const
   MaxBufferSize = 1024;
 var
