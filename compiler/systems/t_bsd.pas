@@ -61,6 +61,7 @@ implementation
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
       procedure LoadPredefinedLibraryOrder; override;
+      procedure InternalInitSysInitUnitName(FirstCall: boolean);
       procedure InitSysInitUnitName; override;
     end;
 
@@ -189,14 +190,18 @@ Begin
 End;
 
 
-procedure TLinkerBSD.InitSysInitUnitName;
+
+procedure TLinkerBSD.InternalInitSysInitUnitName(FirstCall: boolean);
 var
   cprtobj,
   gprtobj,
   si_cprt,
   si_gprt : string[80];
 begin
-  linklibc:=ModulesLinkToLibc;
+  { Do not call ModulesLinkToLibc again
+    as it might give a wrong answer }
+  if FirstCall then
+    linklibc:=ModulesLinkToLibc;
   if current_module.islibrary and
      (target_info.system in systems_bsd) then
     begin
@@ -247,6 +252,12 @@ begin
          SysInitUnit:=si_cprt;
        end;
    end;
+end;
+
+
+procedure TLinkerBSD.InitSysInitUnitName;
+begin
+  InternalInitSysInitUnitName(true);
 end;
 
 
@@ -474,7 +485,7 @@ begin
    Message1(exec_i_linking,current_module.exefilename);
 
   { Call again in case something needs to be modified }
-  InitSysInitUnitName;
+  InternalInitSysInitUnitName(false);
 
   { Create some replacements }
   StaticStr:='';
@@ -623,7 +634,7 @@ var
 begin
   MakeSharedLibrary:=false;
   { Call again in case something needs to be modified }
-  InitSysInitUnitName;
+  InternalInitSysInitUnitName(false);
 
   GCSectionsStr:='';
   mapstr:='';
