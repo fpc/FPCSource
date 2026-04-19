@@ -5579,7 +5579,7 @@ endif
 full_targets:
 	$(MAKE) $(FULL_TARGETS)
 htmldocs:
-	mkdir html$(PATHSEP)$(PPC_TARGET)
+	mkdir -p html$(PATHSEP)$(PPC_TARGET)
 	$(PASDOC) -p -h -E html$(PATHSEP)$(PPC_TARGET) -D fpc -D gdb -D $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 .PHONY: quickinstall exeinstall install installsymlink fullinstall fullinstallsymlink
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
