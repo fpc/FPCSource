@@ -206,7 +206,7 @@ unit opttree;
         success:=true;
 {$ifdef DEBUG_NORMALIZE}
         writeln('******************************************** Before ********************************************');
-        printnode(n);
+        printnode(output,n);
 {$endif DEBUG_NORMALIZE}
         searchstatementsproc:=@searchstatements;
         foreachnodestatic(n,@searchstatements,@success);
@@ -214,7 +214,7 @@ unit opttree;
         if success then
           begin
             writeln('******************************************** After ********************************************');
-            printnode(n);
+            printnode(output,n);
           end
         else
           writeln('************************* Normalization not possible ********************************');
