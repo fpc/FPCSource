@@ -89,7 +89,7 @@ type
     procedure RegisterServer;
     procedure UnRegisterServer;
     property IsInprocServer: Boolean read FIsInproc write FIsInproc;
-    property IsInteractive: Boolean read fIsInteractive;
+    property IsInteractive: Boolean read fIsInteractive write fIsInteractive;
     property StartMode: TStartMode read FStartMode;
     property ServerObjects:integer read fCountObject;
     property OnLastRelease: TLastReleaseEvent read FOnLastRelease write FOnLastRelease;
@@ -444,8 +444,8 @@ begin
   Result := True;
   if (ComServer <> nil) and (ComServer.ServerObjects > 0) and ComServer.IsInteractive then
   begin
-    Result := MessageBox(0, PChar('COM server is in use'),
-      PChar('OLE Automation'), MB_YESNO or MB_TASKMODAL or
+    Result := MessageBoxA(0, PAnsiChar('COM server is in use'),
+      PAnsiChar('OLE Automation'), MB_YESNO or MB_TASKMODAL or
       MB_ICONWARNING or MB_DEFBUTTON2) = IDYES;
   end;
 end;

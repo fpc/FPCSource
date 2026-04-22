@@ -61,7 +61,7 @@ type
   end;
   zip_fileinfo_ptr = ^zip_fileinfo;
 
-function zipOpen(const pathname: PChar; append: longint): zipFile; {ZEXPORT}
+function zipOpen(const pathname: PAnsiChar; append: longint): zipFile; {ZEXPORT}
 { Create a zipfile.
   pathname contain on Windows NT a filename like "c:\\zlib\\zlib111.zip" or on
   an Unix computer "zlib/zlib111.zip".
@@ -72,7 +72,7 @@ function zipOpen(const pathname: PChar; append: longint): zipFile; {ZEXPORT}
   of this zip package. }
 
 function zipOpenNewFileInZip(afile: zipFile;
-  {const} filename: PChar; const zipfi: zip_fileinfo_ptr; const extrafield_local: pointer; size_extrafield_local: integer; const extrafield_global: pointer; size_extrafield_global: integer; const comment: PChar; method: longint; level: longint): longint; {ZEXPORT}
+  {const} filename: PAnsiChar; const zipfi: zip_fileinfo_ptr; const extrafield_local: pointer; size_extrafield_local: integer; const extrafield_global: pointer; size_extrafield_global: integer; const comment: PAnsiChar; method: longint; level: longint): longint; {ZEXPORT}
 { Open a file in the ZIP for writing.
   filename : the filename in zip (if NIL, '-' without quote will be used
   zipfi^ contain supplemental information
@@ -90,7 +90,7 @@ function zipWriteInFileInZip(afile: zipFile; const buf: pointer; len: cardinal):
 function zipCloseFileInZip(afile: zipFile): longint; {ZEXPORT}
  { Close the current file in the zipfile }
 
-function zipClose(afile: zipFile; const global_comment: PChar): longint; {ZEXPORT}
+function zipClose(afile: zipFile; const global_comment: PAnsiChar): longint; {ZEXPORT}
  { Close the zipfile }
 
 implementation
@@ -107,7 +107,7 @@ const
   VERSIONMADEBY = ($0); { platform depedent }
 
 const
-  zip_copyright: PChar = ' zip 0.15 Copyright 1998 Gilles Vollant ';
+  zip_copyright: PAnsiChar = ' zip 0.15 Copyright 1998 Gilles Vollant ';
 
 
 const
@@ -148,7 +148,7 @@ type
 
     pos_local_header: longint;     { offset of the local header of the file
                                     currenty writing }
-    central_header: PChar;       { central header data for the current file }
+    central_header: PAnsiChar;       { central header data for the current file }
     size_centralheader: longint;   { size of the central header for cur file }
     flag: longint;                 { flag of the file currently writing }
 
@@ -345,7 +345,7 @@ end;
 
 {**************************************************************************}
 
-function zipOpen(const pathname: PChar; append: longint): zipFile; {ZEXPORT}
+function zipOpen(const pathname: PAnsiChar; append: longint): zipFile; {ZEXPORT}
 var
   ziinit: zip_internal;
   zi:     zip_internal_ptr;
@@ -379,7 +379,7 @@ begin
 end;
 
 function zipOpenNewFileInZip(afile: zipFile;
-  {const} filename: PChar; const zipfi: zip_fileinfo_ptr; const extrafield_local: pointer; size_extrafield_local: integer; const extrafield_global: pointer; size_extrafield_global: integer; const comment: PChar; method: longint; level: longint): longint; {ZEXPORT}
+  {const} filename: PAnsiChar; const zipfi: zip_fileinfo_ptr; const extrafield_local: pointer; size_extrafield_local: integer; const extrafield_global: pointer; size_extrafield_global: integer; const comment: PAnsiChar; method: longint; level: longint): longint; {ZEXPORT}
 var
   zi:  zip_internal_ptr;
   size_filename: integer;
@@ -443,7 +443,7 @@ begin
   zi^.ci.pos_local_header := ftell(zi^.filezip);
   zi^.ci.size_centralheader := SIZECENTRALHEADER + size_filename +
     size_extrafield_global + size_comment;
-  zi^.ci.central_header := PChar(AllocMem(integer(zi^.ci.size_centralheader)));
+  zi^.ci.central_header := PAnsiChar(AllocMem(integer(zi^.ci.size_centralheader)));
 
   ziplocal_putValue_inmemory(zi^.ci.central_header, longint(CENTRALHEADERMAGIC), 4);
   { version info }
@@ -483,7 +483,7 @@ begin
   while (i < size_extrafield_global) do
   begin
     (zi^.ci.central_header +SIZECENTRALHEADER + size_filename + i)^ :=
-      ({const} PChar(extrafield_global) + i)^;
+      ({const} PAnsiChar(extrafield_global) + i)^;
     Inc(i);
   end;
 
@@ -607,8 +607,8 @@ begin
         copy_this := zi^.ci.stream.avail_out;
 
       for i := 0 to copy_this - 1 do
-        (PChar(zi^.ci.stream.next_out) +i)^ :=
-          ( {const} PChar(zi^.ci.stream.next_in) + i)^;
+        (PAnsiChar(zi^.ci.stream.next_out) +i)^ :=
+          ( {const} PAnsiChar(zi^.ci.stream.next_in) + i)^;
 
 
       Dec(zi^.ci.stream.avail_in, copy_this);
@@ -713,7 +713,7 @@ begin
   zipCloseFileInZip := err;
 end;
 
-function zipClose(afile: zipFile; const global_comment: PChar): longint; {ZEXPORT}
+function zipClose(afile: zipFile; const global_comment: PAnsiChar): longint; {ZEXPORT}
 var
   zi:  zip_internal_ptr;
   err: longint;

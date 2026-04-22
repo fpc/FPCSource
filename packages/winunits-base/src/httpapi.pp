@@ -252,7 +252,7 @@ interface
 
     _HTTP_SERVICE_BINDING_A = record
         Base : HTTP_SERVICE_BINDING_BASE;
-        Buffer : PCHAR;
+        Buffer : PAnsiChar;
         BufferSize : ULONG;
       end;
     HTTP_SERVICE_BINDING_A = _HTTP_SERVICE_BINDING_A;
@@ -606,16 +606,16 @@ type
       ReferrerLength : USHORT;
       UserName : PWCHAR;
       UriStem : PWCHAR;
-      ClientIp : PCHAR;
-      ServerName : PCHAR;
-      ServiceName : PCHAR;
-      ServerIp : PCHAR;
-      Method : PCHAR;
-      UriQuery : PCHAR;
-      Host : PCHAR;
-      UserAgent : PCHAR;
-      Cookie : PCHAR;
-      Referrer : PCHAR;
+      ClientIp : PAnsiChar;
+      ServerName : PAnsiChar;
+      ServiceName : PAnsiChar;
+      ServerIp : PAnsiChar;
+      Method : PAnsiChar;
+      UriQuery : PAnsiChar;
+      Host : PAnsiChar;
+      UserAgent : PAnsiChar;
+      Cookie : PAnsiChar;
+      Referrer : PAnsiChar;
       ServerPort : USHORT;
       ProtocolStatus : USHORT;
       Win32Status : ULONG;
@@ -809,7 +809,7 @@ type
       PackedContextType : ULONG;
       PackedContext : PVOID;
       MutualAuthDataLength : ULONG;
-      pMutualAuthData : PCHAR;
+      pMutualAuthData : PAnsiChar;
       PackageNameLength : USHORT;
       pPackageName : PWSTR;
     end;

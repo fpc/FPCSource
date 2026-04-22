@@ -155,6 +155,7 @@ begin
          end;
        end;
     end;
+//  project.SaveToHHP(changefileext(name,'.hhpsaved'));
   OutStream := TFileStream.Create(Project.OutputFileName, fmCreate);
   Project.WriteChm(OutStream);
   if Project.ScanHtmlContents then

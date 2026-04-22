@@ -218,8 +218,8 @@ type
 
   IEnumVariant = interface(IUnknown)
     ['{00020404-0000-0000-C000-000000000046}']
-    function Next(celt: Longword; var rgvar: OleVariant;
-      out pceltFetched: Longword): HRESULT; stdcall;
+    function Next(celt: Longword; rgvar: POleVariant;
+      pceltFetched: PULONG): HRESULT; stdcall;
     function Skip(celt: Longword): HRESULT; stdcall;
     function Reset: HRESULT; stdcall;
     function Clone(out Enum: IEnumVariant): HRESULT; stdcall;

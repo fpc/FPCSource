@@ -586,7 +586,7 @@ const
   function  StrCatChainW(pszDst:PWSTR; cchDst:DWORD; ichAt:DWORD; pszSrc:PCWSTR):DWORD;stdcall;external SHLWAPIDLL name 'StrCatChainW';
   function  StrRetToBSTR(pstr:PSTRRET; pidl:PCUITEMID_CHILD; out pbstr:BSTR):HRESULT;stdcall;external SHLWAPIDLL name 'StrRetToBSTR';
   function  SHLoadIndirectString(pszSource:PCWSTR; pszOutBuf:PWSTR; cchOutBuf:UINT; ppvReserved:Ppointer):HRESULT;stdcall;external SHLWAPIDLL name 'SHLoadIndirectString';
-  function  IsCharSpaceA(wch:CHAR):BOOL;stdcall;external SHLWAPIDLL name 'IsCharSpaceA';
+  function  IsCharSpaceA(wch:AnsiChar):BOOL;stdcall;external SHLWAPIDLL name 'IsCharSpaceA';
   function  IsCharSpaceW(wch:WCHAR):BOOL;stdcall;external SHLWAPIDLL name 'IsCharSpaceW';
   function  StrCmpCA(pszStr1:LPCSTR; pszStr2:LPCSTR):longint;stdcall;external SHLWAPIDLL name 'StrCmpCA';
   function  StrCmpCW(pszStr1:LPCWSTR; pszStr2:LPCWSTR):longint;stdcall;external SHLWAPIDLL name 'StrCmpCW';
@@ -757,7 +757,7 @@ const
   function SHRegGetValueW(hKey:HKEY; pszSubKey:LPCWSTR; pszValue:LPCWSTR; srrfFlags:SRRF; pdwType:PDWORD;
              pvData:pointer; pcbData:PDWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegGetValueW';
   function SHRegSetValue(hkey:HKEY; pszSubKey:LPCWSTR; pszValue:LPCWSTR; srrfFlags:SRRF; dwType:DWORD;
-             pvData:LPCVOID; cbData:DWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegSetValue';
+             pvData:LPCVOID; cbData:DWORD):LSTATUS;deprecated 'Since at least W7, use RegSetValue' ; stdcall; external SHLWAPIDLL name 'SHRegSetValue';
 
   function SHRegGetValueFromHKCUHKLM(pwszKey:PCWSTR; pwszValue:PCWSTR; srrfFlags:SRRF; pdwType:PDWORD; pvData:pointer;
              pcbData:PDWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegGetValueFromHKCUHKLM';
@@ -937,7 +937,7 @@ const
 
  function SHSendMessageBroadcastA(uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;stdcall;external SHLWAPIDLL name 'SHSendMessageBroadcastA';
  function SHSendMessageBroadcastW(uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;stdcall;external SHLWAPIDLL name 'SHSendMessageBroadcastW';
- function SHStripMneumonicA(pszMenu:LPSTR):CHAR;stdcall;external SHLWAPIDLL name 'SHStripMneumonicA';
+ function SHStripMneumonicA(pszMenu:LPSTR):AnsiChar;stdcall;external SHLWAPIDLL name 'SHStripMneumonicA';
  function SHStripMneumonicW(pszMenu:LPWSTR):WCHAR;stdcall;external SHLWAPIDLL name 'SHStripMneumonicW';
  function IsOS(dwOS:DWORD):BOOL;stdcall;external SHLWAPIDLL name 'IsOS';
 (* Const before type ignored *)

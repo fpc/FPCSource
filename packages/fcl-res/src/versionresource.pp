@@ -454,7 +454,7 @@ var block : TVerBlockHeader;
 begin
   before:=RawData.Position;
   block.length:=0;
-  block.vallength:=length(aValue)+1;
+  block.vallength:=length(WideString(aValue))+1;
   block.valtype:=1;
   block.key:=aKey;
   {$IFDEF ENDIAN_BIG}
@@ -520,6 +520,7 @@ procedure TVersionResource.WriteWideString(const aString: string);
 var ws : widestring;
     w : word;
     i : integer;
+    isnulterminate : boolean;
 begin
   ws:=aString;
   for i:=1 to length(ws) do
@@ -530,8 +531,14 @@ begin
     {$ENDIF}
     RawData.WriteBuffer(w,2);
   end;
-  w:=0;
-  RawData.WriteBuffer(w,2);
+  w:=length(ws);
+
+  isnulterminate:=(w>0) and (ws[w]=#0);
+  if not isnulterminate then
+    begin
+      w:=0;
+      RawData.WriteBuffer(w,2);
+    end;
 end;
 
 function TVersionResource.GetType: TResourceDesc;

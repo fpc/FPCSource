@@ -78,7 +78,10 @@ end;
 
 function TBasicActionLink.Update: Boolean;
 begin
-  Result := FAction.Update;
+  if Assigned(Faction) then
+    Result := FAction.Update
+  else
+    Result:=False;
 end;
 
 {****************************************************************************}

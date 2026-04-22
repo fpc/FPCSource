@@ -1,4 +1,4 @@
-	.section ".note.openbsd.ident", "a"
+	.section ".note.openbsd.ident", "a", @note
 	.p2align 2
 	.long	8
 	.long	4

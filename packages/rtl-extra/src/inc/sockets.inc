@@ -278,8 +278,8 @@ Type array4int = array[1..4] of byte;
 function NetAddrToStr (Entry : in_addr) : AnsiString;
 
 Var Dummy : Ansistring;
-    i,j   : Longint;
-
+    i   : Longint;
+    j   : Cardinal;
 begin
   NetAddrToStr:='';
   j:=entry.s_addr;
@@ -311,7 +311,7 @@ begin
     StrToHostAddr := ip4;
 end;
 
-function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
+function TryStrToNetAddr(IP: AnsiString; out ip4: in_addr): Boolean;
 
 Const
   AllowedChars = ['.','0'..'9'];
@@ -322,7 +322,7 @@ Var
     Temp : in_addr;
 
 begin
-  TryStrToHostAddr := False;
+  TryStrToNetAddr := False;
   ip4.s_addr:=0;              //:=NoAddress;
   for I:=1 to Length(IP) do
     if Not (IP[I] in AllowedChars) then
@@ -350,8 +350,16 @@ begin
       If array4int(temp.s_addr)[i]<>k then
         exit;
    end;
-   ip4.s_addr:=ntohl(Temp.s_addr);
-   TryStrToHostAddr := True;
+   ip4.s_addr:=Temp.s_addr;
+   TryStrToNetAddr := True;
+end;
+
+function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
+
+begin
+  TryStrToHostAddr:=TryStrToNetAddr(IP, ip4);
+  if TryStrToHostAddr then
+    ip4.s_addr:=ntohl(ip4.s_addr);
 end;
 
 function StrToNetAddr(IP : AnsiString) : in_addr;
@@ -749,4 +757,32 @@ begin
   StrToNetAddr6 := StrToHostAddr6(IP);
 end;
 
+
+function NetAddrIsPrivate(const IP: in_addr): Boolean;
+begin
+  NetAddrIsPrivate:=
+     // 10.0.0.0 – 10.255.255.255
+     (IP.s_bytes[1]=10)
+     // 172.16.0.0 – 172.31.255.255
+     or ((IP.s_bytes[1]=172) and (IP.s_bytes[2]>=16) and (IP.s_bytes[2]<=31))
+     // 192.168.0.0 – 192.168.255.255
+     or ((IP.s_bytes[1]=192) and (IP.s_bytes[2]=168));
+end;
+
+function NetAddrIsPrivate6(const IP: in6_addr): Boolean;
+var
+  W0: Word;
+begin
+  // See https://en.wikipedia.org/wiki/IPv6_address
+  W0 := NToHs(IP.u6_addr16[0]);
+  NetAddrIsPrivate6:=
+     // The original IPv6 Site Local addresses (fec0::/10 - range fec0..feff) - deprecated
+     ((W0>=$FEC0) and (W0<=$FEFF))
+     // Unique Local Addresses (ULA) are used in place of Site Local. fc00..fdff
+     or ((W0>=$FC00) and (W0<=$FDFF))
+     // Link local addresses (prefixed with fe80) are not routable
+     or (W0=$FE80)
+     // Discard prefix 0100
+     or (W0=$0100);
+end;
 

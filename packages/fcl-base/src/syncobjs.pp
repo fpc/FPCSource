@@ -57,10 +57,11 @@ type
       FHandle : TEventHandle;
       FLastError : Integer;
    public
-      destructor destroy;override;
+      destructor Destroy; override;
       property Handle : TEventHandle read FHandle;
       property LastError : Integer read FLastError;
    end;
+   THandleObjectArray = array of THandleObject;
 
    TEventObject = class(THandleObject)
    private
@@ -70,10 +71,10 @@ type
         AManualReset,InitialState : Boolean;const Name : string;
         UseComWait:boolean=false);
       constructor Create(UseComWait : Boolean=false);
-      destructor destroy; override;
+      destructor Destroy; override;
       procedure ResetEvent;
       procedure SetEvent;
-      function WaitFor(Timeout : Cardinal) : TWaitResult;
+      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;
       Property ManualReset : Boolean read FManualReset;
    end;
 

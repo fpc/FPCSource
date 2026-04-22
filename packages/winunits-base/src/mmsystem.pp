@@ -178,7 +178,7 @@ Function sndPlaySoundA(Name: LPCSTR; flags: UINT): BOOL; stdcall; external 'winm
 
 Function sndPlaySoundW(Name: LPCWSTR; flags: UINT): BOOL;stdcall; external 'winmm.dll' name 'sndPlaySoundW';
 
-Function sndPlaySound(Name: PChar; flags: UINT): BOOL;stdcall; external 'winmm.dll' name
+Function sndPlaySound(Name: PAnsiChar; flags: UINT): BOOL;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'sndPlaySoundW' {$else}'sndPlaySoundA'{$endif};
 
 Const
@@ -1000,7 +1000,7 @@ Type
  TMMTime  = _mmtime;
 
  _wavehdr = packed Record
-                            lpData: PChar;
+                            lpData: PAnsiChar;
                             dwBufferLength: DWORD;
                             dwBytesRecorded: DWORD;
                             dwUser: DWORD_PTR;
@@ -1018,7 +1018,7 @@ Type
                           wMid: WORD;
                           wPid: WORD;
                           vDriverVersion: MMVERSION;
-                          szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                          szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                           dwFormats: DWORD;
                           wChannels: WORD;
                           wReserved1: WORD;
@@ -1063,7 +1063,7 @@ Type
                          wMid: WORD;
                          wPid: WORD;
                          vDriverVersion: MMVERSION;
-                         szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                         szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                          dwFormats: DWORD;
                          wChannels: WORD;
                          wReserved1: WORD;
@@ -1166,7 +1166,7 @@ Type
                            wMid: WORD;
                            wPid: WORD;
                            vDriverVersion: MMVERSION;
-                           szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                           szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                            wTechnology: WORD;
                            wVoices: WORD;
                            wNotes: WORD;
@@ -1198,7 +1198,7 @@ Type
                         wMid: WORD;
                         wPid: WORD;
                         vDriverVersion: MMVERSION;
-                        szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                        szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                         dwSupport: DWORD;
  		End;
  MIDIINCAPSA = _MIDIINCAPSA;
@@ -1244,7 +1244,7 @@ Type
 
  PMIDIHDR = ^_midihdr;
  _midihdr = packed Record
-                    lpData: PChar;
+                    lpData: PAnsiChar;
                     dwBufferLength: DWORD;
                     dwBytesRecorded: DWORD;
                     dwUser: DWORD_PTR;
@@ -1296,7 +1296,7 @@ Type
                      wMid: WORD;
                      wPid: WORD;
                      vDriverVersion: MMVERSION;
-                     szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                     szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                      wTechnology: WORD;
                      wReserved1: WORD;
                      dwSupport: DWORD;
@@ -1345,7 +1345,7 @@ Type
                          wMid: WORD;
                          wPid: WORD;
                          vDriverVersion: MMVERSION;
-                         szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                         szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                          fdwSupport: DWORD;
                          cDestinations: DWORD;
 		   End;
@@ -1389,13 +1389,13 @@ Type
                        cChannels: DWORD;
                        cConnections: DWORD;
                        cControls: DWORD;
-                       szShortName: array [0..Pred(MIXER_SHORT_NAME_CHARS)] Of CHAR;
-                       szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of CHAR;
+                       szShortName: array [0..Pred(MIXER_SHORT_NAME_CHARS)] Of AnsiChar;
+                       szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of AnsiChar;
                        Target: packed Record
                                 dwType,dwDeviceID: DWORD;
                                 wMid,wPid: WORD;
                                 vDriverVersion: MMVERSION;
-                                szPname: array[0..pred(MAXPNAMELEN)] Of Char;
+                                szPname: array[0..pred(MAXPNAMELEN)] Of AnsiChar;
 				End;
 		       End;
  MIXERLINEA   = _MIXERLINEA;
@@ -1444,8 +1444,8 @@ Type
                           dwControlType: DWORD;
                           fdwControl: DWORD;
                           cMultipleItems: DWORD;
-                          szShortName: array [0..Pred(MIXER_SHORT_NAME_CHARS)] Of CHAR;
-                          szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of CHAR;
+                          szShortName: array [0..Pred(MIXER_SHORT_NAME_CHARS)] Of AnsiChar;
+                          szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of AnsiChar;
                           Bounds: packed Record
                                            Case integer Of
                                              0: (lMinimum, lMaximum: longint);
@@ -1552,7 +1552,7 @@ Type
  _MIXERCONTROLDETAILS_LISTTEXTA = packed Record
                                           dwParam1: DWORD;
                                           dwParam2: DWORD;
-                                          szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of CHAR;
+                                          szName: array [0..Pred(MIXER_LONG_NAME_CHARS)] Of AnsiChar;
 					  End;
  MIXERCONTROLDETAILS_LISTTEXTA   = _MIXERCONTROLDETAILS_LISTTEXTA;
  PMIXERCONTROLDETAILS_LISTTEXTA  = ^_MIXERCONTROLDETAILS_LISTTEXTA;
@@ -1623,7 +1623,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  _JOYCAPSA = packed Record
                      wMid: WORD;
                      wPid: WORD;
-                     szPname: array [0..Pred(MAXPNAMELEN)] Of CHAR;
+                     szPname: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
                      wXmin: UINT;
                      wXmax: UINT;
                      wYmin: UINT;
@@ -1643,8 +1643,8 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
                      wMaxAxes: UINT;
                      wNumAxes: UINT;
                      wMaxButtons: UINT;
-                     szRegKey: array [0..Pred(MAXPNAMELEN)] Of CHAR;
-                     szOEMVxD: array [0..Pred(MAX_JOYSTICKOEMVXDNAME)] Of CHAR;
+                     szRegKey: array [0..Pred(MAXPNAMELEN)] Of AnsiChar;
+                     szOEMVxD: array [0..Pred(MAX_JOYSTICKOEMVXDNAME)] Of AnsiChar;
 		   End;
  JOYCAPSA   = _JOYCAPSA;
  PJOYCAPSA  = ^_JOYCAPSA;
@@ -1731,7 +1731,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TJOYINFOEX  = JOYINFOEX;
 
  FOURCC = DWORD;
- HPSTR = ^char;
+ HPSTR = ^AnsiChar;
  HMMIO = THandle;
  LPMMIOPROC =
      Function (x1: LPSTR; x2: UINT; x3, x4: LPARAM): LRESULT;stdcall;
@@ -1856,7 +1856,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
 
  _MCI_INFO_PARMSA = packed Record
                             dwCallback: DWORD_PTR;
-                            lpstrReturn: PChar;
+                            lpstrReturn: PAnsiChar;
                             dwRetSize: DWORD;
 			  End;
  MCI_INFO_PARMSA   = _MCI_INFO_PARMSA;
@@ -1895,7 +1895,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
 
  _MCI_SYSINFO_PARMSA = packed Record
                                dwCallback: DWORD_PTR;
-                               lpstrReturn: PChar;
+                               lpstrReturn: PAnsiChar;
                                dwRetSize: DWORD;
                                dwNumber: DWORD;
                                wDeviceType: UINT;
@@ -2407,7 +2407,7 @@ Type // Delphi compatibility
 (*////////////////////////////////////////////////////////*)
 Function mmioStringToFOURCCA(x1: LPCSTR; x2: UINT): FOURCC;stdcall; external 'winmm.dll' name 'mmioStringToFOURCCA';
 Function mmioStringToFOURCCW(x1: LPCWSTR; x2: UINT): FOURCC;stdcall; external 'winmm.dll' name 'mmioStringToFOURCCW';
-Function mmioStringToFOURCC(x1: PChar; x2: UINT): FOURCC;stdcall; external 'winmm.dll' name
+Function mmioStringToFOURCC(x1: PAnsiChar; x2: UINT): FOURCC;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mmioStringToFOURCCW'
  {$else}'mmioStringToFOURCCA'
  {$endif};
@@ -2419,19 +2419,19 @@ Function mmioInstallIOProc(x1: FOURCC; x2: LPMMIOPROC; x3: DWORD): LPMMIOPROC;st
  {$endif};
 Function mmioOpenA(x1: LPSTR; x2: LPMMIOINFO; x3: DWORD): HMMIO;stdcall; external 'winmm.dll' name 'mmioOpenA';
 Function mmioOpenW(x1: LPWSTR; x2: LPMMIOINFO; x3: DWORD): HMMIO;stdcall; external 'winmm.dll' name 'mmioOpenW';
-Function mmioOpen(x1: PChar; x2: LPMMIOINFO; x3: DWORD): HMMIO;stdcall; external 'winmm.dll' name
+Function mmioOpen(x1: PAnsiChar; x2: LPMMIOINFO; x3: DWORD): HMMIO;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mmioOpenW'
  {$else}'mmioOpenA'
  {$endif};
 Function mmioRenameA(x1: LPCSTR; x2: LPCSTR; x3: LPCMMIOINFO; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mmioRenameA';
 Function mmioRenameW(x1: LPCWSTR; x2: LPCWSTR; x3: LPCMMIOINFO; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mmioRenameW';
-Function mmioRename(x1: PChar; x2: PChar; x3: LPCMMIOINFO; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name
+Function mmioRename(x1: PAnsiChar; x2: PAnsiChar; x3: LPCMMIOINFO; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mmioRenameW'
  {$else}'mmioRenameA'
  {$endif};
 Function mmioClose(x1: HMMIO; x2: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioClose';
 Function mmioRead(x1: HMMIO; x2: HPSTR; x3: LONG): LONG;stdcall; external 'winmm.dll' name 'mmioRead';
-Function mmioWrite(x1: HMMIO; x2: pchar; x3: LONG): LONG;stdcall; external 'winmm.dll' name 'mmioWrite';
+Function mmioWrite(x1: HMMIO; x2: PAnsiChar; x3: LONG): LONG;stdcall; external 'winmm.dll' name 'mmioWrite';
 Function mmioSeek(x1: HMMIO; x2: LONG; x3: WINT): LONG;stdcall; external 'winmm.dll' name 'mmioSeek';
 Function mmioGetInfo(x1: HMMIO; x2: LPMMIOINFO; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioGetInfo';
 Function mmioSetInfo(x1: HMMIO; x2: LPCMMIOINFO; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioSetInfo';
@@ -2448,19 +2448,19 @@ Function mciSendCommand(x1: MCIDEVICEID; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR)
  {$ifdef UNICODE}'mciSendCommandW' {$else}'mciSendCommandA' {$endif};
 Function mciSendStringA(x1: LPCSTR; x2: LPSTR; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendStringA';
 Function mciSendStringW(x1: LPCWSTR; x2: LPWSTR; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendStringW';
-Function mciSendString(x1: PChar; x2: PChar; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name
+Function mciSendString(x1: PAnsiChar; x2: PAnsiChar; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mciSendStringW' {$else}'mciSendStringA' {$endif};
 Function mciGetDeviceIDA(x1: LPCSTR): MCIDEVICEID;stdcall; external 'winmm.dll' name 'mciGetDeviceIDA';
 Function mciGetDeviceIDW(x1: LPCWSTR): MCIDEVICEID;stdcall; external 'winmm.dll' name 'mciGetDeviceIDW';
-Function mciGetDeviceID(x1: PChar): MCIDEVICEID;stdcall; external 'winmm.dll' name
+Function mciGetDeviceID(x1: PAnsiChar): MCIDEVICEID;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mciGetDeviceIDW' {$else}'mciGetDeviceIDA' {$endif};
 Function mciGetDeviceIDFromElementIDA(x1: DWORD; x2: LPCSTR): MCIDEVICEID;stdcall; external 'winmm.dll' name 'mciGetDeviceIDFromElementIDA';
 Function mciGetDeviceIDFromElementIDW(x1: DWORD; x2: LPCWSTR): MCIDEVICEID;stdcall; external 'winmm.dll' name 'mciGetDeviceIDFromElementIDW';
-Function mciGetDeviceIDFromElementID(x1: DWORD; x2: PChar): MCIDEVICEID;stdcall; external 'winmm.dll' name
+Function mciGetDeviceIDFromElementID(x1: DWORD; x2: PAnsiChar): MCIDEVICEID;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mciGetDeviceIDFromElementIDW' {$else}'mciGetDeviceIDFromElementIDA' {$endif};
 Function mciGetErrorStringA(x1: MCIERROR; x2: LPSTR; x3: UINT): BOOL;stdcall; external 'winmm.dll' name 'mciGetErrorStringA';
 Function mciGetErrorStringW(x1: MCIERROR; x2: LPWSTR; x3: UINT): BOOL;stdcall; external 'winmm.dll' name 'mciGetErrorStringW';
-Function mciGetErrorString(x1: MCIERROR; x2: PChar; x3: UINT): BOOL;stdcall; external 'winmm.dll' name
+Function mciGetErrorString(x1: MCIERROR; x2: PAnsiChar; x3: UINT): BOOL;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mciGetErrorStringW' {$else}'mciGetErrorStringA' {$endif};
 Function mciSetYieldProc(x1: MCIDEVICEID; x2: YIELDPROC; x3: DWORD): BOOL;stdcall; external 'winmm.dll' name 'mciSetYieldProc';
 Function mciGetCreatorTask(x1: MCIDEVICEID): HTASK;stdcall; external 'winmm.dll' name 'mciGetCreatorTask';
@@ -2481,7 +2481,7 @@ Function waveOutGetVolume(x1: HWAVEOUT; x2: LPDWORD): MMRESULT;stdcall; external
 Function waveOutSetVolume(x1: HWAVEOUT; x2: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutSetVolume';
 Function waveOutGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutGetErrorTextA';
 Function waveOutGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutGetErrorTextW';
-Function waveOutGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
+Function waveOutGetErrorText(x1: MMRESULT; x2: PAnsiChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'waveOutGetErrorTextW' {$else}'waveOutGetErrorTextA' {$endif};
 Function waveOutOpen(x1: LPHWAVEOUT; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD_PTR; x5: DWORD_PTR;
                      x6: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutOpen';
@@ -2507,7 +2507,7 @@ Function waveInGetDevCaps(x1: UINT; x2: LPWAVEINCAPS; x3: UINT): MMRESULT;stdcal
  {$ifdef UNICODE}'waveInGetDevCapsW' {$else}'waveInGetDevCapsA' {$endif};
 Function waveInGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetErrorTextA';
 Function waveInGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetErrorTextW';
-Function waveInGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
+Function waveInGetErrorText(x1: MMRESULT; x2: PAnsiChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'waveInGetErrorTextW' {$else}'waveInGetErrorTextA' {$endif};
 Function waveInOpen(x1: LPHWAVEIN; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD_PTR; x5: DWORD_PTR; x6 : DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveInOpen';
 Function waveInClose(x1: HWAVEIN): MMRESULT;stdcall; external 'winmm.dll' name 'waveInClose';
@@ -2576,7 +2576,7 @@ Function midiOutGetVolume(x1: HMIDIOUT; x2: LPDWORD): MMRESULT;stdcall; external
 Function midiOutSetVolume(x1: HMIDIOUT; x2: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutSetVolume';
 Function midiOutGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutGetErrorTextA';
 Function midiOutGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutGetErrorTextW';
-Function midiOutGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
+Function midiOutGetErrorText(x1: MMRESULT; x2: PAnsiChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'midiOutGetErrorTextW' {$else}'midiOutGetErrorTextA' {$endif};
 Function midiOutOpen(x1: LPHMIDIOUT; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutOpen';
 Function midiOutClose(x1: HMIDIOUT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutClose';
@@ -2596,7 +2596,7 @@ Function midiInGetDevCaps(x1: UINT; x2: LPMIDIINCAPS; x3: UINT): MMRESULT;stdcal
  {$ifdef UNICODE}'midiInGetDevCapsW' {$else}'midiInGetDevCapsA' {$endif};
 Function midiInGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetErrorTextA';
 Function midiInGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetErrorTextW';
-Function midiInGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
+Function midiInGetErrorText(x1: MMRESULT; x2: PAnsiChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'midiInGetErrorTextW' {$else}'midiInGetErrorTextA' {$endif};
 Function midiInOpen(x1: LPHMIDIIN; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiInOpen';
 Function midiInClose(x1: HMIDIIN): MMRESULT;stdcall; external 'winmm.dll' name 'midiInClose';
@@ -2615,7 +2615,7 @@ Function mixerGetLineInfo(x1: HMIXEROBJ; x2: LPMIXERLINE; x3: DWORD): MMRESULT;s
 Function mixerGetID(x1: HMIXEROBJ; Var x2: UINT; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetID';
 Function PlaySoundA(x1: LPCSTR; x2: HMODULE; x3: DWORD): BOOL;stdcall; external 'winmm.dll' name 'PlaySoundA';
 Function PlaySoundW(x1: LPCWSTR; x2: HMODULE; x3: DWORD): BOOL;stdcall; external 'winmm.dll' name 'PlaySoundW';
-Function PlaySound(x1: PChar; x2: HMODULE; x3: DWORD): BOOL;stdcall; external 'winmm.dll' name
+Function PlaySound(x1: PAnsiChar; x2: HMODULE; x3: DWORD): BOOL;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'PlaySoundW' {$else}'PlaySoundA' {$endif};
 
 implementation

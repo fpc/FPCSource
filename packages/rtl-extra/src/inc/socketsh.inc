@@ -74,7 +74,7 @@ type
      sin_family  : sa_family_t;
      sin_port    : cushort;
      sin_addr    : in_addr;
-     xpad         : array [0..7] of char; { to get to the size of sockaddr... }
+     xpad         : array [0..7] of AnsiChar; { to get to the size of sockaddr... }
   end;
 
   TInetSockAddr = sockaddr_in;
@@ -146,7 +146,7 @@ type
       sun_len     : cuint8;
     {$endif}
     sun_family    : sa_family_t;
-    sun_path      : array[0..107] of char;
+    sun_path      : array[0..107] of AnsiChar;
   end;
 
   Tsocket=longint;   {To easy porting code from Kylix libc unit to sockets unit.}
@@ -194,6 +194,7 @@ function StrToHostAddr(IP : AnsiString) : in_addr ;
 function StrToNetAddr (IP : AnsiString) : in_addr;
 
 function TryStrToHostAddr(IP : AnsiString; out ip4: in_addr) : Boolean ;
+function TryStrToNetAddr(IP : AnsiString; out ip4: in_addr) : Boolean ;
 
 { these for are for netdb legacy compat}
 Function HostToNet     (Host : in_addr) : in_addr; deprecated;
@@ -202,6 +203,10 @@ Function HostToNet     (Host : Longint) : Longint; deprecated;
 Function NetToHost     (Net  : Longint) : Longint; deprecated;
 Function ShortHostToNet(Host : Word) : Word; deprecated;
 Function ShortNetToHost(Net  : Word) : Word; deprecated;
+
+function NetAddrIsPrivate(const IP: in_addr): Boolean;
+function NetAddrIsPrivate6(const IP: in6_addr): Boolean;
+
 
 // ipv6
 function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;

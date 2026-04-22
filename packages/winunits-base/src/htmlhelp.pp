@@ -261,7 +261,7 @@ Type
           clrForeground : COLORREF;       { use -1 for default }
           clrBackground : COLORREF;       { use -1 for default }
           rcMargins : RECT;               { amount of space between edges of window and text, -1 for each member to ignore }
-          pszFont : LPCTSTR;              { facename, point size, char set, BOLD ITALIC UNDERLINE }
+          pszFont : LPCTSTR;              { facename, point size, AnsiChar set, BOLD ITALIC UNDERLINE }
        end;
      HH_POPUP = tagHH_POPUP;
      PHH_POPUP = ^HH_POPUP;

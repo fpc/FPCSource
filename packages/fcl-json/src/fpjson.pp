@@ -801,7 +801,7 @@ Function GetJSONStringParserHandler: TJSONStringParserHandler;
 
 implementation
 
-Uses typinfo;
+Uses typinfo,sysconst;
 
 Resourcestring
   SErrCannotConvertFromNull = 'Cannot convert data from Null value';
@@ -881,40 +881,67 @@ end;
 function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False): TJSONStringType;
 
 Var
-  I,J,L : Integer;
+  rp,ra,sp,sn,litStart : SizeInt;
+  outerResult : TJSONStringType absolute result;
+
+  procedure W(Ws: PChar; NWs: SizeInt);
+  begin
+    if ra-rp<NWs then
+      begin
+        // rp+NWs are the strict minimum to allocate;
+        // the rest is a speculation based on the remaining S tail (sn-sp) and the previously allocated value (ra).
+        ra:=rp+NWs+(sn-sp)+8+SizeInt(SizeUint(ra+(sn-sp)) div 4);
+        SetLength(outerResult,ra);
+      end;
+    Move(Ws^,PChar(pointer(outerResult))[rp],NWS*sizeof(char));
+    rp:=rp+NWs;
+  end;
+
+var
+  hex : array[0..5] of char;
   C : Char;
 
 begin
-  I:=1;
-  J:=1;
-  Result:='';
-  L:=Length(S);
-  While I<=L do
+  rp:=0;
+  ra:=0;
+  result:='';
+  sp:=0;
+  sn:=length(S);
+  litStart:=0;
+  hex:='\u00';
+  While sp<sn do
     begin
-    C:=S[I];
-    if (C in ['"','/','\',#0..#31]) then
-      begin
-      Result:=Result+Copy(S,J,I-J);
-      Case C of
-        '\' : Result:=Result+'\\';
-        '/' : if Strict then
-                Result:=Result+'\/'
-              else
-                Result:=Result+'/';
-        '"' : Result:=Result+'\"';
-        #8  : Result:=Result+'\b';
-        #9  : Result:=Result+'\t';
-        #10 : Result:=Result+'\n';
-        #12 : Result:=Result+'\f';
-        #13 : Result:=Result+'\r';
-      else
-        Result:=Result+'\u'+HexStr(Ord(C),4);
-      end;
-      J:=I+1;
-      end;
-    Inc(I);
+      C:=PChar(pointer(S))[sp];
+      if (C in ['"','/','\',#0..#31]) then
+        begin
+          W(PChar(pointer(S))+litStart,sp-litStart);
+          Case C of
+            '\' : W('\\',2);
+            '/' : if Strict then
+                    W('\/',2)
+                  else
+                    W('/',1);
+            '"' : W('\"',2);
+            #8  : W('\b',2);
+            #9  : W('\t',2);
+            #10 : W('\n',2);
+            #12 : W('\f',2);
+            #13 : W('\r',2);
+          else
+            begin
+              hex[4]:=hexdigits[(ord(C) shr 4)];
+              hex[5]:=hexdigits[(ord(C) and $F)];
+              W(@hex[0],6);
+            end;
+          end;
+          litStart:=sp+1;
+        end;
+      Inc(sp);
     end;
-  Result:=Result+Copy(S,J,I-1);
+  if litStart=0 then
+    exit(S); // Optimization of the unchanged string case.
+  W(PChar(pointer(S))+litStart,sp-litStart);
+  SetLength(result,rp);
 end;
 
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;

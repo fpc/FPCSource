@@ -20,10 +20,11 @@ Uses baseunix,UnixType;
 
 {$i osdefs.inc}       { Compile time defines }
 
-{$if 
-     defined(FreeBSD) or 
-     defined(Darwin) or 
-     defined(Haiku)
+{$if
+     defined(FreeBSD) or
+     defined(Darwin) or
+     defined(Haiku) or
+     defined(OpenBSD)
 }
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
@@ -40,7 +41,7 @@ type
                     sa_len     : cuchar;
                  {$endif}
                   family       : sa_family_t;
-                  path:array[0..107] of char;    //104 total for freebsd.
+                  path:array[0..107] of AnsiChar;    //104 total for freebsd.
                   end;
 
 const
@@ -63,12 +64,12 @@ const
   EsockADDRINUSE        = ESysEADDRINUSE;
 
 { unix socket specific functions }
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;
-Function Bind(Sock:longint;const addr:string):boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean; deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;    deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;    deprecated;
+Procedure Str2UnixSockAddr(const addr:ansistring;var t:TUnixSockAddr;var len:longint); deprecated;
+Function Bind(Sock:longint;const addr:ansistring):boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:file):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:text):Boolean;    deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolean;    deprecated;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc

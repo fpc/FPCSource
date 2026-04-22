@@ -16,11 +16,15 @@
 
 {$asmmode gas}
 
+{ External global handle defined in prt0.as }
+var
+  __dso_handle: pointer; external name '__dso_handle';
+
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
-function _csu_finish(_argv: PPChar; _envp: PPChar; _cleanup: TCdeclProcedure): PPPChar; cdecl; external name '_csu_finish';
+function _csu_finish(_argv: PPAnsiChar; _envp: PPAnsiChar; _cleanup: TCdeclProcedure): PPPChar; cdecl; external name '_csu_finish';
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -34,9 +38,18 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
     jmp     _FPC_proc___start
   end;
 
-function _strrchr(str: PChar; character: LongInt): PChar; forward;
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
+procedure _csu_abort; cdecl; public name '_csu_abort';
+begin
+  asm
+    // endbr64
+    // Not yet supported by our inline assembler reader
+    int3
+  end;
+end;
+
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
   var
     I: SizeUInt;
     environp: PPPChar;
@@ -72,7 +85,7 @@ procedure _FPC_proc_haltproc; cdecl; noreturn; public name '_haltproc';
     c_exit(operatingsystem_result);
   end;
 
-function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; public name '_strrchr';
   begin
     _strrchr:=nil;
     repeat

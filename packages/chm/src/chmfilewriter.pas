@@ -21,7 +21,8 @@
 unit chmfilewriter;
 
 {$mode objfpc}{$H+}
-
+{$modeswitch advancedrecords}
+{define hhp_debug}
 interface
 
 uses
@@ -34,6 +35,28 @@ type
 
   TChmProgressCB = procedure (Project: TChmProject; CurrentFile: String) of object;
   TChmErrorCB    = procedure (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
+
+  // CHM specific urls:
+  // ms-its:Helpfile.chm::/Topic.htm[>Window name]
+  // mk:@MSITStore:Helpfile.chm::/Topic.htm[>Window name]
+  // #anchor is also possible
+
+  TChmUrlType = (CHMURL_External,    // external non-chm, don't do anything
+                 CHMURL_ExternalCHM, // external chm,
+                 CHMURL_Local);      // current chm, needs integrity checks etc.
+
+  TChmParsedUrl = record
+                    FUrlType : TCHMUrlType;  // url type, see above.
+                    fProtocol: Integer;      // index in protocols, -1 is no protocol prefix
+                    fUrl     : String;       // url minus protocol for non local types.
+                    fChmname,                //
+                    fPath,
+                    fAnchor,
+                    fWindow  : String;
+                    function Parse(const basepath,localpath,localname,chmbasename:string; toparse:string ):boolean;
+                 end;
+
+
 
   { TChmProject }
 
@@ -79,6 +102,7 @@ type
     procedure ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
     function  FileInTotalList(const s:String):boolean;
     function  SanitizeURL(const basepath, instring, localpath, localname:string; var outstring:String):Boolean;
+    function  SanitizeURLToRec(const basepath, instring, localpath, localname:string; var outrec:TChmParsedUrl):Boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -119,10 +143,26 @@ type
     property LocaleID: word read FLocaleID write FLocaleID;
   end;
 
-  TChmContextNode = Class
-                     URLName       : AnsiString;
+  TCHMAnchor = record
+                     Anchor        : AnsiString;
                      ContextNumber : THelpContext;
                      ContextName   : AnsiString;
+
+               end;
+
+  { TChmContextNode }
+
+  TChmContextNode = Class
+                     URLName : AnsiString;
+                     Anchors : Array of TCHMAnchor;
+                     Constructor Create;
+                     procedure AddAnchorContext(const AContextName,AnAnchor:string);
+                     function  FindContext(const AContextName:string):integer;
+                     function  AddContext(const AContextName,ctx:string):boolean;
+                     function  geturl(ind:integer):String;
+                     {$ifdef hhp_debug}
+                     procedure dump;
+                     {$endif}
                     End;
 
 Const
@@ -142,11 +182,171 @@ type
    constructor Create(Const ALocation: string);
   end;
 
+{ TChmContextNode }
+
+constructor TChmContextNode.Create;
+begin
+  setlength(Anchors,1);
+  anchors[0].ContextNumber:=0;
+end;
+
+procedure TChmContextNode.AddAnchorContext(const AContextName, AnAnchor: string
+  );
+var i : integer;
+begin
+  for i:=0 to length(anchors)-1 do
+    if anchors[i].Anchor=ananchor then
+      begin
+        if anchors[i].ContextName<>'' then
+           writeln('Multiple contextnames for the same anchor'+URLName,'#',ananchor,' new:',AContextName,' existing): ',anchors[i].ContextName)
+        else
+          anchors[i].ContextName:=AContextName;
+        exit;
+      end;
+  i:=length(anchors);
+  setlength(anchors,i+1);
+  anchors[i].ContextName:=AContextName;
+  anchors[i].Anchor:=AnAnchor;
+end;
+
+function TChmContextNode.FindContext(const AContextName: string): integer;
+var i : integer;
+begin
+  result:=-1;
+  for i:=0 to length(Anchors)-1 do
+    if uppercase(anchors[i].ContextName)=AContextName then
+      exit(i);
+end;
+
+function TChmContextNode.AddContext(const AContextName, ctx: string): boolean;
+var j : Integer;
+begin
+  result:=false;
+  j:=findcontext(AContextName);
+  result:=j<>-1;
+  if result then
+    anchors[j].ContextNumber:=THelpContext(strtointdef(ctx,0));
+end;
+
+function TChmContextNode.GetUrl(ind: integer): String;
+begin
+  result:='';
+  if Anchors[ind].Anchor<>'' then
+   result:=urlname+'#'+Anchors[ind].Anchor;
+end;
+
+{$ifdef hhp_debug}
+procedure TChmContextNode.dump;
+var i : Integer;
+begin
+  writeln('Node: ',URLName);
+  for i:=0 to length(Anchors)-1 do
+     writeln(' Name: ',Anchors[i].ContextName,' Anchor:',Anchors[i].Anchor,' Ctx:',anchors[i].ContextNumber);
+end;
+{$endif}
+
 { TFirstReference }
 
 constructor TFirstReference.Create(const ALocation: string);
 begin
   Location := ALocation;
+end;
+
+const
+   Protocols   : array[0..5] of string = ('HTTP:','HTTPS:','FTP:','MS-ITS:', 'MAILTO:','mk:@MSITStore:');
+
+
+function TChmParsedUrl.Parse(const basepath,localpath,localname,chmbasename:string; toparse:string ):boolean;
+// url : string from hhp or html
+// chmbasename: current chm
+// localpath: relative path of currently scanned file.
+// localname: filename of currently scanned file.
+// basepath : root of chm (hhp) directory, needed to canonicalize.
+
+var i,j,len : integer;
+  //Anchor: String;
+begin
+{  writeln('in:',toparse);
+  writeln('bp:',basepath);
+  writeln('lp:',localpath);
+  writeln('ln:',localname);
+  writeln('chm:',chmbasename);}
+  furl:=''; furltype:=chmurl_external;
+  toparse:=trim(toparse);
+  if toparse='' then
+    exit(false);
+
+  { Check for protocols before adding local path }
+  i:=0;
+  while (i<=high(protocols)) do
+    begin
+      if startstext(protocols[i],toparse) then
+        break;
+      inc(i);
+    end;
+  if i<>length(protocols) then
+    begin
+      fProtocol:=i;
+      if (fProtocol in [3..5]) then // tansform to local [xx.chm::]y/z.html
+        begin
+          delete(toparse,1,length(protocols[i]));
+          RemoveLeadingChars(toparse,[':','/']);
+        end;
+      if fProtocol=5 then // fold mk:* to ms-its:
+        fProtocol:=3;
+    end
+  else
+    fProtocol:=-1;
+
+   if not( (fProtocol=-1) or (fProtocol=3)) then // if not chm or local
+     begin
+       furl:=toparse;
+       exit(true);
+     end;
+     begin
+       // no protocol identifier, assume local till proven otherwise
+       FUrlType:=CHMURL_Local;
+       j:=pos('.chm::',lowercase(toparse));
+       if j<>0 then
+         begin
+            fchmname:=copy(toparse,1,j+3); // copy chm name.
+            if CompareText(trim(fChmname),trim(chmbasename))=0 then  // current CHM?
+              begin
+                delete(toparse,1,j+5); // convert path to local.
+              end
+            else
+              begin
+                FUrlType:=CHMURL_ExternalCHM; // really external CHM
+                furl:=toparse;
+                exit(true);
+              end;
+         end;
+
+       // lob off anchor for now
+       fanchor:='';
+       i:=Pos('#',toparse);
+       if i<>0 then
+         begin
+           if i<>length(toparse) then // don't proceess lone '#' at end of url.
+               fanchor:=copy(toparse,i+1,length(toparse)-i);
+           delete(toparse,i,length(toparse)-i+1);     // trim anchor
+         end;
+       toparse:=trim(toparse);
+     end;
+   // so now we have a local path or empty.
+
+   // handle empty
+   if toparse='' then
+     toparse:=localname;
+
+   // Try to canonicalize. handle more escapes?
+   toparse:=expandfilename(includetrailingpathdelimiter(basepath)+includetrailingpathdelimiter(localpath)+StringReplace(toparse,'%20',' ',[rfReplaceAll]));//
+   toparse:=extractrelativepath(basepath,toparse);
+
+   // and back to URL conventions
+   toparse:=StringReplace(toparse,'\','/',[rfReplaceAll]);
+   furl:=toparse;
+   result:=true;
 end;
 
 { TChmProject }
@@ -344,10 +544,11 @@ var
   MergeFileCount,
   WinCount,
   FileCount: Integer;
-  I  : Integer;
+  i,j  : Integer;
   nd : TChmContextNode;
   win: TCHMWindow;
   s  : String;
+  cnt : integer;
 
 begin
   Cfg := TXMLConfig.Create(nil);
@@ -361,9 +562,17 @@ begin
     begin
       nd:=TChmContextNode.Create;
       nd.urlname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value','');
-      nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
-      nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');
       Files.AddObject(nd.URLNAME,nd);
+      cnt:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Count/Value',0);
+      setlength(nd.Anchors,cnt);
+
+      for j := 0 to cnt-1 do
+        begin
+          s:='Files/FileName'+IntToStr(I)+'/Anchor'+inttostr(j)+'/' ;
+          nd.anchors[j].contextnumber:=Cfg.GetValue(s+'ContextNumber',0);
+          nd.anchors[j].contextname:=Cfg.GetValue(s+'ContextName','');
+          nd.anchors[j].Anchor:=Cfg.GetValue(s+'Anchor','');
+       end;
     end;
 
   FileCount := Cfg.GetValue('OtherFiles/Count/Value', 0);
@@ -414,7 +623,7 @@ begin
   MakeSearchable := Cfg.GetValue('Settings/MakeSearchable/Value', False);
   DefaultPage := Cfg.GetValue('Settings/DefaultPage/Value', '');
   Title := Cfg.GetValue('Settings/Title/Value', '');
-  OutputFileName := Cfg.GetValue('Settings/OutputFileName/Value', '');
+  OutputFileName := Cfg.GetValue('Settings/OutputFileName/Value', ExtractFileName(ChangeFileExt(afilename,'')));
   DefaultFont  := Cfg.GetValue('Settings/DefaultFont/Value', '');
   DefaultWindow:= Cfg.GetValue('Settings/DefaultWindow/Value', '');
   ScanHtmlContents:=  Cfg.GetValue('Settings/ScanHtmlContents/Value', False);
@@ -441,7 +650,8 @@ procedure addalias(const key,value :string);
 
 var i,j : integer;
     node: TCHMContextNode;
-    keyupper,valueupper : string;
+    valueupper : string;
+    UrlDecomposed : TChmParsedUrl;
 begin
  { Defaults other than global }
    MakeBinaryIndex:=True;
@@ -449,25 +659,35 @@ begin
  {$ifdef hhp_debug}
    writeln('alias entry:',key,'=',value);
  {$endif}
- keyupper:=uppercase(value);
+
+ SanitizeURLToRec(FBasePath,value ,'','',UrlDecomposed);
+ valueupper:=uppercase(UrlDecomposed.fUrl); // base URL is key
+
+ // search in files if there is a file with the given URL.
  i:=0; j:=files.count;
- while (i<j) and (uppercase(TCHMContextnode(files.objects[i]).UrlName)<>keyupper) do
-  inc(i);
+ while (i<j) and (uppercase(TCHMContextnode(files.objects[i]).UrlName)<>valueupper) do
+   inc(i);
  if i=j then
   begin
-   {$ifdef hhp_debug}
+   // no, then add.
+    {$ifdef hhp_debug}
     writeln('alias new node:',key);
    {$endif}
     node:=TCHMContextNode.create;
-    valueupper:=stringReplace(value, '\', '/', [rfReplaceAll]);
-    valueupper:= StringReplace(valueupper, '//', '/', [rfReplaceAll]);
+    valueupper:=StringReplace(value, '\', '/', [rfReplaceAll]);
+    valueupper:=StringReplace(valueupper, '//', '/', [rfReplaceAll]);
+    {$ifdef hhp_debug}
+    writeln('key =' +key);
+    writeln('value =' +valueupper);
+    {$endif}
     node.URLName:=valueupper;
-    node.contextname:=key;
+    node.AddAnchorcontext(key,UrlDecomposed.fAnchor);
+    files.AddObject(valueupper,node)
   end
  else
   begin
     node:=TCHMContextNode(Files.objects[i]);
-    node.ContextName:=key;
+    node.AddAnchorcontext(key,UrlDecomposed.fAnchor);
   end;
 end;
 
@@ -491,7 +711,6 @@ begin
             processalias(strls2);
             strls2.free;
           end;
-
       end
     else
      begin
@@ -505,7 +724,7 @@ end;
 
 procedure addmap(const key,value :string);
 
-var i,j : integer;
+var i,j,k : integer;
     node: TCHMContextNode;
     keyupper : string;
 begin
@@ -514,15 +733,19 @@ begin
  {$endif}
  keyupper:=uppercase(key);
  i:=0; j:=files.count;
- while (i<j) and (uppercase(TCHMContextnode(files.objects[i]).contextname)<>keyupper) do
-  inc(i);
- if i=j then
-    raise Exception.create('context "'+key+'" not found!')
- else
-  begin
-    node:=TCHMContextNode(Files.objects[i]);
-    node.Contextnumber:=strtointdef(value,0);
+ {$ifdef hhp_debug}
+ writeln('files:',files.count,' ContextName',keyupper);
+ {$endif}
+ while (i<j) do
+    begin
+      if TCHMContextnode(files.objects[i]).AddContext(keyupper,value) then
+        exit;
+     {$ifdef hhp_debug}
+     TCHMContextnode(files.objects[i]).dump;
+     {$endif}
+     inc(i);
   end;
+ raise Exception.Create('context "'+key+'" not found!')
 end;
 
 procedure processmap(strs:TStringlist);
@@ -582,6 +805,7 @@ begin
   MakeBinaryIndex:=True;
   filename:=expandfilename(afilename);
   FBasePath:=extractfilepath(filename);
+  OutputFileName:=ExtractFileName(ChangeFileExt(afilename,'.chm'));
   Fini:=TMeminiFile.Create(AFileName);
   secs := TStringList.create;
   strs := TStringList.create;
@@ -596,8 +820,6 @@ begin
       begin
           nd:=TChmContextNode.Create;
           nd.urlname:=StringReplace(strs[j],'\', '/', [rfReplaceAll]);
-          nd.contextnumber:=0;
-          nd.contextname:='';
           Files.AddObject(nd.urlname,nd);
         end;
 
@@ -645,8 +867,7 @@ begin
     begin
       nd:=TChmContextNode.Create;
       nd.urlname:=filename;
-      nd.contextnumber:=contextid;
-      nd.contextname:=contextname;
+      nd.AddContext(contextname,inttostr(contextid));
       Files.AddObject(nd.urlname,nd);
     end
   else
@@ -658,16 +879,17 @@ begin
          nd.urlname:=filename;
          files.objects[x]:=nd;
        end;
-      nd.contextnumber:=contextid;
-      nd.contextname:=contextname;
+     nd.AddContext(contextname,inttostr(contextid));
    end;
 end;
 
 procedure TChmProject.SaveToFile(AFileName: String);
 var
   Cfg: TXMLConfig;
-  I  : Integer;
+  I,J,
+  Cnt: Integer;
   nd : TChmContextNode;
+  RKey, AnchorKey : string;
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.StartEmpty := True;
@@ -676,19 +898,28 @@ begin
   Cfg.SetValue('Files/Count/Value', Files.Count);
   for I := 0 to Files.Count-1 do
   begin
+    RKey:='Files/FileName'+IntToStr(I);
     nd:=TChmContextNode(files.objects[i]);
-    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/Value', Files.Strings[I]);
+    Cfg.SetValue(rkey+'/Value', Files.Strings[I]);
+    Cnt:=0;
+    if assigned(nd) then
+      Cnt:=length(nd.Anchors);
+    Cfg.SetValue(rkey+'/Count/Value',Cnt);
     if assigned(nd) then
       begin
-        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
-        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
+        for j:=0 to Cnt-1 do
+          begin
+             anchorkey:=rkey+'/Anchor'+inttostr(j)+'/' ;
+             Cfg.SetValue(AnchorKey+'ContextNumber',nd.anchors[j].contextnumber);
+             Cfg.SetValue(AnchorKey+'ContextName',nd.anchors[j].ContextName);
+             Cfg.SetValue(AnchorKey+'Anchor',nd.anchors[j].Anchor);
+          end;
       end;
   end;
 
   Cfg.SetValue('OtherFiles/Count/Value', OtherFiles.Count);
   for I := 0 to OtherFiles.Count-1 do
     Cfg.SetValue('OtherFiles/FileName'+IntToStr(I)+'/Value', OtherFiles.Strings[I]);
-
 
   Cfg.SetValue('Windows/Count/Value', FWindows.count);
   for i:=0 To FWindows.Count-1 do
@@ -734,54 +965,56 @@ begin
     OnError(self,errorkind,msg,detaillevel);
 end;
 
-const
-   protocols   : array[0..4] of string = ('HTTP:','HTTPS:','FTP:','MS-ITS:', 'MAILTO:');
-   protocollen : array[0..4] of integer= ( 5 ,6, 4 ,7, 7);
-
 function TChmProject.SanitizeURL(const basepath,instring,localpath,localname:string;var outstring:String):Boolean;
-var i,j,len : integer;
-  Anchor: String;
+var j : integer;
+    Anchor: String;
+    url : TChmParsedUrl;
 begin
-  result:=true; outstring:='';
-  if instring='' then
-    exit(false);
+  if not url.parse(basepath,localpath,localname,FOutputFileName,instring) then
+      exit(false); // empty url.
 
-  len:=length(instring);
-  if len=0 then
-    exit(false);
-  { Check for protocols before adding local path }
-  i:=0;
-  while (i<=high(protocols)) do
+  if url.FUrlType<>CHMURL_Local then
+    exit(false); // external link. ignore.
+
+  if url.fAnchor<>'' then
     begin
-      if strlicomp(@protocols[i][1],@instring[1],protocollen[i])=0 then
-        exit(false);
-      inc(i);
-    end;
-   outstring:=localpath+instring;
-   i:=pos('#',outstring);
-   if i<>0 then begin
-     if i<>length(outstring) then // trims lone '#' at end of url.
-       begin
-         if i > 1 then
-           Anchor := outstring
-         else
-           Anchor := localname+outstring;
-         j := fAnchorList.IndexOf(Anchor);
-         if j < 0 then begin
+      anchor:=url.fUrl+'#'+url.fAnchor;
+      j := fAnchorList.IndexOf(Anchor);
+      if j < 0 then
+        begin
            fAnchorList.AddObject(Anchor,TFirstReference.Create(localname));
            Anchor := '(new) '+Anchor;
          end;
-         Error(CHMNote, 'Anchor found '+Anchor+' while scanning '+localname,1);
-       end;
-     delete(outstring,i,length(outstring)-i+1);
-   end;
+         Error(CHMNote, 'Anchor reference found '+Anchor+' while scanning '+localname,1);
+    end;
+  outstring:=url.furl;
+  result:=true;
+end;
 
-  outstring:=expandfilename(includetrailingpathdelimiter(fbasepath)+StringReplace(outstring,'%20',' ',[rfReplaceAll]));// expandfilename(instring));
+function TChmProject.SanitizeURLToRec(const basepath, instring, localpath,
+  localname: string; var outrec: TChmParsedUrl): Boolean;
+var j : integer;
+    Anchor: String;
 
-  outstring:=extractrelativepath(basepath,outstring);
-  outstring:=StringReplace(outstring,'\','/',[rfReplaceAll]);
-  if outstring='' then
-    result:=false;
+begin
+  if not outrec.parse(basepath,localpath,localname,FOutputFileName,instring) then
+      exit(false); // empty url.
+
+  if outrec.FUrlType<>CHMURL_Local then
+    exit(false); // external link. ignore.
+
+  if outrec.fAnchor<>'' then
+    begin
+      anchor:=outrec.furl+'#'+outrec.fAnchor;
+      j := fAnchorList.IndexOf(Anchor);
+      if j < 0 then
+        begin
+           fAnchorList.AddObject(Anchor,TFirstReference.Create(localname));
+           Anchor := '(new) '+Anchor;
+         end;
+         Error(CHMNote, 'Anchor reference found '+Anchor+' while scanning '+localname,1);
+    end;
+  result:=true;
 end;
 
 function  TChmProject.FileInTotalList(const s:String):boolean;
@@ -795,7 +1028,7 @@ procedure TChmProject.ScanList(toscan,newfiles:TStrings;recursion:boolean);
  // toscan, list to search for htmlfiles to scan.
  // newfiles, the resulting list of files.
  // totalfilelist, the list that contains all found and specified files to check against.
- // localfilelist (local var), files found in this file.
+ // localfilelist (local var), files found in this scan operation.
 var
   localpath : string;
 
@@ -860,14 +1093,16 @@ function scantags(prnt:TDomNode; const localname: string; filelist:TStringlist):
 var
   att : ansistring;
 
-procedure AddAnchor(const s:string);
+procedure AddAnchor(const s:string;localpath:string);
 var
    i   : Integer;
+   fullurl : string;
 begin
-  i := fAnchorList.IndexOf(localname+'#'+s);
+  fullurl:=localpath+localname+'#'+s;
+  i := fAnchorList.IndexOf(fullurl);
   if i < 0 then begin
-    fAnchorList.Add(localname+'#'+s);
-    Error(ChmNote,'New Anchor with '+att+' '+s+' found while scanning '+localname,1);
+    fAnchorList.Add(fullurl);
+    Error(ChmNote,'New Anchor with '+att+' '+s+' found while scanning '+localname+' registering as '+fullurl,1);
   end else if fAnchorList.Objects[i] = nil then
     Error(chmwarning,'Duplicate anchor definitions with '+att+' '+s+' found while scanning '+localname,1)
   else begin
@@ -897,7 +1132,7 @@ begin
               attrval := findattribute(chld, att);
               idfound:=attrval  <> '' ;
               if idfound then
-                addanchor(attrval);
+                addanchor(attrval,localpath);
               if s='LINK' then
                 begin
                   //printattributes(chld,'');
@@ -922,7 +1157,7 @@ begin
                       att := 'NAME';
                       attrval := findattribute(chld, att);
                       if attrval  <> '' then
-                       addanchor(attrval);
+                       addanchor(attrval,localpath);
                     end;
                 end;
             end;
@@ -1071,10 +1306,10 @@ begin
                        newfiles.add(s);
                      end
                    else
-                     Error(chmnote,'duplicate url: '+s+'.',5);
+                     Error(chmnote,'file not found: '+s+'.',5);
                  end
                else
-                 Error(chmnote,'duplicate url: '+s+'.',5);
+                 Error(chmnote,'File already found : '+s+'.',5);
              end
            else
             Error(chmnote,'Bad url: '+s+'.',5);
@@ -1165,7 +1400,8 @@ var
   TOCStream,
   IndexStream: TFileStream;
   nd         : TChmContextNode;
-  I          : Integer;
+  i,j        : Integer;
+  s : string;
 begin
 
   LoadSiteMaps;
@@ -1207,8 +1443,18 @@ begin
       nd:=TChmContextNode(files.objects[i]);
       if not fileexists(IncludeTrailingPathDelimiter(FBasePath)+files[i]) then
          Error(chmWarning,'File '+Files[i]+' does not exist');
-      if assigned(nd) and (nd.contextnumber<>0) then
-        Writer.AddContext(nd.ContextNumber,IncludeTrailingPathDelimiter(FBasePath)+files[i]);
+      if assigned(nd) then
+        begin
+          for j:=0 to length(nd.Anchors)-1 do
+            begin
+              if nd.Anchors[j].ContextNumber>0 then
+                begin
+                  s:= nd.geturl(j);
+                  if s<>'' then
+                    Writer.AddContext(nd.Anchors[j].ContextNumber,s);
+                end;
+            end;
+        end;
     end;
   if FWIndows.Count>0 then
     Writer.Windows:=FWIndows;
@@ -1306,6 +1552,41 @@ begin
 end;
 
 
+procedure ContextAliasToHhp(hhp:TStringList;files:TStrings);
+var
+    s : string;
+  i,j : Integer;
+  ContextItem: TChmContextNode;
+
+begin
+    hhp.Add('');
+    hhp.Add('[ALIAS]');
+    for i := 0 to Files.Count - 1 do
+      begin
+        contextitem:=TChmContextNode(files.objects[i]);
+        if assigned(contextitem) then
+          for j:=0 to length(ContextItem.Anchors)-1 do
+            begin
+              s:=contextitem.geturl(j);
+              if s<>'' then
+                hhp.Add(ContextItem.Anchors[j].ContextName + '=' + s);
+            end;
+      end;
+
+    hhp.Add('');
+    hhp.Add('[MAP]');
+    for I := 0 to Files.Count-1 do
+      begin
+        contextitem:=TChmContextNode(files.objects[i]);
+        if assigned(contextitem) then
+          for j:=0 to length(ContextItem.Anchors)-1 do
+            begin
+              if ContextItem.Anchors[j].ContextNumber>0 then
+                hhp.Add('#define ' +ContextItem.Anchors[j].ContextName + ' ' + IntToStr(ContextItem.Anchors[j].ContextNumber));
+            end;
+      end;
+end;
+
 function BoolAsStr(b: Boolean): string;
 begin
   if b then
@@ -1319,7 +1600,6 @@ var
   sl: TStringList;
   s : string;
   i: Integer;
-  ContextItem: TChmContextNode;
 
   procedure SetOption(const AKey, AValue: string);
   begin
@@ -1377,25 +1657,7 @@ begin
     end;
 
     if Files.Count > 0 then
-    begin
-      sl.Add('');
-      sl.Add('[ALIAS]');
-      for i := 0 to Files.Count - 1 do
-      begin
-        contextitem:=TChmContextNode(files.objects[i]);
-        if assigned(contextitem) then
-          sl.Add(ContextItem.ContextName + '=' + ContextItem.UrlName);
-      end;
-
-      sl.Add('');
-      sl.Add('[MAP]');
-      for I := 0 to Files.Count-1 do
-      begin
-        contextitem:=TChmContextNode(files.objects[i]);
-        if assigned(contextitem) then
-          sl.Add('#define ' + ContextItem.ContextName + ' ' + IntToStr(ContextItem.ContextNumber));
-      end;
-    end;
+      ContextAliasToHhp(sl,Files);
 
     sl.SaveToFile(AFileName);
   finally
