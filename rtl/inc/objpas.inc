@@ -42,29 +42,38 @@
            aobject.inheritsfrom(aclass);
       end;
 
+type
+  TCastErrorFromMode = (CastErrorFromNA, CastErrorFromClass, CastErrorFromExternalInterface);
+  TCastErrorToMode = (CastErrorToNA, CastErrorToClass, CastErrorToComInterface, CastErrorToCorbaInterface);
+
 {$IFDEF FPC_HAS_FEATURE_THREADING}
 threadvar
-  CastErrorFrom : ShortString;
-  CastErrorTo : ShortString;
 {$ELSE}
 var
-  CastErrorFrom : ShortString = '';
-  CastErrorTo : ShortString = '';
 {$ENDIF}
-
-
-    procedure SetCastErrorInfo(const aFrom,aTo : shortstring);
-    begin
-      CastErrorFrom:=aFrom;
-      CastErrorTo:=aTo;
+  CastError: record
+    From: record
+    case Mode: TCastErrorFromMode of
+      CastErrorFromClass: (_Class: TClass);
     end;
+    _To: record
+    case Mode: TCastErrorToMode of
+      CastErrorToClass: (_Class: TClass);
+      CastErrorToComInterface: (IID: TGUID);
+      CastErrorToCorbaInterface: (CorbaName: string[15]);
+    end;
+  end;
+
 
     { the reverse order of the parameters make code generation easier }
     function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; compilerproc;
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
            begin
-           SetCastErrorInfo(aObject.ClassName,aClass.ClassName);
+           CastError.From.Mode:=CastErrorFromClass;
+           CastError.From._Class:=aObject.ClassType;
+           CastError._To.Mode:=CastErrorToClass;
+           CastError._To._Class:=aClass;
            handleerroraddrframeInd(219,get_pc_addr,get_frame);
            end;
          result := aobject;
@@ -232,9 +241,14 @@ var
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                begin
                if (IUnknown(S).QueryInterface(IObjectInstance,errObj)=S_OK) then
-                 SetCastErrorInfo(errObj.ClassName,iid.AsString)
+                 begin
+                 CastError.From.Mode:=CastErrorFromClass;
+                 CastError.From._Class:=errObj.ClassType;
+                 end
                else
-                 SetCastErrorInfo('External interface',iid.AsString);
+                 CastError.From.Mode:=CastErrorFromExternalInterface;
+               CastError._To.Mode:=CastErrorToComInterface;
+               CastError._To.IID:=iid;
                handleerror(219);
                end;
              // decrease reference count
@@ -256,9 +270,14 @@ var
             if not ((IUnknown(S).QueryInterface(IObjectInstance,tmpo)=S_OK) and tmpo.inheritsfrom(aclass)) then
               begin
               if (IUnknown(S).QueryInterface(IObjectInstance,errObj)=S_OK) then
-                SetCastErrorInfo(errObj.ClassName,aClass.ClassName)
+                begin
+                CastError.From.Mode:=CastErrorFromClass;
+                CastError.From._Class:=errObj.ClassType;
+                end
               else
-                SetCastErrorInfo('External interface',aClass.ClassName);
+                CastError.From.Mode:=CastErrorFromExternalInterface;
+              CastError._To.Mode:=CastErrorToClass;
+              CastError._To._Class:=aClass;
               handleerror(219);
               end;
             fpc_intf_as_class:=tmpo;
@@ -280,7 +299,10 @@ var
              tmpi2:=nil;
              if not ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi)) then
                begin
-               SetCastErrorInfo(TObject(S).ClassName,iid.AsString);
+               CastError.From.Mode:=CastErrorFromClass;
+               CastError.From._Class:=TObject(S).ClassType;
+               CastError._To.Mode:=CastErrorToComInterface;
+               CastError._To.IID:=iid;
                handleerror(219);
                end;
              // decrease reference count
@@ -301,7 +323,10 @@ var
              tmpi:=nil;
              if not TObject(S).GetInterface(iid,tmpi) then
                begin
-               SetCastErrorInfo(TObject(S).ClassName,iid);
+               CastError.From.Mode:=CastErrorFromClass;
+               CastError.From._Class:=TObject(S).ClassType;
+               CastError._To.Mode:=CastErrorToCorbaInterface;
+               CastError._To.CorbaName:=iid;
                handleerror(219);
                end;
              fpc_class_as_corbaintf:=tmpi;
@@ -1154,10 +1179,19 @@ end;
       class procedure TObject.GetLastCastErrorInfo(out aFrom,aTo : shortstring);
 
       begin
-        aFrom:=CastErrorFrom;
-        aTo:=CastErrorTo;
-        CastErrorFrom:='';
-        CastErrorTo:='';
+        case CastError.From.Mode of
+          CastErrorFromClass: aFrom:=CastError.From._Class.ClassName;
+          CastErrorFromExternalInterface: aFrom:='External interface';
+          else aFrom:='';
+        end;
+        case CastError._To.Mode of
+          CastErrorToClass: aTo:=CastError._To._Class.ClassName;
+          CastErrorToComInterface: aTo:=CastError._To.IID.AsString;
+          CastErrorToCorbaInterface: aTo:=CastError._To.CorbaName;
+          else aTo:='';
+        end;
+        CastError.From.Mode:=CastErrorFromNA;
+        CastError._To.Mode:=CastErrorToNA;
       end;
 
       class function TObject.UnitName : RTLString;
