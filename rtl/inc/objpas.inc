@@ -420,14 +420,23 @@ end;
 
 function TGUID.AsString : ShortString;
 
+var
+  iByte, iRes: SizeInt;
 
 begin
-  WriteStr(Result,'{',hexstr(Longint(D1),8),
-                      '-',HexStr(D2,4),
-                      '-',HexStr(D3,4),
-                      '-',HexStr(D4[0],2), HexStr(D4[1],2),
-                      '-',HexStr(D4[2],2), HexStr(D4[3],2), HexStr(D4[4],2), HexStr(D4[5],2), HexStr(D4[6],2), HexStr(D4[7],2),
-                   '}');
+  Result[0]:=#38;
+  Result[1]:='{';
+  Result[10]:='-';
+  Result[15]:='-';
+  Result[20]:='-';
+  Result[25]:='-';
+  Result[38]:='}';
+  for iByte:=0 to High(AsStringByteScatter) do
+  begin
+    iRes:=AsStringByteScatter[iByte];
+    PAnsiChar(@Result[0])[iRes]:=HexTbl[PByte(@Self)[iByte] shr 4];
+    PAnsiChar(@Result[0])[iRes+1]:=HexTbl[PByte(@Self)[iByte] and $F];
+  end;
 end;
 
 {****************************************************************************
