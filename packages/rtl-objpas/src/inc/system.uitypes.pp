@@ -36,7 +36,7 @@ Type
      class var ColorToRGB: function (Color: TColor): Longint;
                  class operator := (AColor : TColor): TColorRec; inline;
                  class operator := (AColor : TColorRec): TColor; inline;
-      function ToString : RTLString;
+      function ToString : AnsiString;
       const
       // 140 HTML colors.
       AliceBlue          = TColor($FFF8F0);
@@ -403,7 +403,7 @@ Type
   public
     constructor Create(const Color: TAlphaColor);
     class var ColorToRGB: function (Color: TAlphaColor): Longint;
-    function ToString : RTLString;
+    function ToString : AnsiString;
     case Cardinal of
           0:
             (Color: TAlphaColor);
@@ -449,7 +449,7 @@ Type
   { TColorHelper }
 
   TColorHelper = record helper for TColor
-    Function ToString : RTLString;
+    Function ToString : AnsiString;
   end;
 
 
@@ -968,7 +968,7 @@ begin
   result:=AColor.Color;
 end;
 
-function TColorRec.ToString: RTLString;
+function TColorRec.ToString: AnsiString;
 
 var
   S : string;
@@ -985,7 +985,7 @@ begin
   Self := TAlphaColors(Color);
 end;
 
-function TAlphaColors.ToString: RTLString;
+function TAlphaColors.ToString: AnsiString;
 begin
   Result:='#'+HexStr(R,2)+HexStr(G,2)+HexStr(B,2)+HexStr(A,2)
 end;
@@ -1209,7 +1209,7 @@ end;
 
 { TColorHelper }
 
-function TColorHelper.ToString: RTLString;
+function TColorHelper.ToString: AnsiString;
 begin
   Result:=TColorRec(Self).ToString;
 end;
