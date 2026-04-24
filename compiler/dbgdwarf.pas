@@ -142,6 +142,7 @@ interface
         // when insertmoduleinfo is called.
         generated_lineinfo: boolean;
 
+        cur_struct_def: tabstractrecorddef;
         vardatadef: trecorddef;
 
         procedure set_use_64bit_headers(state: boolean);
@@ -458,6 +459,21 @@ implementation
         Dispose(SI);
       end;
 
+    function IsOrgDefOf(real_def: tabstractrecorddef; maybe_org: tdef): boolean;
+      begin
+        Result := false;
+        if not(maybe_org is tabstractrecorddef) then
+          exit;
+        while (real_def.orgdef <> nil) and (real_def.orgdef is tabstractrecorddef) do
+          begin
+            real_def := tabstractrecorddef(real_def.orgdef);
+            if real_def = maybe_org then
+              begin
+                Result := True;
+                exit;
+              end;
+          end;
+      end;
 
 {****************************************************************************
                               TDwarfLabHashSet
@@ -1698,7 +1714,11 @@ implementation
           do the same as we do for other object types - skip procdef info generation
           for external defs (Paul Ishenin) }
         if not(oo_is_external in def.objectoptions) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+          begin
+            cur_struct_def := tabstractrecorddef(def);
+            write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+            cur_struct_def := nil;
+          end;
         finish_children;
       end;
 
@@ -2048,15 +2068,17 @@ implementation
         st             : tsymtable;
         vmtoffset      : pint;
         in_currentunit : boolean;
+        is_method      : boolean;
       begin
         { only write debug info for procedures defined in the current module,
           except in case of methods (gcc-compatible)
         }
         in_currentunit:=def.in_currentunit;
+        is_method := def.owner.symtabletype in [objectsymtable,recordsymtable];
 
         if not in_currentunit and
-          not (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          exit;
+          not is_method then
+         exit;
 
         { happens for init procdef of units without init section }
         if in_currentunit and
@@ -2068,12 +2090,13 @@ implementation
 
         { Procdefs are not handled by the regular def writing code, so
           dbg_state is not set/checked for them. Do it here.  }
-        if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
+        if (def.dbg_state in [dbg_state_writing,dbg_state_written]) and
+           not is_method then
           exit;
         defnumberlist.Add(def);
 
         { Write methods and only in the scope of their parent objectdefs.  }
-        if (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
+        if is_method then
           begin
             { this code can also work for nested procdefs, but is not yet
               activated for those because there is no clear advantage yet to
@@ -2084,9 +2107,13 @@ implementation
             while assigned(st.defowner) and
                   (tdef(st.defowner).typ = procdef) do
               st:=tprocdef(st.defowner).owner;
-            if assigned(st) and
-               (tdef(st.defowner).dbg_state<>dbg_state_writing) then
-              exit;
+
+            if (cur_struct_def = nil) or not IsOrgDefOf(cur_struct_def, tdef(def.owner.defowner)) then
+              begin
+                if assigned(st) and
+                   (tdef(st.defowner).dbg_state<>dbg_state_writing) then
+                  exit;
+              end;
          end;
 
         def.dbg_state:=dbg_state_writing;
@@ -2099,13 +2126,16 @@ implementation
           append_entry(DW_TAG_subprogram,true,
             [DW_AT_name,DW_FORM_string,def.mangledname+#0]);
 
-        if (ds_dwarf_cpp in current_settings.debugswitches) and (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
+        if (ds_dwarf_cpp in current_settings.debugswitches) and (is_method) then
           begin
             { If C++ emulation is enabled, add DW_AT_linkage_name attribute for methods.
               LLDB uses it to display fully qualified method names.
               Add a simple C++ mangled name without params to achieve at least "Class::Method()"
               instead of just "Method" in LLDB. }
-            s:=tabstractrecorddef(def.owner.defowner).objrealname^;
+            if cur_struct_def <> nil then
+              s:=cur_struct_def.objrealname^
+            else
+              s:=tabstractrecorddef(def.owner.defowner).objrealname^;
             procentry:=Format('_ZN%d%s', [Length(s), s]);
             s:=symname(def.procsym, false);
             procentry:=Format('%s%d%sEv'#0, [procentry, Length(s), s]);
@@ -2154,7 +2184,7 @@ implementation
           end;
 
         { accessibility: public/private/protected }
-        if (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
+        if is_method then
           append_visibility(def.visibility);
 
         { Return type.  }
@@ -2370,6 +2400,7 @@ implementation
         tag : tdwarf_tag;
         has_high_reg : boolean;
         dreg,dreghigh : shortint;
+        real_def : tdef;
 {$ifdef i8086}
         has_segment_sym_name : boolean=false;
         segment_sym_name : TSymStr='';
@@ -2390,6 +2421,7 @@ implementation
         if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
           exit;
 
+        real_def := def;
         templist:=TAsmList.create;
 
         case sym.localloc.loc of
@@ -2586,7 +2618,12 @@ implementation
         if (sym.typ=paravarsym) and
            not(dvf_force_local_var in flags) and
            not(vo_is_funcret in sym.varoptions) then
-          tag:=DW_TAG_formal_parameter
+          begin
+            tag:=DW_TAG_formal_parameter;
+            if (cur_struct_def <> nil) and (vo_is_self in tparavarsym(sym).varoptions) and
+               IsOrgDefOf(cur_struct_def, def) then
+              real_def := cur_struct_def;
+          end
         else
           tag:=DW_TAG_variable;
 
@@ -2656,7 +2693,7 @@ implementation
           that).  }
         if (vo_is_self in sym.varoptions) then
           append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(real_def));
 {$ifdef i8086}
         if has_segment_sym_name then
           append_seg_name(segment_sym_name)
@@ -4006,7 +4043,11 @@ implementation
         { don't write procdefs of externally defined classes, gcc doesn't
           either (info is probably gotten from ObjC runtime)  }
         if not(oo_is_external in def.objectoptions) then
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+          begin
+            cur_struct_def := tabstractrecorddef(def);
+            write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+            cur_struct_def := nil;
+          end;
         if not is_objc_class_or_protocol(def) then
           finish_children;
       end;
