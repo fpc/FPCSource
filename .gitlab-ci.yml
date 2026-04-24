@@ -40,13 +40,13 @@ stages:
   stage: build compiler
   script:
     - cd compiler
-    - make fullcycle -j $AVAILABLE_CPU_CORES "OPT=-Oodfa"
+    - make fullcycle -j $AVAILABLE_CPU_CORES
 
 # Templates for creating installation
 .creating_full_x86_64_installation: &creating_full_x86_64_installation
   stage: build
   script:
-    - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T $AVAILABLE_CPU_CORES" "OPT=-Oodfa"
+    - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
   artifacts:
     when: on_success
     expire_in: 5 days
