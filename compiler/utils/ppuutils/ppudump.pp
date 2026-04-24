@@ -4601,6 +4601,7 @@ begin
                begin
                  writeln([space,'       FieldAlign : ',shortint(getbyte)]);
                  writeln([space,'      RecordAlign : ',shortint(getbyte)]);
+                 writeln([space,'  ExplRecordAlign : ',shortint(getbyte)]);
                  writeln([space,'         PadAlign : ',shortint(getbyte)]);
                  writeln([space,'UseFieldAlignment : ',shortint(getbyte)]);
                  writeln([space,'   RecordAlignMin : ',shortint(getbyte)]);
