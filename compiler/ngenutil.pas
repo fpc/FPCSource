@@ -807,7 +807,7 @@ implementation
   function tnodeutils.check_insert_trashing(pd: tprocdef): boolean;
     begin
       result:=
-        (localvartrashing<>-1) and
+        (compiler.globals.localvartrashing<>-1) and
         not(po_assembler in pd.procoptions);
     end;
 
@@ -838,7 +838,7 @@ implementation
     begin
       if trashable_sym(p) then
         begin
-          trashintval:=trashintvalues[localvartrashing];
+          trashintval:=trashintvalues[compiler.globals.localvartrashing];
           if (p.vardef.typ=procvardef) and
              ([m_tp_procvar,m_mac_procvar]*compiler.globals.current_settings.modeswitches<>[]) then
             begin

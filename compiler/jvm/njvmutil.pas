@@ -326,7 +326,7 @@ implementation
     begin
       { initialise locals with 0 }
       if ts_init_locals in compiler.globals.current_settings.targetswitches then
-        localvartrashing:=high(trashintvalues);
+        compiler.globals.localvartrashing:=high(trashintvalues);
       result:=inherited;
     end;
 
@@ -347,7 +347,7 @@ implementation
       trashable: boolean;
     begin
       trashable:=trashable_sym(p);
-      trashintval:=trashintvalues[localvartrashing];
+      trashintval:=trashintvalues[compiler.globals.localvartrashing];
       { widechar is a separate type in the JVM, can't cast left hand to integer
         like in common code }
       if trashable and

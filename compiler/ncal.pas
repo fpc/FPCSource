@@ -5295,7 +5295,7 @@ implementation
               tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
 
-            if localvartrashing <> -1 then
+            if compiler.globals.localvartrashing <> -1 then
               compiler.nodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),compiler.ctemprefnode(tempnode));
 
             addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));

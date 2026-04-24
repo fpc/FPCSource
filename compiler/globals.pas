@@ -119,10 +119,6 @@ interface
        CP_UTF16BE = 1201;
        CP_NONE  = 65535;
 
-    var
-       { by default no local variable trashing }
-       localvartrashing: longint = -1;
-
     const
        nroftrashvalues = 4;
        trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
@@ -826,6 +822,7 @@ Const
         FRCCompiler: string;
         FRCForceFPCRes: boolean;
         FAllowedFilenameTransFormations: tfilenametransformations;
+        Flocalvartrashing: longint;
       public
         {# Routine to get the required alignment for size of data, which will
            be placed in bss segment, according to the current alignment requirements }
@@ -1030,6 +1027,7 @@ Const
         property RCForceFPCRes: boolean read FRCForceFPCRes;
 
         property AllowedFilenameTransFormations: tfilenametransformations read FAllowedFilenameTransFormations;
+        property localvartrashing: longint read Flocalvartrashing;
       end;
 
       { TCompilerGlobals }
@@ -1177,6 +1175,7 @@ Const
         property RCCompiler: string read FRCCompiler write FRCCompiler;
         property RCForceFPCRes: boolean read FRCForceFPCRes write FRCForceFPCRes;
         property AllowedFilenameTransFormations: tfilenametransformations read FAllowedFilenameTransFormations write FAllowedFilenameTransFormations;
+        property localvartrashing: longint read Flocalvartrashing write Flocalvartrashing;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -2237,6 +2236,9 @@ implementation
         Fcurrent_settings:=TMutableSettings.Create;
 
         get_exepath;
+
+        { by default no local variable trashing }
+        localvartrashing:=-1;
 
         { reset globals }
         do_build:=false;

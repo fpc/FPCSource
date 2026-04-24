@@ -3294,7 +3294,7 @@ begin
      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_use_heaptrc,cs_use_lineinfo];
      compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_checkpointer];
      paratargetdbg:=dbg_none;
-     localvartrashing := -1;
+     compiler.globals.localvartrashing := -1;
    end
   else
    begin
@@ -3372,9 +3372,9 @@ begin
         't' :
           begin
             if UnsetBool(More, j, opt, false) then
-               localvartrashing := -1
+               compiler.globals.localvartrashing := -1
             else
-              localvartrashing := (localvartrashing + 1) mod nroftrashvalues;
+              compiler.globals.localvartrashing := (compiler.globals.localvartrashing + 1) mod nroftrashvalues;
           end;
         'v' :
           begin
