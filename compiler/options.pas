@@ -3245,7 +3245,7 @@ begin
       compiler.globals.ResCompiler:=More;
     't' :
       begin
-        AllowedFilenameTransFormations:=[ftNone,ftLowerCase];
+        compiler.globals.AllowedFilenameTransFormations:=[ftNone,ftLowerCase];
         compiler.verbose.Message(general_i_reduced_filesearch);
       end;
     'u' :

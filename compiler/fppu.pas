@@ -482,7 +482,7 @@ var
       begin
         found:=search_unit(loaded_from,onlysource,false);
         if (found=[]) and
-           (ft83 in AllowedFilenameTransFormations) and
+           (ft83 in compiler.globals.AllowedFilenameTransFormations) and
            (length(modulename^)>8) then
            found:=search_unit(loaded_from,onlysource,true);
         search_unit_files:=found;

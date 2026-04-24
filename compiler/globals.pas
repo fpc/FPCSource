@@ -825,6 +825,7 @@ Const
         FResCompiler: string;
         FRCCompiler: string;
         FRCForceFPCRes: boolean;
+        FAllowedFilenameTransFormations: tfilenametransformations;
       public
         {# Routine to get the required alignment for size of data, which will
            be placed in bss segment, according to the current alignment requirements }
@@ -1027,6 +1028,8 @@ Const
         property ResCompiler: string read FResCompiler;
         property RCCompiler: string read FRCCompiler;
         property RCForceFPCRes: boolean read FRCForceFPCRes;
+
+        property AllowedFilenameTransFormations: tfilenametransformations read FAllowedFilenameTransFormations;
       end;
 
       { TCompilerGlobals }
@@ -1173,6 +1176,7 @@ Const
         property ResCompiler: string read FResCompiler write FResCompiler;
         property RCCompiler: string read FRCCompiler write FRCCompiler;
         property RCForceFPCRes: boolean read FRCForceFPCRes write FRCForceFPCRes;
+        property AllowedFilenameTransFormations: tfilenametransformations read FAllowedFilenameTransFormations write FAllowedFilenameTransFormations;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -1202,9 +1206,6 @@ Const
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
-
-  var
-    AllowedFilenameTransFormations : tfilenametransformations = AllTransformations;
 
 
 implementation
@@ -2242,6 +2243,7 @@ implementation
         do_release:=false;
         do_make:=true;
         global_unit_count:=0;
+        FAllowedFilenameTransFormations:=AllTransformations;
 
         { Output }
         OutputFileName:='';
