@@ -36,17 +36,17 @@ variables:
 # Alpine Linux builds
 .alpine_linux: &alpine_linux_configuration
   <<: *linux-parallel
-  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-minimal
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-alpine-3.23-minimal
 
 # Debian builds
 .debian_linux: &debian_linux_configuration
   <<: *linux-parallel
-  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-buster-full
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-bullseye-full
 
 # Ubuntu builds
 .ubuntu_linux: &ubuntu_linux_configuration
   <<: *linux-parallel
-  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-focal-full
+  image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-jammy-full
 
 
 # ----------------------------
