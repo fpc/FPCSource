@@ -1,8 +1,8 @@
 spec:
   inputs:
-    REQUIRED_FPC_COMPILER_VERSION:
-      description: "FPC version that should be used for compiling"
-      default: "3.2.2"
+    use_fpc_version:
+      description: 'FPC version that should be used for compiling'
+      default: '3.2.2'
 ---
 
 
@@ -28,6 +28,10 @@ stages:
         RUNNER_TAG: saas-linux-small-arm64
   tags:
     - $RUNNER_TAG
+
+# allows to use inputs in image field
+variables:
+  REQUIRED_FPC_COMPILER_VERSION: $[[ inputs.use_fpc_version ]]
 
 # Alpine Linux builds
 .alpine_linux: &alpine_linux_configuration
