@@ -8,7 +8,7 @@ uses
   fcl.eventlog,
   {$else}
   typinfo,
-  fcl.eventlog,
+  eventlog,
   {$endif}
   ptop.config,
   ptop.strutils
