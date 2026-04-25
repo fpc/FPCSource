@@ -32,7 +32,9 @@ Uses
   custapp,
   bufstream,
   {$endif}
-  ptopu
+  ptop.beautifier,
+  ptop.types,
+  ptop.config
   ;
 
 ResourceString
@@ -87,17 +89,17 @@ Var S : TFileStream;
 begin
   S := TFileStream.Create(ConfigFile,fmCreate);
   Try
-    GenerateCfgFile(S);
+    GenerateNewConfig(S);
   Finally
     S.Free;
   end;
 end;
 
 Procedure TPToP.ProcessOpts;
-
 Var
   S : String;
   F : TStringDynArray;
+
 begin
   { Set defaults }
   Infilename:='';

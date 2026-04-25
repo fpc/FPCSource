@@ -1,68 +1,36 @@
-{$I ptopuh.inc}
+{$I ptop.beautifier.inc}
 
 Implementation
 
 uses
   {$ifdef FPC_DOTTEDUNITS}
-  system.typinfo
+  system.typinfo,
+  fcl.eventlog,
   {$else}
-  typinfo
+  typinfo,
+  fcl.eventlog,
   {$endif}
+  ptop.config,
+  ptop.strutils
   ;
 
-Const
-  Blank = ' ';
-
+resourcestring
+  E_UNKNOWN_KEYWORD = 'Unknown config keyword on line %d : %s';
+  E_CONFIG_FILE     = 'Error reading config file on line %d';
+  E_UNKNOWN_INDENT  = 'Unknown indent %s on line %d: %s';
+  S_PROCESSED_CFG   = 'Processed config file: read %d lines';
+  S_PRETTY_PRINTED  = 'Read %d lines of input, %d lines written.';
 
 VAR
-  sets : tableptr;
-  dblch   : dblcharset;
-
-CONST
-  Keyword : KeywordTable =
-     ('END', 'BEGIN', 'IF', 'THEN',
-      'ELSE', 'PROCEDURE', 'VAR', 'OF',
-      'WHILE', 'DO', 'CASE', 'WITH',
-      'FOR', 'REPEAT', 'UNTIL', 'FUNCTION',
-      'LABEL', 'CONST', 'TYPE', 'RECORD',
-      'STRING', 'PROGRAM',
-      'ASM','TRY','FINALLY','EXCEPT','RAISE','CLASS','OBJECT',
-      'CONSTRUCTOR','DESTRUCTOR','INHERITED','PROPERTY',
-      'PRIVATE','PUBLIC','PROTECTED','PUBLISHED',
-      'INITIALIZATION','FINALIZATION',
-      'INLINE','LIBRARY','INTERFACE','IMPLEMENTATION',
-      'READ','WRITE','UNIT',
-      {keywords not used for formatting }
-      'AND', 'ARRAY', 'DIV', 'DOWNTO',
-      'FILE', 'GOTO', 'IN', 'MOD',
-      'NOT', 'NIL', 'OR', 'SET','TO','VIRTUAL','USES'
-     );
-
-  DblChar : DblCharTable =
-    ( ':=', '<>', '<=', '>=', '+=', '-=', '/=', '*=', '**', '//', '(*', '*)' );
-
-  SglChar : SglCharTable =
-    ('{', '}', ';', ':', '=', '(', ')', '.' );
-
-var
-  OptionTypInfo : PTypeInfo;
-  EntryTableTypInfo : PTypeInfo;
-
-{ ---------------------------------------------------------------------
-    General functions, not part of the object.
-  ---------------------------------------------------------------------}
-
-{$I utils.pp}
-
-{ ---------------------------------------------------------------------
-    TPrettyPrinter object
-  ---------------------------------------------------------------------}
+  sets   : tableptr;
+  dblch  : dblcharset;
+  logger : TEventLog;
 
 Procedure TPrettyPrinter.Verbose (Const Msg : String);
 
 begin
   If (FVerbose) then
-    writeln(Msg);
+    logger.Log(Msg);
 end;
 
 { Read the next character and classify it }
@@ -550,174 +518,6 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
 {$endif debug}
   END; { of Gobble }
 
-
-
-Function TPrettyPrinter.ReadConfigFile : Boolean;
-
-Type
-  TLineType = (ltNormal,ltIndent,ltGobble);
-
-Var
-  I,J : Longint;
-
-  Procedure SetOption(TheKey : KeySymbol;Var OptionList : String);
-
-  Var TheOpt  : Options;
-      Found : Boolean;
-      K : longint;
-      opt : string;
-      TS : TTokenScope;
-
-  begin
-    Repeat
-      K:=pos(',',optionlist);
-      If k>0 then
-        begin
-        opt:=Copy(OptionList,1,k-1);
-        strip(opt);
-        Delete(OptionList,1,k);
-        end
-      else
-        opt:=OptionList;
-
-      If Length(Opt)>0 then
-        begin
-        Found := GetEnumValue(OptionTypInfo,opt) <> -1;
-        If not found then
-          Verbose ('Unknown option on line '+inttostr(i)+': '+Opt)
-        else
-          For TS:=Low(TTokenScope) to High(TTokenScope) do
-            Option[TS,TheKey]^.Selected:=Option[TS,TheKey]^.Selected+[TheOpt];
-        end;
-    until k=0;
-  end;
-
-  Function GetKeySimList(Const aType : String; Var OptionList : String) : keysymset;
-
-  Var
-      TheIndent : Keysymbol;
-      Found : Boolean;
-      K : longint;
-      opt : string;
-
-  begin
-    Result:=[];
-    Repeat
-      K:=pos(',',optionlist);
-      If k>0 then
-        begin
-        opt:=Copy(OptionList,1,k-1);
-        strip(opt);
-        Delete(OptionList,1,k);
-        end
-      else
-        opt:=OptionList;
-      If Length(Opt)>0 then
-        begin
-        Found:=GetEnumValue(EntryTableTypInfo,opt)<>-1;
-        If not found then
-          begin
-          Verbose (Format(E_UNKNOWN_INDENT, [aType, i, Opt]));
-          exit;
-          end;
-        Include(Result,Theindent);
-        end;
-    until k=0;
-  end;
-
-  Procedure SetIndent(TheKey : KeySymbol; Var OptionList : String);
-
-  Var
-    TS : TTokenScope;
-    Syms : KeySymSet;
-
-  begin
-    Syms:=GetKeySimList('indent',OptionList);
-    For TS:=Low(TTokenScope) to High(TTokenScope) do
-      With Option[TS,TheKey]^ do
-         dindsym:=dindsym+Syms;
-  end;
-
-  Procedure SetGobble(TheKey : KeySymbol; Var OptionList : String);
-
-  Var
-    TS : TTokenScope;
-    Syms : KeySymSet;
-
-  begin
-    Syms:=GetKeySimList('gobble',OptionList);
-    For TS:=Low(TTokenScope) to High(TTokenScope) do
-      With Option[TS,TheKey]^ do
-         Terminators:=Terminators+Syms;
-  end;
-
-  Function CheckLineType (var Name : String) : TLineType;
-
-  begin
-    If (Name[1]='[') and (Name[Length(Name)]=']') then
-     begin
-     Name:=Copy(Name,2,Length(Name)-2);
-     Result:=ltIndent
-     end
-   else If (Name[1]='<') and (Name[Length(Name)]='>') then
-     begin
-     Name:=Copy(Name,2,Length(Name)-2);
-     Result:=ltgobble
-     end
-   else
-     Result:=ltNormal;
-  end;
-
-Var
-  TheKey : KeySymbol;
-  Found : Boolean;
-  Line, Name : String;
-  L : TStringList;
-  LT : TLineType;
-
-begin
-  ReadConfigFile:=false;
-  L:=TStringList.Create;
-  Try
-    L.LoadFromStream(CfgS);
-    For I:=1 to L.Count do
-      begin
-      Line:=L[i-1];
-      { Strip comment }
-      If pos('#',Line)<>0 then
-        Line:=Copy(Line,1,Pos('#',Line)-1);
-      If length(Line)<>0 then
-        begin
-        J:=Pos('=',Line);
-        If J=0 then
-          verbose (Format(E_CONFIG_FILE,[I]))
-        else
-          begin
-          Line:=LowerCase(Line);
-          Name:=Copy(Line,1,j-1);
-          Delete(Line,1,J);
-          { indents or options ? }
-          LT:=CheckLineType(Name);
-          Strip(Name);
-          found:=GetEnumValue(EntryTableTypInfo,Name)<>-1;
-          If not found then
-            Verbose (Format(E_UNKNOWN_KEYWORD, [I,Name]))
-          else
-            Case LT of
-             ltIndent: SetIndent(TheKey,Line);
-             ltNormal: SetOption(TheKey,Line);
-             ltGobble: SetGobble(TheKey,Line);
-            end;
-          end;
-        end;
-      end;
-  Finally
-    L.Free;
-  end;
-  Verbose (Format(S_PROCESSED_CFG, [I]));
-  ReadConfigFile:=true;
-end;
-
 Function TPrettyPrinter.PrettyPrint : Boolean;
 
 Begin
@@ -726,11 +526,11 @@ Begin
     exit;
   If Not Assigned(CfgS) then
     begin
-    SetDefaults(Option);
+    SetDefaultConfigs(Option);
     SetDefaultIndents(Option);
     end
   else
-    ReadConfigFile;
+    ReadConfigFrom(CfgS, Option);
   { Initialize variables }
   top := 0;
   currlinepos := 0;
@@ -785,8 +585,8 @@ Constructor TPrettyPrinter.Create;
 Begin
   Indent:=DefIndent;
   LineSize:=DefLineSize;
-  CreateOptions (Option);
-  SetTerminators(Option);
+  CreateOptionsTable(Option);
+  SetKeywordTerminators(Option);
   InS:=Nil;
   OutS:=Nil;
   CfgS:=Nil;
@@ -796,6 +596,9 @@ initialization
   dblch := [becomes, notequal, lessorequal, greaterorequal,
             plusequals, minusequals, divideequals, timesequals, exponential,
             opencomment];
-  OptionTypInfo := TypeInfo(Options);
-  EntryTableTypInfo := TypeInfo(KeySymbol);
+  logger := TEventLog.Create(nil);
+  logger.AppendContent := true;
+  logger.LogType := ltStdOut;
+finalization
+  logger.free;
 end.

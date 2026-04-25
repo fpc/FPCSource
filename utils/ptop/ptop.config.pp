@@ -1,59 +1,43 @@
-Procedure Strip (Var S : String);
+unit ptop.config;
 
-Const WhiteSpace = [#32, #9, #10, #13];
+{$modeswitch out}
+{$modeswitch result}
+{$modeswitch exceptions}
+{$h+}
 
-Var I,J : Longint;
+interface
 
-begin
-  If length(s)=0 then exit;
-  I:=1;
-  While (S[I] in whitespace) and (I<Length(S)) do inc(i);
-  J:=length(S);
-  While (S[J] in whitespace) and (J>1) do dec(j);
-  If I<=J then
-    S:=Copy(S,i,j-i+1)
-  else
-    S:='';
-end;
+uses
+    {$ifdef FPC_DOTTEDUNITS}
+    system.classes,
+    {$else}
+    classes,
+    {$endif}
+    ptop.types
+    ;
 
-Procedure ClassID(Value: Token;
-                  lngth: INTEGER;
-                  VAR idtype: keysymbol;
-                  VAR IsKeyWord: BOOLEAN);
-  { Classify an identifier.  We are only interested
-    in it if it is a keyword, so we use the hash table. }
-  VAR
-    Keyvalue: String[MAXKEYLENGTH];
-    Sym : keysymbol;
+{ To create options and defaults }
+procedure CreateOptionsTable(out Option: OptionTable);
+procedure SetKeywordTerminators(var Option: OptionTable);
+procedure SetDefaultIndents(var Option: OptionTable);
+Procedure SetDefaultConfigs(var Option : OptionTable);
 
-  BEGIN
-    IF lngth > MAXKEYLENGTH THEN BEGIN
-      idtype := othersym;
-      IsKeyWord := FALSE
-    END
-    ELSE
-      BEGIN
-      IsKeyWord := FALSE;
-      KeyValue:= UpperCase(Value);
-      sym:=endsym;
-      While (Not IsKeyword) and (sym<=lastformatsym) DO
-         begin
-         iskeyword:=(KeyValue=Keyword[sym]);
-         if not iskeyword then
-           Sym:=Succ(sym);
-         end;
-      if IsKeyWord then
-        idtype:=sym
-      ELSE
-        idtype := othersym;
-      END
-  END; { of ClassID }
+{ To read an existing file or to generate a new file }
+function ReadConfigFrom(S: TStream; var Option: OptionTable): boolean;
+procedure GenerateNewConfig(S: TStream);
 
-{ ---------------------------------------------------------------------
-    Functions to create options and set defaults.
-  ---------------------------------------------------------------------}
+implementation
 
-Procedure CreateOptions (Out Option : OptionTable);
+uses
+  {$ifdef FPC_DOTTEDUNITS}
+  system.typinfo,
+  {$else}
+  typinfo,
+  {$endif}
+  ptop.strutils
+  ;
+
+Procedure CreateOptionsTable(Out Option : OptionTable);
 
 Var Sym : KeySymbol;
     T : TTokenScope;
@@ -69,7 +53,7 @@ begin
       END;
 end;
 
-Procedure SetTerminators(Var Option : OptionTable);
+Procedure SetKeywordTerminators(Var Option : OptionTable);
 
 Var
   T : TTokenScope;
@@ -96,7 +80,7 @@ Var
   T : TTokenScope;
 
 begin
-  For T:=Low(TTokenScope) to High(TTokenScope) do
+  For T := Low(TTokenScope) to High(TTokenScope) do
     begin
     option[t,recordsym]^.dindsym    := [endsym];
     option[t,funcsym]^.dindsym      := [labelsym, constsym, typesym, varsym];
@@ -110,24 +94,21 @@ begin
     option[t,protectedsym]^.dindsym := [endsym,protectedsym,privatesym,publicsym,publishedsym];
     option[t,publishedsym]^.dindsym := [endsym,protectedsym,privatesym,publicsym,publishedsym];
     option[t,finallysym]^.dindsym   := [trysym];
-    option[t,exceptsym]^.dindsym   := [trysym];
+    option[t,exceptsym]^.dindsym    := [trysym];
     option[t,elsesym]^.dindsym      := [ifsym, thensym, elsesym];
-    option[t,untilsym]^.dindsym     := [ifsym, thensym, elsesym, forsym, whilesym,
-                                      withsym, colon, equals];
+    option[t,untilsym]^.dindsym     := [ifsym, thensym, elsesym, forsym, whilesym, withsym, colon, equals];
     option[t,endsym]^.dindsym       := [ifsym, thensym, elsesym, forsym, whilesym,
-                                      withsym, casevarsym, colon, equals, recordsym,
-                                      trysym,classsym,objectsym,protectedsym,privatesym,
-                                      publicsym,publishedsym,finallysym,exceptsym];
+                                        withsym, casevarsym, colon, equals, recordsym,
+                                        trysym,classsym,objectsym,protectedsym,privatesym,
+                                        publicsym,publishedsym,finallysym,exceptsym];
     option[t,semicolon]^.dindsym    := [ifsym, thensym, elsesym, forsym,
-                                      whilesym, withsym, colon, equals];
+                                        whilesym, withsym, colon, equals];
     option[t,implementationsym]^.dindsym    := [labelsym, varsym, typesym, constsym,
                                       endsym,propertysym];
     end;
 end;
 
-Procedure SetDefaults (Var Option : OptionTable);
-
-{ Sets default values for the formatting rules. }
+Procedure SetDefaultConfigs(Var Option : OptionTable);
 
 Var
   T : TTokenScope;
@@ -171,7 +152,7 @@ begin
     option[t,elsesym]^.selected         := [capital,crbefore, dindonkey, inbytab];
     option[t,endsym]^.selected          := [capital,crbefore, crafter,dindonkey,dindent];
     option[t,untilsym]^.selected        := [capital,crbefore, dindonkey, dindent, spaft,
-                                          gobsym, crafter];
+                                            gobsym, crafter];
     option[t,becomes]^.selected         := [capital,spbef, spaft, gobsym];
     option[t,Delphicomment]^.Selected   := [crafter];
     option[t,opencomment]^.selected     := [capital,crsupp];
@@ -186,96 +167,19 @@ begin
   option[tsInterface,procsym]^.selected         := [capital, dindonkey, spaft];
 end;
 
-{ ---------------------------------------------------------------------
-    Stream handling routines
-  ---------------------------------------------------------------------}
-{$push}{$warn 5036 off} // C seems to be not initialized
-
-Function ReadChar (S : TStream) : Char;
-Var C : Char;
-
-begin
-  repeat
-    if S.Position=S.Size then
-      C:=#0
-    else
-      S.Read(C,1);
-  Until (C<>#13);
-  ReadChar:=C;
-end;
-
-Function EoSLn (S : TStream) : Char;
-
-Const WhiteSpace = [' ', #9, #13 ];
-
-Var C : Char;
-
-begin
-  Repeat
-    if S.Position = S.Size then
-      C:=#0
-    else
-      S.Read(C,1);
-  Until (Not (C in WhiteSpace)) or ((C=#10));
-  EoSln:=C;
-end;
-
-{$pop} // warning code 5036
-
-Function ReadString (S: TStream): String;
-
-Var
-  I : Byte;
-  Count : Integer;
-
-begin
-  Result:='';
-  I:=0;
-  Repeat
-    If ((I+1)>Length(Result)) then
-      SetLength(Result,Length(Result)+255);
-    Count:=S.Read(Result[I+1],1);
-    If Count>0 then
-      Inc(I);
-  until (Result[I]=#10) or (Count=0);
-  If Result[i]=#10 Then Dec(I);
-  If Result[I]=#13 then Dec(I);
-  SetLength(Result,I);
-end;
-
-Procedure WriteString (S : TStream; ST : String); inline;
-begin
-  S.Write(St[1],length(St));
-end;
-
-Procedure WriteAnsiString (S : TStream; ST : AnsiString); inline;
-begin
-  S.Write(St[1],length(St));
-end;
-
-Procedure WriteCR (S: TStream); inline;
-begin
-  WriteString(S,LineEnding);
-end;
-
-Procedure WriteLnString (S : TStream; ST : String); inline;
-begin
-  WriteString(S,ST);
-  WriteCR(S);
-end;
-
-Procedure GenerateCfgFile(S : TStream);
-
+Procedure GenerateNewConfig(S : TStream);
 Var TheKey,TheIndent : KeySymbol;
     TheOpt : Options;
     Written : Boolean;
     Option : OptionTable;
 
 begin
-  CreateOptions(option);
-  SetDefaults(option);
+  CreateOptionsTable(option);
+  SetDefaultConfigs(option);
   SetDefaultIndents(option);
-  For TheKey:=Firstkey to lastkey do
+  SetKeywordTerminators(option);
+
+  For TheKey := Firstkey to Lastkey do
     begin
     { Write options }
     WriteString (S, GetEnumName(EntryTableTypInfo, Ord(TheKey))+'=');
@@ -309,15 +213,178 @@ begin
     end;
 end;
 
-Function trimMiddle ( a:ansistring; lnght: integer; size: integer):string;
-var
-    half:Integer;
+Function ReadConfigFrom(S: TStream; var Option: OptionTable) : Boolean;
+Type TLineType = (ltNormal,ltIndent,ltGobble);
+
+Var
+  TheKey : KeySymbol;
+  Found : Boolean;
+  L : TStringList;
+  LT : TLineType;
+  Name, Value: string;
+  I : Longint;
+
+  Procedure SetOption(TheKey : KeySymbol; Var OptionList : String);
+  Var TheOpt  : Options;
+      Found : Boolean;
+      K : longint;
+      opt : string;
+      TS : TTokenScope;
+
+  begin
+    Repeat
+      K:=pos(',',optionlist);
+      If k>0 then
+        begin
+        opt:=Copy(OptionList,1,k-1);
+        strip(opt);
+        Delete(OptionList,1,k);
+        end
+      else
+        opt:=OptionList;
+
+      If Length(Opt)>0 then
+        begin
+        Found := GetEnumValue(OptionTypInfo,opt) <> -1;
+        If not found then
+          LogWithLocation(i + 1,
+            length(L.Names[i]) + 1 + length(L.Values[L.Names[i]]),
+            'Unknown option on line: '+Opt,
+            L.Strings[i])
+        else
+          For TS:=Low(TTokenScope) to High(TTokenScope) do
+            Option[TS,TheKey]^.Selected:=Option[TS,TheKey]^.Selected+[TheOpt];
+        end;
+    until k=0;
+  end;
+
+  Function GetKeySimList(Const aType : String; Var OptionList : String) : keysymset;
+
+  Var
+      TheIndent : Keysymbol;
+      Found : Boolean;
+      K : longint;
+      opt : string;
+
+  begin
+    Result:=[];
+    Repeat
+      K:=pos(',',optionlist);
+      If k>0 then
+        begin
+        opt:=Copy(OptionList,1,k-1);
+        strip(opt);
+        Delete(OptionList,1,k);
+        end
+      else
+        opt:=OptionList;
+      If Length(Opt)>0 then
+        begin
+        Found:=GetEnumValue(EntryTableTypInfo,opt)<>-1;
+        If not found then
+          begin
+        //   Verbose (Format(E_UNKNOWN_INDENT, [aType, i, Opt]));
+          exit;
+          end;
+        Include(Result,Theindent);
+        end;
+    until k=0;
+  end;
+
+  Procedure SetIndent(TheKey : KeySymbol; Var OptionList : String);
+  Var
+    TS : TTokenScope;
+    Syms : KeySymSet;
+  begin
+    Syms:=GetKeySimList('indent',OptionList);
+    For TS:=Low(TTokenScope) to High(TTokenScope) do
+      With Option[TS,TheKey]^ do
+         dindsym:=dindsym+Syms;
+  end;
+
+  Procedure SetGobble(TheKey : KeySymbol; Var OptionList : String);
+
+  Var
+    TS : TTokenScope;
+    Syms : KeySymSet;
+
+  begin
+    Syms:=GetKeySimList('gobble',OptionList);
+    For TS:=Low(TTokenScope) to High(TTokenScope) do
+      With Option[TS,TheKey]^ do
+         Terminators:=Terminators+Syms;
+  end;
+
+  Function CheckLineType (var Name : String) : TLineType;
+
+  begin
+    If (Name[1]='[') and (Name[Length(Name)]=']') then
+     begin
+     Name:=Copy(Name,2,Length(Name)-2);
+     Result:=ltIndent
+     end
+   else If (Name[1]='<') and (Name[Length(Name)]='>') then
+     begin
+     Name:=Copy(Name,2,Length(Name)-2);
+     Result:=ltgobble
+     end
+   else
+     Result:=ltNormal;
+  end;
+
 begin
-    if lnght > size then
+  Result := false;
+  L := TStringList.Create;
+  Try
+    L.LoadFromStream(S);
+    For I := 0 to L.Count - 1 do
     begin
-      half := (size - 3) div 2;
-      trimMiddle := copy(a,1,half) + '...' + copy(a,lnght-half+1,half);
-    end
-    else
-      trimMiddle := a;
+      if L.Strings[I][1] = '#' then continue;
+
+      Name := LowerCase(L.Names[i]);
+      Value := LowerCase(L.Values[Name]);
+
+      { Strip comments }
+      If pos('#', Name) <> 0 then
+        Name := Copy(Name, 1, Pos('#', Name) - 1);
+      
+      If pos('#', Value) <> 0 then
+        Value := Copy(Value, 1, Pos('#', Value) - 1);
+      
+      If (Length(Name) = 0) and (Length(Value) = 0) then
+        continue
+      Else if Length(Name) = 0 then
+      begin
+        LogWithLocation(I + 1, 1, 'No keyword specified', L.Strings[i]);
+        continue;
+      end
+      Else if Length(Value) = 0 then
+      begin
+        LogWithLocation(I + 1, Length(Name) + 1, 'No value specified for ' + Name + '. Skipping.', L.Strings[i]);
+        continue;
+      end;
+
+      Strip(Name);
+      Strip(Value);
+      LT := CheckLineType(Name);
+      Found := GetEnumValue(EntryTableTypInfo, Name) <> -1;
+
+      If not found then
+        continue
+        // Verbose (Format(E_UNKNOWN_KEYWORD, [I,Name]))
+      else
+        Case LT of
+          ltIndent: SetIndent(TheKey, Value);
+          ltNormal: SetOption(TheKey, Value);
+          ltGobble: SetGobble(TheKey, Value);
+        end;
+      end;
+  Finally
+    L.Free;
+  end;
+
+//   Verbose (Format(S_PROCESSED_CFG, [I]));
+  Result:=true;
 end;
+
+end.

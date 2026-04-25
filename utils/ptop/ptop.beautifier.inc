@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
 
-Unit PtoPu;
+Unit PtoP.Beautifier;
 {$mode objfpc}
 {$h+}
 
@@ -33,6 +33,12 @@ Unit PtoPu;
   - Object oriented
   - Uses streams
   - Run-time customizable.
+
+  In 2026, this unit has been renamed from PtopU to Ptop.Beautifier.
+  Changes are made by Le Bao Nguyen, and they are:
+  - Code split (to ptop.strutils, ptop.types and ptop.config)
+  - Make more use of RTL and FCL types, functions and properties
+  - Dotted unit compatibility.
 }
 
 Interface
@@ -40,110 +46,17 @@ Interface
 uses
   {$ifdef FPC_DOTTEDUNITS}
   System.Classes,
-  System.Sysutils
+  System.Sysutils,
   {$else}
   Classes,
-  Sysutils
+  Sysutils,
   {$endif}
+  ptop.types
   ;
 
-Const
-
-  MAXSYMBOLSIZE = 65500;
-  MAXSHOWSIZE = 40;
-  MAXSTACKSIZE = 100;
-  MAXKEYLENGTH = 15;     { The longest keywords are IMPLEMENTATION and INITIALIZATION }
-  DEFLINESIZE = 100;
-  DEFINDENT = 2;
-
-TYPE
-  Token    = AnsiString;
-  FileName = STRING;
-
-  TTokenScope = (tsInterface,tsImplementation);
-
-  { Keysymbols }
-  { If you add keysyms, adjust the definition of lastkey }
-  keysymbol =  { keywords }
-              (endsym,beginsym,ifsym,thensym,elsesym,procsym,varsym,ofsym,
-               whilesym,dosym,casesym,withsym,forsym,repeatsym,untilsym,
-               funcsym,labelsym,constsym,typesym,recordsym,stringsym,progsym,
-               { TP and Delphi keywords}
-               asmsym, trysym, finallysym,exceptsym,raisesym,classsym,objectsym,
-               constructorsym,destructorsym,inheritedsym,propertysym,
-               privatesym,publicsym,protectedsym,publishedsym,
-               initializationsym,finalizationsym,
-               inlinesym,librarysym,interfacesym,implementationsym,
-               readsym,writesym,unitsym,
-               { Not used for formatting }
-               andsym,arrsym,divsym,downsym,filesym,gotosym,insym,modsym,
-               notsym,nilsym,orsym,setsym,tosym,virtualsym,usessym,
-               casevarsym,ofobjectsym,
-               { other symbols }
-               becomes,notequal,lessorequal,greaterorequal,
-               plusequals, minusequals, divideequals, timesequals, exponential,
-               delphicomment,dopencomment,dclosecomment,opencomment,closecomment,semicolon,colon,equals,
-               openparen,closeparen,period,endoffile,othersym);
-
-  { Formatting options }
-  { If you add options, adjust the definition of lastopt }
-  options = (crsupp,crbefore,blinbefore,
-             dindonkey,dindent,spbef,
-             spaft,gobsym,inbytab,inbyindent,crafter,upper,lower,capital);
-
-  optionset = SET OF options;
-  keysymset = SET OF keysymbol;
-
-  tableentry = RECORD
-                 selected : optionset;
-                 dindsym : keysymset;
-                 terminators : keysymset
-               END;
-
-  { Character identification }
-
-  charname = (letter,digit,space,quote,endofline,
-              filemark,otherchar);
-
-  charinfo = RECORD
-               name : charname;
-               Value : CHAR
-             END;
-
-  symbol = RECORD
-             name : keysymbol;
-             Value : Token;
-             IsKeyWord : BOOLEAN;
-             length, spacesbefore, crsbefore : INTEGER;
-           END;
-
-  symbolinfo = ^ symbol;
-
-  stackentry = RECORD
-                 indentsymbol : keysymbol;
-                 prevmargin : INTEGER;
-               END;
-
-  symbolstack = ARRAY [1..MAXSTACKSIZE] OF stackentry;
-
-Const FirstOpt = crsupp;
-      LastOpt = capital; { Adjust this if you add options }
-      FirstKey = endsym;
-      LastKey = othersym; { Adjust this if you add options }
-      LastFormatsym = usessym;
-
-Type
-  TablePtr = ^tableentry;
-  OptionTable = ARRAY [Ttokenscope,keysymbol] OF tableptr;
-  KeywordTable = ARRAY [endsym..lastFormatsym] OF String[MAXKEYLENGTH];
-  SpecialChar = ARRAY [1..2] OF CHAR;
-  dblcharset = SET OF endsym..othersym;
-  DblCharTable = ARRAY [becomes..dclosecomment] OF SpecialChar;
-  SglCharTable = ARRAY [opencomment..period] OF CHAR;
-
+type
   { TPrettyPrinter }
-
-  TPrettyPrinter=Class(TObject)
+  TPrettyPrinter = Class(TObject)
   Private
     FTokenScope: TTokenScope;
 {$ifdef debug}
@@ -197,7 +110,6 @@ Type
     Procedure Gobble(terminators: keysymset);
     Procedure RShift(currmsym: keysymbol);
     Procedure RShiftIndent{$ifdef debug}(currmsym: keysymbol){$endif debug};
-    Function ReadConfigFile: Boolean;
   Public
     Constructor Create;
     Function PrettyPrint : Boolean;
@@ -209,12 +121,3 @@ Type
     Property Config : Tstream Read cfgS Write cfgs;
     Property CurrentScope : TTokenScope Read FTokenScope Write FTokenScope;
   end;
-
-Procedure GenerateCfgFile(S: TStream);
-
-resourcestring
-  E_UNKNOWN_KEYWORD = 'Unknown config keyword on line %d : %s';
-  E_CONFIG_FILE     = 'Error reading config file on line %d';
-  E_UNKNOWN_INDENT  = 'Unknown indent %s on line %d: %s';
-  S_PROCESSED_CFG   = 'Processed config file: read %d lines';
-  S_PRETTY_PRINTED  = 'Read %d lines of input, %d lines written.';
