@@ -52,9 +52,8 @@ Const
    {# Size of native extended floating point type }
    extended_size = 8;
 
-var
    { calling conventions supported by the code generator }
-   supported_calling_conventions : tproccalloptions = [
+   cpu_default_supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_stdcall,
      pocall_safecall,
@@ -64,7 +63,6 @@ var
      pocall_cppdecl
    ];
 
-const
    { cpu strings as accepted by
      GNU assembler in -arch=XXX option
      this ilist needs to be uppercased }

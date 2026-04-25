@@ -512,7 +512,7 @@ procedure TSwitchesHandler.flushpendingswitchesstate;
       begin
         if not SetAktProcCall(compiler.globals.pendingstate.nextcallingstr,tmpproccal) then
           compiler.verbose.Message1(parser_w_unknown_proc_directive_ignored,compiler.globals.pendingstate.nextcallingstr)
-        else if not(tmpproccal in supported_calling_conventions) then
+        else if not(tmpproccal in compiler.target.supported_calling_conventions) then
           compiler.verbose.Message1(parser_e_illegal_calling_convention,compiler.globals.pendingstate.nextcallingstr)
         else
           compiler.globals.current_settings.defproccall:=tmpproccal;

@@ -3311,7 +3311,7 @@ var
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
            { check if the target processor supports this calling convention }
-           if not(proc_direcdata[p].pocall in supported_calling_conventions) then
+           if not(proc_direcdata[p].pocall in compiler.target.supported_calling_conventions) then
              begin
                compiler.verbose.MessagePos1(tokenloc, parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
                { recover }

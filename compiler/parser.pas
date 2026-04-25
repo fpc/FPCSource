@@ -238,10 +238,10 @@ implementation
            system_powerpc_amiga,
            system_powerpc_morphos,
            system_x86_64_aros:
-             include(supported_calling_conventions,pocall_syscall);
+             compiler.target.supported_calling_conventions:=compiler.target.supported_calling_conventions+[pocall_syscall];
            system_m68k_human68k:
              begin
-               include(supported_calling_conventions,pocall_syscall);
+               compiler.target.supported_calling_conventions:=compiler.target.supported_calling_conventions+[pocall_syscall];
                if compiler.globals.heapsize=0 then
                  compiler.globals.heapsize:=65536;
              end;

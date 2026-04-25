@@ -81,9 +81,8 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
-var
    { calling conventions supported by the code generator }
-   supported_calling_conventions : tproccalloptions = [
+   cpu_default_supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_register,
      pocall_stdcall,
@@ -96,7 +95,6 @@ var
      pocall_syscall
    ];
 
-const
    cputypestr : array[tcputype] of string[8] = ('',
      '68000',
      '68020',

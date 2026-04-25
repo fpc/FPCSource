@@ -28,6 +28,7 @@ interface
 
      uses
        versioncmp,
+       globtype,
        compilerbase;
 
 {$i systems.inc}
@@ -643,6 +644,7 @@ interface
         Fsubtarget: string;
         FMacOSXVersionMin: tversion;
         FiPhoneOSVersionMin: tversion;
+        Fsupported_calling_conventions: tproccalloptions;
       public
         function use_dotted_functions: boolean;
         function create_smartlink_sections:boolean;inline;
@@ -661,6 +663,8 @@ interface
         property subtarget: string read Fsubtarget;
         property MacOSXVersionMin: tversion read FMacOSXVersionMin;
         property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin;
+
+        property supported_calling_conventions: tproccalloptions read Fsupported_calling_conventions;
       end;
 
       { TCompilerTarget }
@@ -687,6 +691,7 @@ interface
         property subtarget: string read Fsubtarget write Fsubtarget;
         property MacOSXVersionMin: tversion read FMacOSXVersionMin write FMacOSXVersionMin;
         property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin write FiPhoneOSVersionMin;
+        property supported_calling_conventions: tproccalloptions read Fsupported_calling_conventions write Fsupported_calling_conventions;
       end;
 
     var
@@ -719,7 +724,7 @@ interface
 implementation
 
     uses
-      cutils{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
+      cutils,cpuinfo{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
 
 { TReadOnlyAlignmentInfo }
 
@@ -1200,6 +1205,7 @@ end;
 
 procedure TCompilerTarget.InitSystems;
 begin
+  Fsupported_calling_conventions:=cpu_default_supported_calling_conventions;
 { Now default target, this is dependent on the target cpu define,
   when the define is the same as the source cpu then we use the source
   os, else we pick a default }

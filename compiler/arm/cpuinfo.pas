@@ -544,9 +544,8 @@ Const
    {# Size of native extended floating point type }
    extended_size = 12;
 
-var
    { calling conventions supported by the code generator }
-   supported_calling_conventions : tproccalloptions = [
+   cpu_default_supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_safecall,
      pocall_stdcall,
@@ -565,7 +564,6 @@ var
      pocall_hardfloat
    ];
 
-const
    cputypestr : array[tcputype] of string[8] = ('',
      'ARMV2',
      'ARMV3',
