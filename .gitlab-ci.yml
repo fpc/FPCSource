@@ -61,7 +61,7 @@ variables:
 .creating_full_installation: &creating_full_installation
   stage: build
   script:
-    - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+    - make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
   artifacts:
     when: on_success
     expire_in: 1 week
