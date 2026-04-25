@@ -74,7 +74,10 @@ variables:
     # extract installer from previous stage
     - tar -xzf fpc-*$ARCH*.tar.gz
     - FPC_SRC=$(pwd)
-    - FPC_COMPILER=$(find $FPC_SRC/lib/fpc/ -name ppc*)
+    # - FPC_SRC=$(pwd)/lib/fpc/3.3.1/units/*/
+    - FPC_COMPILER=$(find $FPC_SRC/compiler/ -name ppc*)
+    # - FPC_COMPILER=$(find $FPC_SRC/lib/fpc/ -name ppc*)
+    # - FPC_COMPILER=$(find $(pwd)/lib/fpc/ -name ppc*)
     # run tests
     - cd tests
     - make clean -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
