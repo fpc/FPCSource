@@ -1,2 +1,3 @@
-ptop.cfg
+*.cfg
 *_formatted.pp
+ptop
