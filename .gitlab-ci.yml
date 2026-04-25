@@ -121,9 +121,29 @@ Build FPC on Ubuntu Linux:
 # ----------------------------
 Run FPC Tests on Alpine Linux:
   <<: [*run_tests, *alpine_linux_configuration]
+  needs:
+    - job: Build FPC on Alpine Linux
+      parallel:
+        matrix:
+          - ARCH: ['$[[ matrix.ARCH ]]']
+            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
+
 
 Run FPC Tests on Debian Linux:
   <<: [*run_tests, *debian_linux_configuration]
+  needs:
+    - job: Build FPC on Debian Linux
+      parallel:
+        matrix:
+          - ARCH: ['$[[ matrix.ARCH ]]']
+            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
+
 
 Run FPC Tests on Ubuntu Linux:
   <<: [*run_tests, *ubuntu_linux_configuration]
+  needs:
+    - job: Build FPC on Ubuntu Linux
+      parallel:
+        matrix:
+          - ARCH: ['$[[ matrix.ARCH ]]']
+            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
