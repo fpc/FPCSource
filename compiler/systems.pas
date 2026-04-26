@@ -27,6 +27,7 @@ unit systems;
 interface
 
      uses
+       sysutils,
        systemstypes,
        versioncmp,
        globtype,cpuinfo,
@@ -626,6 +627,33 @@ interface
 {$pop}
 
     type
+{$ifdef cpucapabilities}
+
+      { TReadOnlyCpuCapabilities }
+
+      TReadOnlyCpuCapabilities = class
+      public type
+        TCpuFlagsSet = set of tcpuflags;
+        TCpuCapabilitiesArray = array[tcputype] of TCpuFlagsSet;
+      private
+        Fcpu_capabilities : array[tcputype] of TCpuFlagsSet;
+      protected
+        function GetItem(Index: tcputype): TCpuFlagsSet;
+      public
+        constructor Create(const acpu_capabilities: TCpuCapabilitiesArray);
+        property Items [Index: tcputype]: TCpuFlagsSet read GetItem; default;
+      end;
+
+      { TMutableCpuCapabilities }
+
+      TMutableCpuCapabilities = class(TReadOnlyCpuCapabilities)
+      private
+        procedure SetItem(Index: tcputype; AValue: TCpuFlagsSet);
+      public
+        property Items [Index: tcputype]: TCpuFlagsSet read GetItem write SetItem; default;
+      end;
+
+{$endif cpucapabilities}
 
       { TReadOnlyCompilerTarget }
 
@@ -644,10 +672,10 @@ interface
         FMacOSXVersionMin: tversion;
         FiPhoneOSVersionMin: tversion;
         Fsupported_calling_conventions: tproccalloptions;
-      public
 {$ifdef cpucapabilities}
-        cpu_capabilities : array[tcputype] of set of tcpuflags;
+        Fcpu_capabilities: TReadOnlyCpuCapabilities;
 {$endif cpucapabilities}
+      public
         function use_dotted_functions: boolean;
         function create_smartlink_sections:boolean;inline;
 
@@ -667,6 +695,9 @@ interface
         property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin;
 
         property supported_calling_conventions: tproccalloptions read Fsupported_calling_conventions;
+{$ifdef cpucapabilities}
+        property cpu_capabilities: TReadOnlyCpuCapabilities read Fcpu_capabilities;
+{$endif cpucapabilities}
       end;
 
       { TCompilerTarget }
@@ -674,9 +705,13 @@ interface
       TCompilerTarget = class(TReadOnlyCompilerTarget)
       private
         procedure default_target(t:tsystem);
+{$ifdef cpucapabilities}
+        function GetCpu_capabilities: TMutableCpuCapabilities;
+{$endif cpucapabilities}
         procedure InitSystems;
       public
         constructor Create;
+        destructor Destroy; override;
 
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;
@@ -694,6 +729,9 @@ interface
         property MacOSXVersionMin: tversion read FMacOSXVersionMin write FMacOSXVersionMin;
         property iPhoneOSVersionMin: tversion read FiPhoneOSVersionMin write FiPhoneOSVersionMin;
         property supported_calling_conventions: tproccalloptions read Fsupported_calling_conventions write Fsupported_calling_conventions;
+{$ifdef cpucapabilities}
+        property cpu_capabilities: TMutableCpuCapabilities read GetCpu_capabilities;
+{$endif cpucapabilities}
       end;
 
     var
@@ -801,6 +839,29 @@ constructor TMutableAlignmentInfo.CreateFromRecord(const rec: talignmentinfo);
     recordalignmax:=rec.recordalignmax;
     maxCrecordalign:=rec.maxCrecordalign;
   end;
+
+{$ifdef cpucapabilities}
+
+{ TReadOnlyCpuCapabilities }
+
+function TReadOnlyCpuCapabilities.GetItem(Index: tcputype): TCpuFlagsSet;
+  begin
+    Result:=Fcpu_capabilities[Index];
+  end;
+
+constructor TReadOnlyCpuCapabilities.Create(const acpu_capabilities: TCpuCapabilitiesArray);
+  begin
+    Fcpu_capabilities:=acpu_capabilities;
+  end;
+
+{ TMutableCpuCapabilities }
+
+procedure TMutableCpuCapabilities.SetItem(Index: tcputype; AValue: TCpuFlagsSet);
+  begin
+    Fcpu_capabilities[Index]:=AValue;
+  end;
+
+{$endif cpucapabilities}
 
 {****************************************************************************
            OS runtime version detection utility routine
@@ -1190,6 +1251,14 @@ begin
 end;
 
 
+{$ifdef cpucapabilities}
+function TCompilerTarget.GetCpu_capabilities: TMutableCpuCapabilities;
+begin
+  Result:=TMutableCpuCapabilities(Fcpu_capabilities);
+end;
+{$endif cpucapabilities}
+
+
 procedure set_source_info(const ti : tsysteminfo);
 begin
 { can't use message() here (PFV) }
@@ -1205,11 +1274,20 @@ begin
 end;
 
 
+destructor TCompilerTarget.Destroy;
+  begin
+{$ifdef cpucapabilities}
+    FreeAndNil(Fcpu_capabilities);
+{$endif cpucapabilities}
+    inherited Destroy;
+  end;
+
+
 procedure TCompilerTarget.InitSystems;
 begin
   Fsupported_calling_conventions:=cpu_default_supported_calling_conventions;
 {$ifdef cpucapabilities}
-  cpu_capabilities:=initial_cpu_capabilities;
+  Fcpu_capabilities:=TMutableCpuCapabilities.Create(initial_cpu_capabilities);
 {$endif cpucapabilities}
 { Now default target, this is dependent on the target cpu define,
   when the define is the same as the source cpu then we use the source

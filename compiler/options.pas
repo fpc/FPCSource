@@ -2838,9 +2838,11 @@ begin
                    if s=cpuflagsstr then
                      begin
                        if includecapability then
-                         Include(compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype],cf)
+                         compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]:=
+                           compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]+[cf]
                        else
-                         Exclude(compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype],cf);
+                         compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]:=
+                           compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]-[cf];
                        s:='';
                        break;
                      end;
