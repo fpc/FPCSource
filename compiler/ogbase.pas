@@ -690,6 +690,19 @@ interface
         property CachedExeSymbol: TExeSymbol read FCachedExeSymbol write FCachedExeSymbol;
       end;
 
+      texemapbase = class
+        constructor Create(const s:string);virtual;abstract;
+        procedure Flush;virtual;abstract;
+        procedure Add(const s:string);virtual;abstract;
+        procedure AddHeader(const s:string);virtual;abstract;
+        procedure AddCommonSymbolsHeader;virtual;abstract;
+        procedure AddCommonSymbol(p:TObjSymbol);virtual;abstract;
+        procedure AddMemoryMapHeader(abase:qword);virtual;abstract;
+        procedure AddMemoryMapExeSection(p:texesection);virtual;abstract;
+        procedure AddMemoryMapObjectSection(p:TObjSection);virtual;abstract;
+        procedure AddMemoryMapSymbol(p:TObjSymbol);virtual;abstract;
+      end;
+
       TExeWriteMode = (ewm_exefull,ewm_dbgonly,ewm_exeonly);
 
       TExeOutput = class

@@ -33,22 +33,22 @@ interface
        ;
 
     type
-       texemap = class
+       texemap = class(texemapbase)
        private
          t : text;
          FImageBase : qword;
        public
-         constructor Create(const s:string);
+         constructor Create(const s:string);override;
          destructor Destroy;override;
-         procedure Flush;
-         procedure Add(const s:string);
-         procedure AddHeader(const s:string);
-         procedure AddCommonSymbolsHeader;
-         procedure AddCommonSymbol(p:TObjSymbol);
-         procedure AddMemoryMapHeader(abase:qword);
-         procedure AddMemoryMapExeSection(p:texesection);
-         procedure AddMemoryMapObjectSection(p:TObjSection);
-         procedure AddMemoryMapSymbol(p:TObjSymbol);
+         procedure Flush;override;
+         procedure Add(const s:string);override;
+         procedure AddHeader(const s:string);override;
+         procedure AddCommonSymbolsHeader;override;
+         procedure AddCommonSymbol(p:TObjSymbol);override;
+         procedure AddMemoryMapHeader(abase:qword);override;
+         procedure AddMemoryMapExeSection(p:texesection);override;
+         procedure AddMemoryMapObjectSection(p:TObjSection);override;
+         procedure AddMemoryMapSymbol(p:TObjSymbol);override;
        end;
 
     var
