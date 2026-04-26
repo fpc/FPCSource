@@ -421,7 +421,7 @@ type
 
       function ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint; inline;
       function AllocFixed(sizeIndex: SizeUint): pointer; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
-      function FreeFixed(p: pointer): SizeUint; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
+      function FreeFixed(p: pointer {$ifdef FPC_HAS_FEATURE_THREADING}; mayBeCrossThread: boolean {$endif}): SizeUint; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       procedure FreeEmptyArenas;
       procedure ReplaceFreeOS1(&with: pVarOSChunk); inline;
       function AllocateOSChunk(minSize: SizeUint): pVarOSChunk;
@@ -441,7 +441,7 @@ type
     {$ifdef FPC_HAS_FEATURE_THREADING}
       procedure PushIncomingToFree(first, last: pFreeChunk);
       procedure FlushIncomingToFree;
-      class procedure FreeToFreeList(tf: pFreeChunk); static;
+      procedure FreeToFreeList(tf: pFreeChunk);
       function PushOutcomingToFree(p: pointer; size: SizeUint): SizeUint;
       procedure FlushOutcomingToFree; { Must be performed inside gs.lock. }
 
@@ -1064,19 +1064,19 @@ type
       maxUsed := statv;
   end;
 
-  function HeapInc.ThreadState.FreeFixed(p: pointer): SizeUint;
+  function HeapInc.ThreadState.FreeFixed(p: pointer {$ifdef FPC_HAS_FEATURE_THREADING}; mayBeCrossThread: boolean {$endif}): SizeUint;
   var
     sizeIndex: SizeUint;
     usedSizeMinus1: int32;
     arena, prevArena, nextArena: pFixedArena;
   begin
-    arena := p + int32(pCommonHeader(p - CommonHeaderSize)^.h) - FixedFlag;
+    arena := p - FixedFlag + int32(pCommonHeader(p - CommonHeaderSize)^.h);
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
     { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self.
       Due to how FPC code generator works, placing the = branch first saves a register, allowing “arena” register to be volatile.
       (And also usually saves a taken jump that would otherwise jump over the PushOutcomingToFree branch.) }
-    if pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState = @self then
+    if not mayBeCrossThread or (pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState = @self) then
     begin
   {$endif FPC_HAS_FEATURE_THREADING}
 
@@ -1124,7 +1124,7 @@ type
           begin
             FreeVar(arena);
           {$ifdef FPC_HAS_FEATURE_THREADING}
-            if Assigned(incomingToFree) then
+            if mayBeCrossThread and Assigned(incomingToFree) then
               FlushIncomingToFree; { To occasionally call this on mass freeing... }
           {$endif FPC_HAS_FEATURE_THREADING}
           end;
@@ -1132,7 +1132,7 @@ type
       end;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     end else
-      result := PushOutcomingToFree(p, pFixedArena(p + int32(pCommonHeader(p - CommonHeaderSize)^.h) - FixedFlag)^.chunkSize) - CommonHeaderSize;
+      result := PushOutcomingToFree(p, pFixedArena(p - FixedFlag + int32(pCommonHeader(p - CommonHeaderSize)^.h))^.chunkSize) - CommonHeaderSize;
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
@@ -1654,7 +1654,7 @@ type
     FreeToFreeList({$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (incomingToFree, nil));
   end;
 
-  class procedure HeapInc.ThreadState.FreeToFreeList(tf: pFreeChunk);
+  procedure HeapInc.ThreadState.FreeToFreeList(tf: pFreeChunk);
   var
     nx: pFreeChunk;
   begin
@@ -1662,7 +1662,13 @@ type
     begin
       ReadDependencyBarrier; { Read tf^.next after tf. }
       nx := tf^.next;
-      SysFreeMem(tf);
+      { To-free chunk can’t be huge.
+        Careful: when orphaning from DoneHeapProcessWide, this function is assumed to work from another thread, so SysFreeMem can’t be used as it works with thisTs.
+        (As a bonus, not using SysFreeMem is faster.) }
+      if pCommonHeader(pointer(tf) - CommonHeaderSize)^.h and FixedFlag <> 0 then
+        FreeFixed(tf, false)
+      else
+        FreeVar(tf);
       tf := nx;
     end;
   end;
@@ -1695,12 +1701,14 @@ type
 
       If threadState is nil (thread is orphaned), adopt by itself first; still push into own incomingToFree for simplicity.
 
-      Careful: if not pushing into own incomingToFree and instead directly calling SysFreeMem,
-      FlushOutcomingToFree will not work from other threads, so DoneHeapProcessWide must be adjusted
-      (must steal outcomingToFree like it steals incomingToFree, instead of simply calling FlushOutcomingToFree).
-
       As an alternative to detecting only consecutive runs,
-      it might be worth it to aggressively collect all outcomingToFree items having a particular threadState to minimize the amount of PushIncomingToFree calls. }
+      it might be worth it to aggressively collect all outcomingToFree items having a particular threadState to minimize the amount of PushIncomingToFree calls.
+
+      If not pushing chunks with threadState = @self into own incomingToFree, care must be taken to:
+      1) work from other threads (for DoneHeapProcessWide), so SysFreeMem can’t be used as it works with thisTs,
+      2) preferably, free these chunks outside the lock. For example, by appending them to “out toFree: pFreeChunk” and requiring the caller to FreeToFreeList(toFree). :\
+      Pushing into own incomingToFree does all of that automatically, at the cost of a redundant AtomicExchange. }
+
     cur := outcomingToFree;
     outcomingToFree := nil;
     outcomingToFreeBytes := 0;
@@ -2302,7 +2310,7 @@ begin
     begin
       ts := @HeapInc.thisTs;
       if HeapInc.pCommonHeader(p - HeapInc.CommonHeaderSize)^.h and HeapInc.FixedFlag <> 0 then
-        result := ts^.FreeFixed(p)
+        result := ts^.FreeFixed(p {$ifdef FPC_HAS_FEATURE_THREADING}, true {$endif})
       else
       begin
       {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2436,43 +2444,20 @@ begin
 end;
 
 procedure DoneHeapProcessWide;
-{$ifdef HAS_SYSOSFREE}
-var
-  thisTs, nextTs, ts: HeapInc.pThreadState;
-  stolenIncomingTf: HeapInc.pFreeChunk;
-{$endif HAS_SYSOSFREE}
 begin
   if HeapInc.gs.lockUse <> HeapInc.gs.LockInitializedProcessWide then
     exit;
 {$ifdef HAS_SYSOSFREE}
-  { We need to free all lingering data of all threads: to-free lists, empty arenas, “freeOS1”s.
-
-    For each particular thread ts, this is what ts^.Orphan does, but ts^.Orphan can’t be (easily) called from another thread:
-    it calls ts^.FlushIncomingToFree which calls SysFreeMem which is hardcoded to work with HeapInc.thisTs.
-    It’s not worth redesigning, or the common case of SysFreeMem that must indeed work with HeapInc.thisTs will be slower.
-
-    So we steal and zero ts^.incomingToFree (ts^.FlushIncomingToFree is the only thing that prevents ts^.Orphan from working from threads other than ts),
-    call ts^.Orphan, then manually complete incomingToFree requests on our behalf.
+  { Just Orphan all threads.
+    Careful: for Orphan to work from another thread (one that called DoneHeapProcessWide),
+    flushes shouldn’t call SysFreeMem because SysFreeMem works with thisTs instead of @self.
+    (See the comments in FreeToFreeList / FlushOutcomingToFree.)
 
     This entire thing is just to handle the case of unloading a DLL before terminating the thread that used this DLL
     (https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/1173). }
 
-  thisTs := @HeapInc.thisTs;
-  nextTs := HeapInc.gs.threads;
-  while Assigned(nextTs) do
-  begin
-    ts := nextTs;
-    nextTs := ts^.next;
-    if ts = thisTs then { Used for executing outcomingToFree / incomingToFree and is orphaned the last. }
-      continue;
-    if Assigned(ts^.outcomingToFree) then
-      ts^.FlushOutcomingToFree; { Careful: might push to own ts^.incomingToFree, so must be performed first. See also the comment in FlushOutcomingToFree. }
-    stolenIncomingTf := ts^.incomingToFree;
-    ts^.incomingToFree := nil;
-    ts^.Orphan;
-    HeapInc.ThreadState.FreeToFreeList(stolenIncomingTf);
-  end;
-  thisTs^.Orphan;
+  while Assigned(HeapInc.gs.threads) do
+    HeapInc.gs.threads^.Orphan;
 {$endif HAS_SYSOSFREE}
   HeapInc.gs.lockUse := 0;
 {$ifndef HAS_SYSOSFREE}
