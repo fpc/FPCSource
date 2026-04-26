@@ -51,9 +51,6 @@ interface
          procedure AddMemoryMapSymbol(p:TObjSymbol);override;
        end;
 
-    var
-      exemap : texemap;
-
 
 implementation
 

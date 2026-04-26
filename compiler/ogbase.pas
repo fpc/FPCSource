@@ -732,6 +732,7 @@ interface
         { Position calculation }
         FImageBase    : qword;
         FCurrMemPos       : qword;
+        FExeMap: texemapbase;
         procedure SetCurrMemPos(const AValue: qword);
       protected
         { writer }
@@ -827,6 +828,7 @@ interface
         property CurrExeSec:TExeSection read FCurrExeSec;
         property ExeWriteMode:TExeWriteMode read FExeWriteMode write FExeWriteMode;
         property CurrMemPos:qword read FCurrMemPos write SetCurrMemPos;
+        property ExeMap: TExeMapBase read FExeMap write FExeMap;
       end;
       TExeOutputClass=class of TExeOutput;
 

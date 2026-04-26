@@ -116,6 +116,7 @@ interface
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
          FGroupStack : TFPObjectList;
+         FExeMap: TExeMapBase;
          function GetFileCRC(const fn:TPathStr):cardinal;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean=false);
@@ -140,6 +141,7 @@ interface
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
+         property ExeMap: TExeMapBase read FExeMap;
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
          procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
@@ -1550,7 +1552,7 @@ Implementation
         FStaticLibraryList:=TFPObjectList.Create(true);
         FImportLibraryList:=TFPHashObjectList.Create(true);
         FGroupStack:=TFPObjectList.Create(false);
-        exemap:=nil;
+        Fexemap:=nil;
         exeoutput:=nil;
         UseStabs:=false;
         CObjInput:=TObjInput;
@@ -1579,11 +1581,7 @@ Implementation
             exeoutput.free;
             exeoutput:=nil;
           end;
-        if assigned(exemap) then
-          begin
-            exemap.free;
-            exemap:=nil;
-          end;
+        FreeAndNil(FExeMap);
         inherited destroy;
       end;
 
@@ -2107,7 +2105,10 @@ Implementation
         DefaultLinkScript;
 
         if (cs_link_map in compiler.globals.current_settings.globalswitches) then
-          exemap:=texemap.create(compiler.current_module.mapfilename);
+          begin
+            Fexemap:=texemap.create(compiler.current_module.mapfilename);
+            exeoutput.exemap:=Fexemap;
+          end;
 
         PrintLinkerScript;
 
@@ -2185,11 +2186,7 @@ Implementation
 
       myexit:
         { close map }
-        if assigned(exemap) then
-          begin
-            exemap.free;
-            exemap:=nil;
-          end;
+        FreeAndNil(Fexemap);
 
         { close exe }
         exeoutput.free;
