@@ -32,7 +32,7 @@ interface
        { common }
        cclasses,globtype,globals,verbose,compilerbase,
        { target }
-       systems,
+       systemstypes,systems,
        { assembler }
        cpuinfo,cpubase,aasmbase,assemble,link,
        { OMF definitions }
@@ -845,7 +845,7 @@ implementation
         tis_size: LongWord;
       end;
 
-    procedure MayBeSwapTISTrailer(target_endian:systems.tendian;var h: TTISTrailer);
+    procedure MayBeSwapTISTrailer(target_endian:systemstypes.tendian;var h: TTISTrailer);
       begin
         if source_info.endian<>target_endian then
           with h do

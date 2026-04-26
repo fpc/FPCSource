@@ -33,7 +33,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems,compilerbase
+       globtype,globals,systemstypes,systems,compilerbase
        ;
 
     type

@@ -27,7 +27,7 @@ unit ag68kvasm;
   interface
 
     uses
-       aasmbase,systems,
+       aasmbase,systemstypes,systems,
        aasmtai,aasmdata,
        assemble,aggas,ag68kgas,
        cpubase,cgutils,

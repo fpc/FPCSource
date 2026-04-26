@@ -26,7 +26,7 @@ unit i_darwin;
 interface
 
 uses
-   systems;
+   systemstypes,systems;
 
 const
    res_macho_info : tresinfo =

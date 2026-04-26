@@ -54,7 +54,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,systems,
+       verbose,systemstypes,systems,
        defutil,symtable,
        procinfo,cpupi,
        compiler;

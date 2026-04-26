@@ -26,7 +26,7 @@ unit triplet;
 interface
 
 uses
-  globtype,systems,compilerbase;
+  globtype,systemstypes,systems,compilerbase;
 
 function targettriplet(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 

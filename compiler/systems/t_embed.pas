@@ -34,7 +34,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,compiler,
-       globtype,globals,systems,verbose,comphook,cscript,fmodule,i_embed,link,
+       globtype,globals,systemstypes,systems,verbose,comphook,cscript,fmodule,i_embed,link,
 {$ifdef wasm32}
        t_wasi,import,export,
 {$endif wasm32}

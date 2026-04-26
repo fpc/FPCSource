@@ -124,7 +124,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,systems,compiler,
+      cutils,cfileutl,systemstypes,systems,compiler,
       fmodule,verbose,
 {$ifndef DISABLE_WIN64_SEH}
       itcpugas,

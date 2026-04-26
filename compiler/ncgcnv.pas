@@ -73,7 +73,7 @@ interface
       cutils,verbose,globtype,globals,compiler,
       aasmbase,aasmdata,symconst,symdef,symtable,
       nutils,ncon,
-      cpubase,systems,
+      cpubase,systemstypes,systems,
       pass_2,
       cgbase,
       cgutils,cgobj,nodehelper,

@@ -26,7 +26,7 @@ unit i_morph;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_powerpc_MorphOS_info : tsysteminfo =

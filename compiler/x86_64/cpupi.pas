@@ -28,7 +28,7 @@ unit cpupi;
 interface
 
     uses
-       globtype,compilerbase,systems,
+       globtype,compilerbase,systemstypes,systems,
        psub,
        procinfo,psabiehpi,
        aasmbase,aasmdata;

@@ -29,7 +29,7 @@ interface
        { common }
        cclasses,globtype,globals,verbose,compilerbase,
        { target }
-       systems,
+       systemstypes,systems,
        { assembler }
        aasmbase,assemble,
        { output }
@@ -295,9 +295,9 @@ interface
        COFF_BIG_OBJ_VERSION = 2;
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc;target:TReadOnlyCompilerTarget;verbose:TVerbose):boolean;
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffsechdr);
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffheader);
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpeoptheader);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffsechdr);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffheader);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffpeoptheader);
 
 implementation
 
@@ -593,7 +593,7 @@ implementation
          vaddr : longword;
          size  : longword;
        end; }
-   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpedatadir);
+   procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffpedatadir);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -611,7 +611,7 @@ implementation
          opthdr : word;
          flag   : word;
        end; *)
-   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffheader);
+   procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffheader);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -637,7 +637,7 @@ implementation
          PointerToSymbolTable : longword;
          NumberOfSymbols : longword;
        end; *)
-   procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffbigobjheader);
+   procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffbigobjheader);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -689,7 +689,7 @@ implementation
          NumberOfRvaAndSizes : longword;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffpeoptheader);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffpeoptheader);
       var
         i : longint;
       begin
@@ -743,7 +743,7 @@ implementation
          lineno2  : word;
          flags    : longword;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tcoffsechdr);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tcoffsechdr);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -769,7 +769,7 @@ implementation
          text_start : longint;
          data_start : longint;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : coffdjoptheader);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : coffdjoptheader);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -793,7 +793,7 @@ implementation
          select  : byte;
          empty   : array[0..2] of char;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : coffsectionrec);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : coffsectionrec);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -810,7 +810,7 @@ implementation
          sym      : longword;
          reloctype : word;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : coffreloc);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : coffreloc);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -824,7 +824,7 @@ implementation
          Zeroes : longword;
          Offset : longword;
        end;*)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : strtableoffset);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : strtableoffset);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -842,7 +842,7 @@ implementation
          typ     : byte;
          aux     : byte;
        end; *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : coffsymbol);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : coffsymbol);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -867,7 +867,7 @@ implementation
          NumberOfAuxSymbols : byte;
        end; *)
 
-    procedure MaybeSwap(target_endian:systems.tendian;var v : coffbigobjsymbol);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : coffbigobjsymbol);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -887,7 +887,7 @@ implementation
          flags : dword;
        end;
      *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : tlsdirectory);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : tlsdirectory);
       begin
         if source_info.endian<>target_endian then
           begin
@@ -914,7 +914,7 @@ implementation
          AddrOrds   : cardinal;
        end;
      *)
-    procedure MaybeSwap(target_endian:systems.tendian;var v : TPECoffExpDir);
+    procedure MaybeSwap(target_endian:systemstypes.tendian;var v : TPECoffExpDir);
       begin
         if source_info.endian<>target_endian then
           begin

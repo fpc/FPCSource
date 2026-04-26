@@ -73,7 +73,7 @@ interface
   implementation
 
     uses
-      globtype,systems,compiler,
+      globtype,systemstypes,systems,compiler,
       verbose,globals,
       symconst,symdef,
       aasmbase,aasmdata,defutil,

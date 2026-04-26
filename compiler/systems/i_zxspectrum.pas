@@ -25,7 +25,7 @@ unit i_zxspectrum;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_z80_zxspectrum_info : tsysteminfo =

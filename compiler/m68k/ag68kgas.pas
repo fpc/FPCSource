@@ -26,7 +26,7 @@ unit ag68kgas;
 interface
 
     uses
-      cclasses,cpubase,systems,
+      cclasses,cpubase,systemstypes,systems,
       globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas,
       compilerbase;

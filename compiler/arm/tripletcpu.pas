@@ -26,7 +26,7 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,systems,compilerbase;
+  globtype,systemstypes,systems,compilerbase;
 
 function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 

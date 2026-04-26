@@ -35,7 +35,7 @@ uses
 {$else unix}
   dos,
 {$endif unix}
-  cutils,ppu,entfile,systems,
+  cutils,ppu,entfile,systemstypes,systems,
   getopts;
 
 const

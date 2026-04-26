@@ -240,7 +240,7 @@ unit cgcpu;
 
 
     uses
-       globals,verbose,systems,cutils,
+       globals,verbose,systemstypes,systems,cutils,
        aopt,aoptcpu,
        fmodule,
        symconst,symsym,symtable,

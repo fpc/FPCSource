@@ -26,7 +26,7 @@ unit i_wii;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_powerpc_wii_info : tsysteminfo =

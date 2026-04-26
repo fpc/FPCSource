@@ -40,7 +40,7 @@ Unit rax64att;
   implementation
 
     uses
-      cutils,globtype,rabase,systems,rax86,aasmcpu,cgbase,procinfo,symconst,verbose,
+      cutils,globtype,rabase,systemstypes,systems,rax86,aasmcpu,cgbase,procinfo,symconst,verbose,
       compiler;
 
     procedure tx8664attreader.handleopcode;

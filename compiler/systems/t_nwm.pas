@@ -94,7 +94,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,
-    verbose,systems,globtype,globals,compilerbase,compiler,
+    verbose,systemstypes,systems,globtype,globals,compilerbase,compiler,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_nwm,ogbase, ogcoff, ognlm, owar, cclasses

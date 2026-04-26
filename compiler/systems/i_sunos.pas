@@ -26,7 +26,7 @@ unit i_sunos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_solaris_info : tsysteminfo =

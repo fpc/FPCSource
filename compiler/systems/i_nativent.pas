@@ -27,7 +27,7 @@ unit i_nativent;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_nativent_info : tsysteminfo =

@@ -86,7 +86,7 @@ implementation
 
     uses
       globtype,globals,aasmbase,
-      cutils,verbose, systems,
+      cutils,verbose,systemstypes,systems,
       compiler;
 
     const

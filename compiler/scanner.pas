@@ -372,7 +372,7 @@ implementation
     uses
       SysUtils,
       cutils,cfileutl,
-      systems,
+      systemstypes,systems,
       scandir,switches,
       symbase,symtable,symconst,defutil,defcmp,node,compiler,
       { This is needed for tcputype }

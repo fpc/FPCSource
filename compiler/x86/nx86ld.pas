@@ -39,7 +39,7 @@ implementation
 
     uses
       globals,
-      cutils,verbose,systems,compiler,
+      cutils,verbose,systemstypes,systems,compiler,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgutils,cgobj,
       nodehelper,

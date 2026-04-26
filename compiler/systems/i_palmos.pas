@@ -26,7 +26,7 @@ unit i_palmos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_m68k_palmos_info : tsysteminfo =

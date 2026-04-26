@@ -26,7 +26,7 @@ unit cpugas;
 interface
 
     uses
-      cpubase,systems,
+      cpubase,systemstypes,systems,
       aasmtai,aasmdata,aasmcpu,assemble,aggas,
       cgutils,globtype,
       compilerbase;

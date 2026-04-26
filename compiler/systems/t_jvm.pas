@@ -32,7 +32,7 @@ implementation
   uses
     sysutils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,
+    verbose,systemstypes,systems,globtype,globals,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,comprsrc,rescmn,i_jvm,

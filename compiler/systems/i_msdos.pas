@@ -33,7 +33,7 @@ unit i_msdos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i8086_msdos_info : tsysteminfo =

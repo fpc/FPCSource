@@ -53,7 +53,7 @@ implementation
        cutils,
        { global }
        globals,globtype,tokens,verbose,constexp,
-       systems,
+       systemstypes,systems,
        ppu,fmodule,compiler,parser,
        { symtable }
        symconst,symbase,symdef,symtype,symsym,

@@ -27,7 +27,7 @@ unit scandir;
 
     uses
       globtype,compilerbase,
-      systems,scanner;
+      systemstypes,systems,scanner;
 
     const
       switchesstatestackmax = 20;

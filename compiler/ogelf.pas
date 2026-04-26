@@ -29,7 +29,7 @@ interface
        { common }
        cclasses,globtype,verbose,globals,compilerbase,
        { target }
-       systems,
+       systemstypes,systems,
        { assembler }
        aasmbase,assemble,
        { ELF definitions }

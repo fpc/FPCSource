@@ -31,7 +31,7 @@ unit cgcpu;
        cpubase,parabase,compilerbase,
        symdef,
        symconst,rgx86,procinfo,
-       systems;
+       systemstypes,systems;
 
     type
       tcgx86_64 = class(tcgx86)

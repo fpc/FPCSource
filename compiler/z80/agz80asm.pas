@@ -30,7 +30,7 @@ unit agz80asm;
   interface
 
     uses
-       globtype,systems,
+       globtype,systemstypes,systems,
        aasmtai,aasmdata,
        assemble,
        cpubase,

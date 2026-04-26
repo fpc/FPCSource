@@ -36,7 +36,7 @@ unit cgobj;
   interface
 
     uses
-       globtype,constexp,systems,
+       globtype,constexp,systemstypes,systems,
        cpubase,cgbase,cgutils,parabase,compilerbase,paramgr,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symtype,symdef,rgobj,tgobj

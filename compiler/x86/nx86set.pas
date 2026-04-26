@@ -45,7 +45,7 @@ interface
 implementation
 
     uses
-      systems,
+      systemstypes,systems,
       verbose,globals,compiler,
       symconst,symdef,defutil,cutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,

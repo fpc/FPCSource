@@ -28,7 +28,7 @@ unit agx86att;
 interface
 
     uses
-      cpubase,systems,compilerbase,
+      cpubase,systemstypes,systems,compilerbase,
       globtype,cgutils,
       aasmtai,assemble,aggas;
 

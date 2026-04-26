@@ -44,7 +44,7 @@ unit cpupi;
 
     uses
       cutils,
-      systems,globals,globtype,
+      systemstypes,systems,globals,globtype,
       cgobj,tgobj,paramgr,
       cpubase,
       cgutils,

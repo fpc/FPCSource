@@ -50,7 +50,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,fmodule,systems,finput,versioncmp,
+      verbose,cutils,globals,fmodule,systemstypes,systems,finput,versioncmp,
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,

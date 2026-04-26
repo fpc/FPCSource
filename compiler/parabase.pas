@@ -25,7 +25,7 @@ unit parabase;
   interface
 
     uses
-       cclasses,globtype,systems,
+       cclasses,globtype,systemstypes,systems,
 {$ifdef llvm}
        aasmbase,
 {$endif}

@@ -198,7 +198,7 @@ implementation
       cutils,
       aasmtai,
       fmodule,
-      systems,
+      systemstypes,systems,
       compiler;
 
     procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList; compiler: TCompilerBase);

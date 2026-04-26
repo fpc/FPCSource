@@ -43,7 +43,7 @@ implementation
       globals,verbose,
       cgbase,cgobj,cgutils,
       aasmdata,aasmcpu,
-      systems,
+      systemstypes,systems,
       symcpu,symdef,
       nld,
       cpubase,

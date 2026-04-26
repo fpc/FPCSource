@@ -30,7 +30,7 @@ implementation
 
     uses
        cutils,
-       fmodule,globals,systems,
+       fmodule,globals,systemstypes,systems,
        import,export,link,t_win,i_wdosx,
        compilerbase,compiler;
 

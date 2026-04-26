@@ -29,7 +29,7 @@ unit agarmgas;
   interface
 
     uses
-       globtype,systems,
+       globtype,systemstypes,systems,
        aasmtai,
        assemble,aggas,
        cpubase,cpuinfo,

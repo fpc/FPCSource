@@ -26,7 +26,7 @@ unit comprsrc;
 interface
 
   uses
-    Systems, cstreams, cscript, compilerbase;
+    SystemsTypes, Systems, cstreams, cscript, compilerbase;
 
 type
    tresoutput = (roRES, roOBJ);
@@ -293,7 +293,7 @@ begin
       Replace(s,'$OBJ',maybequoted(OutName));
       subarch:='all';
       arch:=cpu2str[compiler.target.cpu];
-      if (compiler.target.info.cpu=systems.cpu_arm) then
+      if (compiler.target.info.cpu=systemstypes.cpu_arm) then
         begin
           //Differentiate between arm and armeb
           if (compiler.target.info.endian=endian_big) then

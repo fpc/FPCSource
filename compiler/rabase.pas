@@ -27,7 +27,7 @@ unit rabase;
 
     uses
       cclasses,
-      systems,
+      systemstypes,systems,
       compilerbase;
 
     type

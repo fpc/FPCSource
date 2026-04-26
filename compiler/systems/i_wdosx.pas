@@ -26,7 +26,7 @@ unit i_wdosx;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_wdosx_info : tsysteminfo =

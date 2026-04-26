@@ -192,7 +192,7 @@ unit cgx86;
   implementation
 
     uses
-       globals,verbose,systems,cutils,compiler,
+       globals,verbose,systemstypes,systems,cutils,compiler,
        symcpu,
        paramgr,procinfo,
        tgobj,ncgutil;

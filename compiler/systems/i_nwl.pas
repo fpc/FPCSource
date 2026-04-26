@@ -26,7 +26,7 @@ unit i_nwl;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_netwlibc_info : tsysteminfo =

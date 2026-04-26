@@ -25,7 +25,7 @@ unit import;
 interface
 
 uses
-  systems,compilerbase;
+  systemstypes,systems,compilerbase;
 
 type
    timportlib=class

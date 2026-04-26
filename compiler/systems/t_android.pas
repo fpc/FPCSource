@@ -70,7 +70,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globals,compiler,
+    verbose,systemstypes,systems,globals,compiler,
     symconst,cscript,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,hlcgcpu,hlcgobj,

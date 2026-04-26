@@ -20,7 +20,7 @@ Interface
 
   uses
     globtype,
-    systems;
+    systemstypes;
 
 Type
    bestreal = double;

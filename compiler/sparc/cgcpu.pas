@@ -63,7 +63,7 @@ interface
 
     uses
       verbose,
-      systems,
+      systemstypes,systems,
       compiler;
 
     procedure TCGSparc.a_load_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1,reg2:tregister);

@@ -47,7 +47,7 @@ implementation
       cpubase,
       symbase,symcpu,symtable,defutil,
       ncnv,ncon,ninl,ncal,nld,nmem,
-      systems,
+      systemstypes,systems,
       CPUInfo,
       ppu,
       pass_1,

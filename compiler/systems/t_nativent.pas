@@ -32,7 +32,7 @@ implementation
     SysUtils,
     cutils,
     ogbase,ogcoff,
-    globtype,globals,systems,verbose,compilerbase,compiler,
+    globtype,globals,systemstypes,systems,verbose,compilerbase,compiler,
     import,export,link,t_win,i_nativent;
 
 

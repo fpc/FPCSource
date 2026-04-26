@@ -142,7 +142,7 @@ implementation
 
 uses
   sysutils, cclasses,
-  globals, verbose, systems, cutils,
+  globals, verbose, systemstypes, systems, cutils,
   symconst, fmodule,
   rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
   compiler;

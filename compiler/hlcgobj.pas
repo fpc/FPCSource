@@ -739,7 +739,7 @@ unit hlcgobj;
 implementation
 
     uses
-       globals,systems,
+       globals,systemstypes,systems,
        fmodule,
        verbose,defutil,
        symtable,

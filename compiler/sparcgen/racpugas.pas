@@ -48,7 +48,7 @@ Interface
       cutils,
       { global }
       globtype,verbose,
-      systems,
+      systemstypes,systems,
       { aasm }
       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }

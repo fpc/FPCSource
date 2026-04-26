@@ -68,7 +68,7 @@ unit cpupara;
     uses
        verbose,
        globals,
-       systems,
+       systemstypes,systems,
        cpuinfo,
        defutil,
        cutils,

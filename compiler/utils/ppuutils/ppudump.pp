@@ -34,6 +34,7 @@ uses
   symconst,
   ppu,
   entfile,
+  systemstypes,
   systems,
   cpuinfo,
   globals,

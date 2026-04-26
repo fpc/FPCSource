@@ -48,7 +48,7 @@ implementation
 uses
     sysutils, classes,
     cutils, cfileutl, cclasses,
-    globtype, globals, systems, verbose, comphook, cscript, fmodule,
+    globtype, globals, systemstypes, systems, verbose, comphook, cscript, fmodule,
     i_ps1, compiler;
 
 

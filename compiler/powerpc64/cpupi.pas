@@ -52,7 +52,7 @@ type
 implementation
 
 uses
-  globtype, globals, systems,
+  globtype, globals, systemstypes, systems,
   cpubase, cgbase,
   aasmtai,
   tgobj,cgobj,

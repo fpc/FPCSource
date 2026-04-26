@@ -31,7 +31,7 @@ interface
     uses
       sysutils,
       cclasses,
-      systems,
+      systemstypes,systems,
       compilerbase,
       fmodule,
       globtype,

@@ -110,7 +110,7 @@ implementation
       cutils,cclasses,
       fpchash,
       globtype,globals,verbose,constexp,compiler,
-      systems,fmodule,
+      systemstypes,systems,fmodule,
       symsym,symtable,symcreat,
 {$ifdef cpuhighleveltarget}
       pparautl,

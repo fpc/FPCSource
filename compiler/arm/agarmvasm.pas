@@ -27,7 +27,7 @@ unit agarmvasm;
   interface
 
     uses
-       aasmbase,systems,
+       aasmbase,systemstypes,systems,
        aasmtai,aasmdata,
        assemble,aggas,agarmgas,
        cpubase,cgutils,

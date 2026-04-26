@@ -33,7 +33,7 @@ interface
       globals,
       compilerbase,
       { targets }
-      systems,globtype,
+      systemstypes,systems,globtype,
       { outputwriters }
       owbase,
       { assembler }
@@ -826,7 +826,7 @@ interface
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
     function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
-    procedure MaybeSwapStab(target_endian:systems.tendian;var v:TObjStabEntry);
+    procedure MaybeSwapStab(target_endian:systemstypes.tendian;var v:TObjStabEntry);
 
 implementation
 
@@ -872,7 +872,7 @@ implementation
       end;
 
 
-    procedure MaybeSwapStab(target_endian:systems.tendian;var v:TObjStabEntry);
+    procedure MaybeSwapStab(target_endian:systemstypes.tendian;var v:TObjStabEntry);
       begin
         if source_info.endian<>target_endian then
           begin

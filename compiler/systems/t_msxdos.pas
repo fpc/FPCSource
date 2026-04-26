@@ -34,7 +34,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,
+       globtype,globals,systemstypes,systems,verbose,cscript,
        fmodule,i_msxdos,
        link,aasmbase,cpuinfo,ogrel,owar,
        compilerbase,compiler;

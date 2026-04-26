@@ -29,7 +29,7 @@ unit agwasa;
 interface
 
   uses
-    cclasses,systems, cgutils,
+    cclasses,systemstypes,systems, cgutils,
     globtype,globals,
     symconst,symbase,symdef,symsym, symtype,symcpu,
     aasmbase,aasmtai,aasmdata,aasmcpu,

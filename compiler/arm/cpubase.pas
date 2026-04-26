@@ -404,7 +404,7 @@ unit cpubase;
   implementation
 
     uses
-      systems,rgBase,verbose,compiler;
+      systemstypes,systems,rgBase,verbose,compiler;
 
 
     const

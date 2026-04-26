@@ -59,7 +59,7 @@ unit cpupi;
   implementation
 
     uses
-       globals,systems,
+       globals,systemstypes,systems,
        cpubase,
        aasmtai,
        tgobj,cgobj,

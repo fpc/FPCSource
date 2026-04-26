@@ -164,7 +164,7 @@ implementation
        cutils, cmsgs, cdynset,
        { global }
        globtype,tokens,verbose,comphook,constexp,
-       systems,cpubase,aasmbase,aasmtai,
+       systemstypes,systems,cpubase,aasmbase,aasmtai,
        compiler,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,procdefutil,symcreat,

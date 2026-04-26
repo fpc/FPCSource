@@ -69,7 +69,7 @@ unit cpupara;
 
     uses
        cutils,
-       systems,verbose,
+       systemstypes,systems,verbose,
        symtable,symcpu,
        globals,defutil,
        compiler;

@@ -51,7 +51,7 @@ implementation
 *****************************************************************************}
 
     uses
-      globtype,systems,
+      globtype,systemstypes,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,

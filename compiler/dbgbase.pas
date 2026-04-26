@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      systems,compilerbase,
+      systemstypes,systems,compilerbase,
       parabase,paramgr,
       symconst,symbase,symdef,symtype,symsym,
       fmodule,

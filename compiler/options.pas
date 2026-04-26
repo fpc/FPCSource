@@ -27,7 +27,7 @@ interface
 
 uses
   cfileutl,cclasses,versioncmp,
-  globtype,globals,verbose,systems,cpuinfo,comprsrc,compilerbase;
+  globtype,globals,verbose,systemstypes,systems,cpuinfo,comprsrc,compilerbase;
 
 Type
   TOptions=class;
@@ -5545,7 +5545,7 @@ begin
 
   if (compiler.target.info.system in [system_xtensa_embedded,system_xtensa_freertos]) and not(option.ABISetExplicitly) then
     begin
-      if CPUXTENSA_REGWINDOW in cpu_capabilities[compiler.globals.init_settings.cputype] then
+      if CPUXTENSA_REGWINDOW in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype] then
         compiler.target.set_target_abi(abi_xtensa_windowed)
       else
         compiler.target.set_target_abi(abi_xtensa_call0);
@@ -6025,7 +6025,7 @@ begin
   { it is determined during system unit compilation if nsau is used for bsr or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
-  if CPUXTENSA_HAS_NSAx in cpu_capabilities[compiler.globals.init_settings.cputype] then
+  if CPUXTENSA_HAS_NSAx in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype] then
     begin
       def_system_macro('FPC_HAS_INTERNAL_BSR');
     end;

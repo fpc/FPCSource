@@ -46,7 +46,7 @@ type
 implementation
 
 uses
-  globtype, systems,
+  globtype, systemstypes, systems,
   cutils, verbose, globals,
   symconst, symbase, symsym, symtable, defutil, paramgr, parabase,
   pass_2,

@@ -149,7 +149,7 @@ implementation
 
 uses
    SysUtils,
-   systems,tokens,verbose,compinnr,
+   systemstypes,systems,tokens,verbose,compinnr,
    cutils,globals,widestr,scanner,compiler,
    symtable,
    defutil,defcmp,

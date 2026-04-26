@@ -77,7 +77,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,cclasses,compiler,
-    verbose,systems,globtype,globals,
+    verbose,systemstypes,systems,globtype,globals,
     cscript,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,

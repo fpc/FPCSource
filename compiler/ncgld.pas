@@ -68,7 +68,7 @@ implementation
 
     uses
       cutils,
-      systems,
+      systemstypes,systems,
       verbose,globals,constexp,fmodule,compiler,
       nutils,
       symtable,symconst,symdef,defutil,paramgr,ncon,nbas,ncgrtti,

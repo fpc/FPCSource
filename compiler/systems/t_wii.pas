@@ -33,7 +33,7 @@ implementation
        aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,fmodule,i_wii,link,
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_wii,link,
        compilerbase,compiler;
 
     type

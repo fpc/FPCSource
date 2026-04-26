@@ -127,7 +127,7 @@ implementation
        cutils,cclasses,
        { global }
        verbose,
-       systems,widestr,
+       systemstypes,systems,widestr,
        compiler,parser,
        { symtable }
        symconst,symtable,symcpu,defutil,defcmp,

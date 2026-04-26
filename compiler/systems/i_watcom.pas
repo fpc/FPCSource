@@ -26,7 +26,7 @@ unit i_watcom;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_watcom_info : tsysteminfo =

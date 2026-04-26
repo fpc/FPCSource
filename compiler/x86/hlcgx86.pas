@@ -49,7 +49,7 @@ interface
 implementation
 
   uses
-    globals,systems,
+    globals,systemstypes,systems,
     aasmbase,compiler,
     cgutils,
 {$ifdef I8086}

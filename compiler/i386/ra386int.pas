@@ -37,7 +37,7 @@ Unit ra386int;
   implementation
 
     uses
-      rabase,systems,rax86,aasmcpu;
+      rabase,systemstypes,systems,rax86,aasmcpu;
 
 (*
     procedure ti386intreader.handleopcode;

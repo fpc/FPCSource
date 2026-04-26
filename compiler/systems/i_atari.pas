@@ -26,7 +26,7 @@ unit i_atari;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_m68k_atari_info : tsysteminfo =

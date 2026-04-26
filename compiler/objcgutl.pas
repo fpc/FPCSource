@@ -53,7 +53,7 @@ implementation
 
   uses
     globtype,globals,fmodule,cutils,
-    systems,
+    systemstypes,systems,
     aasmtai,
     cgbase,
     objcdef,objcutil,compiler,

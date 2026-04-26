@@ -25,7 +25,7 @@ unit gendef;
 
 interface
 uses
-  globtype,cclasses,globals,systems;
+  globtype,cclasses,globals,systemstypes,systems;
 
 type
   tdeffile=class

@@ -29,7 +29,7 @@ interface
       { common }
       sysutils,cclasses,globtype,globals,verbose,
       { target }
-      systems,cpubase,compilerbase,
+      systemstypes,systems,cpubase,compilerbase,
       { assembler }
       aasmbase,assemble,aasmcpu,
       { WebAssembly module format definitions }

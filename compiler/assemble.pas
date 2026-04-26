@@ -33,7 +33,7 @@ interface
 
     uses
       SysUtils,
-      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput,
+      systemstypes,systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput,
       compilerbase;
 
     const

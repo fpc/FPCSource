@@ -1,10 +1,11 @@
 {
-    Copyright (c) 2020 by Jonas Maebe
+    Copyright (c) 1998-2008 by Florian Klaempfl
 
-    Construct the cpu part of the triplet
+    This unit contains information about the target systems supported
+    (these are not processor specific)
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    iu under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -15,31 +16,22 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    Foundation, Inc., 675 Mass Ave, Cambridge- MA 02139, USA.
 
  ****************************************************************************
 }
-unit tripletcpu;
+unit systemstypes;
 
 {$i fpcdefs.inc}
 
 interface
 
-uses
-  globtype, systemstypes, systems;
+{     uses
+       versioncmp,
+       globtype,cpuinfo,
+       compilerbase;}
 
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+{$i systems.inc}
 
 implementation
-
-function tripletcpustr(target: TReadOnlyCompilerTarget; tripletstyle: ttripletstyle): ansistring;
-  begin
-    if target.info.endian=endian_big then
-      result:='mips'
-    else
-      result:='mipsel'
-  end;
-
-
 end.
-

@@ -30,7 +30,7 @@ implementation
   uses
     globtype,sysutils,cutils,cclasses,
     globals,verbose, elfbase,
-    systems,aasmbase,ogbase,ogelf,assemble,
+    systemstypes,systems,aasmbase,ogbase,ogelf,assemble,
     compilerbase,compiler;
 
   type

@@ -30,7 +30,7 @@ unit agz80vasm;
   interface
 
     uses
-       globtype,systems,
+       globtype,systemstypes,systems,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        assemble,
        cpubase,

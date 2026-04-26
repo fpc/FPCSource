@@ -26,7 +26,7 @@ unit i_sinclairql;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_m68k_sinclairql_info : tsysteminfo =

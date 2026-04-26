@@ -26,7 +26,7 @@ unit i_amiga;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_m68k_amiga_info : tsysteminfo =

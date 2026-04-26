@@ -28,7 +28,7 @@ unit agllvmmc;
 interface
 
   uses
-    systems,cgutils,
+    systemstypes,systems,cgutils,
     globtype,globals,
     symbase,symdef,symtype,symconst,symcpu,
     aasmbase,aasmtai,aasmdata,aasmcpu,

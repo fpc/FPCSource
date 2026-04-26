@@ -61,7 +61,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_macos,
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_macos,
        ogbase,
        symconst,
        compiler;

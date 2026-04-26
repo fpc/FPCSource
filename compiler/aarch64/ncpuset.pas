@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      systems,
+      systemstypes,systems,
       verbose,globals,constexp,cutils,
       symconst,symdef,defutil,
       paramgr,

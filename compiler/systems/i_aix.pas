@@ -26,7 +26,7 @@ unit i_aix;
   interface
 
     uses
-       systems, rescmn;
+       systemstypes, systems, rescmn;
 
     const
        system_powerpc_aix_info : tsysteminfo =

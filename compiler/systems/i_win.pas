@@ -26,7 +26,7 @@ unit i_win;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_win32_info : tsysteminfo =

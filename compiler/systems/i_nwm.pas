@@ -26,7 +26,7 @@ unit i_nwm;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_netware_info : tsysteminfo =

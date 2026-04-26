@@ -29,7 +29,7 @@ unit agcpugas;
   interface
 
     uses
-       globtype,systems,
+       globtype,systemstypes,systems,
        aasmtai,aasmdata,aasmbase,
        assemble,aggas,
        cpubase,cpuinfo,

@@ -63,7 +63,7 @@ implementation
     uses
       verbose,
       globals,
-      systems,
+      systemstypes,systems,
       cpuinfo,
       symsym,
       symtable,

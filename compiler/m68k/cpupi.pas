@@ -41,7 +41,7 @@ unit cpupi;
     uses
       procinfo,
       cpubase,
-      systems,
+      systemstypes,systems,
       compiler;
 
   { tcpuprocinfo }

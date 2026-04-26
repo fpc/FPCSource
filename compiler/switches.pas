@@ -26,7 +26,7 @@ unit switches;
 interface
 
 uses
-  systems,globtype,compilerbase;
+  systemstypes,systems,globtype,compilerbase;
 
 type
   TSwitchesHandler = class

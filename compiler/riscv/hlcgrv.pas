@@ -50,7 +50,7 @@ implementation
 
   uses
     verbose,
-    systems,fmodule,
+    systemstypes,systems,fmodule,
     symconst, symsym,
     aasmbase,aasmtai,aasmcpu,
     cpubase,globtype,

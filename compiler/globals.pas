@@ -47,7 +47,7 @@ interface
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
-      globtype,version,systems;
+      globtype,version,systemstypes,systems;
 
     const
        delphimodeswitches =

@@ -65,7 +65,7 @@ Unit racpugas;
       cutils,
       { global }
       globtype,verbose,
-      systems,aasmbase,aasmdata,aasmcpu,
+      systemstypes,systems,aasmbase,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,symdef,
       procinfo,

@@ -57,7 +57,7 @@ implementation
 
     uses
       sysutils,cutils,cfileutl,constexp,
-      version,globals,verbose,systems,
+      version,globals,verbose,systemstypes,systems,
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
       defutil,symtable,symcpu,jvmdef,ppu,

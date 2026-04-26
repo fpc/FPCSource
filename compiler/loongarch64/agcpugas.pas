@@ -31,7 +31,7 @@ unit agcpugas;
   interface
 
     uses
-       systems,aasmbase,
+       systemstypes,systems,aasmbase,
        aasmtai,aasmdata,
        aggas,
        assemble,

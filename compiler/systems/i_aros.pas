@@ -26,7 +26,7 @@ unit i_aros;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_aros_info : tsysteminfo =

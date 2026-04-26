@@ -103,7 +103,7 @@ implementation
 
   uses
     cutils,cclasses,
-    globals,systems,verbose,compiler,
+    globals,systemstypes,systems,verbose,compiler,
     defutil,
     procinfo,paramgr,
     dbgbase,

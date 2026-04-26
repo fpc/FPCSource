@@ -68,7 +68,7 @@ implementation
   uses
     sysutils,
     cfileutl,cutils,
-    systems,globals,version,compiler,
+    systemstypes,systems,globals,version,compiler,
     verbose,
     entfile,pkgutil;
 

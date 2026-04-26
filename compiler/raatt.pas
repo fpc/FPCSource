@@ -118,7 +118,7 @@ unit raatt;
 
     uses
       { globals }
-      verbose,systems,compiler,
+      verbose,systemstypes,systems,compiler,
       { input }
       scanner, pbase,
       { symtable }

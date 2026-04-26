@@ -104,7 +104,7 @@ implementation
 
 uses
   globtype, globals,aasmbase,
-  cutils, verbose, systems, compiler;
+  cutils, verbose, systemstypes, systems, compiler;
 
 const
   gas_regname_table: array[tregisterindex] of string[7] = (

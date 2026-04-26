@@ -27,7 +27,7 @@ unit i_human68k;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_m68k_human68k_info : tsysteminfo =

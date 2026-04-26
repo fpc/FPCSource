@@ -31,7 +31,7 @@ unit agrvgas;
   interface
 
     uses
-       systems,aasmbase,
+       systemstypes,systems,aasmbase,
        aasmtai,aasmdata,
        aggas,
        assemble,

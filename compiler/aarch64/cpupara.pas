@@ -61,7 +61,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,systems,cutils,
+       verbose,systemstypes,systems,cutils,
        rgobj,
        defutil,symsym,symtable,
        compiler;

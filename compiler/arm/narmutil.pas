@@ -40,7 +40,7 @@ interface
 
     uses
       verbose,
-      systems,
+      systemstypes,systems,
       globals,
       cpuinfo,cpubase,
       cgbase,cgutils,

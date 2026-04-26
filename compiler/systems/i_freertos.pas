@@ -32,7 +32,7 @@ unit i_freertos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_xtensa_freertos_info : tsysteminfo =

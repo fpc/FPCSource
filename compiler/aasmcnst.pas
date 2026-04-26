@@ -27,7 +27,7 @@ unit aasmcnst;
 interface
 
 uses
-  cclasses,globtype,constexp,widestr,compilerbase,systems,
+  cclasses,globtype,constexp,widestr,compilerbase,systemstypes,systems,
   aasmbase,aasmdata,aasmtai,
   symconst,symbase,symtype,symdef,symsym;
 

@@ -117,7 +117,7 @@ type
 implementation
 
 uses
-  globals, verbose, systems, cutils,
+  globals, verbose, systemstypes, systems, cutils,
   paramgr, fmodule,
   symtable, symsym,
   tgobj,

@@ -58,7 +58,7 @@ unit cpupara;
 
     uses
        cpuinfo,globals,
-       verbose,systems,
+       verbose,systemstypes,systems,
        defutil,
        symtable,symcpu,
        procinfo,cpupi,

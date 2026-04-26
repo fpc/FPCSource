@@ -39,7 +39,7 @@ implementation
   uses
     sysutils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,compiler,
+    verbose,systemstypes,systems,globtype,globals,compiler,
     cscript,
     fmodule,
     import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;

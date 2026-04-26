@@ -27,7 +27,7 @@ unit rescmn;
 interface
 
 uses
-  Systems;
+  SystemsTypes,Systems;
 
     const
        res_elf_info : tresinfo =

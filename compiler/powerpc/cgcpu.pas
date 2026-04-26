@@ -115,7 +115,7 @@ const
   implementation
 
     uses
-       globals,verbose,systems,cutils,
+       globals,verbose,systemstypes,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr,
        compiler;

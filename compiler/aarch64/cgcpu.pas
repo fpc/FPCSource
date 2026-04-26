@@ -129,7 +129,7 @@ interface
 implementation
 
   uses
-    globals,verbose,systems,cutils,cclasses,
+    globals,verbose,systemstypes,systems,cutils,cclasses,
     paramgr,fmodule,
     symtable,symsym,
     tgobj,

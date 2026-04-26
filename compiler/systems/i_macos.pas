@@ -26,7 +26,7 @@ unit i_macos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
      const
        system_powerpc_macosclassic_info : tsysteminfo =
           (

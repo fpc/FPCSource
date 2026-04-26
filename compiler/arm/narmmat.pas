@@ -55,7 +55,7 @@ implementation
       globtype,compinnr,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
-      defutil,systems,
+      defutil,systemstypes,systems,
       symtype,symconst,symtable,
       cgbase,cgobj,nodehelper,cgutils,
       pass_2,procinfo,

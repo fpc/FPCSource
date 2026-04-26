@@ -123,7 +123,7 @@ interface
 implementation
 
   uses
-    globals,verbose,systems,cutils,
+    globals,verbose,systemstypes,systems,cutils,
     paramgr,fmodule,
     symtable,symsym,
     tgobj,
@@ -195,7 +195,7 @@ implementation
                   list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,reg2,reg1,0,8));
                 OS_S8:
                   begin
-                    if CPUXTENSA_HAS_SEXT in cpu_capabilities[compiler.globals.current_settings.cputype] then
+                    if CPUXTENSA_HAS_SEXT in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
                       list.concat(taicpu.op_reg_reg_const(A_SEXT,reg2,reg1,7))
                     else
                       begin
@@ -208,7 +208,7 @@ implementation
                 OS_16:
                   list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,reg2,reg1,0,16));
                 OS_S16:
-                  if CPUXTENSA_HAS_SEXT in cpu_capabilities[compiler.globals.current_settings.cputype] then
+                  if CPUXTENSA_HAS_SEXT in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
                     list.concat(taicpu.op_reg_reg_const(A_SEXT,reg2,reg1,15))
                   else
                     begin
@@ -299,7 +299,7 @@ implementation
         list.concat(taicpu.op_reg_ref(op,reg,href));
 
         if (fromsize=OS_S8) and not(tosize in [OS_S8,OS_8]) then
-          if CPUXTENSA_HAS_SEXT in cpu_capabilities[compiler.globals.current_settings.cputype] then
+          if CPUXTENSA_HAS_SEXT in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
             list.concat(taicpu.op_reg_reg_const(A_SEXT,reg,reg,7))
           else
             begin
@@ -647,7 +647,7 @@ implementation
       var
         instr: taicpu;
       begin
-        if CPUXTENSA_HAS_BOOLEAN_OPTION in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUXTENSA_HAS_BOOLEAN_OPTION in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           begin
             instr:=taicpu.op_reg_sym(A_B,f.register,l);
             instr.condition:=flags_to_cond(f.flag);
@@ -1135,7 +1135,7 @@ implementation
             tmpreg1  := GetIntRegister(list, OS_INT);
             a_load_const_reg(list, OS_INT, Count, countreg);
             current_asmdata.getjumplabel(lab);
-            if CPUXTENSA_HAS_LOOPS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+            if CPUXTENSA_HAS_LOOPS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
               begin
                 list.concat(taicpu.op_reg_sym(A_LOOP, countreg, lab));
                 list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));

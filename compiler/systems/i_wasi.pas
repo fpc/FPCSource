@@ -26,7 +26,7 @@ unit i_wasi;
   interface
 
     uses
-       systems,rescmn;
+       systemstypes,systems,rescmn;
 
     const
         system_wasm32_wasip1_info : tsysteminfo =

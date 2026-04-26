@@ -30,7 +30,7 @@ unit i_bsd;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_aarch64_freebsd_info : tsysteminfo =

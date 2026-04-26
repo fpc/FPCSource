@@ -27,7 +27,7 @@ unit agppcvasm;
   interface
 
     uses
-       aasmbase,systems,
+       aasmbase,systemstypes,systems,
        aasmtai,aasmdata,
        assemble,aggas,agppcgas,
        cpubase,cgutils,

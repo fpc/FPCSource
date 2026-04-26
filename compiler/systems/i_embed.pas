@@ -32,7 +32,7 @@ unit i_embed;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_aarch64_embedded_info : tsysteminfo =

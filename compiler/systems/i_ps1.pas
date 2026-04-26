@@ -26,7 +26,7 @@ unit i_ps1;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
 

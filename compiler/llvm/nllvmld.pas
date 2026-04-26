@@ -49,7 +49,7 @@ interface
 implementation
 
      uses
-       systems,
+       systemstypes,systems,
        aasmbase,aasmdata,aasmllvm,
        nld,
        symtable,symconst,symdef,symsym,defutil,

@@ -28,7 +28,7 @@ unit agjasmin;
 interface
 
     uses
-      cclasses,systems,
+      cclasses,systemstypes,systems,
       globtype,globals,
       symconst,symbase,symdef,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,

@@ -100,7 +100,7 @@ unit cg64f32;
   implementation
 
     uses
-       globtype,systems,constexp,
+       globtype,systemstypes,systems,constexp,
        verbose,cutils,compiler,
        symbase,symconst,symdef,symtable,defutil,paramgr,
        tgobj,hlcgobj;

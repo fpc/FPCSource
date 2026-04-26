@@ -27,7 +27,7 @@ unit i_jvm;
   interface
 
     uses
-       systems,rescmn;
+       systemstypes,systems,rescmn;
 
     const
        res_jvmraw_info : tresinfo =

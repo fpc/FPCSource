@@ -57,7 +57,7 @@ implementation
   uses
     globals, procinfo,
     verbose,compiler,
-    fmodule,systems,
+    fmodule,systemstypes,systems,
     aasmbase,aasmtai,
     paramgr,
     symconst,symsym,defutil,

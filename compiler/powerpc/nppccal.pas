@@ -41,7 +41,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systemstypes,systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
       cgbase,pass_2,

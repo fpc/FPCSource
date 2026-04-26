@@ -101,7 +101,7 @@ Implementation
     uses
        { global }
        globals,verbose,
-       systems,
+       systemstypes,systems,
        { aasm }
        cpuinfo,aasmtai,aasmdata,aasmcpu,
        cgbase,cgutils,

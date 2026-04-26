@@ -82,7 +82,7 @@ interface
 implementation
 
     uses
-      systems,
+      systemstypes,systems,
       cutils,cclasses,verbose,globals,constexp,fmodule,compiler,
       symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmdata,

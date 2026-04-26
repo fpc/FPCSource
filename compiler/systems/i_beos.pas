@@ -26,7 +26,7 @@ unit i_beos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_beos_info : tsysteminfo =

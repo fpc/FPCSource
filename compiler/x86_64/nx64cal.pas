@@ -44,7 +44,7 @@ implementation
 
     uses
       globtype,
-      systems,verbose,cutils,
+      systemstypes,systems,verbose,cutils,
       cpubase,cgbase,cgutils,cgobj,compiler,
       symconst,symcpu,nld,
       aasmtai,aasmdata,aasmcpu,

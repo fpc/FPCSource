@@ -47,7 +47,7 @@ interface
 {$ENDIF}
       GlobType,
       CUtils,CClasses,
-      Systems,CompilerBase;
+      SystemsTypes,Systems,CompilerBase;
 
     type
       TCachedDirectory = class(TFPHashObject)

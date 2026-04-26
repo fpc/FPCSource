@@ -27,7 +27,7 @@ unit i_symbian;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_symbian_info : tsysteminfo =

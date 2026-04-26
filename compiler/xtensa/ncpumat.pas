@@ -100,7 +100,7 @@ implementation
     function tcpumoddivnode.first_moddivint: tnode;
       begin
         if (not is_64bitint(resultdef)) and
-           (CPUXTENSA_HAS_DIV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+           (CPUXTENSA_HAS_DIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           Result:=nil
         else
           result:=inherited;

@@ -36,7 +36,7 @@ Unit ra8086att;
   implementation
 
     uses
-      rabase,systems;
+      rabase,systemstypes,systems;
 
 const
   asmmode_i8086_att_info : tasmmodeinfo =

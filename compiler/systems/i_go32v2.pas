@@ -26,7 +26,7 @@ unit i_go32v2;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_go32v2_info : tsysteminfo =

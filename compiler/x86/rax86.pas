@@ -99,7 +99,7 @@ const
 implementation
 
 uses
-  globtype,globals,systems,verbose,compiler,
+  globtype,globals,systemstypes,systems,verbose,compiler,
   procinfo,
   cgbase,cgutils,
   itcpugas,cgx86, cutils;

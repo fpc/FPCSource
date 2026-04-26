@@ -30,7 +30,7 @@ implementation
   uses
     globtype,cutils,cclasses,
     verbose,elfbase,
-    systems,aasmbase,ogbase,ogelf,assemble;
+    systemstypes,systems,aasmbase,ogbase,ogelf,assemble;
 
   type
     TElfExeOutputx86_64=class(TElfExeOutput)

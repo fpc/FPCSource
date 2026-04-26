@@ -230,7 +230,7 @@ implementation
 
     uses
       cutils,
-      verbose,systems,sysutils,ppu,compiler,
+      verbose,systemstypes,systems,sysutils,ppu,compiler,
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,

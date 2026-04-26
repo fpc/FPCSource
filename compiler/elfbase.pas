@@ -26,7 +26,7 @@ unit elfbase;
 interface
 
   uses
-    systems;
+    systemstypes,systems;
 
   const
     EI_MAG0    = 0;

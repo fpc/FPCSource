@@ -55,7 +55,7 @@ implementation
 
   uses
     globals,cutils,cfileutl,verbose,
-    systems,finput,fmodule,
+    systemstypes,systems,finput,fmodule,
     aasmbase,
     symconst,
     compiler;

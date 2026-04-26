@@ -334,7 +334,7 @@ unit hlcg2ll;
 implementation
 
     uses
-       globals,systems,compiler,
+       globals,systemstypes,systems,compiler,
        verbose,defutil,symsym,
        procinfo,paramgr,
        cgobj,tgobj,cutils,

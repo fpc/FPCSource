@@ -48,7 +48,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,systems,
+      cutils,verbose,systemstypes,systems,
       defutil,
       cgobj,
       compiler;

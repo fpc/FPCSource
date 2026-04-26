@@ -63,7 +63,7 @@ type
 implementation
 
 uses
-  verbose, systems,
+  verbose, systemstypes, systems,
   defutil,symtable,symcpu,
   procinfo, cpupi,
   compiler;

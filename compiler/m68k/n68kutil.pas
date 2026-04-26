@@ -37,7 +37,7 @@ implementation
 
     uses
       verbose,
-      systems,
+      systemstypes,systems,
       globals,
       fmodule,
       aasmbase,aasmdata,aasmtai,aasmcpu,aasmcnst,

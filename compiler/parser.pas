@@ -95,7 +95,7 @@ implementation
       fksysutl,
 {$ENDIF}
       cclasses,
-      globtype,tokens,systems,globals,verbose,globstat,compiler,
+      globtype,tokens,systemstypes,systems,globals,verbose,globstat,compiler,
       symbase,symtable,symdef,
       finput,fppu,
       aasmdata,

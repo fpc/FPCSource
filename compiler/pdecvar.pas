@@ -74,7 +74,7 @@ implementation
        cutils,
        { global }
        globtype,globals,tokens,verbose,constexp,
-       systems,compiler,
+       systemstypes,systems,compiler,
        { symtable }
        symconst,symbase,defutil,defcmp,symutil,symcreat,
 {$if defined(i386) or defined(i8086) or defined(wasm)}

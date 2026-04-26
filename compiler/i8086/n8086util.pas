@@ -42,7 +42,7 @@ implementation
 
   uses
     sysutils,cutils,
-    globtype,globals,cpuinfo,systems,
+    globtype,globals,cpuinfo,systemstypes,systems,
     aasmbase,aasmdata,aasmtai,
     symdef,
     compiler;

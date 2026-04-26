@@ -25,7 +25,7 @@ unit i_msxdos;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_z80_msxdos_info : tsysteminfo =

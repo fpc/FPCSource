@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      systems,dbgbase,cgbase,compilerbase,
+      systemstypes,systems,dbgbase,cgbase,compilerbase,
       symconst,symtype,symdef,symsym,symtable,symbase,
       aasmtai,aasmdata;
 

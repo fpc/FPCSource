@@ -369,7 +369,7 @@ interface
 
     function TCPUAddNode.use_generic_mul32to64: boolean;
       begin
-        result:=not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[compiler.globals.current_settings.cputype]) or needoverflowcheck;
+        result:=not(CPUXTENSA_HAS_MUL32HIGH in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) or needoverflowcheck;
       end;
 
 
@@ -377,7 +377,7 @@ interface
       begin
         result:=needoverflowcheck or
           (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
-          not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[compiler.globals.current_settings.cputype]);
+          not(CPUXTENSA_HAS_MUL32HIGH in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
 
@@ -444,7 +444,7 @@ interface
         { initialize de result }
         if cmpop then
           begin
-            if CPUXTENSA_HAS_BOOLEAN_OPTION in cpu_capabilities[compiler.globals.current_settings.cputype] then
+            if CPUXTENSA_HAS_BOOLEAN_OPTION in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
               begin
                 location_reset(location,LOC_FLAGS,OS_NO);
                 location.resflags.register:=NR_B0;

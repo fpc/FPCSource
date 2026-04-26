@@ -26,7 +26,7 @@ unit i_android;
   interface
 
     uses
-       systems, rescmn;
+       systemstypes, systems, rescmn;
 
     const
        system_arm_android_info : tsysteminfo =

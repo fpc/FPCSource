@@ -50,7 +50,7 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_sinclairql,compiler;
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_sinclairql,compiler;
 
     type
       TQLHeader = packed record

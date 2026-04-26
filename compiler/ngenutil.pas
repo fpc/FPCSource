@@ -174,7 +174,7 @@ implementation
 
     uses
       verbose,version,globals,cutils,constexp,compinnr,
-      systems,procinfo,pparautl,
+      systemstypes,systems,procinfo,pparautl,
       aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,

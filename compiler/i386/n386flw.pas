@@ -54,7 +54,7 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,fmodule,
+    cutils,globtype,globals,verbose,systemstypes,systems,fmodule,
     nbas,ncal,nmem,nutils,
     symconst,symbase,symtable,symsym,symdef,
     cgbase,cgobj,cgcpu,cgutils,tgobj,

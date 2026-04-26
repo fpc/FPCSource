@@ -26,7 +26,7 @@ unit i_gba;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_arm_gba_info : tsysteminfo =

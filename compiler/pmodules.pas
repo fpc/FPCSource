@@ -93,7 +93,7 @@ implementation
 
     uses
        SysUtils,
-       systems,tokens,
+       systemstypes,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,finput,globstat,fpcp,fpkg,
        compiler,parser,

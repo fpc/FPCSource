@@ -26,7 +26,7 @@ unit i_os2;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        res_wrc_os2_info : tresinfo =

@@ -36,7 +36,7 @@ Unit ra386att;
   implementation
 
     uses
-      rabase,systems;
+      rabase,systemstypes,systems;
 
 const
   asmmode_i386_att_info : tasmmodeinfo =

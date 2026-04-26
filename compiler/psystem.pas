@@ -52,7 +52,7 @@ implementation
 
     uses
       globals,globtype,verbose,constexp,cpuinfo,compinnr,compiler,
-      systems,
+      systemstypes,systems,
       symconst,symtype,symsym,symdef,symcpu,symtable,
       aasmtai,aasmcpu,
       fmodule,

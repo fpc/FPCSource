@@ -26,7 +26,7 @@ unit entfile;
 interface
 
   uses
-    systems,globtype,constexp,cstreams,compilerbase;
+    systemstypes,systems,globtype,constexp,cstreams,compilerbase;
 
 const
 { buffer sizes }

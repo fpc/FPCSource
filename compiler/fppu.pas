@@ -154,7 +154,7 @@ implementation
 uses
   SysUtils,
   cfileutl,
-  systems,version,options,compiler,
+  systemstypes,systems,version,options,compiler,
   symtable, symsym,
   wpoinfo,
   scanner,

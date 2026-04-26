@@ -27,7 +27,7 @@ interface
 
 uses
   cutils,cclasses,
-  systems,compilerbase,
+  systemstypes,systems,compilerbase,
   symtype,symdef,symsym,
   aasmdata;
 

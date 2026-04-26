@@ -55,7 +55,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,aasmbase,compiler,
-       globtype,globals,systems,verbose,cscript,fmodule,i_aros;
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_aros;
 
 
 procedure timportlibaros.generatelib;

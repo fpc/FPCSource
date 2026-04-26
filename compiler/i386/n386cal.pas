@@ -44,7 +44,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systemstypes,systems,
       cutils,verbose,globals,
       cgbase,cgutils,
       cpubase,paramgr,

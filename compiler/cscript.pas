@@ -120,7 +120,7 @@ uses
   BaseUnix,
 {$endif}
   cutils,cfileutl,
-  globals,systems,verbose,compiler;
+  globals,systemstypes,systems,verbose,compiler;
 
 
 {****************************************************************************

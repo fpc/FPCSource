@@ -44,7 +44,7 @@ implementation
     symconst,symtype,symbase,symsym,symcpu,parabase,paramgr,
     cgbase,cgobj,cgutils,cpuinfo,cpubase,cutils,
     ncgutil,tgobj,nld,
-    systems,
+    systemstypes,systems,
     compiler,nodehelper;
 
   procedure tarmcallnode.gen_syscall_para(para: tcallparanode);

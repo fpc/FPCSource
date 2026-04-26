@@ -33,7 +33,7 @@ implementation
        link,
        SysUtils,
        cclasses,cutils,cfileutl,globtype,globals,
-       systems,verbose,cscript,fmodule,i_watcom,
+       systemstypes,systems,verbose,cscript,fmodule,i_watcom,
        compilerbase,compiler;
 
 

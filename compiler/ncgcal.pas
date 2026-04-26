@@ -136,7 +136,7 @@ interface
 implementation
 
     uses
-      systems,
+      systemstypes,systems,
       verbose,globals,cutils,compiler,
       symconst,symtable,symtype,defutil,paramgr,
       pass_2,

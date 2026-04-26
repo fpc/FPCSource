@@ -48,7 +48,7 @@ implementation
 
   uses
     verbose,
-    systems,fmodule,
+    systemstypes,systems,fmodule,
     symconst,
     aasmbase,aasmtai,aasmcpu,
     cpubase,

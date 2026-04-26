@@ -127,7 +127,7 @@ Unit raz80asm;
       cutils,
       { global }
       globals,verbose,
-      systems,
+      systemstypes,systems,
       { aasm }
       cpuinfo,aasmtai,aasmdata,aasmcpu,
       { symtable }

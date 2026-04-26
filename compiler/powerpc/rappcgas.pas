@@ -48,7 +48,7 @@ Unit rappcgas;
       cutils,
       { global }
       globtype,globals,verbose,
-      systems,
+      systemstypes,systems,
       { aasm }
       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }

@@ -27,11 +27,10 @@ unit systems;
 interface
 
      uses
+       systemstypes,
        versioncmp,
        globtype,cpuinfo,
        compilerbase;
-
-{$i systems.inc}
 
 {*****************************************************************************
                                Structures

@@ -322,7 +322,7 @@ implementation
 
   uses
     itcpugas,aoptcpu,
-    systems,symdef,
+    systemstypes,systems,symdef,
     compiler;
 
 

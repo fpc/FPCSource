@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      globtype,globals,systems,
+      globtype,globals,systemstypes,systems,
       aasmbase,aasmtai,aasmdata,
       assemble,
       aasmllvm, aasmllvmmetadata,

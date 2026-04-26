@@ -56,7 +56,7 @@ unit cpupi;
   implementation
 
     uses
-       globals,systems,
+       globals,systemstypes,systems,
        verbose,
        tgobj,
        symconst,symtype,symsym,symcpu,symdef,

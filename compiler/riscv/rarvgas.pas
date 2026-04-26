@@ -52,7 +52,7 @@ unit rarvgas;
       cutils,
       { global }
       globtype,globals,verbose,
-      systems,
+      systemstypes,systems,
       { aasm }
       aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }

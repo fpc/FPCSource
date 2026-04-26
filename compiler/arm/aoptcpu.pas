@@ -118,7 +118,7 @@ Implementation
 
   uses
     cutils,verbose,globtype,globals,
-    systems,
+    systemstypes,systems,
     cpuinfo,
     cgobj,procinfo,
     aasmbase,aasmdata,

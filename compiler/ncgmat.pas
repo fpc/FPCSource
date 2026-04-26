@@ -131,7 +131,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systemstypes,systems,
       cutils,verbose,globals,compiler,
       symtable,symconst,symdef,aasmbase,aasmdata,aasmcpu,defutil,
       parabase,

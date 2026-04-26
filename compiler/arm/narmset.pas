@@ -53,7 +53,7 @@ interface
 implementation
 
     uses
-      verbose,globals,defutil,systems,
+      verbose,globals,defutil,systemstypes,systems,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,

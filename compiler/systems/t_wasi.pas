@@ -28,7 +28,7 @@ unit t_wasi;
 interface
 
 uses
-  systems,
+  systemstypes,systems,
 
   globtype, globals, compilerbase,
   aasmbase,

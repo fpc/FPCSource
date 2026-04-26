@@ -95,7 +95,7 @@ implementation
 
     uses
        cutils,
-       globals,verbose,systems,
+       globals,verbose,systemstypes,systems,
        node,ncal,ncon,
        fmodule, procinfo,compiler,
        symtable,symutil,

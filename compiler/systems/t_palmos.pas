@@ -47,7 +47,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,fmodule,i_palmos,
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_palmos,
        comprsrc,
        compiler;
 

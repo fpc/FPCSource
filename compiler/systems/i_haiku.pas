@@ -27,7 +27,7 @@ unit i_haiku;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i386_haiku_info : tsysteminfo =

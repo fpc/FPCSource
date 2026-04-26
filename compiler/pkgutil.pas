@@ -59,7 +59,7 @@ implementation
 
   uses
     sysutils,
-    systems,compiler,
+    systemstypes,systems,compiler,
     cutils,
     globals,verbose,
     aasmbase,aasmdata,aasmcnst,

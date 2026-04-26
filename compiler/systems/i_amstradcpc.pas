@@ -25,7 +25,7 @@ unit i_amstradcpc;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_z80_amstradcpc_info : tsysteminfo =

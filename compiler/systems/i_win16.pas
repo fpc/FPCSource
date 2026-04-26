@@ -33,7 +33,7 @@ unit i_win16;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_i8086_win16_info : tsysteminfo =

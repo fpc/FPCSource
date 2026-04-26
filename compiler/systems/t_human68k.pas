@@ -50,7 +50,7 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_human68k,compiler;
+       globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_human68k,compiler;
 
 
 constructor TLinkerHuman68k.Create(acompiler: TCompilerBase);

@@ -30,7 +30,7 @@ interface
        { common }
        cclasses,globtype,globals,verbose,compilerbase,
        { target }
-       systems,
+       systemstypes,systems,
        { assembler }
        cpuinfo,cpubase,aasmbase,assemble,link,
        { output }

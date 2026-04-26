@@ -78,7 +78,7 @@ Unit rawasmtext;
       cutils,
       { global }
       globals,verbose,
-      systems,compiler,
+      systemstypes,systems,compiler,
       { aasm }
       cpuinfo,aasmtai,aasmdata,aasmcpu,
       { symtable }

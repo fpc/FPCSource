@@ -31,7 +31,7 @@ uses
   owbase, ogbase,
   aasmbase, assemble,
   macho, machoutils,
-  systems, compilerbase,
+  systemstypes, systems, compilerbase,
   { assembler }
   cpuinfo,cpubase,aasmtai,aasmdata; {for system constants}
 

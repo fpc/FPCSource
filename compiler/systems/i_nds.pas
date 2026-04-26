@@ -26,7 +26,7 @@ unit i_nds;
   interface
 
     uses
-       systems;
+       systemstypes,systems;
 
     const
        system_arm_nds_info : tsysteminfo =

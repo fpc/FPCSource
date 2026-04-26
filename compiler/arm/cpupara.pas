@@ -59,7 +59,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,systems,cutils,
+       verbose,systemstypes,systems,cutils,
        defutil,symsym,symcpu,symtable,symutil,
        { PowerPC uses procinfo as well in cpupara, so this should not hurt }
        procinfo,
