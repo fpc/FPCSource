@@ -572,7 +572,7 @@ interface
             DoMod: Boolean;
           begin
 {$ifndef i8086}
-            IF (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+            IF (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
                 { If BMI2 is available, use more efficient instructions }
                 DoBMI2ReciprocalDivision;
@@ -873,7 +873,7 @@ interface
                 if d>=aword(1) shl (left.resultdef.size*8-1) then
                   begin
 
-                    if not (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                    if not (CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       goto DefaultDiv;
 
                     location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);

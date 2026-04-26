@@ -111,8 +111,8 @@ Const
       (CPULOONGARCH_HAS_ATOMIC
       );
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+ const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none       } [],
        { cpu_loongarch3a    } [CPULOONGARCH_HAS_ATOMIC]
      );

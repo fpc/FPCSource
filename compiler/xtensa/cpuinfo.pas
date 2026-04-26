@@ -157,8 +157,8 @@ Const
         FPUXTENSA_DOUBLE  { FPU has double support, this is a dummy so far for easier checking what code to generate }
       );
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+ const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      (
        { cpu_none     } [],
        { cpu_lx106    } [],
@@ -167,7 +167,6 @@ Const
        { cpu_lx7hf    } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_NSAx, CPUXTENSA_HAS_BOOLEAN_OPTION, CPUXTENSA_HAS_MUL32HIGH, CPUXTENSA_HAS_DIV, CPUXTENSA_HAS_MINMAX]
      );
 
- const
    fpu_capabilities : array[tfputype] of set of tfpuflags =
      (
        { fpu_none       } [],

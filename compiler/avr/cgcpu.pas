@@ -150,7 +150,7 @@ unit cgcpu;
     procedure tcgavr.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R18,RS_R19,RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],first_int_imreg,[],compiler)
         else
@@ -370,7 +370,7 @@ unit cgcpu;
         else
           sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
 
-        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           list.concat(taicpu.op_sym(A_CALL,sym))
         else
           list.concat(taicpu.op_sym(A_RCALL,sym));
@@ -1346,7 +1346,7 @@ unit cgcpu;
           end;
 
         { can we take advantage of adiw/sbiw? }
-        if (CPUAVR_HAS_ADIW in cpu_capabilities[compiler.globals.current_settings.cputype]) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
+        if (CPUAVR_HAS_ADIW in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
           ((tmpreg=NR_R24) or (tmpreg=NR_R26) or (tmpreg=NR_R28) or (tmpreg=NR_R30)) and (ref.base<>NR_NO) then
           begin
             maybegetcpuregister(list,tmpreg);
@@ -1469,7 +1469,7 @@ unit cgcpu;
                     (href.symbol=nil) and
                      (href.Index=NR_NO) and
                      (href.Offset in [0..64-tcgsize2size[fromsize]])) or
-                (CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                (CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                begin
                  href:=normalize_ref(list,href,NR_R30);
                  getcpuregister(list,NR_R30);
@@ -1688,7 +1688,7 @@ unit cgcpu;
                     (href.symbol=nil) and
                      (href.Index=NR_NO) and
                      (href.Offset in [0..64-tcgsize2size[fromsize]])) or
-                (CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                (CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                begin
                  href:=normalize_ref(list,href,NR_R30);
                  getcpuregister(list,NR_R30);
@@ -2072,7 +2072,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION))
         else
           ai:=taicpu.op_sym(A_RJMP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
@@ -2085,7 +2085,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           ai:=taicpu.op_sym(A_JMP,l)
         else
           ai:=taicpu.op_sym(A_RJMP,l);
@@ -2242,7 +2242,7 @@ unit cgcpu;
         ovloc.loc:=LOC_VOID;
         if size in [OS_8,OS_S8] then
           begin
-            if (CPUAVR_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            if (CPUAVR_HAS_MUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                (op=OP_MUL) then
               begin
                 a_reg_alloc(list,NR_R0);
@@ -2276,7 +2276,7 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
                 a_reg_dealloc(list,NR_R0);
               end
-            else if (CPUAVR_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            else if (CPUAVR_HAS_MUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                (op=OP_IMUL) then
               begin
                 a_reg_alloc(list,NR_R0);
@@ -2342,7 +2342,7 @@ unit cgcpu;
           end
         else if size in [OS_16,OS_S16] then
           begin
-            if (CPUAVR_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            if (CPUAVR_HAS_MUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                ((not check_overflow) or
                 (size=OS_16)) then
               begin
@@ -2761,7 +2761,7 @@ unit cgcpu;
           begin
             SrcQuickRef:=false;
             DestQuickRef:=false;
-            if ((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            if ((CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
               not((source.Base=NR_NO) and (source.Index=NR_NO) and (source.Offset in [0..192-len]))) or
               (
                  not((source.addressmode=AM_UNCHANGED) and
@@ -2783,7 +2783,7 @@ unit cgcpu;
                 srcref:=source;
               end;
 
-            if ((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            if ((CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
               not((dest.Base=NR_NO) and (dest.Index=NR_NO) and (dest.Offset in [0..192-len]))) or
               (
                  not((dest.addressmode=AM_UNCHANGED) and

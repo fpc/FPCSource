@@ -2056,7 +2056,7 @@ unit cgx86;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op in [OP_ROR,OP_ROL]) and
-          (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+          (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           (size in [OS_32,OS_S32
 {$ifdef x86_64}
             ,OS_64,OS_S64
@@ -2086,7 +2086,7 @@ unit cgx86;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op in [OP_SAR,OP_SHR,OP_SHL]) and
-          (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+          (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           (size in [OS_32,OS_S32
 {$ifdef x86_64}
             ,OS_64,OS_S64
@@ -2815,7 +2815,7 @@ unit cgx86;
   {$else x86_64}
           ((_compiler.globals.current_settings.fputype>=fpu_sse)
   {$endif x86_64}
-            or (CPUX86_HAS_SSE2 in cpu_capabilities[_compiler.globals.current_settings.cputype])) and
+            or (CPUX86_HAS_SSE2 in _compiler.target.cpu_capabilities[_compiler.globals.current_settings.cputype])) and
            ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
            result:=copy_mm
         else

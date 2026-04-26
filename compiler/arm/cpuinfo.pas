@@ -1117,8 +1117,8 @@ Const
         FPUARM_HAS_FMA                 { fpu has fused multiply/add instructions                                               }
       );
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+ const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none     } [],
        { cpu_armv2    } [],
        { cpu_armv3    } [],
@@ -1140,7 +1140,6 @@ Const
        { cpu_armv7em  } [CPUARM_HAS_THUMB,CPUARM_HAS_ALL_MEM,CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_THUMB_IDIV,CPUARM_HAS_DMB,CPUARM_HAS_THUMB2,CPUARM_HAS_UMULL,CPUARM_HAS_MP_INSTRUCTIONS]
      );
 
- const
      fpu_capabilities : array[tfputype] of set of tfpuflags =
        ( { fpu_none         } [],
          { fpu_soft         } [],

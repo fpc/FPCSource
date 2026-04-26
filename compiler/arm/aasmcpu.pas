@@ -2305,7 +2305,7 @@ implementation
         if cf_thumb in flags then
           begin
             fArmMask:=IF_THUMB;
-            if CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype] then
+            if CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
              fArmMask:=fArmMask or IF_THUMB32;
           end
         else

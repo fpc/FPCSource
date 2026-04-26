@@ -1925,10 +1925,10 @@ const
             { optimize (i shl x) or (i shr (bitsizeof(i)-x)) into rol(x,i) (and different flavours with shl/shr swapped etc.) }
             if (nodetype in [addn,orn]) { add also works here }
 {$ifdef m68k}
-               and (CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.current_settings.cputype])
+               and (CPUM68K_HAS_ROLROR in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])
 {$endif m68k}
 {$ifdef riscv}
-               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[compiler.globals.current_settings.cputype]<>[])
+               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]<>[])
 {$endif riscv}
 {$ifndef cpu64bitalu}
                and (ld.typ=orddef) and

@@ -380,7 +380,7 @@ Implementation
     begin
       { Cannot perform these jump optimisations if the ARM architecture has 16-bit thumb codes }
       Result := not (
-        (compiler.globals.current_settings.instructionset = is_thumb) and not (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype])
+        (compiler.globals.current_settings.instructionset = is_thumb) and not (CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])
       );
     end;
 
@@ -929,7 +929,7 @@ Implementation
              ldrd reg1,reg1+1,ref
           }
           else if (GenerateARMCode or GenerateThumb2Code) and
-            (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            (CPUARM_HAS_EDSP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
             { ldrd does not allow any postfixes ... }
             (taicpu(p).oppostfix=PF_None) and
             not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
@@ -1120,7 +1120,7 @@ Implementation
             strd reg1,reg2,ref
           }
           else if (GenerateARMCode or GenerateThumb2Code) and
-             (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+             (CPUARM_HAS_EDSP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
              not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
              (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
              AlignedToQWord(taicpu(p).oper[1]^.ref^) and
@@ -2000,7 +2000,7 @@ Implementation
         MatchInstruction(hp1,A_POP,[C_None],[PF_None]) and
         (taicpu(hp1).oper[0]^.regset^=[RS_R15]) then
         begin
-          if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+          if not(CPUARM_HAS_BX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
             begin
               DebugMsg('Peephole Optimization: PushPop2Mov done', p);
               taicpu(p).ops:=2;

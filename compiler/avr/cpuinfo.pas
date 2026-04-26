@@ -887,8 +887,8 @@ Const
        CPUAVR_NOMEMMAPPED_REGS  // Core registers not accessible in data space
       );
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+ const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none      } [],
        { cpu_avrtiny   } [CPUAVR_16_REGS,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],
        { cpu_avr1      } [CPUAVR_2_BYTE_PC],

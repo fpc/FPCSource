@@ -28,7 +28,7 @@ interface
 
      uses
        versioncmp,
-       globtype,
+       globtype,cpuinfo,
        compilerbase;
 
 {$i systems.inc}
@@ -646,6 +646,9 @@ interface
         FiPhoneOSVersionMin: tversion;
         Fsupported_calling_conventions: tproccalloptions;
       public
+{$ifdef cpucapabilities}
+        cpu_capabilities : array[tcputype] of set of tcpuflags;
+{$endif cpucapabilities}
         function use_dotted_functions: boolean;
         function create_smartlink_sections:boolean;inline;
 
@@ -724,7 +727,7 @@ interface
 implementation
 
     uses
-      cutils,cpuinfo{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
+      cutils{$ifdef FreeBSD},SysCtl,BaseUnix{$endif};
 
 { TReadOnlyAlignmentInfo }
 
@@ -1206,6 +1209,9 @@ end;
 procedure TCompilerTarget.InitSystems;
 begin
   Fsupported_calling_conventions:=cpu_default_supported_calling_conventions;
+{$ifdef cpucapabilities}
+  cpu_capabilities:=initial_cpu_capabilities;
+{$endif cpucapabilities}
 { Now default target, this is dependent on the target cpu define,
   when the define is the same as the source cpu then we use the source
   os, else we pick a default }

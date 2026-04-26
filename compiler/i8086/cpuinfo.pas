@@ -182,7 +182,7 @@ type
       );
 
  const
-   cpu_capabilities : array[tcputype] of set of tcpuflags = (
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { cpu_8086      } [],
      { cpu_186       } [],

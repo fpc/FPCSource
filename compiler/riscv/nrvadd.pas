@@ -212,7 +212,7 @@ implementation
 
     function trvaddnode.use_mul_helper: boolean;
       begin
-        if (nodetype=muln) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[compiler.globals.current_settings.cputype]=[]) then
+        if (nodetype=muln) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]=[]) then
           result:=true
         else
           Result:=inherited use_mul_helper;
@@ -278,7 +278,7 @@ implementation
       begin
         if (nodetype=muln) and
            (left.resultdef.typ=orddef) and (left.resultdef.typ=orddef) and
-           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[compiler.globals.current_settings.cputype]<>[])
+           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]<>[])
 {$ifdef cpu32bitalu}
            and (not (is_64bit(left.resultdef) or
                      is_64bit(right.resultdef)))
@@ -293,7 +293,7 @@ implementation
             expectloc:=LOC_REGISTER;
           end
         else if (nodetype=muln) and
-           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[compiler.globals.current_settings.cputype]=[]) and
+           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]=[]) and
            (is_64bit(left.resultdef) or
             is_64bit(right.resultdef)) then
           begin
@@ -339,9 +339,9 @@ implementation
     function trvaddnode.use_fma: boolean;
       begin
         Result:=(is_single(left.resultdef) and is_single(right.resultdef) and
-          (CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype])) or
+          (CPURV_HAS_F in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) or
           (is_double(left.resultdef) and is_double(right.resultdef) and
-          (CPURV_HAS_D in cpu_capabilities[compiler.globals.current_settings.cputype]));
+          (CPURV_HAS_D in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]));
       end;
 
 

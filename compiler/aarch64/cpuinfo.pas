@@ -167,8 +167,8 @@ type
      (CPUAARCH64_HAS_VFP       { CPU supports VFP }
      );
 
-var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none      } [],
        { cpu_armv8     } [],
        { cpu_armv8a    } [],
@@ -183,7 +183,6 @@ var
        { cpu_armv89a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH,CPUAARCH64_HAS_CSSC]
      );
 
-const
    fpu_capabilities : array[tfputype] of set of tfpuflags =
      ( { fpu_none         } [],
        { fpu_vfp          } [CPUAARCH64_HAS_VFP]

@@ -646,7 +646,7 @@ interface
         if (nodetype=muln) and
            is_64bit(resultdef) and
            not(GenerateThumbCode) and
-           (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+           (CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             pass_left_right;
             force_reg_left_right(true, false);
@@ -663,13 +663,13 @@ interface
 
     function tarmaddnode.use_generic_mul32to64: boolean;
       begin
-        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]);
+        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
     function tarmaddnode.use_generic_mul64bit: boolean;
       begin
         result:=GenerateThumbCode or
-          not(CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) or
+          not(CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) or
           needoverflowcheck;
       end;
 

@@ -1126,7 +1126,7 @@ implementation
                 { do not optimize away the frame pointer, if the CPU has no long
                   displacement support, this fixes optimizations on the plain 68000
                   until some shortcomings of the CG itself can be addressed. (KB) }
-                (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+                (CPUM68K_HAS_BASEDISP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
 {$endif defined(m68k)}
 {$if defined(aarch64)}
                { on aarch64, it must be a leaf subroutine }

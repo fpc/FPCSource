@@ -235,7 +235,7 @@ interface
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,0));
             current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ARM_ISA_use,1));
-            if CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype] then
+            if CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,2))
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,1));

@@ -1737,7 +1737,7 @@ implementation
 {$ifdef i386}
           (((compiler.globals.current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
            ((compiler.globals.current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef)) or
-           ((CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
+           ((CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
           ) and
 {$else i386}
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or
@@ -1748,7 +1748,7 @@ implementation
 {$endif i386}
 {$endif defined(i386) or defined(x86_64)}
 {$if defined(xtensa)}
-          (CPUXTENSA_HAS_MINMAX in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
+          (CPUXTENSA_HAS_MINMAX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
 {$endif defined(xtensa)}
 {$if defined(aarch64)}
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef) or
@@ -1759,9 +1759,9 @@ implementation
             always the NaN or non-NaN operand instead of the second one in case on is NaN), so
             we can use them only when fast math is on }
           ((cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and
-           ((is_single(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype])) or
-            (is_double(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_D in cpu_capabilities[compiler.globals.current_settings.cputype])) or
-            (is_quad(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_Q in cpu_capabilities[compiler.globals.current_settings.cputype])))) and
+           ((is_single(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_F in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) or
+            (is_double(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_D in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) or
+            (is_quad(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_Q in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])))) and
 {$endif defined(riscv)}
           (
           { the right size of the assignment in the then clause must either }

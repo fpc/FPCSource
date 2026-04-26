@@ -340,7 +340,7 @@ implementation
        begin
          Result:=nil;
 {$ifndef i8086}
-         if (CPUX86_HAS_POPCNT in cpu_capabilities[compiler.globals.current_settings.cputype])
+         if (CPUX86_HAS_POPCNT in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])
   {$ifdef i386}
             and not is_64bit(left.resultdef)
   {$endif i386}
@@ -413,7 +413,7 @@ implementation
 {$endif i8086}
          if
 {$ifndef x86_64}
-           (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+           (CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
 {$endif x86_64}
            (
 {$ifdef x86_64}
@@ -657,7 +657,7 @@ implementation
              opsize := def_cgsize(loadnode.resultdef);
 
              { BMI2 optimisations }
-             if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and (inlinenumber=in_and_assign_x_y) then
+             if (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (inlinenumber=in_and_assign_x_y) then
                begin
                  { If the second operand is "((1 shl y) - 1)", we can turn it
                    into a BZHI operator instead }
@@ -1100,7 +1100,7 @@ implementation
 {$if defined(i8086) or defined(i386)}
         if is_64bitint(resultdef) then
           inherited
-        else if not(CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        else if not(CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
@@ -1707,7 +1707,7 @@ implementation
 {$endif i8086}
          if
 {$ifndef x86_64}
-           (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+           (CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
 {$endif x86_64}
            (
 {$ifdef x86_64}

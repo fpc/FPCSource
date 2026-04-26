@@ -382,11 +382,11 @@ unit cgcpu;
          end;
 
          if (fromsize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) then
            oppostfix:=PF_B;
 
          if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize])) or
-            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) and
+            ((not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
              (oppostfix in [PF_SH,PF_H])) then
            begin
              if compiler.target.info.endian=endian_big then
@@ -489,7 +489,7 @@ unit cgcpu;
            handle_load_store(list,A_LDR,oppostfix,reg,ref);
 
          if (fromsize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) then
            a_load_reg_reg(list,OS_S8,OS_32,reg,reg)
          else if (fromsize=OS_S8) and (tosize = OS_16) then
            a_load_reg_reg(list,OS_16,OS_32,reg,reg);
@@ -669,7 +669,7 @@ unit cgcpu;
     procedure tbasecgarm.a_call_reg(list : TAsmList;reg: tregister);
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if not(CPUARM_HAS_BLX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        if not(CPUARM_HAS_BLX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
             list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
@@ -1155,7 +1155,7 @@ unit cgcpu;
           OP_MUL:
             begin
               if (cgsetflags or setflags) and
-                 (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                 (CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                 begin
                   overflowreg:=getintregister(list,size);
                   if op=OP_IMUL then
@@ -1223,7 +1223,7 @@ unit cgcpu;
     var
       asmop: tasmop;
     begin
-      if CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+      if CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
         begin
           list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
           case size of
@@ -1425,7 +1425,7 @@ unit cgcpu;
          end;
 
          if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize])) or
-            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) and
+            ((not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
              (oppostfix =PF_H)) then
            begin
              if compiler.target.info.endian=endian_big then
@@ -1504,7 +1504,7 @@ unit cgcpu;
          end;
 
          if (tosize in [OS_S16,OS_16]) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_STR,PF_B,reg,ref);
 
@@ -1546,13 +1546,13 @@ unit cgcpu;
          end;
 
          if (tosize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
              a_load_reg_reg(list,OS_S8,OS_32,reg,reg);
            end
          else if (tosize in [OS_S16,OS_16]) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
 
@@ -2396,7 +2396,7 @@ unit cgcpu;
 
                 if regs=[] then
                   begin
-                    if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                    if not(CPUARM_HAS_BX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
                     else
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -2417,7 +2417,7 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_EA));
               end;
           end
-        else if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        else if not(CPUARM_HAS_BX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -3887,7 +3887,7 @@ unit cgcpu;
 
                 if regs=[] then
                   begin
-                    if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+                    if not(CPUARM_HAS_BX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
                     else
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -3896,7 +3896,7 @@ unit cgcpu;
                   list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
               end;
           end
-        else if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        else if not(CPUARM_HAS_BX in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R14))

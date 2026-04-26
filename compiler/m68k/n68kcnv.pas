@@ -278,7 +278,7 @@ implementation
                   end
                 else
                   begin
-                    if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
+                    if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                       begin
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg2);

@@ -457,7 +457,7 @@ implementation
       begin
         case regtype of
           R_INTREGISTER:
-            if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+            if (CPUM68K_HAS_BYTEWORDMATH in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
               case s of
                 OS_8,OS_S8:
                   cgsize2subreg:=R_SUBL;
@@ -580,7 +580,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=not(CPUM68K_HAS_UNALIGNED in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+        result:=not(CPUM68K_HAS_UNALIGNED in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                 (refalignment = 1) and
                 (tcgsize2size[size] > 1);
       end;

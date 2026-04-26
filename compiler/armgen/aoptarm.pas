@@ -2161,7 +2161,7 @@ Implementation
       Result := False;
 {$ifdef ARM}
       { We need a Cortex-A ARM processor that supports MOVW and MOVT }
-      if not (CPUARM_HAS_EXTENDED_CONSTANTS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+      if not (CPUARM_HAS_EXTENDED_CONSTANTS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
         Exit;
 {$endif ARM}
 

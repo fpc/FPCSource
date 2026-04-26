@@ -101,6 +101,7 @@
   {$define cpuneedsdivhelper}
   {$define VOLATILE_ES}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucapabilities}
   {$define cpucg64shiftsupport}
   {$define OMFOBJSUPPORT}
   {$ifdef go32v2}
@@ -326,6 +327,7 @@
   {$define cpudelayslot}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
+  {$define cpucapabilities}
 {$endif mips}
 
 {$ifdef jvm}

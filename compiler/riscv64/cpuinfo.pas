@@ -101,8 +101,7 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_opt_stackframe];
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags =
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none       } [],
        { cpu_rv64imac   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],
        { cpu_rv64ima    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],

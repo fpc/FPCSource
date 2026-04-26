@@ -383,17 +383,17 @@ Implementation
         (getsupreg(taicpu(p).oper[0]^.ref^.base)=RS_NO) and
         (getsupreg(taicpu(p).oper[0]^.ref^.index)=RS_NO) and
         (taicpu(p).oper[0]^.ref^.addressmode=AM_UNCHANGED) and
-        (((CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+        (((CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           (taicpu(p).oper[0]^.ref^.offset>=0) and
           (taicpu(p).oper[0]^.ref^.offset<=63)) or
-         (not(CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+         (not(CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           (taicpu(p).oper[0]^.ref^.offset>=32) and
           (taicpu(p).oper[0]^.ref^.offset<=95))) then
         begin
           DebugMsg('Peephole Sts2Out performed', p);
 
           taicpu(p).opcode:=A_OUT;
-          if CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+          if CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
             taicpu(p).loadconst(0,taicpu(p).oper[0]^.ref^.offset)
           else
             taicpu(p).loadconst(0,taicpu(p).oper[0]^.ref^.offset-32);
@@ -412,17 +412,17 @@ Implementation
       (getsupreg(taicpu(p).oper[1]^.ref^.base)=RS_NO) and
       (getsupreg(taicpu(p).oper[1]^.ref^.index)=RS_NO) and
       (taicpu(p).oper[1]^.ref^.addressmode=AM_UNCHANGED) and
-      (((CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+      (((CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
         (taicpu(p).oper[1]^.ref^.offset>=0) and
         (taicpu(p).oper[1]^.ref^.offset<=63)) or
-       (not(CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+       (not(CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
         (taicpu(p).oper[1]^.ref^.offset>=32) and
         (taicpu(p).oper[1]^.ref^.offset<=95))) then
       begin
         DebugMsg('Peephole Lds2In performed', p);
 
         taicpu(p).opcode:=A_IN;
-        if CPUAVR_NOMEMMAPPED_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_NOMEMMAPPED_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           taicpu(p).loadconst(1,taicpu(p).oper[1]^.ref^.offset)
         else
           taicpu(p).loadconst(1,taicpu(p).oper[1]^.ref^.offset-32);
@@ -654,7 +654,7 @@ Implementation
               hp1.Free;
 
               taicpu(hp2).condition:=C_None;
-              if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+              if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
                 taicpu(hp2).opcode:=A_JMP
               else
                 taicpu(hp2).opcode:=A_RJMP;
@@ -901,7 +901,7 @@ Implementation
         to
         movw reg2,reg0
       }
-      if (CPUAVR_HAS_MOVW in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+      if (CPUAVR_HAS_MOVW in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
          (taicpu(p).ops=2) and
          (taicpu(p).oper[0]^.typ = top_reg) and
          (taicpu(p).oper[1]^.typ = top_reg) and
@@ -1025,7 +1025,7 @@ Implementation
          GetNextInstruction(hp2,hp3) and
          MatchInstruction(hp3,A_POP) then
         begin
-         if (CPUAVR_HAS_MOVW in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+         if (CPUAVR_HAS_MOVW in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
            (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
            ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
            (getsupreg(taicpu(hp2).oper[0]^.reg)=getsupreg(taicpu(hp3).oper[0]^.reg)+1) and

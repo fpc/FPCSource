@@ -6083,7 +6083,7 @@ unit aoptx86;
            Result:=False;
            { Don't optimise this for size as ANDN is bigger than NOT and AND combined }
            if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
-             (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
+             (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
              begin
                { Convert:           To:
                    not %reg1          andn %reg2,%reg1,%reg2
@@ -11349,7 +11349,7 @@ unit aoptx86;
                   end
                 { Don't bother if CMOV is supported, because a more optimal
                   sequence would have been generated for the Abs() intrinsic }
-                else if not(CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+                else if not(CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                   { the use of %eax also covers the opsize being S_L }
                   MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) and
                   (taicpu(p).oper[0]^.reg = NR_EAX) and
@@ -14982,7 +14982,7 @@ unit aoptx86;
                   Result:=true;
                   exit;
                 end
-              else if (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+              else if (CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
                 MatchInstruction(hp1,A_MOV,[S_W,S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
                 begin
                   { check for
@@ -17343,7 +17343,7 @@ unit aoptx86;
       begin
         Result := False;
 
-        if not (CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
+        if not (CPUX86_HAS_BTX in compiler.target.cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
           Exit;
 
         { For sizes less than S_L, the byte size is equal or larger with BTx,
@@ -17846,7 +17846,7 @@ unit aoptx86;
             jnc / setnc / cmovnc (or jc / setc / cmovnc)
         }
         if (taicpu(p).opcode = A_TEST) and
-          (CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) and
+          (CPUX86_HAS_BTX in compiler.target.cpu_capabilities[compiler.globals.current_settings.optimizecputype]) and
           (taicpu(p).oper[0]^.typ = top_const) and
           (
             (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or

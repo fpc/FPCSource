@@ -109,7 +109,7 @@ implementation
        begin
          case inlinenumber of
            in_arm_yield:
-             if CPUARM_HAS_MP_INSTRUCTIONS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+             if CPUARM_HAS_MP_INSTRUCTIONS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
                { while yield is a no op operation if not supported by the cpu, assemblers do not
@@ -434,7 +434,7 @@ implementation
         r : tregister;
         checkpointer_used : boolean;
       begin
-        if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
              { do not call Checkpointer for left node }
              checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);

@@ -578,7 +578,7 @@ begin
         done:=false;
       OS_S8:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        if (CPUMIPS_HAS_ISA32R2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_SEB,reg2,reg1))
         else
           begin
@@ -588,7 +588,7 @@ begin
       end;
       OS_S16:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+        if (CPUMIPS_HAS_ISA32R2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_SEH,reg2,reg1))
         else
           begin
@@ -982,7 +982,7 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+        if (CPUMIPS_HAS_ISA32R2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
            (not setflags) then
           { NOTE: MUL is actually mips32r1 instruction; on older cores it is handled as macro }
           list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1))

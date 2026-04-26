@@ -299,7 +299,7 @@ unit cgrv;
               end
             else
 {$endif RISCV64}
-            if (op in [OP_IMUL,OP_MUL]) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[compiler.globals.current_settings.cputype]=[]) then
+            if (op in [OP_IMUL,OP_MUL]) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]=[]) then
               begin
                 case size of
                   OS_8:
@@ -1237,7 +1237,7 @@ unit cgrv;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if (CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+        if (CPURV_HAS_F in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           compiler.globals.needs_check_for_fpu_exceptions then
           begin
             r:=getintregister(list,OS_INT);

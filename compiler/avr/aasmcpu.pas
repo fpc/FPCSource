@@ -496,7 +496,7 @@ implementation
                                   current_asmdata.getjumplabel(l);
                                   l.increfs;
                                   list.insertafter(tai_label.create(l),curtai);
-                                  if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+                                  if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
                                     list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai)
                                   else
                                     list.insertafter(taicpu.op_sym(A_RJMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);

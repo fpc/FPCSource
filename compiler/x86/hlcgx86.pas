@@ -109,7 +109,7 @@ implementation
     begin
 {$ifdef I8086}
       { BTR/BTS is only supported by 80386 CPU or later }
-      if not(CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
+      if not(CPUX86_HAS_BTX in compiler.target.cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
 	inherited
       else
 {$endif I8086}

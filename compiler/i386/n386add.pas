@@ -501,7 +501,7 @@ interface
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
         end;
 
-      if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+      if (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
         (not(needoverflowcheck) or
         { 32->64 bit cannot overflow }
         is_64bit(resultdef)) then

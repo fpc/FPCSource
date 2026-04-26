@@ -473,7 +473,7 @@ unit cpubase;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R16
         else
           Result:=NR_R0;
@@ -484,7 +484,7 @@ unit cpubase;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
+        if CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R17
         else
           Result:=NR_R1;

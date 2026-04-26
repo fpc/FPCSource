@@ -601,7 +601,7 @@ unit nx86add;
         else
           begin
             { can we use the BMI1 instruction andn? }
-            if (op=A_AND) and extra_not and (CPUX86_HAS_BMI1 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+            if (op=A_AND) and extra_not and (CPUX86_HAS_BMI1 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
               (resultdef.size in [4{$ifdef x86_64},8{$endif x86_64}]) then
               begin
                 location_reset(location,LOC_REGISTER,left.location.size);
@@ -1988,7 +1988,7 @@ unit nx86add;
        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
          begin
            { BMI1 optimisations }
-           if (CPUX86_HAS_BMI1 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
+           if (CPUX86_HAS_BMI1 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
              begin
                { Can we turn "x and (not y)" into an ANDN instruction instead? }
                if (nodetype = andn) and
@@ -2059,7 +2059,7 @@ unit nx86add;
              end;
 
            { BMI2 optimisations }
-           if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+           if (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
              (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) then
              begin
                case nodetype of
@@ -2175,7 +2175,7 @@ unit nx86add;
            { 3 op mul makes only sense if a constant is involved }
            ((nodetype<>muln) or (left.location.loc=LOC_CONSTANT) or (right.location.loc=LOC_CONSTANT)
 {$ifndef i8086}
-            or ((CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and (not(needoverflowcheck))
+            or ((CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (not(needoverflowcheck))
                )
 {$endif i8086}
            ) and

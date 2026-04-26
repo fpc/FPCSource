@@ -579,7 +579,7 @@ unit aoptcpu;
                    ((taicpu(p).oper[1]^.typ = top_ref) or
                     ((taicpu(p).oper[1]^.typ = top_reg) and
                      not (isaddressregister(taicpu(p).oper[1]^.reg) and
-                      not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])))) then
+                      not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])))) then
                   begin
                     DebugMsg('Optimizer: CMP #0 to TST',p);
                     taicpu(p).opcode:=A_TST;

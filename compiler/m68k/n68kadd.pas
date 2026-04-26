@@ -375,7 +375,7 @@ implementation
 
     function t68kaddnode.use_mul_helper: boolean;
       begin
-        result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
+        result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
     procedure t68kaddnode.second_addordinal;
@@ -474,7 +474,7 @@ implementation
 
         if ((location.size <> right.location.size) and not (right.location.loc in [LOC_CONSTANT])) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
-           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and (nodetype = muln)) or
+           (not(CPUM68K_HAS_32BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (nodetype = muln)) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
@@ -527,7 +527,7 @@ implementation
            else
              begin
                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-               if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
+               if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                  begin
                    tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
@@ -600,14 +600,14 @@ implementation
 
     function t68kaddnode.use_generic_mul32to64: boolean;
     begin
-      result:=not (CPUM68K_HAS_64BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
+      result:=not (CPUM68K_HAS_64BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
     end;
 
     function t68kaddnode.use_generic_mul64bit: boolean;
     begin
       result:=needoverflowcheck  or
         (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
-        not (CPUM68K_HAS_64BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
+        not (CPUM68K_HAS_64BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
     end;
 
     procedure t68kaddnode.second_add64bit;

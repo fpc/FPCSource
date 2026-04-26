@@ -19,8 +19,7 @@ Unit CPUInfo;
 Interface
 
   uses
-    globtype,
-    systems;
+    globtype;
 
 Type
    bestreal = double;
@@ -97,7 +96,7 @@ type
    end;
 
 const
-  cpu_capabilities : array[tcputype] of set of tcpuflags =
+  initial_cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none }     [],
       { cpu_mips1 }    [],
       { cpu_mips2 }    [],

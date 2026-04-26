@@ -2838,9 +2838,9 @@ begin
                    if s=cpuflagsstr then
                      begin
                        if includecapability then
-                         Include(cpu_capabilities[compiler.globals.init_settings.cputype],cf)
+                         Include(compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype],cf)
                        else
-                         Exclude(cpu_capabilities[compiler.globals.init_settings.cputype],cf);
+                         Exclude(compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype],cf);
                        s:='';
                        break;
                      end;
@@ -4990,10 +4990,10 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
       { these cpus have an inline rol/ror implementation }
       {$ifdef cpurox}
       {$if defined(m68k)}
-        if CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.init_settings.cputype] then
+        if CPUM68K_HAS_ROLROR in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype] then
           def_system_macro('FPC_HAS_INTERNAL_ROX');
       {$elseif defined(riscv)}
-        if [CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[compiler.globals.init_settings.cputype]<>[] then
+        if [CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]<>[] then
           def_system_macro('FPC_HAS_INTERNAL_ROX');
       {$else}
         def_system_macro('FPC_HAS_INTERNAL_ROX');
@@ -5634,7 +5634,7 @@ begin
       ;
   end;
 
-  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) then
     begin
       def_system_macro('CPUTHUMB');
       if not option.FPUSetExplicitly then
@@ -5649,7 +5649,7 @@ begin
 {$endif FPC_ARMAL or FPC_ARMHF}
     end;
 
-  if (compiler.globals.init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) then
     def_system_macro('CPUTHUMB2');
 {$endif arm}
 
@@ -5774,7 +5774,7 @@ begin
   end;
 
   { check if the fpu type requires the F and D extension }
-  if (compiler.globals.init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[compiler.globals.init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
+  if (compiler.globals.init_settings.fputype in [fpu_fd]) and not((compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
     compiler.verbose.Message2(option_unsupported_fpu,fputypestr[compiler.globals.init_settings.fputype],cputypestr[compiler.globals.init_settings.cputype]);
 {$endif defined(riscv32) or defined(riscv64)}
 
@@ -5929,7 +5929,7 @@ begin
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
       str(cpuflag,hs);
-      if cpuflag in cpu_capabilities[compiler.globals.init_settings.cputype] then
+      if cpuflag in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype] then
         def_system_macro(hs)
       else
         undef_system_macro(hs);
@@ -6011,12 +6011,12 @@ begin
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
-  if (CPUARM_HAS_CLZ in cpu_capabilities[compiler.globals.init_settings.cputype]) and
+  if (CPUARM_HAS_CLZ in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) and
      ((compiler.globals.init_settings.instructionset=is_arm) or
-      (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype])) then
+      (CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype])) then
     begin
       def_system_macro('FPC_HAS_INTERNAL_BSR');
-      if CPUARM_HAS_RBIT in cpu_capabilities[compiler.globals.init_settings.cputype] then
+      if CPUARM_HAS_RBIT in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype] then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
 {$endif}
@@ -6084,7 +6084,7 @@ begin
   UpdateAlignment(compiler.globals.init_settings.alignment,compiler.target.info.alignment);
 
 {$ifdef arm}
-  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) then
    begin
      compiler.globals.init_settings.alignment.procalign:=2;
      compiler.globals.init_settings.alignment.jumpalign:=2;
@@ -6104,7 +6104,7 @@ begin
        all processors except x86 are really hurt by this or might even crash ... }
 {$ifndef x86_64}
      { ... and will segfault if not aligned for SSE instructions }
-     if not (CPUX86_HAS_SSEUNIT in cpu_capabilities[compiler.globals.init_settings.cputype]) then
+     if not (CPUX86_HAS_SSEUNIT in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) then
        compiler.globals.init_settings.alignment.constalignmax:=1;
 {$endif not x86_64}
 {$endif x86}

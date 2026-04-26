@@ -239,8 +239,8 @@ type
        CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1  { BSR/F does not change the destination if ZF is set }
       );
 
- var
-   cpu_capabilities : array[tcputype] of set of tcpuflags = (
+ const
+   initial_cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { cpu_386       } [CPUX86_HAS_BTX],
      { cpu_486       } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX],
@@ -267,7 +267,6 @@ type
      { cpu_zen5      } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_SSSE3,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
- const
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
      { fpu_none      } [],
      { fpu_x87       } [],

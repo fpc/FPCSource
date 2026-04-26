@@ -114,7 +114,7 @@ unit agcpugas;
         cf: tcpuflags;
       begin
         Result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype];
-        for cf in cpu_capabilities[compiler.globals.current_settings.cputype] do
+        for cf in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] do
           begin
             case cf of
               CPUAARCH64_HAS_DOTPROD:

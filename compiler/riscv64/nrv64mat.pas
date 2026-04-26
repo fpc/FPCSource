@@ -139,14 +139,14 @@ implementation
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
-           ((CPURV_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+           ((CPURV_HAS_MUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
             (ispowerof2(tordconstnode(right).value,power) or
             (tordconstnode(right).value=1) or
             (tordconstnode(right).value=int64(-1))
             )
            ) then
           result:=nil
-        else if (CPURV_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and
+        else if (CPURV_HAS_MUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
           (nodetype in [divn,modn]) then
           result:=nil
         else

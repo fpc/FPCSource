@@ -80,18 +80,18 @@ implementation
            not(is_64bit(resultdef)) and
            {Only the ARM and thumb2-isa support umull and smull, which are required for arbitrary division by const optimization}
            (((GenerateArmCode or
-             GenerateThumb2Code) and (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype])) or
+             GenerateThumb2Code) and (CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) or
             (ispowerof2(tordconstnode(right).value,power) or
             (tordconstnode(right).value=1) or
             (tordconstnode(right).value=int64(-1))
             )
            ) then
           result:=nil
-        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
           (nodetype=divn) and
           not(is_64bit(resultdef)) then
           result:=nil
-        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
           (nodetype=modn) and
           not(is_64bit(resultdef)) then
           begin
@@ -181,7 +181,7 @@ implementation
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
              end
-           else if CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+           else if CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
              {Everything else is handled the generic code}
              cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
                tordconstnode(right).value.svalue,numerator,resultreg)
@@ -234,7 +234,7 @@ implementation
         secondpass(left);
         secondpass(right);
 
-        if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
+        if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
            (nodetype=divn) and
            not(is_64bitint(resultdef)) then
           begin

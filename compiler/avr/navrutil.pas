@@ -70,7 +70,7 @@ implementation
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
-      if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
+      if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
         op:=A_CALL
       else
         op:=A_RCALL;
