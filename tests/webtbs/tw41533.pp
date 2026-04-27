@@ -2,7 +2,7 @@ program FloatCastTest;
 {$mode Delphi}
 uses Variants, Math;
 
-{$ifndef COMP_IS_INT64}
+{$ifndef FPC_COMP_IS_INT64}
   {$define TEST_COMP_REAL_TYPE}
 {$endif}
 var
