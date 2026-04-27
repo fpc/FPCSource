@@ -116,6 +116,7 @@ interface
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
          FGroupStack : TFPObjectList;
+         FExeOutput: TExeOutput;
          FExeMap: TExeMapBase;
          function GetFileCRC(const fn:TPathStr):cardinal;
          procedure Load_ReadObject(const para:TCmdStr);
@@ -141,6 +142,7 @@ interface
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
+         property ExeOutput: TExeOutput read FExeOutput;
          property ExeMap: TExeMapBase read FExeMap;
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
@@ -1553,7 +1555,7 @@ Implementation
         FImportLibraryList:=TFPHashObjectList.Create(true);
         FGroupStack:=TFPObjectList.Create(false);
         Fexemap:=nil;
-        exeoutput:=nil;
+        Fexeoutput:=nil;
         UseStabs:=false;
         CObjInput:=TObjInput;
         ScriptCount:=0;
@@ -1576,11 +1578,7 @@ Implementation
             IsHandled:=nil;
             ScriptCount:=0;
           end;
-        if assigned(exeoutput) then
-          begin
-            exeoutput.free;
-            exeoutput:=nil;
-          end;
+        FreeAndNil(FExeOutput);
         FreeAndNil(FExeMap);
         inherited destroy;
       end;
@@ -2099,7 +2097,7 @@ Implementation
         compiler.verbose.Message1(exec_i_linking,outputname);
         compiler.verbose.FlushOutput;
 
-        exeoutput:=CExeOutput.Create(compiler.globals,compiler.target,compiler.verbose);
+        Fexeoutput:=CExeOutput.Create(compiler.globals,compiler.target,compiler.verbose);
 
 { TODO: Load custom linker script}
         DefaultLinkScript;
@@ -2189,8 +2187,7 @@ Implementation
         FreeAndNil(Fexemap);
 
         { close exe }
-        exeoutput.free;
-        exeoutput:=nil;
+        FreeAndNil(Fexeoutput);
 
         result:=true;
       end;

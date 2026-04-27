@@ -835,9 +835,6 @@ interface
     const
       SectionDataMaxGrow = 4096;
 
-    var
-      exeoutput : TExeOutput;
-
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
     function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
