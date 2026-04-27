@@ -43,9 +43,6 @@ unit aoptcpu;
         function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
       end;
 
-    Var
-      AsmOptimizer : TCpuAsmOptimizer;
-
   Implementation
 
     uses
