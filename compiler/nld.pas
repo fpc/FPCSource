@@ -74,7 +74,7 @@ interface
           function  pass_typecheck:tnode;override;
           procedure mark_write;override;
           function  docompare(p: tnode): boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -563,13 +563,13 @@ implementation
       end;
 
 
-    procedure tloadnode.printnodedata(var t:text);
+    procedure tloadnode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(t);
-        write(t,printnodeindention,'symbol = ',symtableentry.name);
+        inherited printnodedata(prn);
+        write(prn.t^,prn.printnodeindention,'symbol = ',symtableentry.name);
         if symtableentry.typ=procsym then
-          write(t,printnodeindention,'procdef = ',fprocdef.mangledname);
-        writeln(t,'');
+          write(prn.t^,prn.printnodeindention,'procdef = ',fprocdef.mangledname);
+        writeln(prn.t^,'');
       end;
 
 {$ifdef DEBUG_NODE_XML}

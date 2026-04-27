@@ -120,14 +120,17 @@ unit optutils;
 
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
       var
+        prn: tnodeprinter;
         i : integer;
       begin
+        prn.Init(f);
         for i:=0 to s.count-1 do
           begin
             writeln(f,'=============================== Node ',i,' ===============================');
-            printnode(f,tnode(s[i]));
+            printnode(prn,tnode(s[i]));
             writeln(f);
           end;
+        prn.Done;
       end;
 
 

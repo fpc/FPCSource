@@ -119,16 +119,7 @@ interface
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
 
-    const
-      printnodespacing = '   ';
-    var
-      { indention used when writing a node tree to the screen }
-      printnodeindention : string;
-
-
      { Node dumping support functions }
-     procedure printnodeindent; inline;
-     procedure printnodeunindent; inline;
 {$ifdef DEBUG_NODE_XML}
      function SanitiseXMLString(const S: ansistring): ansistring;
      function WritePointer(const P: Pointer): ansistring;
@@ -1083,18 +1074,6 @@ implementation
            msg:=nil;
          end;
         DoneRedirectFile;
-      end;
-
-
-    procedure printnodeindent; inline;
-      begin
-        printnodeindention:=printnodeindention+printnodespacing;
-      end;
-
-
-    procedure printnodeunindent; inline;
-      begin
-        delete(printnodeindention,1,length(printnodespacing));
       end;
 
 {$ifdef DEBUG_NODE_XML}

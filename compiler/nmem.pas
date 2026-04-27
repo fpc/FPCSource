@@ -88,7 +88,7 @@ interface
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          procedure printnodeinfo(var t: text); override;
+          procedure printnodeinfo(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -138,7 +138,7 @@ interface
           function docompare(p: tnode): boolean; override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
-          procedure printnodedata(var T: Text); override;
+          procedure printnodedata(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -473,24 +473,24 @@ implementation
       end;
 
 
-    procedure taddrnode.printnodeinfo(var t: text);
+    procedure taddrnode.printnodeinfo(var prn:tnodeprinter);
       var
         first: Boolean;
         i: taddrnodeflag;
       begin
-        inherited printnodeinfo(t);
-        write(t,', addrnodeflags = [');
+        inherited printnodeinfo(prn);
+        write(prn.t^,', addrnodeflags = [');
         first:=true;
         for i:=low(taddrnodeflag) to high(taddrnodeflag) do
           if i in addrnodeflags then
             begin
               if not first then
-                write(t,',')
+                write(prn.t^,',')
               else
                 first:=false;
-              write(t,i);
+              write(prn.t^,i);
             end;
-        write(t,']');
+        write(prn.t^,']');
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -1066,10 +1066,10 @@ implementation
           (vs = tsubscriptnode(p).vs);
       end;
 
-      procedure tsubscriptnode.printnodedata(var T: Text);
+      procedure tsubscriptnode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(T);
-        writeln(t,printnodeindention,'field = ',vs.name);
+        inherited printnodedata(prn);
+        writeln(prn.t^,prn.printnodeindention,'field = ',vs.name);
       end;
 
 {$ifdef DEBUG_NODE_XML}

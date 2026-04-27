@@ -64,7 +64,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
-          procedure printnodeinfo(var t : text);override;
+          procedure printnodeinfo(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -1061,27 +1061,27 @@ implementation
          dogetcopy:=n;
       end;
 
-    procedure ttypeconvnode.printnodeinfo(var t : text);
+    procedure ttypeconvnode.printnodeinfo(var prn:tnodeprinter);
       var
         first: Boolean;
         i: ttypeconvnodeflag;
       begin
-        inherited printnodeinfo(t);
-        write(t,', totypedef = ',totypedef.GetTypeName);
-        write(t,', convtype = ',convtype);
-        write(t,', assignment_side = ',assignment_side);
-        write(t,', convnodeflags = [');
+        inherited printnodeinfo(prn);
+        write(prn.t^,', totypedef = ',totypedef.GetTypeName);
+        write(prn.t^,', convtype = ',convtype);
+        write(prn.t^,', assignment_side = ',assignment_side);
+        write(prn.t^,', convnodeflags = [');
         first:=true;
         for i:=low(ttypeconvnodeflag) to high(ttypeconvnodeflag) do
           if i in convnodeflags then
             begin
               if not first then
-                write(t,',')
+                write(prn.t^,',')
               else
                 first:=false;
-              write(t,i);
+              write(prn.t^,i);
             end;
-        write(t,']');
+        write(prn.t^,']');
       end;
 
 {$ifdef DEBUG_NODE_XML}

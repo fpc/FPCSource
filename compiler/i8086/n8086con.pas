@@ -26,7 +26,7 @@ unit n8086con;
 interface
 
     uses
-       globtype,symtype,ncon,ncgcon,nx86con,compilerbase;
+       globtype,symtype,node,ncon,ncgcon,nx86con,compilerbase;
 
     type
 
@@ -34,7 +34,7 @@ interface
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
         constructor create(v : TConstPtrUInt;def:tdef;acompiler: TCompilerBase);override;
-        procedure printnodedata(var t: text);override;
+        procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
         procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -48,8 +48,7 @@ implementation
       symconst,symdef,symcpu,
       defutil,
       cpubase,
-      cga,cgx86,cgobj,cgbase,cgutils,
-      node;
+      cga,cgx86,cgobj,cgbase,cgutils;
 
     {*****************************************************************************
                                T8086POINTERCONSTNODE
@@ -65,12 +64,12 @@ implementation
       end;
 
 
-    procedure ti8086pointerconstnode.printnodedata(var t: text);
+    procedure ti8086pointerconstnode.printnodedata(var prn:tnodeprinter);
       begin
         if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
-          writeln(t,printnodeindention,'value = $',hexstr(word(value shr 16),4),':',hexstr(word(value),4))
+          writeln(prn.t^,prn.printnodeindention,'value = $',hexstr(word(value shr 16),4),':',hexstr(word(value),4))
         else
-          inherited printnodedata(t);
+          inherited printnodedata(prn);
       end;
 
 {$ifdef DEBUG_NODE_XML}

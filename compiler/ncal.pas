@@ -210,7 +210,7 @@ interface
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -277,7 +277,7 @@ interface
           procedure insert_typeconv;
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
-          procedure printnodetree(var t:text);override;
+          procedure printnodetree(var prn:tnodeprinter);override;
           { returns whether a parameter contains a type conversion from }
           { a refcounted into a non-refcounted type                     }
           function can_be_inlined: boolean;
@@ -1559,37 +1559,37 @@ implementation
       end;
 
 
-    procedure tcallparanode.printnodetree(var t:text);
+    procedure tcallparanode.printnodetree(var prn:tnodeprinter);
       var
         hp: tbinarynode;
       begin
         hp:=self;
         while assigned(hp) do
          begin
-           write(t,printnodeindention,'(');
-           printnodeindent;
-           hp.printnodeinfo(t);
-           writeln(t);
+           write(prn.t^,prn.printnodeindention,'(');
+           prn.printnodeindent;
+           hp.printnodeinfo(prn);
+           writeln(prn.t^);
            if assigned(tcallparanode(hp).fparainit) then
              begin
-               writeln(t,printnodeindention,'(parainit =');
-               printnodeindent;
-               printnode(t,tcallparanode(hp).fparainit);
-               printnodeunindent;
-               writeln(t,printnodeindention,')');
+               writeln(prn.t^,prn.printnodeindention,'(parainit =');
+               prn.printnodeindent;
+               printnode(prn,tcallparanode(hp).fparainit);
+               prn.printnodeunindent;
+               writeln(prn.t^,prn.printnodeindention,')');
              end;
            if assigned(tcallparanode(hp).fparacopyback) then
              begin
-               writeln(t,printnodeindention,'(fparacopyback =');
-               printnodeindent;
-               printnode(t,tcallparanode(hp).fparacopyback);
-               printnodeunindent;
-               writeln(t,printnodeindention,')');
+               writeln(prn.t^,prn.printnodeindention,'(fparacopyback =');
+               prn.printnodeindent;
+               printnode(prn,tcallparanode(hp).fparacopyback);
+               prn.printnodeunindent;
+               writeln(prn.t^,prn.printnodeindention,')');
              end;
-           printnode(t,hp.left);
-           writeln(t);
-           printnodeunindent;
-           writeln(t,printnodeindention,')');
+           printnode(prn,hp.left);
+           writeln(prn.t^);
+           prn.printnodeunindent;
+           writeln(prn.t^,prn.printnodeindention,')');
            hp:=tbinarynode(hp.right);
          end;
       end;
@@ -2069,74 +2069,74 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure tcallnode.printnodedata(var t:text);
+    procedure tcallnode.printnodedata(var prn:tnodeprinter);
       begin
         if assigned(procdefinition) and
            (procdefinition.typ=procdef) then
-          writeln(t,printnodeindention,'proc = ',tprocdef(procdefinition).fullprocname(true))
+          writeln(prn.t^,prn.printnodeindention,'proc = ',tprocdef(procdefinition).fullprocname(true))
         else
           begin
             if assigned(symtableprocentry) then
-              writeln(t,printnodeindention,'proc = ',symtableprocentry.name)
+              writeln(prn.t^,prn.printnodeindention,'proc = ',symtableprocentry.name)
             else
-              writeln(t,printnodeindention,'proc = <nil>');
+              writeln(prn.t^,prn.printnodeindention,'proc = <nil>');
           end;
 
         if intrinsiccode <> Default(TInlineNumber) then
-          writeln(t,printnodeindention,'intrinsiccode = ', intrinsiccode);
+          writeln(prn.t^,prn.printnodeindention,'intrinsiccode = ', intrinsiccode);
 
         if assigned(methodpointer) then
           begin
-            writeln(t,printnodeindention,'methodpointer =');
-            printnode(t,methodpointer);
+            writeln(prn.t^,prn.printnodeindention,'methodpointer =');
+            printnode(prn,methodpointer);
           end;
 
         if assigned(funcretnode) then
           begin
-            writeln(t,printnodeindention,'funcretnode =');
-            printnode(t,funcretnode);
+            writeln(prn.t^,prn.printnodeindention,'funcretnode =');
+            printnode(prn,funcretnode);
           end;
 
         if assigned(vmt_entry) then
           begin
-            writeln(t,printnodeindention,'vmt_entry =');
-            printnode(t,vmt_entry);
+            writeln(prn.t^,prn.printnodeindention,'vmt_entry =');
+            printnode(prn,vmt_entry);
           end;
 
         if assigned(call_self_node) then
           begin
-            writeln(t,printnodeindention,'call_self_node =');
-            printnode(t,call_self_node);
+            writeln(prn.t^,prn.printnodeindention,'call_self_node =');
+            printnode(prn,call_self_node);
           end;
 
         if assigned(call_vmt_node) then
           begin
-            writeln(t,printnodeindention,'call_vmt_node =');
-            printnode(t,call_vmt_node);
+            writeln(prn.t^,prn.printnodeindention,'call_vmt_node =');
+            printnode(prn,call_vmt_node);
           end;
 
         if assigned(callinitblock) then
           begin
-            writeln(t,printnodeindention,'callinitblock =');
-            printnode(t,callinitblock);
+            writeln(prn.t^,prn.printnodeindention,'callinitblock =');
+            printnode(prn,callinitblock);
           end;
 
         if assigned(callcleanupblock) then
           begin
-            writeln(t,printnodeindention,'callcleanupblock =');
-            printnode(t,callcleanupblock);
+            writeln(prn.t^,prn.printnodeindention,'callcleanupblock =');
+            printnode(prn,callcleanupblock);
           end;
 
         if assigned(right) then
           begin
-            writeln(t,printnodeindention,'right =');
-            printnode(t,right);
+            writeln(prn.t^,prn.printnodeindention,'right =');
+            printnode(prn,right);
           end;
 
         if assigned(left) then
           begin
-            writeln(t,printnodeindention,'left =');
-            printnode(t,left);
+            writeln(prn.t^,prn.printnodeindention,'left =');
+            printnode(prn,left);
           end;
       end;
 

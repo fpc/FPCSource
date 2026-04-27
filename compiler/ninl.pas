@@ -43,7 +43,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
-          procedure printnodeinfo(var t : text);override;
+          procedure printnodeinfo(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var t : text);override;
 {$endif DEBUG_NODE_XML}
@@ -213,10 +213,10 @@ implementation
       end;
 
 
-    procedure tinlinenode.printnodeinfo(var t : text);
+    procedure tinlinenode.printnodeinfo(var prn:tnodeprinter);
       begin
         inherited;
-        write(t,', inlinenumber = ',inlinenumber);
+        write(prn.t^,', inlinenumber = ',inlinenumber);
       end;
 
 {$ifdef DEBUG_NODE_XML}

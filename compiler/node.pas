@@ -280,7 +280,26 @@ interface
        flagsequal : tnodeflags = [];
        transientflagsequal : TTransientNodeFlags = [tnf_error];
 
+       printnodespacing = '   ';
+
     type
+      pnodeprinter = ^tnodeprinter;
+
+      { tnodeprinter }
+
+      tnodeprinter = object
+        t:ptext;
+        { indention used when writing a node tree to the screen }
+        printnodeindention : string;
+
+        constructor Init(var atext: text);
+        destructor Done;
+
+        { Node dumping support functions }
+        procedure printnodeindent; inline;
+        procedure printnodeunindent; inline;
+      end;
+
       tnodelist = class
       end;
 
@@ -368,9 +387,9 @@ interface
          { writes a node for debugging purpose, shouldn't be called }
          { direct, because there is no test for nil, use printnode  }
          { to write a complete tree }
-         procedure printnodeinfo(var t:text);virtual;
-         procedure printnodedata(var t:text);virtual;
-         procedure printnodetree(var t:text);virtual;
+         procedure printnodeinfo(var prn:tnodeprinter);virtual;
+         procedure printnodedata(var prn:tnodeprinter);virtual;
+         procedure printnodetree(var prn:tnodeprinter);virtual;
 {$ifdef DEBUG_NODE_XML}
          { For writing nodes to XML files - do not call directly, but
            instead call XMLPrintNode to write a complete tree }
@@ -405,7 +424,7 @@ interface
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
-         procedure printnodedata(var t:text);override;
+         procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -428,12 +447,12 @@ interface
          procedure swapleftright;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
-         procedure printnodedata(var t:text);override;
+         procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeTree(var T: Text); override;
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
-         procedure printnodelist(var t:text);
+         procedure printnodelist(var prn:tnodeprinter);
          { Marks the current node for deletion and sets 'right' to nil.
            Returns what 'right' was previously set to }
          function PruneKeepRight: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
@@ -452,7 +471,7 @@ interface
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
-         procedure printnodedata(var t:text);override;
+         procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -481,7 +500,7 @@ interface
 
     procedure printfileinfo(var t:text;pos:tfileposinfo);
     procedure dprintfileinfo(pos:tfileposinfo);
-    procedure printnode(var t:text;n:tnode);
+    procedure printnode(var prn:tnodeprinter;n:tnode);
     procedure dprintnode(n:tnode);
 {$ifdef DEBUG_NODE_XML}
     procedure XMLPrintNode(var T: Text; N: TNode);
@@ -645,18 +664,22 @@ implementation
       end;
 
 
-    procedure printnode(var t:text;n:tnode);
+    procedure printnode(var prn:tnodeprinter;n:tnode);
       begin
         if assigned(n) then
-         n.printnodetree(t)
+         n.printnodetree(prn)
         else
-         writeln(t,printnodeindention,'nil');
+         writeln(prn.t^,prn.printnodeindention,'nil');
       end;
 
 
     procedure dprintnode(n:tnode);
+      var
+        prn: tnodeprinter;
       begin
-        printnode(output,n);
+        prn.Init(output);
+        printnode(prn,n);
+        prn.Done;
       end;
 
     procedure printfileinfo(var t:text; pos:tfileposinfo);
@@ -757,6 +780,28 @@ implementation
           is_constwidestringnode(p) or is_constwidecharnode(p);
       end;
 
+    { tnodeprinter }
+
+    constructor tnodeprinter.Init(var atext: text);
+      begin
+        printnodeindention:='';
+        t:=@atext;
+      end;
+
+    destructor tnodeprinter.Done;
+      begin
+        t:=nil;
+      end;
+
+    procedure tnodeprinter.printnodeindent; inline;
+      begin
+        printnodeindention:=printnodeindention+printnodespacing;
+      end;
+
+    procedure tnodeprinter.printnodeunindent; inline;
+      begin
+        delete(printnodeindention,1,length(printnodespacing));
+      end;
 
 {****************************************************************************
                                  TNODE
@@ -880,18 +925,18 @@ implementation
       end;
 
 
-    procedure tnode.printnodeinfo(var t:text);
+    procedure tnode.printnodeinfo(var prn:tnodeprinter);
       var
         i : tnodeflag;
         first : boolean;
       begin
-        write(t,nodetype2str[nodetype]);
+        write(prn.t^,nodetype2str[nodetype]);
         if assigned(resultdef) then
-          write(t,', resultdef = ',resultdef.typesymbolprettyname,' = "',resultdef.GetTypeName,'" ')
+          write(prn.t^,', resultdef = ',resultdef.typesymbolprettyname,' = "',resultdef.GetTypeName,'" ')
         else
-          write(t,', resultdef = <nil> ');
-        printfileinfo(t,fileinfo);
-	write(t,', loc = ',tcgloc2str[location.loc],
+          write(prn.t^,', resultdef = <nil> ');
+        printfileinfo(prn.t^,fileinfo);
+	write(prn.t^,', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
                   ', flags = [');
         first:=true;
@@ -899,33 +944,33 @@ implementation
           if i in flags then
             begin
               if not(first) then
-                write(t,',')
+                write(prn.t^,',')
               else
                 first:=false;
-              write(t, i);
+              write(prn.t^, i);
             end;
-        write(t,']');
+        write(prn.t^,']');
         if (tnf_pass1_done in transientflags) then
-          write(t,', cmplx = ',node_complexity(self));
+          write(prn.t^,', cmplx = ',node_complexity(self));
         if assigned(optinfo) then
-          write(t,', optinfo = ',HexStr(optinfo));
+          write(prn.t^,', optinfo = ',HexStr(optinfo));
       end;
 
 
-    procedure tnode.printnodedata(var t:text);
+    procedure tnode.printnodedata(var prn:tnodeprinter);
       begin
       end;
 
 
-    procedure tnode.printnodetree(var t:text);
+    procedure tnode.printnodetree(var prn:tnodeprinter);
       begin
-         write(t,printnodeindention,'(');
-         printnodeinfo(t);
-         writeln(t);
-         printnodeindent;
-         printnodedata(t);
-         printnodeunindent;
-         writeln(t,printnodeindention,')');
+         write(prn.t^,prn.printnodeindention,'(');
+         printnodeinfo(prn);
+         writeln(prn.t^);
+         prn.printnodeindent;
+         printnodedata(prn);
+         prn.printnodeunindent;
+         writeln(prn.t^,prn.printnodeindention,')');
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -1158,10 +1203,10 @@ implementation
       end;
 
 
-    procedure tunarynode.printnodedata(var t:text);
+    procedure tunarynode.printnodedata(var prn:tnodeprinter);
       begin
-         inherited printnodedata(t);
-         printnode(t,left);
+         inherited printnodedata(prn);
+         printnode(prn,left);
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -1286,10 +1331,10 @@ implementation
       end;
 
 
-    procedure tbinarynode.printnodedata(var t:text);
+    procedure tbinarynode.printnodedata(var prn:tnodeprinter);
       begin
-         inherited printnodedata(t);
-         printnode(t,right);
+         inherited printnodedata(prn);
+         printnode(prn,right);
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -1313,21 +1358,21 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure tbinarynode.printnodelist(var t:text);
+    procedure tbinarynode.printnodelist(var prn:tnodeprinter);
       var
         hp : tbinarynode;
       begin
         hp:=self;
         while assigned(hp) do
          begin
-           write(t,printnodeindention,'(');
-           printnodeindent;
-           hp.printnodeinfo(t);
-           writeln(t);
-           printnode(t,hp.left);
-           writeln(t);
-           printnodeunindent;
-           writeln(t,printnodeindention,')');
+           write(prn.t^,prn.printnodeindention,'(');
+           prn.printnodeindent;
+           hp.printnodeinfo(prn);
+           writeln(prn.t^);
+           printnode(prn,hp.left);
+           writeln(prn.t^);
+           prn.printnodeunindent;
+           writeln(prn.t^,prn.printnodeindention,')');
            hp:=tbinarynode(hp.right);
          end;
       end;
@@ -1421,10 +1466,10 @@ implementation
       end;
 
 
-    procedure ttertiarynode.printnodedata(var t:text);
+    procedure ttertiarynode.printnodedata(var prn:tnodeprinter);
       begin
-         inherited printnodedata(t);
-         printnode(t,third);
+         inherited printnodedata(prn);
+         printnode(prn,third);
       end;
 
 {$ifdef DEBUG_NODE_XML}

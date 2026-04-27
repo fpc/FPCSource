@@ -71,7 +71,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
-          procedure printnodetree(var t:text);override;
+          procedure printnodetree(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
           procedure XMLPrintNodeTree(var T: Text); override;
@@ -1186,18 +1186,18 @@ implementation
       end;
 
 
-    procedure tloopnode.printnodetree(var t:text);
+    procedure tloopnode.printnodetree(var prn:tnodeprinter);
       begin
-        write(t,printnodeindention,'(');
-        printnodeindent;
-        printnodeinfo(t);
-        writeln(t);
-        printnode(t,left);
-        printnode(t,right);
-        printnode(t,t1);
-        printnode(t,t2);
-        printnodeunindent;
-        writeln(t,printnodeindention,')');
+        write(prn.t^,prn.printnodeindention,'(');
+        prn.printnodeindent;
+        printnodeinfo(prn);
+        writeln(prn.t^);
+        printnode(prn,left);
+        printnode(prn,right);
+        printnode(prn,t1);
+        printnode(prn,t2);
+        prn.printnodeunindent;
+        writeln(prn.t^,prn.printnodeindention,')');
       end;
 
 {$ifdef DEBUG_NODE_XML}

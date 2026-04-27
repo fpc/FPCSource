@@ -54,7 +54,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
@@ -80,7 +80,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
@@ -102,7 +102,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
-          procedure printnodedata(var t : text); override;
+          procedure printnodedata(var prn:tnodeprinter); override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
@@ -150,7 +150,7 @@ interface
           { returns whether this platform uses the nil pointer to represent
             empty dynamic strings }
           class function emptydynstrnil: boolean; virtual;
-          procedure printnodedata(var T: Text); override;
+          procedure printnodedata(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -578,14 +578,14 @@ implementation
       end;
 
 
-    procedure trealconstnode.printnodedata(var t: text);
+    procedure trealconstnode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(t);
-        write(t,printnodeindention,'value = ',value_real);
+        inherited printnodedata(prn);
+        write(prn.t^,prn.printnodeindention,'value = ',value_real);
         if is_currency(resultdef) then
-          writeln(t,', value_currency = ',value_currency)
+          writeln(prn.t^,', value_currency = ',value_currency)
         else
-          writeln(t);
+          writeln(prn.t^);
       end;
 
     function trealconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
@@ -704,11 +704,11 @@ implementation
       end;
 
 
-    procedure tordconstnode.printnodedata(var t: text);
+    procedure tordconstnode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(t);
-        writeln(t,printnodeindention,'typedef = "',typedef.GetTypeName,'"');
-        writeln(t,printnodeindention,'value = ',tostr(value));
+        inherited printnodedata(prn);
+        writeln(prn.t^,prn.printnodeindention,'typedef = "',typedef.GetTypeName,'"');
+        writeln(prn.t^,prn.printnodeindention,'value = ',tostr(value));
       end;
 
     function tordconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
@@ -809,10 +809,10 @@ implementation
       end;
 
 
-    procedure tpointerconstnode.printnodedata(var t : text);
+    procedure tpointerconstnode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(t);
-        writeln(t,printnodeindention,'value = $',hexstr(PUInt(value),sizeof(PUInt)*2));
+        inherited printnodedata(prn);
+        writeln(prn.t^,prn.printnodeindention,'value = $',hexstr(PUInt(value),sizeof(PUInt)*2));
       end;
 
     function tpointerconstnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
@@ -1263,22 +1263,22 @@ implementation
         result:=true;
       end;
 
-      procedure tstringconstnode.printnodedata(var T: Text);
+      procedure tstringconstnode.printnodedata(var prn:tnodeprinter);
       var
         u : unicodestring;
 
       begin
-        inherited printnodedata(t);
+        inherited printnodedata(prn);
         if length(valueas)>0 then
-          writeln(t,printnodeindention,'value = "',pAnsichar(@valueas[0]),'"')
+          writeln(prn.t^,prn.printnodeindention,'value = "',pAnsichar(@valueas[0]),'"')
         else if assigned(valuews) and (valuews.len>0) then
           begin
           setlength(u,valuews.len);
           move(valuews.data[0],u[1],valuews.len*sizeof(unicodechar));
-          writeln(t,printnodeindention,'value = "',u,'"');
+          writeln(prn.t^,prn.printnodeindention,'value = "',u,'"');
           end
         else
-          writeln(t,printnodeindention,'value = ""');
+          writeln(prn.t^,prn.printnodeindention,'value = ""');
       end;
 
 {$ifdef DEBUG_NODE_XML}

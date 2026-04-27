@@ -112,7 +112,7 @@ interface
           function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          procedure printnodetree(var t:text);override;
+          procedure printnodetree(var prn:tnodeprinter);override;
           property statement : tnode read left write left;
           property next : tnode read right write right;
        end;
@@ -288,7 +288,7 @@ interface
           function pass_1 : tnode; override;
           function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -306,7 +306,7 @@ interface
           function pass_typecheck : tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
          private
           tempidx : longint;
         end;
@@ -326,7 +326,7 @@ interface
           function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
-          procedure printnodedata(var t:text);override;
+          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -687,9 +687,9 @@ implementation
       end;
 
 
-    procedure tstatementnode.printnodetree(var t:text);
+    procedure tstatementnode.printnodetree(var prn:tnodeprinter);
       begin
-        printnodelist(t);
+        printnodelist(prn);
       end;
 
 {*****************************************************************************
@@ -1560,26 +1560,26 @@ implementation
       end;
 
 
-    procedure ttempcreatenode.printnodedata(var t:text);
+    procedure ttempcreatenode.printnodedata(var prn:tnodeprinter);
       var
         f: ttempinfoflag;
         first: Boolean;
       begin
-        inherited printnodedata(t);
-        writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
+        inherited printnodedata(prn);
+        writeln(prn.t^,prn.printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
-        write(t,printnodeindention,'[');
+        write(prn.t^,prn.printnodeindention,'[');
         first:=true;
         for f in tempflags do
           begin
             if not(first) then
-              write(t,',');
-            write(t,f);
+              write(prn.t^,',');
+            write(prn.t^,f);
             first:=false;
           end;
-        writeln(t,']');
-        writeln(t,printnodeindention,'tempinit =');
-        printnode(t,tempinfo^.tempinitcode);
+        writeln(prn.t^,']');
+        writeln(prn.t^,prn.printnodeindention,'tempinit =');
+        printnode(prn,tempinfo^.tempinitcode);
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -1724,23 +1724,23 @@ implementation
       end;
 
 
-    procedure ttemprefnode.printnodedata(var t:text);
+    procedure ttemprefnode.printnodedata(var prn:tnodeprinter);
       var
         f : ttempinfoflag;
         notfirst : Boolean;
       begin
-        inherited printnodedata(t);
-        write(t,printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
+        inherited printnodedata(prn);
+        write(prn.t^,prn.printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", (tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2),' flags = [');
         notfirst:=false;
         for f in tempinfo^.flags do
           begin
             if notfirst then
-              write(t,',');
-            write(t,f);
+              write(prn.t^,',');
+            write(prn.t^,f);
             notfirst:=true;
           end;
-        writeln(t,'])');
+        writeln(prn.t^,'])');
       end;
 
 
@@ -1850,10 +1850,10 @@ implementation
         inherited destroy;
       end;
 
-    procedure ttempdeletenode.printnodedata(var t:text);
+    procedure ttempdeletenode.printnodedata(var prn:tnodeprinter);
       begin
-        inherited printnodedata(t);
-        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
+        inherited printnodedata(prn);
+        writeln(prn.t^,prn.printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", temptype = ',tempinfo^.temptype,', tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 

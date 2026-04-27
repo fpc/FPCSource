@@ -120,7 +120,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
-          procedure printnodetree(var t:text);override;
+          procedure printnodetree(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeTree(var t:text); override;
 {$endif DEBUG_NODE_XML}
@@ -1089,34 +1089,34 @@ implementation
       end;
 
 
-    procedure tcasenode.printnodetree(var t: text);
+    procedure tcasenode.printnodetree(var prn:tnodeprinter);
       var
         i : longint;
       begin
-        write(t,printnodeindention,'(');
-        printnodeindent;
-        printnodeinfo(t);
-        writeln(t);
-        printnode(t,left);
+        write(prn.t^,prn.printnodeindention,'(');
+        prn.printnodeindent;
+        printnodeinfo(prn);
+        writeln(prn.t^);
+        printnode(prn,left);
         i:=0;
         for i:=0 to blocks.count-1 do
           begin
-            writeln(t,printnodeindention,'(caseblock blockid: ',i);
-            printnodeindent;
-            printnode(t,pcaseblock(blocks[i])^.statement);
-            printnodeunindent;
-            writeln(t,printnodeindention,')');
+            writeln(prn.t^,prn.printnodeindention,'(caseblock blockid: ',i);
+            prn.printnodeindent;
+            printnode(prn,pcaseblock(blocks[i])^.statement);
+            prn.printnodeunindent;
+            writeln(prn.t^,prn.printnodeindention,')');
           end;
         if assigned(elseblock) then
           begin
-            writeln(t,printnodeindention,'(else: ',i);
-            printnodeindent;
-            printnode(t,elseblock);
-            printnodeunindent;
-            writeln(t,printnodeindention,')');
+            writeln(prn.t^,prn.printnodeindention,'(else: ',i);
+            prn.printnodeindent;
+            printnode(prn,elseblock);
+            prn.printnodeunindent;
+            writeln(prn.t^,prn.printnodeindention,')');
           end;
-        printnodeunindent;
-        writeln(t,printnodeindention,')');
+        prn.printnodeunindent;
+        writeln(prn.t^,prn.printnodeindention,')');
       end;
 
 {$ifdef DEBUG_NODE_XML}

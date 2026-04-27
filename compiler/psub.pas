@@ -746,6 +746,8 @@ implementation
 
 
     procedure tcgprocinfo.printproc(pass:string);
+      var
+        prn:tnodeprinter;
       begin
         assign(compiler.verbose.printnodefile,treelogfilename);
         {$push}{$I-}
@@ -763,7 +765,9 @@ implementation
         writeln(compiler.verbose.printnodefile, pass);
         writeln(compiler.verbose.printnodefile,procdef.fullprocname(false));
         writeln(compiler.verbose.printnodefile,'*******************************************************************************');
-        printnode(compiler.verbose.printnodefile,code);
+        prn.Init(compiler.verbose.printnodefile);
+        printnode(prn,code);
+        prn.Done;
         close(compiler.verbose.printnodefile);
       end;
 
