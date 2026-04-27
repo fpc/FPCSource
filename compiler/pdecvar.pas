@@ -349,6 +349,7 @@ implementation
          sc : TFPObjectList;
          paranr : word;
          i      : longint;
+	 s : single;
          ImplIntf     : TImplementedInterface;
          found,
          gotreadorwrite: boolean;
@@ -729,9 +730,24 @@ implementation
                   { Set default value }
                   case pt.nodetype of
                     setconstn :
-                      p.default:=plongint(tsetconstnode(pt).value_set)^;
+                      begin
+                        if (source_info.endian=target_info.endian) then
+                          p.default:=plongint(tsetconstnode(pt).value_set)^
+                        else
+                          p.default:=longint(reverse_longword(plongword(tsetconstnode(pt).value_set)^));
+                        include(p.propoptions,ppo_default_is_set);
+                      end;
                     ordconstn :
-                      if (Tordconstnode(pt).value<int64(low(longint))) or
+                      if is_real(p.propdef) then
+                        begin
+                          if TOrdconstnode(pt).value.is_negative then
+                            s:=TOrdconstnode(pt).value.svalue
+                          else
+                            s:=TOrdconstnode(pt).value.uvalue;
+                          p.default:=plongint(@s)^;
+                          include(p.propoptions,ppo_default_is_single);
+                        end
+                      else if (Tordconstnode(pt).value<int64(low(longint))) or
                          (Tordconstnode(pt).value>int64(high(cardinal))) then
                         message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
                       else
@@ -739,7 +755,11 @@ implementation
                     niln :
                       p.default:=0;
                     realconstn:
-                      p.default:=longint(single(trealconstnode(pt).value_real));
+                      begin
+                        s:=single(trealconstnode(pt).value_real);
+                        p.default:=plongint(@s)^;
+                        include(p.propoptions,ppo_default_is_single);
+                      end;
                     else if not codegenerror then
                       internalerror(2019050525);
                   end;

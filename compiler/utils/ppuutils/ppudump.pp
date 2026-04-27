@@ -799,6 +799,25 @@ begin
     Cpu2Str:=Unknown('cpu',w);
 end;
 
+Function CpuRealByteSize:byte;
+begin
+  if cpu in [cpu_i386,cpu_x86_64,cpu_i8086] then
+    CpuRealByteSize:=10
+  else
+    CpuRealByteSize:=8;
+end;
+
+{Avoid dependency on cpuinfo because the cpu directory isn't
+ searched during utils building.}
+{$ifdef GENERIC_CPU}
+type  bestreal=extended;
+{$else}
+{$ifdef x86}
+type  bestreal=extended;
+{$else}
+type  bestreal=double;
+{$endif}
+{$endif}
 
 Function Varspez2Str(w:longint):string;
 const
@@ -3497,7 +3516,8 @@ end;
     ppo_implements,
     ppo_enumerator_current,
     ppo_overrides,
-    ppo_dispid_write              { no longer used }
+    ppo_default_is_single,
+    ppo_default_is_set
   );
   tpropertyoptions=set of tpropertyoption;
 *)
@@ -3517,7 +3537,8 @@ const
     (mask:ppo_implements;str:'implements'),
     (mask:ppo_enumerator_current;str:'enumerator current'),
     (mask:ppo_overrides;str:'overrides'),
-    (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
+    (mask:ppo_default_is_single;str:'default is a single'),
+    (mask:ppo_default_is_set;str:'default is a set')
   );
 var
   i      : longint;
@@ -3719,6 +3740,7 @@ var
   realvalue : ppureal;
   doublevalue : double;
   singlevalue : single;
+  aset : set of 0..31;
   realstr : shortstring;
   extended : TSplit80bitReal;
   pw : tcompilerwidestring;
@@ -4093,7 +4115,33 @@ begin
              write  ([space,'    Prop Type : ']);
              readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
-             writeln([space,'      Default : ',getlongint]);
+             if ppo_default_is_single in propoptions then
+               begin
+                 singlevalue:=getrealsize(CpuRealByteSize);
+                 writeln([space,'      Default (single): ',singlevalue]);
+               end
+             else if ppo_default_is_set in propoptions then
+               begin
+                 { this is always a 4-byte long set }
+                 ppufile.getset(tppuset4(aset));
+                 write([space,'      Default (set): ']);
+                 for j:=0 to 3 do
+                   begin
+                     if j>0 then
+                       write(',');
+                     if not ppufile.change_endian then
+                       b:=pbyte(@aset)[j]
+                     else
+                       begin
+                         b:=pbyte(@aset)[3-j];
+                         b:=reverse_byte(b);
+                       end;
+                     write(hexstr(b,2));
+                   end;
+                 writeln;
+               end
+             else
+               writeln([space,'      Default : ',getlongint]);
              write  ([space,'   Index Type : ']);
              readderef('');
              { palt_none }
