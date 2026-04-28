@@ -8965,6 +8965,7 @@ unit aoptx86;
                  if Assigned(p_label) and
                    GetNextInstruction(p_label, p_dist) and
                    MatchInstruction(p_dist, A_CMP, []) and
+                   (taicpu(p_dist).opsize=taicpu(p).opsize) and
                    MatchOperand(taicpu(p_dist).oper[0]^, taicpu(p).oper[0]^) and
                    MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
                    GetNextInstruction(p_dist, hp1_dist) and
