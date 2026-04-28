@@ -844,45 +844,39 @@ type
 
   procedure StackTracesRegistry.CollectGarbage;
   var
-    dp, destDp, n, moveN: SizeUint;
+    destDp, n, moveN: SizeUint;
     stn: pNode;
     stnLink: HashList.ppNode;
-    moveSrc, moveDst: pointer;
+    dp, de: pointer;
   begin
   {$ifdef debug_heaptrc} if dumping then exit; {$endif} // Dumping iterates data...
     // Iterate all stack traces stored in data, search for corresponding nodes, check their refcounts.
     // Remove all nodes and traces with refcount = 0, pack other traces tightly.
-    dp := 0; destDp := 0;
-    moveSrc := nil; moveDst := nil;
-    while StoreDataSize(dp) < dataSize do
+    dp := data; de := dp + dataSize; destDp := 0;
+    moveN := 0;
+    while dp < de do
     begin
-      stn := pointer(specialize HashListTemplated<HashListTracePointerControl>.Find(h, data + dp, unaligned(StackTrace.pHashType(data + dp + StackTrace.HashOffset)^), stnLink)) - PtrUint(@Node(nil^).hn);
-      n := unaligned(StackTrace.pSizeType(data + dp + StackTrace.SizeOffset)^) + StackTrace.HeaderSize;
+      stn := pointer(specialize HashListTemplated<HashListTracePointerControl>.Find(h, dp, unaligned(StackTrace.pHashType(dp + StackTrace.HashOffset)^), stnLink)) - PtrUint(@Node(nil^).hn);
+      n := unaligned(StackTrace.pSizeType(dp + StackTrace.SizeOffset)^) + StackTrace.HeaderSize;
       if stn^.refcount > 0 then
       begin
         stn^.dataOfs := destDp;
-        if moveSrc = moveDst then
-        begin
-          moveSrc := data + dp;
-          moveDst := data + destDp;
-          moveN := 0;
-        end;
         inc(moveN, n);
         inc(destDp, n);
       end else
       begin
-        h.RemoveNode(@stn^.hn, stnLink);
+        if moveN <> 0 then
+        begin
+          Move((dp - moveN)^, (data + (destDp - moveN))^, moveN);
+          moveN := 0;
+        end;
+        h.RemoveNode(@stn^.hn, stnLink); // Careful: Move must precede, or Rehash will corrupt the not-yet-moved items if triggered.
         stn^.nextFree := freeNodes;
         freeNodes := stn;
-        if moveSrc <> moveDst then
-        begin
-          Move(moveSrc^, moveDst^, moveN);
-          moveSrc := nil; moveDst := nil;
-        end;
       end;
       inc(dp, n);
     end;
-    if moveSrc <> moveDst then Move(moveSrc^, moveDst^, moveN);
+    if moveN <> 0 then Move((dp - moveN)^, (data + (destDp - moveN))^, moveN);
     dataSize := destDp;
     garbage := 0;
   end;
