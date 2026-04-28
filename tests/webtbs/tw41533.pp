@@ -10,8 +10,8 @@ var
   D, D2: Double;
   S: Single;
   V: Variant;
-{$ifdef TEST_COMP_REAL_TYPE}
   Cp: Comp;
+{$ifndef TEST_COMP_REAL_TYPE}
   I: int64;
 {$endif}
 
