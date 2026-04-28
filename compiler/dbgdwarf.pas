@@ -2763,6 +2763,9 @@ implementation
         if (sym.owner.symtabletype=parasymtable) then
           exit;
 
+        if ismember and (sym.owner.symtabletype=objectsymtable) then
+          exit;
+
         if ismember then
           append_entry(DW_TAG_member,false,[
             DW_AT_name,DW_FORM_string,symname(sym, false)+#0,
