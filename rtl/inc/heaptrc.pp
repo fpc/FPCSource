@@ -1624,14 +1624,14 @@ type
       end;
     if not CheckHeadAndTail(n) then ReportCorrupted(n, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
 
-    if result >= UnlockToFillThreshold then Unlock;
-    FillChar(p^, result, FreedFillerByte);
-    if result >= UnlockToFillThreshold then Lock;
-
     if nTrace = NoTrace then
+      // Can fill later in this case.
       FreeNode(n, freeBatch, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem])
     else
     begin
+      if result >= UnlockToFillThreshold then Unlock;
+      FillChar(p^, result, FreedFillerByte);
+      if result >= UnlockToFillThreshold then Lock;
       freeBatch.ht := @self; // VERY DANGEROUS HACK: only freeBatch.Add called by FreeToFreeItems uses freeBatch.ht (and, in fact, only when freeBatch.p overflows :D), so it is set here, saving 1 instruction.
       traces.Release(n^.trace);
       if nTrace > 0 then n^.trace := traces.Add(pByte(packedTrace), nodesRgn);
@@ -1648,7 +1648,12 @@ type
     end;
     CheckHeap(AutoCheckHeapStep, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
     Unlock;
-    freeBatch.Flush(self);
+    if nTrace = NoTrace then
+    begin
+      FillChar(p^, result, FreedFillerByte); // Safe as long as freeBatch.Add(p) never instantly frees p itself.
+      prevMgr.FreeMem(freeBatch.p[0]); // Inline freeBatch.Flush.
+    end else
+      freeBatch.Flush(self);
   end;
 
   class function HeapTracer.TraceGetMem(size: PtrUint): pointer;
