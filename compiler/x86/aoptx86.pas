@@ -6371,6 +6371,7 @@ unit aoptx86;
                   ) and
                   { Make sure the destination operands are actually the same }
                   MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
+                  (taicpu(p_dist).opsize = taicpu(p).opsize) and
                   GetNextInstruction(p_dist, hp1_dist) and
                   MatchInstruction(hp1_dist, A_JCC, []) then
                   begin
