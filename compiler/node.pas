@@ -500,7 +500,8 @@ interface
 implementation
 
     uses
-       verbose,entfile,comphook,
+       verbose,entfile,
+       finput,comphook,
 {$ifdef DEBUG_NODE_XML}
        cutils,
 {$endif DEBUG_NODE_XML}
@@ -658,12 +659,17 @@ implementation
     procedure printfileinfo(var t:text; pos:tfileposinfo);
       var
 	infile : string;
+	module : tmodule;
+	afile : tinputfile;
       begin
-        try
-          infile:=get_module(pos.moduleindex).sourcefiles.get_file(pos.fileindex).name;
-	except
-          infile:='inconsistent';
-	end;
+        infile:='inconsistent';
+	module:=get_module(pos.moduleindex);
+	if assigned(module) then
+          begin
+            afile:=module.sourcefiles.get_file(pos.fileindex);
+	    if assigned(afile) then
+              infile:=afile.name;
+	  end;
         write(t,'(',infile,':',pos.line,',',pos.column,')');
       end;
 
