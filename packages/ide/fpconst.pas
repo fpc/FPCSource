@@ -505,7 +505,7 @@ const
          { CBrowserWindow }
 {215-226}#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F +
          { CFPClockView }
-{227-227}#$70 +
+{227-227}#$78 +
          { CToolTip }
 {228-228}#$20 +
          { CHTMLSectionAttrs }
