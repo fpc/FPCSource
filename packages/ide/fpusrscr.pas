@@ -362,7 +362,7 @@ begin
   Capture;
   { get the current ctrl-C state }
   Ctrl_c_state:=djgpp_set_ctrl_c(false);
-  djgpp_set_ctrl_c(Ctrl_c_state);
+  djgpp_set_ctrl_c(false);
 end;
 
 
@@ -440,7 +440,7 @@ end;
 procedure TDOSScreen.FreeGraphBuffer;
 begin
   { We don't want to restore the last user screen if
-    it was a grpahic screen, for example if we
+    it was a graphic screen, for example if we
     leave in the middle of the debugging of a
     graphic program, so we first
     dispose the graphic buffer, thus
@@ -873,8 +873,9 @@ procedure TLinuxScreen.SaveConsoleScreen;
 var
   NewSize : longint;
 begin
+  write(#27'7'#27'[?47h');
   if IsXTerm then
-    write(#27'7'#27'[?47h')
+    {write(#27'7'#27'[?47h')}
   else if (TTYfd<>-1) then
     begin
      fpLSeek(TTYFd, 0, Seek_Set);
@@ -908,10 +909,12 @@ end;
 
 procedure TLinuxScreen.SwitchToConsoleScreen;
 begin
+  write(#27'[0m');
+  write(#27'[?47l'#27'8'#27'[m');
   if IsXterm then
     begin
-      write(#27'[0m');
-      write(#27'[?47l'#27'8'#27'[m');
+      {write(#27'[0m');
+      write(#27'[?47l'#27'8'#27'[m');}
     end
   else if (TTyfd<>-1) then
     begin
@@ -996,7 +999,7 @@ begin
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
-  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mants 15779 was 200
+  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mantis 15779 was 200
   { Try to allow to store more info }
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,BigWin);
   if not res then
@@ -1014,7 +1017,7 @@ begin
   BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top;
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
      BigWin);
-// mants 15779 : was
+// mantis 15779 : was
 //  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
 //         ConsoleScreenBufferInfo.dwMaximumWindowSize);
   if not res then
@@ -1125,11 +1128,11 @@ begin
   for i:=1 to LineSize do
     begin
       Text[i]:=LineBuf^[i-1].AsciiChar;
-      Attr[i]:=char(byte(LineBuf^[i-1].Attributes));
+      Attr[i]:=AnsiChar(byte(LineBuf^[i-1].Attributes));
     end;
   FreeMem(LineBuf,SizeOf(CharInfoArray));
-  Text[0]:=char(byte(LineSize));
-  Attr[0]:=char(byte(LineSize));
+  Text[0]:=AnsiChar(byte(LineSize));
+  Attr[0]:=AnsiChar(byte(LineSize));
 end;
 
 

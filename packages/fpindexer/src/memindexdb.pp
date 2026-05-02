@@ -259,7 +259,7 @@ end;
 
 function TDescrItem.BlockSize: Integer;
 begin
-  Result:=Sizeof(Integer)+Length(FDescription)*SizeOf(Char);
+  Result:=Sizeof(Integer)+Length(FDescription)*SizeOf(AnsiChar);
 end;
 
 procedure TDescrItem.WriteStringToStream(Astream: TStream; S: UTF8string);
@@ -269,7 +269,7 @@ begin
   L:=Length(S);
   AStream.WriteBuffer(L,SizeOf(L));
   if (L>0) then
-    AStream.WriteBuffer(S[1],L*SizeOf(Char));
+    AStream.WriteBuffer(S[1],L*SizeOf(AnsiChar));
 end;
 
 procedure TDescrItem.WriteToStream(S: TStream);
@@ -300,7 +300,7 @@ begin
   AStream.ReadBuffer(L,SizeOf(L));
   SetLength(Result,L);
   if (L>0) then
-    AStream.ReadBuffer(Pointer(Result)^,L*SizeOf(Char));
+    AStream.ReadBuffer(Pointer(Result)^,L*SizeOf(AnsiChar));
 end;
 
 function TDescrItem.ReadFromStream(S: TStream) : Integer;

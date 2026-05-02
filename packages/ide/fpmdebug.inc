@@ -44,7 +44,7 @@ end;
 procedure TIDEApp.DoUserScreenWindow;
 begin
   {$ifdef HASAMIGA}
-  Exit; // Do not open the Userscreen on AMIGA systems, its not closeable
+  Exit; // Do not open the Userscreen on AMIGA systems, its not closable
   {$endif}
   if UserScreenWindow=nil then
     begin
@@ -74,6 +74,9 @@ begin
   ShowUserScreen;
 
   InitKeyBoard;
+{$ifdef unix}
+  write(#27'[?1011s'#27'[?1011h'); { Scroll to cursor on key press }
+{$endif unix}
   { closing the user screen on mouse events makes copy paste impossible }
   repeat
     repeat
@@ -99,6 +102,9 @@ begin
   until Event.what=evKeyboard;
   while (Keyboard.PollKeyEvent<>0) do
     Keyboard.GetKeyEvent;
+{$ifdef unix}
+  write(#27'[?1011l'#27'[?1011r');
+{$endif unix}
   DoneKeyboard;
 
   ShowIDEScreen;
@@ -241,19 +247,16 @@ end;
 
 {$ifdef NODEBUG}
 procedure TIDEapp.do_evaluate;
-
 begin
   nodebugger;
 end;
 {$else}
 procedure TIDEapp.do_evaluate;
-
 var d:Pevaluate_dialog;
     r:Trect;
-
 begin
   desktop^.getextent(r);
-  r.b.x:=r.b.x*3 div 4;
+  r.b.x:=min(max(30,r.b.x*3 div 4),60);
   r.b.y:=12;
   new(d,init(r));
   desktop^.execview(d);

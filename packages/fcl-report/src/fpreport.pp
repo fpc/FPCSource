@@ -1058,6 +1058,7 @@ type
   public
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure ReadElement(AReader: TFPReportStreamer); override;
+    procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     constructor Create(AOwner: TComponent); override;
   end;
   TFPReportCustomDataBandClass = Class of TFPReportCustomDataBand;
@@ -1982,6 +1983,7 @@ type
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ExpandExpressions;
     procedure   UpdateAggregates;
+    procedure   ResetAggregates;
     function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     procedure   SetParent(const AValue: TFPReportElement); override;
     property    Text: TFPReportString read FText write SetText;
@@ -4038,7 +4040,7 @@ var
   maxw: single; // value in pixels
   n: integer;
   s: UTF8String;
-  c: char;
+  c: AnsiChar;
   lWidth: single;
 
   lDescenderHeight: single;
@@ -5044,12 +5046,26 @@ begin
     end;  { for ... }
 end;
 
+procedure TFPReportCustomMemo.ResetAggregates;
+Var
+  i : integer;
+  n : TFPExprNode;
+begin
+  // aggregate handling
+  for i := 0 to Length(ExpressionNodes)-1 do
+    begin
+    n := ExpressionNodes[i].ExprNode;
+    if Assigned(n)
+       and n.HasAggregate
+       and Not (moNoResetAggregateOnPrint in Options) then
+        n.InitAggregate;
+    end;
+end;
+
 function TFPReportCustomMemo.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
 
 Var
   m : TFPReportCustomMemo;
-  I : integer;
-  N : TFPExprNode;
 
   Procedure CheckVisibility;
 
@@ -5082,15 +5098,6 @@ begin
     end;
   m.ExpandExpressions;
   CheckVisibility;
-  // aggregate handling
-  for I := 0 to Length(m.Original.ExpressionNodes)-1 do
-    begin
-    n := m.Original.ExpressionNodes[I].ExprNode;
-    if Assigned(n)
-       and n.HasAggregate
-       and Not (moNoResetAggregateOnPrint in m.Options) then
-        n.InitAggregate;
-    end;
 end;
 
 procedure TFPReportCustomMemo.SetParent(const AValue: TFPReportElement);
@@ -5874,6 +5881,14 @@ begin
   FooterBand:=TFPReportCustomDataFooterBand(RBand('Footer'));
   HeaderBand:=TFPReportCustomDataHeaderBand(RBand('Header'));
   MasterBand:=TFPReportCustomDataBand(RBand('Master'));
+  FDisplayPosition := AReader.ReadInteger('DisplayPosition', 0);
+end;
+
+procedure TFPReportCustomDataBand.WriteElement(AWriter: TFPReportStreamer;
+  AOriginal: TFPReportElement);
+begin
+  inherited WriteElement(AWriter, AOriginal);
+  AWriter.WriteInteger('DisplayPosition', FDisplayPosition);
 end;
 
 constructor TFPReportCustomDataBand.Create(AOwner: TComponent);
@@ -9517,8 +9532,24 @@ begin
 end;
 
 procedure TFPReportCustomBand.AfterPrintWithChilds;
+var
+  i: integer;
+  c: TFPReportElement;
+  lBand: TFPReportCustomBand;
 begin
-  // Do nothing
+  // reset aggregates after printing
+
+  lBand := Self;
+  while Assigned(lBand) do
+  begin
+    for i := 0 to lBand.ChildCount - 1 do
+    begin
+      c := lBand.Child[i];
+      if c is TFPReportMemo then
+        TFPReportMemo(c).ResetAggregates; // checks for moNoResetAggregateOnPrint
+    end;
+    lBand := lBand.ChildBand;
+  end;
 end;
 
 constructor TFPReportCustomBand.Create(AOwner: TComponent);
@@ -9603,8 +9634,30 @@ begin
     begin
       // do nothing special
     end
-    else if (FVisibleOnPage in [vpNotOnFirst, vpLastOnly, vpNotOnFirstAndLast]) then
-      Exit; // user asked to skip this band
+    else if (FVisibleOnPage in [vpNotOnFirst, vpNotOnFirstAndLast]) then
+      Exit // user asked to skip this band
+    else if Report.TwoPass and Report.IsFirstPass then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+      begin // last page not yet known. Include on page 1 to reserve space one time in the report
+        // do nothing special
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+        Exit // last page not yet known. Exclude on page 1 to reserve space n-1 times in the report
+    end
+    else if (not Report.IsFirstPass) then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+      begin // second pass, exclude if page 1 is not the last page
+        if Report.FPerDesignerPageCount[Report.FRTCurDsgnPageIdx] > 1 then
+          Exit; // user asked to skip this band
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+      begin // second pass, exclude if page 1 is the last page
+        if Report.FPerDesignerPageCount[Report.FRTCurDsgnPageIdx] = 1 then
+          Exit; // user asked to skip this band
+      end;
+    end
   end
   else if (Report.FPageNumberPerDesignerPage > 1) then
   begin  // multi-page rules
@@ -9613,6 +9666,25 @@ begin
     else if FVisibleOnPage in [vpNotOnFirst] then
     begin
       // do nothing special
+    end
+    else if Report.TwoPass and Report.IsFirstPass then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+        Exit // first pass: include on page 1 only, to reserve space only 1 time in the report
+      else if FVisibleOnPage in [vpFirstAndLastOnly] then
+      begin // first pass: include on pages 1-2, to reserve space 2 times in the report
+        if Report.FPageNumberPerDesignerPage > 2 then
+          Exit;  // skip this band, space has been reserved 2 times already
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+      begin // first pass: exclude on page 1, include on other pages, to reserve space n-1 times
+        // do nothing special
+      end
+      else if FVisibleOnPage in [vpNotOnFirstAndLast] then
+      begin // first pass: exclude on pages 1-2, include on other pages, to reserve space n-2 times
+        if Report.FPageNumberPerDesignerPage <= 2 then
+          Exit; // skip this band, space will be reserved from page 3, to reserve space n-2 times
+      end;
     end
     else if (not Report.IsFirstPass) then
     begin // last page rules
@@ -12188,11 +12260,11 @@ begin
         {$endif}
         // DumpData(aPageData);
         PrepareRecord(aData);
-        Report.UpdateAggregates(aPage,aData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
+        Report.UpdateAggregates(aPage,aData);
         ShowDataBand;
         aData.Next;
         end;

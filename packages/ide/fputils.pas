@@ -2,7 +2,7 @@
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
-    Utilility routines used by the IDE
+    Utility routines used by the IDE
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,6 +13,8 @@
 
  **********************************************************************}
 unit FPUtils;
+
+{$H-}
 
 interface
 
@@ -46,6 +48,7 @@ const
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
 function FixFileName(const s:string):string;
+function MakeFileNameExt(const fn:string; const aExt: string):string;
 function MakeExeName(const fn:string):string;
 function Center(const S: string; Len: byte): string;
 function FitStr(const S: string; Len: byte): string;
@@ -70,7 +73,7 @@ function GetStr(const P: PString): string;
 procedure ReplaceStr(var S: string; const What,NewS: string);
 procedure ReplaceStrI(var S: string; What: string; const NewS: string);
 
-const ListSeparator      : char = ';';
+const ListSeparator      : AnsiChar = ';';
 
 implementation
 
@@ -153,13 +156,13 @@ begin
               NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
             end;
  'A'..'Z' : if NoPath then
-             FixFileName[i]:=char(byte(s[i])+ord('a')-ord('A'))
+             FixFileName[i]:=AnsiChar(byte(s[i])+ord('a')-ord('A'))
             else
              FixFileName[i]:=s[i];
  {$else}
  {$ifndef hasamiga}
       '/' : FixFileName[i]:='\';
- 'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
+ 'A'..'Z' : FixFileName[i]:=AnsiChar(byte(s[i])+32);
  {$else}
       '\' : FixFileName[i]:='/';
  {$endif}
@@ -171,6 +174,15 @@ begin
   FixFileName[0]:=s[0];
 end;
 
+function MakeFileNameExt(const fn:string; const aExt: string):string;
+var
+  d : DirStr;
+  n : NameStr;
+  e : ExtStr;
+begin
+  FSplit(fn,d,n,e);
+  MakeFileNameExt:=d+n+aExt;
+end;
 
 function MakeExeName(const fn:string):string;
 var
@@ -272,7 +284,7 @@ function MatchesMask(What, Mask: string): boolean;
   begin
      for i:=1 to length(s) do
       if s[i] in ['a'..'z'] then
-       upper[i]:=char(byte(s[i])-32)
+       upper[i]:=AnsiChar(byte(s[i])-32)
       else
        upper[i]:=s[i];
      upper[0]:=s[0];

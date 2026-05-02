@@ -25,13 +25,13 @@ type
   private
     class procedure Sortrange(var Arr:TArr; Start,Fin,d:SizeUInt);
     class procedure HeapSort(var Arr:TArr; Start,Fin:SizeUInt);
-    class procedure InsertSort(var Arr:TArr; Start,Fin:SizeUInt);
+    class procedure InsertSort(var Arr:TArr; Start,Fin:SizeUInt); inline;
     class function Left(a:SizeUInt):SizeUInt;inline;
     class function Right(a:SizeUInt):SizeUInt;inline;
     class procedure Heapify(var Arr: TArr; Position:SizeUInt; Start,Fin:SizeUInt);
     class function Parent(a:SizeUInt):SizeUInt;inline;
   public
-    class procedure Sort(var Arr: TArr; size:SizeUInt);
+    class procedure Sort(var Arr: TArr; size:SizeUInt); inline;
     class function NextPermutation(var Arr: TArr; size:SizeUInt):boolean;
   end;
 
@@ -243,7 +243,7 @@ class procedure TArrayUtils.RandomShuffle(Arr: TArr; size: SizeUInt);
 var i,r:SizeUInt; temp:Tvalue;
 begin
   for i:=size-1 downto 1 do begin
-    r:=random(Int64(i));
+    r:=random(Int64(i+1));
     temp:=Arr[r];
     Arr[r]:=Arr[i];
     Arr[i]:=temp;

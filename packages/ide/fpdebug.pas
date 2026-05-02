@@ -13,7 +13,9 @@
 
  **********************************************************************}
 unit FPDebug;
+
 {$ifdef NODEBUG}
+{$H-}
 interface
 implementation
 end.
@@ -74,7 +76,7 @@ type
     procedure DoEndSession(code:longint);virtual;
     procedure DoUserSignal;virtual;
     procedure FlushAll; virtual;
-    function Query(question : pchar; args : pchar) : longint; virtual;
+    function Query(question : PAnsiChar; args : PAnsiChar) : longint; virtual;
 
     procedure AnnotateError;
     procedure InsertBreakpoints;
@@ -93,7 +95,7 @@ type
     procedure CommandEnd(const s:string);virtual;
     function  IsRunning : boolean;
     function  AllowQuit : boolean;virtual;
-    function  GetValue(Const expr : string) : pchar;
+    function  GetValue(Const expr : string) : PAnsiChar;
     function  GetFramePointer : CORE_ADDR;
     function  GetLongintAt(addr : CORE_ADDR) : longint;
     function  GetPointerAt(addr : CORE_ADDR) : CORE_ADDR;
@@ -117,7 +119,7 @@ type
      Line : Longint; { only used for bt_file_line type }
      Conditions : PString; { conditions relative to that breakpoint }
      IgnoreCount : Longint; { how many counts should be ignored }
-     Commands : pchar; { commands that should be executed on breakpoint }
+     Commands : PAnsiChar; { commands that should be executed on breakpoint }
      GDBIndex : longint;
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
@@ -213,7 +215,7 @@ type
     PWatch = ^TWatch;
     TWatch =  Object(TObject)
       expr : pstring;
-      last_value,current_value : pchar;
+      last_value,current_value : PAnsiChar;
       constructor Init(s : string);
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -1040,9 +1042,9 @@ begin
     GDBWindow^.WriteString(S);
 end;
 
-function TDebugController.Query(question : pchar; args : pchar) : longint;
+function TDebugController.Query(question : PAnsiChar; args : PAnsiChar) : longint;
 var
-  c : char;
+  c : AnsiChar;
   WasModal : boolean;
   ModalView : PView;
   res : longint;
@@ -1213,9 +1215,9 @@ begin
     end;
 end;
 
-function TDebugController.GetValue(Const expr : string) : pchar;
+function TDebugController.GetValue(Const expr : string) : PAnsiChar;
 begin
-  GetValue:=StrNew(PChar(PrintCommand(expr)));
+  GetValue:=StrNew(PAnsiChar(PrintCommand(expr)));
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -1371,7 +1373,13 @@ begin
 
   if (fn=LastFileName) then
     begin
-      W:=PSourceWindow(LastSource);
+      { Check if source window is still open }
+      W:=SourceOnDesktop(PSourceWindow(LastSource));
+      if not assigned(W) then
+      begin
+        W:=TryToOpenFile(nil,s,0,Line,false);
+        LastSource:=W;
+      end;
       if assigned(W) then
         begin
           W^.Editor^.SetCurPtr(0,Line);
@@ -1542,7 +1550,7 @@ begin
 {$ifdef Windows}
    if NoSwitch then
      begin
-       { Ctrl-C as normal char }
+       { Ctrl-C as normal AnsiChar }
        GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
        IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
        SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
@@ -1766,7 +1774,7 @@ end;
 
 procedure TBreakpoint.Insert;
   var
-    p,p2 : pchar;
+    p,p2 : PAnsiChar;
     st : string;
     bkpt_no: LongInt = 0;
 begin
@@ -2523,6 +2531,7 @@ begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
   inherited Init(R, dialog_breakpointlist, wnNoNumber);
 
+  GrowMode:=gfGrowAll+gfGrowRel;
   HelpCtx:=hcBreakpointListWindow;
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
@@ -2548,7 +2557,7 @@ begin
   GetExtent(R);R.Grow(-1,-1);
   Dec(R.B.Y);
   R.A.Y:=R.B.Y-2;
-  X:=(R.B.X-R.A.X) div NumButtons;
+  X:=Min(76,(R.B.X-R.A.X)) div NumButtons;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Close, cmClose, bfDefault));
@@ -2934,9 +2943,9 @@ procedure TWatch.Get_new_value;
            loop_higher:=false;
       end;
     if found then
-      current_value:=StrNew(PChar('= ' + s))
+      current_value:=StrNew(PAnsiChar('= ' + s))
     else
-      current_value:=StrNew(PChar(orig_s_result));
+      current_value:=StrNew(PAnsiChar(orig_s_result));
     Debugger^.got_error:=false;
     { We should try here to find the expr in parent
       procedure if there are
@@ -3100,13 +3109,17 @@ end;
 procedure TWatchesListBox.EditCurrent;
 var
   P: PWatch;
+  D: PWatchItemDialog;
 begin
   if Range=0 then Exit;
   if Focused<WatchesCollection^.Count then
     P:=WatchesCollection^.At(Focused)
   else
-    P:=New(PWatch,Init(''));
-  Application^.ExecuteDialog(New(PWatchItemDialog,Init(P)),nil);
+    begin EditNew; exit; end;
+  D:=New(PWatchItemDialog,Init(P));
+  Dispose(D^.Title);
+  D^.Title:=NewStr('Edit Watch');
+  Application^.ExecuteDialog(D,nil);
   WatchesCollection^.Update;
 end;
 
@@ -3344,6 +3357,7 @@ end;
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-7;
       inherited Init(R, dialog_watches,SearchFreeWindowNo);
+      GrowMode:=gfGrowAll+gfGrowRel;
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcWatchesWindow;
@@ -3408,7 +3422,7 @@ constructor TWatchItemDialog.Init(AWatch: PWatch);
 var R,R2: TRect;
 begin
   R.Assign(0,0,50,10);
-  inherited Init(R,'Edit Watch');
+  inherited Init(R,'Add Watch');
   Watch:=AWatch;
 
   GetExtent(R); R.Grow(-3,-2);
@@ -3594,8 +3608,9 @@ end;
       R,R2 : trect;
     begin
       Desktop^.GetExtent(R);
-      R.A.Y:=R.B.Y-5;
+      R.A.Y:=R.B.Y-6;
       inherited Init(R, dialog_callstack, wnNoNumber);
+      GrowMode:=gfGrowAll+gfGrowRel;
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcStackWindow;

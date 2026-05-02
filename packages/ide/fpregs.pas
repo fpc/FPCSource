@@ -13,6 +13,7 @@
 
  **********************************************************************}
 unit FPRegs;
+{$H-}
 {$ifdef NODEBUG}
 interface
 implementation
@@ -290,9 +291,9 @@ const
   function GetIntRegs(var rs : TIntRegs) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
-       buffer : array[0..255] of char;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
+       buffer : array[0..255] of AnsiChar;
        i : byte;
 
     begin
@@ -512,7 +513,7 @@ const
            OK:=GetIntRegs(rs);
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;
@@ -857,11 +858,11 @@ const
              ) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
     {$ifndef NODEBUG}
        reg,value : string;
-       buffer : array[0..255] of char;
+       buffer : array[0..255] of AnsiChar;
        v : string;
        res : cardinal;
        i : longint;
@@ -1082,7 +1083,7 @@ const
              );
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;
@@ -1287,11 +1288,11 @@ const
              ) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
     {$ifndef NODEBUG}
        reg,value : string;
-       buffer : array[0..255] of char;
+       buffer : array[0..255] of AnsiChar;
        v : string;
        res : cardinal;
        i : longint;
@@ -1467,7 +1468,7 @@ const
              );
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;

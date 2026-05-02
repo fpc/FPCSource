@@ -316,7 +316,8 @@ end;
 
 class function TTimeSpan.TryParse(const S: string; out Value: TTimeSpan
   ): Boolean;
-var i,len,k,v,v2 : integer;
+var i,len,k,v2 : integer;
+    v : longint;
     sgn : boolean;
 begin
   value.fticks:=0;

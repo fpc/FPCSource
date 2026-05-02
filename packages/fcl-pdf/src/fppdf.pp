@@ -666,8 +666,8 @@ type
     procedure AddName(const AKey,AName : String; const AMustEscape: boolean = True);
     procedure AddInteger(const AKey : String; AInteger : Integer);
     procedure AddReference(const AKey : String; AReference : Integer);
-    procedure AddString(const AKey, AString : String);
-    procedure AddString(const AKey:string;const AString : UnicodeString);
+    procedure AddString(const AKey: string; const AString : AnsiString);
+    procedure AddString(const AKey: string; const AString : UnicodeString);
     function IndexOfKey(const AValue: string): integer;
     procedure Write(const AStream: TStream); override;
     procedure WriteDictionary(const AObject: integer; const AStream: TStream);
@@ -992,6 +992,21 @@ type
   TPDFImageStreamOption = (isoCompressed,isoTransparent);
   TPDFImageStreamOptions = set of TPDFImageStreamOption;
 
+  TPDFColorSpace = (
+    csDeviceCMYK, //Device-dependent names
+    csDeviceGray,
+    csDeviceN,
+    csDeviceRGB,
+    csCalGray,     //Device-independent names
+    csCalRGB,
+    csLab,
+    csICCBased,
+    csIndexed,     //Special names
+    csPattern,
+    csSeparation);
+
+  { TPDFImageItem }
+
   TPDFImageItem = Class(TCollectionItem)
   private
     FImage: TFPCustomImage;
@@ -1001,6 +1016,9 @@ type
     FStreamedMask: TBytes;
     FCompressionMask: TPDFImageCompression;
     FWidth,FHeight : Integer;
+    FBitsPerComponent: Integer;
+    FColorSpace: TPDFColorSpace;
+
     function GetHasMask: Boolean;
     function GetHeight: Integer;
     function GetStreamed: TBytes;
@@ -1011,6 +1029,7 @@ type
   Protected
     Function WriteStream(const AStreamedData: TBytes; AStream: TStream): int64; virtual;
   Public
+    constructor Create(ACollection: TCollection); override;
     Destructor Destroy; override;
     Procedure CreateStreamedData(AUseCompression: Boolean); overload;
     Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
@@ -1019,6 +1038,7 @@ type
     Function WriteImageStream(AStream: TStream): int64;
     Function WriteMaskStream(AStream: TStream): int64;
     function Equals(AImage: TFPCustomImage): boolean; reintroduce;
+
     Property Image : TFPCustomImage Read FImage Write SetImage;
     Property StreamedData : TBytes Read GetStreamed Write SetStreamed;
     Property StreamedMask : TBytes Read GetStreamedMask;
@@ -1026,6 +1046,8 @@ type
     Property Width : Integer Read GetWidth;
     Property Height : Integer Read GetHeight;
     Property HasMask : Boolean read GetHasMask;
+    property ColorSpace: TPDFColorSpace read FColorSpace write FColorSpace;
+    property BitsPerComponent: Integer read FBitsPerComponent write FBitsPerComponent;
   end;
 
 
@@ -1304,7 +1326,7 @@ const
 
 // Helper procedures - made them global for unit testing purposes
 procedure CompressStream(AFrom: TStream; ATo: TStream; ACompressLevel: TCompressionLevel = clDefault; ASkipHeader: boolean = False);
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 procedure DecompressStream(AFrom: TStream; ATo: TStream);
 
 function mmToPDF(mm: single): TPDFFloat;
@@ -1361,6 +1383,19 @@ const
 
   // see http://paste.lisp.org/display/1105
   BEZIER: single = 0.5522847498; // = 4/3 * (sqrt(2) - 1);
+
+  PDFColorSpace : array[TPDFColorSpace] of String = (
+      'DeviceCMYK', //Device-dependent names
+      'DeviceGray',
+      'DeviceN',
+      'DeviceRGB',
+      'CalGray',     //Device-independent names
+      'CalRGB',
+      'Lab',
+      'ICCBased',
+      'Indexed',     //Special names
+      'Pattern',
+      'Separation');
 
 Var
   PDFFormatSettings : TFormatSettings;
@@ -1432,7 +1467,7 @@ begin
   end;
 end;
 
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 var
   lStreamFrom : TStringStream;
   lStreamTo  : TStringStream;
@@ -1759,6 +1794,21 @@ var
 begin
   if Assigned(FSubsetFont) then
     FreeAndNil(FSubSetFont);
+  // CFF (PostScript outline) fonts cannot be subset by the TrueType subsetter.
+  // Embed the entire font file instead.
+  if FTrueTypeFile.IsCFF then
+  begin
+    FSubSetFont := TMemoryStream.Create;
+    if FFontStream <> nil then
+    begin
+      FFontStream.Position := 0;
+      TMemoryStream(FSubSetFont).CopyFrom(FFontStream, FFontStream.Size);
+    end
+    else
+      TMemoryStream(FSubSetFont).LoadFromFile(FFontFilename);
+    FSubSetFont.Position := 0;
+    Exit;
+  end;
   f := TFontSubsetter.Create(FTrueTypeFile, FTextMappingList);
   try
     FSubSetFont := TMemoryStream.Create;
@@ -1806,9 +1856,12 @@ begin
       if FTextMappingList[n].CharID = c then
       begin
         result := Result + IntToHex(FTextMappingList[n].GlyphID, 4);
+        c:=0;
         break;
       end;
     end;
+    if C<>0 then
+      Result:=Result+IntToHex(C, 4);
   end;
 end;
 
@@ -3329,6 +3382,14 @@ begin
   TPDFObject.WriteString('endstream', AStream);
 end;
 
+constructor TPDFImageItem.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+
+  FColorSpace:= csDeviceRGB;
+  FBitsPerComponent:= 8;
+end;
+
 function TPDFImageItem.Equals(AImage: TFPCustomImage): boolean;
 var
   x, y: Integer;
@@ -4093,8 +4154,8 @@ begin
     if Degrees <> 0.0 then
     begin
       rad := DegToRad(-Degrees);
-      a1 := Cos(rad); b1 := -Sin(rad);
-      c1 := Sin(rad); d1 := a1;
+      SinCos(rad, c1, a1); b1 := -c1;
+      d1 := a1;
     end
     else
       WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
@@ -4245,8 +4306,8 @@ begin
     if Degrees <> 0.0 then
     begin
       rad := DegToRad(-Degrees);
-      a1 := Cos(rad); b1 := -Sin(rad);
-      c1 := Sin(rad); d1 := a1;
+      SinCos(rad, c1, a1); b1 := -c1;
+      d1 := a1;
     end
     else
       WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
@@ -4764,7 +4825,7 @@ begin
   AddElement(AKey,Document.CreateReference(AReference));
 end;
 
-procedure TPDFDictionary.AddString(const AKey, AString: String);
+procedure TPDFDictionary.AddString(const AKey : string; const AString: AnsiString);
 begin
   AddElement(AKey,Document.CreateString(AString));
 end;
@@ -5229,7 +5290,7 @@ end;
 function TPDFDocument.GetFontNamePrefix(const AFontNum: Integer): string;
 begin
   // TODO: it must be 6 uppercase characters - no numbers!
-  Result := 'GRAEA' + Char(65+AFontNum) + '+';
+  Result := 'GRAEA' + AnsiChar(65+AFontNum) + '+';
 end;
 
 function TPDFDocument.IndexOfGlobalXRef(const AValue: string): integer;
@@ -5912,6 +5973,8 @@ var
   ADict: TPDFDictionary;
   i: integer;
   lXRef: integer;
+  curImg: TPDFImageItem;
+
 begin
   lXRef := GlobalXRefCount; // reference to be used later
 
@@ -5920,8 +5983,20 @@ begin
   ImageDict.AddName('Subtype','Image');
   ImageDict.AddInteger('Width',ImgWidth);
   ImageDict.AddInteger('Height',ImgHeight);
-  ImageDict.AddName('ColorSpace','DeviceRGB');
-  ImageDict.AddInteger('BitsPerComponent',8);
+
+  // add ColorSpace and BitsPerComponent default is DeviceRGB 8 bit
+  curImg:= Images[NumImg];
+  if (curImg <> nil) then
+  begin
+    ImageDict.AddName('ColorSpace', PDFColorSpace[curImg.FColorSpace]);
+    ImageDict.AddInteger('BitsPerComponent', curImg.FBitsPerComponent);
+  end
+  else
+  begin
+    ImageDict.AddName('ColorSpace','DeviceRGB');
+    ImageDict.AddInteger('BitsPerComponent',8);
+  end;
+
   N:=CreateName('I'+IntToStr(NumImg)); // Needed later
   ImageDict.AddElement('Name',N);
 

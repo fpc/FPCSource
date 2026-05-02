@@ -74,7 +74,7 @@ end;
 
 
 procedure TIDEApp.Open(FileName: string;FileDir:string);
-var D: PFileDialog;
+var D : PFPFileDialog;
     OpenIt: boolean;
     DriveNumber : byte;
     StoreDir,StoreDir2 : DirStr;
@@ -124,7 +124,7 @@ begin
          OpenEditorWindow(nil,FileName,0,0);
          if (MiscOptions and moChangeDirOnOpen)<>0 then
           begin
-            ChDir(DirOf(filename)); 
+            ChDir(DirOf(filename));
             CurDirChanged;
             GetDir(0,StartUpDir);
           end;
@@ -141,7 +141,7 @@ begin
 end;
 
 function TIDEApp.OpenSearch(FileName: string) : boolean;
-var D: PFileDialog;
+var D : PFPFileDialog;
     OpenIt: boolean;
     P : PString;
     Dir,S : String;
@@ -200,7 +200,8 @@ function TIDEApp.SaveAll: boolean;
 
   procedure SendSave(P: PView);
   begin
-    Message(P,evCommand,cmSave,nil);
+    if not SaveCancelled then
+      Message(P,evCommand,cmSave,nil);
   end;
 
 begin
@@ -212,10 +213,9 @@ end;
 
 procedure TIDEApp.ChangeDir;
 var
-  D : PChDirDialog;
+  D : PFPChDirDialog;
 begin
-  New(D, Init(cdNormal, hisChDirDialog));
-  D^.HelpCtx:=hcChangeDir;
+  New(D, Init(cdNormal, hidChDirDialog));
   ExecuteDialog(D,nil);
   CurDirChanged;
   { Set new startup dir }

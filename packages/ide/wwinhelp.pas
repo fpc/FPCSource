@@ -15,6 +15,11 @@
 {$R-}
 unit WWinHelp;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+{$h-}
+
 interface
 
 uses Objects,
@@ -75,7 +80,7 @@ type
         Magic            : word;
         Flags            : word; { 0x0002 always set, 0x0400 set if directory }
         PageSize         : word;
-        DataFormat       : array[1..16] of char;
+        DataFormat       : array[1..16] of AnsiChar;
         MustBeZero       : word; { $0000 }
         PageSplits       : word;
         RootPage         : word;
@@ -238,7 +243,7 @@ uses Strings;
 
 function ReadString(F: PStream): string;
 var S: string;
-    C: char;
+    C: AnsiChar;
 begin
   S:='';
   if Assigned(F) then
@@ -1268,7 +1273,7 @@ begin
   if length(S)>0 then
     LastEmittedChar:=ord(S[length(S)]);
 end;
-procedure EmitTextC(C: PChar);
+procedure EmitTextC(C: PAnsiChar);
 var RemSize,CurOfs,CurFrag: longint;
     S: string;
 begin
@@ -1395,7 +1400,7 @@ var Finished: boolean;
     Len: word;
     SLen,LinkOfs: longint;
     SPtr: pointer;
-    SBuf: PChar;
+    SBuf: PAnsiChar;
     PictureSize,PictureStartOfs: longint;
     FontNumber: integer;
 begin
@@ -1439,7 +1444,7 @@ begin
           {Column:=}ReadSHORT; {-1 = end of topic}
           {Unknown:=}ReadSHORT; {Always0:=}ReadCHAR;
         end;
-        {Unknown:=}ReadUCHAR; {Uknown:=}ReadCHAR;
+        {Unknown:=}ReadUCHAR; {Unknown:=}ReadCHAR;
         ID:=ReadUSHORT;
         Flags:=ReadUSHORT;
         if (Flags and 1)<>0 then

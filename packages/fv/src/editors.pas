@@ -1864,7 +1864,7 @@ end; { TEditor.Draw }
 procedure TEditor.DrawLines (Y, Count : Sw_Integer; LinePtr : Sw_Word);
 VAR
   Color : Word;
-  B     : array[0..MaxLineLength - 1] of Sw_Word;
+  B     : array[0..MaxLineLength - 1] of Word;  { This is array of video buffer cells. Has to be Word}
 begin
   Color := GetColor ($0201);
   while Count > 0 do
@@ -2439,7 +2439,7 @@ begin
   if P>CurPtr then
    begin
      start:=pchar(Buffer)+GapLen;
-     pc:=start;
+     pc:=start+P;
      i:=P-CurPtr;
      dec(pc);
      while (i>0) do
@@ -2992,9 +2992,7 @@ end; { TEditor.SetBufLen }
 
 function TEditor.SetBufSize (NewSize : Sw_Word) : Boolean;
 begin
-  ReAllocMem(Buffer, NewSize);
-  BufSize := NewSize;
-  SetBufSize := True;
+  if BufSize>=NewSize then SetBufSize:=true else SetBufSize:=false;
 end; { TEditor.SetBufSize }
 
 
@@ -3520,12 +3518,16 @@ VAR
   Length : Sw_Word;
   FSize : Longint;
   FRead : Sw_Integer;
+  oFileMode : byte;
   F : File;
 begin
   LoadFile := False;
   Length := 0;
+  oFileMode:=FileMode;   {save file open mode}
+  FileMode:=0;           {Reset will open file in read only mode }
   Assign(F, FileName);
-  Reset(F, 1);
+  {$push}{$i-}Reset(F, 1);{$pop}
+  FileMode:=oFileMode;   {restore file open mode}
   if IOResult <> 0 then
     EditorDialog(edReadError, @FileName)
   else
@@ -3593,7 +3595,7 @@ begin
     InOutRes := 0;
   end;
   Assign (F, FileName);
-  Rewrite (F, 1);
+  {$push}{$i-}Rewrite (F, 1);{$pop}
   if IOResult <> 0 then
     EditorDialog (edCreateError, @FileName)
   else

@@ -11,11 +11,12 @@ dpmiexcp,
 Typinfo,classes,iostream;
 
 Const TypeNames : Array [TTYpeKind] of string[15] =
-                    ('Unknown','Integer','Char','Enumeration',
+                    ('Unknown','Integer','AnsiChar','Enumeration',
                      'Float','Set','Method','ShortString','LongString',
                      'AnsiString','WideString','Variant','Array','Record',
                      'Interface','Class','Object','WideChar','Bool','Int64',
-                     'QWord','DynArray','InterfaceRaw');
+                     'QWord','DynArray','InterfaceRaw',
+                     '', '', '', '', '', '', '');
 Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool,tkInt64,tkQWord];
 
 Type
@@ -24,7 +25,7 @@ Type
        Private
        FBoolean  : Boolean;
        FByte     : Byte;
-       FChar     : Char;
+       FChar     : AnsiChar;
        FWord     : Word;
        FInteger  : Integer;
        Flongint  : Longint;
@@ -37,7 +38,7 @@ Type
        FStored   : Boolean;
        Function GetBoolean : Boolean;
        Function GetByte : Byte;
-       Function GetChar : Char;
+       Function GetChar : AnsiChar;
        Function GetWord : Word;
        Function GetInteger : Integer;
        Function GetLongint : Longint;
@@ -48,7 +49,7 @@ Type
        Function GetMyEnum : TMyEnum;
        Procedure SetBoolean ( Value : Boolean);
        Procedure SetByte ( Value : Byte );
-       Procedure SetChar ( Value : Char );
+       Procedure SetChar ( Value : AnsiChar );
        Procedure SetWord ( Value : Word );
        Procedure SetInteger ( Value : Integer );
        Procedure SetLongint ( Value : Longint );
@@ -59,7 +60,7 @@ Type
        Procedure SetMyEnum ( Value : TMyEnum );
        Function GetVirtualBoolean : Boolean; virtual;
        Function GetVirtualByte : Byte; virtual;
-       Function GetVirtualChar : Char; virtual;
+       Function GetVirtualChar : AnsiChar; virtual;
        Function GetVirtualWord : Word; virtual;
        Function GetVirtualInteger : Integer; virtual;
        Function GetVirtualLongint : Longint; virtual;
@@ -70,7 +71,7 @@ Type
        Function GetVirtualMyEnum : TMyEnum; virtual;
        Procedure SetVirtualBoolean ( Value : Boolean); virtual;
        Procedure SetVirtualByte ( Value : Byte ); virtual;
-       Procedure SetVirtualChar ( Value : Char ); virtual;
+       Procedure SetVirtualChar ( Value : AnsiChar ); virtual;
        Procedure SetVirtualWord ( Value : Word ); virtual;
        Procedure SetVirtualInteger ( Value : Integer ); virtual;
        Procedure SetVirtualLongint ( Value : Longint ); virtual;
@@ -88,7 +89,7 @@ Type
        Property ObjField: TObject read FObj write FObj;
        Property BooleanField : Boolean Read FBoolean Write FBoolean;
        Property ByteField : Byte Read FByte Write FByte;
-       Property CharField : Char Read FChar Write FChar;
+       Property CharField : AnsiChar Read FChar Write FChar;
        Property WordField : Word Read FWord Write FWord;
        Property IntegerField : Integer Read FInteger Write FInteger;
        Property LongintField : Longint Read FLongint Write FLongint;
@@ -99,7 +100,7 @@ Type
        Property MyEnumField : TMyEnum Read FMyEnum Write FMyEnum;
        Property BooleanMethod : Boolean Read GetBoolean Write SetBoolean;
        Property ByteMethod : Byte Read GetByte Write SetByte;
-       Property CharMethod : Char Read GetChar Write SetChar;
+       Property CharMethod : AnsiChar Read GetChar Write SetChar;
        Property WordMethod : Word Read GetWord Write SetWord;
        Property IntegerMethod : Integer Read GetInteger Write SetInteger;
        Property LongintMethod : Longint Read GetLongint Write SetLongint;
@@ -110,7 +111,7 @@ Type
        Property MyEnumMethod : TMyEnum Read GetMyEnum Write SetMyEnum;
        Property BooleanVirtualMethod : Boolean Read GetVirtualBoolean Write SetVirtualBoolean;
        Property ByteVirtualMethod : Byte Read GetVirtualByte Write SetVirtualByte;
-       Property CharVirtualMethod : Char Read GetVirtualChar Write SetVirtualChar;
+       Property CharVirtualMethod : AnsiChar Read GetVirtualChar Write SetVirtualChar;
        Property WordVirtualMethod : Word Read GetVirtualWord Write SetVirtualWord;
        Property IntegerVirtualMethod : Integer Read GetVirtualInteger Write SetVirtualInteger;
        Property LongintVirtualMethod : Longint Read GetVirtualLongint Write SetVirtualLongint;
@@ -131,7 +132,7 @@ Constructor TMyTestObject.Create;
 begin
   FBoolean:=true;
   FByte:=1;        {     : Byte;}
-  FChar:='B';      {    : Char; }
+  FChar:='B';      {    : AnsiChar; }
   FWord:=3;      {: Word;     }
   FInteger:=4;     {: Integer;  }
   Flongint:=5;     { : Longint; }
@@ -160,7 +161,7 @@ begin
   Result:=FByte;
 end;
 
-Function TMyTestObject.GetChar : Char;
+Function TMyTestObject.GetChar : AnsiChar;
 begin
   Result:=FChar;
 end;
@@ -216,7 +217,7 @@ begin
   FByte:=Value;
 end;
 
-Procedure TMyTestObject.SetChar ( Value : Char );
+Procedure TMyTestObject.SetChar ( Value : AnsiChar );
 begin
   FChar:=Value;
 end;
@@ -273,7 +274,7 @@ begin
   Result:=FByte;
 end;
 
-Function TMyTestObject.GetVirtualChar : Char;
+Function TMyTestObject.GetVirtualChar : AnsiChar;
 begin
   Result:=FChar;
 end;
@@ -329,7 +330,7 @@ begin
   FByte:=Value;
 end;
 
-Procedure TMyTestObject.SetVirtualChar ( Value : Char );
+Procedure TMyTestObject.SetVirtualChar ( Value : AnsiChar );
 begin
   FChar:=Value;
 end;
@@ -397,7 +398,7 @@ begin
     For J:=1 to 10  do
       begin
       If (PL^>31) and (PL^<129) then
-         Write('  ',CHar(PL^))
+         Write('  ',AnsiChar(PL^))
       else
         Write (PL^:3);
       Write (' ');

@@ -14,6 +14,11 @@
  **********************************************************************}
 unit FPHelp;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+{$H-}
+
 interface
 
 uses
@@ -131,6 +136,8 @@ const
       hint_editselectall     = 'Select the whole text';
       hint_editunselect      = 'Unselect everything';
       hint_showclipboard     = 'Open then clipboard window';
+      hint_commentsel        = 'Insert line comment in front of each selected line';
+      hint_uncommentsel      = 'Remove line comment (if any) from beginning of every selected line';
       hint_searchmenu        = 'Text and symbols search commands';
       hint_searchfind        = 'Search for text';
       hint_searchreplace     = 'Search for text and replace it with new text';
@@ -192,7 +199,7 @@ const
       hint_browser           = 'Specify global browser settings';
       hint_reloadmodifiedfile= 'Reload file modified on disk';
       hint_tools             = 'Create or change tools';
-      hint_environmentmenu   = 'Specify environment settins';
+      hint_environmentmenu   = 'Specify environment settings';
       hint_preferences       = 'Specify preferences settings';
       hint_editoroptions     = 'Specify default editor settings';
       hint_codecomplete      = 'Specify CodeComplete keywords';
@@ -208,7 +215,7 @@ const
       hint_tile              = 'Arrange windows on desktop by tiling';
       hint_cascade           = 'Arrange windows on desktop by cascading';
       hint_closeall          = 'Close all windows on the desktop';
-      hint_resize            = 'Change the size/postion of the active window';
+      hint_resize            = 'Change the size/position of the active window';
       hint_zoom              = 'Enlarge or restore the size of the active window';
       hint_next              = 'Make the next window active';
       hint_prev              = 'Make the previous window active';
@@ -293,6 +300,8 @@ begin
     hcPasteWin      : S:=hint_editpastewin;
     hcClear         : S:=hint_editclear;
     hcShowClipboard : S:=hint_showclipboard;
+    hcCommentSel    : S:=hint_commentsel;
+    hcUnCommentSel  : S:=hint_uncommentsel;
 
     hcSearchMenu    : S:=hint_searchmenu;
     hcFind          : S:=hint_searchfind;
@@ -463,6 +472,7 @@ procedure InitHelpSystem;
 var I,P: sw_integer;
     S: string;
     Param: string;
+    TOC_index : Sw_Integer;
 begin
   New(HelpFacility, Init);
 
@@ -474,13 +484,30 @@ begin
   WHTMLHlp.RegisterHelpType; // Also registers chm and html index (.htx)
 
   PushStatus(msg_LoadingHelpFiles);
+  { Look for toc.chm and add that first }
+  TOC_index:=-1;
   for I:=0 to HelpFiles^.Count-1 do
     begin
       S:=HelpFiles^.At(I)^; Param:='';
       P:=Pos('|',S);
       if P>0 then
         begin Param:=copy(S,P+1,High(S)); S:=copy(S,1,P-1); end;
-      AddHelpFile(S,Param);
+      if (length(S)>=7) and (LowerCase(copy(S,length(S)-6,7))='toc.chm') then
+      begin
+        TOC_index:=I;
+        AddHelpFile(S,Param);
+        break;
+      end;
+    end;
+  { Add every other help file (except toc.chm) }
+  for I:=0 to HelpFiles^.Count-1 do
+    begin
+      S:=HelpFiles^.At(I)^; Param:='';
+      P:=Pos('|',S);
+      if P>0 then
+        begin Param:=copy(S,P+1,High(S)); S:=copy(S,1,P-1); end;
+      if TOC_index<>I then
+        AddHelpFile(S,Param);
     end;
   PopStatus;
 end;
@@ -630,7 +657,7 @@ begin
   FPHTMLGetSectionColor:=OK;
 end;
 
-function FPNGGetAttrColor(Attr: char; var Color: byte): boolean;
+function FPNGGetAttrColor(Attr: AnsiChar; var Color: byte): boolean;
 var OK: boolean;
 begin
   OK:=false;

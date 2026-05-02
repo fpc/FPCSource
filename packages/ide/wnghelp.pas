@@ -13,6 +13,7 @@
 
  **********************************************************************}
 {$R-}
+{$H-}
 unit WNGHelp;
 
 interface
@@ -31,12 +32,12 @@ const
 
 type
       TNGFileHeader = packed record
-        Signature     : array[1..2] of char;
+        Signature     : array[1..2] of AnsiChar;
         Unknown       : word;
         Version       : word;
         MenuCount     : word;
-        GuideName     : array[8..47] of char;
-        Credits       : array[48..377] of char;
+        GuideName     : array[8..47] of AnsiChar;
+        Credits       : array[48..377] of AnsiChar;
       end;
 
       TNGRecordHeader = packed record
@@ -114,9 +115,9 @@ type
         function ReadRecord(var R: TRecord; ReadData: boolean): boolean;
       end;
 
-    TNGGetAttrColorProc = function(Attr: char; var Color: byte): boolean;
+    TNGGetAttrColorProc = function(Attr: AnsiChar; var Color: byte): boolean;
 
-function DefNGGetAttrColor(Attr: char; var Color: byte): boolean;
+function DefNGGetAttrColor(Attr: AnsiChar; var Color: byte): boolean;
 
 const NGGetAttrColor : TNGGetAttrColorProc = {$ifdef fpc}@{$endif}DefNGGetAttrColor;
 
@@ -125,7 +126,7 @@ procedure RegisterHelpType;
 implementation
 
 
-function DefNGGetAttrColor(Attr: char; var Color: byte): boolean;
+function DefNGGetAttrColor(Attr: AnsiChar; var Color: byte): boolean;
 begin
   DefNGGetAttrColor:=false;
 end;
@@ -389,7 +390,7 @@ begin
          AddFormatParamInt(R.SClass);
          AddFormatParamInt(L);
          AddFormatParamInt(R.Size);
-         ErrorBox('Uknown help record tag %x encountered, '+
+         ErrorBox('Unknown help record tag %x encountered, '+
                   'offset %x, size %d',@FormatParams);
        {$else}
          {Skip};

@@ -73,6 +73,7 @@ begin
           AddUnit('libkinect10');
           AddUnit('urlmon');
           AddUnit('httpapi');
+          AddUnit('winmanutf8lfn');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('urlmon.pp');
@@ -112,12 +113,22 @@ begin
     T:=P.Targets.AddImplicitUnit('libkinect10.pp');
     T:=P.Targets.AddImplicitUnit('httpapi.pp');
     T.Dependencies.AddInclude('tmschema.inc');
+    T:=P.Targets.AddImplicitUnit('winmanutf8lfn');
+
+    P.Sources.AddSrcFiles('src/w32default.*', P.Directory);
+    P.InstallFiles.Add('src/w32default.res',AllWindowsOSes,'$(unitinstalldir)');
+
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');
     P.Targets.AddExampleProgram('OOTest.pp');
     P.Targets.AddExampleProgram('OOHelper.pp');
     P.Targets.AddExampleProgram('testver.pp');
     P.Targets.AddExampleProgram('testcom2.pp');
+    P.Targets.AddExampleProgram('win32manifesttest.pp');
+    P.Targets.AddExampleProgram('hhex.pp');
+    P.Targets.AddExampleProgram('hhex2.pp');
+    P.Targets.AddExampleProgram('hhex3.pp');
+    P.Targets.AddExampleProgram('hhex4.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

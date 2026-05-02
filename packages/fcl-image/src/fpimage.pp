@@ -657,7 +657,7 @@ end;
 
 {$ifdef debug}
 function MakeHex (n:TColordata;nr:byte): string;
-const hexnums : array[0..15] of char =
+const hexnums : array[0..15] of AnsiChar =
               ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
 var r : integer;
 begin

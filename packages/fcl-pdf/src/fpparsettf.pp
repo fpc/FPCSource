@@ -222,7 +222,7 @@ Type
 
   TNameEntry = Packed Record
     Info: TNameRecord;
-    Value : String;
+    Value : AnsiString;
   end;
   TNameEntries = Array of TNameEntry;
 
@@ -277,8 +277,8 @@ Type
     procedure ParseOS2(AStream : TStream); virtual;
     procedure ParsePost(AStream : TStream); virtual;
     // Make differences for postscript fonts
-    procedure PrepareEncoding(Const AEncoding : String);
-    function MakeDifferences: String; virtual;
+    procedure PrepareEncoding(Const AEncoding : AnsiString);
+    function MakeDifferences: AnsiString; virtual;
     // Utility function to convert FShort to natural units
     Function ToNatural(AUnit: Smallint) : Smallint;
   public
@@ -334,6 +334,8 @@ Type
     Property OS2Data : TOS2Data Read FOS2Data;
     Property PostScript : TPostScript Read FPostScript;
     property NameEntries: TNameEntries read FNameEntries;
+    { Returns True if the font contains CFF (PostScript) outlines instead of TrueType outlines }
+    function IsCFF: Boolean;
   end;
 
 type
@@ -587,7 +589,7 @@ begin
             Gid:=J+Segm.IDDelta
           else
             begin
-            Gid:=GlyphIDArray[Segm.IDRangeOffset div 2 + i-segcount - Segm.startCode+j];
+            Gid:=GlyphIDArray[Segm.IDRangeOffset div 2 + i + (j-Segm.startCode) - segcount];
             if (Gid>0) then
               Gid:= Gid+Segm.IDDelta;
             end;
@@ -822,8 +824,8 @@ begin
   if embed and not Embeddable then
     raise ETTF.Create(rsFontEmbeddingNotAllowed);
   PrepareEncoding(Encoding);
-//  MissingWidth:=ToNatural(GetAdvanceWidth(Chars[CharCodes^[32]]));  // Char(32) - Space character
-  FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // Char(32) - Space character
+//  MissingWidth:=ToNatural(GetAdvanceWidth(Chars[CharCodes^[32]]));  // AnsiChar(32) - Space character
+  FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // AnsiChar(32) - Space character
   for I:=0 to 255 do
   begin
     if (CharCodes^[i]>=0) and (CharCodes^[i]<=High(Chars))
@@ -834,7 +836,7 @@ begin
   end;
 end;
 
-procedure TTFFileInfo.PrepareEncoding(const AEncoding: String);
+procedure TTFFileInfo.PrepareEncoding(const AEncoding: AnsiString);
 var
   TE : TTTFEncoding;
   V : PTTFEncodingValues;
@@ -846,7 +848,7 @@ begin
   GetEncodingTables(Te,CharBase,V);
 end;
 
-function TTFFileInfo.MakeDifferences: String;
+function TTFFileInfo.MakeDifferences: AnsiString;
 var
   i,l: Integer;
 begin
@@ -879,6 +881,11 @@ function TTFFileInfo.Embeddable: Boolean;
 begin
   With FOS2Data do
     Result:=(FsType<> 2) and ((FsType and 512)= 0);
+end;
+
+function TTFFileInfo.IsCFF: Boolean;
+begin
+  Result := FTableDir.FontVersion.Version = $4F54544F; // 'OTTO'
 end;
 
 function TTFFileInfo.Ascender: SmallInt;

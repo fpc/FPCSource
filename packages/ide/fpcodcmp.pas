@@ -16,6 +16,11 @@
 
 unit FPCodCmp; { CodeComplete }
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+{$H-}
+
 interface
 
 uses Objects,Drivers,Dialogs,
@@ -437,7 +442,7 @@ begin
   Insert(New(PLabel, Init(R2, 'Case handling', RB)));
   Insert(RB);
 
-  { Mininum length inputline }
+  { Minimum length inputline }
   R.Copy(R3); R.A.Y:=R.B.Y-7;R.B.Y:=R.A.Y+1; Dec(R.B.X); R.A.X:=R.B.X -5;
   New(MinInputL, Init(R,5));
   MinInputL^.SetValidator(New(PRangeValidator, Init(1,255)));

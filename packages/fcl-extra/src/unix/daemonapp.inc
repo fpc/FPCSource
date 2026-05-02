@@ -122,10 +122,6 @@ end;
 procedure TCustomDaemonApplication.RemoveController(
   AController: TDaemonController);
   
-Var
-  I : Integer;
-  HC : Boolean;
-  
 begin
   FreeAndNil(AController.FDaemon);
   AController.Free;

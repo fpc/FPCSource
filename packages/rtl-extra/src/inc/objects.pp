@@ -289,6 +289,12 @@ TYPE
       FUNCTION GetPos: Longint;                                      Virtual;
       FUNCTION GetSize: Longint;                                     Virtual;
       FUNCTION ReadStr: PString;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+      FUNCTION ReadRawByteString: RawByteString;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+      FUNCTION ReadUnicodeString: UnicodeString;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
       PROCEDURE Open (OpenMode: Word);                               Virtual;
       PROCEDURE Close;                                               Virtual;
       PROCEDURE Reset;
@@ -297,6 +303,12 @@ TYPE
       PROCEDURE Put (P: PObject);
       PROCEDURE StrWrite (P: PChar);
       PROCEDURE WriteStr (P: PString);
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+      PROCEDURE WriteRawByteString (Const S: RawByteString);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+      PROCEDURE WriteUnicodeString (Const S: UnicodeString);
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
       PROCEDURE Read (Var Buf; Count: LongInt);                      Virtual;
@@ -461,6 +473,36 @@ TYPE
       PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
    END;
    PStringCollection = ^TStringCollection;
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{---------------------------------------------------------------------------}
+{    TRawByteStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
+{---------------------------------------------------------------------------}
+TYPE
+   TRawByteStringCollection = OBJECT (TSortedCollection)
+      FUNCTION GetItem (Var S: TStream): Pointer;                    Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer;            Virtual;
+      PROCEDURE FreeItem (Item: Pointer);                            Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
+      PROCEDURE AtInsert (Index: Sw_Integer; const Item: RawByteString);
+   END;
+   PRawByteStringCollection = ^TRawByteStringCollection;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+{---------------------------------------------------------------------------}
+{    TUnicodeStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
+{---------------------------------------------------------------------------}
+TYPE
+   TUnicodeStringCollection = OBJECT (TSortedCollection)
+      FUNCTION GetItem (Var S: TStream): Pointer;                    Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer;            Virtual;
+      PROCEDURE FreeItem (Item: Pointer);                            Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
+      PROCEDURE AtInsert (Index: Sw_Integer; const Item: UnicodeString);
+   END;
+   PUnicodeStringCollection = ^TUnicodeStringCollection;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {---------------------------------------------------------------------------}
 {             TStrCollection OBJECT - STRING COLLECTION OBJECT              }
@@ -1113,6 +1155,47 @@ BEGIN
    End Else ReadStr := Nil;
 END;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{--TStream------------------------------------------------------------------}
+{  ReadRawByteString                                                        }
+{---------------------------------------------------------------------------}
+FUNCTION TStream.ReadRawByteString: RawByteString;
+VAR
+{$ifdef FPC_HAS_CPSTRING}
+  CP: TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+  L: LongInt;
+BEGIN
+{$ifdef FPC_HAS_CPSTRING}
+  Read(CP, SizeOf(CP));
+{$endif FPC_HAS_CPSTRING}
+  Read(L, SizeOf(L));
+   If (L <= 0) Then ReadRawByteString := '' Else Begin
+     SetLength(ReadRawByteString, L);
+{$ifdef FPC_HAS_CPSTRING}
+     SetCodePage(ReadRawByteString, CP, False);
+{$endif FPC_HAS_CPSTRING}
+     Read(ReadRawByteString[1], L);
+   End;
+END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+{--TStream------------------------------------------------------------------}
+{  ReadUnicodeString                                                        }
+{---------------------------------------------------------------------------}
+FUNCTION TStream.ReadUnicodeString: UnicodeString;
+VAR L: LongInt; S: UTF8String;
+BEGIN
+   Read(L, SizeOf(L));
+   If (L <= 0) Then ReadUnicodeString := '' Else Begin
+     SetLength(S, L);
+     Read(S[1], L);
+     ReadUnicodeString := S;
+   End;
+END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+
 {--TStream------------------------------------------------------------------}
 {  GetPos -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB               }
 {---------------------------------------------------------------------------}
@@ -1228,6 +1311,43 @@ BEGIN
    If (P <> Nil) Then Write(P^, Length(P^) + 1)       { Write string }
      Else Write(Empty, 1);                            { Write empty string }
 END;
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{--TStream------------------------------------------------------------------}
+{  WriteRawByteString                                                       }
+{---------------------------------------------------------------------------}
+PROCEDURE TStream.WriteRawByteString (Const S: RawByteString);
+VAR
+{$ifdef FPC_HAS_CPSTRING}
+  CP: TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+  L: LongInt;
+BEGIN
+{$ifdef FPC_HAS_CPSTRING}
+   CP := StringCodePage(S);
+   Write(CP, SizeOf(CP));
+{$endif FPC_HAS_CPSTRING}
+   L := Length(S);
+   Write(L, SizeOf(L));
+   if L > 0 then
+     Write((@S[1])^, L);
+END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+{--TStream------------------------------------------------------------------}
+{  WriteUnicodeString                                                       }
+{---------------------------------------------------------------------------}
+PROCEDURE TStream.WriteUnicodeString (Const S: UnicodeString);
+VAR L: LongInt; SU: UTF8String;
+BEGIN
+   SU := S;
+   L := Length(SU);
+   Write(L, SizeOf(L));
+   if L > 0 then
+     Write(SU[1], L);
+END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {--TStream------------------------------------------------------------------}
 {  Open -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                 }
@@ -2379,6 +2499,138 @@ PROCEDURE TStringCollection.PutItem (Var S: TStream; Item: Pointer);
 BEGIN
    S.WriteStr(Item);                                  { Write string }
 END;
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                  TRawByteStringCollection OBJECT METHODS                  }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  GetItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TRawByteStringCollection.GetItem (Var S: TStream): Pointer;
+BEGIN
+   GetItem := nil;
+   RawByteString(GetItem) := S.ReadRawByteString;            { Get new item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TRawByteStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
+VAR I, J: Sw_Integer; P1, P2: RawByteString;
+BEGIN
+   P1 := RawByteString(Key1);                         { String 1 pointer }
+   P2 := RawByteString(Key2);                         { String 2 pointer }
+   If (Length(P1)<Length(P2)) Then J := Length(P1)
+     Else J := Length(P2);                            { Shortest length }
+   I := 1;                                            { First character }
+   While (I<J) AND (P1[I]=P2[I]) Do Inc(I);           { Scan till fail }
+   If (I=J) Then Begin                                { Possible match }
+   { * REMARK * - Bug fix   21 August 1997 }
+     If (P1[I]<P2[I]) Then Compare := -1 Else         { String1 < String2 }
+       If (P1[I]>P2[I]) Then Compare := 1 Else        { String1 > String2 }
+       If (Length(P1)>Length(P2)) Then Compare := 1   { String1 > String2 }
+         Else If (Length(P1)<Length(P2)) Then         { String1 < String2 }
+           Compare := -1 Else Compare := 0;           { String1 = String2 }
+   { * REMARK END * - Leon de Boer }
+   End Else If (P1[I]<P2[I]) Then Compare := -1       { String1 < String2 }
+     Else Compare := 1;                               { String1 > String2 }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  FreeItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.FreeItem (Item: Pointer);
+BEGIN
+   RawByteString(Item):='';                                  { Dispose item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  PutItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.PutItem (Var S: TStream; Item: Pointer);
+BEGIN
+   S.WriteRawByteString(RawByteString(Item));                { Write string }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  AtInsert                                                                 }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.AtInsert (Index: Sw_Integer; const Item: RawByteString);
+VAR TmpRef: Pointer;
+BEGIN
+   TmpRef:=Nil;
+   RawByteString(TmpRef) := Item;
+   TCollection.AtInsert(Index, Pointer(Item));
+END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                  TUnicodeStringCollection OBJECT METHODS                  }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{--TUnicodeStringCollection-------------------------------------------------}
+{  GetItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TUnicodeStringCollection.GetItem (Var S: TStream): Pointer;
+BEGIN
+   GetItem := nil;
+   UnicodeString(GetItem) := S.ReadUnicodeString;            { Get new item }
+END;
+
+{--TUnicodeStringCollection-------------------------------------------------}
+{  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TUnicodeStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
+VAR I, J: Sw_Integer; P1, P2: UnicodeString;
+BEGIN
+   P1 := UnicodeString(Key1);                         { String 1 pointer }
+   P2 := UnicodeString(Key2);                         { String 2 pointer }
+   If (Length(P1)<Length(P2)) Then J := Length(P1)
+     Else J := Length(P2);                            { Shortest length }
+   I := 1;                                            { First character }
+   While (I<J) AND (P1[I]=P2[I]) Do Inc(I);           { Scan till fail }
+   If (I=J) Then Begin                                { Possible match }
+   { * REMARK * - Bug fix   21 August 1997 }
+     If (P1[I]<P2[I]) Then Compare := -1 Else         { String1 < String2 }
+       If (P1[I]>P2[I]) Then Compare := 1 Else        { String1 > String2 }
+       If (Length(P1)>Length(P2)) Then Compare := 1   { String1 > String2 }
+         Else If (Length(P1)<Length(P2)) Then         { String1 < String2 }
+           Compare := -1 Else Compare := 0;           { String1 = String2 }
+   { * REMARK END * - Leon de Boer }
+   End Else If (P1[I]<P2[I]) Then Compare := -1       { String1 < String2 }
+     Else Compare := 1;                               { String1 > String2 }
+END;
+
+{--TUnicodeStringCollection-------------------------------------------------}
+{  FreeItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.FreeItem (Item: Pointer);
+BEGIN
+   UnicodeString(Item):='';                                  { Dispose item }
+END;
+
+{--TUnicodeStringCollection-------------------------------------------------}
+{  PutItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.PutItem (Var S: TStream; Item: Pointer);
+BEGIN
+   S.WriteUnicodeString(UnicodeString(Item));                { Write string }
+END;
+
+{--TUnicodeStringCollection-------------------------------------------------}
+{  AtInsert                                                                 }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.AtInsert (Index: Sw_Integer; const Item: UnicodeString);
+VAR TmpRef: Pointer;
+BEGIN
+   TmpRef:=Nil;
+   UnicodeString(TmpRef) := Item;
+   TCollection.AtInsert(Index, Pointer(Item));
+END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                       TStrCollection OBJECT METHODS                       }

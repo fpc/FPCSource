@@ -415,8 +415,8 @@ Function Application : TCustomDaemonApplication;
 Procedure RegisterDaemonMapper(AMapperClass : TCustomDaemonMapperClass);
 Procedure RegisterDaemonClass(AClass : TCustomDaemonClass);
 Procedure RegisterDaemonApplicationClass(AClass : TCustomDaemonApplicationClass);
-Procedure DaemonError(Msg : String);
-Procedure DaemonError(Fmt : String; Args : Array of const);
+Procedure DaemonError(const Msg : String);
+Procedure DaemonError(const Fmt : String; const Args : Array of const);
 
 
 Resourcestring
@@ -443,7 +443,7 @@ Resourcestring
 { $define svcdebug}
 
 {$ifdef svcdebug}
-Procedure DebugLog(Msg : String);
+Procedure DebugLog(const Msg : String);
 {$endif}
 
 Var
@@ -484,7 +484,7 @@ begin
   DebugLog('Start logging');
 end;
 
-Procedure DebugLog(Msg : String);
+Procedure DebugLog(const Msg : String);
 begin
   EnterCriticalSection(LCS);
   try
@@ -565,12 +565,12 @@ begin
   MapperClass:=AMapperClass;
 end;
 
-procedure DaemonError(Msg: String);
+procedure DaemonError(const Msg: String);
 begin
   Raise EDaemon.Create(MSg);
 end;
 
-procedure DaemonError(Fmt: String; Args: array of const);
+procedure DaemonError(const Fmt: String; const Args: array of const);
 begin
   Raise EDaemon.CreateFmt(Fmt,Args);
 end;
@@ -1293,15 +1293,13 @@ procedure TDaemonThread.HandleControlCode(ACode, AEventType : DWord; AEventData 
 
 Var
   CS : TCurrentStatus;
-  CC,OK : Boolean;
-  S : String;
+  OK : Boolean;
 
 begin
  {$ifdef svcdebug}DebugLog('Handling control code '+IntToStr(ACode));{$endif svcdebug}
   CS:=FDaemon.Status;
   Try
     OK:=True;
-    CC:=False;
     Case ACode of
       SERVICE_CONTROL_STOP        : OK:=StopDaemon;
       SERVICE_CONTROL_PAUSE       : OK:=PauseDaemon;
@@ -1309,7 +1307,6 @@ begin
       SERVICE_CONTROL_SHUTDOWN    : OK:=ShutDownDaemon;
       SERVICE_CONTROL_INTERROGATE : OK:=InterrogateDaemon;
     else
-      CC:=True;
       FDaemon.HandleCustomCode(ACode, AEventType, AEventData);
     end;
     If not OK then
@@ -1320,10 +1317,6 @@ begin
       // Shutdown MUST be done, in all other cases roll back status.
       If (ACode<>SERVICE_CONTROL_SHUTDOWN) then
         FDaemon.Status:=CS;
-      If (ACode in [1..5]) then
-        S:=SStatus[ACode]
-      else
-        S:=Format(SCustomCode,[ACode]);
       end;
   end;
 end;

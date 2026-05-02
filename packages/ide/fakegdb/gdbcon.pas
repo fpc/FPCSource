@@ -11,8 +11,8 @@ uses
 type
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
-    progname   : pchar;
-    progargs   : pchar;
+    progname   : PAnsiChar;
+    progargs   : PAnsiChar;
     in_command,
     init_count : longint;
     constructor Init;
@@ -31,8 +31,8 @@ type
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
-    function  GetOutput : Pchar;
-    function  GetError : Pchar;
+    function  GetOutput : PAnsiChar;
+    function  GetError : PAnsiChar;
     function  LoadFile(const fn:string):boolean;
     procedure SetDir(const s : string);
     procedure SetArgs(const s : string);
@@ -151,13 +151,13 @@ begin
 end;
 
 
-function  TGDBController.GetOutput : Pchar;
+function  TGDBController.GetOutput : PAnsiChar;
 begin
   GetOutput:=nil;
 end;
 
 
-function  TGDBController.GetError : Pchar;
+function  TGDBController.GetError : PAnsiChar;
 begin
   GetError:=nil;
 end;

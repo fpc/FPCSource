@@ -13,10 +13,10 @@
 
  **********************************************************************}
 
-Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+Procedure SysGetEnvironmentList(List : TStrings; NamesOnly : Boolean);
 
 Var
-  P : PPChar;
+  P : PPAnsiChar;
   S : String;
   I : Integer;
 
@@ -30,8 +30,8 @@ begin
       If NamesOnly then
         begin
         I:=Pos('=',S);
-        If (I>0) then
-          S:=Copy(S,1,I-1);
+        If (I>1) then
+          SetLength(S,I-1);
         end;
       List.Add(S);
       Inc(P);

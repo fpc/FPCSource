@@ -151,7 +151,7 @@ procedure ProcessParams(BeforeINI: boolean);
   function IsSwitch(const Param: string): boolean;
   begin
     IsSwitch:=(Param<>'') and (Param[1]<>DirSep) { <- allow UNIX root-relative paths            }
-          and (Param[1] in ['-','/']);           { <- but still accept dos switch char, eg. '/' }
+          and (Param[1] in ['-','/']);           { <- but still accept dos switch AnsiChar, eg. '/' }
   end;
 
 var I: Sw_integer;
@@ -172,9 +172,10 @@ begin
             else
             if (copy(Param,3,1)='-') then
               StartupOptions:=StartupOptions and not soHeapMonitor;
+            OverrideHeapMonitor:=true;
           end else
 {$ifdef go32v2}
-        if UpcaseStr(Param)='NOLFN' then
+        if (UpcaseStr(Param)='NOLFN') or (UpcaseStr(Param)='N') then
           begin
             LFNSupport:=false;
           end else
@@ -195,13 +196,16 @@ begin
             ShowReadme:=true;
           end else
         case Upcase(Param[1]) of
-          'C' : { custom config file (BP compatiblity) }
+          'C' : { custom config file (BP compatibility) }
            if BeforeINI then
             begin
               delete(param,1,1); // delete C
               if (length(Param)>=1) and (Param[1] in['=',':']) then
                 Delete(Param,1,1); { eat optional separator }
-              IniFileName:=Param;
+              IniFileName:=MakeFileNameExt(Param,IniExt);
+              DesktopFileName:=MakeFileNameExt(Param,DesktopExt);
+              SwitchesFileName:=MakeFileNameExt(Param,SwitchesExt);
+              DirInfoFileName:=MakeFileNameExt(Param,DirInfoExt);
             end;
 {$ifdef GDBMI}
           'G' : { custom GDB exec file (GDBMI mode only) }
@@ -221,6 +225,7 @@ begin
               else
               if (Param='-') then
                 StartupOptions:=StartupOptions and (not soReturnToLastDir);
+              OverrideLastDirOption:=true;
             end;
           'S' :
              if Length(Param)=1 then
@@ -364,7 +369,21 @@ const bullet='*';
 const bullet=#254;
 {$endif}
 
+{ For DOS in program active current directory is actual system current }
+{ directory. Have to save and restore on exit.                         }
+{$ifdef go32v2}
+var
+  DirectoryInvokeFpFrom : String;
+  ChDirRes : Word;
+{$endif}
+
+var
+  _GDBVersion: String;
+
 BEGIN
+{$ifdef go32v2}
+  GetDir(0,DirectoryInvokeFpFrom);  {save for restore on exit}
+{$endif}
 {$IFDEF HasSignal}
   EnableCatchSignals;
 {$ENDIF}
@@ -381,7 +400,12 @@ BEGIN
   ProcessParams(true);
 
 {$ifndef NODEBUG}
-  writeln(bullet+' GDB Version '+GDBVersion);
+
+  _GDBVersion:=GDBVersion;
+  while pos(#13#3,_GDBVersion)<>0 do
+    Delete(_GDBVersion,pos(#13#3,_GDBVersion),2);
+  writeln(bullet+' GDB Version '+_GDBVersion);
+
  {$ifdef Windows}
   {$ifndef USE_MINGW_GDB}
    {$ifdef GDBMI}
@@ -442,6 +466,9 @@ BEGIN
   InitDesktopFile;
   LoadDesktop;
 
+  {Adjust to current directory, might be changed by LoadDesktop.}
+  IDEapp.CurDirChanged;
+
   {Menubar might be changed because of loading INI file.}
   IDEapp.reload_menubar;
 
@@ -455,7 +482,7 @@ BEGIN
   { why are the screen contents parsed at startup? Gabor
     to be able to find location of error in last compilation
     from command line PM }
-  ParseUserScreen;
+  {ParseUserScreen;  comment out, it takes a lot of time and serves only to very particular use case (M) }
 
 {$IFDEF HASAMIGA}
   SetAmigaWindowTitle;
@@ -465,6 +492,7 @@ BEGIN
   IDEApp.Update;
   IDEApp.UpdateMode;
   IDEApp.UpdateTarget;
+  IDEApp.UpdateClockAndHeap;
 
   ProcessParams(false);
 
@@ -598,6 +626,15 @@ BEGIN
 {$if defined(windows)}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
 {$endif defined(windows)}
+{$ifdef go32v2}
+  {$push}
+  {$i-}
+  ChDir(DirectoryInvokeFpFrom); {restore active directory we invoke fp from }
+  ChDirRes:=IOResult;
+  if (ChDirRes<>0) then
+    writeln('Failed to restore start up directory ',DirectoryInvokeFpFrom,' error=',ChDirRes);
+  {$pop}
+{$endif}
   StreamError:=nil;
 {$ifdef DEBUG}
   if CloseImmediately then

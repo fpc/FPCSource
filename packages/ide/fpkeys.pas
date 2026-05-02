@@ -15,6 +15,8 @@
 
 unit fpkeys;
 
+{$H-}
+
 interface
 
   uses

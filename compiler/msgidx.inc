@@ -872,7 +872,11 @@ const
   asmw_f_code_segment_too_large=08030;
   asmw_f_data_segment_too_large=08031;
   asmw_e_instruction_not_supported_by_cpu=08032;
-  asmw_e_brxx_out_of_range=08033;
+  asmw_e_destination_out_of_range=08033;
+  asmw_e_illegal_use_of_rip=08034;
+  asmw_e_seh_invalid_data_size=08035;
+  asmw_e_illegal_use_of_sp=08036;
+  asmw_e_illegal_unset_index=08037;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -1115,9 +1119,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 84002;
+  MsgTxtSize = 84228;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,350,127,99,63,142,34,224,67,
+    28,106,350,127,99,63,142,38,224,67,
     69,20,30,1,1,1,1,1,1,1
   );

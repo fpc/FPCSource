@@ -21,6 +21,10 @@ interface
 
 uses SysUtils,Classes;
 
+const
+  AllEvents = [Low(TEventType)..High(TEventType)];
+
+
 Type
   TEventLog = Class;
   TLogType = (ltSystem,ltFile,ltStdOut,ltStdErr);
@@ -47,6 +51,7 @@ Type
     FOnGetCustomEvent : TLogCodeEvent;
     FOnLogMessage: TLogMessageEvent;
     FPaused : Boolean;
+    FEventFilter : TEventTypes;
     procedure SetActive(const Value: Boolean);
     procedure SetIdentification(const Value: String);
     procedure SetlogType(const Value: TLogType);
@@ -75,13 +80,14 @@ Type
     Function MapTypeToCategory(EventType : TEventType) : Word;
     Function MapTypeToEventID(EventType : TEventType) : DWord;
   Public
+    Constructor Create(aOwner: TComponent); override;
     Destructor Destroy; override;
     Function EventTypeToString(E : TEventType) : String;
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
     Function UnRegisterMessageFile : Boolean; virtual;
     Procedure Pause;
     Procedure Resume;
-    Procedure Log (EventType : TEventType; const Msg : String); {$ifndef fpc }Overload;{$endif}
+    Procedure Log (EventType : TEventType; const Msg : String); virtual; {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Log (const Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
@@ -96,6 +102,7 @@ Type
   Published
     Property AppendContent : Boolean Read fAppendContent Write fAppendContent;
     Property Identification : String Read FIdentification Write SetIdentification;
+    Property EventFilter : TEventTypes Read FEventFilter Write FEventFilter default allevents;
     Property LogType : TLogType Read Flogtype Write SetlogType;
     Property Active : Boolean Read FActive write SetActive;
     Property RaiseExceptionOnError : Boolean Read FRaiseExceptionOnError Write FRaiseExceptionOnError;
@@ -134,6 +141,13 @@ implementation
 
 Resourcestring
   SErrOperationNotAllowed = 'Operation not allowed when eventlog is active.';
+
+Constructor TEventLog.Create(aOwner: TComponent); 
+
+begin
+  Inherited;
+  FEventFilter:=AllEvents;
+end;
 
 procedure TEventLog.CheckInactive;
 begin
@@ -199,12 +213,14 @@ end;
 procedure TEventLog.Log(EventType: TEventType; const Fmt: String;
   Args: array of const);
 begin
-  Log(EventType,Format(Fmt,Args));
+  Log(EventType,SafeFormat(Fmt,Args));
 end;
 
 procedure TEventLog.Log(EventType: TEventType; const Msg: String);
 begin
   If Paused then 
+    exit;
+  if not (EventType in EventFilter) then 
     exit;
   EnsureActive;
   Case FlogType of
@@ -225,7 +241,7 @@ begin
     FTimeStampFormat:='yyyy-mm-dd hh:nn:ss.zzz';
   TS:=FormatDateTime(FTimeStampFormat,Now);
   T:=EventTypeToString(EventType);
-  Result:=Format('%s [%s %s] %s',[Identification,TS,T,Msg]);
+  Result:=SafeFormat('%s [%s %s] %s',[Identification,TS,T,Msg]);
 end;
 
 procedure TEventLog.WriteFileLog(EventType : TEventType; const Msg : String);
@@ -253,7 +269,7 @@ end;
 
 procedure TEventLog.Log(const Fmt: String; Args: array of const);
 begin
-  Log(Format(Fmt,Args));
+  Log(SafeFormat(Fmt,Args));
 end;
 
 procedure TEventLog.SetActive(const Value: Boolean);
@@ -347,7 +363,7 @@ end;
 
 procedure TEventLog.Warning(const Fmt: String; Args: array of const);
 begin
-  Warning(Format(Fmt,Args));
+  Warning(SafeFormat(Fmt,Args));
 end;
 
 procedure TEventLog.Warning(const Msg: String);
@@ -376,7 +392,7 @@ begin
     etWarning : Result:=SLogWarning;
     etError   : Result:=SLogError;
     etDebug   : Result:=SLogDebug;
-    etCustom  : Result:=Format(SLogCustom,[CustomLogType]);
+    etCustom  : Result:=SafeFormat(SLogCustom,[CustomLogType]);
   end;
 end;
 

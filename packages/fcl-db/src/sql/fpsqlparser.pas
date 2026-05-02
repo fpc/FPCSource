@@ -134,6 +134,7 @@ Type
     procedure ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelectLimit);
     procedure ParseSelectFieldList(AParent: TSQLSelectStatement; AList: TSQLElementList; Singleton : Boolean);
     function ParseForUpdate(AParent: TSQLSelectStatement): TSQLElementList;
+    procedure ParseWithLock(AParent: TSQLSelectStatement);
     function ParseSelectPlan(AParent: TSQLElement): TSQLSelectPlan;
     function ParseTableRef(AParent: TSQLSelectStatement): TSQLTableReference;
     procedure ParseIntoList(AParent: TSQLElement; List: TSQLElementList);
@@ -261,7 +262,7 @@ procedure TSQLParser.Expect(aToken: TSQLToken);
 begin
   {$ifdef debugparser}  Writeln('Expecting : ',GetEnumName(TypeInfo(TSQLToken),Ord(AToken)), ' As string: ',TokenInfos[AToken]);{$endif debugparser}
   If (CurrentToken<>aToken) then
-    Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
+    Error(SerrTokenMismatch,[CurrentTokenString,TokenInfos[aToken]]);
 end;
 
 procedure TSQLParser.Expect(aTokens: TSQLTokens);
@@ -368,7 +369,7 @@ begin
        GetNextToken;
        end;
      // Table aliases with and without AS keyword
-     if (CurrentToken in [tsqlIdentifier,tsqlAs]) then
+     if (CurrentToken in [tsqlIdentifier,tsqlAs,tsqlText]) then
        begin
        if CurrentToken=tsqlAs then
          begin
@@ -386,13 +387,13 @@ begin
        J.Left:=Result;
        Result:=J;
        Case CurrentToken of
-          tsqlInner : J.JoinType:=jtInner;
-          tsqlJoin  : J.JoinType:=jtNone;
-          tsqlFull  : J.JoinType:=jtFullOuter;
-          tsqlLeft  : J.JoinType:=jtLeft;
-          tsqlRight : J.JoinType:=jtRight;
+         tsqlInner : J.JoinType:=jtInner;
+         tsqlJoin  : J.JoinType:=jtNone;
+         tsqlFull  : J.JoinType:=jtFullOuter;
+         tsqlLeft  : J.JoinType:=jtLeft;
+         tsqlRight : J.JoinType:=jtRight;
        else
-         expect([tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
+         Expect([tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
        end;
        if CurrentToken<>tsqlJoin then
          GetNextToken;
@@ -549,19 +550,45 @@ function TSQLParser.ParseForUpdate(AParent: TSQLSelectStatement
 
 begin
   // On entry we're on the FOR token.
+  // FOR UPDATE
+  // FOR UPDATE NOWAIT
+  // FOR UPDATE OF column1, ...  (Firebird)
   Consume(tsqlFor);
   Expect(tsqlUpdate);
   Result:=TSQLElementList.Create(True);
   try
-    Repeat
-      GetNextToken;
-      Expect(tsqlIdentifier);
-      Result.Add(CreateIdentifier(AParent,CurrentTokenString));
-    until (CurrentToken<>tsqlComma);
+    GetNextToken;
+    if CurrentToken=tsqlIdentifier then
+      begin
+      if SameText(CurrentTokenString,'NOWAIT') then
+        begin
+          AParent.ForUpdateNoWait:=true;
+          GetNextToken;
+        end;
+      if SameText(CurrentTokenString,'OF') then
+        begin
+          Repeat
+            GetNextToken;
+            Expect(tsqlIdentifier);
+            Result.Add(CreateIdentifier(AParent,CurrentTokenString));
+            GetNextToken;
+          until (CurrentToken<>tsqlComma);
+        end;
+      end;
   except
     FreeAndNil(Result);
     Raise;
   end;
+end;
+
+procedure TSQLParser.ParseWithLock(AParent: TSQLSelectStatement);
+begin
+  // On entry we're on the WITH token.
+  AParent.WithLock:=true;
+  GetNextToken;
+  If (CurrentToken<>tsqlIdentifier) or not SameText(CurrentTokenString,'LOCK') then
+    Error(SerrTokenMismatch,[CurrentTokenString,'LOCK']);
+  GetNextToken;
 end;
 
 procedure TSQLParser.ParseOrderBy(AParent: TSQLSelectStatement;
@@ -571,6 +598,7 @@ Var
   O : TSQLOrderByElement;
   F : TSQLElement;
   BuildToken : string;
+  HasBracket, HasUpper: Boolean;
 
 begin
   // On entry we're on the ORDER token.
@@ -581,6 +609,17 @@ begin
   Expect(tsqlBy);
   Repeat
     GetNextToken;
+    HasUpper:=false;
+    HasBracket:=false;
+    if CurrentToken=tsqlUPPER then
+      begin
+      HasUpper:=true;
+      GetNextToken;
+      Expect(tsqlBraceOpen);
+      GetNextToken;
+      HasBracket:=true;
+      end;
+
     // Deal with table.column notation:
     Case CurrentToken of
       tsqlIdentifier :
@@ -603,10 +642,18 @@ begin
     else
       UnexpectedToken([tsqlIdentifier,tsqlIntegerNumber]);
     end;
+
+    if HasBracket then
+      begin
+      GetNextToken;
+      Expect(tsqlBraceClose);
+      end;
+
     try
       O:=TSQLOrderByElement(CreateElement(TSQLOrderByElement,APArent));
       AList.Add(O);
       O.Field:=F;
+      O.Upper:=HasUpper;
       F:=Nil;
     except
       FreeAndNil(F);
@@ -695,7 +742,7 @@ begin
         tsqlSort  : E.JoinType:=pjtSort;
         tsqlMerge : E.JoinType:=pjtMerge;
       else
-        expect([tsqlJoin,tsqlmerge,tsqlSort,tsqlBraceOpen]);
+        Expect([tsqlJoin,tsqlmerge,tsqlSort,tsqlBraceOpen]);
       end;
       If (CurrentToken<>tsqlBraceOpen) then
         GetNextToken;
@@ -774,6 +821,8 @@ begin
         ParseLimit(Result,Result.Limit);
       if (CurrentToken=tsqlFOR) then
         Result.ForUpdate:=ParseForUpdate(Result);
+      if (CurrentToken=tsqlWITH) and not Result.HasAncestor(TSQLCreateViewStatement) then
+        ParseWithLock(Result);
       end;
     if (sfInto in Flags) then
        begin
@@ -1037,7 +1086,7 @@ begin
       else
          UnexpectedToken([tsqlIdentifier,tsqlCheck, tsqlConstraint,tsqlForeign,tsqlPrimary,tsqlUnique]);
       end;
-      expect([tsqlBraceClose,tsqlComma]);
+      Expect([tsqlBraceClose,tsqlComma]);
     until (CurrentToken=tsqlBraceClose);
     GetNextToken;
     Result:=C;
@@ -1413,6 +1462,7 @@ procedure TSQLParser.ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelect
       end;
   end;
 begin
+  if AParent=nil then ;
   ALimit.Style:=lsPostgres;
   if CurrentToken=tsqlLIMIT then
     begin
@@ -1758,7 +1808,7 @@ begin
      begin
      dt:=sdtNChar;
      GetNextToken;
-     expect([tsqlCharacter,tsqlChar]);
+     Expect([tsqlCharacter,tsqlChar]);
      end;
   else
     Expect([tsqlNCHAR,tsqlVarChar,tsqlCharacter,tsqlChar, tsqlCString, tsqlNational]);
@@ -2339,6 +2389,8 @@ Var
   S : TSQLSelectExpression;
   L : TSQLListExpression;
   Done : Boolean;
+  Expr: TSQLExpression;
+  Bin: TSQLBinaryExpression;
 
 begin
   // On entry, we're on the first token after IN token, which is the ( token.
@@ -2346,6 +2398,7 @@ begin
   try
     If (CurrentToken=tsqlSelect) then
       begin
+      // IN (SELECT...
       S:=TSQLSelectExpression(CreateElement(TSQLSelectExpression,APArent));
       Result:=S;
       S.Select:=ParseSelectStatement(AParent,[sfSingleton]);
@@ -2353,13 +2406,25 @@ begin
       end
     else
       begin
+      // IN (A,B..C,D,...)
       L:=TSQLListExpression(CreateElement(TSQLListExpression,AParent));
       Result:=L;
       Repeat
-         L.List.Add(ParseExprLevel1(L,[eoListValue]));
-         Expect([tsqlBraceClose,tsqlComma]);
-         Done:=(CurrentToken=tsqlBraceClose);
-         GetNextToken;
+        Expr:=ParseExprLevel1(L,[eoListValue]);
+        if CurrentToken=tsqlDotDot then
+          begin
+          Bin:=TSQLBinaryExpression(CreateElement(TSQLBinaryExpression,AParent));
+          Bin.Operation:=boDotDot;
+          Bin.Left:=Expr;
+          L.List.Add(Bin);
+          GetNextToken;
+          Bin.Right:=ParseExprLevel1(Bin,[eoListValue]);
+          end
+        else
+          L.List.Add(Expr);
+        Expect([tsqlBraceClose,tsqlComma]);
+        Done:=(CurrentToken=tsqlBraceClose);
+        GetNextToken;
       until Done;
 
       end;
@@ -2531,7 +2596,7 @@ begin
         tsqlMinus : B.Operation:=boSubtract;
         tsqlConcatenate : B.Operation:=boConcat;
       else
-        expect([tsqlPlus,tsqlMinus,tsqlConcatenate]);
+        Expect([tsqlPlus,tsqlMinus,tsqlConcatenate]);
       end;
       end;
   Except
@@ -2826,7 +2891,7 @@ begin
           tsqlSome     : C:=TSQLSomeExpression;
           tsqlSingular : C:=TSQLSingularExpression;
         else
-          expect([tsqlExists, tsqlAll,tsqlAny,tsqlSome,tsqlSingular]);
+          Expect([tsqlExists, tsqlAll,tsqlAny,tsqlSome,tsqlSingular]);
         end;
         GetNextToken;
         Consume(tsqlBraceOpen);
@@ -2876,11 +2941,12 @@ begin
         if (([eoCheckConstraint,eoTableConstraint,eoComputedBy] * EO)<>[]) then
           Error(SErrUnexpectedToken,[CurrentTokenString]);
         GetNextToken;
-        expect(tsqlIdentifier);
         N:=CurrentTokenString;
+        If (N='') or not (N[1] in ['a'..'z','A'..'Z','_']) then
+          Error(SerrTokenMismatch,[N,TokenInfos[tsqlIdentifier]]);
         Result:=TSQLParameterExpression(CreateElement(TSQLParameterExpression,AParent));
         TSQLParameterExpression(Result).Identifier:=CreateIdentifier(Result,N);
-        Consume(tsqlIdentifier);
+        GetNextToken;
         end;
       tsqlMUL:
         begin
@@ -3200,7 +3266,7 @@ begin
       tsqlSymbolString,
       tsqlIdentifier : Result.NewValue:=CurrentTokenString;
     else
-      expect([tsqlSemiColon,tsqlTerminator,tsqlunknown, tsqlSymbolString]);
+      Expect([tsqlSemiColon,tsqlTerminator,tsqlunknown, tsqlSymbolString]);
     end;
     GetNextToken;
     // Next token depends on whether an alternative token is in effect...
@@ -3278,6 +3344,7 @@ function TSQLParser.ParseCreateDatabaseStatement(AParent: TSQLElement; IsAlter: 
 
 begin
   // On entry, we're on the DATABASE or SCHEMA token
+  if IsAlter then ;
   Result:=TSQLCreateDatabaseStatement(CreateElement(TSQLCreateDatabaseStatement,AParent));
   try
     Result.UseSchema:=(CurrentToken=tsqlSchema);
@@ -3386,6 +3453,7 @@ function TSQLParser.ParseAlterDatabaseStatement(AParent: TSQLElement;
   IsAlter: Boolean): TSQLAlterDatabaseStatement;
 begin
   // On entry, we're on the DATABASE or SCHEMA token.
+  if IsAlter then ;
   Result:=TSQLAlterDatabaseStatement(CreateElement(TSQLAlterDatabaseStatement,APArent));
   try
     Result.UseSchema:=CurrentToken=tsqlSchema;
@@ -3404,7 +3472,6 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
-
 end;
 
 function TSQLParser.ParseCreateStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
@@ -4191,7 +4258,7 @@ begin
     Result:=ParseScript([])
 end;
 
-Function TSQLParser.ParseScript(aOptions : TParserOptions = []) : TSQLElementList;
+function TSQLParser.ParseScript(aOptions: TParserOptions): TSQLElementList;
 
 var
   E : TSQLElement;

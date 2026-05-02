@@ -93,19 +93,26 @@ const ClipboardWindow  : PClipboardWindow = nil;
 {$if defined(WINDOWS) or defined(Unix) or defined(Aros)}
       SystemIDEDir     : string = '';
 {$endif defined(WINDOWS) or defined(Unix)}
-      INIFileName      : string = ININame;
-      SwitchesPath     : string = SwitchesName;
+var   INIFilePath      : string;
+      SwitchesPath     : string;
+      DesktopPath      : string;
+const INIFileName      : string = ININame;
+      SwitchesFileName : string = SwitchesName;
+      DesktopFileName  : string = DesktopName;
+      DirInfoFileName  : string = DirInfoName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
+      OverrideLastDirOption : boolean = false;
+      OverrideHeapMonitor   : boolean = false;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
       BackgroundPath   : string = BackgroundName;
-      DesktopPath      : string = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
                                    dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
+      DesktopPreferences:longint = 0; { by default show no Clock, no Heap monitor }
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
       IniCenterDebuggerRow : tcentre = do_centre;

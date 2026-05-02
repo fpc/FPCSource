@@ -1253,6 +1253,9 @@ begin
     wm_command:
       if assigned(commandmessagehandler) then
         WindowProcGraph:=commandmessagehandler(window,amessage,wparam,lparam);
+    wm_syskeyup,
+    wm_syskeydown,
+    {wm_syschar,}
     wm_keydown,
     wm_keyup,
     wm_char:
@@ -1369,6 +1372,9 @@ function WindowProcParent(Window: HWnd; AMessage:UInt; WParam : WParam;
 begin
   WindowProcParent := 0;
   case AMessage of
+    wm_syskeyup,
+    wm_syskeydown,
+    {wm_syschar,}
     wm_keydown,
     wm_keyup,
     wm_char:

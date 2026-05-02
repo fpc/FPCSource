@@ -879,7 +879,7 @@ begin
 end;
 var OptName: string;
     OK: boolean;
-    C: char;
+    C: AnsiChar;
     OptStart: integer;
     InOpt: boolean;
     I,Idx: integer;
@@ -1039,7 +1039,7 @@ var Err: integer;
     W: PSourceWindow;
 procedure ParseParams(Pass: sw_integer);
 var I: sw_integer;
-function IsAlpha(Ch: char): boolean;
+function IsAlpha(Ch: AnsiChar): boolean;
 begin
   IsAlpha:=(Upcase(Ch) in['A'..'Z','_','$']);
 end;
@@ -1048,14 +1048,14 @@ begin
   Params:=copy(Params,1,StartP-1)+S+copy(Params,EndP+1,255);
   ReplacePart:=length(S)-(EndP-StartP+1);
 end;
-function Consume(Ch: char): boolean;
+function Consume(Ch: AnsiChar): boolean;
 var OK: boolean;
 begin
   OK:=Params[I]=Ch;
   if OK then Inc(I);
   Consume:=OK;
 end;
-function ReadTill(var S: string; C: char): boolean;
+function ReadTill(var S: string; C: AnsiChar): boolean;
 var Found: boolean;
 begin
   Found:=false; S:='';
@@ -1070,7 +1070,7 @@ begin
     end;
   ReadTill:=Found;
 end;
-var C,PrevC: char;
+var C,PrevC: AnsiChar;
     WordS: string;
     LastWordStart: sw_integer;
     L: longint;
@@ -1136,7 +1136,7 @@ begin
         if (WordS='$CONFIG') then
           begin
             if (Pass=1) then
-              I:=I+ReplacePart(LastWordStart,I-1,IniFileName)-1;
+              I:=I+ReplacePart(LastWordStart,I-1,IniFilePath)-1;
           end else
         if (WordS='$DIR') then
           begin
@@ -1257,7 +1257,7 @@ begin
                           I:=I+ReplacePart(LastWordStart,I-1,S)-1;
                   end;
                 end
-              else { just prompt for parms }
+              else { just prompt for parameters }
                 begin
                   I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                   if CheckOnly=false then
@@ -1301,7 +1301,7 @@ begin
               begin
                 I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 if W<>nil then
-                  if W^.Editor^.SaveAsk(true)=false then
+                  if W^.Editor^.SaveAsk(cmValid,true)=false then
                     Err:=-1;
               end;
           end else
@@ -1350,8 +1350,8 @@ end;
 function ProcessMessageFile(const MsgFileName: string): boolean;
 var OK,Done: boolean;
     S: PBufStream;
-    C: char;
-    Sign: array[1..10] of char;
+    C: AnsiChar;
+    Sign: array[1..10] of AnsiChar;
     InFileName,InReference: boolean;
     AddChar: boolean;
     FileName,Line: string;

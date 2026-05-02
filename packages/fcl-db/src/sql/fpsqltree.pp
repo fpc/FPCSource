@@ -80,6 +80,7 @@ Type
     Constructor Create(AParent : TSQLElement); virtual;
     destructor destroy; override;
     function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; virtual; abstract;
+    function HasAncestor(aClass: TClass): boolean;
     Property Parent: TSQLElement Read FParent;
     Property Source : String Read FSource write FSource;
     Property SourceLine : Integer Read Fline Write Fline;
@@ -328,7 +329,7 @@ Type
   end;
 
   TSQLBinaryOperation = (boAnd, boOr, boEQ, boLT, boGT, boLE, boGE, boNE,
-                         boConcat,boAdd, boSubtract, boMultiply, boDivide, boIn,
+                         boConcat,boAdd, boSubtract, boMultiply, boDivide, boIn, boDotDot,
                          boIs, boIsNot, boLike, boContaining, boStarting);
 
   { TSQLBinaryExpression }
@@ -759,12 +760,14 @@ Type
     FCollation: TSQLIdentifierName;
     FField: TSQLElement;
     FOrderBy: TSQLOrderDirection;
+    FUpper: boolean;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Field : TSQLElement Read FField Write FField;
     Property Collation : TSQLIdentifierName Read FCollation Write FCollation;
     Property OrderBy : TSQLOrderDirection Read FOrderBy write FOrderBy;
+    Property Upper: boolean Read FUpper Write FUpper;
   end;
 
   { TSQLSelectLimit }
@@ -792,6 +795,7 @@ Type
   TSQLSelectStatement = Class(TSQLDMLStatement)
   private
     FAll: Boolean;
+    FForUpdateNoWait: boolean;
     FLimit: TSQLSelectLimit;
     FDistinct: Boolean;
     FEndAt: TSQLExpression;
@@ -808,6 +812,7 @@ Type
     FUnion: TSQLSelectStatement;
     FUnionAll: Boolean;
     FWhere: TSQLExpression;
+    FWithLock: boolean;
   Public
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
@@ -820,6 +825,7 @@ Type
     Property Having : TSQLExpression Read FHaving Write FHaving;
     Property Orderby : TSQLElementList Read FOrderBy;
     Property ForUpdate : TSQLElementList Read FForUpdate Write FForUpdate;
+    Property ForUpdateNoWait : boolean Read FForUpdateNoWait Write FForUpdateNoWait;
     Property Union : TSQLSelectStatement Read FUnion Write FUnion;
     Property Plan : TSQLSelectPlan Read FPlan Write FPlan;
     Property Limit: TSQLSelectLimit Read FLimit;
@@ -829,6 +835,7 @@ Type
     property StartAt : TSQLExpression Read FStartAt Write FStartAt;
     Property EndAt : TSQLExpression Read FEndAt Write FEndAt;
     Property Into : TSQLElementList Read FInto Write FInto;
+    Property WithLock: boolean Read FWithLock Write FWithLock;
   end;
 
   { TSQLInsertStatement }
@@ -2248,6 +2255,18 @@ begin
   inherited destroy;
 end;
 
+function TSQLElement.HasAncestor(aClass: TClass): boolean;
+var
+  El: TSQLElement;
+begin
+  El:=Parent;
+  while El<>nil do begin
+    if El.InheritsFrom(aClass) then exit(true);
+    El:=El.Parent;
+  end;
+  Result:=false;
+end;
+
 { TSQLSelectStatement }
 
 constructor TSQLSelectStatement.Create(AParent: TSQLElement);
@@ -2650,7 +2669,7 @@ function TSQLBinaryExpression.GetAsSQL(Options: TSQLFormatOptions;
 Const
   OpCodes : Array[TSQLBinaryOperation] of string =
           ('AND', 'OR', '=', '<', '>', '<=', '>=', '<>',
-           '||','+', '-', '*', '/', 'IN',
+           '||','+', '-', '*', '/', 'IN', '..',
            'IS', 'IS NOT', 'LIKE', 'CONTAINING','STARTING WITH');
 
 Var
@@ -3591,6 +3610,8 @@ Const
 begin
   If Assigned(FField) then
     Result:=FField.GetAsSQL(Options, AIndent);
+  if Upper then
+    Result:='UPPER('+Result+')';
   If (OrderBy=obDescending) or (sfoForceAscending in Options) then
     Result:=Result+' '+SQLKeyWord(Opcodes[OrderBy],Options);
   If (Collation<>Nil) then

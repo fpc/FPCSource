@@ -156,7 +156,10 @@ type
       procedure AddRecentFile(AFileName: string; CurX, CurY: sw_integer);
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
+    public
       procedure CurDirChanged;
+      procedure UpdateClockAndHeap; { update visibility of ClockView and HeapView }
+    private
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
       procedure UpdateRecentFileList;
@@ -256,6 +259,8 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_edit_showclipboard= '~S~how clipboard';
                 menu_edit_selectall    = 'Select ~A~ll';
                 menu_edit_unselect     = 'U~n~select';
+                menu_edit_comment      = 'Com~m~ent';
+                menu_edit_uncomment    = 'Unc~o~mment';
 
                 menu_search            = '~S~earch';
                 menu_search_find       = '~F~ind...';
@@ -310,7 +315,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_tools_msgprev     = 'Goto ~p~revious';
                 menu_tools_grep        = '~G~rep';
                 menu_tools_calculator  = '~C~alculator';
-                menu_tools_asciitable  = 'Ascii ~t~able';
+                menu_tools_asciitable  = 'ASCII ~T~able';
 
                 menu_options           = '~O~ptions';
                 menu_options_mode      = 'Mode~.~..';
@@ -443,7 +448,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 status_compile         = '~Alt+F9~ Compile';
                 status_make            = '~F9~ Make';
                 status_localmenu       = '~Alt+F10~ Local menu';
-                status_transferchar    = '~Ctrl+Enter~ Transfer char';
+                status_transferchar    = '~Ctrl+Enter~ Transfer AnsiChar';
                 status_msggotosource   = '~'+EnterSign+'~ Goto source';
                 status_msgtracksource  = '~Space~ Track source';
                 status_close           = '~Esc~ Close';
@@ -463,6 +468,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 button_Delete      = '~D~elete';
                 button_Show        = '~S~how';
                 button_Hide        = '~H~ide';
+                button_Close       = '~C~lose';
 
                 { dialogs }
                 dialog_fillintemplateparameter = 'Fill in template parameter';
@@ -652,6 +658,9 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_preferences_closeongotosource = 'C~l~ose on go to source';
                 label_preferences_changedironopen = 'C~h~ange dir on open';
                 label_preferences_options = 'Options';
+                label_preferences_showclock = 'Show ~c~lock';
+                label_preferences_showheapmonitor = 'Show heap ~m~onitor';
+                label_preferences_clockheap = 'Desktop';
 
                 {Desktop preferences dialog.}
                 dialog_desktoppreferences = 'Desktop Preferences';
@@ -663,6 +672,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_desktop_symbolinfo = '~S~ymbol information';
                 label_desktop_codecompletewords = 'Co~d~eComplete wordlist';
                 label_desktop_codetemplates = 'Code~T~emplates';
+                label_desktop_returntolastdir = '~R~eturn to last directory';
                 label_desktop_preservedacrosssessions = '~P~reserved across sessions';
 
                 {Mouse options dialog.}
@@ -814,10 +824,11 @@ begin
   InitAdvMsgBox;
   InsideDone:=false;
   IsRunning:=true;
-  MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
+  MenuBar^.GetBounds(R); R.A.X:=R.B.X-9;
   New(ClockView, Init(R));
   ClockView^.GrowMode:=gfGrowLoX+gfGrowHiX;
-  Application^.Insert(ClockView);
+  {  Insert only if and when we are going to look at it (hide is not sufficient measure)
+  Application^.Insert(ClockView);   }
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
   New(CalcWindow, Init); CalcWindow^.Hide;
@@ -826,12 +837,11 @@ begin
   CompilerMessageWindow^.Hide;
   Desktop^.Insert(CompilerMessageWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
-  CurDirChanged;
   { heap viewer }
-  GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
+  GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-8; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));
-  if (StartupOptions and soHeapMonitor)=0 then HeapView^.Hide;
-  Insert(HeapView);
+  if OverrideHeapMonitor and ((StartupOptions and soHeapMonitor)<>0) then
+    Insert(HeapView);
   Drivers.ShowMouse;
 {$ifdef Windows}
   // WindowsShowMouse;
@@ -895,9 +905,11 @@ begin
       NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
       NewItem(menu_edit_selectall,menu_key_edit_all, all_Key, cmSelectAll, hcSelectAll,
       NewItem(menu_edit_unselect,'', kbNoKey, cmUnselect, hcUnselect,
+      NewItem(menu_edit_comment,'', kbNoKey, cmCommentSel, hcCommentSel,
+      NewItem(menu_edit_uncomment,'', kbNoKey, cmUnCommentSel, hcUnCommentSel,
       NewLine(
       NewItem(menu_edit_showclipboard,'', kbNoKey, cmShowClipboard, hcShowClipboard,
-      WinPMI))))))))
+      WinPMI))))))))))
 {$ifdef DebugUndo}))){$endif DebugUndo}
       )))),
     NewSubMenu(menu_search,hcSearchMenu, NewMenu(
@@ -1042,6 +1054,7 @@ procedure TIDEApp.InitMenuBar;
 begin
   LoadMenuBar;
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
+  SetCmdState([cmTile,cmCascade],false);
   // Update; Desktop is still nil at that point ...
 end;
 
@@ -1077,7 +1090,14 @@ begin
        end;
    end;
    loadmenubar;
-   insert(menubar);
+   Insert(MenuBar);
+   if (DesktopPreferences and dpClockView)<>0 then
+   begin
+     { In theory InsertBefore should do the trick, but it does not }
+     { Push ClockView in front of MenuBar }
+     Delete(ClockView);
+     Insert(ClockView);
+   end;
 end;
 
 procedure TIDEApp.InitStatusLine;
@@ -1456,6 +1476,7 @@ end;
 
 
 procedure TIDEApp.ShowIDEScreen;
+var oldH,oldW : byte;
 begin
   if Assigned(UserScreen) then
     UserScreen^.SaveConsoleScreen;
@@ -1465,6 +1486,8 @@ begin
     InitMouse
   else
     ButtonCount:=0;
+  oldH:=ScreenHeight;
+  oldW:=ScreenWidth;
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
@@ -1477,16 +1500,24 @@ begin
 {$endif ndef Windows}
   InitEvents;
   InitSysError;
-  CurDirChanged;
 {$ifndef Windows}
-  Message(Application,evBroadcast,cmUpdate,nil);
+  if (oldH<>ScreenHeight) or (oldW<>ScreenWidth) then
+  begin
+    { acknowledge new screen dimensions } 
+    { prevents to draw out of boundaries of new video buffer }
+    ResizeApplication(ScreenWidth,ScreenHeight);
+  end else
+    Message(Application,evBroadcast,cmUpdate,nil);
 {$endif Windows}
 {$ifdef Windows}
   // WindowsShowMouse;
 {$endif Windows}
 
   if Assigned(UserScreen) then
-    UserScreen^.SwitchBackToIDEScreen;
+{$ifdef unix}
+    if (oldH=ScreenHeight) and (oldW=ScreenWidth) then
+{$endif unix}
+      UserScreen^.SwitchBackToIDEScreen;
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
@@ -1500,6 +1531,7 @@ begin
   UpdateScreen(true);
 {$endif go32v2}
 {$endif Windows}
+  CurDirChanged; {To avoid memory corruption, place this call after screen resize has been done.}
   displaymode:=dmIDE;
 end;
 
@@ -1517,7 +1549,7 @@ begin
       SOK:=SaveAll;
   if (AutoSaveOptions and asDesktop)<>0 then
     begin
-      { destory all help & browser windows - we don't want to store them }
+      { destroy all help & browser windows - we don't want to store them }
       { UserScreenWindow is also not registered PM }
       DoCloseUserScreenWindow;
       {$IFNDEF NODEBUG}
@@ -1566,7 +1598,7 @@ begin
 {$else}
 {$ifndef Unix}
     posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
-    { if programpath was three char long => bug }
+    { if programpath was three AnsiChar long => bug }
     if (posexe>0) and (posexe=Length(ProgramPath)-3) then
       begin
 {$endif Unix}
@@ -1597,9 +1629,11 @@ begin
       begin
         Write(' Press any key to return to IDE');
         InitKeyBoard;
+        write(#27'[?1011s'#27'[?1011h'); { Scroll to cursor on key press }
         Keyboard.GetKeyEvent;
         while (Keyboard.PollKeyEvent<>0) do
          Keyboard.GetKeyEvent;
+        write(#27'[?1011l'#27'[?1011r');
         DoneKeyboard;
       end;
 {$endif}
@@ -1615,7 +1649,7 @@ procedure TIDEApp.Update;
 begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmWindowList],IsThereAnyWindow);
-  SetCmdState([cmTile,cmCascade],IsThereAnyVisibleWindow);
+  SetCmdState([cmTile,cmCascade],IsThereAnyVisibleEditorWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
   SetCmdState([cmResetDebugger,cmUntilReturn],assigned(debugger) and debugger^.debuggee_started);
@@ -1655,7 +1689,7 @@ end;
 
 procedure TIDEApp.UpdateINIFile;
 begin
-  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(IniFileName));
+  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(IniFilePath));
 end;
 
 procedure TIDEApp.UpdateRecentFileList;
@@ -1693,9 +1727,9 @@ begin
 
   GetExtent(R);
   AdjustRecentCount :=0;
-  {calculate how much lines on screen for reacent files can be used }
+  {calculate how much lines on screen for recent files can be used }
   if r.b.y-r.a.y -19 > 0 then AdjustRecentCount:=r.b.y-r.a.y -19;
-  {only if there is enough space then show all reacent files }
+  {only if there is enough space then show all recent files }
   {else cut list shorter }
   if RecentFileCount < AdjustRecentCount then
      AdjustRecentCount:=RecentFileCount;
@@ -1748,6 +1782,24 @@ begin
     P:=NewItem(S1,KillTilde(GetHotKeyName(W)),W,cmToolsBase+I,hcToolsBase+I,nil);
     AppendMenuItem(ToolsMenu^.SubMenu,P);
   end;
+end;
+
+procedure TIDEApp.UpdateClockAndHeap;
+var R : TRect;
+begin
+  if not OverrideHeapMonitor then
+  begin
+    Application^.Delete(HeapView);
+    GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-8; R.A.Y:=R.B.Y-1;
+    HeapView^.MoveTo(R.A.X,R.A.Y);       {move to correct position}
+    if ((DesktopPreferences and dpHeapMonitor)<>0) then
+      Application^.Insert(HeapView);
+  end;
+  Application^.Delete(ClockView);
+  MenuBar^.GetBounds(R); R.A.X:=R.B.X-9;
+  ClockView^.MoveTo(R.A.X,R.A.Y);        {move to correct position}
+  if (DesktopPreferences and dpClockView)<>0 then
+    Application^.Insert(ClockView);
 end;
 
 procedure TIDEApp.DosShell;
@@ -1880,6 +1932,11 @@ destructor TIDEApp.Done;
 begin
   InsideDone:=true;
   IsRunning:=false;
+  {manually dispose ClockView and HeapView}
+  Delete(ClockView);
+  Dispose(ClockView);
+  Delete(HeapView);
+  Dispose(HeapView);
   inherited Done;
   Desktop:=nil;
   RemoveBrowsersCollection;

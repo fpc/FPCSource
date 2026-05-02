@@ -29,7 +29,7 @@ var img : TFPMemoryImage;
     ReadFile, WriteFile, WriteOptions : string;
 
 procedure Init;
-var t : char;
+var t : AnsiChar;
 begin
   if paramcount = 4 then
     begin

@@ -222,7 +222,6 @@ type
     FEditRow : TJSONData;
     FRowType: TJSONRowType;
     FDeletedRows: TFPList;
-    procedure AddToRows(AValue: TJSONArray);
     procedure AppendToIndexes;
     procedure CreateIndexes;
     procedure SetMetaData(AValue: TJSONObject);
@@ -256,6 +255,7 @@ type
     procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
     procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     function GetRecordCount: Integer; override;
+    procedure AddToRows(AValue: TJSONArray);
     procedure SetRecNo(Value: Integer); override;
     function GetRecNo: Integer; override;
   Protected
@@ -1188,7 +1188,7 @@ begin
     if (length(W)>0) then
       Move(W[1],Buffer^,Length(W)*SizeOf(Widechar)+1)
     else
-      PChar(Buffer)^:=#0;
+      PAnsiChar(Buffer)^:=#0;
     end;
     ftfixedchar,
     ftString:
@@ -1197,7 +1197,7 @@ begin
       if (length(s)>0) then
         Move(S[1],Buffer^,Length(S)+1)
       else
-        PChar(Buffer)^:=#0;
+        PAnsiChar(Buffer)^:=#0;
       end;
     ftBoolean:
       begin
@@ -1289,6 +1289,8 @@ begin
     FFieldMapper.SetJSONDataForField(Field,FRows[FCurrentIndex[FCurrent]],F)
   else
     FFieldMapper.SetJSONDataForField(Field,FEditRow,F);
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    DataEvent(deFieldChange, PtrInt(Field));
 end;
 
 procedure TBaseJSONDataSet.SetBookmarkFlag(Buffer: TRecordBuffer;

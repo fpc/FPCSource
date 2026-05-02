@@ -161,7 +161,7 @@ function parse_switches (cinfo : j_decompress_ptr;
 var
   argn,
   argc : int;
-  arg : string;
+  arg : ansistring;
 var
   value : int;
   code : integer;
@@ -173,7 +173,7 @@ const
   printed_version : boolean = FALSE;
 var
   lval : long;
-  ch : char;
+  ch : AnsiChar;
 begin
   { Set up default JPEG parameters. }
   requested_fmt := DEFAULT_FMT; { set default output file format }
@@ -422,7 +422,7 @@ end;
   Note this code relies on a non-suspending data source. }
 
 {LOCAL}
-function jpeg_getc (cinfo : j_decompress_ptr) : char;
+function jpeg_getc (cinfo : j_decompress_ptr) : AnsiChar;
 { Read next byte }
 var
   datasrc : jpeg_source_mgr_ptr;
@@ -435,7 +435,7 @@ begin
       ERREXIT(j_common_ptr(cinfo), JERR_CANT_SUSPEND);
   end;
   Dec(datasrc^.bytes_in_buffer);
-  jpeg_getc := char(GETJOCTET(datasrc^.next_input_byte^));
+  jpeg_getc := AnsiChar(GETJOCTET(datasrc^.next_input_byte^));
   Inc(datasrc^.next_input_byte);
 end;
 
@@ -448,8 +448,8 @@ const
 var
   traceit : boolean;
   length : INT32;
-  ch : char;
-  lastch : char;
+  ch : AnsiChar;
+  lastch : AnsiChar;
 begin
   traceit := (cinfo^.err^.trace_level >= 1);
   lastch := #0;

@@ -3,6 +3,9 @@ program testsqlscanner;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef unix}
+  cwstring,
+  {$endif}
   Classes, consoletestrunner, tcsqlscanner, 
   fpsqltree, fpsqlscanner, fpsqlparser,
   tcparser, tcgensql;

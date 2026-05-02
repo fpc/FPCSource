@@ -1,4 +1,3 @@
-
 (**
  Copyright (c) 2000-2010 by Stefan Heymann
 
@@ -16,7 +15,7 @@ Subject : Handling of "tar" files
 ===============================================================================================
 Author  : Stefan Heymann
           Eschenweg 3
-          72076 Tübingen
+          72076 Tï¿½bingen
           GERMANY
 
 E-Mail:   stefan@destructor.de
@@ -161,9 +160,14 @@ TYPE
                   FStream     : TStream;   // Internal Stream
                   FOwnsStream : BOOLEAN;   // True if FStream is owned by the TTarArchive instance
                   FBytesToGo  : INT64;     // Bytes until the next Header Record
+                  // --- PAX extended header support
+                  FPaxPath     : AnsiString;   // Pending PAX path override
+                  FPaxLinkPath : AnsiString;   // Pending PAX linkpath override
+                  FPaxSize     : INT64;        // Pending PAX size override (-1 = not set)
+                  PROCEDURE ParsePaxData (DataSize : INT64);
                 PUBLIC
                   CONSTRUCTOR Create (Stream   : TStream);                                OVERLOAD;
-                  CONSTRUCTOR Create (Filename : STRING;
+                  CONSTRUCTOR Create (const Filename : AnsiString;
                                       FileMode : WORD = fmOpenRead OR fmShareDenyWrite);  OVERLOAD;
                   DESTRUCTOR Destroy;                                       OVERRIDE;
                   PROCEDURE Reset;                                         // Reset File Pointer
@@ -192,11 +196,13 @@ TYPE
                  FMode        : TTarModes;         // Mode
                  FMagic       : AnsiString;            // Contents of the "Magic" field
                  CONSTRUCTOR CreateEmpty;
+                 PROCEDURE WritePaxHeader (CONST DirRec : TTarDirRec;
+                                           CONST FullName, FullLinkName : AnsiString);
                PUBLIC
                  CONSTRUCTOR Create (TargetStream   : TStream);                            OVERLOAD;
-                 CONSTRUCTOR Create (TargetFilename : STRING; Mode : INTEGER = fmCreate);  OVERLOAD;
+                 CONSTRUCTOR Create (const TargetFilename : AnsiString; Mode : INTEGER = fmCreate);  OVERLOAD;
                  DESTRUCTOR Destroy; OVERRIDE;                   // Writes End-Of-File Tag
-                 PROCEDURE AddFile   (Filename : STRING;  TarFilename : AnsiString = '');
+                 PROCEDURE AddFile   (const Filename : AnsiString;  TarFilename : AnsiString = '');
                  PROCEDURE AddStream (Stream   : TStream; TarFilename : AnsiString; FileDateGmt : TDateTime);
                  PROCEDURE AddString (Contents : Ansistring;  TarFilename : AnsiString; FileDateGmt : TDateTime);  // RawByteString
                  PROCEDURE AddDir          (Dirname            : AnsiString; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
@@ -228,8 +234,8 @@ CONST
 
 
 FUNCTION  PermissionString      (Permissions : TTarPermissions) : STRING;
-FUNCTION  ConvertFilename       (Filename    : STRING)          : STRING;
-FUNCTION  FileTimeGMT           (FileName    : STRING)          : TDateTime;  OVERLOAD;
+FUNCTION  ConvertFilename       (const Filename    : AnsiString)          : AnsiString;
+FUNCTION  FileTimeGMT           (const FileName    : AnsiString)          : TDateTime;  OVERLOAD;
 FUNCTION  FileTimeGMT           (SearchRec   : TSearchRec)      : TDateTime;  OVERLOAD;
 PROCEDURE ClearDirRec           (VAR DirRec  : TTarDirRec);
 
@@ -257,7 +263,7 @@ BEGIN
 END;
 
 
-FUNCTION ConvertFilename  (Filename : STRING) : STRING;
+FUNCTION ConvertFilename  (const Filename : AnsiString) : AnsiString;
 // Converts the filename to Unix conventions
 // could be empty and inlined away for FPC. FPC I/O should be 
 // forward/backward slash safe.
@@ -269,7 +275,7 @@ BEGIN
   (*$ENDIF *)
 END;
 
-FUNCTION FileTimeGMT (FileName: STRING): TDateTime;
+FUNCTION FileTimeGMT (const FileName: AnsiString): TDateTime;
          // Returns the Date and Time of the last modification of the given File
          // The Result is zero if the file could not be found
          // The Result is given in UTC (GMT) time zone
@@ -305,7 +311,7 @@ BEGIN
      IF SearchRec.Attr AND faDirectory = 0 THEN BEGIN
        FillChar(TimeVal, SizeOf(TimeVal), #0);
        FillChar(TimeZone, SizeOf(TimeZone), #0);      
-       Result := FileDateToDateTime (SearchRec.Time);
+       Result := SearchRec.TimeStamp;
        {$IFDEF Kylix}
        GetTimeOfDay (TimeVal, TimeZone);
        {$ELSE}
@@ -353,6 +359,9 @@ CONST
   TUNMLEN    =  32;
   TGNMLEN    =  32;
   CHKBLANKS  = #32#32#32#32#32#32#32#32;
+  // --- PAX extended header type flags
+  PAX_XHEADER : AnsiChar = 'x';   // Extended header for next file only
+  PAX_GLOBAL  : AnsiChar = 'g';   // Global extended header
 
 TYPE
   TTarHeader = PACKED RECORD
@@ -488,7 +497,8 @@ BEGIN
 END;
 
 
-PROCEDURE WriteTarHeader (Dest : TStream; DirRec : TTarDirRec);
+PROCEDURE WriteTarHeader (Dest : TStream; DirRec : TTarDirRec; TypeFlag : AnsiChar = #0);
+         // TypeFlag: if #0, derive from DirRec.FileType; otherwise use specified flag
 VAR
   Rec      : ARRAY [0..RECORDSIZE-1] OF AnsiChar;
   TH       : TTarHeader ABSOLUTE Rec;
@@ -499,10 +509,12 @@ VAR
 BEGIN
   FillChar (Rec, RECORDSIZE, 0);
   StrLCopy (TH.Name, PAnsiChar (DirRec.Name), NAMSIZ);
+  { INTEGER type can be 16-bit wide, for instance on msdos OS,
+    add explicit typecast to avoid range check error in such cases }
   CASE DirRec.FileType OF
-    ftNormal, ftLink  : Mode := $08000;
-    ftSymbolicLink    : Mode := $0A000;
-    ftDirectory         : Mode := $04000;
+    ftNormal, ftLink  : Mode := INTEGER($08000);
+    ftSymbolicLink    : Mode := INTEGER($0A000);
+    ftDirectory         : Mode := INTEGER($04000);
     ELSE                  Mode := 0;
     END;
   IF tmSaveText IN DirRec.Mode THEN Mode := Mode OR $0200;
@@ -525,19 +537,22 @@ BEGIN
   IF DirRec.DateTime >= NullDate
     THEN Octal (Trunc ((DirRec.DateTime - NullDate) * 86400.0), @TH.MTime, 12)
     ELSE Octal (Trunc (                   NullDate  * 86400.0), @TH.MTime, 12);
-  CASE DirRec.FileType OF
-    ftNormal       : TH.LinkFlag := '0';
-    ftLink         : TH.LinkFlag := '1';
-    ftSymbolicLink : TH.LinkFlag := '2';
-    ftCharacter    : TH.LinkFlag := '3';
-    ftBlock        : TH.LinkFlag := '4';
-    ftDirectory    : TH.LinkFlag := '5';
-    ftFifo         : TH.LinkFlag := '6';
-    ftContiguous   : TH.LinkFlag := '7';
-    ftDumpDir      : TH.LinkFlag := 'D';
-    ftMultiVolume  : TH.LinkFlag := 'M';
-    ftVolumeHeader : TH.LinkFlag := 'V';
-    END;
+  IF TypeFlag <> #0 THEN
+    TH.LinkFlag := TypeFlag
+  ELSE
+    CASE DirRec.FileType OF
+      ftNormal       : TH.LinkFlag := '0';
+      ftLink         : TH.LinkFlag := '1';
+      ftSymbolicLink : TH.LinkFlag := '2';
+      ftCharacter    : TH.LinkFlag := '3';
+      ftBlock        : TH.LinkFlag := '4';
+      ftDirectory    : TH.LinkFlag := '5';
+      ftFifo         : TH.LinkFlag := '6';
+      ftContiguous   : TH.LinkFlag := '7';
+      ftDumpDir      : TH.LinkFlag := 'D';
+      ftMultiVolume  : TH.LinkFlag := 'M';
+      ftVolumeHeader : TH.LinkFlag := 'V';
+      END;
   StrLCopy (TH.LinkName, PAnsiChar (DirRec.LinkName), NAMSIZ);
   StrLCopy (TH.Magic, PAnsiChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 7);
   StrLCopy (TH.UName, PAnsiChar (DirRec.UserName), TUNMLEN);
@@ -555,6 +570,26 @@ BEGIN
 END;
 
 
+FUNCTION BuildPaxRecord (CONST Key, Value : AnsiString) : AnsiString;
+         // Builds a single PAX extended attribute record
+         // Format: "<length> <key>=<value>\n"
+         // The tricky part: length includes itself
+VAR
+  Content : AnsiString;
+  Len, TestLen : INT64;
+  LenStr : AnsiString;
+BEGIN
+  Content := ' ' + Key + '=' + Value + #10;
+  Len := Length (Content) + 1;   // +1 for at least one digit
+  REPEAT
+    LenStr := IntToStr (Len);
+    TestLen := Length (LenStr) + Length (Content);
+    IF TestLen = Len THEN BREAK;
+    Len := TestLen;
+  UNTIL Len > 99999;
+  Result := LenStr + Content;
+END;
+
 
 (*
 ===============================================================================================
@@ -571,7 +606,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarArchive.Create (Filename : STRING; FileMode : WORD);
+CONSTRUCTOR TTarArchive.Create (const Filename : Ansistring; FileMode : WORD);
 BEGIN
   INHERITED Create;
   FStream     := TFileStream.Create (Filename, FileMode);
@@ -593,6 +628,73 @@ PROCEDURE TTarArchive.Reset;
 BEGIN
   FStream.Position := 0;
   FBytesToGo       := 0;
+  FPaxPath         := '';
+  FPaxLinkPath     := '';
+  FPaxSize         := -1;
+END;
+
+
+PROCEDURE TTarArchive.ParsePaxData (DataSize : INT64);
+          // Parses PAX extended header data and stores values in FPax* fields
+VAR
+  Data     : AnsiString;
+  P        : INT64;
+  SpacePos : INT64;
+  EqPos    : INT64;
+  RecLen   : INT64;
+  Key      : AnsiString;
+  Value    : AnsiString;
+  RecLenStr: AnsiString;
+BEGIN
+  FPaxPath     := '';
+  FPaxLinkPath := '';
+  FPaxSize     := -1;
+
+  IF DataSize <= 0 THEN EXIT;
+  IF DataSize > 1024 * 1024 THEN EXIT;   // Safety limit: 1MB
+
+  SetLength (Data, DataSize);
+  FStream.Read (Data[1], DataSize);
+
+  // Skip padding to record boundary
+  IF DataSize MOD RECORDSIZE <> 0 THEN
+    FStream.Seek (RECORDSIZE - (DataSize MOD RECORDSIZE), soFromCurrent);
+
+  P := 1;
+  WHILE P <= Length (Data) DO BEGIN
+    // Find space after length
+    SpacePos := P;
+    WHILE (SpacePos <= Length (Data)) AND (Data[SpacePos] <> ' ') DO
+      INC (SpacePos);
+
+    IF SpacePos > Length (Data) THEN BREAK;
+
+    // Parse length
+    RecLenStr := Copy (Data, P, SpacePos - P);
+    RecLen := StrToIntDef (RecLenStr, 0);
+    IF RecLen <= 0 THEN BREAK;
+    IF P + RecLen - 1 > Length (Data) THEN BREAK;
+
+    // Find equals sign
+    EqPos := SpacePos + 1;
+    WHILE (EqPos < P + RecLen) AND (Data[EqPos] <> '=') DO
+      INC (EqPos);
+
+    IF EqPos < P + RecLen THEN BEGIN
+      Key := Copy (Data, SpacePos + 1, EqPos - SpacePos - 1);
+      // Value ends before newline (RecLen includes the newline)
+      Value := Copy (Data, EqPos + 1, P + RecLen - EqPos - 2);
+
+      IF Key = 'path' THEN
+        FPaxPath := Value
+      ELSE IF Key = 'linkpath' THEN
+        FPaxLinkPath := Value
+      ELSE IF Key = 'size' THEN
+        FPaxSize := StrToInt64Def (Value, -1);
+      END;
+
+    INC (P, RecLen);
+    END;
 END;
 
 
@@ -611,15 +713,32 @@ BEGIN
   IF FBytesToGo > 0 THEN
     FStream.Seek (Records (FBytesToGo) * RECORDSIZE, soFromCurrent);
 
-  // --- EOF reached?
-  Result := FALSE;
-  CurFilePos := FStream.Position;
-  TRY
-    FStream.ReadBuffer (Rec, RECORDSIZE);
-    if Rec [0] = #0 THEN EXIT;   // EOF reached
-  EXCEPT
-    EXIT;   // EOF reached, too
-    END;
+  // --- Handle PAX extended headers
+  REPEAT
+    // --- EOF reached?
+    Result := FALSE;
+    CurFilePos := FStream.Position;
+    TRY
+      FStream.ReadBuffer (Rec, RECORDSIZE);
+      if Rec [0] = #0 THEN EXIT;   // EOF reached
+    EXCEPT
+      EXIT;   // EOF reached, too
+      END;
+
+    // --- Check for PAX extended header
+    IF Header.LinkFlag = PAX_XHEADER THEN BEGIN
+      ParsePaxData (ExtractNumber64 (@Header.Size, 12));
+      CONTINUE;   // Read next header
+      END
+    ELSE IF Header.LinkFlag = PAX_GLOBAL THEN BEGIN
+      // Skip global PAX headers
+      FStream.Seek (Records (ExtractNumber64 (@Header.Size, 12)) * RECORDSIZE, soFromCurrent);
+      CONTINUE;
+      END;
+
+    BREAK;   // Normal header, exit loop
+  UNTIL FALSE;
+
   Result := TRUE;
 
   ClearDirRec (DirRec);
@@ -669,6 +788,20 @@ BEGIN
   FOR I := 0 TO SizeOf (TTarHeader)-1 DO
     INC (CheckSum, INTEGER (ORD (Rec [I])));
   DirRec.CheckSumOK := WORD (CheckSum) = WORD (HeaderChkSum);
+
+  // --- Apply PAX overrides if present
+  IF FPaxPath <> '' THEN BEGIN
+    DirRec.Name := FPaxPath;
+    FPaxPath := '';
+    END;
+  IF FPaxLinkPath <> '' THEN BEGIN
+    DirRec.LinkName := FPaxLinkPath;
+    FPaxLinkPath := '';
+    END;
+  IF FPaxSize >= 0 THEN BEGIN
+    DirRec.Size := FPaxSize;
+    FPaxSize := -1;
+    END;
 
   IF DirRec.FileType in [ftLink, ftSymbolicLink, ftDirectory, ftFifo, ftVolumeHeader]
     THEN FBytesToGo := 0
@@ -783,7 +916,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarWriter.Create (TargetFilename : STRING; Mode : INTEGER = fmCreate);
+CONSTRUCTOR TTarWriter.Create (const TargetFilename : AnsiString; Mode : INTEGER = fmCreate);
 BEGIN
   CreateEmpty;
   FStream     := TFileStream.Create (TargetFilename, Mode);
@@ -803,7 +936,56 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddFile   (Filename : STRING;  TarFilename : AnsiString = '');
+PROCEDURE TTarWriter.WritePaxHeader (CONST DirRec : TTarDirRec;
+                                      CONST FullName, FullLinkName : AnsiString);
+          // Writes a PAX extended header if name or linkname exceeds NAMSIZ
+VAR
+  PaxData   : AnsiString;
+  PaxDirRec : TTarDirRec;
+  Rec       : ARRAY [0..RECORDSIZE-1] OF AnsiChar;
+  PadBytes  : INTEGER;
+BEGIN
+  PaxData := '';
+
+  // Add path if name is too long
+  IF Length (FullName) > NAMSIZ THEN
+    PaxData := PaxData + BuildPaxRecord ('path', FullName);
+
+  // Add linkpath if linkname is too long
+  IF Length (FullLinkName) > NAMSIZ THEN
+    PaxData := PaxData + BuildPaxRecord ('linkpath', FullLinkName);
+
+  IF PaxData = '' THEN EXIT;
+
+  // Create PAX header entry
+  ClearDirRec (PaxDirRec);
+  PaxDirRec.Name        := './PaxHeaders/' + Copy (FullName, 1, 80);
+  PaxDirRec.Size        := Length (PaxData);
+  PaxDirRec.DateTime    := DirRec.DateTime;
+  PaxDirRec.Permissions := FPermissions;
+  PaxDirRec.FileType    := ftNormal;
+  PaxDirRec.UID         := FUID;
+  PaxDirRec.GID         := FGID;
+  PaxDirRec.UserName    := FUserName;
+  PaxDirRec.GroupName   := FGroupName;
+  PaxDirRec.Magic       := FMagic;
+
+  // Write PAX header with 'x' type flag
+  WriteTarHeader (FStream, PaxDirRec, PAX_XHEADER);
+
+  // Write PAX data
+  FStream.Write (PaxData[1], Length (PaxData));
+
+  // Pad to record boundary
+  PadBytes := RECORDSIZE - (Length (PaxData) MOD RECORDSIZE);
+  IF (PadBytes > 0) AND (PadBytes < RECORDSIZE) THEN BEGIN
+    FillChar (Rec, PadBytes, 0);
+    FStream.Write (Rec, PadBytes);
+    END;
+END;
+
+
+PROCEDURE TTarWriter.AddFile   (const Filename : AnsiString;  TarFilename : AnsiString = '');
 VAR
   S    : TFileStream;
   Date : TDateTime;
@@ -844,6 +1026,10 @@ BEGIN
   DirRec.Magic       := FMagic;
   DirRec.MajorDevNo  := 0;
   DirRec.MinorDevNo  := 0;
+
+  // Write PAX header if name is too long
+  IF Length (TarFilename) > NAMSIZ THEN
+    WritePaxHeader (DirRec, TarFilename, '');
 
   WriteTarHeader (FStream, DirRec);
   BytesToRead := DirRec.Size;
@@ -892,6 +1078,10 @@ BEGIN
   DirRec.MajorDevNo  := 0;
   DirRec.MinorDevNo  := 0;
 
+  // Write PAX header if name is too long
+  IF Length (Dirname) > NAMSIZ THEN
+    WritePaxHeader (DirRec, Dirname, '');
+
   WriteTarHeader (FStream, DirRec);
 END;
 
@@ -917,6 +1107,10 @@ BEGIN
   DirRec.MajorDevNo  := 0;
   DirRec.MinorDevNo  := 0;
 
+  // Write PAX header if name or linkname is too long
+  IF (Length (Filename) > NAMSIZ) OR (Length (Linkname) > NAMSIZ) THEN
+    WritePaxHeader (DirRec, Filename, Linkname);
+
   WriteTarHeader (FStream, DirRec);
 END;
 
@@ -941,6 +1135,10 @@ BEGIN
   DirRec.Magic       := FMagic;
   DirRec.MajorDevNo  := 0;
   DirRec.MinorDevNo  := 0;
+
+  // Write PAX header if name or linkname is too long
+  IF (Length (Filename) > NAMSIZ) OR (Length (Linkname) > NAMSIZ) THEN
+    WritePaxHeader (DirRec, Filename, Linkname);
 
   WriteTarHeader (FStream, DirRec);
 END;

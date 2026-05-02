@@ -34,8 +34,8 @@ type
     LinePos: integer;
     Tg, Tx: integer;
     FParser: THTMLParser; //our htmlparser class
-    procedure OnTag(NoCaseTag, ActualTag: String);
-    procedure OnText(Text: String);
+    procedure OnTag(NoCaseTag, ActualTag: AnsiString);
+    procedure OnText(Text: AnsiString);
   protected
     function GetToken: UTF8String; override;
     function AllowedToken(token: UTF8String): boolean; override;
@@ -47,11 +47,11 @@ implementation
 
 { TIReaderHTML }
 
-procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: String);
+procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: AnsiString);
 begin
 end;
 
-procedure TIReaderHTML.OnText(Text: String);
+procedure TIReaderHTML.OnText(Text: AnsiString);
 var
   token: UTF8String;
   s: TSearchWordData;

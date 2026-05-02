@@ -15,9 +15,9 @@
 
 { taken from dos unit }
 
-function EnvStr (Index: longint): string;
+function EnvStr (Index: longint): ;
 
-var HP: PChar;
+var HP: PAnsiChar;
 
 begin
     if (Index <= 0) or (Index > EnvC) then
@@ -30,7 +30,7 @@ begin
 end;
 
 
-procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+procedure SysGetEnvironmentList(List : TStrings; NamesOnly : Boolean);
 
 Var
   S : String;
@@ -45,7 +45,7 @@ begin
       begin
       I:=Pos('=',S);
       If (I>1) then
-        S:=Copy(S,1,I-1);
+        SetLength(S,I-1);
       end;
     List.Add(S);
     end;

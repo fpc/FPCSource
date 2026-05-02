@@ -780,31 +780,34 @@ begin
   end//FMaskSave = True
   else
   begin//FMaskSave = False
-    if FTrimType = metTrimRight then
+    if AValue<>'' then
     begin
-      //fill text from left to rigth, skipping MaskLiterals
-      j := 1;
-      for i := 1 to FMaskLength do
+      if FTrimType = metTrimRight then
       begin
-        if not IsLiteral(FMask[i]) then
+        //fill text from left to rigth, skipping MaskLiterals
+        j := 1;
+        for i := 1 to FMaskLength do
         begin
-          if (AValue[j] = #32) then S[i]:= FSpaceChar else S[i] := AValue[j];
-          Inc(j);
-          if j > Length(AValue) then Break;
+          if not IsLiteral(FMask[i]) then
+          begin
+            if (AValue[j] = #32) then S[i]:= FSpaceChar else S[i] := AValue[j];
+            Inc(j);
+            if j > Length(AValue) then Break;
+          end;
         end;
-      end;
-    end
-    else
-    begin
-      //fill text from right to left, skipping MaskLiterals
-      j := Length(AValue);
-      for i := FMaskLength downto 1 do
+      end
+      else
       begin
-        if not IsLiteral(FMask[i]) then
+        //fill text from right to left, skipping MaskLiterals
+        j := Length(AValue);
+        for i := FMaskLength downto 1 do
         begin
-          if (AValue[j] = #32) then S[i] := FSpaceChar else S[i] := AValue[j];
-          Dec(j);
-          if j < 1 then Break;
+          if not IsLiteral(FMask[i]) then
+          begin
+            if (AValue[j] = #32) then S[i] := FSpaceChar else S[i] := AValue[j];
+            Dec(j);
+            if j < 1 then Break;
+          end;
         end;
       end;
     end;

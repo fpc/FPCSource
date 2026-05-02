@@ -463,7 +463,7 @@ begin
   end;
 end;
 
-function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 
 begin
   If TimeOut<>Cardinal($FFFFFFFF) then

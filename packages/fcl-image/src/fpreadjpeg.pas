@@ -23,8 +23,9 @@
 }
 unit FPReadJPEG;
 
-{$mode objfpc}{$H+}
-
+{$mode objfpc}
+{$H+}
+{$openstrings off} // problems in fixes?
 interface
 
 uses
@@ -121,7 +122,7 @@ procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
 var
   NewLength: Integer;
   ReadLen: Integer;
-  Buffer: string;
+  Buffer: AnsiString;
 begin
   if (SrcStream is TMemoryStream) or (SrcStream is TFileStream)
   or (SrcStream is TStringStream)
@@ -161,7 +162,7 @@ begin
   if CurInfo=nil then exit;
 end;
 
-procedure FormatMessage(CurInfo: j_common_ptr; var buffer: string);
+procedure FormatMessage(CurInfo: j_common_ptr; var buffer: system.shortstring);
 begin
   if CurInfo=nil then exit;
   {$ifdef FPC_Debug_Image}
@@ -231,19 +232,7 @@ var
   c: word;
   Status,Scan: integer;
   ReturnValue,RestartLoop: Boolean;
-  S: TSize;
-
-  function TranslateSize(const Sz: TSize): TSize;
-  begin
-    case FOrientation of
-      eoUnknown, eoNormal, eoMirrorHor, eoMirrorVert, eoRotate180: Result := Sz;
-      eoMirrorHorRot270, eoRotate90, eoMirrorHorRot90, eoRotate270:
-      begin
-        Result.Width := Sz.Height;
-        Result.Height := Sz.Width;
-      end;
-    end;
-  end;
+  LOutputSize: TSize;
 
   procedure InitReadingPixels;
   var d1,d2:integer;
@@ -442,6 +431,24 @@ var
       inc(y);
     end;
   end;
+
+  function TranslateSize(AWidth, AHeight: Integer): TSize;
+  begin
+    // image dimension depending on orientation
+    case FOrientation of
+      eoUnknown, eoNormal, eoMirrorHor, eoRotate180, eoMirrorVert:
+      begin
+        Result.Width := AWidth;
+        Result.Height := AHeight;
+      end;
+      eoMirrorHorRot270, eoRotate90,  eoMirrorHorRot90, eoRotate270:
+      begin
+        Result.Width := AHeight;
+        Result.Height := AWidth;
+      end;
+    end;
+  end;   
+
 begin
   InitReadingPixels;
 
@@ -451,11 +458,10 @@ begin
 
   jpeg_start_decompress(@FInfo);
 
-  S := Size(FInfo.output_width, FInfo.output_height);
-  S := TranslateSize(S);
-  FWidth := S.Width;
-  FHeight := S.Height;
-  Img.SetSize(FWidth,FHeight);
+  LOutputSize := TranslateSize(FInfo.output_width, FInfo.output_height);
+  FWidth := LOutputSize.Width;
+  FHeight := LOutputSize.Height;
+  Img.SetSize(FWidth, FHeight);
 
   GetMem(SampArray,SizeOf(JSAMPROW));
   GetMem(SampRow,FInfo.output_width*FInfo.output_components);

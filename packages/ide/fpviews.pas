@@ -21,7 +21,7 @@ interface
 uses
   Dos,Objects,Drivers,
   FVConsts,
-  Views,Menus,Dialogs,App,Gadgets,Tabs,
+  Views,Menus,Dialogs,StdDlg,App,Gadgets,Tabs,
   ASCIITAB,
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
@@ -55,6 +55,7 @@ type
       constructor Init(var Bounds: TRect);
       constructor InitKb(var Bounds: TRect);
       procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetPalette: PPalette; virtual;
     end;
 
     PFPClockView = ^TFPClockView;
@@ -173,8 +174,8 @@ type
       procedure   DelChar; virtual;
       procedure   DelSelect; virtual;
       function    InsertNewLine : Sw_integer;virtual;
-      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
-      procedure   AddLine(const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine; virtual;
+      procedure   AddLine(const S: sw_astring); virtual;
     end;
 
     PSourceWindow = ^TSourceWindow;
@@ -192,7 +193,6 @@ type
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
-      procedure   Close; virtual;
       destructor  Done; virtual;
     end;
 
@@ -201,7 +201,7 @@ type
     TGDBSourceEditor = object(TSourceEditor)
       function   InsertNewLine : Sw_integer;virtual;
       function   Valid(Command: Word): Boolean; virtual;
-      procedure  AddLine(const S: string); virtual;
+      procedure  AddLine(const S: sw_astring); virtual;
       procedure  AddErrorLine(const S: string); virtual;
       { Syntax highlight }
       function  IsReservedWord(const S: string): boolean; virtual;
@@ -218,11 +218,11 @@ type
       Indicator : PIndicator;
       constructor Init(var Bounds: TRect);
       procedure   HandleEvent(var Event: TEvent); virtual;
-      procedure   WriteText(Buf : pchar;IsError : boolean);
+      procedure   WriteText(Buf : PAnsiChar;IsError : boolean);
       procedure   WriteString(Const S : string);
       procedure   WriteErrorString(Const S : string);
-      procedure   WriteOutputText(Buf : pchar);
-      procedure   WriteErrorText(Buf : pchar);
+      procedure   WriteOutputText(Buf : PAnsiChar);
+      procedure   WriteErrorText(Buf : PAnsiChar);
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -266,7 +266,7 @@ type
       constructor Init(var Bounds: TRect);
       procedure   LoadFunction(Const FuncName : string);
       procedure   LoadAddress(Addr : CORE_ADDR);
-      function    ProcessPChar(p : pchar) : boolean;
+      function    ProcessPChar(p : PAnsiChar) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   WriteSourceString(Const S : string;line : longint);
       procedure   WriteDisassemblyString(Const S : string;address : CORE_ADDR);
@@ -325,6 +325,7 @@ type
     PFPDlgWindow = ^TFPDlgWindow;
     TFPDlgWindow = object(TDlgWindow)
       procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   CalcBounds (Var Bounds: TRect; Delta: TPoint); virtual;
     end;
 
 (*
@@ -341,7 +342,7 @@ type
       Name     : PString;
       Items    : PTabItem;
       DefItem  : PView;
-      ShortCut : char;
+      ShortCut : AnsiChar;
     end;
 
     PTab = ^TTab;
@@ -381,6 +382,12 @@ type
       ScreenView : PScreenView;
       constructor Init(AScreen: PScreen; ANumber: integer);
       destructor  Done; virtual;
+    end;
+
+    PFPChDirDialog = ^TFPChDirDialog;
+    TFPChDirDialog = object(TEditChDirDialog)
+      constructor Init(AOptions: Word; HistoryId: Sw_Word);
+      procedure   SizeLimits (Var Min, Max: TPoint); Virtual;
     end;
 
     PFPAboutDialog = ^TFPAboutDialog;
@@ -441,6 +448,7 @@ function IsWindow(P: PView): boolean;
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
 function IsThereAnyVisibleWindow: boolean;
+function IsThereAnyVisibleEditorWindow: boolean; {any visible Source Editor, including Clipboard}
 function IsThereAnyNumberedWindow: boolean;
 function FirstEditorWindow: PSourceWindow;
 function EditorWindowFile(const Name : String): PSourceWindow;
@@ -469,6 +477,7 @@ function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
 function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer; ShowIt: boolean): PSourceWindow;
 function LastSourceEditor : PSourceWindow;
+function SourceOnDesktop(SearchFor:PSourceWindow) : PSourceWindow;
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
 function TryToOpenFileMulti(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
@@ -541,10 +550,6 @@ const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
       menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
       menu_key_edit_all:string[63]=menu_key_edit_all_borland;
       menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
-      cut_key:word=kbShiftDel;
-      copy_key:word=kbCtrlIns;
-      paste_key:word=kbShiftIns;
-      all_key:word=kbNoKey;
 
 procedure RegisterFPViews;
 
@@ -566,7 +571,7 @@ uses
      ag68kgas,
   {$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
-   fpintf, { superseeds version_string of version unit }
+   fpintf, { supersedes version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
@@ -802,6 +807,15 @@ begin
   IsThereAnyVisibleWindow:=Desktop^.FirstThat(@CheckIt)<>nil;
 end;
 
+function IsThereAnyVisibleEditorWindow: boolean;
+function EditorWindow(P: PView): boolean;
+begin
+  EditorWindow:=((P^.HelpCtx=hcSourceWindow) or (P^.HelpCtx=hcClipboardWindow)) and P^.GetState(sfVisible);
+end;
+begin
+  IsThereAnyVisibleEditorWindow:=Desktop^.FirstThat(@EditorWindow)<>nil;
+end;
+
 function FirstEditorWindow: PSourceWindow;
 function EditorWindow(P: PView): boolean;
 begin
@@ -853,13 +867,13 @@ function GetEditorCurWord(Editor: PEditor; ValidSpecChars: TCharSet): string;
 var S: string;
     PS,PE: byte;
 function Trim(S: string): string;
-const TrimChars : set of char = [#0,#9,' ',#255];
+const TrimChars : set of AnsiChar = [#0,#9,' ',#255];
 begin
   while (length(S)>0) and (S[1] in TrimChars) do Delete(S,1,1);
   while (length(S)>0) and (S[length(S)] in TrimChars) do Delete(S,length(S),1);
   Trim:=S;
 end;
-const AlphaNum : set of char = ['A'..'Z','0'..'9','_'];
+const AlphaNum : set of AnsiChar = ['A'..'Z','0'..'9','_'];
 begin
   with Editor^ do
   begin
@@ -1119,7 +1133,7 @@ end;
 function IsFPAsmReservedWord(S: string): boolean;
 var _Is: boolean;
     Idx,Item,Len: sw_integer;
-    LastC : Char;
+    LastC : AnsiChar;
     LastTwo : String[2];
 begin
   Idx:=length(S); _Is:=false;
@@ -1374,7 +1388,7 @@ end;
 procedure TSourceEditor.FindMatchingDelimiter(ScanForward: boolean);
 var
   St,nextResWord : String;
-  LineText,LineAttr: string;
+  LineText,LineAttr: sw_astring;
   Res,found,addit : boolean;
   JumpPos: TPoint;
   X,Y,lexchange,curlevel,linecount : sw_integer;
@@ -1685,7 +1699,7 @@ end;
 
 procedure TSourceEditor.DelChar;
 var
-  S: string;
+  S: sw_astring;
   I,CI : sw_integer;
 {$ifndef NODEBUG}
   PBStart,PBEnd : PBreakpoint;
@@ -1789,7 +1803,7 @@ begin
 end;
 
 
-function TSourceEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+function TSourceEditor.InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine;
 begin
   InsertLine := inherited InsertLine(LineNo,S);
 {$ifndef NODEBUG}
@@ -1798,7 +1812,7 @@ begin
 {$endif NODEBUG}
 end;
 
-procedure TSourceEditor.AddLine(const S: string);
+procedure TSourceEditor.AddLine(const S: sw_astring);
 begin
   inherited AddLine(S);
 {$ifndef NODEBUG}
@@ -1857,7 +1871,7 @@ begin
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
          AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y+1)+':'+IntToStr(StartPos.X+1)+
-           ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
+           ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetText()+'"',0,0);
       end;
   if Core^.RedoList^.count>0 then
     AddToolCommand('RedoList Dump');
@@ -1868,7 +1882,7 @@ begin
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
          AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y+1)+':'+IntToStr(StartPos.X+1)+
-         ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
+         ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetText()+'"',0,0);
       end;
   UpdateToolMessages;
   if Assigned(MessagesWindow) then
@@ -1896,7 +1910,7 @@ begin
   if OK and ({(Command=cmClose) or already handled in TFileEditor.Valid PM }
      (Command=cmAskSaveAll)) then
     if IsClipboard=false then
-      OK:=SaveAsk(false);
+      OK:=SaveAsk(Command,false);
   Valid:=OK;
 end;
 
@@ -1989,6 +2003,12 @@ begin
       Update;
   end;
   inherited HandleEvent(Event);
+end;
+
+function TFPHeapView.GetPalette: PPalette;
+const P: string[length(CFPClockView)] = CFPClockView;
+begin
+  GetPalette:=@P;
 end;
 
 constructor TFPClockView.Init(var Bounds: TRect);
@@ -2200,11 +2220,11 @@ begin
   inherited Init(Bounds,AFileName,{SearchFreeWindowNo}0);
   AutoNumber:=true;
   Options:=Options or ofTileAble;
-  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
+  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=15;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
   New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
-  GetExtent(R); R.A.X:=3; R.B.X:=14; R.A.Y:=R.B.Y-1;
+  GetExtent(R); R.A.X:=3; R.B.X:=15; R.A.Y:=R.B.Y-1;
   New(Indicator, Init(R));
   Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Indicator);
@@ -2221,7 +2241,9 @@ begin
     AFileName:='';
   New(Editor, Init(R, HSB, VSB, Indicator,AFileName));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
-  if LoadFile then
+  {load from file if there is no other window with the same file }
+  if Editor^.Core^.GetBindingCount = 1 then
+    if LoadFile then
     begin
       if Editor^.LoadFile=false then
         ErrorBox(FormatStrStr(msg_errorreadingfile,AFileName),nil)
@@ -2312,15 +2334,17 @@ begin
 end;
 
 procedure TSourceWindow.UpdateCommands;
-var Active: boolean;
+var Active, Visible: boolean;
 begin
-  Active:=GetState(sfActive);
+  Visible:=GetState(sfVisible);
+  Active:=GetState(sfActive) and Visible;
   if Editor^.IsClipboard=false then
   begin
     SetCmdState(SourceCmds+CompileCmds,Active);
     SetCmdState(EditorCmds,Active);
   end;
-  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd+[cmHide],Active);
+  SetCmdState([cmTile,cmCascade],Visible or IsThereAnyVisibleEditorWindow);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -2361,12 +2385,6 @@ begin
   PopStatus;
 end;
 
-
-procedure TSourceWindow.Close;
-begin
-  inherited Close;
-end;
-
 destructor TSourceWindow.Done;
 begin
   PushStatus(FormatStrStr(msg_closingfile,GetStr(Title)));
@@ -2393,7 +2411,7 @@ begin
   Valid:=OK;
 end;
 
-procedure  TGDBSourceEditor.AddLine(const S: string);
+procedure  TGDBSourceEditor.AddLine(const S: sw_astring);
 begin
    if Silent or (IgnoreStringAtEnd and (S=LastCommand)) then exit;
    inherited AddLine(S);
@@ -2555,13 +2573,13 @@ begin
   GetPalette:=@P;
 end;
 
-procedure TGDBWindow.WriteOutputText(Buf : pchar);
+procedure TGDBWindow.WriteOutputText(Buf : PAnsiChar);
 begin
   {selected normal color ?}
   WriteText(Buf,false);
 end;
 
-procedure TGDBWindow.WriteErrorText(Buf : pchar);
+procedure TGDBWindow.WriteErrorText(Buf : PAnsiChar);
 begin
   {selected normal color ?}
   WriteText(Buf,true);
@@ -2577,8 +2595,8 @@ begin
   Editor^.AddErrorLine(S);
 end;
 
-procedure TGDBWindow.WriteText(Buf : pchar;IsError : boolean);
-  var p,pe : pchar;
+procedure TGDBWindow.WriteText(Buf : PAnsiChar;IsError : boolean);
+  var p,pe : PAnsiChar;
       s : string;
 begin
   p:=buf;
@@ -2670,7 +2688,7 @@ end;
 
 procedure  TDisassemblyEditor.AddSourceLine(const AFileName: string;line : longint);
 var
-  S : String;
+  S : sw_astring;
 begin
    if AFileName<>CurrentSource then
      begin
@@ -2767,12 +2785,12 @@ end;
 
 procedure   TDisassemblyWindow.LoadFunction(Const FuncName : string);
 var
-   p : pchar;
+   p : PAnsiChar;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.SetCommand('print symbol on');
-  Debugger^.SetCommand('width 0xffffffff');
+  Debugger^.SetCommand('width 0');
   Debugger^.Command('disas /m '+FuncName);
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
@@ -2783,12 +2801,12 @@ end;
 
 procedure   TDisassemblyWindow.LoadAddress(Addr : CORE_ADDR);
 var
-   p : pchar;
+   p : PAnsiChar;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.SetCommand('print symbol on');
-  Debugger^.SetCommand('width 0xffffffff');
+  Debugger^.SetCommand('width 0');
   Debugger^.Command('disas /m 0x'+HexStr(Addr,sizeof(Addr)*2));
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
@@ -2800,10 +2818,10 @@ begin
 end;
 
 
-function TDisassemblyWindow.ProcessPChar(p : pchar) : boolean;
+function TDisassemblyWindow.ProcessPChar(p : PAnsiChar) : boolean;
 var
-  p1: pchar;
-  pline : pchar;
+  p1: PAnsiChar;
+  pline : PAnsiChar;
   pos1, pos2, CurLine, PrevLine : longint;
   CurAddr : CORE_ADDR;
   err : word;
@@ -3389,6 +3407,51 @@ begin
 end;
 
 
+procedure TFPDlgWindow.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+var InX,InY: boolean;
+    R : TRect;
+    D : Sw_Integer;
+begin
+  if assigned(Owner) then
+  begin
+    GetBounds(R);
+    InX:=(R.B.X)<=(Owner^.Size.X-Delta.X);
+    InY:=(R.B.Y)<=(Owner^.Size.Y-Delta.Y);
+  end;
+  inherited CalcBounds(Bounds,Delta);
+  if assigned(Owner) then
+  begin
+    R:=Bounds;
+    {keep within bounds if was before}
+    if InX then
+      if (R.B.X)>(Owner^.Size.X) then
+      begin
+        D:=Owner^.Size.X-R.B.X;
+        R.B.X:=R.B.X+D;
+        R.A.X:=R.A.X+D;
+        if R.A.X<0 then
+        begin
+          R.B.X:=R.B.X-R.A.X;
+          R.A.X:=0;
+        end;
+      end;
+    if InY then
+      if (R.B.Y)>(Owner^.Size.Y) then
+      begin
+        D:=Owner^.Size.Y-R.B.Y;
+        R.B.Y:=R.B.Y+D;
+        R.A.Y:=R.A.Y+D;
+        if R.A.Y<0 then
+        begin
+          R.B.Y:=R.B.Y-R.A.Y;
+          R.A.Y:=0;
+        end;
+      end;
+    Bounds:=R;
+  end;
+end;
+
+
 (*
 constructor TTab.Init(var Bounds: TRect; ATabDef: PTabDef);
 begin
@@ -3630,7 +3693,7 @@ var B     : TDrawBuffer;
     Name       : PString;
     ActiveKPos : integer;
     ActiveVPos : integer;
-    FC   : char;
+    FC   : AnsiChar;
     ClipR      : TRect;
 procedure SWriteBuf(X,Y,W,H: integer; var Buf);
 var i: integer;
@@ -3660,7 +3723,7 @@ begin
   if HeaderLen>Size.X-2 then HeaderLen:=Size.X-2;
 
   { --- 1. sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[HeaderLen+1],'³',C1,1);
+  ClearBuf; MoveChar(B[0],''#$B3'',C1,1); MoveChar(B[HeaderLen+1],''#$B3'',C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
@@ -3673,47 +3736,47 @@ begin
                 end
            else C:=C2;
         MoveCStr(B[X],' '+Name^+' ',C); X:=X+X2+3;
-        MoveChar(B[X-1],'³',C1,1);
+        MoveChar(B[X-1],''#$B3'',C1,1);
       end;
   SWriteBuf(0,1,Size.X,1,B);
 
   { --- 0. sor --- }
-  ClearBuf; MoveChar(B[0],'Ú',C1,1);
+  ClearBuf; MoveChar(B[0],''#$DA'',C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-        if I<ActiveDef then FC:='Ú'
-                       else FC:='¿';
+        if I<ActiveDef then FC:=#$DA
+                       else FC:=#$BF;
         X2:=CStrLen(AtTab(i)^.Name^)+2;
-        MoveChar(B[X+X2],{'Â'}FC,C1,1);
+        MoveChar(B[X+X2],{''#$C2''}FC,C1,1);
         if i=DefCount-1 then X2:=X2+1;
         if X2>0 then
-        MoveChar(B[X],'Ä',C1,X2);
+        MoveChar(B[X],''#$C4'',C1,X2);
         X:=X+X2+1;
       end;
-  MoveChar(B[HeaderLen+1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ú',C1,1); MoveChar(B[ActiveVPos],'¿',C1,1);
+  MoveChar(B[HeaderLen+1],#$BF,C1,1);
+  MoveChar(B[ActiveKPos],#$DA,C1,1); MoveChar(B[ActiveVPos],#$BF,C1,1);
   SWriteBuf(0,0,Size.X,1,B);
 
   { --- 2. sor --- }
-  MoveChar(B[1],'Ä',C1,Max(HeaderLen,0)); MoveChar(B[HeaderLen+2],'Ä',C1,Max(Size.X-HeaderLen-3,0));
-  MoveChar(B[Size.X-1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ù',C1,1);
-  if ActiveDef=0 then MoveChar(B[0],'³',C1,1)
-                 else MoveChar(B[0],{'Ã'}'Ú',C1,1);
-  MoveChar(B[HeaderLen+1],'Ä'{'Á'},C1,1); MoveChar(B[ActiveVPos],'À',C1,1);
+  MoveChar(B[1],#$C4,C1,Max(HeaderLen,0)); MoveChar(B[HeaderLen+2],#$C4,C1,Max(Size.X-HeaderLen-3,0));
+  MoveChar(B[Size.X-1],#$BF,C1,1);
+  MoveChar(B[ActiveKPos],#$D9,C1,1);
+  if ActiveDef=0 then MoveChar(B[0],#$B3,C1,1)
+                 else MoveChar(B[0],{#$C3}#$DA,C1,1);
+  MoveChar(B[HeaderLen+1],#$C4{''#$C1''},C1,1); MoveChar(B[ActiveVPos],#$C0,C1,1);
   MoveChar(B[ActiveKPos+1],' ',C1,Max(ActiveVPos-ActiveKPos-1,0));
   SWriteBuf(0,2,Size.X,1,B);
 
-  { --- marad‚k sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[Size.X-1],'³',C1,1);
+  { --- marad#$82k sor --- }
+  ClearBuf; MoveChar(B[0],''#$B3'',C1,1); MoveChar(B[Size.X-1],''#$B3'',C1,1);
   for i:=3 to Size.Y-1 do
     SWriteBuf(0,i,Size.X,1,B);
   { SWriteBuf(0,3,Size.X,Size.Y-4,B); this was wrong
     because WriteBuf then expect a buffer of size size.x*(size.y-4)*2 PM }
 
   { --- Size.X . sor --- }
-  MoveChar(B[0],'À',C1,1); MoveChar(B[1],'Ä',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],'Ù',C1,1);
+  MoveChar(B[0],''#$C0'',C1,1); MoveChar(B[1],''#$C4'',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],''#$D9'',C1,1);
   SWriteBuf(0,Size.Y-1,Size.X,1,B);
 
   { - End of TGroup.Draw - }
@@ -3928,6 +3991,7 @@ begin
     { this makes loading a lot slower and is not needed as far as I can see (FK)
     Message(Application,evBroadcast,cmUpdate,nil);
     }
+    W^.SetCmdState([cmSaveAll],true);
   end;
   PopStatus;
   IOpenEditorWindow:=W;
@@ -3952,6 +4016,21 @@ function LastSourceEditor : PSourceWindow;
 
 begin
   LastSourceEditor:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
+end;
+
+function SourceOnDesktop(SearchFor:PSourceWindow) : PSourceWindow;
+
+function IsSearchedSource(P: PView) : boolean;
+begin
+  if assigned(P) and
+     (TypeOf(P^)=TypeOf(TSourceWindow)) then
+       IsSearchedSource:=(PSourceWindow(P)=SearchFor)
+     else
+       IsSearchedSource:=false;
+end;
+
+begin
+  SourceOnDesktop:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
 end;
 
 
@@ -4246,6 +4325,55 @@ begin
   if Lines<>nil then Dispose(Lines, Done);
 end;
 
+constructor TFPChDirDialog.Init(AOptions: Word; HistoryId: Sw_Word);
+var
+  R: TRect;
+  DInput  : PEditorInputLine;
+  Control : PView;
+  History : PHistory;
+  S : String;
+begin
+   inherited init(AOptions,HistoryId);
+   GrowMode := gfGrowAll + gfGrowRel;                 { Set window growmodes }
+   HelpCtx:=hcChangeDir;
+   {replace TInputLine with TEditorInputLine in order to be able to use Clipboard in it}
+   DirInput^.getData(S);
+   R.Assign(3, 3, 30, 4);
+   DInput := New(PEditorInputLine, Init(R, FileNameLen+4));
+   DInput^.GrowMode:=gfGrowHiX;
+   DInput^.SetData(S);
+   InsertBefore(DInput,DirInput); {insert before to preserve order as it was}
+   Delete(DirInput);
+   Dispose(DirInput,done);
+   DirInput:=DInput;
+   Control:=DirInput^.Next; {here we make assumption that THistory control will follow}
+   while (Control<> nil) do
+   begin
+     if TypeOf(Control^) = TypeOf(THistory) then
+     begin
+       History:=PHistory(Control);
+       History^.Link:=DirInput;
+       break;
+     end;
+     Control:=Control^.Next;
+   end;
+   {resize}
+   if Desktop^.Size.Y > 26 then
+     GrowTo(Size.X,Desktop^.Size.Y-6);
+   if Desktop^.Size.X > 60 then
+     GrowTo(Min(Desktop^.Size.X-(60-Size.X),102),Size.Y);
+   {set focus on the new input line}
+   DirInput^.Focus;
+end;
+
+procedure TFPChDirDialog.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=40;
+  Min.Y:=20;
+  Max.X:=WUtils.Min(102,WUtils.Max(40,ScreenWidth-2));
+  Max.Y:=WUtils.Max(20,Desktop^.Size.Y-6);
+end;
+
 constructor TFPAboutDialog.Init;
 var R,R2: TRect;
     C: PUnsortedStringCollection;
@@ -4299,7 +4427,7 @@ begin
     R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2026 by')));
   R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
+  Insert(New(PStaticText, Init(R2, ^C'B'#$82'rczi G'#$A0'bor')));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Pierre Muller')));
   R2.Move(0,1);
@@ -4315,14 +4443,14 @@ begin
   AddLine(^C'< Compiler development >');
   AddLine(^C'Carl-Eric Codere');
   AddLine(^C'Daniel Mantione');
-  AddLine(^C'Florian Kl„mpfl');
+  AddLine(^C'Florian Kl'#$84'mpfl');
   AddLine(^C'Jonas Maebe');
-  AddLine(^C'Mich„el Van Canneyt');
+  AddLine(^C'Mich'#$84'el Van Canneyt');
   AddLine(^C'Peter Vreman');
   AddLine(^C'Pierre Muller');
   AddLine('');
   AddLine(^C'< IDE development >');
-  AddLine(^C'B‚rczi G bor');
+  AddLine(^C'B'#$82'rczi G'#$A0'bor');
   AddLine(^C'Peter Vreman');
   AddLine(^C'Pierre Muller');
   AddLine('');
@@ -4575,6 +4703,7 @@ procedure TFPMemo.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     S: string;
 begin
+  TView.HandleEvent(Event);   { get focus on view if not already }
   case Event.What of
     evKeyDown :
       begin

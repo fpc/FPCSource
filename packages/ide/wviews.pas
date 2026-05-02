@@ -21,10 +21,12 @@ uses Objects,Drivers,Views,Menus,Dialogs;
 const
       evIdle                 = $8000;
 
-      cmCopyWin = 240;
-      cmPasteWin = 241;
+      cmCopyWin           = 240;
+      cmPasteWin          = 241;
       cmSelectAll         = 246;
       cmUnselect          = 247;
+      cmCommentSel        = 250;
+      cmUnCommentSel      = 251;
 
       cmLocalMenu            = 54100;
       cmUpdate               = 54101;
@@ -41,7 +43,7 @@ const
       cmUserBtn3             = $fee2;
       cmUserBtn4             = $fee3;
 
-      CPlainCluster          = #7#8#9#9;
+      CPlainCluster          = #7#8#9#9#13#9;{normal}{ active }{shortcut}{..}{disabled}{..}
 
 type
     longstring = ansistring;
@@ -244,7 +246,7 @@ var  FormatParams     : array[1..20] of ptrint;
 procedure ClearFormatParams;
 procedure AddFormatParam(P: pointer);
 procedure AddFormatParamInt(L: longint);
-procedure AddFormatParamChar(C: char);
+procedure AddFormatParamChar(C: AnsiChar);
 procedure AddFormatParamStr(const S: string);
 function FormatStrF(const Format: string; var Params): string;
 function FormatStrStr(const Format, Param: string): string;
@@ -345,7 +347,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
 {$ifdef WinClipSupported}
@@ -627,7 +629,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
@@ -960,7 +962,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
@@ -2209,7 +2211,7 @@ end;
 procedure TDropDownListBox.Draw;
 var B: TDrawBuffer;
     C,TextC: word;
-    LC: char;
+    LC: AnsiChar;
 begin
   if GetState(sfFocused)=false then
     begin
@@ -2352,7 +2354,7 @@ begin
   FormatParams[FormatParamCount]:=L;
 end;
 
-procedure AddFormatParamChar(C: char);
+procedure AddFormatParamChar(C: AnsiChar);
 begin
   AddFormatParamInt(ord(C));
 end;

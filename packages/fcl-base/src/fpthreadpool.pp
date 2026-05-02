@@ -1,7 +1,7 @@
  unit fpthreadpool;
 
 {$mode ObjFPC}{$H+}
-{$DEFINE DEBUGTHREADPOOL}
+{ $DEFINE DEBUGTHREADPOOL}
 
 interface
 
@@ -308,6 +308,7 @@ Procedure DoLog(Const Fmt : String; Const Args : Array of const);
 begin
   DoLog(Format(Fmt,Args))
 end;
+{$ENDIF}
 
 { TFPCustomSimpleThreadPool.TAbstractThreadList }
 
@@ -316,7 +317,6 @@ begin
   FPool:=aPool;
 end;
 
-{$ENDIF}
 
 { TFPCustomSimpleThreadPool.TAutoCheckQueueThread }
 

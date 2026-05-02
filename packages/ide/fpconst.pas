@@ -14,6 +14,8 @@
  **********************************************************************}
 unit FPConst;
 
+{$H-}
+
 interface
 
 uses Views,App,
@@ -21,7 +23,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.12';
+     VersionStr           = '1.0.14';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -65,11 +67,17 @@ const
 {$ifndef USE_SPECIAL_BASENAME}
      FPBaseName = 'fp';
 {$endif not USE_SPECIAL_BASENAME}
-     ININame              = FPBaseName+'.ini';
-     DirInfoName          = FPBaseName+'.dir';
-     SwitchesName         = FPBaseName+'.cfg';
-     DesktopName          = FPBaseName+'.dsk';
-     BrowserName          = FPBaseName+'.brw';
+     INIExt               = '.ini';
+     DirInfoExt           = '.dir';
+     SwitchesExt          = '.cfg';
+     DesktopExt           = '.dsk';
+     BrowserExt           = '.brw';
+
+     ININame              = FPBaseName+INIExt;
+     DirInfoName          = FPBaseName+DirInfoExt;
+     SwitchesName         = FPBaseName+SwitchesExt;
+     DesktopName          = FPBaseName+DesktopExt;
+     BrowserName          = FPBaseName+BrowserExt;
      BackgroundName       = 'fp.ans';
      ReadmeName           = 'readme.ide';
 
@@ -124,6 +132,7 @@ const
      dfSymbolInformation  = $00000020;
      dfCodeCompleteWords  = $00000040;
      dfCodeTemplates      = $00000080;
+     dfReturnToLastDir    = $00000100;
 
      { Auto Save flag constants }
      asEditorFiles        = $00000001; { Editor files }
@@ -134,6 +143,10 @@ const
      moAutoTrackSource    = $00000001;
      moCloseOnGotoSource  = $00000002;
      moChangeDirOnOpen    = $00000004;
+
+     { Desktop Option constants }
+     dpClockView          = $00000001;
+     dpHeapMonitor        = $00000002;
 
      { Desktop Location constants }
      dlCurrentDir         = $00;
@@ -149,11 +162,12 @@ const
      hidConditionalDefines= 205;
      hidCompilerArgs      = 206;
      hidWatchDialog       = 207;
-     hidBreakpointDialogName = 208;
+     hidChDirDialog       = 208;
      hidRunDir            = 209;
      hidBreakpointDialogCond = 210;
      hidPrinterDevice      = 211;
      hidEvaluate           = 212;
+     hidBreakpointDialogName = 213;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -381,6 +395,8 @@ const
      hcPasteWin          = hcShift+cmPasteWin;
      hcSelectAll         = hcShift+cmSelectAll;
      hcUnselect          = hcShift+cmUnselect;
+     hcCommentSel        = hcShift+cmCommentSel;
+     hcUnCommentSel      = hcShift+cmUnCommentSel;
 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;
@@ -441,8 +457,6 @@ const
      hcEditorOptions     = hcShift+cmEditorOptions;
      hcBrowserOptions    = hcShift+cmBrowserOptions;
      hcDoReload          = hcShift+cmDoReload;
-     { History constants }
-     hisChDirDialog      = 2000;
 
      CIDEHelpDialog      =
         #128#129#130#131#132#133#134#135#136#137#138#139#140#141#142#143 +

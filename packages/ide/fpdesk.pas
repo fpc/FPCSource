@@ -14,6 +14,8 @@
  **********************************************************************}
 unit FPDesk;
 
+{$H-}
+
 interface
 
 const
@@ -31,6 +33,7 @@ const
      ResSymbols         = 'SYMBOLS';
      ResCodeComplete    = 'CODECOMPLETE';
      ResCodeTemplates   = 'CODETEMPLATES';
+     ResLastDirectory   = 'LASTDIRECTORY';
      ResKeys            = 'KEYS';
 
 procedure InitDesktopFile;
@@ -89,6 +92,8 @@ const
       msg_storingcodecompletewordlist = 'Writing CodeComplete wordlist...';
       msg_readingcodetemplates = 'Reading CodeTemplates...';
       msg_storingcodetemplates = 'Writing CodeTemplates...';
+      msg_readingreturntolastdir = 'Reading Last directory to return...';
+      msg_storingreturntolastdir = 'Writing Last directory to return...';
       msg_readingsymbolinformation = 'Reading symbol information...';
       msg_storingsymbolinformation = 'Storing symbol information...';
       msg_failedtoreplacedesktopfile = 'Failed to replace desktop file.';
@@ -108,6 +113,8 @@ const
       msg_errorstoringvideomode = 'Error storing video mode';
       msg_errorloadingcodetemplates = 'Error loading CodeTemplates';
       msg_errorstoringcodetemplates = 'Error writing CodeTemplates';
+      msg_errorloadingreturntolastdir = 'Error loading Last directory to return';
+      msg_errorstoringreturntolastdir = 'Error writing Last directory to return';
       msg_errorloadingsymbolinformation = 'Error loading symbol information';
       msg_errorstoringsymbolinformation = 'Error storing symbol information';
       msg_errorloadingcodecompletewordlist = 'Error loading CodeComplete wordlist';
@@ -131,9 +138,9 @@ const
 procedure InitDesktopFile;
 begin
   if DesktopLocation=dlCurrentDir then
-    DesktopPath:=FExpand(DesktopName)
+    DesktopPath:=FExpand(DesktopFileName)
   else
-    DesktopPath:=FExpand(DirOf(IniFileName)+DesktopName);
+    DesktopPath:=FExpand(DirOf(IniFilePath)+DesktopFileName);
 end;
 
 procedure DoneDesktopFile;
@@ -361,7 +368,8 @@ begin
   DeskUseSyntaxHighlight:=b;
 end;
 
-function ReadOpenWindows(F: PResourceFile): boolean;
+
+function ReadOpenWindows(F: PResourceFile; const VM : TVideoMode): boolean;
 var S: PMemoryStream;
     OK: boolean;
     DV: word;
@@ -376,19 +384,20 @@ begin
     Begin
       Move(XData[XDataOfs],B,Size);
       Inc(XDataOfs,Size);
-    End;   
+    End;
 end;
 procedure ProcessWindowInfo;
 var W: PWindow;
     SW: PSourceWindow absolute W;
     St: string;
-    Ch: char;
+    Ch: AnsiChar;
     TP,TP2: TPoint;
     L: longint;
     R: TRect;
     ZZ: byte;
     Z: TRect;
     Len : Byte;
+    BM: TEditorBookMark;
 begin
   XDataOfs:=0;
   Desktop^.Lock;
@@ -420,6 +429,10 @@ begin
           SW^.Editor^.SetSelection(TP,TP2);
           GetData(TP,sizeof(TP)); SW^.Editor^.SetCurPtr(TP.X,TP.Y);
           GetData(TP,sizeof(TP)); SW^.Editor^.ScrollTo(TP.X,TP.Y);
+          for L:=0 to 9 do begin
+            GetData(BM,Sizeof(BM));
+            SW^.Editor^.SetBookmark(L,BM); {restore bookmarks}
+          end;
         end;
       end;
      hcClipboardWindow:
@@ -510,7 +523,7 @@ begin
          W:=ASCIIChart;
          if DV>=$A then
            begin
-             GetData(ch,sizeof(char));
+             GetData(ch,sizeof(AnsiChar));
              AsciiChart^.Report^.AsciiChar:=ord(ch);
              AsciiChart^.Table^.SetCursor(
                ord(ch) mod AsciiChart^.Table^.Size.X,
@@ -523,6 +536,20 @@ begin
       Desktop^.Unlock;
       Exit;
     end;
+  {calculate new location and size of window}
+  if (VM.col > 0) and (ScreenWidth<>VM.col) then
+  begin
+    WI.Bounds.A.X:=round(WI.Bounds.A.X*ScreenWidth/VM.col);
+    if (W^.Flags and wfGrow)<>0 then
+      WI.Bounds.B.X:=Max(16,round(WI.Bounds.B.X*ScreenWidth/VM.col));
+  end;
+  if (VM.row > 2) and (ScreenHeight<>VM.row) then
+  begin
+    WI.Bounds.A.Y:=round(WI.Bounds.A.Y*(ScreenHeight-2)/(VM.row-2));
+    if (W^.Flags and wfGrow)<>0 then
+      WI.Bounds.B.Y:=Max(6,round(WI.Bounds.B.Y*(ScreenHeight-2)/(VM.row-2)));
+  end;
+  {relocate and resize window as needed}
   W^.GetBounds(R);
   if (R.A.X<>WI.Bounds.A.X) or (R.A.Y<>WI.Bounds.A.Y) then
     R.Move(WI.Bounds.A.X-R.A.X,WI.Bounds.A.Y-R.A.Y);
@@ -540,6 +567,7 @@ begin
       end
     else
       W^.Hide;
+  {check if window is out screen bounds and bring it back if so}
   ZZ:=0;
   Desktop^.GetExtent(Z);
   if R.A.Y>Z.B.Y-7 then
@@ -587,6 +615,7 @@ begin
         begin
           SetLength(Title,WI.TitleLen);
           S^.Read(Title[1],WI.TitleLen);
+          FillChar(XData,SizeOf(XData),0);
           if WI.ExtraDataSize>0 then
           S^.Read(XData,WI.ExtraDataSize);
           ProcessWindowInfo;
@@ -638,8 +667,9 @@ var W: PWindow;
     XDataOfs: word;
     XData: array[0..1024] of byte;
     St: string;
-    Ch: char;
+    Ch: AnsiChar;
     TP: TPoint;
+    BM: TEditorBookMark;
     L: longint;
 procedure AddData(const B; Size: word);
 begin
@@ -689,11 +719,14 @@ begin
         TP:=SW^.Editor^.SelEnd; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.CurPos; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.Delta; AddData(TP,sizeof(TP));
+        for L:=0 to 9 do begin
+          BM:=SW^.Editor^.GetBookmark(L); AddData(BM,Sizeof(BM)); {save bookmarks}
+        end;
       end;
     hcAsciiTableWindow :
       begin
         ch:=chr(PFPAsciiChart(P)^.Report^.AsciiChar);
-        AddData(ch,sizeof(char));
+        AddData(ch,sizeof(AnsiChar));
       end;
   end;
 
@@ -843,6 +876,61 @@ begin
   WriteCodeTemplates:=OK;
 end;
 
+function ReadReturnToLastDir(F: PResourceFile): boolean;
+var S: PMemoryStream;
+    OK: boolean;
+    Dir:AnsiString;
+    Size:sw_integer;
+begin
+  PushStatus(msg_readingreturntolastdir);
+  New(S, Init(1024,4096));
+  OK:=F^.ReadResourceEntryToStream(ResLastDirectory,langDefault,S^);
+  S^.Seek(0);
+  if OK then
+  begin
+    S^.Read(Size, sizeof(Size));                        { Read directory size }
+    if Size>0 then
+    begin
+      Setlength(Dir,Size);
+      S^.Read(Dir[1], Size);                           { Read the directory }
+      {$i-}ChDir(Dir);{$i+}
+      IOResult; {eat io result so it does not affect later operations}
+      GetDir(0,StartUpDir);
+    end;
+  end;
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox(msg_errorloadingreturntolastdir,nil);
+  PopStatus;
+  ReadReturnToLastDir:=OK;
+end;
+
+function WriteReturnToLastDir(F: PResourceFile): boolean;
+var OK: boolean;
+    S: PMemoryStream;
+    Dir:AnsiString;
+    Size:sw_integer;
+begin
+  PushStatus(msg_storingreturntolastdir);
+  New(S, Init(1024,4096));
+  OK:=true;
+  {$i-}GetDir(0,Dir);{$i+}
+  if IOResult=0 then
+  begin
+    Size:=length(Dir);
+    S^.Write(Size, sizeof(Size));
+    if Size>0 then S^.Write(Dir[1],Size);
+    S^.Seek(0);
+    F^.CreateResource(ResLastDirectory,rcBinary,0);
+    OK:=F^.AddResourceEntryFromStream(ResLastDirectory,langDefault,0,S^,S^.GetSize);
+  end;
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox(msg_errorstoringreturntolastdir,nil);
+  PopStatus;
+  WriteReturnToLastDir:=OK;
+end;
+
 function ReadFlags(F: PResourceFile): boolean;
 var
   OK: boolean;
@@ -950,6 +1038,10 @@ begin
         if Assigned(Application) then
           Application^.SetScreenVideoMode(VM);
       end;
+    if not VOK then
+     begin
+       VM.row:=0; VM.col:=0; {safety measure}
+     end;
     if ((DesktopFileFlags and dfHistoryLists)<>0) then
       OK:=ReadHistory(F) and OK;
     if ((DesktopFileFlags and dfWatches)<>0) then
@@ -957,7 +1049,7 @@ begin
     if ((DesktopFileFlags and dfBreakpoints)<>0) then
       OK:=ReadBreakpoints(F) and OK;
     if ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=ReadOpenWindows(F) and OK;
+      OK:=ReadOpenWindows(F,VM) and OK;
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=ReadSymbols(F) and OK;
@@ -965,6 +1057,13 @@ begin
       OK:=ReadCodeComplete(F) and OK;
     if ((DesktopFileFlags and dfCodeTemplates)<>0) then
       OK:=ReadCodeTemplates(F) and OK;
+    if not OverrideLastDirOption then
+      if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+        StartupOptions:=StartupOptions or soReturnToLastDir
+      else
+        StartupOptions:=StartupOptions and( not soReturnToLastDir);
+    if ((StartupOptions and soReturnToLastDir)<>0) then
+      OK:=ReadReturnToLastDir(F) and OK;
 {$ifdef Unix}
     OK:=ReadKeys(F) and OK;
 {$endif Unix}
@@ -1010,6 +1109,9 @@ begin
         OK:=OK and WriteCodeComplete(F);
       if ((DesktopFileFlags and dfCodeTemplates)<>0) then
         OK:=OK and WriteCodeTemplates(F);
+      {if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+        always write last dir }
+        OK:=WriteReturnToLastDir(F) and OK;
 {$ifdef Unix}
       OK:=OK and WriteKeys(F);
 {$endif Unix}

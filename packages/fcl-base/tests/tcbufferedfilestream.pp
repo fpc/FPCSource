@@ -36,7 +36,7 @@ procedure TTestBufferedFileStream.TestCacheRead;
 var
   lBufferedStream: TBufferedFileStream;
   lStream: TFileStream;
-  b: array [0..10000-1] of char;
+  b: array [0..10000-1] of AnsiChar;
   j,k: integer;
   lBytesToRead: integer;
   lEffectiveRead: integer;
@@ -75,7 +75,7 @@ begin
       {$ELSE}
       lCheckInitV:=lReadPosition mod 10;
       for k := 0 to Pred(lEffectiveRead) do begin
-        if b[k]<>char(ord('0')+lCheckInitV mod 10) then begin
+        if b[k]<>AnsiChar(ord('0')+lCheckInitV mod 10) then begin
           FAIL('Expected data error');
         end;
         inc(lCheckInitV);
@@ -98,7 +98,7 @@ begin
 
       lCheckInitV:=lReadPosition mod 10;
       for k := 0 to Pred(lEffectiveRead) do begin
-        if b[k]<>char(ord('0')+lCheckInitV mod 10) then begin
+        if b[k]<>AnsiChar(ord('0')+lCheckInitV mod 10) then begin
           FAIL('Expected data error');
         end;
         inc(lCheckInitV);
@@ -132,7 +132,7 @@ begin
       {$ELSE}
       lCheckInitV:=lReadPosition mod 10;
       for k := 0 to Pred(lEffectiveRead) do begin
-        if b[k]<>char(ord('0')+lCheckInitV mod 10) then begin
+        if b[k]<>AnsiChar(ord('0')+lCheckInitV mod 10) then begin
           FAIL('Expected data error');
         end;
         inc(lCheckInitV);
@@ -154,7 +154,7 @@ begin
 
       lCheckInitV:=lReadPosition mod 10;
       for k := 0 to Pred(lEffectiveRead) do begin
-        if b[k]<>char(ord('0')+lCheckInitV mod 10) then begin
+        if b[k]<>AnsiChar(ord('0')+lCheckInitV mod 10) then begin
           FAIL('Expected data error');
         end;
         inc(lCheckInitV);
@@ -185,7 +185,7 @@ var
   lBufferedStream: TBufferedFileStream;
   lStream: TFileStream;
   lVerifyStream1,lVerifyStream2: TFileStream;
-  b: array [0..10000-1] of char;
+  b: array [0..10000-1] of AnsiChar;
   j: integer;
   lBytesToWrite: integer;
   lWritePosition: int64;
@@ -205,7 +205,7 @@ begin
       lStream.Write(b,sizeof(b));
     end;
     for j := 0 to Pred(Sizeof(b)) do begin
-      b[j]:=char(ord('0')+j mod 10);
+      b[j]:=AnsiChar(ord('0')+j mod 10);
     end;
   finally
     lBufferedStream.Free;
@@ -334,11 +334,11 @@ end;
 procedure TTestBufferedFileStream.SetUp;
 var
   F: TFileStream;
-  b: array [0..10000-1] of char;
+  b: array [0..10000-1] of AnsiChar;
   j: integer;
 begin
   for j := 0 to Pred(10000) do begin
-    b[j]:=char(ord('0')+j mod 10);
+    b[j]:=AnsiChar(ord('0')+j mod 10);
   end;
   F:=TFileStream.Create(TEST_FILENAME,fmCreate);
   for j := 0 to Pred(1000) do begin

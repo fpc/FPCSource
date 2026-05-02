@@ -18,7 +18,7 @@
 {$ifdef Go32V2}
   { NOVESA conditional avoids use of
     vesa unit, it also disables USE_GRAPH_SWITCH
-    conditional, in order to obtain a go32v2 excutable that
+    conditional, in order to obtain a go32v2 executable that
     doesn't require full screen switching
     at startup on Windows OS }
   {$ifndef NOVESA}
@@ -83,7 +83,9 @@
     {$define SignalIsCdecl}
   {$endif}
   {$ifdef win64}
-    {$define HasSignal}
+    {$ifdef cpux86_64}
+      {$define HasSignal}
+    {$endif cpux86_64}
     {$define SignalIsFunction}
     {$define SignalIsCdecl}
   {$endif}
@@ -221,3 +223,13 @@
     {$define GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   {$endif Windows}
 {$endif GDBMI}
+
+{$ifdef cpullvm}
+{$define TYPED_LOCAL_CALLBACKS}
+{$endif}
+
+{$ifdef TYPED_LOCAL_CALLBACKS}
+{$modeswitch nestedprocvars}
+{$endif}
+
+{$h-}

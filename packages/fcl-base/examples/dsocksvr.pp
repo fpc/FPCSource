@@ -105,7 +105,7 @@ end;
 
 Var
   Application : TServerApp;
-  c : char;
+  c : AnsiChar;
 
 begin
   DoInet:=False;

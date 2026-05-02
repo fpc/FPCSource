@@ -45,11 +45,12 @@ begin
   if Desktop^.ExecView(D)=cmOK then
     begin
        TargetSwitches^.SetCurrSel(RB^.Value);
-       { we allways need to recompile if we change
+       { we always need to recompile if we change
          the target OS PM }
        if L<>RB^.Value then
          PrevMainFile:='';
        UpdateTarget;
+       UpdateAsmOutputSwitches;
     end;
   Dispose(D, Done);
 end;
@@ -80,7 +81,7 @@ end;
 
 procedure TIDEApp.DoPrimaryFile;
 var
-  D : PFileDialog;
+  D : PFPFileDialog;
   FileName : string;
 begin
   New(D, Init('*.pri;*.pas',label_primaryfile_primaryfile,'*.pri;*.pas',fdOpenButton,hidPrimaryFile));

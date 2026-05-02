@@ -32,7 +32,7 @@ implementation
 
 uses
   windows,
-  gdbint; // force dependancies that hopefully make it execute at the right moment.
+  gdbint; // force dependencies that hopefully make it execute at the right moment.
 
 // prototype of atexit:
 Type

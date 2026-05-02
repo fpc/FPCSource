@@ -115,6 +115,13 @@ begin
 {$endif windows}
 end;
 
+function InQuotes(Const S:ShortString):ShortString;
+begin
+  InQuotes:=S;
+  if (Length(S)>0) and (S[1]<>'"') then
+    InQuotes:='"'+S+'"';
+end;
+
 constructor TGDBController.Init;
 begin
   inherited Init;
@@ -357,7 +364,7 @@ begin
     Options := Options + '-t ';
   if bfHardware in BreakpointFlags then
     Options := Options + '-h ';
-  Command('-break-insert ' + Options + location);
+  Command('-break-insert ' + Options + InQuotes(location));
   if GDB.ResultRecord.Success then
     BreakpointInsert := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt
   else
@@ -368,11 +375,11 @@ function TGDBController.WatchpointInsert(const location: string; WatchpointType:
 begin
   case WatchpointType of
     wtWrite:
-      Command('-break-watch ' + location);
+      Command('-break-watch ' + InQuotes(location));
     wtReadWrite:
-      Command('-break-watch -a ' + location);
+      Command('-break-watch -a ' + InQuotes(location));
     wtRead:
-      Command('-break-watch -r ' + location);
+      Command('-break-watch -r ' + InQuotes(location));
   end;
   if GDB.ResultRecord.Success then
     case WatchpointType of
@@ -435,7 +442,9 @@ end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
 begin
-  Command('-break-insert -t ' + tbreakstring);
+  Command('-break-insert -t ' + InQuotes(tbreakstring));
+  if not GDB.ResultRecord.Success then
+    exit;
   TBreakNumber := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt;
 end;
 
@@ -464,9 +473,9 @@ begin
     if Assigned(FrameList.ValueAt[I].AsTuple['line']) then
       frames[I]^.line_number := FrameList.ValueAt[I].AsTuple['line'].AsLongInt;
     if Assigned(FrameList.ValueAt[I].AsTuple['func']) then
-      frames[I]^.function_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
+      frames[I]^.function_name := StrNew(PAnsiChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
     if Assigned(FrameList.ValueAt[I].AsTuple['fullname']) then
-      frames[I]^.file_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
+      frames[I]^.file_name := StrNew(PAnsiChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
   end;
   Command('-stack-list-arguments 1');
   if not GDB.ResultRecord.Success then
@@ -488,7 +497,7 @@ begin
           s:=s+':='+ArgList.ValueAt[J].AsTuple['value'].ASString;
       end;
     s:=s+')';
-    frames[I]^.args:=StrNew(pchar(s));
+    frames[I]^.args:=StrNew(PAnsiChar(s));
   end;
 end;
 
@@ -507,14 +516,14 @@ var
 begin
   getdir(0,cmd);
   UnixDir(cmd);
-  Command('-environment-cd ' + cmd);
+  Command('-environment-cd ' + InQuotes(cmd));
   GDBOutputBuf.Reset;
   GDBErrorBuf.Reset;
 {$ifdef GDB_RAW_OUTPUT}
   GDBRawBuf.reset;
 {$endif GDB_RAW_OUTPUT}
   UnixDir(fn);
-  Command('-file-exec-and-symbols ' + fn);
+  Command('-file-exec-and-symbols ' + InQuotes(fn));
   if not GDB.ResultRecord.Success then
     begin
       LoadFile:=false;
@@ -534,7 +543,7 @@ begin
   UnixDir(hs);
   { Avoid error message if s is empty }
   if hs<>'' then
-    Command('-environment-cd ' + hs);
+    Command('-environment-cd ' + InQuotes(hs));
 end;
 
 procedure TGDBController.SetArgs(const s: string);

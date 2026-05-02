@@ -29,8 +29,14 @@ type
   EFieldMap = Class(EDatabaseError);
 
   { TFieldMap }
+  TTransformMap = class(TObject)
+  Protected
+    function TransformString(const aString : RawByteString) : RawByteString; virtual; overload;
+    function TransformString(const aString : UnicodeString) : UnicodeString; virtual; overload;
+    function TransformString(const aString : WideString) : WideString; virtual; overload;
+  end;
 
-  TFieldMap = Class(TObject)
+  TFieldMap = Class(TTransFormMap)
   private
     FDataset: TDataset;
     FFreeDataset: Boolean;
@@ -64,12 +70,25 @@ type
 
   { TParamMap }
 
-  TParamMap = Class(TObject)
+  TParamMap = Class(TTransformMap)
   private
     FParams: TParams;
   Protected
     Function FindParam(const FN : String) : TParam;
     Function ParamByName(const FN : String) : TParam;
+    Function SetParam(P : TParam; aValue : TBCD) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : Integer) : Boolean; overload;
+    Function SetParam(P : TParam; const aValue : AnsiString) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : Boolean) : Boolean; overload;
+    function SetDateParam(P: TParam; aValue: TDateTime): Boolean; overload;
+    Function SetParam(P : TParam; aValue : Double) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : Single) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : Int64) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : LongWord) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : Currency) : Boolean; overload;
+    Function SetParam(P : TParam; const aValue : UnicodeString) : Boolean; overload;
+    Function SetParam(P : TParam; const aValue : WideString) : Boolean; overload;
+    Function SetParam(P : TParam; aValue : TBytes) : Boolean; overload;
   Public
     Constructor Create(AParams : TParams);
     Procedure InitParams; virtual; abstract;
@@ -466,6 +485,23 @@ begin
   Dataset.Cancel;
 end;
 
+{ TTransformMap }
+
+function TTransformMap.TransformString(const aString: RawByteString): RawByteString;
+begin
+  Result:=aString;
+end;
+
+function TTransformMap.TransformString(const aString: UnicodeString): UnicodeString;
+begin
+  Result:=aString;
+end;
+
+function TTransformMap.TransformString(const aString: WideString): WideString;
+begin
+  Result:=aString;
+end;
+
 { TParamMap }
 
 function TParamMap.FindParam(const FN: String): TParam;
@@ -480,6 +516,98 @@ begin
   If (FParams=Nil) then
     Raise Exception.CreateFmt(SErrNoParamsForParam,[ClassName,FN]);
   Result:=FParams.ParamByName(FN);
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: TBCD): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsFMTBCD:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Integer): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsInteger:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; const aValue: AnsiString): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsString:=TransformString(aValue);
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Boolean): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsBoolean:=aValue;
+end;
+
+function TParamMap.SetDateParam(P: TParam; aValue: TDateTime): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsDateTime:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Double): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsFloat:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Single): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsSingle:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Int64): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsLargeInt:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: LongWord): Boolean;
+
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsLongWord:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: Currency): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsCurrency:=aValue;
+end;
+
+function TParamMap.SetParam(P: TParam; const aValue: UnicodeString): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsUnicodeString:=TransformString(aValue);
+end;
+
+function TParamMap.SetParam(P: TParam; const aValue: WideString): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsWideString:=TransformString(aValue);
+end;
+
+function TParamMap.SetParam(P: TParam; aValue: TBytes): Boolean;
+begin
+  Result:=Assigned(P);
+  If Result then
+    P.AsBytes:=aValue;
 end;
 
 constructor TParamMap.Create(AParams: TParams);
@@ -559,6 +687,7 @@ begin
     Result:=F.AsString
   else
     Result:=ADefault;
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; ADefault: Boolean): Boolean;
@@ -631,6 +760,7 @@ begin
     Result:=F.AsUnicodeString
   else
     Result:=ADefault;
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; const ADefault: WideString): WideString;
@@ -639,6 +769,7 @@ begin
     Result:=F.AsWideString
   else
     Result:=ADefault;
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; ADefault: TBytes): TBytes;

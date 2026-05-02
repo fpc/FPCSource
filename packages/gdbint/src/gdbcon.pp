@@ -258,6 +258,8 @@ var
   hs : string;
 begin
   hs:=s;
+  if hs='' then
+    exit; { if there is no directory to set to, then don't  }
   UnixDir(hs);
   if assigned(progdir) then
     strdispose(progdir);
@@ -474,7 +476,7 @@ begin
   SavedWindowWidth:=-1;
   val(strpas(p),SavedWindowWidth);
   if SavedWindowWidth<>-1 then
-    Command('set width 0xffffffff');
+    Command('set width 0');
 end;
 
 procedure TGDBController.NormWidth;

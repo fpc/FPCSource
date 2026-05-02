@@ -43,7 +43,7 @@ var
 begin
   if FileExists (filename) then
     begin
-    fs := TFileStream.Create (filename, fmOpenRead);
+    fs := TFileStream.Create (filename, fmOpenRead or fmShareDenyWrite);
     try
       LoadFromStream (fs, handler);
     finally
@@ -181,7 +181,7 @@ begin
     begin
     if h = nil then
       begin
-      f := TFileStream.Create (filename, fmOpenRead);
+      f := TFileStream.Create (filename, fmOpenRead or fmShareDenyWrite);
       try
         LoadFromStream (f);
       finally

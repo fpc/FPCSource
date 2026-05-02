@@ -46,6 +46,8 @@ uses
 const
   PrinterDevice : string = 'prn';
 
+var InitialHelpFileCount : Sw_Word;
+
 {$ifdef useresstrings}
 resourcestring
 {$else}
@@ -149,6 +151,7 @@ const
   ieAutoSave         = 'AutoSaveFlags';
   ieMiscOptions      = 'MiscOptions';
   ieDesktopLocation  = 'DesktopLocation';
+  ieDesktopPreferences= 'DesktopPreferences';
   ieDesktopFlags     = 'DesktopFileFlags';
   ieCenterDebuggerRow= 'CenterCurrentLineWhileDebugging';
   ieShowReadme       = 'ShowReadme';
@@ -204,10 +207,11 @@ end;
 procedure InitINIFile;
 var S: string;
 begin
+  IniFilePath:=INIFileName;
   S:=LocateFile(INIFileName);
   if S<>'' then
-    IniFileName:=S;
-  IniFileName:=FExpand(IniFileName);
+    IniFilePath:=S;
+  IniFilePath:=FExpand(IniFilePath);
 end;
 
 procedure CheckINIFile;
@@ -215,42 +219,42 @@ var IniDir,CurDir: DirStr;
     INI: PINIFile;
 const Btns : array[1..2] of string = (btn_config_copyexisting,btn_config_createnew);
 begin
-  IniDir:=DirOf(IniFileName); CurDir:=GetCurDir;
+  IniDir:=DirOf(IniFilePath); CurDir:=GetCurDir;
   if CompareText(IniDir,CurDir)<>0 then
-   if not ExistsFile(CurDir+DirInfoName) then
+   if not ExistsFile(CurDir+DirInfoFileName) then
      if ConfirmBox(FormatStrStr(msg_doyouwanttocreatelocalconfigfile,IniDir),nil,false)=cmYes then
        begin
-         if (not ExistsFile(IniFileName)) or
+         if (not ExistsFile(IniFilePath )) or
             (ChoiceBox(msg_configcopyexistingorcreatenew,nil,
               Btns,false)=cmUserBtn2) then
            begin
              { create new config here }
-             IniFileName:=CurDir+IniName;
-             SwitchesPath:=CurDir+SwitchesName;
+             IniFilePath:=CurDir+IniFileName;
+             SwitchesPath:=CurDir+SwitchesFileName;
            end
          else
            begin
              { copy config here }
-             if CopyFile(IniFileName,CurDir+IniName)=false then
-               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniName),nil)
+             if CopyFile(IniFilePath,CurDir+IniFileName)=false then
+               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniFileName),nil)
              else
-               IniFileName:=CurDir+IniName;
+                 IniFilePath:=CurDir+IniFileName;
              { copy also SwitchesPath to current dir, but only if
                1) SwitchesPath exists
                2) SwitchesPath is different from CurDir+SwitchesName }
              if ExistsFile(SwitchesPath) and
-                not SameFileName(SwitchesPath,CurDir+SwitchesName) then
+                not SameFileName(SwitchesPath,CurDir+SwitchesFileName) then
                begin
-                 if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
-                   ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
+                 if CopyFile(SwitchesPath,CurDir+SwitchesFileName)=false then
+                   ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesFileName),nil)
                  else
-                   SwitchesPath:=CurDir+SwitchesName;
+                   SwitchesPath:=CurDir+SwitchesFileName;
                end;
            end;
        end
      else
        begin
-         New(INI, Init(CurDir+DirInfoName));
+         New(INI, Init(CurDir+DirInfoFileName));
          INI^.SetEntry(MainSectionName,'Comment','Do NOT delete this file!!!');
          if INI^.Update=false then
            ErrorBox(FormatStrStr(msg_errorwritingfile,INI^.GetFileName),nil);
@@ -293,10 +297,10 @@ begin
       if code<>0 then
         break;
       inc(len);
-      strtopalette[len]:=char(X);
+      strtopalette[len]:=AnsiChar(X);
       inc(i,p);
     end;
-  strtopalette[0]:=char(len);
+  strtopalette[0]:=AnsiChar(len);
 end;
 
 {$ifndef NODEBUG}
@@ -404,10 +408,10 @@ var INIFile: PINIFile;
     W: word;
     crcv:cardinal;
 begin
-  OK:=ExistsFile(IniFileName);
+  OK:=ExistsFile(IniFilePath);
   if OK then
  begin
-  New(INIFile, Init(IniFileName));
+  New(INIFile, Init(IniFilePath));
   { Files }
   OpenExts:=INIFile^.GetEntry(secFiles,ieOpenExts,OpenExts);
   RecentFileCount:=High(RecentFiles);
@@ -472,6 +476,7 @@ begin
     inc(I);
     if S<>'' then HelpFiles^.Insert(NewStr(S));
   until S='';
+  InitialHelpFileCount:=I-2;
   { Editor }
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultIndentSize:=INIFile^.GetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
@@ -580,6 +585,7 @@ begin
   AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   DesktopLocation:=INIFile^.GetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  DesktopPreferences:=INIFile^.GetIntEntry(secPreferences,ieDesktopPreferences,DesktopPreferences);
   { Misc }
   ShowReadme:=INIFile^.GetIntEntry(secMisc,ieShowReadme,{integer(ShowReadme)}1)<>0;
   Dispose(INIFile, Done);
@@ -597,10 +603,10 @@ var INIFile: PINIFile;
     OK: boolean;
 begin
 {$ifdef Unix}
-  if not FromSaveAs and (DirOf(IniFileName)=DirOf(SystemIDEDir)) then
+  if not FromSaveAs and (DirOf(IniFilePath)=DirOf(SystemIDEDir)) then
     begin
-      IniFileName:=FExpand('~/.fp/'+IniName);
-      If not ExistsDir(DirOf(IniFileName)) then
+      IniFilePath:=FExpand('~/.fp/'+IniFileName);
+      If not ExistsDir(DirOf(IniFilePath)) then
         MkDir(FExpand('~/.fp'));
    end;
 {$endif Unix}
@@ -608,12 +614,12 @@ begin
   if not FromSaveAs and (DirOf(IniFileName)=DirOf(SystemIDEDir)) and
     (GetEnv('APPDATA')<>'') then
     begin
-      IniFileName:=FExpand(GetEnv('APPDATA')+'/fp/'+IniName);
-      If not ExistsDir(DirOf(IniFileName)) then
+      IniFilePath:=FExpand(GetEnv('APPDATA')+'/fp/'+IniFileName);
+      If not ExistsDir(DirOf(IniFilePath)) then
         MkDir(FExpand(GetEnv('APPDATA')+'/fp'));
    end;
 {$endif WINDOWS}
-  New(INIFile, Init(IniFileName));
+  New(INIFile, Init(IniFilePath));
   { Files }
   { avoid keeping old files }
   INIFile^.DeleteSection(secFiles);
@@ -692,6 +698,11 @@ begin
       S:=HelpFiles^.At(I-1)^;
       INIFile^.SetEntry(secHelp, ieHelpFile + IntToStr(I), EscapeIniText(S));
     end;
+  if InitialHelpFileCount>HelpFileCount then
+    for I:=HelpFileCount+1 to InitialHelpFileCount do
+      { Have to actively delete file entries that are not in use anymore. }
+      INIFile^.DeleteEntry(secHelp, ieHelpFile + IntToStr(I));
+  InitialHelpFileCount:=HelpFileCount;
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
@@ -752,6 +763,16 @@ begin
     INIFile^.SetEntry(secColors,iePalette+'_121_160',PaletteToStr(copy(S,121,40)));
     INIFile^.SetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40)));
     INIFile^.SetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40)));
+  end else
+  begin
+    { Actively delete color map entries if current palette match to default
+      palette. This eliminates "bug" reported in if branch above. (M) }
+    INIFile^.DeleteEntry(secColors,iePalette+'_1_40');
+    INIFile^.DeleteEntry(secColors,iePalette+'_41_80');
+    INIFile^.DeleteEntry(secColors,iePalette+'_81_120');
+    INIFile^.DeleteEntry(secColors,iePalette+'_121_160');
+    INIFile^.DeleteEntry(secColors,iePalette+'_161_200');
+    INIFile^.DeleteEntry(secColors,iePalette+'_201_240');
   end;
   { Desktop }
   INIFile^.SetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
@@ -760,6 +781,7 @@ begin
   INIFile^.SetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   INIFile^.SetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   INIFile^.SetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  INIFile^.SetIntEntry(secPreferences,ieDesktopPreferences,DesktopPreferences);
   { Misc }
   INIFile^.SetIntEntry(secMisc,ieShowReadme,integer(ShowReadme));
   OK:=INIFile^.Update;

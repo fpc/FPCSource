@@ -24,7 +24,7 @@ unit FPCompil;
 interface
 
 { don't redir under linux, because all stdout (also from the ide!) will
-  then be redired (PFV) }
+  then be redirected (PFV) }
 { this should work now correctly because
   RedirDisableAll and RedirEnableAll function are added in fpredir (PM) }
 
@@ -83,6 +83,7 @@ type
     PCompilerStatusDialog = ^TCompilerStatusDialog;
     TCompilerStatusDialog = object(TCenterDialog)
       ST    : PAdvancedStaticText;
+      ST2   : PAdvancedStaticText;
       KeyST : PColorStaticText;
       starttime : real;
       constructor Init;
@@ -475,6 +476,14 @@ end;}
 procedure TCompilerMessageWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
+    evKeyDown :
+      begin
+        if (Event.KeyCode=kbEsc) then
+          begin
+            ClearEvent(Event);
+            Hide;
+          end;
+      end;
     evBroadcast :
       case Event.Command of
         cmListFocusChanged :
@@ -577,8 +586,13 @@ begin
   starttime:=getrealtime;
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
+  R.B.Y:=R.B.Y-4;
   New(ST, Init(R, ''));
   Insert(ST);
+  GetExtent(R); R.B.Y:=11;
+  R.Grow(-3,-2); R.A.Y:=R.A.Y+3;
+  New(ST2, Init(R, ''));
+  Insert(ST2);
   GetExtent(R); R.B.Y:=11;
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
   New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256,true));
@@ -659,6 +673,13 @@ begin
   AddFormatParamStr(ShrinkPath(SmartPath(MainFile),
     MaxFileNameSize-Length('Main file: %s')));
   AddFormatParamStr(StatusS);
+  ST^.SetText(
+   FormatStrF(
+    'Main file: %s'#13+
+    '%s'+#13#13,
+   FormatParams)
+  );
+  ClearFormatParams;
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
@@ -669,10 +690,8 @@ begin
   r:=getrealtime;
   AddFormatParamInt(trunc(r-starttime));
   AddFormatParamInt(trunc(frac(r-starttime)*10));
-  ST^.SetText(
+  ST2^.SetText(
    FormatStrF(
-    'Main file: %s'#13+
-    '%s'+#13#13+
     'Target: %s'#13+
     'Line number: %6d     '+'Total lines:      %6d'+#13+
     'Used memory: %6dK    '+'Allocated memory: %6dK'#13+
@@ -695,6 +714,18 @@ function CompilerStatus: boolean;
      event : tevent;
 
 begin
+  GetSystemEvent(Event);         { Load system event }
+  If (Event.What <> evNothing) Then
+  begin
+{$ifdef redircompiler}
+    RedirDisableAll;
+{$endif}
+    Application^.HandleEvent(Event); {Might be resize, handle it right away}
+{$ifdef redircompiler}
+    RedirEnableAll;
+{$endif}
+  end;
+
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
     begin
@@ -713,7 +744,7 @@ begin
        CompilerStatus:=true;
        exit;
     end;
-{ only display line info every 100 lines, ofcourse all other messages
+{ only display line info every 100 lines, of course all other messages
   will be displayed directly }
   if (getrealtime-lasttime>=CompilerStatusUpdateDelay) or (status.compiledlines=1) then
    begin
@@ -836,7 +867,7 @@ begin
           FileName:=P^.Editor^.FileName;
           if FileName='' then
             begin
-              P^.Editor^.SaveAsk(true);
+              P^.Editor^.SaveAsk(cmValid,true);
               FileName:=P^.Editor^.FileName;
             end;
         end
@@ -957,7 +988,7 @@ begin
     FileName:='"'+FileName+'"';
   if mode=cBuild then
     FileName:='-B '+FileName;
-  { tokens are created and distroed by compiler.compile !! PM }
+  { tokens are created and destroyed by compiler.compile !! PM }
   DoneTokens;
   PPasFile:='ppas'+source_info.scriptext;
   WUtils.DeleteFile(GetExePath+PpasFile);
@@ -985,11 +1016,11 @@ begin
 
   { Retrieve created exefile }
   If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
+    EXEFile:=FixFileName(GetEXEPath)+NameOf(MainFile)+GetTargetExeExt
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
   DefaultReplacements(ExeFile);
-  { tokens are created and distroyed by compiler.compile !! PM }
+  { tokens are created and destroyed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and
      ExistsFile(GetExePath+PpasFile) and

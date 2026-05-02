@@ -14,6 +14,11 @@
  **********************************************************************}
 unit WINI;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+{$H-}
+
 interface
 
 uses Objects;
@@ -84,8 +89,8 @@ type
     end;
 
 const MainSectionName : string[40] = 'MainSection';
-      CommentChar     : char = ';';
-      ValidStrDelimiters: set of char = ['''','"'];
+      CommentChar     : AnsiChar = ';';
+      ValidStrDelimiters: set of AnsiChar = ['''','"'];
 
 function EscapeIniText(S : string) : String;
 
@@ -96,7 +101,7 @@ uses
 
 function EscapeIniText(S : string) : String;
 var
-  delimiter : char;
+  delimiter : AnsiChar;
   i: integer;
 begin
   delimiter:=#0;
@@ -227,9 +232,9 @@ procedure TINIEntry.Split;
 var S,ValueS: string;
     P,P2,StartP: longint;
     { using byte for P2 lead to infinite loops PM }
-    C: char;
+    C: AnsiChar;
     InString: boolean;
-    Delimiter: char;
+    Delimiter: AnsiChar;
 begin
   S:=GetText;
   Delimiter:=#0;
@@ -432,12 +437,16 @@ var f: text;
     S,TS: string;
     P: PINISection;
     I: integer;
+    oFileMode : byte;
 begin
   New(P, Init(MainSectionName));
   Sections^.Insert(P);
+  oFileMode:=FileMode;   {save file open mode}
+  FileMode:=0;           {Reset will open file in read only mode }
   Assign(f,FileName^);
 {$I-}
   Reset(f);
+  FileMode:=oFileMode;   {restore file open mode}
   OK:=EatIO=0;
   while OK and (Eof(f)=false) do
     begin

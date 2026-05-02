@@ -329,7 +329,9 @@ var
 
     function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
     begin
+      // shouldn't this be a msgwait in case the thread creates "Windows"  See comment in waitforsingle?
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
+      // does waiting on thread require cowait too ?
       SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
     end;
 
@@ -547,10 +549,47 @@ begin
   SetEvent(plocaleventrec(state)^.FHandle);
 end;
 
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; forward;
 
+var
+  Ole32Dll: THandle = 0; { Unloaded at win32 & win64 system_exit. }
+  CoWaitForMultipleHandlesImpl: function(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+    = @FirstCoWaitForMultipleHandles;
+
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+var
+  LocalOle32Dll: THandle;
 begin
-  case WaitForSingleObject(plocaleventrec(state)^.fHandle, Timeout) of
+  if Ole32Dll = 0 then
+  begin
+    LocalOle32Dll := WinLoadLibraryW('ole32.dll');
+    if InterlockedCompareExchange(Pointer(Ole32Dll), Pointer(LocalOle32Dll), nil) <> nil then
+      WinFreeLibrary(LocalOle32Dll);
+  end;
+  CodePointer(CoWaitForMultipleHandlesImpl) := WinGetProcAddress(Ole32Dll, 'CoWaitForMultipleHandles');
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
+
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT;
+begin
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
+
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;UseCOMWait: Boolean = False) : longint;
+const COWAIT_DEFAULT = 0;
+      RPC_S_CALLPENDING = HRESULT($80010115);
+var SignaledIndex : DWORD;
+    ret : Integer;
+begin
+   if UseComWait Then
+     case CoWaitForMultipleHandles(COWAIT_DEFAULT, Timeout, 1, PWOHandleArray(@state), SignaledIndex) of
+       S_OK: Result := wrSignaled;
+       RPC_S_CALLPENDING: Result := wrTimeout;
+       else Result := wrError;
+     end
+   else 
+
+   case ret of
     WAIT_ABANDONED: Result := wrAbandoned;
     WAIT_OBJECT_0: Result := wrSignaled;
     WAIT_TIMEOUT: Result := wrTimeout;

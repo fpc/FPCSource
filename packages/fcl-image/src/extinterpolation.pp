@@ -110,13 +110,14 @@ type
     function MaxSupport : double; override;
   end;
 
-  { TBilineairInterpolation }
+  { TBilinearInterpolation }
 
-  TBilineairInterpolation = class (TFPBaseInterpolation)
+  TBilinearInterpolation = class (TFPBaseInterpolation)
   protected
     function Filter (x : double) : double; override;
     function MaxSupport : double; override;
   end;
+  TBilineairInterpolation = TBilinearInterpolation deprecated 'Use TBilinearInterpolation';
 
   { THanningInterpolation }
 
@@ -443,9 +444,9 @@ begin
   result := 1.0;
 end;
 
-{ TBilineairInterpolation }
+{ TBilinearInterpolation }
 
-function TBilineairInterpolation.Filter(x: double): double;
+function TBilinearInterpolation.Filter(x: double): double;
 begin
   if x < -1.0 then
     result := 0.0
@@ -457,7 +458,7 @@ begin
     result := 0.0;
 end;
 
-function TBilineairInterpolation.MaxSupport: double;
+function TBilinearInterpolation.MaxSupport: double;
 begin
   result := 1.0;
 end;

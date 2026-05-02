@@ -66,8 +66,10 @@ Var
   aSize : Word;
 
 begin
+  AssertTrue('Must have at least one stream size',Length(Sizes)>0);
   ClearStreams;
   SetLength(FStreams,Length(Sizes));
+
   For I:=0 to Length(FStreams)-1 do
     begin
     aSize:=Sizes[i];

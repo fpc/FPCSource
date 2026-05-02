@@ -45,6 +45,7 @@ Type
     FOwnsStreams: Boolean;
     function GetStream(aIndex : Integer): TStream;
     function GetStreamCount: Integer;
+    function IsValidStreamIndex(aIndex: Integer): Boolean;
   Protected
     Function CurrentStream : TStream;
     Function StreamSize : Int64;
@@ -74,16 +75,22 @@ begin
   Result:=Length(FStreams);
 end;
 
+function TChainedStream.IsValidStreamIndex(aIndex : Integer) : Boolean;
+
+begin
+  Result:=(aIndex>=0) and (aIndex<Length(FStreams));
+end;
+
 function TChainedStream.GetStream(aIndex : Integer): TStream;
 begin
-  if (aIndex<0) or (aIndex>=Length(FStreams)) then
+  if not IsValidStreamIndex(aIndex) then
     Raise EListError.CreateFmt(SListIndexError,[aIndex]);
   Result:=FStreams[aIndex].Stream;
 end;
 
 function TChainedStream.CurrentStream: TStream;
 begin
-  if FCurrentStreamIdx<Length(FStreams) then
+  if IsValidStreamIndex(FCurrentStreamIdx) then
     Result:=FStreams[FCurrentStreamIdx].Stream
   else
     Result:=Nil;
@@ -91,7 +98,7 @@ end;
 
 function TChainedStream.StreamSize: Int64;
 begin
-  if FCurrentStreamIdx<Length(FStreams) then
+  if IsValidStreamIndex(FCurrentStreamIdx) then
     begin
     if FStreams[FCurrentStreamIdx].Size=-1 then
       FStreams[FCurrentStreamIdx].Size:=FStreams[FCurrentStreamIdx].Stream.Size;
@@ -104,13 +111,13 @@ end;
 function TChainedStream.NextStream: Boolean;
 begin
   Inc(FCurrentStreamIdx);
-  Result:=FCurrentStreamIdx<Length(FStreams);
+  Result:=IsValidStreamIndex(FCurrentStreamIdx);
 end;
 
 function TChainedStream.PrevStream: Boolean;
 begin
   Dec(FCurrentStreamIdx);
-  Result:=FCurrentStreamIdx>=0;
+  Result:=IsValidStreamIndex(FCurrentStreamIdx);
 end;
 
 function TChainedStream.GetTotalSize: Int64;
@@ -228,19 +235,25 @@ Var
 
   Procedure MoveForward(aStartPos : Int64; aOrigin : TSeekOrigin);
 
+  var
+    aSize : Int64;
+
   begin
-    while (aOff>StreamSize-aStartPos) do
+    aSize:=StreamSize;
+    while (aOff>aSize-aStartPos) do
       begin
-      Dec(aOff,StreamSize-aStartPos);
-      Inc(FPosition,StreamSize-aStartPos);
+      Dec(aOff,aSize-aStartPos);
+      Inc(FPosition,aSize-aStartPos);
       if not NextStream then
         Break;
       aStartPos:=0;
+      aSize:=StreamSize;
       end;
     if CurrentStream=Nil then
       FCurrentStreamIdx:=Length(FStreams)-1;
-    if aOff>StreamSize then
-       aOff:=StreamSize;
+    aSize:=StreamSize;
+    if aOff>aSize then
+       aOff:=aSize;
     inc(FPosition,aOff);
     Result:=FPosition;
     CurrentStream.Seek(aOff,aOrigin);

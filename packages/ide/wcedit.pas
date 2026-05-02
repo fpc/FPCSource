@@ -43,7 +43,11 @@ type
     PLine = ^TLine;
     TLine = object(TCustomLine)
     public { internal use only! }
-      Text        : PString;
+{$if sizeof(sw_astring)>8}
+      Text      : PString;    { ShortString version }
+{$else}
+      Text      : sw_AString; { AnsiString version  }
+{$endif}
       DefaultEditorInfo : PEditorLineInfo;
       EditorInfos : PEditorLineInfoCollection;
       Flags       : longint;
@@ -51,9 +55,9 @@ type
       procedure AddEditorInfo(Index: sw_integer; AEditor: PCustomCodeEditor); virtual;
       procedure RemoveEditorInfo(AEditor: PCustomCodeEditor); virtual;
     public
-      constructor Init(AOwner: PCustomCodeEditorCore; const AText: string; AFlags: longint);
-      function    GetText: string; virtual;
-      procedure   SetText(const AText: string); virtual;
+      constructor Init(AOwner: PCustomCodeEditorCore; const AText: sw_AString; AFlags: longint);
+      function    GetText: sw_AString; virtual;
+      procedure   SetText(const AText: sw_AString); virtual;
       function    GetEditorInfo(Editor: PCustomCodeEditor): PEditorLineInfo; virtual;
       function    GetFlags: longint; virtual;
       procedure   SetFlags(AFlags: longint); virtual;
@@ -64,6 +68,7 @@ type
     TCodeEditorCore = object(TCustomCodeEditorCore)
     protected
       Lines      : PLineCollection;
+      MaxDispLen : Cardinal;
       CanUndo    : Boolean;
       StoreUndo  : boolean;
       Modified   : Boolean;
@@ -94,26 +99,27 @@ type
     protected
       { Text & info storage abstraction }
       procedure   ISetLineFlagState(Binding: PEditorBinding; LineNo: sw_integer; Flag: longint; ASet: boolean); virtual;
-      procedure   IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:string); virtual;
-      function    IGetLineFormat(Binding: PEditorBinding; LineNo: sw_integer): string; virtual;
-      procedure   ISetLineFormat(Binding: PEditorBinding; LineNo: sw_integer;const S: string); virtual;
+      procedure   IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:sw_astring); virtual;
+      function    IGetLineFormat(Binding: PEditorBinding; LineNo: sw_integer): sw_astring; virtual;
+      procedure   ISetLineFormat(Binding: PEditorBinding; LineNo: sw_integer;const S: sw_astring); virtual;
     public
       { Text & info storage abstraction }
+      function    GetMaxDisplayLength: sw_integer; virtual;
       function    GetLineCount: sw_integer; virtual;
       function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
-      function    GetLineText(LineNo: sw_integer): string; virtual;
-      procedure   SetDisplayText(I: sw_integer;const S: string); virtual;
-      function    GetDisplayText(I: sw_integer): string; virtual;
-      procedure   SetLineText(I: sw_integer;const S: string); virtual;
+      function    GetLineText(LineNo: sw_integer): sw_AString; virtual;
+      procedure   SetDisplayText(I: sw_integer;const S: sw_astring); virtual;
+      function    GetDisplayText(I: sw_integer): sw_astring; virtual;
+      procedure   SetLineText(I: sw_integer;const S: sw_AString); virtual;
       procedure   DeleteAllLines; virtual;
       procedure   DeleteLine(I: sw_integer); virtual;
-      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
-      procedure   AddLine(const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: sw_AString): PCustomLine; virtual;
+      procedure   AddLine(const S: sw_AString); virtual;
       procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
       procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
    public
      { Undo info storage }
-      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
+      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: sw_astring;AFlags : longint); virtual;
       procedure   AddGroupedAction(AAction : byte); virtual;
       procedure   CloseGroupedAction(AAction : byte); virtual;
       function    GetUndoActionCount: sw_integer; virtual;
@@ -172,21 +178,22 @@ type
     public
 {      ChangedLine : sw_integer;}
       { Text & info storage abstraction }
+      function    GetMaxDisplayLength: sw_integer; virtual;
       function    GetLineCount: sw_integer; virtual;
       function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
       function    CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer; virtual;
       function    LinePosToCharIdx(Line,X: sw_integer): sw_integer; virtual;
-      function    GetLineText(I: sw_integer): string; virtual;
-      procedure   SetDisplayText(I: sw_integer;const S: string); virtual;
-      function    GetDisplayText(I: sw_integer): string; virtual;
-      procedure   SetLineText(I: sw_integer;const S: string); virtual;
-      procedure   GetDisplayTextFormat(I: sw_integer;var DT,DF:string); virtual;
-      function    GetLineFormat(I: sw_integer): string; virtual;
-      procedure   SetLineFormat(I: sw_integer;const S: string); virtual;
+      function    GetLineText(I: sw_integer): sw_AString; virtual;
+      procedure   SetDisplayText(I: sw_integer;const S: sw_astring); virtual;
+      function    GetDisplayText(I: sw_integer): sw_astring; virtual;
+      procedure   SetLineText(I: sw_integer;const S: sw_AString); virtual;
+      procedure   GetDisplayTextFormat(I: sw_integer;var DT,DF:sw_astring); virtual;
+      function    GetLineFormat(I: sw_integer): sw_astring; virtual;
+      procedure   SetLineFormat(I: sw_integer;const S: sw_astring); virtual;
       procedure   DeleteAllLines; virtual;
       procedure   DeleteLine(I: sw_integer); virtual;
-      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
-      procedure   AddLine(const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine; virtual;
+      procedure   AddLine(const S: sw_astring); virtual;
       function    GetErrorMessage: string; virtual;
       procedure   SetErrorMessage(const S: string); virtual;
       procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
@@ -207,7 +214,7 @@ type
    {a}function    UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer; virtual;
    public
      { Undo info storage }
-      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
+      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: sw_astring;AFlags : longint); virtual;
       procedure   AddGroupedAction(AAction : byte); virtual;
       procedure   CloseGroupedAction(AAction : byte); virtual;
       function    GetUndoActionCount: sw_integer; virtual;
@@ -230,7 +237,7 @@ type
           PScrollBar; AIndicator: PIndicator; ACore: PCodeEditorCore; const AFileName: string);
       function    Save: Boolean; virtual;
       function    SaveAs: Boolean; virtual;
-      function    SaveAsk(Force: boolean): Boolean; virtual;
+      function    SaveAsk(Command: Word; Force: boolean): boolean; virtual;
       function    LoadFile: boolean; virtual;
       function    ReloadFile: boolean; virtual;
       function    SaveFile: boolean; virtual;
@@ -261,7 +268,7 @@ implementation
 
 uses Dos,
      WConsts,
-     FVConsts,
+     FVConsts,FPConst,
      App,WViews;
 
 {$ifndef NOOBJREG}
@@ -286,7 +293,7 @@ const
   );
 {$endif}
 
-constructor TLine.Init(AOwner: PCustomCodeEditorCore; const AText: string; AFlags: longint);
+constructor TLine.Init(AOwner: PCustomCodeEditorCore; const AText: sw_AString; AFlags: longint);
 begin
   inherited Init(AText,AFlags);
   // New(EditorInfos, Init(10,10));
@@ -317,14 +324,22 @@ begin
     EditorInfos^.Free(E);
 end;
 
-function TLine.GetText: string;
+function TLine.GetText: sw_AString;
 begin
+{$if sizeof(sw_astring)>8}
   GetText:=GetStr(Text);
+{$else}
+  GetText:=Text;
+{$endif}
 end;
 
-procedure TLine.SetText(const AText: string);
+procedure TLine.SetText(const AText: sw_AString);
 begin
+{$if sizeof(sw_astring)>8}
   SetStr(Text,AText);
+{$else}
+  Text:=AText;
+{$endif}
 end;
 
 function TLine.GetEditorInfo(Editor: PCustomCodeEditor): PEditorLineInfo;
@@ -353,9 +368,14 @@ end;
 
 destructor TLine.Done;
 begin
+{$if sizeof(sw_astring)>8}
+  { ShortString version }
   if Assigned(Text) then
     DisposeStr(Text);
   Text:=nil;
+{$else}
+  Text:='';   { AnsiString version  }
+{$endif}
   if Assigned(EditorInfos) then
     Dispose(EditorInfos, Done);
   EditorInfos:=nil;
@@ -372,6 +392,7 @@ begin
   new(UndoList,init(500,1000));
   new(RedoList,init(500,1000));
   New(Lines, Init(500,1000));
+  MaxDispLen:=0;
   TabSize:=DefaultTabSize;
   IndentSize:=DefaultIndentSize;
   OnDiskLoadTime:=0;
@@ -383,6 +404,11 @@ begin
   if assigned(lines) then
     Dispose(Lines,Done);
   Lines:=ALines;
+end;
+
+function TCodeEditorCore.GetMaxDisplayLength: sw_integer;
+begin
+  GetMaxDisplayLength:=MaxDispLen;
 end;
 
 function TCodeEditorCore.GetLineCount: sw_integer;
@@ -473,7 +499,7 @@ procedure TCodeEditorCore.GetContent(ALines: PUnsortedStringCollection);
 procedure AddIt(P: PCustomLine);
 begin
   if Assigned(P) then
-    ALines^.Insert(NewStr(P^.GetText));
+    ALines^.Insert(NewStr(P^.GetText)); {  Note: AnsiString to ShortString convertion }
 end;
 begin
   if Assigned(Lines) then
@@ -483,7 +509,7 @@ end;
 procedure TCodeEditorCore.SetContent(ALines: PUnsortedStringCollection);
 procedure AddIt(P: PString);
 begin
-  AddLine(GetStr(P));
+  AddLine(GetStr(P));  { Note: ShortString to AnsiString convertion }
 end;
 begin
   DeleteAllLines;
@@ -519,7 +545,7 @@ begin
   end;
 end;
 
-function TCodeEditorCore.GetLineText(LineNo: sw_integer): string;
+function TCodeEditorCore.GetLineText(LineNo: sw_integer): sw_AString;
 var
   L : PCustomLine;
 begin
@@ -545,10 +571,11 @@ begin
   Lines^.AtInsert(Idx,Line);
 end;
 
-procedure TCodeEditorCore.SetLineText(I: sw_integer;const S: string);
+procedure TCodeEditorCore.SetLineText(I: sw_integer;const S: sw_AString);
 var
   L : PCustomLine;
   AddCount : Sw_Integer;
+  DS : sw_AString;
 begin
   AddCount:=0;
   while (Lines^.Count<I+1) do
@@ -556,19 +583,25 @@ begin
      LinesInsert(-1,New(PLine, Init(@Self,'',0)));
      Inc(AddCount);
    end;
-  if AddCount>0 then
-   LimitsChanged;
   L:=Lines^.At(I);
   L^.SetText(S);
+  DS:=GetDisplayText(I);
+  if MaxDispLen<Length(DS) then
+  begin
+    MaxDispLen:=Length(DS);
+    inc(AddCount); { indicate to call LimitChanged }
+  end;
+  if AddCount>0 then
+    LimitsChanged;
   ContentsChanged;
 end;
 
-function TCodeEditorCore.GetDisplayText(I: sw_integer): string;
+function TCodeEditorCore.GetDisplayText(I: sw_integer): sw_astring;
 begin
   GetDisplayText:=ExtractTabs(GetLineText(I),GetTabSize);
 end;
 
-procedure TCodeEditorCore.SetDisplayText(I: sw_integer;const S: string);
+procedure TCodeEditorCore.SetDisplayText(I: sw_integer;const S: sw_astring);
 begin
   { I disagree here
     I don't want the editor to change the position of the tabs
@@ -580,7 +613,7 @@ begin
    SetLineText(I,S);
 end;
 
-procedure TCodeEditorCore.IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:string);
+procedure TCodeEditorCore.IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:sw_astring);
 var
   L : PCustomLine;
   P,PAdd : SW_Integer;
@@ -602,18 +635,18 @@ begin
          begin
            PAdd:=TabSize-((p-1) mod TabSize);
            if DF<>'' then
-            DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,High(DF));
-           DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,High(DF));
+             DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,Length(DF));
+           DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,Length(DT));
            inc(P,PAdd-1);
          end;
       end;
    end;
 end;
 
-function TCodeEditorCore.IGetLineFormat(Binding: PEditorBinding; LineNo: sw_integer): string;
+function TCodeEditorCore.IGetLineFormat(Binding: PEditorBinding; LineNo: sw_integer): sw_astring;
 var P: PCustomLine;
     LI: PEditorLineInfo;
-    S: string;
+    S: sw_astring;
 begin
   if (0<=LineNo) and (LineNo<GetLineCount) then
     P:=GetLine(LineNo)
@@ -625,7 +658,7 @@ begin
   IGetLineFormat:=S;
 end;
 
-procedure TCodeEditorCore.ISetLineFormat(Binding: PEditorBinding; LineNo: sw_integer;const S: string);
+procedure TCodeEditorCore.ISetLineFormat(Binding: PEditorBinding; LineNo: sw_integer;const S: sw_astring);
 var P: PCustomLine;
     LI: PEditorLineInfo;
 begin
@@ -658,7 +691,7 @@ begin
     end;
 end;
 
-function TCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+function TCodeEditorCore.InsertLine(LineNo: sw_integer; const S: sw_AString): PCustomLine;
 var L: PLine;
 begin
   L:=New(PLine, Init(@Self,S,0));
@@ -666,16 +699,16 @@ begin
   InsertLine:=L;
 end;
 
-procedure TCodeEditorCore.AddLine(const S: string);
+procedure TCodeEditorCore.AddLine(const S: sw_AString);
 begin
   LinesInsert(-1,New(PLine, Init(@Self,S,0)));
 end;
 
-procedure TCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
+procedure TCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: sw_astring;AFlags : longint);
 var
   ActionIntegrated : boolean;
   pa : PEditorAction;
-  S : String;
+  S : Sw_AString;
 begin
   if (UndoList=nil) or (not StoreUndo) then Exit;
   ActionIntegrated:=false;
@@ -696,14 +729,12 @@ begin
          then
         begin
           pa^.EndPos:=AEndPos;
-          S:=GetStr(pa^.text);
-          if S<>'' then
-           DisposeStr(pa^.text);
+          S:=pa^.GetText;
           if (AAction=eaDeleteText) and
              (AStartPos.X>AEndPos.X) then
-            pa^.text:=NewStr(AText+S)
+            pa^.SetText(AText+S)
           else
-            pa^.text:=NewStr(S+AText);
+            pa^.SetText(S+AText);
           ActionIntegrated:=true;
         end;
     end;
@@ -773,7 +804,7 @@ end;
 procedure TIndicator.Draw;
 var
   Color: Byte;
-  Frame: Char;
+  Frame: AnsiChar;
   L: array[0..1] of PtrInt;
   S: String[15];
   B: TDrawBuffer;
@@ -984,6 +1015,11 @@ begin
   DrawView;
 end;
 
+function TCodeEditor.GetMaxDisplayLength: sw_integer;
+begin
+  GetMaxDisplayLength:=Core^.GetMaxDisplayLength;
+end;
+
 function TCodeEditor.GetLineCount: sw_integer;
 begin
   GetLineCount:=Core^.GetLineCount;
@@ -1004,37 +1040,37 @@ begin
   LinePosToCharIdx:=Core^.LinePosToCharIdx(Line,X);
 end;
 
-function TCodeEditor.GetLineText(I: sw_integer): string;
+function TCodeEditor.GetLineText(I: sw_integer): sw_astring;
 begin
   GetLineText:=Core^.GetLineText(I);
 end;
 
-procedure TCodeEditor.SetDisplayText(I: sw_integer;const S: string);
+procedure TCodeEditor.SetDisplayText(I: sw_integer;const S: sw_astring);
 begin
   Core^.SetDisplayText(I,S);
 end;
 
-function TCodeEditor.GetDisplayText(I: sw_integer): string;
+function TCodeEditor.GetDisplayText(I: sw_integer): sw_astring;
 begin
   GetDisplayText:=Core^.GetDisplayText(I);
 end;
 
-procedure TCodeEditor.SetLineText(I: sw_integer;const S: string);
+procedure TCodeEditor.SetLineText(I: sw_integer;const S: sw_AString);
 begin
   Core^.SetLineText(I,S);
 end;
 
-procedure TCodeEditor.GetDisplayTextFormat(I: sw_integer;var DT,DF:string);
+procedure TCodeEditor.GetDisplayTextFormat(I: sw_integer;var DT,DF:sw_astring);
 begin
   Core^.GetDisplayTextFormat(@Self,I,DT,DF);
 end;
 
-function TCodeEditor.GetLineFormat(I: sw_integer): string;
+function TCodeEditor.GetLineFormat(I: sw_integer): sw_astring;
 begin
   GetLineFormat:=Core^.GetLineFormat(@Self,I);
 end;
 
-procedure TCodeEditor.SetLineFormat(I: sw_integer;const S: string);
+procedure TCodeEditor.SetLineFormat(I: sw_integer;const S: sw_astring);
 begin
   Core^.SetLineFormat(@Self,I,S);
 end;
@@ -1049,12 +1085,12 @@ begin
   Core^.DeleteLine(I);
 end;
 
-function TCodeEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+function TCodeEditor.InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine;
 begin
   InsertLine:=Core^.InsertLine(LineNo,S);
 end;
 
-procedure TCodeEditor.AddLine(const S: string);
+procedure TCodeEditor.AddLine(const S: sw_astring);
 begin
   Core^.AddLine(S);
 end;
@@ -1277,9 +1313,9 @@ var
   Temp,Idx,Last,Count : Longint;
   StoredFlags : longint;
   UndoTime : longint;
-  WasInserting,IsGrouped,HadefNoIndent : boolean;
+  WasInserting,WasAutoBrackets,IsGrouped,HadefNoIndent : boolean;
   MaxY,MinY : sw_integer;
-  Line : String;
+  Line, uText : Sw_AString;
 
   procedure SetMinMax(y : sw_integer);
     begin
@@ -1317,6 +1353,7 @@ begin
         begin
           if not IsGrouped then
             UndoTime:=TimeStamp;
+          uText:=GetText;
           case action of
             eaMoveCursor :
               begin
@@ -1326,9 +1363,8 @@ begin
             eaInsertText :
               begin
                 SetCurPtr(StartPos.X,StartPos.Y);
-                if assigned(text) then
-                  for Temp := 1 to length(Text^) do
-                    DelChar;
+                for Temp := 1 to length(uText) do
+                  DelChar;
                 SetMinMax(StartPos.Y);
               end;
             eaDeleteText :
@@ -1337,9 +1373,11 @@ begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
-                if assigned(text) then
-                  for Temp := 1 to length(Text^) do
-                    AddChar(Text^[Temp]);
+                WasAutoBrackets:=GetAutoBrackets;
+                SetAutoBrackets(false);
+                for Temp := 1 to length(uText) do
+                  AddChar(uText[Temp]);
+                SetAutoBrackets(WasAutoBrackets);
                 SetInsertMode(WasInserting);
                 SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
@@ -1350,15 +1388,17 @@ begin
                 Line:=GetDisplayText(StartPos.Y);
                 WasInserting:=GetInsertMode;
                 SetInsertMode(false);
-                if assigned(text) then
-                  for Temp := 1 to length(Text^) do
-                    begin
-                      AddChar(Text^[Temp]);
-                      if StartPos.X+Temp>Length(Line) then
-                        Text^[Temp]:=' '
-                      else
-                        Text^[Temp]:=Line[StartPos.X+Temp];
-                    end;
+                WasAutoBrackets:=GetAutoBrackets;
+                SetAutoBrackets(false);
+                for Temp := 1 to length(uText) do
+                  begin
+                    AddChar(uText[Temp]);
+                    if StartPos.X+Temp>Length(Line) then
+                      uText[Temp]:=' '
+                    else
+                      uText[Temp]:=Line[StartPos.X+Temp];
+                  end;
+                SetAutoBrackets(WasAutoBrackets);
                 SetInsertMode(WasInserting);
                 SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
@@ -1368,7 +1408,8 @@ begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 Line:=Copy(GetDisplayText(StartPos.Y),1,StartPos.X);
                 If Length(Line)<StartPos.X then
-                  Line:=Line+CharStr(' ',StartPos.X-length(Line))+GetStr(Text);
+                  Line:=Line+CharStr(' ',StartPos.X-length(Line))+uText
+                else Line:=Line+uText;
                 SetDisplayText(StartPos.Y,Line+Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
                 SetMinMax(EndPos.Y);
                 SetCurPtr(0,EndPos.Y);
@@ -1382,7 +1423,7 @@ begin
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
-                InsertLine(StartPos.Y,GetStr(Text));
+                InsertLine(StartPos.Y,uText);
                 SetInsertMode(WasInserting);
                 if not HadefNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
@@ -1444,8 +1485,8 @@ procedure TCodeEditor.Redo;
 var
   Temp,Idx,i,Last,Count : Longint;
   StoredFlags : longint;
-  WasInserting,IsGrouped,ShouldInsertText : boolean;
-  Line : String;
+  WasInserting,WasAutoBrackets,IsGrouped,ShouldInsertText : boolean;
+  Line,uText : sw_aString;
   MaxY,MinY : sw_integer;
   procedure SetMinMax(y : sw_integer);
     begin
@@ -1480,6 +1521,7 @@ begin
     for Idx:=Last downto Last-Count+1 do
     with Core^.RedoList^.At(Idx)^ do
     begin
+      uText:=GetText;
       case action of
         eaMoveCursor :
           begin
@@ -1489,13 +1531,13 @@ begin
         eaInsertText :
           begin
             SetCurPtr(startpos.x,startpos.y);
-            InsertText(GetStr(Text));
+            InsertText(uText);
             SetMinMax(StartPos.Y);
           end;
         eaDeleteText :
           begin
             SetCurPtr(EndPos.X,EndPos.Y);
-            for Temp := 1 to length(GetStr(Text)) do
+            for Temp := 1 to length(uText) do
               DelChar;
             SetMinMax(EndPos.Y);
           end;
@@ -1505,15 +1547,17 @@ begin
             Line:=GetDisplayText(StartPos.Y);
             WasInserting:=GetInsertMode;
             SetInsertMode(false);
-            if assigned(text) then
-              for Temp := 1 to length(Text^) do
-                begin
-                  AddChar(Text^[Temp]);
-                  if StartPos.X+Temp>Length(Line) then
-                    Text^[Temp]:=' '
-                  else
-                    Text^[Temp]:=Line[StartPos.X+Temp];
-                end;
+            WasAutoBrackets:=GetAutoBrackets;
+            SetAutoBrackets(false);
+            for Temp := 1 to length(uText) do
+              begin
+                AddChar(uText[Temp]);
+                if StartPos.X+Temp>Length(Line) then
+                  uText[Temp]:=' '
+                else
+                  uText[Temp]:=Line[StartPos.X+Temp];
+              end;
+            SetAutoBrackets(WasAutoBrackets);
             SetInsertMode(WasInserting);
             SetCurPtr(EndPos.X,EndPos.Y);
             SetMinMax(StartPos.Y);
@@ -1525,7 +1569,7 @@ begin
             SetFlags(Flags);
             InsertNewLine;
             SetCurPtr(0,EndPos.Y);
-            Line:=GetStr(Text);
+            Line:=uText;
             ShouldInsertText:=false;
             for I:=1 to Length(Line) do
               if Line[I]<>' ' then
@@ -1544,7 +1588,7 @@ begin
             if EndPos.Y=StartPos.Y-1 then
             SetDisplayText(EndPos.Y,RExpand(
               copy(GetDisplayText(EndPos.Y),1,EndPos.X),EndPos.X)
-              +GetStr(Text));
+              +uText);
             SetCurPtr(EndPos.X,EndPos.Y);
             SetMinMax(StartPos.Y);
             SetMinMax(EndPos.Y);
@@ -1709,7 +1753,7 @@ begin
   UpdateAttrsRange:=Core^.UpdateAttrsRange(FromLine,ToLine,Attrs);
 end;
 
-procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
+procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: sw_astring;AFlags : longint);
 begin
   Core^.AddAction(AAction,AStartPos,AEndPos,AText,AFlags);
 end;
@@ -1915,10 +1959,11 @@ begin
       end;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
-  end;
+  end else
+    Message(Application,evBroadcast,cmSaveCancelled,@Self);
 end;
 
-function TFileEditor.SaveAsk(Force: boolean): boolean;
+function TFileEditor.SaveAsk(Command: Word; Force: boolean): boolean;
 var OK: boolean;
     D: Sw_integer;
 begin
@@ -1933,7 +1978,8 @@ begin
    begin
      OK:=(GetModified=false);
      if (OK=false) and (Core^.GetBindingCount>1) then
-      OK:=true;
+       if (command<>cmAskSaveAll) or (Core^.GetBindingIndex(PCustomCodeEditor(@self))<>0) then
+         OK:=true;
      if OK=false then
       begin
         if FileName = '' then D := edSaveUntitled else D := edSaveModify;
@@ -1989,7 +2035,7 @@ begin
   OK:=inherited Valid(Command);
   if OK and (Command=cmClose) then
     if IsClipboard=false then
-      OK:=SaveAsk(false);
+      OK:=SaveAsk(Command,false);
   Valid:=OK;
 end;
 

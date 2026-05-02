@@ -255,17 +255,17 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label52, Init(R2, label_compiler_assemblerinfo, CB5));
 
-    Count:=AsmOutputSwitches^.ItemCount;
+    UpdateAsmOutputSwitches;
+    Count:=AsmOutputSwitches[SwitchesMode]^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
-    UpdateAsmOutputSwitches;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(AsmOutputSwitches^.ItemName(I), Items);
+      Items:=NewSItem(AsmOutputSwitches[SwitchesMode]^.ItemName(I), Items);
     New(RB6, Init(R2, Items));
-    L:=AsmOutputSwitches^.GetCurrSel;
+    L:=AsmOutputSwitches[SwitchesMode]^.GetCurrSel;
     RB6^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
@@ -311,7 +311,7 @@ begin
     Tab^.GrowMode:=0;
     Insert(Tab);
 
-    { conditionnals }
+    { conditionals }
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1; Dec(R2.B.X,4);
     New(IL, Init(R2, 255));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
@@ -348,7 +348,7 @@ begin
     AsmReaderSwitches^.SetCurrSel(RB5^.Value);
     for I:=0 to AsmInfoSwitches^.ItemCount-1 do
       AsmInfoSwitches^.SetBooleanItem(I,CB5^.Mark(I));
-    AsmOutputSwitches^.SetCurrSel(RB6^.Value);
+    AsmOutputSwitches[SwitchesMode]^.SetCurrSel(RB6^.Value);
     BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
     CustomArg[SwitchesMode]:=IL2^.Data^;
@@ -464,11 +464,11 @@ begin
     OtherLinkerSwitches^.SetBooleanItem(1,CB2^.Mark(0));
     if LibLinkerSwitches^.GetCurrSelParam='X' then
      if CompareText(TargetSwitches^.GetCurrSelParam,'Windows')=0 then
-      if CompareText(AsmOutputSwitches^.GetCurrSelParam,'pecoff')<>0 then
+      if CompareText(AsmOutputSwitches[SwitchesMode]^.GetCurrSelParam,'pecoff')<>0 then
         if ConfirmBox(
           FormatStrStr3(msg_xmustbesettoyforz_doyouwanttochangethis,
            label_compiler_assembleroutput,'pecoff','smartlinking'),nil,false)=cmYes then
-             AsmOutputSwitches^.SetCurrSelParam('pecoff');
+             AsmOutputSwitches[SwitchesMode]^.SetCurrSelParam('pecoff');
     for I:=0 to LinkAfterSwitches^.ItemCount-1 do
       LinkAfterSwitches^.SetBooleanItem(I,CB^.Mark(I));
   end;
@@ -782,7 +782,7 @@ begin
             else
               messagebox('Internal error: Unknown switch.',nil,mfOkButton);
           end;
-          e^.setcontent(directorySwitches^.getMultiStringItem(i));
+          e^.SetContent(directorySwitches^.getMultiStringItem(i));
           e^.addline(''); {Empty line so user can scroll below existing dirs.}
           IL[i]:=nil;
         end
@@ -866,14 +866,10 @@ begin
             end;
             c:=directorySwitches^.getMultiStringItem(i);
             c^.freeall;
-            for j:=0 to e^.getlinecount-1 do
+            for j:=0 to e^.GetLineCount-1 do
               begin
-                s:=e^.getlinetext(j);
-                {Strip string.}
-                while (length(s)>0) and (s[length(s)]=' ') do
-                  dec(s[0]);
-                while (length(s)>0) and (s[1]=' ') do
-                  system.delete(s,1,1);
+                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString conversion}
+                s:=Trim(s);
                 if s<>'' then
                   c^.insert(newstr(s));
               end;
@@ -881,11 +877,7 @@ begin
         else
           begin
             s:=IL[i]^.data^;
-            {Strip string.}
-            while (length(s)>0) and (s[length(s)]=' ') do
-              dec(s[0]);
-            while (length(s)>0) and (s[1]=' ') do
-              system.delete(s,1,1);
+            s:=Trim(s);
             DirectorySwitches^.SetStringItem(i,s);
           end;
     end;
@@ -1012,7 +1004,7 @@ var R,R2: TRect;
     ScreenModeInfo : array[1..3] of longint;
     CurVP,VP: PVideoMode;
     RB1: PPlainRadioButtons;
-    CB1,CB2: PPlainCheckBoxes;
+    CB1,CB2,CB3: PPlainCheckBoxes;
     CurIdx: integer;
     i : word;
 begin
@@ -1069,7 +1061,19 @@ begin
 
     GetExtent(R); R.Grow(-2,-2);
     R.A.X:=R.B.X-(R.B.X-R.A.X) div 2 + 1;
-    R.B.Y:=R.A.Y+7;
+    R.B.Y:=R.A.Y+3;
+
+    R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+4;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(CB3, Init(R2,
+      NewSItem(label_preferences_showclock,
+      NewSItem(label_preferences_showheapmonitor,
+      nil))));
+    CB3^.Value:=DesktopPreferences;
+    if OverrideHeapMonitor then  { if heap monitor state is set by fp parameter }
+      CB3^.EnableMask:=CB3^.EnableMask and not(dpHeapMonitor); { disable heap monitor check box }
+    Insert(New(PGroupView, Init(R, label_preferences_clockheap, CB3)));
+    Insert(CB3);
 
     R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
     R2.Copy(R); R2.Grow(-1,-1);
@@ -1121,6 +1125,8 @@ begin
      AutoSaveOptions:=CB1^.Value;
      MiscOptions:=CB2^.Value;
      DesktopLocation:=RB1^.Value;
+     DesktopPreferences:=CB3^.Value;
+     UpdateClockAndHeap;
    end;
   Dispose(D, Done);
   Dispose(C, Done);
@@ -1360,12 +1366,12 @@ var R: TRect;
     D: PCenterDialog;
     CB: PCheckBoxes;
 begin
-  R.Assign(0,0,40,12);
+  R.Assign(0,0,40,13);
   New(D, Init(R, dialog_desktoppreferences));
   with D^ do
   begin
     HelpCtx:=hcDesktopOptions;
-    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+8;
+    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+9;
     New(CB, Init(R,
       NewSItem(label_desktop_historylists,
       NewSItem(label_desktop_clipboard,
@@ -1375,7 +1381,8 @@ begin
       NewSItem(label_desktop_symbolinfo,
       NewSItem(label_desktop_codecompletewords,
       NewSItem(label_desktop_codetemplates,
-      nil))))))))));
+      NewSItem(label_desktop_returntolastdir,
+      nil)))))))))));
     CB^.Value:=DesktopFileFlags;
     Insert(CB);
     R.Move(0,-1); R.B.Y:=R.A.Y+1;
@@ -1559,17 +1566,17 @@ end;
 {$endif COLORSEL}
 
 procedure TIDEApp.OpenINI;
-var D: PFileDialog;
+var D : PFPFileDialog;
     FileName: string;
 begin
-  New(D, Init('*'+ExtOf(INIFileName),dialog_openoptions,dialog_ini_filename,fdOpenButton,hidOpenIniFile));
+  New(D, Init('*'+ExtOf(INIFilePath),dialog_openoptions,dialog_ini_filename,fdOpenButton,hidOpenIniFile));
   D^.HelpCtx:=hcOpenIni;
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
       if ExistsFile(FileName)=false then ErrorBox(msg_cantopenconfigfile,nil) else
         begin
-          IniFileName:=FileName;
+          IniFilePath:=FileName;
           ReadINIFile;
           Message(Application,evBroadcast,cmUpdate,nil);
         end;
@@ -1584,11 +1591,11 @@ begin
 end;
 
 procedure TIDEApp.SaveAsINI;
-var D: PFileDialog;
+var D : PFPFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init('*'+ExtOf(INIFileName),dialog_saveoptions,dialog_ini_filename,fdOkButton,hidSaveIniFile));
+  New(D, Init('*'+ExtOf(INIFilePath),dialog_saveoptions,dialog_ini_filename,fdOkButton,hidSaveIniFile));
   D^.HelpCtx:=hcSaveAsINI;
   if Desktop^.ExecView(D)<>cmCancel then
     begin
@@ -1598,7 +1605,7 @@ begin
         CanWrite:=ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,SmartPath(FileName)),nil,false)=cmYes;
       if CanWrite then
         begin
-          IniFileName:=FileName;
+          IniFilePath:=FileName;
           if WriteINIFile(true)=false then
             ErrorBox(msg_errorsavingconfigfile,nil);
           Message(Application,evBroadcast,cmUpdate,nil);

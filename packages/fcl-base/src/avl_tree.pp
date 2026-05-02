@@ -1115,7 +1115,7 @@ end;
 
 procedure TAVLTree.ConsistencyCheck;
 
-  procedure E(Msg: string);
+  procedure E(const Msg: string);
   begin
     raise Exception.Create('TAVLTree.ConsistencyCheck: '+Msg);
   end;
@@ -1359,7 +1359,7 @@ end;
 
 procedure TAVLTreeNode.ConsistencyCheck(Tree: TAVLTree);
 
-  procedure E(Msg: string);
+  procedure E(const Msg: string);
   begin
     raise Exception.Create('TAVLTreeNode.ConsistencyCheck: '+Msg);
   end;

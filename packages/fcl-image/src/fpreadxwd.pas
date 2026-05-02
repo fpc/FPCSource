@@ -46,7 +46,7 @@ type
       procedure WriteScanLine(Row: Integer; Img: TFPCustomImage);
     protected
       XWDFileHeader: TXWDFileHeader;  // The header, as read from the file
-      WindowName: array of Char;
+      WindowName: array of AnsiChar;
       XWDColors: TXWDColors;
       LineBuf: PByte;                 // Buffer for 1 line
 

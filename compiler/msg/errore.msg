@@ -2936,7 +2936,11 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
 asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
-asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
+asmw_e_destination_out_of_range=08033_E_Asm: $1 destination is out of range
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
+asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
+asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
+asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
 #
 # Executing linker/assembler
 #

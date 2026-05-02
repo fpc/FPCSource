@@ -19,7 +19,7 @@ interface
 
 type  PQoiHeader = ^TQoiHeader;
       TQoiHeader = packed record
-         magic  : array [0..3] of char; { magic bytes 'qoif' }
+         magic  : array [0..3] of AnsiChar; { magic bytes 'qoif' }
          width  : dword;                { image width in pixels (BE)}
          height : dword;                { image height in pixels (BE)}
          channels   : byte;             { 3 = RGB, 4 = RGBA }
@@ -36,28 +36,14 @@ type  PQoiPixel = ^TQoiPixel;
 const qoChannelRGB  = 3;
       qoChannelRGBA = 4;
 
-function swap32 (a : dword):dword;
 function QoiPixelIndex (px : TQoiPixel):dword;
 
 implementation
-
-function swap32 (a : dword):dword;
-var h, l : dword;
-begin
-     a:=roldword(a,16);
-     h:=a shr 8;
-     h:= h and $ff00ff;
-     l:= a and $ff00ff;
-     l:= l shl 8;
-
-     swap32:=h or l;
-end;
 
 function QoiPixelIndex (px : TQoiPixel):dword;
 begin
      QoiPixelIndex:= (dword(px.r)*3+dword(px.g)*5+dword(px.b)*7+dword(px.a)*11) and 63;
 end;
-
 
 
 end.

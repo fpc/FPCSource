@@ -261,6 +261,8 @@ type
     function ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
     procedure Clear; override;
     procedure TrimExcess;
+    function GetMutableValue(const AKey: TKey): PValue; inline;
+    function TryGetMutableValue(const AKey: TKey; out APValue: PValue): Boolean;
     function TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
     function TryAdd(const AKey: TKey; const AValue: TValue): Boolean;
     procedure AddOrSetValue(const AKey: TKey; const AValue: TValue);

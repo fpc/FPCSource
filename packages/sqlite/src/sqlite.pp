@@ -98,63 +98,63 @@ Type
 
   // Procedural types used in functions.
 
-  sqlite_callback = function (_para1:pointer; _para2:longint; _para3:PPchar; _para4:PPchar):longint;cdecl;
-  sqlite_trace_func = procedure (_para1:pointer; _para2:Pchar);cdecl;
-  sqlite_create_func = procedure (_para1:Psqlite_func; _para2:longint; _para3:PPchar);cdecl;
-  sqlite_handler = function (_para1:pointer; _para2:Pchar; _para3:longint):longint;cdecl;
-  sqlite_step_func = procedure (_para1:Psqlite_func; _para2:longint; _para3:PPchar);cdecl;
+  sqlite_callback = function (_para1:pointer; _para2:longint; _para3:PPAnsiChar; _para4:PPAnsiChar):longint;cdecl;
+  sqlite_trace_func = procedure (_para1:pointer; _para2:PAnsiChar);cdecl;
+  sqlite_create_func = procedure (_para1:Psqlite_func; _para2:longint; _para3:PPAnsiChar);cdecl;
+  sqlite_handler = function (_para1:pointer; _para2:PAnsiChar; _para3:longint):longint;cdecl;
+  sqlite_step_func = procedure (_para1:Psqlite_func; _para2:longint; _para3:PPAnsiChar);cdecl;
   sqlite_finalize_func = procedure (_para1:Psqlite_func);cdecl;
-  sqlite_authorize_func = function (_para1:pointer; _para2:longint; _para3, _para4,_para5,_para6:Pchar):longint;cdecl;
+  sqlite_authorize_func = function (_para1:pointer; _para2:longint; _para3, _para4,_para5,_para6:PAnsiChar):longint;cdecl;
 
-  function sqlite_create_function(_para1:Psqlite; zName:Pchar; nArg:longint; xFunc:sqlite_create_func; pUserData:pointer):longint;cdecl;external External_library name 'sqlite_create_function';
-  function sqlite_open(filename:Pchar; mode:longint; errmsg:PPchar):Psqlite;cdecl;external External_library name 'sqlite_open';
+  function sqlite_create_function(_para1:Psqlite; zName:PAnsiChar; nArg:longint; xFunc:sqlite_create_func; pUserData:pointer):longint;cdecl;external External_library name 'sqlite_create_function';
+  function sqlite_open(filename:PAnsiChar; mode:longint; errmsg:PPAnsiChar):Psqlite;cdecl;external External_library name 'sqlite_open';
   procedure sqlite_close(_para1:Psqlite);cdecl;external External_library name 'sqlite_close';
-  function sqlite_exec(_para1:Psqlite; sql:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar):longint;cdecl;external External_library name 'sqlite_exec';
+  function sqlite_exec(_para1:Psqlite; sql:PAnsiChar; _para3:sqlite_callback; _para4:pointer; errmsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_exec';
   function sqlite_last_insert_rowid(_para1:Psqlite):longint;cdecl;external External_library name 'sqlite_last_insert_rowid';
   function sqlite_changes(_para1:Psqlite):longint;cdecl;external External_library name 'sqlite_changes';
-  function sqlite_error_string(_para1:longint):Pchar;cdecl;external External_library name 'sqlite_error_string';
+  function sqlite_error_string(_para1:longint):PAnsiChar;cdecl;external External_library name 'sqlite_error_string';
   procedure do_sqlite_interrupt(_para1:Psqlite);cdecl;external External_library name 'sqlite_interrupt';
-  function sqlite_complete(sql:Pchar):longint;cdecl;external External_library name 'sqlite_complete';
+  function sqlite_complete(sql:PAnsiChar):longint;cdecl;external External_library name 'sqlite_complete';
   procedure sqlite_busy_handler(_para1:Psqlite; _para2:sqlite_handler; _para3:pointer);cdecl;external External_library name 'sqlite_busy_handler';
   procedure sqlite_busy_timeout(_para1:Psqlite; ms:longint);cdecl;external External_library name 'sqlite_busy_timeout';
-  function sqlite_get_table(_para1:Psqlite; sql:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
-             errmsg:PPchar):longint;cdecl;external External_library name 'sqlite_get_table';
-  procedure sqlite_free_table(result:PPchar);cdecl;external External_library name 'sqlite_free_table';
-  function sqlite_exec_printf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar;
+  function sqlite_get_table(_para1:Psqlite; sql:PAnsiChar; resultp:PPPAnsiChar; nrow:Plongint; ncolumn:Plongint;
+             errmsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_get_table';
+  procedure sqlite_free_table(result:PPAnsiChar);cdecl;external External_library name 'sqlite_free_table';
+  function sqlite_exec_printf(_para1:Psqlite; sqlFormat:PAnsiChar; _para3:sqlite_callback; _para4:pointer; errmsg:PPAnsiChar;
              args:array of const):longint;cdecl;external External_library name 'sqlite_exec_printf';
-  function sqlite_exec_printf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar):longint;cdecl;varargs;external External_library name 'sqlite_exec_printf';
-  function sqlite_exec_vprintf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar;
+  function sqlite_exec_printf(_para1:Psqlite; sqlFormat:PAnsiChar; _para3:sqlite_callback; _para4:pointer; errmsg:PPAnsiChar):longint;cdecl;varargs;external External_library name 'sqlite_exec_printf';
+  function sqlite_exec_vprintf(_para1:Psqlite; sqlFormat:PAnsiChar; _para3:sqlite_callback; _para4:pointer; errmsg:PPAnsiChar;
              ap:array of const):longint;cdecl;external External_library name 'sqlite_exec_vprintf';
-  function sqlite_get_table_printf(_para1:Psqlite; sqlFormat:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
-             errmsg:PPchar; args:array of const):longint;cdecl;external External_library name 'sqlite_get_table_printf';
-  function sqlite_get_table_printf(_para1:Psqlite; sqlFormat:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
-             errmsg:PPchar):longint;cdecl;varargs;external External_library name 'sqlite_get_table_printf';
-  function sqlite_get_table_vprintf(_para1:Psqlite; sqlFormat:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
-             errmsg:PPchar; ap:array of const):longint;cdecl;external External_library name 'sqlite_get_table_vprintf';
-  function sqlite_mprintf(_para1:Pchar; args:array of const):Pchar;cdecl;external External_library name 'sqlite_mprintf';
-  function sqlite_mprintf(_para1:Pchar):Pchar;cdecl;varargs;external External_library name 'sqlite_mprintf';
+  function sqlite_get_table_printf(_para1:Psqlite; sqlFormat:PAnsiChar; resultp:PPPAnsiChar; nrow:Plongint; ncolumn:Plongint;
+             errmsg:PPAnsiChar; args:array of const):longint;cdecl;external External_library name 'sqlite_get_table_printf';
+  function sqlite_get_table_printf(_para1:Psqlite; sqlFormat:PAnsiChar; resultp:PPPAnsiChar; nrow:Plongint; ncolumn:Plongint;
+             errmsg:PPAnsiChar):longint;cdecl;varargs;external External_library name 'sqlite_get_table_printf';
+  function sqlite_get_table_vprintf(_para1:Psqlite; sqlFormat:PAnsiChar; resultp:PPPAnsiChar; nrow:Plongint; ncolumn:Plongint;
+             errmsg:PPAnsiChar; ap:array of const):longint;cdecl;external External_library name 'sqlite_get_table_vprintf';
+  function sqlite_mprintf(_para1:PAnsiChar; args:array of const):PAnsiChar;cdecl;external External_library name 'sqlite_mprintf';
+  function sqlite_mprintf(_para1:PAnsiChar):PAnsiChar;cdecl;varargs;external External_library name 'sqlite_mprintf';
   procedure sqlite_freemem(p:pointer);cdecl;external External_library name 'sqlite_freemem';
-  function sqlite_libversion:Pchar;cdecl;external External_library name 'sqlite_libversion';
-  function sqlite_libencoding:Pchar;cdecl;external External_library name 'sqlite_libencoding';
-  function sqlite_create_aggregate(_para1:Psqlite; zName:Pchar; nArg:longint; xStep:sqlite_step_func ; xFinalize:sqlite_finalize_func;
+  function sqlite_libversion:PAnsiChar;cdecl;external External_library name 'sqlite_libversion';
+  function sqlite_libencoding:PAnsiChar;cdecl;external External_library name 'sqlite_libencoding';
+  function sqlite_create_aggregate(_para1:Psqlite; zName:PAnsiChar; nArg:longint; xStep:sqlite_step_func ; xFinalize:sqlite_finalize_func;
              pUserData:pointer):longint;cdecl;external External_library name 'sqlite_create_aggregate';
-  function sqlite_function_type(db:Psqlite; zName:Pchar; datatype:longint):longint;cdecl;external External_library name 'sqlite_function_type';
-  function sqlite_set_result_string(_para1:Psqlite_func; _para2:Pchar; _para3:longint):Pchar;cdecl;external External_library name 'sqlite_set_result_string';
+  function sqlite_function_type(db:Psqlite; zName:PAnsiChar; datatype:longint):longint;cdecl;external External_library name 'sqlite_function_type';
+  function sqlite_set_result_string(_para1:Psqlite_func; _para2:PAnsiChar; _para3:longint):PAnsiChar;cdecl;external External_library name 'sqlite_set_result_string';
   procedure sqlite_set_result_int(_para1:Psqlite_func; _para2:longint);cdecl;external External_library name 'sqlite_set_result_int';
   procedure sqlite_set_result_double(_para1:Psqlite_func; _para2:double);cdecl;external External_library name 'sqlite_set_result_double';
-  procedure sqlite_set_result_error(_para1:Psqlite_func; _para2:Pchar; _para3:longint);cdecl;external External_library name 'sqlite_set_result_error';
+  procedure sqlite_set_result_error(_para1:Psqlite_func; _para2:PAnsiChar; _para3:longint);cdecl;external External_library name 'sqlite_set_result_error';
   function sqlite_user_data(_para1:Psqlite_func):pointer;cdecl;external External_library name 'sqlite_user_data';
   function sqlite_aggregate_context(_para1:Psqlite_func; nBytes:longint):pointer;cdecl;external External_library name 'sqlite_aggregate_context';
   function sqlite_aggregate_count(_para1:Psqlite_func):longint;cdecl;external External_library name 'sqlite_aggregate_count';
   function sqlite_set_authorizer(_para1:Psqlite; xAuth:sqlite_authorize_func ; pUserData:pointer):longint;cdecl;external External_library name 'sqlite_set_authorizer';
   function sqlite_trace(_para1:Psqlite; xTrace:sqlite_trace_func; _para3:pointer):pointer;cdecl;external External_library name 'sqlite_trace';
-  function sqlite_compile(db:Psqlite; zSql:Pchar; pzTail:PPchar; ppVm:PPsqlite_vm; pzErrmsg:PPchar):longint;cdecl;external External_library name 'sqlite_compile';
-  function sqlite_step(pVm:Psqlite_vm; pN:Plongint; pazValue:PPPchar; pazColName:PPPchar):longint;cdecl;external External_library name 'sqlite_step';
-  function sqlite_finalize(_para1:Psqlite_vm; pzErrMsg:PPchar):longint;cdecl;external External_library name 'sqlite_finalize';
+  function sqlite_compile(db:Psqlite; zSql:PAnsiChar; pzTail:PPAnsiChar; ppVm:PPsqlite_vm; pzErrmsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_compile';
+  function sqlite_step(pVm:Psqlite_vm; pN:Plongint; pazValue:PPPAnsiChar; pazColName:PPPAnsiChar):longint;cdecl;external External_library name 'sqlite_step';
+  function sqlite_finalize(_para1:Psqlite_vm; pzErrMsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_finalize';
   
   //Use functions instead of external variables to retrieve version and encoding info
-  function sqlite_version: PChar external External_library name 'sqlite_libversion';
-  function sqlite_encoding: PChar external External_library name 'sqlite_libencoding';
+  function sqlite_version: PAnsiChar external External_library name 'sqlite_libversion';
+  function sqlite_encoding: PAnsiChar external External_library name 'sqlite_libencoding';
   
 implementation
 

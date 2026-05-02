@@ -39,6 +39,7 @@ Type
   TDBFExportFormatSettings = class(TExportFormatSettings)
   private
     FAutoRename: Boolean;
+    FLanguageID: Byte;
     FTableFormat: TTableFormat;
   public
     Procedure Assign(Source : TPersistent); override;
@@ -46,6 +47,7 @@ Type
   Published
     Property TableFormat : TTableFormat Read FTableFormat Write FTableFormat;
     Property AutoRenameFields : Boolean Read FAutoRename Write FAutoRename;
+    Property LanguageID: Byte Read FLanguageID Write FLanguageID;
   end;
   { TFPCustomDBFExport }
 
@@ -207,6 +209,8 @@ begin
   Inherited;
   FDBF:=TDBF.Create(Self);
   FDBF.TableName:=FFileName;
+  if FormatSettings.LanguageID <> 0 then
+    FDBF.LanguageID := FormatSettings.LanguageID;
   FDBF.DefaultBufferCount:=2;
   FE:=FileExists(FFileName);
   If FAppendData and FE then
@@ -219,6 +223,7 @@ begin
         Raise EDataExporter.CreateFmt(SErrFailedToDeleteFile,[FFileName]);
       end;
     end;
+
 end;
 
 procedure TFPCustomDBFExport.DoAfterExecute;
@@ -295,6 +300,7 @@ begin
     begin
     FS:=Source as TDBFExportFormatSettings;
     AutoRenameFields:=FS.AutoRenameFields;
+    LanguageID := FS.LanguageID;
     TableFormat:=FS.TableFormat;
     end;
   inherited Assign(Source);
@@ -305,6 +311,7 @@ begin
   inherited InitSettings;
   FAutoRename:=true; // sensible to avoid duplicate table names
   FTableFormat:=tfDBaseIV; //often used
+  FLanguageID := 0;  // will be replaced by LanguageID of dbf to be exported
 end;
 
 end.

@@ -312,7 +312,7 @@ begin
   Result:=FLocks>0;
 end;
 
-procedure TFPCustomCanvas.TextOut (x,y:integer;text:string);
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:ansistring);
 begin
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).DrawText(x,y, text)
@@ -320,7 +320,7 @@ begin
     DoTextOut (x,y, text);
 end;
 
-procedure TFPCustomCanvas.GetTextSize (text:string; var w,h:integer);
+procedure TFPCustomCanvas.GetTextSize (text:ansistring; var w,h:integer);
 begin
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).GetTextSize (text, w, h)
@@ -328,23 +328,23 @@ begin
     DoGetTextSize (Text, w, h);
 end;
 
-function TFPCustomCanvas.GetTextHeight (text:string) : integer;
+function TFPCustomCanvas.GetTextHeight (text:ansistring) : integer;
 begin
   Result := TextHeight(Text);
 end;
 
-function TFPCustomCanvas.GetTextWidth (text:string) : integer;
+function TFPCustomCanvas.GetTextWidth (text:ansistring) : integer;
 begin
   Result := TextWidth(Text);
 end;
 
-function TFPCustomCanvas.TextExtent(const Text: string): TSize;
+function TFPCustomCanvas.TextExtent(const Text: ansistring): TSize;
 begin
   Result:=Default(TSize);
   GetTextSize(Text, Result.cx, Result.cy);
 end;
 
-function TFPCustomCanvas.TextHeight(const Text: string): Integer;
+function TFPCustomCanvas.TextHeight(const Text: ansistring): Integer;
 begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextHeight (text)
@@ -352,7 +352,7 @@ begin
     result := DoGetTextHeight (Text);
 end;
 
-function TFPCustomCanvas.TextWidth(const Text: string): Integer;
+function TFPCustomCanvas.TextWidth(const Text: ansistring): Integer;
 begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextWidth (text)
@@ -411,25 +411,25 @@ end;
 procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring); 
 
 begin
-  DoTextOut(x,y,string(text));
+  DoTextOut(x,y,UTF8Encode(text));
 end;
 
 procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer); 
 
 begin
-  DoGetTextSize(String(Text),w,h);
+  DoGetTextSize(UTF8Encode(Text),w,h);
 end;
 
 function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer; 
 
 begin
-  Result:=DoGetTextHeight(String(text));
+  Result:=DoGetTextHeight(UTF8Encode(text));
 end;
 
 function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer; 
 
 begin
-  Result:=DoGetTextWidth(String(text));
+  Result:=DoGetTextWidth(UTF8Encode(text));
 end;
 
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
@@ -596,6 +596,63 @@ begin
   for y:=0 to Height-1 do
     for x:=0 to Width-1 do
       Colors[x,y]:=colTransparent;
+end;
+
+function InterpolateColor(AStartColor, AEndColor: TFPColor; x, Total: Integer): TFPColor;
+var
+  f1, f2: Double;
+begin
+  f2 := x / Total;
+  f1 := 1.0 - f2;
+  Result.Red := round(AStartColor.Red * f1 + AEndColor.Red * f2);
+  Result.Green := round(AStartColor.Green * f1 + AEndColor.Green * f2);
+  Result.Blue := round(AStartColor.Blue * f1 + AEndColor.Blue * f2);
+  Result.Alpha := round(AStartColor.Alpha * f1 + AEndColor.Alpha * f2);
+end;
+
+procedure TFPCustomCanvas.GradientFill(const ARect: TRect;
+  AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection);
+var
+  x, y, i, n: Integer;
+  oldPenStyle: TFPPenStyle;
+  oldPenWidth: Integer;
+  oldPenColor: TFPColor;
+begin
+  oldPenStyle := Pen.Style;
+  oldPenWidth := Pen.Width;
+  oldPenColor := Pen.FPColor;
+  Pen.Style := psSolid;
+  Pen.Width := 1;
+
+  if ADirection = gdVertical then
+  begin
+    n := ARect.Bottom - ARect.Top;
+    if n = 0 then
+      exit;
+    i := 0;
+    for y := ARect.Top to ARect.Bottom - 1 do
+    begin
+      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+      Line(ARect.Left, y, ARect.Right - 1, y);
+      inc(i);
+    end;
+  end else
+  begin
+    n := ARect.Right - ARect.Left;
+    if n = 0 then
+      exit;
+    i := 0;
+    for x := ARect.Left to ARect.Right - 1 do
+    begin
+      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+      Line(x, ARect.Top, x, ARect.Bottom - 1);
+      inc(i);
+    end;
+  end;
+
+  Pen.Style := oldPenStyle;
+  Pen.Width := oldPenWidth;
+  Pen.FPColor := oldPenColor;
 end;
 
 procedure TFPCustomCanvas.DoRectangleAndFill (const Bounds:TRect);

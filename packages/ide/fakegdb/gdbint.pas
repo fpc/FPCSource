@@ -15,15 +15,15 @@ type
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : longint;
-    fname    : pchar;
+    fname    : PAnsiChar;
     line     : longint;
-    funcname : pchar;
+    funcname : PAnsiChar;
   end;
 
   tframeentry = object
-    file_name : pchar;
-    function_name : pchar;
-    args : pchar;
+    file_name : PAnsiChar;
+    function_name : PAnsiChar;
+    args : PAnsiChar;
     line_number : longint;
     address : longint;
     constructor init;
@@ -35,14 +35,14 @@ type
   ppframeentry=^pframeentry;
 
   tgdbbuffer=object
-    buf   : pchar;
+    buf   : PAnsiChar;
     size,
     idx   : longint;
     constructor Init;
     destructor  Done;
     procedure Reset;
     procedure Resize(nsize : longint);
-    procedure Append(p:pchar);
+    procedure Append(p:PAnsiChar);
   end;
 
   PGDBInterface=^TGDBInterface;
@@ -76,13 +76,13 @@ type
     line_start,
     line_end : longint;
     signal_name,
-    signal_string : pchar;
+    signal_string : PAnsiChar;
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
     last_breakpoint_address,
     last_breakpoint_line : longint;
-    last_breakpoint_file : pchar;
+    last_breakpoint_file : PAnsiChar;
     invalid_breakpoint_line : boolean;
     { Highlevel }
     user_screen_shown,
@@ -274,7 +274,7 @@ begin
 end;
 
 
-procedure tgdbbuffer.append(p:pchar);
+procedure tgdbbuffer.append(p:PAnsiChar);
 var
   len : longint;
 begin
@@ -291,7 +291,7 @@ end;
 
 procedure tgdbbuffer.resize(nsize : longint);
 var
-  np    : pchar;
+  np    : PAnsiChar;
 begin
   nsize:=((nsize+blocksize-1) div blocksize)*blocksize;
   getmem(np,nsize);

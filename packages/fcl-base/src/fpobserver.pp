@@ -144,11 +144,11 @@ Type
   { General-purpose of Mediating views. Can be used on any form/component }
 
   TComponentMediator = Class(TBaseMediator)
+  Private
     FViewComponent : TComponent;
   Protected
     function  GetView : TObject; override;
     procedure SetComponent(const AValue: TComponent);
-  Public
     procedure Notification(AComponent: TComponent;  Operation: TOperation); override;
   Published
     // General component which can be set in Object Inspector
@@ -368,7 +368,7 @@ Type
     function FindDefFor(ASubject: TObject; AGui: TComponent; const APropName: string): TMediatorDef; overload;
     function FindDefFor(ASubject: TObject; AGui: TComponent; APropInfo: PPropInfo): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass): TMediatorDef; overload;
-    function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyName: string): TMediatorDef; overload;
+    function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; const PropertyName: string): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyTypes: TTypeKinds): TMediatorDef; overload;
     property Defs: TMediatorDefs read FDefs;
   end;
@@ -383,9 +383,10 @@ implementation
 
 
 Resourcestring
-  SErrNotObserver = 'Instance of class %s is not an observer.';
-  SErrInvalidPropertyName = '%s is not a valid published property of class %s';
-  SErrObjectCannotBeObserved = 'Cannot observe an instance of class %d';
+  SErrNotObserver           = 'Instance of class %s is not an observer.';
+  SErrDuplicateObserver     = 'Cannot add an instance of class %s twice as observer';
+  SErrInvalidPropertyName   = '%s is not a valid published property of class %s';
+  SErrObjectCannotBeObserved = 'Cannot observe an instance of class %s';
   sErrInvalidFieldName      = 'No fieldname specified for column %d';
   sErrInvalidAlignmentChar  = 'Invalid alignment character "%s" specified for column %d';
   sErrInvalidWidthSpecifier = 'Invalid with "%s" specified for column %d';
@@ -485,7 +486,9 @@ begin
   If Not AObserver.GetInterface(SGUIDObserver,I) then
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If not Assigned(FObservers) then
-    FObservers:=TFPList.Create;
+    FObservers:=TFPList.Create
+  else if FObservers.IndexOf(aObserver)<>-1 then
+    Raise EObserver.CreateFmt(SErrDuplicateObserver,[AObserver.ClassName]);
   FObservers.Add(I);
 end;
 
@@ -949,7 +952,7 @@ begin
   Result.FPT  := tkProperties - [tkClass, tkInterface, tkDynArray, tkObject, tkInterfaceRaw];
 end;
 
-function TMediatorManager.RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyName: string): TMediatorDef;
+function TMediatorManager.RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; const PropertyName: string): TMediatorDef;
 
 begin
   Result      := FDefs.AddDef;
