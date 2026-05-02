@@ -6193,7 +6193,7 @@ end;
 var
     l,i,len,len10 : longint;
     p10,p2,p13 : PAnsiChar;
-    s : string;
+    s : sw_astring;
 begin
   Lock;
   first:=true;
