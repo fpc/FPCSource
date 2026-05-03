@@ -47,7 +47,7 @@ Var
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
 {$ifdef debugcrt}
   DebugFile : Text;
-{$endif}   
+{$endif}
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
 *****************************************************************************}
@@ -1624,13 +1624,13 @@ End;
  {$endif}
 {$endif}
 
-// ioctl might fail e.g. in putty. A redirect check is not enough, 
+// ioctl might fail e.g. in putty. A redirect check is not enough,
 // needs check for physical console too.
 
 Procedure Sound(Hz: Word);
 begin
 {$ifdef havekiocsound}
-  if (not OutputRedir) and (hz>0) then 
+  if (not OutputRedir) and (hz>0) then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
 {$endif}
 end;
@@ -1806,7 +1806,7 @@ Initialization
 {$ifdef debugcrt}
   Assign(DebugFile,'debug.txt');
   ReWrite(DebugFile);
-{$endif}  
+{$endif}
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -1855,7 +1855,7 @@ Initialization
 Finalization
 {$ifdef debugcrt}
   Close(DebugFile);
-{$endif}  
+{$endif}
   ttyFlushOutput;
   if not OutputRedir then
     SetRawMode(False);
