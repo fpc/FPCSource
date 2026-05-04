@@ -4362,14 +4362,14 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_object(list:TAsmList;def: tobjectdef);
 
-      procedure dostruct(tag: tdwarf_tag);
+      procedure dostruct(tag: tdwarf_tag; has_children: boolean=true);
         begin
           if assigned(def.objname) then
-            append_entry(tag,true,[
+            append_entry(tag,has_children,[
               DW_AT_name,DW_FORM_string,def.objrealname^+#0
               ])
           else
-            append_entry(DW_TAG_structure_type,true,[]);
+            append_entry(DW_TAG_structure_type,has_children,[]);
           append_attribute(DW_AT_byte_size,DW_FORM_udata,[tobjectsymtable(def.symtable).datasize]);
           { an old style object and a cpp class are accessed directly, so we do not need DW_AT_allocated and DW_AT_data_location tags,
             see issue #36017 }
@@ -4448,7 +4448,16 @@ implementation
           odt_interfacecorba,
           odt_dispinterface:
             begin
-              dostruct(DW_TAG_interface_type);
+              if (not assigned(def.childof)) and
+                 ((not assigned(def.ImplementedInterfaces)) or (def.ImplementedInterfaces.count = 0)) and
+                (def.symtable.symList.count = 0)
+              then
+                begin
+                dostruct(DW_TAG_interface_type, False);
+                exit;
+                end
+              else
+                dostruct(DW_TAG_interface_type);
               doparent(true);
             end;
           odt_helper,
@@ -4566,20 +4575,26 @@ implementation
           begin
             if (features*VARIANTS[idx].features)=VARIANTS[idx].features then
               begin
-                append_entry(DW_TAG_variant,true,[
-                  DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
-                  ]);
-                finish_entry;
-
                 if VARIANTS[idx].name <> '' then
                   begin
+                    append_entry(DW_TAG_variant,true,[
+                      DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
+                      ]);
+                    finish_entry;
                     fs := tfieldvarsym(vardatadef.symtable.Find(VARIANTS[idx].name));
                     if (fs = nil) or (fs.typ <> fieldvarsym) then
                       internalerror(2006092702+idx);
                     appendsym_fieldvar(list,fs);
+                    finish_children; { variant }
+                  end
+                else
+                  begin
+                    append_entry(DW_TAG_variant,false,[
+                      DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
+                      ]);
+                    finish_entry;
                   end;
 
-                finish_children; { variant }
               end;
           end;
 
