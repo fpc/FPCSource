@@ -1,9 +1,8 @@
-{
+  {
+    Defines CPU intrinsic indicies for MIPS
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2016 by the Free Pascal development team.
-
-    CPU specific system unit header file
+    Copyright (c) 2026 by the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +13,4 @@
 
  **********************************************************************}
 
-{$if defined(FPUNONE) or defined(FPUSOFT)}
-  {$define FPC_SYSTEM_FPUCW_IMMUTABLE}
-{$else}
-type
-  TNativeFPUControlWord = dword;
-{$endif}
-
-const
-  {$I cpuinnr.inc}
+  fpc_in_gtecommand_x       = 12345;
