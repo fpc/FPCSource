@@ -115,7 +115,7 @@ interface
           function first_NegNot_assign: tnode; virtual;
           function first_atomic:tnode;virtual;
           function first_cpu : tnode; virtual;
-          {$if defined(MIPSEL)}
+          {$if defined(MIPS)}
           function first_gtecommand : tnode; virtual;
           {$endif}
           procedure CheckParameters(count : integer);
@@ -4787,7 +4787,7 @@ implementation
          in_atomic_xchg,
          in_atomic_cmp_xchg:
            result:=first_atomic;
-        {$if defined(MIPSEL)}
+        {$if defined(MIPS)}
          in_gtecommand_x: 
           begin
             result:= first_gtecommand;
@@ -5543,7 +5543,7 @@ implementation
          left:=nil;
        end;
 
-    {$if defined(MIPSEL)}
+    {$if defined(MIPS)}
        function tinlinenode.first_gtecommand: tnode;
          begin
            result:=nil;
