@@ -4787,11 +4787,12 @@ implementation
          in_atomic_xchg,
          in_atomic_cmp_xchg:
            result:=first_atomic;
-           {$if defined(MIPSEL)}
-         in_gtecommand_x: begin
+        {$if defined(MIPSEL)}
+         in_gtecommand_x: 
+          begin
             result:= first_gtecommand;
-            end;
-           {$endif}
+          end;
+        {$endif}
          else
            result:=first_cpu;
           end;
@@ -5542,13 +5543,13 @@ implementation
          left:=nil;
        end;
 
-{$if defined(MIPSEL)}
+    {$if defined(MIPSEL)}
        function tinlinenode.first_gtecommand: tnode;
-       begin
-       result:=nil;
-        internalerror(2025090503);
-       end;
-{$endif}
+         begin
+           result:=nil;
+           internalerror(2025090503);
+         end;
+    {$endif}
 
      function tinlinenode.first_bitscan: tnode;
        begin
