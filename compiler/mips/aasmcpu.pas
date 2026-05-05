@@ -681,47 +681,47 @@ procedure fixup_jmps(list: TAsmList);
 function Register2String(r: TRegister):string;
   begin
     case r of
-      NR_NO : result:= 'NO';
-      NR_R0 : result:= 'zero';
-      NR_R1 : result:= 'at';
-      NR_R2 : result:= 'v0';
-      NR_R3 : result:= 'v1';
-      NR_R4 : result:= 'a0';
-      NR_R5 : result:= 'a1';
-      NR_R6 : result:= 'a2';
-      NR_R7 : result:= 'a3';
-      NR_R8 : result:= 't0';
-      NR_R9 : result:= 't1';
-      NR_R10 : result:= 't2';
-      NR_R11 : result:= 't3';
-      NR_R12 : result:= 't4';
-      NR_R13 : result:= 't5';
-      NR_R14 : result:= 't6';
-      NR_R15 : result:= 't7';
-      NR_R16 : result:= 's0';
-      NR_R17 : result:= 's1';
-      NR_R18 : result:= 's2';
-      NR_R19 : result:= 's3';
-      NR_R20 : result:= 's4';
-      NR_R21 : result:= 's5';
-      NR_R22 : result:= 's6';
-      NR_R23 : result:= 's7';
-      NR_R24 : result:= 't8';
-      NR_R25 : result:= 't9';
-      NR_R26 : result:= 'k0';
-      NR_R27 : result:= 'k1';
-      NR_R28 : result:= 'gp';
-      NR_R29 : result:= 'sp';
-      NR_R30 : result:= 'fp';
-      NR_R31 : result:= 'ra';
+        NR_NO : result:= 'NO';
+        NR_R0 : result:= 'zero';
+        NR_R1 : result:= 'at';
+        NR_R2 : result:= 'v0';
+        NR_R3 : result:= 'v1';
+        NR_R4 : result:= 'a0';
+        NR_R5 : result:= 'a1';
+        NR_R6 : result:= 'a2';
+        NR_R7 : result:= 'a3';
+        NR_R8 : result:= 't0';
+        NR_R9 : result:= 't1';
+        NR_R10 : result:= 't2';
+        NR_R11 : result:= 't3';
+        NR_R12 : result:= 't4';
+        NR_R13 : result:= 't5';
+        NR_R14 : result:= 't6';
+        NR_R15 : result:= 't7';
+        NR_R16 : result:= 's0';
+        NR_R17 : result:= 's1';
+        NR_R18 : result:= 's2';
+        NR_R19 : result:= 's3';
+        NR_R20 : result:= 's4';
+        NR_R21 : result:= 's5';
+        NR_R22 : result:= 's6';
+        NR_R23 : result:= 's7';
+        NR_R24 : result:= 't8';
+        NR_R25 : result:= 't9';
+        NR_R26 : result:= 'k0';
+        NR_R27 : result:= 'k1';
+        NR_R28 : result:= 'gp';
+        NR_R29 : result:= 'sp';
+        NR_R30 : result:= 'fp';
+        NR_R31 : result:= 'ra';
       else result:= 'not listed jet';
     end;
   end;
 
 
 procedure resolveReadAfterWrite(list: TAsmList);
-label skip;
-var 
+  label skip;
+  var 
     l, x : TLinkedListItem;
     pp : tai;
     R1, R2, R3 : TRegister;
@@ -761,76 +761,76 @@ var
   end;
 
   function fetchNextInstruction(head: TLinkedListItem; var listPoint: TLinkedListItem; var instructionItSelf: Tai): boolean;
-  var
+    var
       xx : TLinkedListItem;
-  begin
-    result:= true;
+    begin
+      result:= true;
 
-    xx:= head.next;
-    while assigned(xx) do 
-      begin
-        instructionItSelf:= tai(xx);
+      xx:= head.next;
+      while assigned(xx) do 
+        begin
+          instructionItSelf:= tai(xx);
 
-        if instructionItSelf.typ = ait_instruction then 
-          begin
-            listPoint:= xx;
-            exit;
-          end;
+          if instructionItSelf.typ = ait_instruction then 
+            begin
+              listPoint:= xx;
+              exit;
+            end;
 
-        xx:= xx.next;
-      end;
+          xx:= xx.next;
+        end;
 
-    result:= false;
-  end;
+      result:= false;
+    end;
 
 
   procedure calcInstruction;
-  label skip2nop;
-  var
-    firstR1, firstR2, firstR3 : TRegister;
-    secondR1, secondR2, secondR3 : TRegister;
+    label skip2nop;
+    var
+      firstR1, firstR2, firstR3 : TRegister;
+      secondR1, secondR2, secondR3 : TRegister;
 
-    nextInstruction : Tai;
-    nextInstructionListPointer : TLinkedListItem;
-  begin
-    extractRegisters(pp);
-    firstR1:= R1;
-    firstR2:= R2;
-    firstR3:= R3;
+      nextInstruction : Tai;
+      nextInstructionListPointer : TLinkedListItem;
+    begin
+      extractRegisters(pp);
+      firstR1:= R1;
+      firstR2:= R2;
+      firstR3:= R3;
 
-    if is_calljmp(taicpu(pp).opcode) then goto skip2nop;
-    if taicpu(pp).opcode in [A_SB, A_SH, A_SW, A_SWL, A_SWR, A_MFHI, A_MFLO] then goto skip2nop;
+      if is_calljmp(taicpu(pp).opcode) then goto skip2nop;
+      if taicpu(pp).opcode in [A_SB, A_SH, A_SW, A_SWL, A_SWR, A_MFHI, A_MFLO] then goto skip2nop;
 
-    if not fetchNextInstruction(x, nextInstructionListPointer, nextInstruction) then goto skip2nop;
-    extractRegisters(nextInstruction);
+      if not fetchNextInstruction(x, nextInstructionListPointer, nextInstruction) then goto skip2nop;
+      extractRegisters(nextInstruction);
 
-    secondR1:= R1;
-    secondR2:= R2;
-    secondR3:= R3;
+      secondR1:= R1;
+      secondR2:= R2;
+      secondR3:= R3;
 
-    if is_calljmp(taicpu(nextInstruction).opcode) then goto skip2nop;
-    if taicpu(nextInstruction).opcode in [{A_SB, A_SH, A_SW, A_SWL, A_SWR,} A_NOP, A_MFHI, A_MFLO] then goto skip2nop;
+      if is_calljmp(taicpu(nextInstruction).opcode) then goto skip2nop;
+      if taicpu(nextInstruction).opcode in [{A_SB, A_SH, A_SW, A_SWL, A_SWR,} A_NOP, A_MFHI, A_MFLO] then goto skip2nop;
 
-    if (firstR1 <> NR_NO) and (secondR1 <> NR_NO) and (firstR1 = secondR1) then goto skip2nop;
-    if (firstR1 <> NR_NO) and (secondR2 <> NR_NO) and (firstR1 = secondR2) then goto skip2nop;
-    if (firstR1 <> NR_NO) and (secondR3 <> NR_NO) and (firstR1 = secondR3) then goto skip2nop;
+      if (firstR1 <> NR_NO) and (secondR1 <> NR_NO) and (firstR1 = secondR1) then goto skip2nop;
+      if (firstR1 <> NR_NO) and (secondR2 <> NR_NO) and (firstR1 = secondR2) then goto skip2nop;
+      if (firstR1 <> NR_NO) and (secondR3 <> NR_NO) and (firstR1 = secondR3) then goto skip2nop;
 
-    if (firstR2 <> NR_NO) and (secondR1 <> NR_NO) and (firstR2 = secondR1) then goto skip2nop;
-    if (firstR2 <> NR_NO) and (secondR2 <> NR_NO) and (firstR2 = secondR2) then goto skip2nop;
-    if (firstR2 <> NR_NO) and (secondR3 <> NR_NO) and (firstR2 = secondR3) then goto skip2nop;
+      if (firstR2 <> NR_NO) and (secondR1 <> NR_NO) and (firstR2 = secondR1) then goto skip2nop;
+      if (firstR2 <> NR_NO) and (secondR2 <> NR_NO) and (firstR2 = secondR2) then goto skip2nop;
+      if (firstR2 <> NR_NO) and (secondR3 <> NR_NO) and (firstR2 = secondR3) then goto skip2nop;
 
-    if (firstR3 <> NR_NO) and (secondR1 <> NR_NO) and (firstR3 = secondR1) then goto skip2nop;
-    if (firstR3 <> NR_NO) and (secondR2 <> NR_NO) and (firstR3 = secondR2) then goto skip2nop;
-    if (firstR3 <> NR_NO) and (secondR3 <> NR_NO) and (firstR3 = secondR3) then goto skip2nop;
+      if (firstR3 <> NR_NO) and (secondR1 <> NR_NO) and (firstR3 = secondR1) then goto skip2nop;
+      if (firstR3 <> NR_NO) and (secondR2 <> NR_NO) and (firstR3 = secondR2) then goto skip2nop;
+      if (firstR3 <> NR_NO) and (secondR3 <> NR_NO) and (firstR3 = secondR3) then goto skip2nop;
 
-    list.remove(nextInstructionListPointer);
-    list.insertAfter(nextInstruction, l);
+      list.remove(nextInstructionListPointer);
+      list.insertAfter(nextInstruction, l);
 
-    exit;
+      exit;
 
-  skip2nop:
-    list.insertAfter(taicpu.op_none(A_NOP), l);
-  end;
+    skip2nop:
+      list.insertAfter(taicpu.op_none(A_NOP), l);
+    end;
 
   var
     p : Tai;
