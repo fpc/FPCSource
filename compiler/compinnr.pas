@@ -236,8 +236,9 @@ type
      {$i ppcgen/ccpuinnr.inc}
 {$endif}
 
-{$if defined(MIPSEL)}    ,
-     in_gtecommand_x       = 12345
+{$if defined(MIPS)}    
+     ,
+     {$i mips/ccpuinnr.inc}
 {$endif}
    );
 
