@@ -115,9 +115,6 @@ interface
           function first_NegNot_assign: tnode; virtual;
           function first_atomic:tnode;virtual;
           function first_cpu : tnode; virtual;
-          {$if defined(MIPS)}
-          function first_gtecommand : tnode; virtual;
-          {$endif}
           procedure CheckParameters(count : integer);
         private
           function handle_str: tnode;
@@ -4164,15 +4161,6 @@ implementation
                      CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                    resultdef:=left.resultdef;
                  end;
-{$if defined(MIPSEL)}
-              in_gtecommand_x:
-                 begin
-                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   if not is_integer(left.resultdef) then
-                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
-                   resultdef:=voidtype;
-                 end;
-{$endif}
               in_objc_selector_x:
                 begin
                   result:=cobjcselectornode.create(left);
@@ -4787,12 +4775,6 @@ implementation
          in_atomic_xchg,
          in_atomic_cmp_xchg:
            result:=first_atomic;
-        {$if defined(MIPS)}
-         in_gtecommand_x: 
-          begin
-            result:= first_gtecommand;
-          end;
-        {$endif}
          else
            result:=first_cpu;
           end;
@@ -5543,13 +5525,6 @@ implementation
          left:=nil;
        end;
 
-    {$if defined(MIPS)}
-       function tinlinenode.first_gtecommand: tnode;
-         begin
-           result:=nil;
-           internalerror(2025090503);
-         end;
-    {$endif}
 
      function tinlinenode.first_bitscan: tnode;
        begin
