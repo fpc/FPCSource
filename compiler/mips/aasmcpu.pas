@@ -728,37 +728,37 @@ procedure resolveReadAfterWrite(list: TAsmList);
     firstReg : TRegister;
 
   procedure extractRegisters(instr: Tai);
-  begin
-    R1:= NR_NO;
-    R2:= NR_NO;
-    R3:= NR_NO;
+    begin
+      R1:= NR_NO;
+      R2:= NR_NO;
+      R3:= NR_NO;
 
-    if taicpu(instr).ops > 0 then 
-      begin
-        case taicpu(instr).ops of
-          1 : 
-            begin
-              if (taicpu(instr).oper[0]^.typ = top_reg) then R1:= taicpu(instr).oper[0]^.reg;
-            end;
-          2 : 
-            begin
-              if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
-              if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
-              if taicpu(instr).oper[1]^.typ = top_ref then R2:= taicpu(instr).oper[1]^.ref^.base;
-            end;
-          3 : 
-            begin
-              if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
-              if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
-              if taicpu(instr).oper[1]^.typ = top_ref then R2:= taicpu(instr).oper[1]^.ref^.base;
-              if taicpu(instr).oper[2]^.typ = top_reg then R3:= taicpu(instr).oper[2]^.reg;
-              if taicpu(instr).oper[2]^.typ = top_ref then R3:= taicpu(instr).oper[2]^.ref^.base;
-            end;
-          else
-            internalerror(2025090401);
-        end;
+      if taicpu(instr).ops > 0 then 
+        begin
+          case taicpu(instr).ops of
+            1 : 
+              begin
+                if (taicpu(instr).oper[0]^.typ = top_reg) then R1:= taicpu(instr).oper[0]^.reg;
+              end;
+            2 : 
+              begin
+                if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
+                if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
+                if taicpu(instr).oper[1]^.typ = top_ref then R2:= taicpu(instr).oper[1]^.ref^.base;
+              end;
+            3 : 
+              begin
+                if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
+                if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
+                if taicpu(instr).oper[1]^.typ = top_ref then R2:= taicpu(instr).oper[1]^.ref^.base;
+                if taicpu(instr).oper[2]^.typ = top_reg then R3:= taicpu(instr).oper[2]^.reg;
+                if taicpu(instr).oper[2]^.typ = top_ref then R3:= taicpu(instr).oper[2]^.ref^.base;
+              end;
+            else
+              internalerror(2025090401);
+          end;
+      end;
     end;
-  end;
 
   function fetchNextInstruction(head: TLinkedListItem; var listPoint: TLinkedListItem; var instructionItSelf: Tai): boolean;
     var
