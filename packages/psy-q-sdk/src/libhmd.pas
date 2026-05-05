@@ -1,4 +1,3 @@
-// libhmd.h: Hierarchical Modeling Data Library
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libhmd;
 {$ENDIF FPC_DOTTEDUNITS}

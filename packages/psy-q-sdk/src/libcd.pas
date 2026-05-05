@@ -1,9 +1,4 @@
 {
- *  (C) Copyright 1993/1994 Sony Computer Entertainment ,Tokyo,Japan.
- *                      All Rights Reserved
- *
- *              libcd.h: CD-ROM sub system hendler
- *
  * CD-ROM Primitive Command list:
  *
  *	Symbol		type	Contents			

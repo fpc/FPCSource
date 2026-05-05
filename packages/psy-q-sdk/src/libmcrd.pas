@@ -1,4 +1,3 @@
-// libmcrd.h	Rev. 4.2
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libmcrd;
 {$ENDIF FPC_DOTTEDUNITS}

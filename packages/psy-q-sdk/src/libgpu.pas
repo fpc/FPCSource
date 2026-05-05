@@ -1,5 +1,3 @@
-//  (C) Copyright 1993-1995 Sony Corporation,Tokyo,Japan. All Rights Reserved
-// 		libgpu.h: Graphic Primitive Structures Database
 {
  *
  * Primitive list:

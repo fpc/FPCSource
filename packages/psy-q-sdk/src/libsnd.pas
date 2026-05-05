@@ -1,10 +1,3 @@
-//
-// 	Copyright (C) 1994 by Sony Computer Entertainment Inc.
-//				          All Rights Reserved.
-//
-//	Sony Computer Entertainment Inc. Development Department
-//
-// Run-time Library Release 4.6$
 {$MODE OBJFPC}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libsnd;

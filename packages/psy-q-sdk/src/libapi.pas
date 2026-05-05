@@ -1,13 +1,3 @@
-//	File:libapi.h
-//	Copyright (C) 1997 by Sony Computer Entertainment Inc.
-//			All rights Reserved
-//
-// $PSLibId: Run-time Library Release 4.6$
-
-// don't change these macros and structures which is referred in controler code
-
-// Prototypes
-// prototypes added by suzu 96/03/01 and changed by hakama 96/06/06
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libapi;
 {$ENDIF FPC_DOTTEDUNITS}

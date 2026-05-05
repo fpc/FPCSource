@@ -1,5 +1,3 @@
-//  (C) Copyright 1993/1994 Sony Corporation,Tokyo,Japan. All Rights Reserved
-// 			libetc.h: Pad Interface
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libetc;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -1,4 +1,3 @@
-//  libtap.h: Multi Tap Interface
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libtap;
 {$ENDIF FPC_DOTTEDUNITS}

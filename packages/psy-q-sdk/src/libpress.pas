@@ -1,4 +1,3 @@
-// libpress.h
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libpress;
 {$ENDIF FPC_DOTTEDUNITS}

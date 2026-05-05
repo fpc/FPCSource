@@ -1,4 +1,3 @@
-//  libetc.h: Light Gun Interface
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgun;
 {$ENDIF FPC_DOTTEDUNITS}

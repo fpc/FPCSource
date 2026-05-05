@@ -1,4 +1,3 @@
-// libgs.h: Graphic Library Header 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libgs;
 {$ENDIF FPC_DOTTEDUNITS}

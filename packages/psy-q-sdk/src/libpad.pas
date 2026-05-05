@@ -1,4 +1,3 @@
-//	libpad.h
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libpad;
 {$ENDIF FPC_DOTTEDUNITS}

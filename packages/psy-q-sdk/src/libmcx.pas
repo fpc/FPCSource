@@ -1,4 +1,3 @@
-// libmcx.h
 {$IFNDEF FPC_DOTTEDUNITS}
 unit libmcx;
 {$ENDIF FPC_DOTTEDUNITS}
