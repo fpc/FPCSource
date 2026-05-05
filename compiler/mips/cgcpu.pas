@@ -788,7 +788,6 @@ const
 procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
 begin
   optimize_op_const(size,op,a);
-
   case op of
     OP_NONE:
       exit;
