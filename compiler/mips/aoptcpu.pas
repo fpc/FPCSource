@@ -749,7 +749,6 @@ unit aoptcpu;
               A_ABS_d, A_NEG_d, A_SQRT_d,
               A_CVT_d_w, A_CVT_d_l, A_CVT_d_s:
                 result:=TryRemoveMov(p,A_MOV_d);
-
               else
                 ;
             end;
