@@ -115,6 +115,7 @@ interface
           function first_NegNot_assign: tnode; virtual;
           function first_atomic:tnode;virtual;
           function first_cpu : tnode; virtual;
+
           procedure CheckParameters(count : integer);
         private
           function handle_str: tnode;
@@ -4161,6 +4162,7 @@ implementation
                      CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                    resultdef:=left.resultdef;
                  end;
+
               in_objc_selector_x:
                 begin
                   result:=cobjcselectornode.create(left);
@@ -5524,7 +5526,6 @@ implementation
          result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
          left:=nil;
        end;
-
 
      function tinlinenode.first_bitscan: tnode;
        begin
