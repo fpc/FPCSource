@@ -1508,6 +1508,12 @@ begin
 {$endif logging}
 end;
 
+var LastShiftState:byte;
+
+function GetLastShiftState:byte;
+begin
+  GetLastShiftState:=LastShiftState;
+end;
 
 function SysGetKeyEvent: TKeyEvent;
 
@@ -1642,6 +1648,7 @@ begin {main}
           SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
         else
           SysGetKeyEvent:=0;
+        LastShiftState:=Sstate;
         exit;
       end
     else if MyChar=#27 then
@@ -1734,6 +1741,7 @@ begin {main}
     SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
   else
     SysGetKeyEvent:=0;
+  LastShiftState:=Sstate;
 end;
 
 
@@ -1741,6 +1749,7 @@ function SysPollKeyEvent: TKeyEvent;
 var
   KeyEvent : TKeyEvent;
 begin
+  LastShiftState:=0;
   if keypressed then
     begin
       KeyEvent:=SysGetKeyEvent;
@@ -1759,7 +1768,7 @@ begin
     SysGetShiftState:=ShiftState
   else
 {$endif}
-    SysGetShiftState:=0;
+    SysGetShiftState:=GetLastShiftState;
 end;
 
 
