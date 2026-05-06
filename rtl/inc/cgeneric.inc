@@ -81,7 +81,7 @@ begin
 {$else not BUGGYMEMCHR}
 {$ifdef MEMCHR_NEEDS_LEN_POSITIVE}
   if len = -1 then
-    len := high(size_t);
+    len := high(sizeint);
 {$endif MEMCHR_NEEDS_LEN_POSITIVE}
 {$endif BUGGYMEMCHR}
     res := memchr(buf,cint(b),size_t(sizeuint(len)));
