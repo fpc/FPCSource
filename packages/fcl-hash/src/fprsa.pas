@@ -210,8 +210,56 @@ end;
 
 procedure RSAFree(var RSA: TRSA);
 begin
-  if RSA.M = nil then
-    Exit;
+  if RSA.Context.BIMod[BIGINT_M_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_M_OFFSET)
+  else if RSA.M <> nil then
+    BIRelease(RSA.Context, RSA.M);
+
+  if RSA.Context.BIMod[BIGINT_P_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_P_OFFSET)
+  else if RSA.P <> nil then
+    BIRelease(RSA.Context, RSA.P);
+
+  if RSA.Context.BIMod[BIGINT_Q_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_Q_OFFSET)
+  else if RSA.Q <> nil then
+    BIRelease(RSA.Context, RSA.Q);
+
+  if RSA.E <> nil then
+  begin
+    if RSA.E^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.E);
+    BIRelease(RSA.Context, RSA.E);
+  end;
+
+  if RSA.D <> nil then
+  begin
+    if RSA.D^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.D);
+    BIRelease(RSA.Context, RSA.D);
+  end;
+
+  if RSA.DP <> nil then
+  begin
+    if RSA.DP^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.DP);
+    BIRelease(RSA.Context, RSA.DP);
+  end;
+
+  if RSA.DQ <> nil then
+  begin
+    if RSA.DQ^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.DQ);
+    BIRelease(RSA.Context, RSA.DQ);
+  end;
+
+  if RSA.QInv <> nil then
+  begin
+    if RSA.QInv^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.QInv);
+    BIRelease(RSA.Context, RSA.QInv);
+  end;
+
   BITerminate(RSA.Context);
 end;
 

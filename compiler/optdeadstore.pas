@@ -101,7 +101,7 @@ type
                       begin
 {$ifdef DEBUG_DEADSTORE}
                         writeln('************************** Redundant write *********************************');
-                        printnode(a);
+                        printnode(output,a);
                         writeln('****************************************************************************');
 {$endif DEBUG_DEADSTORE}
                         pboolean(arg)^:=true;
@@ -124,7 +124,7 @@ type
         changed:=false;
 {$ifdef EXTDEBUG_DEADSTORE}
         writeln('******************* Tree before deadstore elimination **********************');
-        printnode(rootnode);
+        printnode(output,rootnode);
         writeln('****************************************************************************');
 {$endif EXTDEBUG_DEADSTORE}
         if not(pi_dfaavailable in compiler.current_procinfo.flags) then
@@ -135,7 +135,7 @@ type
         if changed then
           begin
             writeln('******************** Tree after deadstore elimination **********************');
-            printnode(rootnode);
+            printnode(output,rootnode);
             writeln('****************************************************************************');
           end;
 {$endif DEBUG_DEADSTORE}

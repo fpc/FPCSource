@@ -354,7 +354,13 @@ unit i_linux;
             res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
+  { default to little endian either when compiling with -dppc64le, or when
+    compiling on a little endian ppc64 platform }
+{$if defined(ppc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
+            endian       : endian_little;
+{$else}
             endian       : endian_big;
+{$endif}
             alignment    :
               (
                 procalign       : 8;
@@ -376,7 +382,11 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
             stackalign   : 16;
-            abi : abi_powerpc_sysv;
+{$if defined(ppc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
+            abi          : abi_powerpc_elfv2;
+{$else}
+            abi          : abi_powerpc_sysv;
+{$endif}
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
           );
 

@@ -73,8 +73,9 @@ const
 
 function WindowsIsATTY(var t : text) : Boolean; inline;
 var 
-  dwMode: dword = 0;
+  dwMode: dword;
 begin
+  dwMode:=0;
   WindowsIsATTY := false;
   if GetConsoleMode(TextRec(t).handle, dwMode) then
    begin

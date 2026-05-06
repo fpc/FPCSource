@@ -979,3 +979,9 @@ begin
   with Installer do
 {$include fpalsa/fpmake.pp}
 end;
+
+procedure add_psyq(const ADirectory: string);
+begin
+  with Installer do
+{$include psy-q-sdk/fpmake.pp}
+end;

@@ -32,11 +32,11 @@
     type
       TextFile = Text;
 
-      PGuid = ^TGuid;
+      PGUID = ^TGUID;
 
-      { TGuid }
+      { TGUID }
 
-      TGuid = packed record
+      TGUID = packed record
       Public
         class operator =(const aLeft, aRight: TGUID): Boolean;
         class operator <>(const aLeft, aRight: TGUID): Boolean; inline;

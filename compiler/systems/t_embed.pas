@@ -1072,11 +1072,11 @@ begin
       Add('  .rel.plt       : { *(.rel.plt)		}');
       Add('  .rela.plt      : { *(.rela.plt)		}');
       if [cs_link_discard_start,cs_link_discard_zeroreg_sp,cs_link_discard_copydata,
-          cs_link_discard_jmp_main]*compiler.globals.current_settings.globalswitches<>[] then
+          cs_link_discard_jmp_main,cs_link_cvt]*compiler.globals.current_settings.globalswitches<>[] then
         begin
           Add('  /DISCARD/ :');
           Add('  { /* Discard RTL startup code */');
-          if cs_link_discard_start in compiler.globals.current_settings.globalswitches then
+          if [cs_link_discard_start,cs_link_cvt]*compiler.globals.current_settings.globalswitches<>[] then
             begin
               Add('    *(.init)  /* vector table */');
               Add('    *(.text.*_default_irq_handler)');

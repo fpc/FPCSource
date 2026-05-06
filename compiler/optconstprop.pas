@@ -369,7 +369,7 @@ type
                       begin
 {$ifdef DEBUG_CONSTPROP}
                         writeln('******************************* propagating ***********************************');
-                        printnode(a);
+                        printnode(output,a);
                         writeln('*******************************************************************************');
 {$endif DEBUG_CONSTPROP}
                         st2:=tstatementnode(tstatementnode(st).right);
@@ -425,7 +425,7 @@ type
           iteration_changed:=false;
 {$ifdef DEBUG_CONSTPROP}
           writeln('************************ before constant propagation ***************************');
-          printnode(rootnode);
+          printnode(output,rootnode);
 {$endif DEBUG_CONSTPROP}
           foreachnode(pm_postandagain, rootnode, @propagate, @iteration_changed);
           changed:=changed or iteration_changed;
@@ -433,7 +433,7 @@ type
             doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
           writeln('************************ after constant propagation ***************************');
-          printnode(rootnode);
+          printnode(output,rootnode);
           writeln('*******************************************************************************');
 {$endif DEBUG_CONSTPROP}
         until not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or not(iteration_changed);

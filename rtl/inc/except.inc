@@ -325,10 +325,6 @@ Procedure SysInitExceptions;
   Initialize exceptionsupport
 }
 begin
-  // These are here, because they need to be initialized for every thread.
-  CastErrorFrom:='';
-  CastErrorTo:='';
-
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
 end;

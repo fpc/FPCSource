@@ -811,11 +811,11 @@ var
  S : String;
 
 begin
+  inherited;
+
   if Length(FAuds)=1 then
     JSON.Add('aud',fauds[0])
-  else if Length(FAuds)=0 then
-    JSON.Add('aud','')
-  else
+  else if Length(FAuds)>1 then
     begin
     lAuds:=TJSONArray.Create;
     JSON.Add('aud',lAuds);
@@ -827,4 +827,5 @@ end;
 initialization
   TJWTSignerNone.Register;
 end.
+
 

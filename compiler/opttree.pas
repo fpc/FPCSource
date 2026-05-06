@@ -216,14 +216,14 @@ type
         success:=true;
 {$ifdef DEBUG_NORMALIZE}
         writeln('******************************************** Before ********************************************');
-        printnode(n);
+        printnode(output,n);
 {$endif DEBUG_NORMALIZE}
         foreachnode(n,@searchstatements,@success);
 {$ifdef DEBUG_NORMALIZE}
         if success then
           begin
             writeln('******************************************** After ********************************************');
-            printnode(n);
+            printnode(output,n);
           end
         else
           writeln('************************* Normalization not possible ********************************');

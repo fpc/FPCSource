@@ -63,6 +63,7 @@ implementation
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
       procedure LoadPredefinedLibraryOrder; override;
+      procedure InternalInitSysInitUnitName(FirstCall: boolean);
       procedure InitSysInitUnitName; override;
     end;
 
@@ -117,6 +118,8 @@ begin
   if not compiler.globals.Dontlinkstdlibpath Then
    if compiler.target.info.system in systems_openbsd then
      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
+   else if compiler.target.info.system in systems_dragonfly then
+     compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/local/lib',true)
    else
      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
@@ -189,14 +192,18 @@ Begin
 End;
 
 
-procedure TLinkerBSD.InitSysInitUnitName;
+
+procedure TLinkerBSD.InternalInitSysInitUnitName(FirstCall: boolean);
 var
   cprtobj,
   gprtobj,
   si_cprt,
   si_gprt : string[80];
 begin
-  linklibc:=ModulesLinkToLibc(compiler);
+  { Do not call ModulesLinkToLibc again
+    as it might give a wrong answer }
+  if FirstCall then
+    linklibc:=ModulesLinkToLibc(compiler);
   if compiler.current_module.islibrary and
      (compiler.target.info.system in systems_bsd) then
     begin
@@ -218,6 +225,10 @@ begin
       SysInitUnit:='si_prc';
       si_cprt:='si_c';
       si_gprt:='si_g';
+      { DragonFly needs cprt0 in SharedLibs is not empty }
+      if (compiler.target.info.system in systems_dragonfly) and
+        not(SharedLibFiles.empty) then
+        linklibc:=true;
     end;
   // this one is a bit complex.
   // Only reorder for now if -XL or -XO params are given
@@ -243,6 +254,12 @@ begin
          SysInitUnit:=si_cprt;
        end;
    end;
+end;
+
+
+procedure TLinkerBSD.InitSysInitUnitName;
+begin
+  InternalInitSysInitUnitName(true);
 end;
 
 
@@ -351,6 +368,11 @@ begin
 
   if not LdSupportsNoResponseFile then
    LinkRes.Add(')');
+
+  { DragonFly needs to use cprt0 }
+  if (compiler.target.info.system in systems_dragonfly) and
+     not SharedLibFiles.Empty then
+    SharedLibFiles.Concat('c');
 
   { DragonFly dllprt0 calls libc _init_tls }
   if isdll and (compiler.target.info.system in systems_dragonfly) then
@@ -464,7 +486,10 @@ begin
   if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,compiler.current_module.exefilename);
 
-{ Create some replacements }
+  { Call again in case something needs to be modified }
+  InternalInitSysInitUnitName(false);
+
+  { Create some replacements }
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
@@ -610,6 +635,9 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  { Call again in case something needs to be modified }
+  InternalInitSysInitUnitName(false);
+
   GCSectionsStr:='';
   mapstr:='';
   ltostr:='';
@@ -761,11 +789,6 @@ initialization
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  {$ifdef freebsd}
-    {$if defined(powerpc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
-      system_powerpc64_freebsd_info.endian:=endian_little;
-    {$endif powerpc64le}
- {$endif freebsd}
   RegisterImport(system_powerpc64_freebsd,timportlibbsd);
   RegisterExport(system_powerpc64_freebsd,texportlibbsd);
   RegisterTarget(system_powerpc64_freebsd_info);

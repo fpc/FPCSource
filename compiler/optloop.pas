@@ -438,7 +438,7 @@ type
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
                       writeln(compiler.globals.parser_current_file, ': Found expression for strength reduction (MUL): ');
-                      printnode(n);
+                      dprintnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
                       tempnode:=compiler.ctempcreatenode(n.resultdef,n.resultdef.size,tt_persistent,
@@ -516,7 +516,7 @@ type
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
                       writeln(compiler.globals.parser_current_file,': Found expression for strength reduction (VEC): ');
-                      printnode(n);
+                      dprintnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
                       tempnode:=compiler.ctempcreatenode(compiler.deftypes.voidpointertype,compiler.deftypes.voidpointertype.size,tt_persistent,true);
@@ -1136,7 +1136,7 @@ type
 {$ifdef DEBUG_OPTFORLOOP}
                 writeln('**********************************************************************************');
                 writeln('Found loop for reverting: ');
-                printnode(n);
+                printnode(output,n);
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
                 include(tfornode(n).loopflags,lnf_backward);
@@ -1151,7 +1151,7 @@ type
                 do_firstpass(n);
 {$ifdef DEBUG_OPTFORLOOP}
                 writeln('Loop reverted: ');
-                printnode(n);
+                printnode(output,n);
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
                 toptimizeforloopcontext(arg^).changedforloop:=true;

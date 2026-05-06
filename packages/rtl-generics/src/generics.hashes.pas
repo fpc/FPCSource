@@ -65,6 +65,10 @@ uses
   {$define DISABLE_X86_CPUINTEL}
 {$endif}
 
+{$ifdef FORCE_X86_CPUINTEL}
+  {$undef DISABLE_X86_CPUINTEL}
+{$endif FORCE_X86_INTEL}
+
 {$ifdef CPU64}
   {$define PUREPASCAL}
   {$ifdef CPUX64}

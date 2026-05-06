@@ -94,15 +94,28 @@ type
 
 type
   TWalkBlockInfo = record
+  private
+    _ptr, priv: pointer; { priv is HeapTracer.pWalkHeapPrivate; nil for internal allocations. Allows to pass TWalkBlockInfo by const but unpack the trace on demand. }
+    _size: SizeUint;
+    function GetHeadSize: SizeUint;
+    function GetTailSize: SizeUint;
+    function GetIsInternalHeaptrcAllocation: boolean; inline;
+    function GetNTrace: SizeInt;
+    function GetTrace(index: SizeInt): CodePointer;
+    class operator Copy(constref b: TWalkBlockInfo; var self: TWalkBlockInfo);
+    class operator AddRef(var self: TWalkBlockInfo);
+  public
     // size is the size supplied to GetMem (/ReallocMem/etc.) by the user, and ptr is the pointer returned to the user.
     // System memory manager wrapped by heaptrc sees outerPtr = ptr - headSize and outerSize = headSize + size + tailSize.
-    ptr: pointer;
-    size, headSize, tailSize: SizeUint;
+    property ptr: pointer read _ptr;
+    property size: SizeUint read _size;
+    property headSize: SizeUint read GetHeadSize;
+    property tailSize: SizeUint read GetTailSize;
     // Depending on your needs, you may want to ignore internal allocations (and they may be allocated differently, see SystemRealloc), or may not.
-    isInternalHeaptrcAllocation: boolean;
+    property isInternalHeaptrcAllocation: boolean read GetIsInternalHeaptrcAllocation;
     // Stack trace at the point of allocation.
-    nTrace: SizeInt;
-    trace: array[0 .. 63] of CodePointer;
+    property nTrace: SizeInt read GetNTrace;
+    property trace[index: SizeInt]: CodePointer read GetTrace;
   end;
   TWalkBlockProc = procedure(const bi: TWalkBlockInfo; param: pointer);
 
@@ -668,14 +681,15 @@ type
   // N VarInts until the size is exhausted: zigzag-encoded deltas from the previous pointer, as if the pointer before first was nil.
   StackTrace = record
   const
-    MaxItems = length(TWalkBlockInfo.trace);
-    SizeOffset = 0;
-    HashOffset = 1;
-    HeaderSize = 5;
-    MaxBytes = HeaderSize + {$if MaxItems * (1 + sizeof(pointer)) <= High(byte)} MaxItems * (1 + sizeof(pointer)) {$else} High(byte) {$endif};
+    MaxItems = 64;
   type
-    SizeType = byte;   pSizeType = ^SizeType;
+    SizeType = {$if MaxItems > High(byte) div 3} uint16 {$else} byte {$endif}; pSizeType = ^SizeType;
     HashType = uint32; pHashType = ^HashType;
+  const
+    SizeOffset = 0;
+    HashOffset = sizeof(SizeType);
+    HeaderSize = HashOffset + sizeof(HashType);
+    MaxBytes = HeaderSize + {$if MaxItems * VarInt.MaxBytes <= High(SizeType)} MaxItems * VarInt.MaxBytes {$else} High(SizeType) {$endif};
     class function Pack(trace: pCodePointer; nTrace: SizeUint; packedTrace: pointer): SizeUint; static;
     class function Unpack(packedTrace: pointer; trace: pCodePointer): SizeUint; static;
   end;
@@ -691,7 +705,8 @@ type
     prev := 0;
     start := packedTrace;
     inc(packedTrace, HeaderSize);
-    hash := 0; // Hashing algorithm: start with 0, for all pointers: “add pointer, xorshift by 16, multiply by $21f0aaad”, xorshift by 15, cast to HashType.
+    // Hashing algorithm: start with 0, for all pointers: “add pointer, xorshift by 16, multiply by $21f0aaad”, xorshift by 15, cast to HashType.
+    hash := 0;
     while (nTrace > 0) and (result <= MaxBytes - VarInt.MaxBytes) do
     begin
     {$push} {$q-,r-}
@@ -844,45 +859,39 @@ type
 
   procedure StackTracesRegistry.CollectGarbage;
   var
-    dp, destDp, n, moveN: SizeUint;
+    destDp, n, moveN: SizeUint;
     stn: pNode;
     stnLink: HashList.ppNode;
-    moveSrc, moveDst: pointer;
+    dp, de: pointer;
   begin
   {$ifdef debug_heaptrc} if dumping then exit; {$endif} // Dumping iterates data...
     // Iterate all stack traces stored in data, search for corresponding nodes, check their refcounts.
     // Remove all nodes and traces with refcount = 0, pack other traces tightly.
-    dp := 0; destDp := 0;
-    moveSrc := nil; moveDst := nil;
-    while StoreDataSize(dp) < dataSize do
+    dp := data; de := dp + dataSize; destDp := 0;
+    moveN := 0;
+    while dp < de do
     begin
-      stn := pointer(specialize HashListTemplated<HashListTracePointerControl>.Find(h, data + dp, unaligned(StackTrace.pHashType(data + dp + StackTrace.HashOffset)^), stnLink)) - PtrUint(@Node(nil^).hn);
-      n := unaligned(StackTrace.pSizeType(data + dp + StackTrace.SizeOffset)^) + StackTrace.HeaderSize;
+      stn := pointer(specialize HashListTemplated<HashListTracePointerControl>.Find(h, dp, unaligned(StackTrace.pHashType(dp + StackTrace.HashOffset)^), stnLink)) - PtrUint(@Node(nil^).hn);
+      n := unaligned(StackTrace.pSizeType(dp + StackTrace.SizeOffset)^) + StackTrace.HeaderSize;
       if stn^.refcount > 0 then
       begin
         stn^.dataOfs := destDp;
-        if moveSrc = moveDst then
-        begin
-          moveSrc := data + dp;
-          moveDst := data + destDp;
-          moveN := 0;
-        end;
         inc(moveN, n);
         inc(destDp, n);
       end else
       begin
-        h.RemoveNode(@stn^.hn, stnLink);
+        if moveN <> 0 then
+        begin
+          Move((dp - moveN)^, (data + (destDp - moveN))^, moveN);
+          moveN := 0;
+        end;
+        h.RemoveNode(@stn^.hn, stnLink); // Careful: Move must precede, or Rehash will corrupt the not-yet-moved items if triggered.
         stn^.nextFree := freeNodes;
         freeNodes := stn;
-        if moveSrc <> moveDst then
-        begin
-          Move(moveSrc^, moveDst^, moveN);
-          moveSrc := nil; moveDst := nil;
-        end;
       end;
       inc(dp, n);
     end;
-    if moveSrc <> moveDst then Move(moveSrc^, moveDst^, moveN);
+    if moveN <> 0 then Move((dp - moveN)^, (data + (destDp - moveN))^, moveN);
     dataSize := destDp;
     garbage := 0;
   end;
@@ -1013,6 +1022,7 @@ type
   end;
 
 type
+  pHeapTracer = ^HeapTracer;
   HeapTracer = record
     class function HashPointer(p: pointer): SizeUint; static; inline;
     class function HeadTailSizeToIndex(sz: SizeUint): SizeUint; static;
@@ -1051,6 +1061,7 @@ type
     FillerByteToUint32 = $01010101;
     FillerByteToPtrUint = PtrUint((FillerByteToUint32 shl 32 or FillerByteToUint32) and High(PtrUint)); {$if sizeof(PtrUint) > 8} {$error need more} {$endif}
     DontVerifySize = PtrUint(-99);
+    NoTrace = SizeUint(-1); // Used in DoFreeMem and also in WalkHeapPrivate.
 
   type
     // default size is 4 pointers, which is the floor for the overhead per allocation (not counting traces and hashtables).
@@ -1152,6 +1163,23 @@ type
     class function TraceGetFPCHeapStatus: TFPCHeapStatus; static;
 
     procedure CheckHeap(max: SizeUint; cf: CheckFlags);
+
+  type
+    pWalkHeapPrivate = ^WalkHeapPrivate;
+    WalkHeapPrivate = record
+      n: pNode;
+      ht: pHeapTracer;
+      nTrace: SizeUint; // NoTrace if UnpackTrace needs to be called.
+      trace: array[0 .. StackTrace.MaxItems] of CodePointer;
+      procedure UnpackTrace;
+    end;
+
+    ReportContext = record
+      f: pText;
+      rem: SizeUint;
+      emptyCluster: boolean;
+    end;
+
     procedure WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
     class procedure WalkInternalAllocation(p: pointer; size: SizeUint; walkBlock: TWalkBlockProc; param: pointer); static;
 
@@ -1170,6 +1198,7 @@ type
 
     procedure Install;
     procedure Uninstall;
+    class procedure ReportBlock(const bi: TWalkBlockInfo; param: pointer); static;
     procedure Report(var f: text; skipIfNoLeaks: boolean);
     procedure SetOutput(const name: string);
     procedure CloseOutfp;
@@ -1547,7 +1576,6 @@ type
 
   function HeapTracer.DoFreeMem(p: pointer; size: PtrUint): PtrUint;
   const
-    NoTrace = SizeUint(-1);
     UnlockToFillThreshold = 512;
   var
     hn: HashList.pNode;
@@ -1596,14 +1624,14 @@ type
       end;
     if not CheckHeadAndTail(n) then ReportCorrupted(n, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
 
-    if result >= UnlockToFillThreshold then Unlock;
-    FillChar(p^, result, FreedFillerByte);
-    if result >= UnlockToFillThreshold then Lock;
-
     if nTrace = NoTrace then
+      // Can fill later in this case.
       FreeNode(n, freeBatch, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem])
     else
     begin
+      if result >= UnlockToFillThreshold then Unlock;
+      FillChar(p^, result, FreedFillerByte);
+      if result >= UnlockToFillThreshold then Lock;
       freeBatch.ht := @self; // VERY DANGEROUS HACK: only freeBatch.Add called by FreeToFreeItems uses freeBatch.ht (and, in fact, only when freeBatch.p overflows :D), so it is set here, saving 1 instruction.
       traces.Release(n^.trace);
       if nTrace > 0 then n^.trace := traces.Add(pByte(packedTrace), nodesRgn);
@@ -1620,7 +1648,12 @@ type
     end;
     CheckHeap(AutoCheckHeapStep, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
     Unlock;
-    freeBatch.Flush(self);
+    if nTrace = NoTrace then
+    begin
+      FillChar(p^, result, FreedFillerByte); // Safe as long as freeBatch.Add(p) never instantly frees p itself.
+      prevMgr.FreeMem(freeBatch.p[0]); // Inline freeBatch.Flush.
+    end else
+      freeBatch.Flush(self);
   end;
 
   class function HeapTracer.TraceGetMem(size: PtrUint): pointer;
@@ -1855,6 +1888,13 @@ type
     dec(insideCheckOrDumpHeap);
   end;
 
+  procedure HeapTracer.WalkHeapPrivate.UnpackTrace;
+  begin
+    nTrace := 0;
+    if Assigned(n^.trace) then
+      nTrace := StackTrace.Unpack(ht^.traces.data + n^.trace^.dataOfs, trace);
+  end;
+
   procedure HeapTracer.WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
   var
     hp: HashList.ppNode;
@@ -1862,9 +1902,9 @@ type
     hn: HashList.pNode;
     n: pNode;
     bi: TWalkBlockInfo;
+    priv: WalkHeapPrivate;
     rn: MemoryRegion.pNode;
   begin
-    Lock;
     // To support allocations in walkBlock, disable rehashes and set ToWalkBits.
     // Allocations by walkBlock will have ToWalkBits unset and be ignored by the traversal.
     savedMinItems := h.minItems;
@@ -1886,6 +1926,8 @@ type
 
     hp := h.h;
     hLeft := 1 + h.nhmask;
+    priv.ht := @self;
+    bi.priv := @priv;
     repeat
       hn := hp^;
       while Assigned(hn) do
@@ -1894,14 +1936,10 @@ type
         if n^.info and ToWalkBit <> 0 then
         begin
           dec(n^.info, ToWalkBit); // It is crucial to clear the bit before calling walkBlock, in order to avoid at least some of the unlikely problems described below.
-          bi.ptr := n^.userPtr;
-          bi.size := n^.GetUserSizeRequest;
-          bi.headSize := HeadTailSizes[n^.info shr HeadSizeIndexShift and HeadSizeIndexMask] * HeadSizeUnit;
-          bi.tailSize := HeadTailSizes[n^.info shr TailSizeIndexShift and TailSizeIndexMask] * TailSizeUnit;
-          bi.isInternalHeaptrcAllocation := false;
-          bi.nTrace := 0;
-          if Assigned(n^.trace) then
-            bi.nTrace := StackTrace.Unpack(traces.data + n^.trace^.dataOfs, bi.trace);
+          bi._ptr := n^.userPtr;
+          bi._size := n^.GetUserSizeRequest;
+          priv.n := n;
+          priv.nTrace := NoTrace;
           walkBlock(bi, param);
 
           // ...Well.
@@ -1933,19 +1971,15 @@ type
     // Recover rehashes.
     h.minItems := savedMinItems;
     h.maxItems := savedMaxItems;
-    Unlock;
   end;
 
   class procedure HeapTracer.WalkInternalAllocation(p: pointer; size: SizeUint; walkBlock: TWalkBlockProc; param: pointer);
   var
     bi: TWalkBlockInfo;
   begin
-    bi.ptr := p;
-    bi.size := size;
-    bi.headSize := 0;
-    bi.tailSize := 0;
-    bi.isInternalHeaptrcAllocation := true;
-    bi.nTrace := 0;
+    bi._ptr := p;
+    bi.priv := nil;
+    bi._size := size;
     walkBlock(bi, param);
   end;
 
@@ -2323,17 +2357,47 @@ begin
 end;
 {$endif GetModuleName}
 
-  procedure HeapTracer.Report(var f: text; skipIfNoLeaks: boolean);
+  class procedure HeapTracer.ReportBlock(const bi: TWalkBlockInfo; param: pointer);
   var
-    rem, ih, sz, savedMinItems, savedMaxItems: SizeUint;
-    hn: HashList.pNode;
+    ctx: ^ReportContext absolute param;
     n: pNode;
     display: TDisplayExtraInfoProc;
-    status: TFPCHeapStatus;
-    emptyCluster: boolean;
   {$if declared(LooksLikeClassInstance)}
     name: shortstring;
+  {$endif}
+  begin
+    if (ctx^.rem = 0) or not Assigned(bi.priv) then exit;
+    n := pWalkHeapPrivate(bi.priv)^.n;
+    if Assigned(n^.trace) and ctx^.emptyCluster then // Cluster multiple “N/A”s without extra newlines.
+      writeln(ctx^.f^);
+    ctx^.emptyCluster := not Assigned(n^.trace) and not printleakedblock;
+    write(ctx^.f^, 'Call trace for block $', HexStr(bi.ptr), ' size ', bi.size);
+  {$if declared(LooksLikeClassInstance)}
+    if LooksLikeClassInstance(bi.ptr, bi.size, name) then
+      write(ctx^.f^, ' (', name, ')');
   {$endif LooksLikeClassInstance}
+    if Assigned(n^.trace) then writeln(ctx^.f^) else writeln(ctx^.f^, ': N/A.');
+    if n^.info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
+    begin
+      display := pWalkHeapPrivate(bi.priv)^.ht^.extraInfos[n^.info shr ExtraInfoIndexShift and ExtraInfoIndexMask - 1].display;
+      if Assigned(display) then
+      begin
+        display(ctx^.f^, pointer(@n^.extraIfNoFullUserRequest) + n^.info and HasFullUserRequestBit * HasFullUserRequestBitToOffsetBetweenExtras);
+        ctx^.emptyCluster := false;
+      end;
+    end;
+    if printleakedblock then HexDump(ctx^.f^, n^.userPtr, bi.size);
+    if Assigned(n^.trace) then
+      pWalkHeapPrivate(bi.priv)^.ht^.DumpTrace(ctx^.f^, n)
+    else if not ctx^.emptyCluster then
+      writeln(ctx^.f^);
+    dec(ctx^.rem);
+  end;
+
+  procedure HeapTracer.Report(var f: text; skipIfNoLeaks: boolean);
+  var
+    ctx: ReportContext;
+    status: TFPCHeapStatus;
   begin
     if skipIfNoLeaks and (h.nItems = 0) and (getMemCount = freeMemCount) and (getMemSize = freeMemSize) then
       exit;
@@ -2352,55 +2416,11 @@ end;
       'True free heap : ', status.CurrHeapFree);
     writeln(f);
 
-    // Reporting from h avoids having prev/next pointers in every Node, at the cost of order and complexity.
-    // Disable h rehashes as BacktraceStrFunc might allocate. (Still unsafe because in the worst case it might DEallocate the current node...)
-    savedMinItems := h.minItems;
-    savedMaxItems := h.maxItems;
-    h.minItems := 0;
-    h.maxItems := High(SizeUint);
-    rem := h.nItems;
-    if rem > MaxLeaksToReport then rem := MaxLeaksToReport;
-    ih := 0;
-    emptyCluster := false;
-    while (ih <= h.nhmask) and (rem > 0) do
-    begin
-      hn := h.h[ih];
-      while Assigned(hn) and (rem > 0) do
-      begin
-        n := pointer(hn) - PtrUint(@Node(nil^).hn);
-        sz := n^.GetUserSizeRequest;
-        if Assigned(n^.trace) and emptyCluster then // Cluster multiple “N/A”s without extra newlines.
-          writeln(f);
-        emptyCluster := not Assigned(n^.trace) and not printleakedblock;
-        write(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
-      {$if declared(LooksLikeClassInstance)}
-        if LooksLikeClassInstance(n^.userPtr, n^.GetUserSizeRequest, name) then
-          write(f, ' (', name, ')');
-      {$endif LooksLikeClassInstance}
-        if Assigned(n^.trace) then writeln(f) else writeln(f, ': N/A.');
-        if n^.info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
-        begin
-          display := extraInfos[n^.info shr ExtraInfoIndexShift and ExtraInfoIndexMask - 1].display;
-          if Assigned(display) then
-          begin
-            display(outfp^, pointer(@n^.extraIfNoFullUserRequest) + n^.info and HasFullUserRequestBit * HasFullUserRequestBitToOffsetBetweenExtras);
-            emptyCluster := false;
-          end;
-        end;
-        if printleakedblock then HexDump(f, n^.userPtr, sz);
-        if Assigned(n^.trace) then
-          DumpTrace(f, n)
-        else if not emptyCluster then
-          writeln(f);
-        dec(rem);
-        hn := hn^.next;
-      end;
-      inc(ih);
-    end;
-    if emptyCluster then writeln(f);
-    // Recover rehashes.
-    h.minItems := savedMinItems;
-    h.maxItems := savedMaxItems;
+    ctx.f := @f;
+    ctx.rem := MaxLeaksToReport;
+    ctx.emptyCluster := false;
+    WalkHeap(@ReportBlock, @ctx);
+    if ctx.emptyCluster then writeln(f);
     dec(insideCheckOrDumpHeap);
   end;
 
@@ -2771,9 +2791,63 @@ begin
   RunError(204);
 end;
 
+  function TWalkBlockInfo.GetHeadSize: SizeUint;
+  begin
+    result := 0;
+    if Assigned(priv) then
+      result := HeapTracer.HeadTailSizes[HeapTracer.pWalkHeapPrivate(priv)^.n^.info shr HeapTracer.HeadSizeIndexShift and HeapTracer.HeadSizeIndexMask] * HeapTracer.HeadSizeUnit;
+  end;
+
+  function TWalkBlockInfo.GetTailSize: SizeUint;
+  begin
+    result := 0;
+    if Assigned(priv) then
+      result := HeapTracer.HeadTailSizes[HeapTracer.pWalkHeapPrivate(priv)^.n^.info shr HeapTracer.TailSizeIndexShift and HeapTracer.TailSizeIndexMask] * HeapTracer.TailSizeUnit;
+  end;
+
+  function TWalkBlockInfo.GetIsInternalHeaptrcAllocation: boolean;
+  begin
+    result := not Assigned(priv);
+  end;
+
+  function TWalkBlockInfo.GetNTrace: SizeInt;
+  begin
+    result := 0;
+    if Assigned(priv) then
+    begin
+      if HeapTracer.pWalkHeapPrivate(priv)^.nTrace = HeapTracer.NoTrace then
+        HeapTracer.pWalkHeapPrivate(priv)^.UnpackTrace;
+      result := HeapTracer.pWalkHeapPrivate(priv)^.nTrace;
+    end;
+  end;
+
+  function TWalkBlockInfo.GetTrace(index: SizeInt): CodePointer;
+  begin
+    if Assigned(priv) then
+    begin
+      if HeapTracer.pWalkHeapPrivate(priv)^.nTrace = HeapTracer.NoTrace then
+        HeapTracer.pWalkHeapPrivate(priv)^.UnpackTrace;
+      if SizeUint(index) < HeapTracer.pWalkHeapPrivate(priv)^.nTrace then
+        exit(HeapTracer.pWalkHeapPrivate(priv)^.trace[index]);
+    end;
+    RunError(201); // Range error.
+  end;
+
+  class operator TWalkBlockInfo.Copy(constref b: TWalkBlockInfo; var self: TWalkBlockInfo);
+  begin
+    RunError(211); // Prevent copying.
+  end;
+
+  class operator TWalkBlockInfo.AddRef(var self: TWalkBlockInfo);
+  begin
+    RunError(211); // Prevent copying.
+  end;
+
   procedure WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
   begin
+    ht.Lock;
     ht.WalkHeap(walkBlock, param);
+    ht.Unlock;
   end;
 
 {$ifdef debug_heaptrc}

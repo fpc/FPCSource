@@ -5,6 +5,8 @@ interface
 
 {$DEFINE FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 
+
+
 {$I systemh.inc}
 
 {$ifndef FPUNONE}
@@ -42,16 +44,24 @@ var
   argv:PPAnsiChar;
   envp:PPAnsiChar;
 
+procedure gte_Command(Const AValue : DWord);[internproc:fpc_in_gtecommand_x];
+
 implementation
 
 var
   StkLen: SizeUInt; external name '__stklen';
   bss_end: record end; external name '__bss_end__';
 
-procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
-procedure _free(p: pointer); external name 'free2';
-function _malloc(l: dword): pointer; external name 'malloc2';
-procedure _putchar(ch: char); external name 'putchar';
+function pcsxPresent: boolean;
+begin
+  if pdword($1f802080)^ = $58534350 then result:= true else result:= false;
+end;
+
+procedure _putchar(ch: char);
+begin
+  if not pcsxPresent then exit;
+  pbyte($1f802080)^:= byte(ch);
+end;
 
 {I ../mips/setjump.inc}
 {$I system.inc}
@@ -148,7 +158,7 @@ begin
   IsLibrary := FALSE;
 
   { Setup heap }
-  _InitHeap(pdword(@bss_end),alignvalue(PtrUInt(StackBottom)-PtrUInt(@bss_end), 4));
+  _InitHeap(PtrUInt(@bss_end));
   InitHeap;
 
   { Init exceptions }

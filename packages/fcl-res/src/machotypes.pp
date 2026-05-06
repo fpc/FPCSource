@@ -79,9 +79,6 @@ type
     ncmds: cuint32;
     sizeofcmds: cuint32;
     flags: cuint32;
-    {$IFDEF CPU64}
-    reserved: cuint32;
-    {$ENDIF}
   end;
 
   TLoadCommand = record

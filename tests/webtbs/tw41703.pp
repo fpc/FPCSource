@@ -1,6 +1,12 @@
-{ %opt=-Cn -Tlinux }
+{ %target=linux }
+{ %norun }
+unit tw41703;
+
 {$mode objfpc}
-program tw41703;
+
+interface
+
+implementation
 
 function myext(a: longint): longint; cdecl; varargs; external name 'myext';
 
@@ -14,8 +20,11 @@ begin
   result := check(a);
 end;
 
+procedure repro;
 var
   r: longint;
 begin
   r := wrap(myext(1, 2));
+end;
+
 end.

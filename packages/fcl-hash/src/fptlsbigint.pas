@@ -526,6 +526,7 @@ Var
   BI,BNext : PBigInt;
 
 begin
+  BIDepermanent(Context.BIRadix);
   BIRelease(Context, Context.BIRadix);
   Context.BIRadix := nil;
   BI:=Context.FreeList;
@@ -983,6 +984,7 @@ begin
     BIDepermanent(Context.G[I]);
     BIRelease(Context, Context.G[I]);
   end;
+  FreeMem(Context.G);
   BIRelease(Context, BI);
   BIRelease(Context, BIExp);
   Result := BIR;

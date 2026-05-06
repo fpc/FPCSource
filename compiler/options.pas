@@ -2305,6 +2305,13 @@ begin
     end;
 {$endif i8086}
 
+{$ifdef AVR}
+  if (compiler.target.info.system = system_avr_embedded) and
+     (cs_link_cvt in compiler.globals.init_settings.globalswitches) and
+     not(CPUAVR_HAS_CVT in compiler.target.cpu_capabilities[compiler.globals.init_settings.cputype]) then
+    compiler.verbose.Message1(option_e_avr_cvt_unsupported, embedded_controllers[compiler.globals.init_settings.controllertype].controllerunitstr);
+{$endif AVR}
+
 {$ifndef i8086_link_intern_debuginfo}
   if (cs_debuginfo in compiler.globals.init_settings.moduleswitches) and
      (compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
@@ -2579,6 +2586,7 @@ begin
             break;
           end;
 {$ifdef AVR}
+       'C' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_cvt];
        'd' :
           begin
             if not ParseLinkerDiscardOptions(more) then

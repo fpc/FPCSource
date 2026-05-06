@@ -24,9 +24,9 @@ unit SAX_XML;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom;
+uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom, Xml.Reader;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils, Classes, SAX, DOM;
+uses SysUtils, Classes, SAX, DOM, XmlReader;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -57,7 +57,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Parse(AInput: TSAXInputSource); override; overload;
+    procedure Parse(AInput: TXMLInputSource); override; overload;
 
     property EndOfStream: Boolean read FEndOfStream;
     property ScannerContext: TXMLScannerContext read FScannerContext;
@@ -146,7 +146,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSAXXMLReader.Parse(AInput: TSAXInputSource);
+procedure TSAXXMLReader.Parse(AInput: TXMLInputSource);
 const
   MaxBufferSize = 1024;
 var

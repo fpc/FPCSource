@@ -18,8 +18,9 @@
 # "DragonFly" field in the abitag to the relevant ABI number 
 
 	.file	"crt1.c"
-	.section	.note.ABI-tag,"a",@progbits
+	.section	.note.tag,"a",@progbits
 	.align 4
+.globl abitag
 	.type	abitag, @object
 	.size	abitag, 28
 abitag:

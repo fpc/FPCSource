@@ -38,11 +38,11 @@ procedure RegisterTest(ATestClass: TTestCaseClass); overload;
 procedure RegisterTest(const ASuitePath: String; ATestClass: TTestCaseClass); overload;
 procedure RegisterTest(const ASuitePath: String; ATest: TTest); overload;
 
-procedure RegisterTests(ATests: Array of TTestCaseClass);
-procedure RegisterTests(const ASuitePath: String; ATests: Array of TTestCaseClass);
+procedure RegisterTests(ATests: Array of TTestCaseClass); overload;
+procedure RegisterTests(const ASuitePath: String; ATests: Array of TTestCaseClass); overload;
 
-procedure RegisterTest(aSuite: TTestSuite);
-procedure RegisterTest(const aSuitePath : String; aSuite: TTestSuite);
+procedure RegisterTest(aSuite: TTestSuite); overload;
+procedure RegisterTest(const aSuitePath : String; aSuite: TTestSuite); overload;
 
 
 procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);

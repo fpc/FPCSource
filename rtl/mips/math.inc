@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$if not defined(FPUNONE) and not defined(FPUSOFT)}
 
 {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
@@ -44,3 +45,4 @@
     end;
 {$endif}
 
+{$endif}

@@ -173,3 +173,4 @@
   add_libsndfile(ADirectory+IncludeTrailingPathDelimiter('libsndfile'));
   add_redis(ADirectory+IncludeTrailingPathDelimiter('redis'));
   add_fpalsa(ADirectory+IncludeTrailingPathDelimiter('fpalsa'));
+  add_psyq(ADirectory+IncludeTrailingPathDelimiter('psy-q-sdk'));

@@ -604,15 +604,24 @@ end;
 function TFPReaderPNG.ColorGrayAlpha8 (CD:TColorData) : TFPColor;
 var c : word;
 begin
+  {$ifdef FPC_LITTLE_ENDIAN}
   c := CD and $00FF;
+  {$else}
+  c:=(CD shr 8) and $FF;
+  {$endif}
   c := c + (c shl 8);
   with result do
     begin
     red := c;
     green := c;
     blue := c;
-    c := CD and $FF00;
-    alpha := c + (c shr 8);
+    {$ifdef FPC_LITTLE_ENDIAN}
+     c := CD and $FF00;
+     alpha := c + (c shr 8);
+    {$else}
+     c := CD and $00FF;
+     alpha := c + (c shl 8);
+    {$endif}
     end;
 end;
 

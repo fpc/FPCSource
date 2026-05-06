@@ -34,10 +34,15 @@ type
     function first_abs_real: tnode; override;
     function first_sqr_real: tnode; override;
     function first_sqrt_real: tnode; override;
+    function first_gteCommand: tnode;
     procedure second_abs_real; override;
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
     procedure second_get_frame; override;
+    procedure second_gteCommand;
+    procedure pass_generate_code_cpu;override;
+    function pass_typecheck_cpu:tnode;override;
+    function first_cpu : tnode;override;
   private
     procedure load_fpu_location;
   end;
@@ -46,12 +51,12 @@ type
 implementation
 
 uses
-  systems,
+  systems, compinnr,
   globtype,globals,
   cutils, verbose,
-  symconst, symdef,
+  symconst, symdef, defutil,
   aasmtai, aasmcpu, aasmdata,
-  cgbase, pass_2,
+  cgbase, pass_2, htypechk,
   cpubase, paramgr,
   nbas, ncon, ncal, ncnv, nld,
   hlcgobj, ncgutil, cgobj, cgutils,
@@ -158,6 +163,60 @@ begin
   location_reset(location,LOC_CREGISTER,OS_ADDR);
   location.register:=NR_FRAME_POINTER_REG;
 end;
+
+
+function tMIPSELinlinenode.first_gteCommand: tnode;
+begin
+  result:= nil;
+end;
+
+
+procedure tMIPSELinlinenode.second_gteCommand;
+begin
+  
+  secondpass(left);
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
+
+end;
+
+procedure tMIPSELinlinenode.pass_generate_code_cpu;
+begin
+  if inlinenumber = in_gtecommand_x then second_gteCommand;
+end;
+
+
+function tMIPSELinlinenode.pass_typecheck_cpu : tnode;
+begin
+  Result:=nil;
+  case inlinenumber of
+    in_gtecommand_x:
+      begin
+        set_varstate(left,vs_read,[vsf_must_be_valid]);
+        if not is_integer(left.resultdef) then
+          compiler.verbose.CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+        resultdef:=compiler.deftypes.voidtype;
+      end;
+    else
+      Result:=inherited pass_typecheck_cpu;
+  end;
+end;
+
+
+function tMIPSELinlinenode.first_cpu : tnode;
+  begin
+    Result:=nil;
+    case inlinenumber of
+      in_gtecommand_x: 
+      begin
+        result:= first_gtecommand;
+      end;
+      else
+        Result:=inherited first_cpu;
+    end;
+  end;
 
 
 begin

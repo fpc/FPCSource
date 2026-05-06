@@ -3573,7 +3573,7 @@ unit_w_unsupported_esp_idf_version=10071_W_Unsupported esp-idf version
 #
 #  Options
 #
-# 11070 is the last used one
+# 11071 is the last used one
 #
 # BeginOfTeX
 %
@@ -3747,6 +3747,8 @@ option_e_win16_unsupported_memory_model=11069_W_Unsupported memory model $1 for 
 % i8086-win16 system only supports large and huge memory models.
 option_n_win16_set_default_large_memory_model=11070_N_Setting memory model for Win16 system to "large"
 % i8086-win16 requires at least large memory model.
+option_e_avr_cvt_unsupported=11071_E_CVT option not supported for $1
+% The CVT option is not supported by the selected MCU
 %
 % \end{description}
 # EndOfTeX
@@ -4111,6 +4113,7 @@ Z*2Az80asm_Assemble using z80asm
 **2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
+V*2CC_Use compact vector table
 V*2Cd<x>_Discard selected RTL startup sections (use with caution)
 V*3Cdc_Discard initializing data. Data defaults to noinit section
 V*3Cdj_Discard jump to PASCALMAIN. Use only if PASCALMAIN follows directly after startup code

@@ -485,7 +485,7 @@ begin
                 @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
                 PBuffer^.PrintNameLength div SizeOf(WCHAR));
               if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
-                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
+                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(ExcludeTrailingPathDelimiter(FileName)) + SymLinkRec.TargetName);
             end;
           end;
 

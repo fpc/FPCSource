@@ -20,3 +20,6 @@
 type
   TNativeFPUControlWord = dword;
 {$endif}
+
+const
+  {$I cpuinnr.inc}

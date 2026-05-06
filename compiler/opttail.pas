@@ -317,7 +317,7 @@ type
 {$ifdef debug_opttail}
         writeln('====================================================================================');
         write('Tail call replaced by: ');
-        printnode(n);
+        printnode(output,n);
         writeln('====================================================================================');
         writeln;
 {$endif debug_opttail}
