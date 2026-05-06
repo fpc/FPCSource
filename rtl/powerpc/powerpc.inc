@@ -577,7 +577,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(const buf;len:longint;b:byte):longint; assembler; nostackframe;
+function IndexByte_asm(const buf;len:longint;b:byte):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -599,12 +599,20 @@ asm
                 sub     r3,r10,r0
 .LIndexByteDone:
 end;
+
+function IndexByte(const buf;len:longint;b:byte):longint;
+begin
+  if len=-1 then
+    IndexByte:=IndexByte_asm(buf,high(longint),b)
+  else
+    IndexByte:=IndexByte_asm(buf,len,b);
+end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function IndexWord(const buf;len:longint;b:word):longint; assembler; nostackframe;
+function IndexWord_asm(const buf;len:longint;b:word):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -627,12 +635,20 @@ asm
                 srawi   r3,r3,1
 .LIndexWordDone:
 end;
+
+function IndexWord(const buf;len:longint;b:word):longint;
+begin
+  if len=-1 then
+    IndexWord:=IndexWord_asm(buf,high(longint),b)
+  else
+    IndexWord:=IndexWord_asm(buf,len,b);
+end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(const buf;len:longint;b:DWord):longint; assembler; nostackframe;
+function IndexDWord_asm(const buf;len:longint;b:DWord):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -654,6 +670,14 @@ asm
                 sub     r3,r10,r0
                 srawi   r3,r3,2
 .LIndexDWordDone:
+end;
+
+function IndexDWord(const buf;len:longint;b:DWord):longint;
+begin
+  if len=-1 then
+    IndexDWord:=IndexDWord_asm(buf,high(longint),b)
+  else
+    IndexDWord:=IndexDWord_asm(buf,len,b);
 end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
