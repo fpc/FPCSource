@@ -165,6 +165,7 @@ implementation
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systemstypes,systems,cpubase,aasmbase,aasmtai,
+       nodeprinter,
        compiler,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,procdefutil,symcreat,

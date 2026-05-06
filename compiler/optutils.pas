@@ -67,7 +67,7 @@ unit optutils;
       cutils,cdynset,
       verbose,compiler,
       optbase,
-      ncal,nbas,nflw,nutils,nset,ncon;
+      ncal,nbas,nflw,nutils,nset,ncon,nodeprinter;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var

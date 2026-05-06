@@ -27,7 +27,7 @@ interface
 
     uses
        compilerbase,
-       node,
+       node,nodeprinter,
        {$ifdef state_tracking}
        nstate,
        {$endif}

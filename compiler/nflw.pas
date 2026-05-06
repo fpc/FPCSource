@@ -29,7 +29,7 @@ interface
     uses
       cclasses,
       compilerbase,
-      node,cpubase,
+      node,nodeprinter,cpubase,
       symconst,symtype,symbase,symdef,symsym,
       optloop;
 

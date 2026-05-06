@@ -30,7 +30,7 @@ interface
        globtype,
        cgbase,cgutils,
        aasmtai,aasmdata,aasmcpu,
-       node,
+       node,nodeprinter,
        symtype;
 
     type

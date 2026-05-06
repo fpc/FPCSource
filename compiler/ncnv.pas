@@ -27,7 +27,7 @@ interface
 
     uses
        compilerbase,
-       node,
+       node,nodeprinter,
        symtype,
        defutil,defcmp,
        nld

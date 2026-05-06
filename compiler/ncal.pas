@@ -32,7 +32,7 @@ interface
        cutils,cclasses,
        globtype,constexp,
        paramgr,parabase,cgbase,
-       node,nbas,nutils,
+       node,nbas,nutils,nodeprinter,
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}

@@ -28,7 +28,7 @@ interface
     uses
        compilerbase,
        sysutils,cclasses,constexp,
-       node,globtype,globals,
+       node,nodeprinter,globtype,globals,
        aasmbase,ncon,nflw,symtype;
 
     type

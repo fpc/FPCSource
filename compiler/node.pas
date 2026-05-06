@@ -30,7 +30,8 @@ interface
        cclasses,
        globtype,globals,cgbase,cgutils,
        symtype,
-       optbase;
+       optbase,
+       nodeprinter;
 
     type
        tnodetype = (
@@ -280,26 +281,7 @@ interface
        flagsequal : tnodeflags = [];
        transientflagsequal : TTransientNodeFlags = [tnf_error];
 
-       printnodespacing = '   ';
-
     type
-      pnodeprinter = ^tnodeprinter;
-
-      { tnodeprinter }
-
-      tnodeprinter = object
-        t:ptext;
-        { indention used when writing a node tree to the screen }
-        printnodeindention : string;
-
-        constructor Init(var atext: text);
-        destructor Done;
-
-        { Node dumping support functions }
-        procedure printnodeindent; inline;
-        procedure printnodeunindent; inline;
-      end;
-
       tnodelist = class
       end;
 
@@ -784,29 +766,6 @@ implementation
         is_conststring_or_constcharnode :=
           is_conststringnode(p) or is_constcharnode(p) or
           is_constwidestringnode(p) or is_constwidecharnode(p);
-      end;
-
-    { tnodeprinter }
-
-    constructor tnodeprinter.Init(var atext: text);
-      begin
-        printnodeindention:='';
-        t:=@atext;
-      end;
-
-    destructor tnodeprinter.Done;
-      begin
-        t:=nil;
-      end;
-
-    procedure tnodeprinter.printnodeindent; inline;
-      begin
-        printnodeindention:=printnodeindention+printnodespacing;
-      end;
-
-    procedure tnodeprinter.printnodeunindent; inline;
-      begin
-        delete(printnodeindention,1,length(printnodespacing));
       end;
 
 {****************************************************************************

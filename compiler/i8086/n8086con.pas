@@ -26,7 +26,7 @@ unit n8086con;
 interface
 
     uses
-       globtype,symtype,node,ncon,ncgcon,nx86con,compilerbase;
+       globtype,symtype,node,ncon,ncgcon,nx86con,nodeprinter,compilerbase;
 
     type
 

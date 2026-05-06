@@ -26,7 +26,7 @@ unit ninl;
 interface
 
     uses
-       compilerbase,node,htypechk,symtype,compinnr;
+       compilerbase,node,nodeprinter,htypechk,symtype,compinnr;
 
     type
        TInlineNodeFlag = (

@@ -28,7 +28,7 @@ interface
     uses
       compilerbase,
       globtype,widestr,constexp,
-      node,
+      node,nodeprinter,
       aasmbase,aasmcnst,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 

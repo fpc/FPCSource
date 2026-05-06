@@ -30,7 +30,7 @@ interface
 
     uses
       compilerbase,
-      node,symtype;
+      node,nodeprinter,symtype;
 
     type
        TAddNodeFlag = (

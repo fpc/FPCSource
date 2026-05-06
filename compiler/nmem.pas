@@ -27,7 +27,7 @@ interface
 
     uses
        compilerbase,
-       node,
+       node,nodeprinter,
        symdef,symsym,symtable,symtype;
 
     type
