@@ -113,7 +113,6 @@ begin
 end;
 
 
-
 procedure tMIPSELinlinenode.second_abs_real;
 begin
   load_fpu_location;
