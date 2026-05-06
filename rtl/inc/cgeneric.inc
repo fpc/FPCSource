@@ -53,6 +53,10 @@ end;
   {$define BUGGYMEMCHR}
 {$endif}
 
+{$ifdef AIX}
+  {$define MEMCHR_NEEDS_LEN_POSITIVE}
+{$endif}
+
 function memchr(const buf; b: cint; len: size_t): pointer; cdecl; external clib;
 {$ifdef BUGGYMEMCHR}
 function rawmemchr(const buf; b: cint): pointer; cdecl; external clib;
@@ -71,6 +75,11 @@ begin
   if len = -1 then
     res := rawmemchr(buf,cint(b))
   else
+{$else not BUGGYMEMCHR}
+{$ifdef MEMCHR_NEEDS_LEN_POSITIVE}
+  if len = -1 then
+    len := high(sizeint);
+{$endif MEMCHR_NEEDS_LEN_POSITIVE}
 {$endif BUGGYMEMCHR}
     res := memchr(buf,cint(b),size_t(sizeuint(len)));
   if (res <> nil) then
