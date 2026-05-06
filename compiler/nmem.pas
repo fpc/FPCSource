@@ -90,7 +90,7 @@ interface
           procedure derefimpl;override;
           procedure printnodeinfo(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
@@ -120,7 +120,7 @@ interface
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tderefnodeclass = class of tderefnode;
@@ -140,7 +140,7 @@ interface
           procedure mark_write;override;
           procedure printnodedata(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
@@ -168,8 +168,8 @@ interface
           function dogetcopy : tnode;override;
           procedure mark_write;override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tvecnodeclass = class of tvecnode;
@@ -494,26 +494,26 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TAddrNode.XMLPrintNodeInfo(var T: Text);
+    procedure TAddrNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         First: Boolean;
         i: TAddrNodeFlag;
       begin
-        inherited XMLPrintNodeInfo(t);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i := Low(TAddrNodeFlag) to High(TAddrNodeFlag) do
           if i in addrnodeflags then
             begin
               if First then
                 begin
-                  Write(T, ' addrnodeflags="', i);
+                  Write(prn.T^, ' addrnodeflags="', i);
                   First := False;
                 end
               else
-                Write(T, ',', i);
+                Write(prn.T^, ',', i);
             end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -924,25 +924,25 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TDerefNode.XMLPrintNodeInfo(var T: Text);
+    procedure TDerefNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TDerefNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in derefnodeflags do
           begin
             if First then
               begin
-                Write(T, ' derefnodeflags="', i);
+                Write(prn.T^, ' derefnodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1073,10 +1073,10 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TSubscriptNode.XMLPrintNodeData(var T: Text);
+    procedure TSubscriptNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        WriteLn(T, PrintNodeIndention, '<field>', vs.Name, '</field>');
+        inherited XMLPrintNodeData(prn);
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<field>', vs.Name, '</field>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1586,41 +1586,41 @@ implementation
 
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TVecNode.XMLPrintNodeInfo(var T: Text);
+    procedure TVecNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TVecNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in vecnodeflags do
           begin
             if First then
               begin
-                Write(T, ' vecnodeflags="', i);
+                Write(prn.T^, ' vecnodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 
 
-    procedure TVecNode.XMLPrintNodeData(var T: Text);
+    procedure TVecNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        XMLPrintNode(T, Left);
+        XMLPrintNode(prn, Left);
 
         { The right node is the index }
-        WriteLn(T, PrintNodeIndention, '<index>');
-        PrintNodeIndent;
-        XMLPrintNode(T, Right);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</index>');
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<index>');
+        prn.PrintNodeIndent;
+        XMLPrintNode(prn, Right);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</index>');
 
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 

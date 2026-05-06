@@ -76,7 +76,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           procedure setprocdef(p : tprocdef;forfuncref:boolean);
           property procdef: tprocdef read fprocdef;
@@ -112,8 +112,8 @@ interface
        {$endif state_tracking}
           function docompare(p: tnode): boolean; override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tassignmentnodeclass = class of tassignmentnode;
@@ -151,7 +151,7 @@ interface
           procedure insert_typeconvs;
           function isempty : boolean;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var t : text);override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter);override;
 {$endif DEBUG_NODE_XML}
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
@@ -573,13 +573,13 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TLoadNode.XMLPrintNodeData(var T: Text);
+    procedure TLoadNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        WriteLn(T, printnodeindention, '<symbol>', symtableentry.name, '</symbol>');
+        inherited XMLPrintNodeData(prn);
+        WriteLn(prn.T^, prn.printnodeindention, '<symbol>', symtableentry.name, '</symbol>');
 
         if symtableentry.typ = procsym then
-          WriteLn(T, printnodeindention, '<procdef>', fprocdef.mangledname, '</procdef>');
+          WriteLn(prn.T^, prn.printnodeindention, '<procdef>', fprocdef.mangledname, '</procdef>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1138,35 +1138,35 @@ implementation
 
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TAssignmentNode.XMLPrintNodeInfo(var T: Text);
+    procedure TAssignmentNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TAssignmentNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in assignmentnodeflags do
           begin
             if First then
               begin
-                Write(T, ' assignmentnodeflags="', i);
+                Write(prn.T^, ' assignmentnodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 
 
-    procedure TAssignmentNode.XMLPrintNodeData(var T: Text);
+    procedure TAssignmentNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
         { For assignments, put the left and right branches on the same level for clarity }
-        XMLPrintNode(T, Left);
-        XMLPrintNode(T, Right);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        XMLPrintNode(prn, Left);
+        XMLPrintNode(prn, Right);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1450,25 +1450,25 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TArrayConstructorNode.XMLPrintNodeInfo(var T: Text);
+    procedure TArrayConstructorNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TArrayConstructorNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in arrayconstructornodeflags do
           begin
             if First then
               begin
-                Write(T, ' arrayconstructornodeflags="', i);
+                Write(prn.T^, ' arrayconstructornodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 

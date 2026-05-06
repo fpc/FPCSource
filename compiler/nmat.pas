@@ -27,7 +27,7 @@ interface
 
     uses
        compilerbase,
-       node,symtype;
+       node,nodeprinter,symtype;
 
     type
        TModDivNodeFlag = (
@@ -46,7 +46,7 @@ interface
           function simplify(forinline : boolean) : tnode;override;
           function dogetcopy : tnode;override;
     {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
     {$endif DEBUG_NODE_XML}
          protected
           { override the following if you want to implement }
@@ -773,25 +773,25 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TModDivNode.XMLPrintNodeInfo(var T: Text);
+    procedure TModDivNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TModDivNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in moddivnodeflags do
           begin
             if First then
               begin
-                Write(T, ' moddivnodeflags="', i);
+                Write(prn.T^, ' moddivnodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 

@@ -32,7 +32,7 @@ interface
        { symtable }
        symconst,symbase,symtype,
        { node }
-       node,
+       node,nodeprinter,
        { aasm }
        aasmtai,
        cpuinfo,
@@ -330,7 +330,7 @@ interface
           rttistring     : string;
 {$ifdef DEBUG_NODE_XML}
        protected
-          procedure XMLPrintDefData(var T: Text; Sym: TSym); override;
+          procedure XMLPrintDefData(var prn:tnodeprinter; Sym: TSym); override;
 {$endif DEBUG_NODE_XML}
        public
           objname,
@@ -476,8 +476,8 @@ interface
 {$ifdef DEBUG_NODE_XML}
        protected
           function XMLPrintType: ansistring; override;
-          procedure XMLPrintDefInfo(var T: Text; Sym: TSym); override;
-          procedure XMLPrintDefData(var T: Text; Sym: TSym); override;
+          procedure XMLPrintDefInfo(var prn:tnodeprinter; Sym: TSym); override;
+          procedure XMLPrintDefData(var prn:tnodeprinter; Sym: TSym); override;
 {$endif DEBUG_NODE_XML}
        public
           childof        : tobjectdef;
@@ -5317,7 +5317,7 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure tabstractrecorddef.XMLPrintDefData(var T: Text; Sym: TSym);
+    procedure tabstractrecorddef.XMLPrintDefData(var prn:tnodeprinter; Sym: TSym);
 
       procedure WriteSymOptions(SourceSym: TSym);
         var
@@ -5330,11 +5330,11 @@ implementation
               begin
                 if First then
                   begin
-                    Write(T, '" symoptions="', i);
+                    Write(prn.T^, '" symoptions="', i);
                     First := False;
                   end
                 else
-                  Write(T, ',', i)
+                  Write(prn.T^, ',', i)
               end;
         end;
 
@@ -5342,27 +5342,27 @@ implementation
         List: TFPHashObjectList;
         i: Integer;
       begin
-        WriteLn(T, PrintNodeIndention, '<size>', size, '</size>');
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<size>', size, '</size>');
 
         if (alignment = structalignment) and (alignment = aggregatealignment) then
           begin
             { Straightforward and simple }
-            WriteLn(T, PrintNodeIndention, '<alignment>', alignment, '</alignment>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<alignment>', alignment, '</alignment>');
           end
         else
           begin
-            WriteLn(T, PrintNodeIndention, '<alignment>');
-            printnodeindent;
-            WriteLn(T, PrintNodeIndention, '<basic>', alignment, '</basic>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<alignment>');
+            prn.printnodeindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<basic>', alignment, '</basic>');
 
             if (structalignment <> alignment) then
-              WriteLn(T, PrintNodeIndention, '<struct>', structalignment, '</struct>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<struct>', structalignment, '</struct>');
 
             if (aggregatealignment <> alignment) and (aggregatealignment <> structalignment) then
-              WriteLn(T, PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
 
-            printnodeunindent;
-            WriteLn(T, PrintNodeIndention, '</alignment>');
+            prn.printnodeunindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</alignment>');
           end;
 
         { List the fields }
@@ -5374,13 +5374,13 @@ implementation
             constsym:
               with TConstSym(List[i]) do
                 begin
-                  Write(T, PrintNodeIndention, '<const name="', RealName, '" pos="', fileinfo.line, ',', fileinfo.column);
+                  Write(prn.T^, prn.PrintNodeIndention, '<const name="', RealName, '" pos="', fileinfo.line, ',', fileinfo.column);
                   WriteSymOptions(TSym(List[i]));
-                  WriteLn(T, '">');
-                  PrintNodeIndent;
-                  XMLPrintConstData(T);
-                  PrintNodeUnindent;
-                  WriteLn(T, PrintNodeIndention, '</const>');
+                  WriteLn(prn.T^, '">');
+                  prn.PrintNodeIndent;
+                  XMLPrintConstData(prn);
+                  prn.PrintNodeUnindent;
+                  WriteLn(prn.T^, prn.PrintNodeIndention, '</const>');
                 end;
  {
             errorsym,syssym,labelsym,absolutevarsym,propertysym,
@@ -5389,13 +5389,13 @@ implementation
             fieldvarsym:
               with TFieldVarSym(List[i]) do
                 begin
-                  Write(T, PrintNodeIndention, '<field name="', RealName, '" pos="', fileinfo.line, ',', fileinfo.column);
+                  Write(prn.T^, prn.PrintNodeIndention, '<field name="', RealName, '" pos="', fileinfo.line, ',', fileinfo.column);
                   WriteSymOptions(TSym(List[i]));
-                  WriteLn(T, '">');
-                  PrintNodeIndent;
-                  XMLPrintFieldData(T);
-                  PrintNodeUnindent;
-                  WriteLn(T, PrintNodeIndention, '</field>');
+                  WriteLn(prn.T^, '">');
+                  prn.PrintNodeIndent;
+                  XMLPrintFieldData(prn);
+                  prn.PrintNodeUnindent;
+                  WriteLn(prn.T^, prn.PrintNodeIndention, '</field>');
                 end;
             else
               ;
@@ -9075,12 +9075,12 @@ implementation
       end;
 
 
-    procedure TObjectDef.XMLPrintDefInfo(var T: Text; Sym: TSym);
+    procedure TObjectDef.XMLPrintDefInfo(var prn:tnodeprinter; Sym: TSym);
       var
         i: TObjectOption;
         first: Boolean;
       begin
-        inherited XMLPrintDefInfo(T, Sym);
+        inherited;
 
         First := True;
         for i := Low(TObjectOption) to High(TObjectOption) do
@@ -9088,27 +9088,27 @@ implementation
             begin
               if First then
                 begin
-                  Write(T, ' objectoptions="', i);
+                  Write(prn.T^, ' objectoptions="', i);
                   First := False;
                 end
               else
-                Write(T, ',', i)
+                Write(prn.T^, ',', i)
             end;
 
         if not first then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 
 
-    procedure TObjectDef.XMLPrintDefData(var T: Text; Sym: TSym);
+    procedure TObjectDef.XMLPrintDefData(var prn:tnodeprinter; Sym: TSym);
       begin
         { There's nothing useful yet if the type is only forward-declared }
         if not (oo_is_forward in objectoptions) then
           begin
             if Assigned(childof) then
-              WriteLn(T, printnodeindention, '<ancestor>', SanitiseXMLString(childof.typesym.RealName), '</ancestor>');
+              WriteLn(prn.T^, prn.printnodeindention, '<ancestor>', SanitiseXMLString(childof.typesym.RealName), '</ancestor>');
 
-            inherited XMLPrintDefData(T, Sym);
+            inherited;
           end;
       end;
 {$endif DEBUG_NODE_XML}

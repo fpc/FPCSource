@@ -375,9 +375,9 @@ interface
 {$ifdef DEBUG_NODE_XML}
          { For writing nodes to XML files - do not call directly, but
            instead call XMLPrintNode to write a complete tree }
-         procedure XMLPrintNodeInfo(var T: Text); dynamic;
-         procedure XMLPrintNodeData(var T: Text); virtual;
-         procedure XMLPrintNodeTree(var T: Text); virtual;
+         procedure XMLPrintNodeInfo(var prn:tnodeprinter); dynamic;
+         procedure XMLPrintNodeData(var prn:tnodeprinter); virtual;
+         procedure XMLPrintNodeTree(var prn:tnodeprinter); virtual;
 {$endif DEBUG_NODE_XML}
          function ischild(p : tnode) : boolean;virtual;
 
@@ -408,7 +408,7 @@ interface
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-         procedure XMLPrintNodeData(var T: Text); override;
+         procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
          { Marks the current node for deletion and sets 'left' to nil.
            Returns what 'left' was previously set to }
@@ -431,8 +431,8 @@ interface
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-         procedure XMLPrintNodeTree(var T: Text); override;
-         procedure XMLPrintNodeData(var T: Text); override;
+         procedure XMLPrintNodeTree(var prn:tnodeprinter); override;
+         procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
          procedure printnodelist(var prn:tnodeprinter);
          { Marks the current node for deletion and sets 'right' to nil.
@@ -455,7 +455,7 @@ interface
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-         procedure XMLPrintNodeData(var T: Text); override;
+         procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
          { Marks the current node for deletion and sets 'third' to nil.
            Returns what 'third' was previously set to }
@@ -466,7 +466,7 @@ interface
          constructor create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);virtual;
          function docompare(p : tnode) : boolean;override;
 {$ifdef DEBUG_NODE_XML}
-         procedure XMLPrintNodeData(var T: Text); override;
+         procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
       end;
 
@@ -485,7 +485,7 @@ interface
     procedure printnode(var prn:tnodeprinter;n:tnode);
     procedure dprintnode(n:tnode);
 {$ifdef DEBUG_NODE_XML}
-    procedure XMLPrintNode(var T: Text; N: TNode);
+    procedure XMLPrintNode(var prn:tnodeprinter; N: TNode);
 {$endif DEBUG_NODE_XML}
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
@@ -690,10 +690,10 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure XMLPrintNode(var T: Text; N: TNode);
+    procedure XMLPrintNode(var prn:tnodeprinter; N: TNode);
       begin
         if Assigned(N) then
-          N.XMLPrintNodeTree(T);
+          N.XMLPrintNodeTree(prn);
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -941,27 +941,27 @@ implementation
 {$ifdef DEBUG_NODE_XML}
     { For writing nodes to XML files - do not call directly, but
       instead call XMLPrintNode to write a complete tree }
-    procedure tnode.XMLPrintNodeInfo(var T: Text);
+    procedure tnode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i_nf: TNodeFlag;
         i_tnf: TTransientNodeFlag;
         first: Boolean;
       begin
         if Assigned(resultdef) then
-          Write(T,' resultdef="', SanitiseXMLString(resultdef.typesymbolprettyname), '"');
+          Write(prn.T^,' resultdef="', SanitiseXMLString(resultdef.typesymbolprettyname), '"');
 
-        Write(T,' pos="',fileinfo.line,',',fileinfo.column);
+        Write(prn.T^,' pos="',fileinfo.line,',',fileinfo.column);
 
         First := True;
         for i_nf in flags do
           begin
             if First then
               begin
-                Write(T, '" flags="', i_nf);
+                Write(prn.T^, '" flags="', i_nf);
                 First := False;
               end
             else
-              Write(T, ',', i_nf)
+              Write(prn.T^, ',', i_nf)
           end;
 
         First := True;
@@ -969,32 +969,32 @@ implementation
           begin
             if First then
               begin
-                Write(T, '" transientflags="', i_tnf);
+                Write(prn.T^, '" transientflags="', i_tnf);
                 First := False;
               end
             else
-              Write(T, ',', i_tnf)
+              Write(prn.T^, ',', i_tnf)
           end;
-        write(T,'"');
+        write(prn.T^,'"');
 
         if (tnf_pass1_done in transientflags) then
-          write(t,' complexity="',node_complexity(self),'"');
+          write(prn.t^,' complexity="',node_complexity(self),'"');
       end;
 
-    procedure tnode.XMLPrintNodeData(var T: Text);
+    procedure tnode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
         { Nothing by default }
       end;
 
-    procedure tnode.XMLPrintNodeTree(var T: Text);
+    procedure tnode.XMLPrintNodeTree(var prn:tnodeprinter);
       begin
-        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
-        XMLPrintNodeInfo(T);
-        WriteLn(T, '>');
-        PrintNodeIndent;
-        XMLPrintNodeData(T);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        Write(prn.T^, prn.PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(prn);
+        WriteLn(prn.T^, '>');
+        prn.PrintNodeIndent;
+        XMLPrintNodeData(prn);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1175,10 +1175,10 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TUnaryNode.XMLPrintNodeData(var T: Text);
+    procedure TUnaryNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-         inherited XMLPrintNodeData(T);
-         XMLPrintNode(T, Left);
+         inherited XMLPrintNodeData(prn);
+         XMLPrintNode(prn, Left);
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1303,23 +1303,23 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TBinaryNode.XMLPrintNodeTree(var T: Text);
+    procedure TBinaryNode.XMLPrintNodeTree(var prn:tnodeprinter);
       begin
-        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
-        XMLPrintNodeInfo(T);
-        WriteLn(T, '>');
-        PrintNodeIndent;
-        XMLPrintNodeData(T);
+        Write(prn.T^, prn.PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(prn);
+        WriteLn(prn.T^, '>');
+        prn.PrintNodeIndent;
+        XMLPrintNodeData(prn);
       end;
 
 
-    procedure TBinaryNode.XMLPrintNodeData(var T: Text);
+    procedure TBinaryNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        inherited;
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
         { Right nodes are on the same indentation level }
-        XMLPrintNode(T, Right);
+        XMLPrintNode(prn, Right);
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1438,18 +1438,18 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TTertiaryNode.XMLPrintNodeData(var T: Text);
+    procedure TTertiaryNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
          if Assigned(Third) then
            begin
-             WriteLn(T, PrintNodeIndention, '<third-branch>');
-             PrintNodeIndent;
-             XMLPrintNode(T, Third);
-             PrintNodeUnindent;
-             WriteLn(T, PrintNodeIndention, '</third-branch>');
+             WriteLn(prn.T^, prn.PrintNodeIndention, '<third-branch>');
+             prn.PrintNodeIndent;
+             XMLPrintNode(prn, Third);
+             prn.PrintNodeUnindent;
+             WriteLn(prn.T^, prn.PrintNodeIndention, '</third-branch>');
            end;
 
-         inherited XMLPrintNodeData(T);
+         inherited;
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1489,13 +1489,13 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TBinOpNode.XMLPrintNodeData(var T: Text);
+    procedure TBinOpNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
         { For binary operations, put the left and right branches on the same level for clarity }
-        XMLPrintNode(T, Left);
-        XMLPrintNode(T, Right);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        XMLPrintNode(prn, Left);
+        XMLPrintNode(prn, Right);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 

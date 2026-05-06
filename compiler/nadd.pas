@@ -65,7 +65,7 @@ interface
           function track_state_pass(exec_known:boolean):boolean;override;
     {$endif}
     {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
     {$endif DEBUG_NODE_XML}
          protected
           { override the following if you want to implement }
@@ -4999,25 +4999,25 @@ const
     end;
 {$endif}
 {$ifdef DEBUG_NODE_XML}
-    procedure TAddNode.XMLPrintNodeInfo(var T: Text);
+    procedure TAddNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TAddNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in addnodeflags do
           begin
             if First then
               begin
-                Write(T, ' addnodeflags="', i);
+                Write(prn.T^, ' addnodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 

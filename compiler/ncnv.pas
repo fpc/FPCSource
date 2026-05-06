@@ -66,7 +66,7 @@ interface
           function dogetcopy : tnode;override;
           procedure printnodeinfo(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -1085,28 +1085,28 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TTypeConvNode.XMLPrintNodeInfo(var T: Text);
+    procedure TTypeConvNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         First: Boolean;
         i: TTypeConvNodeFlag;
       begin
-        inherited XMLPrintNodeInfo(T);
-        Write(T,' convtype="', convtype);
+        inherited XMLPrintNodeInfo(prn);
+        Write(prn.T^,' convtype="', convtype);
         First := True;
         for i := Low(TTypeConvNodeFlag) to High(TTypeConvNodeFlag) do
           if i in ConvNodeFlags then
             begin
               if First then
                 begin
-                  Write(T, '" convnodeflags="', i);
+                  Write(prn.T^, '" convnodeflags="', i);
                   First := False;
                 end
               else
-                Write(T, ',', i);
+                Write(prn.T^, ',', i);
            end;
 
         { If no flags were printed, this is the closing " for convtype }
-        Write(T, '"');
+        Write(prn.T^, '"');
       end;
 {$endif DEBUG_NODE_XML}
 

@@ -122,7 +122,7 @@ interface
           function dogetcopy : tnode;override;
           procedure printnodetree(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeTree(var t:text); override;
+          procedure XMLPrintNodeTree(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
@@ -1120,40 +1120,40 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TCaseNode.XMLPrintNodeTree(var T: Text);
+    procedure TCaseNode.XMLPrintNodeTree(var prn:tnodeprinter);
       var
         i : longint;
       begin
-        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
-        XMLPrintNodeInfo(T);
-        WriteLn(T, '>');
-        PrintNodeIndent;
-        WriteLn(T, PrintNodeIndention, '<condition>');
-        PrintNodeIndent;
-        XMLPrintNode(T, Left);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</condition>');
+        Write(prn.T^, prn.PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(prn);
+        WriteLn(prn.T^, '>');
+        prn.PrintNodeIndent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<condition>');
+        prn.PrintNodeIndent;
+        XMLPrintNode(prn, Left);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</condition>');
 
         i:=0;
         for i:=0 to blocks.count-1 do
           begin
-            WriteLn(T, PrintNodeIndention, '<block id="', i, '">');
-            PrintNodeIndent;
-            XMLPrintNode(T, PCaseBlock(blocks[i])^.statement);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</block>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<block id="', i, '">');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, PCaseBlock(blocks[i])^.statement);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</block>');
           end;
         if assigned(elseblock) then
           begin
-            WriteLn(T, PrintNodeIndention, '<block id="else">');
-            PrintNodeIndent;
-            XMLPrintNode(T, ElseBlock);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</block>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<block id="else">');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, ElseBlock);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</block>');
           end;
 
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 

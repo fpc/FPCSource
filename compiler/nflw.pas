@@ -73,8 +73,8 @@ interface
           procedure insertintolist(l : tnodelist);override;
           procedure printnodetree(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
-          procedure XMLPrintNodeTree(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
+          procedure XMLPrintNodeTree(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           function docompare(p: tnode): boolean; override;
        end;
@@ -1201,12 +1201,12 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TLoopNode.XMLPrintNodeInfo(var T: Text);
+    procedure TLoopNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TLoopFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
 
         First := True;
         for i := Low(TLoopFlag) to High(TLoopFlag) do
@@ -1214,57 +1214,57 @@ implementation
             begin
               if First then
                 begin
-                  Write(T, ' loopflags="', i);
+                  Write(prn.T^, ' loopflags="', i);
                   First := False;
                 end
               else
-                Write(T, ',', i)
+                Write(prn.T^, ',', i)
             end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
       end;
 
-    procedure TLoopNode.XMLPrintNodeTree(var T: Text);
+    procedure TLoopNode.XMLPrintNodeTree(var prn:tnodeprinter);
       begin
-        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
-        XMLPrintNodeInfo(T);
-        WriteLn(T, '>');
-        PrintNodeIndent;
+        Write(prn.T^, prn.PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(prn);
+        WriteLn(prn.T^, '>');
+        prn.PrintNodeIndent;
         if Assigned(Left) then
           begin
             if nodetype = forn then
-              WriteLn(T, PrintNodeIndention, '<counter>')
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<counter>')
             else
-              WriteLn(T, PrintNodeIndention, '<condition>');
-            PrintNodeIndent;
-            XMLPrintNode(T, Left);
-            PrintNodeUnindent;
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<condition>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, Left);
+            prn.PrintNodeUnindent;
             if nodetype = forn then
-              WriteLn(T, PrintNodeIndention, '</counter>')
+              WriteLn(prn.T^, prn.PrintNodeIndention, '</counter>')
             else
-              WriteLn(T, PrintNodeIndention, '</condition>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '</condition>');
           end;
 
         if Assigned(Right) then
           begin
             case nodetype of
               ifn:
-                WriteLn(T, PrintNodeIndention, '<then>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<then>');
               forn:
-                WriteLn(T, PrintNodeIndention, '<first>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<first>');
               else
-                WriteLn(T, PrintNodeIndention, '<right>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<right>');
             end;
-            PrintNodeIndent;
-            XMLPrintNode(T, Right);
-            PrintNodeUnindent;
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, Right);
+            prn.PrintNodeUnindent;
             case nodetype of
               ifn:
-                WriteLn(T, PrintNodeIndention, '</then>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</then>');
               forn:
-                WriteLn(T, PrintNodeIndention, '</first>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</first>');
               else
-                WriteLn(T, PrintNodeIndention, '</right>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</right>');
             end;
           end;
 
@@ -1272,22 +1272,22 @@ implementation
           begin
             case nodetype of
               ifn:
-                WriteLn(T, PrintNodeIndention, '<else>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<else>');
               forn:
-                WriteLn(T, PrintNodeIndention, '<last>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<last>');
               else
-                WriteLn(T, PrintNodeIndention, '<t1>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<t1>');
             end;
-            PrintNodeIndent;
-            XMLPrintNode(T, t1);
-            PrintNodeUnindent;
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, t1);
+            prn.PrintNodeUnindent;
             case nodetype of
               ifn:
-                WriteLn(T, PrintNodeIndention, '</else>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</else>');
               forn:
-                WriteLn(T, PrintNodeIndention, '</last>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</last>');
               else
-                WriteLn(T, PrintNodeIndention, '</t1>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</t1>');
             end;
           end;
 
@@ -1296,21 +1296,21 @@ implementation
 
             if nodetype <> forn then
               begin
-                WriteLn(T, PrintNodeIndention, '<loop>');
-                PrintNodeIndent;
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<loop>');
+                prn.PrintNodeIndent;
               end;
 
-            XMLPrintNode(T, t2);
+            XMLPrintNode(prn, t2);
 
             if nodetype <> forn then
               begin
-                PrintNodeUnindent;
-                WriteLn(T, PrintNodeIndention, '</loop>');
+                prn.PrintNodeUnindent;
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</loop>');
               end;
           end;
 
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</', nodetype2str[nodetype], '>');
       end;
 {$endif DEBUG_NODE_XML}
 

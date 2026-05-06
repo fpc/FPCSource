@@ -29,7 +29,7 @@ interface
 
     uses
       globals,cclasses,compilerbase,hlcgobj,cgobj,tgobj,
-      node,nbas,nutils,aasmdata,
+      node,nbas,nutils,nodeprinter,aasmdata,
       symdef,procinfo,optdfa;
 
     type
@@ -118,7 +118,7 @@ interface
 
 
 {$ifdef DEBUG_NODE_XML}
-    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+    function XMLInitializeNodeFile(RootName, ModuleName: shortstring): tnodeprinter;
     procedure XMLFinalizeNodeFile(RootName: shortstring);
 {$endif DEBUG_NODE_XML}
 type
@@ -165,7 +165,6 @@ implementation
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systemstypes,systems,cpubase,aasmbase,aasmtai,
-       nodeprinter,
        compiler,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,procdefutil,symcreat,
@@ -1536,7 +1535,8 @@ implementation
 {$ifdef DEBUG_NODE_XML}
     procedure tcgprocinfo.XMLPrintProc(FirstHalf: Boolean);
       var
-        T: Text;
+        Txt: Text;
+        prn: TNodePrinter;
         W: Word;
         syssym: tsyssym;
         separate : boolean;
@@ -1544,23 +1544,24 @@ implementation
       procedure PrintType(Flag: string);
         begin
           if df_generic in procdef.defoptions then
-            Write(T, ' type="generic ', Flag, '"')
+            Write(prn.T^, ' type="generic ', Flag, '"')
           else
-            Write(T, ' type="', Flag, '"');
+            Write(prn.T^, ' type="', Flag, '"');
         end;
 
       procedure PrintOption(Flag: string);
         begin
-          WriteLn(T, PrintNodeIndention, '<option>', Flag, '</option>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<option>', Flag, '</option>');
         end;
 
       begin
         if compiler.current_module.ppxfilefail then
           Exit;
 
-        Assign(T, compiler.current_module.ppxfilename);
+        prn.Init(Txt);
+        Assign(Txt, compiler.current_module.ppxfilename);
         {$push} {$I-}
-        Append(T);
+        Append(Txt);
         if IOResult <> 0 then
           begin
             compiler.verbose.Message1(exec_e_cant_create_archivefile,compiler.current_module.ppxfilename);
@@ -1574,14 +1575,14 @@ implementation
         { First half prints the header and the nodes as a "code" tag }
         if FirstHalf or separate then
           begin
-            Write(T, PrintNodeIndention, '<subroutine');
+            Write(prn.T^, prn.PrintNodeIndention, '<subroutine');
             { Check to see if the procedure is a class or object method }
             if Assigned(procdef.struct) then
               begin
                 if Assigned(procdef.struct.objrealname) then
-                  Write(T, ' struct="', SanitiseXMLString(procdef.struct.objrealname^), '"')
+                  Write(prn.T^, ' struct="', SanitiseXMLString(procdef.struct.objrealname^), '"')
                 else
-                  Write(T, ' struct="&lt;NULL&gt;"');
+                  Write(prn.T^, ' struct="&lt;NULL&gt;"');
               end;
             case procdef.proctypeoption of
               potype_none:
@@ -1596,7 +1597,7 @@ implementation
                       PrintType('class method');
                   end
                 else if df_generic in procdef.defoptions then
-                  Write(T, ' type="generic"');
+                  Write(prn.T^, ' type="generic"');
               potype_proginit,
               potype_unitinit:
                 PrintType('initialization');
@@ -1626,15 +1627,15 @@ implementation
                 PrintType('package stub');
             end;
 
-            Write(T, ' name="', SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
+            Write(prn.T^, ' name="', SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
             if (po_hascallingconvention in procdef.procoptions) or (procdef.proccalloption <> pocall_default) then
-              Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
-            WriteLn(T, '>');
+              Write(prn.T^, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
+            WriteLn(prn.T^, '>');
 
-            PrintNodeIndent;
+            prn.PrintNodeIndent;
 
             if Assigned(procdef.returndef) and not is_void(procdef.returndef) then
-              WriteLn(T, PrintNodeIndention, '<returndef>', SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<returndef>', SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
 
             if po_reintroduce in procdef.procoptions then
               PrintOption('reintroduce');
@@ -1663,38 +1664,39 @@ implementation
           if Assigned(Code) then
             begin
               if FirstHalf then
-                WriteLn(T, PrintNodeIndention, '<code>')
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<code>')
               else
                 begin
-                  WriteLn(T); { Line for spacing }
-                  WriteLn(T, PrintNodeIndention, '<firstpass>');
+                  WriteLn(prn.T^); { Line for spacing }
+                  WriteLn(prn.T^, prn.PrintNodeIndention, '<firstpass>');
                 end;
 
-              PrintNodeIndent;
-              XMLPrintNode(T, Code);
-              PrintNodeUnindent;
+              prn.PrintNodeIndent;
+              XMLPrintNode(prn, Code);
+              prn.PrintNodeUnindent;
 
               if FirstHalf then
-                WriteLn(T, PrintNodeIndention, '</code>')
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</code>')
               else
-                WriteLn(T, PrintNodeIndention, '</firstpass>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '</firstpass>');
             end
           else { Code=Nil }
             begin
               { Don't print anything for second half - if there's no code, there's no firstpass }
               if FirstHalf then
-                WriteLn(T, PrintNodeIndention, '<code />');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<code />');
             end;
 
         { Print footer only for second half }
         if (not FirstHalf) or separate then
           begin
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</subroutine>');
-            WriteLn(T); { Line for spacing }
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</subroutine>');
+            WriteLn(prn.T^); { Line for spacing }
           end;
 
-        Close(T);
+        prn.Done;
+        Close(Txt);
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -3108,10 +3110,13 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+    function XMLInitializeNodeFile(RootName, ModuleName: shortstring): tnodeprinter;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         T: Text;
       begin
+        result.Init(T);
         Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Rewrite(T);
@@ -3128,11 +3133,13 @@ implementation
         WriteLn(T, '<', RootName, ' name="', ModuleName, '">');
         Close(T);
 
-        printnodeindention := printnodespacing;
+        result.printnodeindention := printnodespacing;
       end;
 
 
     procedure XMLFinalizeNodeFile(RootName: shortstring);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         T: Text;
       begin

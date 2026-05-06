@@ -212,7 +212,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
           function  para_count:longint;
           function  required_para_count:longint;
@@ -1989,83 +1989,83 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TCallNode.XMLPrintNodeData(var T: Text);
+    procedure TCallNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
         if assigned(procdefinition) and (procdefinition.typ=procdef) then
-          WriteLn(T, PrintNodeIndention, '<procname>', SanitiseXMLString(TProcDef(procdefinition).FullProcName(True)), '</procname>')
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<procname>', SanitiseXMLString(TProcDef(procdefinition).FullProcName(True)), '</procname>')
         else
           begin
             if assigned(symtableprocentry) then
-              WriteLn(T, PrintNodeIndention, '<procname>', symtableprocentry.name, '</procname>')
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<procname>', symtableprocentry.name, '</procname>')
           end;
 
         if intrinsiccode <> Default(TInlineNumber) then
-          WriteLn(T, PrintNodeIndention, '<intrinsiccode>', intrinsiccode, '</intrinsiccode>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<intrinsiccode>', intrinsiccode, '</intrinsiccode>');
 
         if assigned(methodpointer) then
           begin
-            WriteLn(T, PrintNodeIndention, '<methodpointer>');
-            PrintNodeIndent;
-            XMLPrintNode(T, methodpointer);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</methodpointer>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<methodpointer>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, methodpointer);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</methodpointer>');
           end;
 
         if assigned(funcretnode) then
           begin
-            WriteLn(T, PrintNodeIndention, '<funcretnode>');
-            PrintNodeIndent;
-            XMLPrintNode(T, funcretnode);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</funcretnode>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<funcretnode>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, funcretnode);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</funcretnode>');
           end;
 
         if assigned(vmt_entry) then
           begin
-            WriteLn(T, PrintNodeIndention, '<vmt_entry>');
-            PrintNodeIndent;
-            XMLPrintNode(T, vmt_entry);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</vmt_entry>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<vmt_entry>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, vmt_entry);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</vmt_entry>');
           end;
 
         if assigned(call_self_node) then
           begin
-            WriteLn(T, PrintNodeIndention, '<call_self_node>');
-            PrintNodeIndent;
-            XMLPrintNode(T, call_self_node);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</call_self_node>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<call_self_node>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, call_self_node);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</call_self_node>');
           end;
 
         if assigned(call_vmt_node) then
           begin
-            WriteLn(T, PrintNodeIndention, '<call_vmt_node>');
-            PrintNodeIndent;
-            XMLPrintNode(T, call_vmt_node);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</call_vmt_node>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<call_vmt_node>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, call_vmt_node);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</call_vmt_node>');
           end;
 
         if assigned(callinitblock) then
           begin
-            WriteLn(T, PrintNodeIndention, '<callinitblock>');
-            PrintNodeIndent;
-            XMLPrintNode(T, callinitblock);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</callinitblock>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<callinitblock>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, callinitblock);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</callinitblock>');
           end;
 
         if assigned(callcleanupblock) then
           begin
-            WriteLn(T, PrintNodeIndention, '<callcleanupblock>');
-            PrintNodeIndent;
-            XMLPrintNode(T, callcleanupblock);
-            PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</callcleanupblock>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<callcleanupblock>');
+            prn.PrintNodeIndent;
+            XMLPrintNode(prn, callcleanupblock);
+            prn.PrintNodeUnindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</callcleanupblock>');
           end;
 
-        inherited XMLPrintNodeData(T);
+        inherited XMLPrintNodeData(prn);
       end;
 {$endif DEBUG_NODE_XML}
 

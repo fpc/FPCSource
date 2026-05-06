@@ -36,7 +36,7 @@ interface
         constructor create(v : TConstPtrUInt;def:tdef;acompiler: TCompilerBase);override;
         procedure printnodedata(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-        procedure XMLPrintNodeData(var T: Text); override;
+        procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
         procedure pass_generate_code;override;
       end;
@@ -73,12 +73,12 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure Ti8086PointerConstNode.XMLPrintNodeData(var T: Text);
+    procedure Ti8086PointerConstNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
         if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
-          WriteLn(T, PrintNodeIndention, '<value>$', hexstr(word(value shr 16),4),':',hexstr(word(value),4), '</value>')
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<value>$', hexstr(word(value shr 16),4),':',hexstr(word(value),4), '</value>')
         else
-          inherited XMLPrintNodeData(T);
+          inherited;
       end;
 {$endif DEBUG_NODE_XML}
 

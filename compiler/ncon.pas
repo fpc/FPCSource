@@ -57,7 +57,7 @@ interface
           procedure printnodedata(var prn:tnodeprinter);override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        trealconstnodeclass = class of trealconstnode;
@@ -83,8 +83,8 @@ interface
           procedure printnodedata(var prn:tnodeprinter);override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text); override;
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tordconstnodeclass = class of tordconstnode;
@@ -105,7 +105,7 @@ interface
           procedure printnodedata(var prn:tnodeprinter); override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
@@ -152,7 +152,7 @@ interface
           class function emptydynstrnil: boolean; virtual;
           procedure printnodedata(var prn:tnodeprinter); override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeData(var T: Text); override;
+          procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
        end;
        tstringconstnodeclass = class of tstringconstnode;
@@ -612,10 +612,10 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TRealConstNode.XMLPrintNodeData(var T: Text);
+    procedure TRealConstNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        WriteLn(T, printnodeindention, '<value>', value_real, '</value>');
+        inherited XMLPrintNodeData(prn);
+        WriteLn(prn.T^, prn.printnodeindention, '<value>', value_real, '</value>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -718,17 +718,17 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TOrdConstNode.XMLPrintNodeInfo(var T: Text);
+    procedure TOrdConstNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeInfo(T);
-        Write(T, ' rangecheck="', rangecheck, '"');
+        inherited XMLPrintNodeInfo(prn);
+        Write(prn.T^, ' rangecheck="', rangecheck, '"');
       end;
 
 
-    procedure TOrdConstNode.XMLPrintNodeData(var T: Text);
+    procedure TOrdConstNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        WriteLn(T, printnodeindention, '<value>', tostr(value), '</value>');
+        inherited XMLPrintNodeData(prn);
+        WriteLn(prn.T^, prn.printnodeindention, '<value>', tostr(value), '</value>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -825,10 +825,10 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TPointerConstNode.XMLPrintNodeData(var T: Text);
+    procedure TPointerConstNode.XMLPrintNodeData(var prn:tnodeprinter);
       begin
-        inherited XMLPrintNodeData(T);
-        WriteLn(T, PrintNodeIndention, '<value>$', hexstr(PUInt(value),sizeof(PUInt)*2), '</value>');
+        inherited XMLPrintNodeData(prn);
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<value>$', hexstr(PUInt(value),sizeof(PUInt)*2), '</value>');
       end;
 {$endif DEBUG_NODE_XML}
 
@@ -1282,32 +1282,32 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TStringConstNode.XMLPrintNodeData(var T: Text);
+    procedure TStringConstNode.XMLPrintNodeData(var prn:tnodeprinter);
       var
         OutputStr: ansistring;
       begin
-        inherited XMLPrintNodeData(T);
-        Write(T, printnodeindention, '<stringtype>');
+        inherited XMLPrintNodeData(prn);
+        Write(prn.T^, prn.printnodeindention, '<stringtype>');
         case cst_type of
         cst_conststring:
-          Write(T, 'conststring');
+          Write(prn.T^, 'conststring');
         cst_shortstring:
-          Write(T, 'shortstring');
+          Write(prn.T^, 'shortstring');
         cst_longstring:
-          Write(T, 'longstring');
+          Write(prn.T^, 'longstring');
         cst_ansistring:
-          Write(T, 'ansistring');
+          Write(prn.T^, 'ansistring');
         cst_widestring:
-          Write(T, 'widestring');
+          Write(prn.T^, 'widestring');
         cst_unicodestring:
-          Write(T, 'unicodestring');
+          Write(prn.T^, 'unicodestring');
         end;
-        WriteLn(T, '</stringtype>');
-        WriteLn(T, printnodeindention, '<length>', len, '</length>');
+        WriteLn(prn.T^, '</stringtype>');
+        WriteLn(prn.T^, prn.printnodeindention, '<length>', len, '</length>');
 
         if len = 0 then
           begin
-            WriteLn(T, printnodeindention, '<value />');
+            WriteLn(prn.T^, prn.printnodeindention, '<value />');
             Exit;
           end;
 
@@ -1323,7 +1323,7 @@ implementation
           SetLength(OutputStr, len);
         end;
 
-        WriteLn(T, printnodeindention, '<value>', SanitiseXMLString(OutputStr), '</value>');
+        WriteLn(prn.T^, prn.printnodeindention, '<value>', SanitiseXMLString(OutputStr), '</value>');
       end;
 {$endif DEBUG_NODE_XML}
 

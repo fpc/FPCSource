@@ -34,7 +34,7 @@ interface
       symconst,symbase,
       { aasm }
       aasmbase,ppu,
-      finput
+      finput,nodeprinter
       ;
 
     type
@@ -61,9 +61,9 @@ interface
            0 as an invalid value! }
          procedure init_defid;
 {$ifdef DEBUG_NODE_XML}
-         procedure XMLPrintDefTree(var T: Text; Sym: TSym); virtual;
-         procedure XMLPrintDefInfo(var T: Text; Sym: TSym); dynamic;
-         procedure XMLPrintDefData(var T: Text; Sym: TSym); virtual;
+         procedure XMLPrintDefTree(var prn:tnodeprinter; Sym: TSym); virtual;
+         procedure XMLPrintDefInfo(var prn:tnodeprinter; Sym: TSym); dynamic;
+         procedure XMLPrintDefData(var prn:tnodeprinter; Sym: TSym); virtual;
          function XMLPrintType: ansistring; virtual;
 {$endif DEBUG_NODE_XML}
         public
@@ -297,23 +297,23 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure tdef.XMLPrintDefTree(var T: Text; Sym: TSym);
+    procedure tdef.XMLPrintDefTree(var prn:tnodeprinter; Sym: TSym);
       begin
-        Write(T, PrintNodeIndention, '<definition');
-        XMLPrintDefInfo(T, Sym);
-        WriteLn(T, '>');
-        PrintNodeIndent;
+        Write(prn.T^, prn.PrintNodeIndention, '<definition');
+        XMLPrintDefInfo(prn, Sym);
+        WriteLn(prn.T^, '>');
+        prn.PrintNodeIndent;
         { Printing the type here instead of in XMLPrintDefData ensures it
           always appears first no matter how XMLPrintDefData is overridden }
-        WriteLn(T, PrintNodeIndention, '<type>', XMLPrintType, '</type>');
-        XMLPrintDefData(T, Sym);
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</definition>');
-        WriteLn(T, PrintNodeIndention);
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<type>', XMLPrintType, '</type>');
+        XMLPrintDefData(prn, Sym);
+        prn.PrintNodeUnindent;
+        WriteLn(prn.T^, prn.PrintNodeIndention, '</definition>');
+        WriteLn(prn.T^, prn.PrintNodeIndention);
       end;
 
 
-    procedure tdef.XMLPrintDefInfo(var T: Text; Sym: TSym);
+    procedure tdef.XMLPrintDefInfo(var prn:tnodeprinter; Sym: TSym);
       var
         i: TSymOption;
         first: Boolean;
@@ -321,7 +321,7 @@ implementation
         { Note that if we've declared something like "INT = Integer", the
           INT name gets lost in the system and 'typename' just returns
           Integer, so the correct details can be found via Sym }
-        Write(T, ' name="', SanitiseXMLString(Sym.RealName),
+        Write(prn.T^, ' name="', SanitiseXMLString(Sym.RealName),
           '" pos="', Sym.fileinfo.line, ',', Sym.fileinfo.column);
 
         First := True;
@@ -330,40 +330,40 @@ implementation
             begin
               if First then
                 begin
-                  Write(T, '" symoptions="', i);
+                  Write(prn.T^, '" symoptions="', i);
                   First := False;
                 end
               else
-                Write(T, ',', i)
+                Write(prn.T^, ',', i)
             end;
 
-        Write(T, '"');
+        Write(prn.T^, '"');
       end;
 
 
-    procedure tdef.XMLPrintDefData(var T: Text; Sym: TSym);
+    procedure tdef.XMLPrintDefData(var prn:tnodeprinter; Sym: TSym);
       begin
-        WriteLn(T, PrintNodeIndention, '<size>', size, '</size>');
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<size>', size, '</size>');
 
         if (alignment = structalignment) and (alignment = aggregatealignment) then
           begin
             { Straightforward and simple }
-            WriteLn(T, PrintNodeIndention, '<alignment>', alignment, '</alignment>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<alignment>', alignment, '</alignment>');
           end
         else
           begin
-            WriteLn(T, PrintNodeIndention, '<alignment>');
-            printnodeindent;
-            WriteLn(T, PrintNodeIndention, '<basic>', alignment, '</basic>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<alignment>');
+            prn.printnodeindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<basic>', alignment, '</basic>');
 
             if (structalignment <> alignment) then
-              WriteLn(T, PrintNodeIndention, '<struct>', structalignment, '</struct>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<struct>', structalignment, '</struct>');
 
             if (aggregatealignment <> alignment) and (aggregatealignment <> structalignment) then
-              WriteLn(T, PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
 
-            printnodeunindent;
-            WriteLn(T, PrintNodeIndention, '</alignment>');
+            prn.printnodeunindent;
+            WriteLn(prn.T^, prn.PrintNodeIndention, '</alignment>');
           end;
       end;
 
@@ -578,11 +578,13 @@ implementation
     procedure TDef.XMLPrintDef(Sym: TSym);
       var
         T: Text;
+        prn:tnodeprinter;
 
       begin
         if compiler.current_module.ppxfilefail then
           Exit;
 
+        prn.Init(T);
         Assign(T, compiler.current_module.ppxfilename);
         {$push} {$I-}
         Append(T);
@@ -594,7 +596,8 @@ implementation
           end;
         {$pop}
 
-        XMLPrintDefTree(T, Sym);
+        XMLPrintDefTree(prn, Sym);
+        prn.Done;
         Close(T);
       end;
 

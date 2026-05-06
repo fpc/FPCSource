@@ -26,15 +26,15 @@ unit narmbas;
 interface
 
   uses
-    nbas, ncgbas, aasmtai;
+    nbas, ncgbas, nodeprinter, aasmtai;
 
   type
     TArmGenAsmNode = class(TCGAsmNode)
 {$ifdef DEBUG_NODE_XML}
-      procedure XMLPrintNodeData(var T: Text); override;
+      procedure XMLPrintNodeData(var prn:tnodeprinter); override;
     protected
       function XMLFormatOp(const Oper: POper): string; override;
-      procedure XMLProcessInstruction(var T: Text; p: tai); override;
+      procedure XMLProcessInstruction(var prn:tnodeprinter; p: tai); override;
 {$endif DEBUG_NODE_XML}
     end;
 
@@ -202,7 +202,7 @@ implementation
     end;
 
 
-  procedure TArmGenAsmNode.XMLProcessInstruction(var T: Text; p: tai);
+  procedure TArmGenAsmNode.XMLProcessInstruction(var prn:tnodeprinter; p: tai);
     var
       ThisOp, ThisOper: string;
       X: Integer;
@@ -214,10 +214,10 @@ implementation
           { Pad the opcode with spaces so the succeeding operands are aligned }
           XMLPadString(ThisOp, 7);
 
-          Write(T, PrintNodeIndention, '  ', ThisOp); { Extra indentation to account for label formatting }
+          Write(prn.T^, prn.PrintNodeIndention, '  ', ThisOp); { Extra indentation to account for label formatting }
           for X := 0 to taicpu(p).ops - 1 do
             begin
-              Write(T, ' ');
+              Write(prn.T^, ' ');
 
               ThisOper := XMLFormatOp(taicpu(p).oper[X]);
               if X < taicpu(p).ops - 1 then
@@ -227,16 +227,16 @@ implementation
                   XMLPadString(ThisOper, 4);
                 end;
 
-              Write(T, ThisOper);
+              Write(prn.T^, ThisOper);
             end;
-          WriteLn(T);
+          WriteLn(prn.T^);
         end
       else
-        inherited XMLProcessInstruction(T, p);
+        inherited;
     end;
 
 
-  procedure TArmGenAsmNode.XMLPrintNodeData(var T: Text);
+  procedure TArmGenAsmNode.XMLPrintNodeData(var prn:tnodeprinter);
     var
       hp: tai;
     begin
@@ -246,7 +246,7 @@ implementation
       hp := tai(p_asm.First);
       while Assigned(hp) do
         begin
-          XMLProcessInstruction(T, hp);
+          XMLProcessInstruction(prn, hp);
           hp := tai(hp.Next);
         end;
     end;

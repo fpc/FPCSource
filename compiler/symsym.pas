@@ -32,6 +32,8 @@ interface
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
        cclasses,
+       { tree }
+       node,nodeprinter,
        { aasm }
        aasmbase,
        cpuinfo,cgbase,cgutils,parabase
@@ -251,7 +253,7 @@ interface
           destructor destroy;override;
 {$ifdef DEBUG_NODE_XML}
         public
-          procedure XMLPrintFieldData(var T: Text);
+          procedure XMLPrintFieldData(var prn:tnodeprinter);
 {$endif DEBUG_NODE_XML}
       end;
       tfieldvarsymclass = class of tfieldvarsym;
@@ -438,7 +440,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
 {$ifdef DEBUG_NODE_XML}
         public
-          procedure XMLPrintConstData(var T: Text);
+          procedure XMLPrintConstData(var prn:tnodeprinter);
 {$endif DEBUG_NODE_XML}
        end;
        tconstsymclass = class of tconstsym;
@@ -545,8 +547,6 @@ implementation
        { symtable }
        defutil,symtable,
        fmodule,
-       { tree }
-       node,
        { aasm }
        aasmdata,
        { codegen }
@@ -2190,12 +2190,12 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-      procedure TFieldVarSym.XMLPrintFieldData(var T: Text);
+      procedure TFieldVarSym.XMLPrintFieldData(var prn:tnodeprinter);
         begin
-          WriteLn(T, PrintNodeIndention, '<type>', SanitiseXMLString(vardef.GetTypeName), '</type>');
-          WriteLn(T, PrintNodeIndention, '<visibility>', visibility, '</visibility>');
-          WriteLn(T, PrintNodeIndention, '<offset>', fieldoffset, '</offset>');
-          WriteLn(T, PrintNodeIndention, '<size>', vardef.size, '</size>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<type>', SanitiseXMLString(vardef.GetTypeName), '</type>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<visibility>', visibility, '</visibility>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<offset>', fieldoffset, '</offset>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<size>', vardef.size, '</size>');
         end;
 {$endif DEBUG_NODE_XML}
 
@@ -2986,9 +2986,9 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TConstSym.XMLPrintConstData(var T: Text);
+    procedure TConstSym.XMLPrintConstData(var prn:tnodeprinter);
       begin
-        WriteLn(T, PrintNodeIndention, '<type>', SanitiseXMLString(constdef.GetTypeName), '</type>');
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<type>', SanitiseXMLString(constdef.GetTypeName), '</type>');
 
         case consttyp of
           constnone:
@@ -2998,33 +2998,33 @@ implementation
           constwresourcestring,
           constwstring:
             begin
-              WriteLn(T, PrintNodeIndention, '<length>', value.len, '</length>');
+              WriteLn(prn.T^, prn.PrintNodeIndention, '<length>', value.len, '</length>');
               if value.len = 0 then
-                WriteLn(T, PrintNodeIndention, '<value />')
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<value />')
               else
-                WriteLn(T, PrintNodeIndention, '<value>', SanitiseXMLString(PChar(value.valueptr)), '</value>');
+                WriteLn(prn.T^, prn.PrintNodeIndention, '<value>', SanitiseXMLString(PChar(value.valueptr)), '</value>');
             end;
           constord,
           constset:
-            WriteLn(T, PrintNodeIndention, '<value>', tostr(value.valueord), '</value>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<value>', tostr(value.valueord), '</value>');
           constpointer:
-            WriteLn(T, PrintNodeIndention, '<value>', WriteConstPUInt(value.valueordptr), '</value>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<value>', WriteConstPUInt(value.valueordptr), '</value>');
           constreal:
-            WriteLn(T, PrintNodeIndention, '<value>', PBestReal(value.valueptr)^, '</value>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<value>', PBestReal(value.valueptr)^, '</value>');
           constnil:
-            WriteLn(T, PrintNodeIndention, '<value>nil</value>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<value>nil</value>');
           constguid:
-            WriteLn(T, PrintNodeIndention, '<value>', WriteGUID(PGUID(value.valueptr)^), '</value>');
+            WriteLn(prn.T^, prn.PrintNodeIndention, '<value>', WriteGUID(PGUID(value.valueptr)^), '</value>');
         end;
 
-        WriteLn(T, PrintNodeIndention, '<visibility>', visibility, '</visibility>');
+        WriteLn(prn.T^, prn.PrintNodeIndention, '<visibility>', visibility, '</visibility>');
 
         if not (consttyp in [conststring, constresourcestring, constwresourcestring, constwstring]) then
           { constdef.size will return an internal error for string
             constants because constdef is an open array internally }
-          WriteLn(T, PrintNodeIndention, '<size>', constdef.size, '</size>');
+          WriteLn(prn.T^, prn.PrintNodeIndention, '<size>', constdef.size, '</size>');
 
-//        WriteLn(T, PrintNodeIndention, '<const_type>', consttyp, '</const_type>');
+//        WriteLn(prn.T^, prn.PrintNodeIndention, '<const_type>', consttyp, '</const_type>');
       end;
 {$endif DEBUG_NODE_XML}
 

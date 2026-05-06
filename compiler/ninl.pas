@@ -45,7 +45,7 @@ interface
           function dogetcopy : tnode;override;
           procedure printnodeinfo(var prn:tnodeprinter);override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var t : text);override;
+          procedure XMLPrintNodeInfo(var prn:tnodeprinter);override;
 {$endif DEBUG_NODE_XML}
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -220,27 +220,27 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
-    procedure TInlineNode.XMLPrintNodeInfo(var T: Text);
+    procedure TInlineNode.XMLPrintNodeInfo(var prn:tnodeprinter);
       var
         i: TInlineNodeFlag;
         First: Boolean;
       begin
-        inherited XMLPrintNodeInfo(T);
+        inherited XMLPrintNodeInfo(prn);
         First := True;
         for i in inlinenodeflags do
           begin
             if First then
               begin
-                Write(T, ' inlinenodeflags="', i);
+                Write(prn.T^, ' inlinenodeflags="', i);
                 First := False;
               end
             else
-              Write(T, ',', i)
+              Write(prn.T^, ',', i)
           end;
         if not First then
-          Write(T, '"');
+          Write(prn.T^, '"');
 
-        Write(T, ' inlinenumber="', inlinenumber, '"');
+        Write(prn.T^, ' inlinenumber="', inlinenumber, '"');
       end;
 {$endif DEBUG_NODE_XML}
 
