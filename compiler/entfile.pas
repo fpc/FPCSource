@@ -1480,7 +1480,7 @@ begin
 {$ifdef FPC_SOFT_FPUX80}
   else
     if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
-      getrealrealbytesize:=sizeof(floatx80_byte_array)
+      getrealbytesize:=sizeof(floatx80_byte_array)
 {$endif def FPC_SOFT_FPUX80}
 {$endif ndef FPC_HAS_TYPE_EXTENDED}
   else
