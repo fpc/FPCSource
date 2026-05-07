@@ -186,6 +186,7 @@ type
     RefUnits: array of string;
     SourceFiles: TPpuContainerDef;
     LongVersion: Cardinal;
+    ByteSizeOfPpuReal : byte; { size of real constants embedded inside PPU }
 
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;

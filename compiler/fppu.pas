@@ -330,7 +330,7 @@ var
           { check for allowed PPU versions }
             if not (ppufile.getversion = CurrentPPUVersion) then
              begin
-               Message1(unit_u_ppu_invalid_version,tostr(ppufile.getversion),@queuecomment);
+               Message2(unit_u_ppu_invalid_version,tostr(ppufile.getversion),tostr(CurrentPPUVersion),@queuecomment);
                exit;
              end;
           { check the target processor }
@@ -375,7 +375,7 @@ var
           if (longversion<>CurrentPPULongVersion) or
              not ppufile.EndOfEntry then
             begin
-              Message(unit_u_ppu_invalid_header);
+              Message2(unit_u_ppu_invalid_long_version,tostr(longversion),tostr(CurrentPPULongVersion),@queuecomment);
               exit;
             end;
 {$ifdef i8086}
@@ -1182,6 +1182,7 @@ var
         old_docrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         ppufile.putlongint(longint(CurrentPPULongVersion));
+        ppufile.putbyte(ppufile.getrealbytesize);
         ppufile.putset(tppuset4(moduleflags));
         ppufile.writeentry(ibextraheader);
         ppufile.do_crc:=old_docrc;
@@ -1557,6 +1558,7 @@ var
     procedure tppumodule.readextraheader;
       begin
         longversion:=cardinal(ppufile.getlongint);
+        bytesizeofppureal:=ppufile.getbyte;
         ppufile.getset(tppuset4(moduleflags));
       end;
 
