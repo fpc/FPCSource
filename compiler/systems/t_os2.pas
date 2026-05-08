@@ -46,7 +46,21 @@ implementation
 
   type
     timportlibos2=class(timportlib)
+    private type
+      reloc=packed record     {This is the layout of a relocation table
+                               entry.}
+          address:longint;    {Fixup location}
+          remaining:longint;
+          {Meaning of bits for remaining:
+           0..23:              Symbol number or segment
+           24:                 Self-relative fixup if non-zero
+           25..26:             Fixup size (0: 1 byte, 1: 2, 2: 4 bytes)
+           27:                 Reference to symbol or segment
+           28..31              Not used}
+      end;
     private
+
+      aout_treloc_tab:array[0..1] of reloc;
       aout_treloc_count:longint;
 
       aout_size:longint;
@@ -91,19 +105,7 @@ const   n_ext   = 1;
         n_imp1  = $68;
         n_imp2  = $6a;
 
-type    reloc=packed record     {This is the layout of a relocation table
-                                 entry.}
-            address:longint;    {Fixup location}
-            remaining:longint;
-            {Meaning of bits for remaining:
-             0..23:              Symbol number or segment
-             24:                 Self-relative fixup if non-zero
-             25..26:             Fixup size (0: 1 byte, 1: 2, 2: 4 bytes)
-             27:                 Reference to symbol or segment
-             28..31              Not used}
-        end;
-
-        nlist=packed record     {This is the layout of a symbol table entry.}
+type    nlist=packed record     {This is the layout of a symbol table entry.}
             strofs:longint;     {Offset in string table}
             typ:byte;           {Type of the symbol}
             other:byte;         {Other information}
@@ -141,8 +143,6 @@ var aout_str_size:longint;
 
     aout_text:array[0..63] of byte;
     aout_text_size:longint;
-
-    aout_treloc_tab:array[0..1] of reloc;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
