@@ -48,6 +48,7 @@ implementation
     timportlibos2=class(timportlib)
     private
       procedure aout_finish;
+      procedure aout_write;
       procedure AddImport(const module:string;index:longint;const name,mangledname:string);
     public
       procedure generatelib;override;
@@ -260,7 +261,7 @@ begin
      sizeof(reloc)+aout_sym_count*sizeof(aout_sym_tab[0])+aout_str_size;
 end;
 
-procedure aout_write;
+procedure timportlibos2.aout_write;
 
 var ao:a_out_header;
 
