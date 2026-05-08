@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure aout_text_byte(b:byte);
       procedure aout_text_dword(d:longint);
       procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
       procedure aout_finish;
@@ -223,7 +224,7 @@ begin
     inc(aout_sym_count);
 end;
 
-procedure aout_text_byte(b:byte);
+procedure timportlibos2.aout_text_byte(b:byte);
 
 begin
     if aout_text_size>=sizeof(aout_text) then
