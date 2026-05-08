@@ -57,7 +57,7 @@ interface
       constexp,symdef,symtable,symtype,symconst,
       aasmbase,aasmdata,aasmcpu,
       defutil,htypechk,cgbase,cgutils,
-      cpuinfo,pass_1,pass_2,procinfo,
+      cpuinfo,pass_1,pass_2,pass_2_context,procinfo,
       ncon,nadd,ncnv,ncal,nmat,
       ncgutil,cgobj,cgcpu,
       nodehelper,
@@ -184,8 +184,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -214,8 +214,8 @@ interface
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -246,8 +246,8 @@ interface
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -293,8 +293,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then
@@ -308,8 +308,8 @@ interface
             end;
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               if nodetype in [equaln,unequaln] then
                 op:=A_VCMP
@@ -330,8 +330,8 @@ interface
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               if nodetype in [equaln,unequaln] then
                 op:=A_VCMP
@@ -370,8 +370,8 @@ interface
         if (right.location.loc <> LOC_CONSTANT) or
           not(is_shifter_const(right.location.value, b)) or
           ((GenerateThumbCode) and not(is_thumb_imm(right.location.value))) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
         case nodetype of
           equaln,
@@ -438,7 +438,7 @@ interface
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             { Optimize for the common case of int64 < 0 }
@@ -461,8 +461,8 @@ interface
           end
         else
           begin
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
             { operation requiring proper N, Z and C flags ? }
             if unsigned or (nodetype in [equaln,unequaln]) then
@@ -541,8 +541,8 @@ interface
           begin
             asmList := current_asmdata.CurrAsmList;
             pass_left_right(ctx);
-            force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT));
-            set_result_location_reg;
+            force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT), ctx);
+            set_result_location_reg(ctx);
 
             { shortcuts to register64s }
             ll:=left.location.register64;
@@ -611,7 +611,7 @@ interface
         b : byte;
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -649,8 +649,8 @@ interface
            (CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             pass_left_right(ctx);
-            force_reg_left_right(true, false);
-            set_result_location_reg;
+            force_reg_left_right(true, false, ctx);
+            set_result_location_reg(ctx);
             unsigned:=not(is_signed(left.resultdef)) or
                       not(is_signed(right.resultdef));
             current_asmdata.CurrAsmList.Concat(

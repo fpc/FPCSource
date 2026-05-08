@@ -44,8 +44,8 @@ interface
       private
         function GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
       protected
-        procedure genlinearlist(hp : pcaselabel);override;
-        procedure genlinearcmplist(hp : pcaselabel);override;
+        procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
+        procedure genlinearcmplist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
       public
         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
@@ -60,7 +60,7 @@ implementation
       nodehelper,hlcgcpu,
       nbas,
       symtype,
-      pass_2,defutil,verbose,constexp,compiler;
+      pass_2,pass_2_context,defutil,verbose,constexp,compiler;
 
 {*****************************************************************************
                                  TWASMINNODE
@@ -136,7 +136,7 @@ implementation
       end;
 
 
-    procedure twasmcasenode.genlinearlist(hp: pcaselabel);
+    procedure twasmcasenode.genlinearlist(hp: pcaselabel;ctx:tpassgeneratecodecontext);
 
       var
         first : boolean;
@@ -151,8 +151,8 @@ implementation
             to move the result before subtract to help
             the register allocator
           }
-          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
-          hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
+          ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
+          ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
         end;
 
 
@@ -162,15 +162,15 @@ implementation
             genitem(t^.less);
           { do we need to test the first value? }
           if first and (t^._low>get_min_value(left.resultdef)) then
-            thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
+            thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
           if t^._low=t^._high then
             begin
               if t^._low-last=0 then
-                thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
+                thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
               else
                 begin
                   gensub(tcgint(t^._low.svalue-last.svalue));
-                  thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
+                  thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
                                            OC_EQ,tcgint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
                 end;
               last:=t^._low;
@@ -192,10 +192,10 @@ implementation
                    { present label then the lower limit can be checked    }
                    { immediately. else check the range in between:       }
                    gensub(tcgint(t^._low.svalue-last.svalue));
-                   thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,tcgint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
+                   thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,tcgint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
                  end;
                gensub(tcgint(t^._high.svalue-t^._low.svalue));
-               thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,tcgint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
+               thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,tcgint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
                last:=t^._high;
             end;
           first:=false;
@@ -206,7 +206,7 @@ implementation
       begin
         { do we need to generate cmps? }
         if (with_sign and (min_label<0)) then
-          genlinearcmplist(hp)
+          genlinearcmplist(hp,ctx)
         else
           begin
             { sign/zero extend the value to a full register before starting to
@@ -221,8 +221,8 @@ implementation
             if tcgsize2size[newsize]>opsize.size then
               begin
                 newdef:=cgsize_orddef(newsize);
-                scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,newdef);
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,newdef,hregister,scratch_reg);
+                scratch_reg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,newdef);
+                ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,newdef,hregister,scratch_reg);
                 hregister:=scratch_reg;
                 opsize:=newdef;
               end;
@@ -230,19 +230,19 @@ implementation
               begin
                 last:=0;
                 first:=true;
-                scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                scratch_reg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
                 genitem(hp);
               end
             else
               begin
                 { If only one label exists, we can greatly simplify the checks to a simple comparison }
                 if hp^._low=hp^._high then
-                  thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister,blocklabel(hp^.blockid))
+                  thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister,blocklabel(hp^.blockid))
                 else
                   begin
-                    scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                    scratch_reg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
                     gensub(tcgint(hp^._low.svalue));
-                    thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister,blocklabel(hp^.blockid))
+                    thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister,blocklabel(hp^.blockid))
                   end;
               end;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,elselabel));
@@ -250,7 +250,7 @@ implementation
       end;
 
 
-    procedure twasmcasenode.genlinearcmplist(hp : pcaselabel);
+    procedure twasmcasenode.genlinearcmplist(hp : pcaselabel;ctx:tpassgeneratecodecontext);
 
       var
         last : TConstExprInt;
@@ -262,7 +262,7 @@ implementation
             genitem(t^.less);
           if t^._low=t^._high then
             begin
-              thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low.svalue),hregister, blocklabel(t^.blockid));
+              thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low.svalue),hregister, blocklabel(t^.blockid));
               { Reset last here, because we've only checked for one value and need to compare
                 for the next range both the lower and upper bound }
               lastwasrange := false;
@@ -273,8 +273,8 @@ implementation
               { is even smaller then jump immediately to the    }
               { ELSE-label                                }
               if not lastwasrange or (t^._low-last>1) then
-                thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low.svalue), hregister, elselabel);
-              thlcgwasm(hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.svalue), hregister, blocklabel(t^.blockid));
+                thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low.svalue), hregister, elselabel);
+              thlcgwasm(ctx.hlcg).a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.svalue), hregister, blocklabel(t^.blockid));
 
               last:=t^._high;
               lastwasrange := true;
@@ -334,7 +334,7 @@ implementation
         { determines the size of the operand }
         opsize:=left.resultdef;
         { copy the case expression to a register }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
 {$if not defined(cpu64bitalu)}
         if def_cgsize(opsize) in [OS_S64,OS_64] then
           begin
@@ -436,7 +436,7 @@ implementation
             //  end
             //else
               { it's always not bad }
-              genlinearlist(labels);
+              genlinearlist(labels,ctx);
           end;
 
         { generate the instruction blocks }
@@ -447,7 +447,7 @@ implementation
             if not shortcut then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-                hlcg.a_label(current_asmdata.CurrAsmList,blocklabel);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,blocklabel);
 
                 secondpass(statement,ctx);
                 { don't come back to case line }
@@ -460,7 +460,7 @@ implementation
         if not ShortcutElse then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-            hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
+            ctx.hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
           end;
 
         if Assigned(elseblock) then
@@ -470,7 +470,7 @@ implementation
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,endlabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,endlabel);
 
         flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
       end;

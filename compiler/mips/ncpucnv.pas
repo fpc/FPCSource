@@ -59,7 +59,7 @@ uses
   verbose, globtype, globals, systems,
   symconst, symdef, aasmbase, aasmtai, aasmdata,
   defutil,
-  cgbase, cgutils, pass_1, pass_2, procinfo,
+  cgbase, cgutils, pass_1, pass_2, pass_2_context, procinfo,
   ncon, ncal,
   ncgutil,
   cpubase, aasmcpu,
@@ -135,7 +135,7 @@ procedure tMIPSELtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
     else
       begin
         { Load memory in fpu register }
-        hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
+        ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
         tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
       end;
@@ -164,7 +164,7 @@ begin
     current_asmdata.getglobaldatalabel(l1);
     current_asmdata.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint), []);
-    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
     { Always load into 64-bit FPU register }
     loadsigned(s64real);
@@ -221,7 +221,7 @@ begin
        { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
        if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
           ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
        else
          location.size:=newsize;
        exit;
@@ -231,7 +231,7 @@ begin
   opsize := def_cgsize(left.resultdef);
 
   if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
   case left.location.loc of
     LOC_CREFERENCE, LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER:

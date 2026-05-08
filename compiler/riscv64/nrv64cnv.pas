@@ -59,7 +59,7 @@ unit nrv64cnv;
       verbose, globtype, globals, systems,
       symconst, symdef, aasmbase, aasmtai,aasmdata,
       defutil, symcpu,
-      cgbase, cgutils, pass_1, pass_2,
+      cgbase, cgutils, pass_1, pass_2, pass_2_context,
       ncon, ncal,procinfo,
       ncgutil,
       cpubase, aasmcpu,
@@ -114,7 +114,7 @@ unit nrv64cnv;
 
         location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, true);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_64bit(left.resultdef),is_signed(left.resultdef),restype], location.register, left.location.register));
       end;
 

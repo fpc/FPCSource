@@ -25,7 +25,7 @@ unit nwasmld;
 interface
 
     uses
-      nld,ncgld,
+      node,nld,ncgld,
       symsym,
       compilerbase;
 
@@ -35,7 +35,7 @@ interface
 
       twasmloadnode = class(tcgloadnode)
       protected
-        procedure generate_threadvar_access(gvs: tstaticvarsym); override;
+        procedure generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -49,7 +49,7 @@ implementation
 
     { twasmloadnode }
 
-    procedure twasmloadnode.generate_threadvar_access(gvs: tstaticvarsym);
+    procedure twasmloadnode.generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext);
       begin
         if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           begin
@@ -60,7 +60,7 @@ implementation
             location.reference.refaddr:=addr_got_tls;
           end
         else
-          inherited generate_threadvar_access(gvs);
+          inherited;
       end;
 
 begin

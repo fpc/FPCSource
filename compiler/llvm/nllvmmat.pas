@@ -39,7 +39,7 @@ type
   end;
 
   Tllvmunaryminusnode = class(tcgunaryminusnode)
-    procedure emit_float_sign_change(r: tregister; _size : tdef);override;
+    procedure emit_float_sign_change(r: tregister; _size : tdef; ctx:tpassgeneratecodecontext);override;
   end;
 
   tllvmnotnode = class(tcghlnotnode)
@@ -54,7 +54,7 @@ uses
   aasmbase, aasmllvm, aasmtai, aasmdata,
   defutil,
   procinfo,
-  nodehelper, pass_2,
+  nodehelper, pass_2, pass_2_context,
   ncon,
   llvmbase,
   ncgutil, cgutils,
@@ -83,16 +83,16 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       op:=la_udiv
     else
       op:=la_urem;
-    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
     if right.location.loc<>LOC_CONSTANT then
       begin
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
         { in llvm, div-by-zero is undefined on all platforms -> need explicit
           check }
         current_asmdata.getjumplabel(hl);
-        hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
-        hlcg.a_label(current_asmdata.CurrAsmList,hl);
+        ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
       end;
     if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
        is_signed(left.resultdef) and
@@ -101,21 +101,21 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         current_asmdata.getjumplabel(hl);
         location_reset(ovloc,LOC_REGISTER,OS_8);
-        ovloc.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
+        ovloc.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
         if right.nodetype=ordconstn then
           current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,ovloc.register,OC_EQ,resultdef,left.location.register,low(int64)))
         else
           begin
-            tmpovreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
-            tmpovreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
+            tmpovreg1:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
+            tmpovreg2:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
             current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg1,OC_EQ,resultdef,left.location.register,low(int64)));
             current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg2,OC_EQ,resultdef,right.location.register,-1));
-            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,compiler.deftypes.llvmbool1type,tmpovreg1,tmpovreg2,ovloc.register);
+            ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,compiler.deftypes.llvmbool1type,tmpovreg1,tmpovreg2,ovloc.register);
           end;
-        hlcg.g_overflowCheck_loc(current_asmdata.CurrAsmList,location,resultdef,ovloc);
+        ctx.hlcg.g_overflowCheck_loc(current_asmdata.CurrAsmList,location,resultdef,ovloc);
       end;
     location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-    location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+    location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
     if right.location.loc=LOC_CONSTANT then
       current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_const(op,location.register,resultdef,left.location.register,right.location.value))
     else
@@ -126,7 +126,7 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
                                Tllvmunaryminusnode
 *****************************************************************************}
 
-procedure Tllvmunaryminusnode.emit_float_sign_change(r: tregister; _size : tdef);
+procedure Tllvmunaryminusnode.emit_float_sign_change(r: tregister; _size : tdef; ctx:tpassgeneratecodecontext);
 var
   minusonereg: tregister;
 begin
@@ -134,7 +134,7 @@ begin
     won't turn into -0.0 if x was 0.0 (0.0 - 0.0 = 0.0, but -1.0 * 0.0 = -0.0 }
   if _size.typ<>floatdef then
     internalerror(2014012212);
-  minusonereg:=hlcg.getfpuregister(current_asmdata.CurrAsmList,_size);
+  minusonereg:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,_size);
   case tfloatdef(_size).floattype of
     s32real,s64real:
       current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,minusonereg,_size,-1.0,_size));

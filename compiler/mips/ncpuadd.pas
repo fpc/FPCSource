@@ -74,6 +74,7 @@ uses
   symconst,symdef,
   ncon, nset, nadd,
   ncgutil, hlcgobj, cgobj,
+  pass_2_context,
   compiler,
   nodehelper;
 
@@ -89,7 +90,7 @@ var
 begin
   pass_left_right(ctx);
   allow_constant:=(not is_smallset) or not (nodetype in [lten,gten]);
-  force_reg_left_right(True, allow_constant);
+  force_reg_left_right(True, allow_constant,ctx);
   location_reset(location,LOC_FLAGS,OS_NO);
 
   cond:=cmpnode2topcmp(unsigned);
@@ -161,7 +162,7 @@ begin
   location_reset_jump(location,truelabel,falselabel);
 
   pass_left_right(ctx);
-  force_reg_left_right(true,true);
+  force_reg_left_right(true,true,ctx);
 
   unsigned:=not(is_signed(left.resultdef)) or
             not(is_signed(right.resultdef));
@@ -242,8 +243,8 @@ begin
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
 
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -302,8 +303,8 @@ begin
   if nf_swapped in flags then
     swapleftright;
 
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
   location_reset(location, LOC_FLAGS, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];
@@ -362,7 +363,7 @@ begin
   if (nodetype=muln) and is_64bit(resultdef) then
     begin
       pass_left_right(ctx);
-      force_reg_left_right(true,false);
+      force_reg_left_right(true,false,ctx);
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
       location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -384,7 +385,7 @@ begin
   list:=current_asmdata.CurrAsmList;
   pass_left_right(ctx);
   location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-  hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
+  ctx.hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
   { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
   hreg1:=NR_NO;
   hreg2:=NR_NO;
@@ -410,7 +411,7 @@ begin
     end
   else
     begin
-      hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
+      ctx.hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
       tmpreg:=right.location.register64.reglo;
       hreg1:=cg.getintregister(list,OS_INT);
       hreg2:=cg.getintregister(list,OS_INT);

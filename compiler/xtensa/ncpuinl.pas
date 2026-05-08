@@ -51,7 +51,7 @@ unit ncpuinl;
       symdef,
       defutil,
       nodehelper,
-      pass_2,
+      pass_2,pass_2_context,
       procinfo,
       cgbase, cgobj, cgutils,
       ncal,nutils,
@@ -69,18 +69,18 @@ unit ncpuinl;
           end;
 
         secondpass(left,ctx);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
             current_asmdata.getjumplabel(hl);
 
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,$80000000,left.location.register,hl);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
-            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+            ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,$80000000,left.location.register,hl);
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS,location.register,left.location.register));
@@ -102,7 +102,7 @@ unit ncpuinl;
         if not(is_single(resultdef)) then
           InternalError(2020091101);
         secondpass(left,ctx);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,OS_F32);
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),PF_S));
@@ -171,13 +171,13 @@ unit ncpuinl;
              for i:=1 to 3 do
                begin
                  if not(paraarray[i].location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-                   hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
-             hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+             ctx.hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                paraarray[3].location.register,location.register);
 
              ai:=taicpu.op_reg_reg_reg(op[negproduct],
@@ -225,7 +225,7 @@ unit ncpuinl;
              for i:=low(paraarray) to high(paraarray) do
                begin
                  if not(paraarray[i].location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                   hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
+                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,resultdef,true);
                end;
 

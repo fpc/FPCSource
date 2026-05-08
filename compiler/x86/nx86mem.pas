@@ -36,7 +36,7 @@ interface
       end;
 
       tx86vecnode = class(tcgvecnode)
-        procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
+        procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -86,7 +86,7 @@ implementation
      { the live range of the LOC_CREGISTER will most likely overlap the   }
      { the live range of the target LOC_(C)REGISTER)                      }
      { The passed register may be a LOC_CREGISTER as well.                }
-     procedure tx86vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
+     procedure tx86vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext);
        var
          l2 : integer;
          hreg : tregister;

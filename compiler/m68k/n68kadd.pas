@@ -58,7 +58,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,paramgr,symtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cpuinfo,pass_1,pass_2,
+      cpuinfo,pass_1,pass_2,pass_2_context,
       cpupara,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cgcpu,nodehelper,cg64f32,
@@ -200,7 +200,7 @@ implementation
           end
         else
           begin
-            hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
             location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
@@ -259,7 +259,7 @@ implementation
                   end
                 else
                   begin
-                    hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                    ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
                   end;
               end;
@@ -284,7 +284,7 @@ implementation
                   end
                 else
                   begin
-                    hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                    ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                     if not (compiler.globals.current_settings.fputype = fpu_coldfire) and
                        inlineable_realconstnode(right) then
                       current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FCMP,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,left.location.register))
@@ -337,8 +337,8 @@ implementation
 
        { Try to keep right as a constant }
        if right.location.loc<>LOC_CONSTANT then
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),true);
-       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cmpsize),true);
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),true);
+       ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cmpsize),true);
 
        case nodetype of
          equaln,
@@ -358,7 +358,7 @@ implementation
            begin
              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),false);
+               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),false);
              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,cmpsize,left.location.register,right.location.register,tmpreg);
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,tmpreg,right.location.register));
              location.resflags:=F_E;
@@ -419,7 +419,7 @@ implementation
         if (nodetype=subn) and (nf_swapped in flags) then
           swapleftright;
 
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         { initialize the result }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -437,7 +437,7 @@ implementation
             if not (right.location.size in [OS_S32, OS_32]) or
                not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
                ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
             case right.location.loc of
               LOC_REGISTER,
@@ -463,7 +463,7 @@ implementation
            (nodetype in [muln,andn,orn,xorn]) then
           begin
             //list.concat(tai_comment.create(strpnew('second_addordinal: move addr to data')));
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(def_cgsize(right.resultdef)),false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(def_cgsize(right.resultdef)),false);
           end;
 
         if isaddressregister(left.location.register) and (nodetype in [addn,subn]) then
@@ -476,7 +476,7 @@ implementation
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
            (not(CPUM68K_HAS_32BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (nodetype = muln)) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         case right.location.loc of
           LOC_REGISTER,
@@ -526,7 +526,7 @@ implementation
              end
            else
              begin
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                  begin
                    tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
@@ -547,15 +547,15 @@ implementation
            { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
                 that high bits of registers are correct.
              2) Assuming that extension depends only on source signedness --> destination OS_32 is acceptable. }
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_32),false);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_32),false);
            if (right.location.loc<>LOC_CONSTANT) then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_32),false);
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_32),false);
            opsize:=S_L;
          end
        else if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
          begin
            if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
            else
              begin
                location_swap(left.location,right.location);
@@ -564,7 +564,7 @@ implementation
          end;
 
        if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,cmpsize) then
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
        { left is now in register }
        case right.location.loc of
@@ -584,7 +584,7 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
              right.location.register,left.location.register));
        else
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
            right.location.register,left.location.register));
        end;
@@ -644,7 +644,7 @@ implementation
                 exit;
               end;
 
-            hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
+            ctx.hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
 
             //list.concat(tai_comment.create(strpnew('second_mul64bit: with const')));
             { Omit zero terms, if any }
@@ -666,8 +666,8 @@ implementation
         else
           begin
             //list.concat(tai_comment.create(strpnew('second_mul64bit: no const')));
-            hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
-            hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
+            ctx.hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
+            ctx.hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
             tmpreg:=right.location.register64.reglo;
             hreg1:=cg.getintregister(list,OS_INT);
             hreg2:=cg.getintregister(list,OS_INT);
@@ -822,7 +822,7 @@ implementation
               end
             else
               begin
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
                 firstjmp64bitcmp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
@@ -836,7 +836,7 @@ implementation
         if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           begin
             if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
             else
               begin
                 location_swap(left.location,right.location);
@@ -845,7 +845,7 @@ implementation
           end;
 
         if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,OS_INT) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         { left is now in register }
         case right.location.loc of

@@ -38,15 +38,15 @@ interface
 
        tarminnode = class(tcginnode)
          function pass_1: tnode; override;
-         procedure in_smallset(opdef: tdef; setbase: aint); override;
+         procedure in_smallset(opdef: tdef; setbase: aint;ctx:tpassgeneratecodecontext); override;
        end;
 
       tarmcasenode = class(tcgcasenode)
          procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
          function  has_jumptable : boolean;override;
          procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
-         procedure genlinearlist(hp : pcaselabel);override;
-         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);override;
+         procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
+         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt;ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -58,6 +58,7 @@ implementation
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
       cgcpu,nodehelper,
+      pass_2_context,
       compiler;
 
 {*****************************************************************************
@@ -81,7 +82,7 @@ implementation
           end;
       end;
 
-    procedure tarminnode.in_smallset(opdef: tdef; setbase: aint);
+    procedure tarminnode.in_smallset(opdef: tdef; setbase: aint;ctx:tpassgeneratecodecontext);
       var
         so : tshifterop;
         hregister : tregister;
@@ -98,7 +99,7 @@ implementation
         location.resflags:=F_NE;
         if (left.location.loc=LOC_CONSTANT) and not(GenerateThumbCode) then
           begin
-            hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
               right.resultdef, right.resultdef, true);
 
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -106,19 +107,19 @@ implementation
           end
         else
           begin
-            hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
             register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef,
              left.location, setbase);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
              right.resultdef, right.resultdef, true);
 
-            hregister:=hlcg.getintregister(current_asmdata.CurrAsmList, opdef);
-            hlcg.a_load_const_reg(current_asmdata.CurrAsmList,opdef,1,hregister);
+            hregister:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList, opdef);
+            ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,opdef,1,hregister);
 
             if GenerateThumbCode or GenerateThumb2Code then
               begin
-                hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHL,opdef,left.location.register,hregister);
+                ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHL,opdef,left.location.register,hregister);
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_TST,right.location.register,hregister));
               end
@@ -306,7 +307,7 @@ implementation
       end;
 
 
-    procedure tarmcasenode.genlinearlist(hp : pcaselabel);
+    procedure tarmcasenode.genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);
       var
         first : boolean;
         lastrange : boolean;
@@ -402,7 +403,7 @@ implementation
              end;
            { do we need to generate cmps? }
            if (with_sign and (min_label<0)) then
-             genlinearcmplist(hp)
+             genlinearcmplist(hp,ctx)
            else
              begin
                 last:=0;
@@ -416,7 +417,7 @@ implementation
         end;
 
 
-      procedure tarmcasenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
+      procedure tarmcasenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt;ctx:tpassgeneratecodecontext);
         var
           lesslabel,greaterlabel : tasmlabel;
           cond_gt: TResFlags;
@@ -444,34 +445,34 @@ implementation
           if p^._low=p^._high then
             begin
               if greaterlabel=lesslabel then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
               else
                 begin
                   cmplow:=p^._low-1<>parentvalue;
                   if cmplow then
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                    ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
                   if p^._high+1<>parentvalue then
                     begin
                       if cmplow then
-                        hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
+                        ctx.hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
                       else
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
+                        ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
                     end;
                 end;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end
           else
             begin
               if p^._low-1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
               if p^._high+1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
+              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end;
            if assigned(p^.less) then
-             genjmptreeentry(p^.less,p^._low);
+             genjmptreeentry(p^.less,p^._low,ctx);
            if assigned(p^.greater) then
-             genjmptreeentry(p^.greater,p^._high);
+             genjmptreeentry(p^.greater,p^._high,ctx);
         end;
 
 begin

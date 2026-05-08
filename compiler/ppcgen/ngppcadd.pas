@@ -55,7 +55,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,
+      cgbase,cpuinfo,pass_1,pass_2,pass_2_context,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,nodehelper,compiler;
@@ -110,10 +110,10 @@ implementation
             LOC_CONSTANT:
               begin
                 if load_constants then
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
               end;
             else
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
           end;
         end;
 
@@ -234,14 +234,14 @@ implementation
                (left.location.loc=LOC_JUMP) then
               internalerror(2003122901);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
 
             secondpass(right,ctx);
             if (right.expectloc=LOC_JUMP)<>
                (right.location.loc=LOC_JUMP) then
               internalerror(200312292);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
 
             cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
@@ -355,8 +355,8 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
         if not cmpop then
@@ -448,7 +448,7 @@ implementation
           in simplify }
         if (left.location.loc=LOC_CONSTANT) and
            (right.location.loc=LOC_CONSTANT) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         case nodetype of
           addn :
             begin
@@ -464,7 +464,7 @@ implementation
                       left.location.register,location.register)
                   else
                     begin
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
+                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,aint((aword(1) shl (resultdef.size*8-1))),tmpreg);
                       register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,right.location,setbase);

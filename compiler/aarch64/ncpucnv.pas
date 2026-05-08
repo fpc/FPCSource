@@ -62,7 +62,7 @@ implementation
     defutil,
     cgbase,cgutils,procinfo,
     cpubase,aasmcpu,
-    pass_2,cgobj,
+    pass_2,pass_2_context,cgobj,
     compiler,nodehelper;
 
 
@@ -119,7 +119,7 @@ implementation
     begin
       location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
       if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         internalerror(2014120401);
       case left.location.size of
@@ -168,7 +168,7 @@ implementation
         LOC_CREGISTER,
         LOC_JUMP:
           begin
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
              resflags:=F_NE;
           end;

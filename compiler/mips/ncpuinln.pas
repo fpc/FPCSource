@@ -56,7 +56,7 @@ uses
   cutils, verbose,
   symconst, symdef, defutil,
   aasmtai, aasmcpu, aasmdata,
-  cgbase, pass_2, htypechk,
+  cgbase, pass_2, pass_2_context, htypechk,
   cpubase, paramgr,
   nbas, ncon, ncal, ncnv, nld,
   hlcgobj, ncgutil, cgobj, cgutils,
@@ -70,7 +70,7 @@ uses
 procedure tMIPSELinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
 begin
   secondpass(left,ctx);
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
   location_copy(location, left.location);
   if left.location.loc = LOC_CFPUREGISTER then
   begin

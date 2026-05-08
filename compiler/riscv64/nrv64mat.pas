@@ -60,7 +60,7 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgutils,cgobj,hlcgobj,
-      pass_1,pass_2,htypechk,
+      pass_1,pass_2,pass_2_context,htypechk,
       ncon,procinfo,
       cpubase,
       ncgutil,cgcpu,
@@ -85,10 +85,10 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
                   location_reset(location,LOC_REGISTER,OS_INT);
-                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype);
+                  location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype);
 
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,left.location.register,1));
                end;

@@ -58,7 +58,7 @@ implementation
       verbose,globals,systems,globtype,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       ncon,ncal,procinfo,
       ncgutil,
       cpuinfo,cpubase,aasmcpu,
@@ -121,7 +121,7 @@ implementation
 
       procedure loadsigned;
         begin
-          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+          ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
           { Load memory in fpu register }
           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
@@ -157,11 +157,11 @@ implementation
             current_asmdata.getjumplabel(l2);
             reference_reset_symbol(href,l1,0,8,[]);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,hregister);
+            ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,hregister);
 
             { here we need always an 64 bit register }
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             { Load memory in fpu register }
             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
             tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
@@ -219,7 +219,7 @@ implementation
         op : tasmop;
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
         { Convert value in fpu register from integer to float }
         op:=conv_op[tfloatdef(resultdef).floattype,tfloatdef(left.resultdef).floattype];
         if op=A_NONE then
@@ -252,7 +252,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               exit;
@@ -262,7 +262,7 @@ implementation
         opsize:=def_cgsize(left.resultdef);
 
         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
         case left.location.loc of
           LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:

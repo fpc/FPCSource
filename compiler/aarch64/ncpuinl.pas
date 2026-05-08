@@ -65,7 +65,7 @@ implementation
       globtype,verbose,globals,
       compinnr,
       cpuinfo, defutil,symdef,aasmbase,aasmdata,aasmcpu,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       procinfo,
       ncal,nutils,
       cpubase,ncgutil,cgobj,cgcpu,compiler,nodehelper;
@@ -115,7 +115,7 @@ implementation
     procedure taarch64inlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         location.loc:=LOC_MMREGISTER;
@@ -228,17 +228,17 @@ implementation
       begin
         secondpass(left,ctx);
         opsize:=def_cgsize(left.resultdef);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
             current_asmdata.getjumplabel(hl);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
-            hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
-            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+            ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
+            ctx.hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
 
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_NEG,location.register,left.location.register),PF_S));
@@ -251,7 +251,7 @@ implementation
         hreg: tregister;
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         hreg:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
@@ -267,7 +267,7 @@ implementation
     procedure taarch64inlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { convert to signed integer rounding towards zero }
@@ -280,7 +280,7 @@ implementation
         hreg: tregister;
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRINTZ,location.register,left.location.register));
@@ -293,7 +293,7 @@ implementation
         hreg: tregister;
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRINTZ,location.register,left.location.register));
@@ -376,7 +376,7 @@ implementation
         for i:=1 to 3 do
           begin
             if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
           end;
 
         location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
@@ -455,7 +455,7 @@ implementation
              for i:=low(paraarray) to high(paraarray) do
                begin
                  if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,
+                   ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,true);
                end;
 
@@ -486,7 +486,7 @@ implementation
              for i:=low(paraarray) to high(paraarray) do
                begin
                  if not(paraarray[i].location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                   hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
+                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,paraarray[i].resultdef,true);
                end;
 

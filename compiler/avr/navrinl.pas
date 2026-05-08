@@ -49,7 +49,7 @@ unit navrinl;
       symdef,
       defutil,
       nodehelper,
-      pass_2,
+      pass_2,pass_2_context,
       cgbase, cgobj, cgutils,
       ncon,ncal,
       cpubase,
@@ -62,10 +62,10 @@ unit navrinl;
         dummyloc: tlocation;
       begin
         secondpass(left,ctx);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         size:=def_cgsize(resultdef);
 
@@ -181,7 +181,7 @@ unit navrinl;
           in_avr_restore:
             begin
               secondpass(left,ctx);
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_OUT, NIO_SREG, left.location.register));
             end;
           in_avr_des:

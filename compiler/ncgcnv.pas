@@ -74,7 +74,7 @@ interface
       aasmbase,aasmdata,symconst,symdef,symtable,
       nutils,ncon,
       cpubase,systemstypes,systems,
-      pass_2,
+      pass_2,pass_2_context,
       cgbase,
       cgutils,cgobj,nodehelper,
       fmodule,
@@ -104,7 +104,7 @@ interface
 
         { insert range check if not explicit or internally generated conversion }
         if (flags*[nf_explicit,nf_internal])=[] then
-          hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+          ctx.hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
@@ -121,7 +121,7 @@ interface
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                (ressize<leftsize) then
               begin
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(resultdef,compiler),location.reference);
+                ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(resultdef,compiler),location.reference);
                 location.size:=newsize;
                 if (compiler.target.info.endian = ENDIAN_BIG) then
                   begin
@@ -143,7 +143,7 @@ interface
               location.size:=newsize
 {$endif}
             else
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
           end
         else
           begin
@@ -162,14 +162,14 @@ interface
               begin
                 location.register := cg.getintregister(current_asmdata.CurrAsmList,newsize);
                 location.loc := LOC_REGISTER;
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end
             else if location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(resultdef,compiler),location.reference)
+              ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(resultdef,compiler),location.reference)
 {$ifdef cpuhighleveltarget}
             { high level targets require the types to be correct in all cases }
             else if left.resultdef<>resultdef then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
 {$endif cpuhighleveltarget}
           end;
       end;
@@ -203,7 +203,7 @@ interface
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              exit;
@@ -242,7 +242,7 @@ interface
                end
               else
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                 ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
@@ -309,15 +309,15 @@ interface
          case tstringconstnode(left).cst_type of
            cst_conststring :
              begin
-               location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-               hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+               location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+               ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
              end;
            cst_shortstring :
              begin
                inc(left.location.reference.offset);
                location.reference.alignment:=1;
-               location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-               hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+               location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+               ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
              end;
            cst_widestring,
            cst_unicodestring,
@@ -329,8 +329,8 @@ interface
                   reference_reset(hr,2,[]);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
                   compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
-                  location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
+                  location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                  ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
                 end
                else
                 begin
@@ -370,8 +370,8 @@ interface
 
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+         location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+         ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
 
@@ -394,7 +394,7 @@ interface
                 end
               else
             {$endif}
-                hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
+                ctx.hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE,
@@ -404,9 +404,9 @@ interface
           LOC_SUBSETREF,
           LOC_CSUBSETREF:
             begin
-              hlcg.reference_reset_base(location.reference,left.resultdef,
-                hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
+              ctx.hlcg.reference_reset_base(location.reference,left.resultdef,
+                ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
+              ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -431,10 +431,10 @@ interface
              begin
                tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                tmpref:=location.reference;
-               hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+               ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
                  cpointerdef.getreusable(resultdef,compiler),
                  cpointerdef.getreusable(left.resultdef,compiler),tmpref);
-               hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
+               ctx.hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
@@ -460,10 +460,10 @@ interface
             (left.location.size in [OS_F80,OS_C64]) then
            begin
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+               ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              { round them down to the proper precision }
              tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
-             hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,tr);
+             ctx.hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment,tr.volatility);
              left.location.reference:=tr;
              left.resultdef:=resultdef;
@@ -471,7 +471,7 @@ interface
 {$endif x86}
          { ARM VFP values are in integer registers when they are function results }
          if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-           hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+           ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -482,14 +482,14 @@ interface
                       { on sparc a move from double -> single means from two to one register. }
                       { On all other platforms it also needs rounding to avoid that           }
                       { single(double_regvar) = double_regvar is true in all cases            }
-                      location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
-                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                      location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+                      ctx.hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
-                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+                      ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
+                      ctx.hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
                     end
                   else
                     internalerror(2003012262);
@@ -502,13 +502,13 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register,mms_movescalar)
+                     ctx.hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
-                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+                      ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                      ctx.hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                  tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
@@ -518,14 +518,14 @@ interface
                 case expectloc of
                   LOC_FPUREGISTER:
                     begin
-                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+                      ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                      ctx.hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
-                      location.register:=hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
-                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
+                      location.register:=ctx.hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+                      ctx.hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
                     end;
                   else
                     internalerror(2003012261);
@@ -565,8 +565,8 @@ interface
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       { the procedure symbol is encoded in reference.symbol -> take address }
-                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                      hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+                      location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                      ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                     end;
                   else
                     internalerror(2013031501)
@@ -578,10 +578,10 @@ interface
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                      location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       { code field is the first one }
-                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal,compiler),compiler),cpointerdef.getreusable(resultdef,compiler),left.location.reference);
-                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
+                      ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal,compiler),compiler),cpointerdef.getreusable(resultdef,compiler),left.location.reference);
+                      ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
@@ -618,14 +618,14 @@ interface
                     procvarrectype:=trecorddef(compiler.deftypes.methodpointertype);
                     procvarselfname:='self';
                   end;
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(procvarrectype,compiler),href);
-                tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
-                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),compiler.deftypes.voidcodepointertype,left.location.reference,tmpreg);
-                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
+                ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(procvarrectype,compiler),href);
+                tmpreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
+                ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),compiler.deftypes.voidcodepointertype,left.location.reference,tmpreg);
+                ctx.hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
-                hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(procvarrectype),0,procvarselfname,href);
+                ctx.hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(procvarrectype),0,procvarselfname,href);
               end;
           end;
       end;
@@ -633,10 +633,10 @@ interface
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);
     begin
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidpointertype);
-      hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidpointertype,0,location.registerhi);
-      location.register:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype);
-      hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype,0,location.register);
+      location.registerhi:=ctx.hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidpointertype);
+      ctx.hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidpointertype,0,location.registerhi);
+      location.register:=ctx.hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype);
+      ctx.hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype,0,location.register);
     end;
 
     procedure tcgtypeconvnode.second_bool_to_int(ctx:tpassgeneratecodecontext);
@@ -661,7 +661,7 @@ interface
             ((newsize<>left.location.size) and
              ((left.resultdef.size<>resultdef.size) or
               not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]))) then
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
@@ -710,16 +710,16 @@ interface
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          current_asmdata.getjumplabel(l1);
-         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,
+         location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+         ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,
            left.location,location.register);
-         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
+         ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2,[]);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
          compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
-         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
-         hlcg.a_label(current_asmdata.CurrAsmList,l1);
+         ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
 
 
@@ -735,24 +735,24 @@ interface
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+                 location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                  tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
             LOC_CREGISTER:
               begin
-                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                 hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                 location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end;
             LOC_REGISTER:
               begin
                 location.register:=left.location.register;
-                hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
+                ctx.hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
               end;
             LOC_CONSTANT:
               begin
-                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                 hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,left.location.value,location.register);
+                 location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,left.location.value,location.register);
               end
             else
               internalerror(121120001);
@@ -767,8 +767,8 @@ interface
                    etStandard:
                      begin
                        current_asmdata.getjumplabel(l1);
-                       hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_EQ,0,location.register,l1);
-                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
+                       ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_EQ,0,location.register,l1);
+                       ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
                        break;
                      end;
                    else
@@ -835,7 +835,7 @@ interface
               end
             else
 {$endif cpumm}
-              hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+              ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
 {$ifdef cpumm}
           end
         else if (resultdef.typ=floatdef) and (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then

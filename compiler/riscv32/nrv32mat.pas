@@ -58,7 +58,7 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgutils,cgobj,hlcgobj,pass_2,
+      cgutils,cgobj,hlcgobj,pass_2,pass_2_context,
       cpubase,cpuinfo,
       ncon,procinfo,
       ncgutil,cgcpu,
@@ -83,10 +83,10 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
                   location_reset(location,LOC_REGISTER,OS_INT);
-                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
+                  location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
 
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,left.location.register,1));
                end;
@@ -159,7 +159,7 @@ implementation
         { load left operator in a register }
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
            (left.location.size<>OS_64) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
 
         lreg:=left.location.register64;
         resreg:=location.register64;
@@ -206,7 +206,7 @@ implementation
             { force right operator into a register }
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                (right.location.size<>OS_32) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
             current_asmdata.getjumplabel(less32);
             current_asmdata.getjumplabel(finished);

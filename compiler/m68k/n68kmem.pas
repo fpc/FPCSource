@@ -34,8 +34,8 @@ interface
 
     type
        t68kvecnode = class(tcgvecnode)
-          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
-          procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint); override;
+          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext); override;
+          procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint;ctx:tpassgeneratecodecontext); override;
           //procedure pass_generate_code;override;
        end;
 
@@ -64,7 +64,7 @@ implementation
     { the live range of the LOC_CREGISTER will most likely overlap the   }
     { the live range of the target LOC_(C)REGISTER)                      }
     { The passed register may be a LOC_CREGISTER as well.                }
-    procedure t68kvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
+    procedure t68kvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
         scaled: boolean;
@@ -137,7 +137,7 @@ implementation
       end;
 
      { see remarks for tcgvecnode.update_reference_reg_mul above }
-     procedure t68kvecnode.update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint);
+     procedure t68kvecnode.update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint;ctx:tpassgeneratecodecontext);
        var
          sref: tsubsetreference;
          offsetreg, hreg: tregister;
@@ -155,7 +155,7 @@ implementation
 {$endif not cpu64bitalu}
              ) then
            begin
-             update_reference_reg_mul(maybe_const_reg,regsize,l div 8);
+             update_reference_reg_mul(maybe_const_reg,regsize,l div 8,ctx);
              exit;
            end;
          if (l > 8*sizeof(aint)) then

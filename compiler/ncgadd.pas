@@ -36,9 +36,9 @@ interface
           { call secondpass for both left and right }
           procedure pass_left_right(ctx:tpassgeneratecodecontext); virtual;
           { set the register of the result location }
-          procedure set_result_location_reg;
+          procedure set_result_location_reg(ctx:tpassgeneratecodecontext);
           { load left and right nodes into registers }
-          procedure force_reg_left_right(allow_swap,allow_constant:boolean); virtual;
+          procedure force_reg_left_right(allow_swap,allow_constant:boolean;ctx:tpassgeneratecodecontext); virtual;
 
           function cmpnode2topcmp(unsigned: boolean): TOpCmp;
 
@@ -77,7 +77,7 @@ interface
       verbose,globals,
       symconst,symdef,
       aasmbase,aasmdata,defutil,
-      pass_2,tgobj,
+      pass_2,pass_2_context,tgobj,
       nutils,nset,ncgutil,cgobj,cgutils,
       nodehelper
       ;
@@ -103,28 +103,28 @@ interface
 
         secondpass(left,ctx);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
 {$if defined(x86) and not defined(llvm)}
         { are too few registers free? }
         pushedfpu:=false;
         if (left.location.loc=LOC_FPUREGISTER) and
            (node_resources_fpu(right)>=maxfpuregs) then
           begin
-            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             pushedfpu:=true;
           end;
 {$endif x86 and not llvm}
 
         secondpass(right,ctx);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
 {$if defined(x86) and not defined(llvm)}
         if pushedfpu then
           begin
             if use_vectorfpu(left.resultdef) then
               begin
                 tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
-                hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,tmpreg,mms_movescalar);
+                ctx.hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,tmpreg,mms_movescalar);
                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
                 left.location.register:=tmpreg;
@@ -145,7 +145,7 @@ interface
       end;
 
 
-    procedure tcgaddnode.set_result_location_reg;
+    procedure tcgaddnode.set_result_location_reg(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
@@ -156,25 +156,25 @@ interface
           end
         else
 {$endif}
-          location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          location.register := ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
       end;
 
 
-    procedure tcgaddnode.force_reg_left_right(allow_swap,allow_constant:boolean);
+    procedure tcgaddnode.force_reg_left_right(allow_swap,allow_constant:boolean;ctx:tpassgeneratecodecontext);
       begin
         if (left.location.loc<>LOC_REGISTER) and
            not(
                allow_constant and
                (left.location.loc in [LOC_CONSTANT,LOC_CREGISTER])
               ) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         if (right.location.loc<>LOC_REGISTER) and
            not(
                allow_constant and
                (right.location.loc in [LOC_CONSTANT,LOC_CREGISTER]) and
                (left.location.loc<>LOC_CONSTANT)
               ) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
         { Left is always a register, right can be register or constant }
         if left.location.loc=LOC_CONSTANT then
@@ -182,7 +182,7 @@ interface
             { when it is not allowed to swap we have a constant on
               left, that will give problems }
             if not allow_swap then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false)
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false)
             else
               swapleftright;
           end;
@@ -243,8 +243,8 @@ interface
       begin
         opdone := false;
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
-        set_result_location_reg;
+        force_reg_left_right(true,true,ctx);
+        set_result_location_reg(ctx);
         case nodetype of
           addn :
             cgop:=OP_OR;
@@ -281,11 +281,11 @@ interface
                     location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { make sure we don't modify left/right.location, because we told
                     force_reg_left_right above that they can be constant }
-                  hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,resultdef,right.location.register,location.register);
+                  ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,resultdef,right.location.register,location.register);
                   if left.location.loc = LOC_CONSTANT then
-                    hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.value,location.register)
+                    ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.value,location.register)
                   else
-                    hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,location.register);
+                    ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,location.register);
                 end;
             end;
           else
@@ -298,11 +298,11 @@ interface
             if (left.location.loc = LOC_CONSTANT) then
               swapleftright;
             if (right.location.loc = LOC_CONSTANT) then
-              hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
+              ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
                 right.location.value,left.location.register,
                 location.register)
             else
-              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
+              ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
                 right.location.register,left.location.register,
                 location.register);
           end;
@@ -326,8 +326,8 @@ interface
         if (nf_swapped in flags) and
            (left.nodetype=setelementn) then
           swapleftright;
-        force_reg_left_right(false,false);
-        set_result_location_reg;
+        force_reg_left_right(false,false,ctx);
+        set_result_location_reg(ctx);
         setbase:=tsetdef(left.resultdef).setbase;
         if (right.location.loc = LOC_CONSTANT) then
           begin
@@ -335,7 +335,7 @@ interface
               mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value-setbase))
             else
               mask:=aint(1 shl (right.location.value-setbase));
-            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,
+            ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,
               mask,left.location.register,location.register);
           end
         else
@@ -350,17 +350,17 @@ interface
                 mask:=1;
                 cgop:=OP_SHL
               end;
-            tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,mask,tmpreg);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+            tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,mask,tmpreg);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
             register_maybe_adjust_setbase(current_asmdata.CurrAsmList,resultdef,right.location,setbase);
-            hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
+            ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
               right.location.register,tmpreg);
             if left.location.loc <> LOC_CONSTANT then
-              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,tmpreg,
+              ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,tmpreg,
                   left.location.register,location.register)
             else
-              hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,
+              ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,
                   left.location.value,tmpreg,location.register);
           end;
       end;
@@ -395,16 +395,16 @@ interface
               andn :
                 begin
                    secondpass(left,ctx);
-                   hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+                   ctx.hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
                    current_asmdata.getjumplabel(truelabel);
                    location_reset_jump(location,truelabel,left.location.falselabel);
                 end;
               orn :
                 begin
                    secondpass(left,ctx);
-                   hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
+                   ctx.hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
                    current_asmdata.getjumplabel(falselabel);
                    location_reset_jump(location,left.location.truelabel,falselabel);
                 end;
@@ -418,15 +418,15 @@ interface
             secondpass(right,ctx);
             { jump to the same labels as the left side, since the andn/orn
               merges the results of left and right }
-            hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,right,location.truelabel,location.falselabel);
+            ctx.hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,right,location.truelabel,location.falselabel);
 
             flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
           end
         else
           begin
             pass_left_right(ctx);
-            force_reg_left_right(false,true);
-            set_result_location_reg;
+            force_reg_left_right(false,true,ctx);
+            set_result_location_reg(ctx);
 
             case nodetype of
               xorn :
@@ -454,11 +454,11 @@ interface
 {$endif cpu64bitalu}
               begin
                 if right.location.loc <> LOC_CONSTANT then
-                  hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
+                  ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
                      left.location.register,right.location.register,
                      location.register)
                 else
-                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
+                  ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
                      right.location.value,left.location.register,
                      location.register);
               end;
@@ -488,8 +488,8 @@ interface
         ovloc.loc:=LOC_VOID;
 
         pass_left_right(ctx);
-        force_reg_left_right(false,true);
-        set_result_location_reg;
+        force_reg_left_right(false,true,ctx);
+        set_result_location_reg(ctx);
 
         { assume no overflow checking is required }
         checkoverflow := false;
@@ -528,10 +528,10 @@ interface
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.value,
+                ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.value,
                   left.location.register,location.register)
               else
-                hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.register,
+                ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,right.location.register,
                   left.location.register,location.register);
             end;
           subn:
@@ -543,20 +543,20 @@ interface
                 begin
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
-                    hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                    ctx.hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                       right.location.register,left.location.register,location.register,
                       checkoverflow,ovloc)
                   else
                     // reg64 - const64
-                    hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                    ctx.hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                       right.location.value,left.location.register,location.register,
                       checkoverflow,ovloc);
                 end
               else
                 begin
                   // const64 - reg64
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                  hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  ctx.hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                     right.location.register,left.location.register,location.register,
                     checkoverflow,ovloc);
                 end;
@@ -600,7 +600,7 @@ interface
               else
                 begin
                   // const64 - reg64
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
                     location.register64,
@@ -614,7 +614,7 @@ interface
 
         { emit overflow check if enabled }
         if checkoverflow then
-           hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
+           ctx.hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
       end;
 
 
@@ -666,8 +666,8 @@ interface
         ovloc.loc:=LOC_VOID;
 
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
-        set_result_location_reg;
+        force_reg_left_right(true,true,ctx);
+        set_result_location_reg(ctx);
 
         { determine if the comparison will be unsigned }
         unsigned:=not(is_signed(left.resultdef)) or
@@ -720,11 +720,11 @@ interface
        if nodetype<>subn then
         begin
           if (right.location.loc<>LOC_CONSTANT) then
-            hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
+            ctx.hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
                left.location.register,right.location.register,
                location.register,checkoverflow,ovloc)
           else
-            hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
+            ctx.hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
                right.location.value,left.location.register,
                location.register,checkoverflow,ovloc);
         end
@@ -735,27 +735,27 @@ interface
           if left.location.loc<>LOC_CONSTANT then
             begin
               if right.location.loc<>LOC_CONSTANT then
-                hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                ctx.hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                     right.location.register,left.location.register,
                     location.register,checkoverflow,ovloc)
               else
-                hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                ctx.hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                   right.location.value,left.location.register,
                   location.register,checkoverflow,ovloc);
             end
           else
             begin
-              tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+              tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
                 left.location.value,tmpreg);
-              hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+              ctx.hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                 right.location.register,tmpreg,location.register,checkoverflow,ovloc);
             end;
         end;
 
         { emit overflow check if required }
         if checkoverflow then
-          hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
+          ctx.hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
       end;
 
 

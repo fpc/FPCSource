@@ -46,7 +46,7 @@ implementation
       symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
-      pass_1,pass_2,procinfo,ncal,
+      pass_1,pass_2,pass_2_context,procinfo,ncal,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,cgobj,nodehelper,cgcpu,
       compiler;
@@ -176,7 +176,7 @@ implementation
             begin
               { convert first to double to avoid precision loss }
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
               if is_signed(left.resultdef) then
@@ -233,7 +233,7 @@ implementation
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
                 internalerror(2009112703);
               if left.location.size<>location.size then
@@ -248,7 +248,7 @@ implementation
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
                 internalerror(2009112704);
               if left.location.size<>location.size then
@@ -290,7 +290,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               exit;
@@ -300,7 +300,7 @@ implementation
          resflags:=F_NE;
 
          if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
          case left.location.loc of
             LOC_CREFERENCE,
@@ -318,7 +318,7 @@ implementation
                  end
                 else
                  begin
-                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                    tbasecgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                    tbasecgarm(cg).cgsetflags:=false;

@@ -26,7 +26,7 @@ unit nllvmset;
 interface
 
   uses
-    nset, ncgset,
+    node, nset, ncgset,
     symtype,
     cgbase,
     compilerbase;
@@ -34,12 +34,12 @@ interface
   type
     tllvminnode = class(tcginnode)
      protected
-      procedure in_reg_const(uopdef: tdef; opsize: tcgsize); override;
+      procedure in_reg_const(uopdef: tdef; opsize: tcgsize; ctx:tpassgeneratecodecontext); override;
     end;
 
     tllvmcasenode = class(tcgcasenode)
      protected
-      procedure genlinearlist(hp: pcaselabel); override;
+      procedure genlinearlist(hp: pcaselabel; ctx:tpassgeneratecodecontext); override;
     end;
 
 
@@ -50,9 +50,10 @@ implementation
       aasmbase, aasmdata,
       nodehelper,
       llvminfo,
+      pass_2_context,
       compiler;
 
-    procedure tllvminnode.in_reg_const(uopdef: tdef; opsize: tcgsize);
+    procedure tllvminnode.in_reg_const(uopdef: tdef; opsize: tcgsize; ctx:tpassgeneratecodecontext);
       var
         hl,hlend: TAsmLabel;
       begin
@@ -70,26 +71,26 @@ implementation
           and calculations using poison as input result in undefined behaviour }
         current_asmdata.getjumplabel(hl);
         current_asmdata.getjumplabel(hlend);
-        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,uopdef,OC_AE,
+        ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,uopdef,OC_AE,
           right.resultdef.packedbitsize,left.location.register,hl);
-        hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
           uopdef,right.resultdef,uopdef,
           left.location.register,right.location,location.register);
-        hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlend);
-        hlcg.a_label(current_asmdata.CurrAsmList,hl);
-        hlcg.a_load_const_reg(current_asmdata.CurrAsmList,uopdef,0,location.register);
-        hlcg.a_label(current_asmdata.CurrAsmList,hlend);
+        ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlend);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
+        ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,uopdef,0,location.register);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hlend);
       end;
 
 
-  procedure tllvmcasenode.genlinearlist(hp: pcaselabel);
+  procedure tllvmcasenode.genlinearlist(hp: pcaselabel; ctx:tpassgeneratecodecontext);
     begin
       { genlinearlist constantly updates the case value in the register,
         which causes tons of spilling with LLVM due to the need to bring
         it back into SSA form. LLVM will recognise and optimise the linear
         cmp list just as well (or even better), while the code that FPC
         has to generate is much smaller (no spilling) }
-      genlinearcmplist(hp);
+      genlinearcmplist(hp,ctx);
     end;
 
 begin

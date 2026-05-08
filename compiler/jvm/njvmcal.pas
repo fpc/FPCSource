@@ -36,8 +36,8 @@ interface
         private
          function replacewithtemp(var orgnode:tnode): ttempcreatenode;
         protected
-         procedure push_formal_para; override;
-         procedure push_copyout_para; override;
+         procedure push_formal_para(ctx:tpassgeneratecodecontext); override;
+         procedure push_copyout_para(ctx:tpassgeneratecodecontext); override;
 
          procedure handlemanagedbyrefpara(orgparadef: tdef); override;
        end;
@@ -47,10 +47,10 @@ interface
        tjvmcallnode = class(tcgcallnode)
         protected
          procedure wrapcomplexinlinepara(para: tcallparanode); override;
-         procedure extra_pre_call_code; override;
+         procedure extra_pre_call_code(ctx:tpassgeneratecodecontext); override;
          procedure set_result_location(realresdef: tstoreddef); override;
-         procedure do_release_unused_return_value;override;
-         procedure extra_post_call_code; override;
+         procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext);override;
+         procedure extra_post_call_code(ctx:tpassgeneratecodecontext); override;
          function dispatch_procvar: tnode;
          procedure remove_hidden_paras;
          procedure gen_vmt_entry_load; override;
@@ -69,6 +69,7 @@ implementation
       cpubase,aasmbase,aasmdata,aasmcpu,
       nodehelper,hlcgcpu,
       pass_1,nutils,nadd,ncnv,ncon,nflw,ninl,nld,nmem,
+      pass_2_context,
       jvmdef,
       compiler;
 
@@ -76,7 +77,7 @@ implementation
                            TJVMCALLPARANODE
 *****************************************************************************}
 
-    procedure tjvmcallparanode.push_formal_para;
+    procedure tjvmcallparanode.push_formal_para(ctx:tpassgeneratecodecontext);
       begin
         { primitive values are boxed, so in all cases this is a pointer to
           something and since it cannot be changed (or is not supposed to be
@@ -92,15 +93,15 @@ implementation
 
           -> always push a value parameter (which is either an array of one
           element, or an object) }
-        push_value_para
+        push_value_para(ctx)
       end;
 
 
-    procedure tjvmcallparanode.push_copyout_para;
+    procedure tjvmcallparanode.push_copyout_para(ctx:tpassgeneratecodecontext);
       begin
         { everything is wrapped and replaced by handlemanagedbyrefpara() in
           pass_1 }
-        push_value_para;
+        push_value_para(ctx);
       end;
 
 
@@ -386,7 +387,7 @@ implementation
       end;
 
 
-    procedure tjvmcallnode.extra_pre_call_code;
+    procedure tjvmcallnode.extra_pre_call_code(ctx:tpassgeneratecodecontext);
       begin
         { when calling a constructor, first create a new instance, except
           when calling it from another constructor (because then this has
@@ -406,7 +407,7 @@ implementation
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
-        thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,2);
+        thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,2);
       end;
 
 
@@ -422,7 +423,7 @@ implementation
       end;
 
 
-    procedure tjvmcallnode.do_release_unused_return_value;
+    procedure tjvmcallnode.do_release_unused_return_value(ctx:tpassgeneratecodecontext);
       begin
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) then
@@ -437,23 +438,23 @@ implementation
            (resultdef.size in [1..4]) then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           end
         else if resultdef.size=8 then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop2));
-            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
+            thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
           end
         else
           internalerror(2011010305);
       end;
 
 
-    procedure tjvmcallnode.extra_post_call_code;
+    procedure tjvmcallnode.extra_post_call_code(ctx:tpassgeneratecodecontext);
       var
         realresdef: tdef;
       begin
-        thlcgjvm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
+        thlcgjvm(ctx.hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
         { a constructor doesn't actually return a value in the jvm }
         if (tabstractprocdef(procdefinition).proctypeoption<>potype_constructor) then
           begin
@@ -463,7 +464,7 @@ implementation
                   realresdef:=tstoreddef(resultdef)
                 else
                   realresdef:=tstoreddef(typedef);
-                thlcgjvm(hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
+                thlcgjvm(ctx.hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
               end;
           end;
 
@@ -471,7 +472,7 @@ implementation
           are wrapped types following it }
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
-          thlcgjvm(hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
+          thlcgjvm(ctx.hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
       end;
 
 

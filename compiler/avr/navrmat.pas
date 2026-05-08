@@ -49,7 +49,7 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgbase,cgobj,nodehelper,cgutils,
-      pass_1,pass_2,procinfo,
+      pass_1,pass_2,pass_2_context,procinfo,
       ncon,
       cpubase,
       ncgutil,cgcpu,
@@ -88,7 +88,7 @@ implementation
               (left.location.sref.bitlen=1) and (left.location.sref.bitindexreg=NR_NO) then
               begin
                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
+                ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
                 current_asmdata.getjumplabel(truelabel);
                 current_asmdata.getjumplabel(falselabel);
@@ -113,7 +113,7 @@ implementation
                  LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                    begin
                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
 
                      tmpreg:=left.location.register;
@@ -178,7 +178,7 @@ implementation
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
           { location_force_reg can be also used to change the size of a register }
           (left.location.size<>opsize) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
         location_reset(location,LOC_REGISTER,opsize);
         if is_64bit(resultdef) then
           begin
@@ -186,7 +186,7 @@ implementation
             location.registerhi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
-          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
@@ -202,7 +202,7 @@ implementation
                cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                  shiftval,left.location.register64,location.register64)
              else
-               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
+               ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
                  shiftval,left.location.register,location.register);
           end
         else
@@ -211,15 +211,15 @@ implementation
                is done since most target cpu which will use this
                node do not support a shift count in a mem. location (cec)
              }
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
-             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
+             ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
           end;
         { shl/shr nodes return the same type as left, which can be different
           from opdef }
         if opdef<>resultdef then
           begin
-            hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+            hcountreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
             location.register:=hcountreg;
           end;
       end;

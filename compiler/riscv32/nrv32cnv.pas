@@ -59,7 +59,7 @@ implementation
       verbose,globtype,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,symcpu,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       ncon,ncal,
       ncgutil,procinfo,
       cpubase,aasmcpu,
@@ -135,7 +135,7 @@ implementation
         else
           begin
             { Load memory in fpu register }
-            hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
+            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
             tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
 

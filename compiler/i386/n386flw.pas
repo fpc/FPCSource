@@ -414,7 +414,7 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
         cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
         cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
-        handle_safecall_exception;
+        handle_safecall_exception(ctx);
         cg.a_label(current_asmdata.CurrAsmList,safecalllabel);
       end;
 

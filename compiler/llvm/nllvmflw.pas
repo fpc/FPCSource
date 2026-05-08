@@ -56,7 +56,7 @@ implementation
     uses
       systems,globals,verbose,
       symconst,symtable,symsym,llvmdef,defutil,
-      pass_2,cgutils,nodehelper,parabase,paramgr,tgobj,
+      pass_2,pass_2_context,cgutils,nodehelper,parabase,paramgr,tgobj,
       llvmbase,aasmtai,aasmllvm,
       procinfo,llvmpi,
       compiler;
@@ -126,7 +126,7 @@ implementation
             if tllvmprocinfo(compiler.current_procinfo).popexceptlabel(currexceptlabel) then
               exclude(flowcontrol,fc_catching_exceptions);
           end;
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(currexceptlabel) then
           begin
             tllvmprocinfo(compiler.current_procinfo).pushexceptlabel(currexceptlabel);

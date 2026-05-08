@@ -79,7 +79,7 @@ interface
       cutils,verbose,compiler,
       aasmbase,aasmcpu,
       symsym,symconst,defutil,
-      pass_2,ncgutil,
+      pass_2,pass_2_context,ncgutil,
       cgbase,cgobj,nodehelper,
       procinfo,
       cpuinfo,
@@ -515,7 +515,7 @@ interface
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0,[]);
                 tg.gethltempmanaged(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
                 if not(ti_nofini in tempflags) then
-                  hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
+                  ctx.hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end
             else if (ti_may_be_in_reg in tempflags) then
               begin
@@ -565,7 +565,7 @@ interface
                   else
                     ;
                 end;
-                hlcg.g_reference_loc(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.tempinitcode.location,tempinfo^.location);
+                ctx.hlcg.g_reference_loc(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.tempinitcode.location,tempinfo^.location);
               end;
           end;
         { check if the temp is valid }
@@ -761,7 +761,7 @@ interface
 
     procedure tcgfinalizetempsnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-        hlcg.gen_finalize_code(current_asmdata.CurrAsmList);
+        ctx.hlcg.gen_finalize_code(current_asmdata.CurrAsmList);
         location.loc:=LOC_VOID;
       end;
 

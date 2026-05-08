@@ -69,7 +69,7 @@ implementation
     uses
       globtype,verbose,globals,cutils,
       cpuinfo,defutil,symdef,aasmbase,aasmdata,aasmcpu,aasmtai,
-      cgbase,cgutils,pass_1,pass_2,symconst,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,symconst,
       ncnv,ncgutil,cgobj,cgcpu,nodehelper,
       compiler;
 
@@ -95,10 +95,10 @@ implementation
            //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_length called!')));
 
            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(zerolab);
-           hregister:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-           hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,zerolab);
+           hregister:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+           ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,zerolab);
            { the length of a widestring is a 32 bit unsigned int. Since every
              character occupies 2 bytes, on a 32 bit platform you can express
              the maximum length using 31 bits. On a 64 bit platform, it may be
@@ -111,19 +111,19 @@ implementation
              lendef:=compiler.deftypes.ossinttype;
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
-           hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
-           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
+           ctx.hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
+           ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then
-             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
+             ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
 
            { Dynamic arrays do not have their length attached but their maximum index }
            if is_dynamic_array(left.resultdef) then
-             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
+             ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
            current_asmdata.getjumplabel(lengthlab);
-           hlcg.a_jmp_always(current_asmdata.CurrAsmlist,lengthlab);
+           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmlist,lengthlab);
 
            cg.a_label(current_asmdata.CurrAsmList,zerolab);
-           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
+           ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
 
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -248,7 +248,7 @@ implementation
           internalerror(2015022202);
 
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin
@@ -362,10 +362,10 @@ implementation
         secondpass(left,ctx);
         size:=def_cgsize(resultdef);
 
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         location_reset(location,LOC_REGISTER,size);
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],left.location.register,location.register));
       end;
@@ -381,7 +381,7 @@ implementation
 
         hreg:=location.register;
         location_reset(location,LOC_REGISTER,size);
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],hreg,location.register));
       end;

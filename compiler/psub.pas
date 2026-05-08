@@ -179,7 +179,7 @@ implementation
     {$endif state_tracking}
        { pass 2 }
 {$ifndef NOPASS2}
-       pass_2,
+       pass_2,pass_2_context,
 {$endif}
        { parser }
        scanner,gendef,
@@ -2099,8 +2099,8 @@ implementation
           end
         else
           begin
-            FCodeGenContext:=TPassGenerateCodeContext.Create;
-            create_hlcodegen(compiler);
+            FCodeGenContext:=TPassGenerateCodeContextImpl.Create;
+            TPassGenerateCodeContextImpl(FCodeGenContext).create_hlcodegen(compiler);
 
             setup_eh;
 

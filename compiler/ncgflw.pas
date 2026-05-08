@@ -90,17 +90,17 @@ interface
           type
             tframetype = (ft_try,ft_except);
 
-          procedure emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel); virtual;
+          procedure emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel;ctx:tpassgeneratecodecontext); virtual;
         public
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgtryfinallynode = class(ttryfinallynode)
         protected
-          procedure emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const finallycodelabel: tasmlabel; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel);
+          procedure emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const finallycodelabel: tasmlabel; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel;ctx:tpassgeneratecodecontext);
           function get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate): tasmlabel;
         public
-          procedure handle_safecall_exception;
+          procedure handle_safecall_exception(ctx:tpassgeneratecodecontext);
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
@@ -119,6 +119,7 @@ implementation
       fmodule,
       cpubase,
       tgobj,paramgr,
+      pass_2_context,
       cgobj,nodehelper,nutils
 {$ifndef SkipABIEH}
       ,psabiehpi
@@ -180,14 +181,14 @@ implementation
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if lnf_testatbegin in loopflags then
-           hlcg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
+           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
 
          if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
             { align loop target, as an unconditional jump is done before,
               use jump align which assume that the instructions inserted as alignment are never executed }
             current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
 
-         hlcg.a_label(current_asmdata.CurrAsmList,lloop);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,lloop);
 
          compiler.current_procinfo.CurrContinueLabel:=lcont;
          compiler.current_procinfo.CurrBreakLabel:=lbreak;
@@ -195,7 +196,7 @@ implementation
          if assigned(right) then
            secondpass(right,ctx);
 
-         hlcg.a_label(current_asmdata.CurrAsmList,lcont);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,lcont);
          if lnf_checknegate in loopflags then
           begin
              truelabel:=lbreak;
@@ -208,8 +209,8 @@ implementation
           end;
          secondpass(left,ctx);
 
-         hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,left,truelabel,falselabel);
-         hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
+         ctx.hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,left,truelabel,falselabel);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
 
          sync_regvars(false);
 
@@ -258,7 +259,7 @@ implementation
              current_asmdata.CurrAsmList := TAsmList.create;
            end;
 *)
-         hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+         ctx.hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
 
 (*
          if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
@@ -269,7 +270,7 @@ implementation
 *)
          if assigned(right) then
            begin
-              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+              ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
               secondpass(right,ctx);
            end;
 
@@ -302,11 +303,11 @@ implementation
                      compiler.globals.current_filepos:=then_list.getlasttaifilepos^
 *)
                    ;
-                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
+                   ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
                    if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                      current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
                 end;
-              hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
+              ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               secondpass(t1,ctx);
 (*
               { save current asmlist (previous instructions + else-block) }
@@ -320,7 +321,7 @@ implementation
                 end;
 *)
               if assigned(right) then
-                hlcg.a_label(current_asmdata.CurrAsmList,hl);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
            end
          else
            begin
@@ -335,13 +336,13 @@ implementation
 *)
               if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                 current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.coalescealign,compiler.globals.current_settings.alignment.coalescealignskipmax));
-              hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
+              ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
            begin
              if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.coalescealign,compiler.globals.current_settings.alignment.coalescealignskipmax));
-             hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+             ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
 
 (*
@@ -411,9 +412,9 @@ implementation
            secondpass(left,ctx);
 
          if (fc_unwind_exit in flowcontrol) then
-           hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel)
+           ctx.hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel)
          else
-           hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel);
+           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel);
          if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
            current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
        end;
@@ -431,9 +432,9 @@ implementation
          if compiler.current_procinfo.CurrBreakLabel<>nil then
            begin
              if (fc_unwind_loop in flowcontrol) then
-               hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrBreakLabel)
+               ctx.hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrBreakLabel)
              else
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrBreakLabel);
+               ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrBreakLabel);
              if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
            end
@@ -454,9 +455,9 @@ implementation
          if compiler.current_procinfo.CurrContinueLabel<>nil then
            begin
              if (fc_unwind_loop in flowcontrol) then
-               hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrContinueLabel)
+               ctx.hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrContinueLabel)
              else
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrContinueLabel);
+               ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrContinueLabel);
              if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
            end
@@ -475,7 +476,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          include(flowcontrol,fc_gotolabel);
-         hlcg.a_jmp_always_pascal_goto(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
+         ctx.hlcg.a_jmp_always_pascal_goto(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
          if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
            current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
        end;
@@ -504,13 +505,13 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
          if not (nf_internal in flags) then
            include(flowcontrol,fc_gotolabel);
-         hlcg.a_label_pascal_goto_target(current_asmdata.CurrAsmList,getasmlabel);
+         ctx.hlcg.a_label_pascal_goto_target(current_asmdata.CurrAsmList,getasmlabel);
 
          { Write also extra label if this label was referenced from
            assembler block }
          if assigned(labsym) and
             assigned(labsym.asmblocklabel) then
-           hlcg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
+           ctx.hlcg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
       end;
 
 
@@ -522,19 +523,19 @@ implementation
        endexceptlabel : tasmlabel;
 
      { jump out of an try/except block }
-     procedure tcgtryexceptnode.emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel);
+     procedure tcgtryexceptnode.emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel;ctx:tpassgeneratecodecontext);
        begin
-          hlcg.a_label(list,framelabel);
+          ctx.hlcg.a_label(list,framelabel);
           { we must also destroy the address frame which guards
             the exception object }
           compiler.exceptionstatehandler.popaddrstack(list);
-          hlcg.g_exception_reason_discard(list,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf);
+          ctx.hlcg.g_exception_reason_discard(list,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf);
           if frametype=ft_except then
             begin
               compiler.exceptionstatehandler.cleanupobjectstack(list);
               compiler.exceptionstatehandler.end_catch(list);
             end;
-          hlcg.a_jmp_always(list,outerlabel);
+          ctx.hlcg.a_jmp_always(list,outerlabel);
        end;
 
 
@@ -639,7 +640,7 @@ implementation
          { don't generate line info for internal cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-         hlcg.a_label(current_asmdata.CurrAsmList,lastonlabel);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,lastonlabel);
          { default handling except handling }
          if assigned(t1) then
            begin
@@ -677,14 +678,14 @@ implementation
 
                  compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
                  compiler.exceptionstatehandler.catch_all_end(current_asmdata.CurrAsmList);
-                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+                 ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
                end
              else
                begin
                  doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
                  compiler.exceptionstatehandler.cleanupobjectstack(current_asmdata.CurrAsmList);
                  compiler.exceptionstatehandler.catch_all_end(current_asmdata.CurrAsmList);
-                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+                 ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
                end;
            end
          else
@@ -694,25 +695,25 @@ implementation
            end;
 
          if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
-           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,exitexceptlabel,oldCurrExitLabel);
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,exitexceptlabel,oldCurrExitLabel,ctx);
 
          if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
-           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,breakexceptlabel,oldBreakLabel);
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,breakexceptlabel,oldBreakLabel,ctx);
 
          if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
-           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,continueexceptlabel,oldContinueLabel);
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_except,doobjectdestroyandreraisestate,excepttemps,continueexceptlabel,oldContinueLabel,ctx);
 
          if fc_exit in trystate.newflowcontrol then
-           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,exittrylabel,oldCurrExitLabel);
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,exittrylabel,oldCurrExitLabel,ctx);
 
          if fc_break in trystate.newflowcontrol then
-          emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,breaktrylabel,oldBreakLabel);
+          emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,breaktrylabel,oldBreakLabel,ctx);
 
          if fc_continue in trystate.newflowcontrol then
-           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,continuetrylabel,oldContinueLabel);
+           emit_jump_out_of_try_except_frame(current_asmdata.CurrAsmList,ft_try,trystate,excepttemps,continuetrylabel,oldContinueLabel,ctx);
 
          compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -770,7 +771,7 @@ implementation
            begin
              location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
              tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, compiler.deftypes.voidpointertype.alignment, 0, exceptvarsym.vardef, exceptvarsym, exceptvarsym.localloc.reference);
-             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
+             ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
            end;
          { in the case that another exception is risen
            we've to destroy the old one, so create a new
@@ -807,7 +808,7 @@ implementation
              exceptvarsym.localloc.loc:=LOC_INVALID;
            end;
          compiler.exceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
-         hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+         ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
          if assigned(right) then
            begin
@@ -815,22 +816,22 @@ implementation
               if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   hlcg.a_label(current_asmdata.CurrAsmList,exitonlabel);
-                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitonlabel);
+                   ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
                 end;
 
               if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   hlcg.a_label(current_asmdata.CurrAsmList,breakonlabel);
-                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakonlabel);
+                   ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
                 end;
 
               if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   hlcg.a_label(current_asmdata.CurrAsmList,continueonlabel);
-                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,continueonlabel);
+                   ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
                 end;
 
               compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
@@ -842,7 +843,7 @@ implementation
            end;
 
          compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         hlcg.a_label(current_asmdata.CurrAsmList,nextonlabel);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,nextonlabel);
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          { propagate exit/break/continue }
@@ -858,12 +859,12 @@ implementation
 *****************************************************************************}
 
     { jump out of a finally block }
-    procedure tcgtryfinallynode.emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const finallycodelabel: tasmlabel; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel);
+    procedure tcgtryfinallynode.emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const finallycodelabel: tasmlabel; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel;ctx:tpassgeneratecodecontext);
       begin
-         hlcg.a_label(list,framelabel);
-         hlcg.g_exception_reason_discard(list,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf);
-         hlcg.g_exception_reason_save_const(list,compiler.deftypes.exceptionreasontype,reason,excepttemps.reasonbuf);
-         hlcg.a_jmp_always(list,finallycodelabel);
+         ctx.hlcg.a_label(list,framelabel);
+         ctx.hlcg.g_exception_reason_discard(list,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf);
+         ctx.hlcg.g_exception_reason_save_const(list,compiler.deftypes.exceptionreasontype,reason,excepttemps.reasonbuf);
+         ctx.hlcg.a_jmp_always(list,finallycodelabel);
       end;
 
 
@@ -873,7 +874,7 @@ implementation
       end;
 
 
-    procedure tcgtryfinallynode.handle_safecall_exception;
+    procedure tcgtryfinallynode.handle_safecall_exception(ctx:tpassgeneratecodecontext);
       var
         cgpara, resultpara: tcgpara;
         selfsym: tparavarsym;
@@ -890,15 +891,15 @@ implementation
             selfsym:=tparavarsym(compiler.current_procinfo.procdef.parast.Find('self'));
             if (selfsym=nil) or (selfsym.typ<>paravarsym) then
               InternalError(2011123101);
-            hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.vardef,selfsym.localloc,cgpara);
+            ctx.hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.vardef,selfsym.localloc,cgpara);
           end
         else
-          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype,0,cgpara);
+          ctx.hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype,0,cgpara);
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
-        resultpara:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@cgpara],nil);
+        resultpara:=ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@cgpara],nil);
         cgpara.done;
         safecallresult:=tlocalvarsym(compiler.current_procinfo.procdef.localst.Find('safecallresult'));
-        hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,resultpara.def,resultpara,safecallresult.localloc,false);
+        ctx.hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,resultpara.def,resultpara,safecallresult.localloc,false);
         resultpara.resetiftemp;
       end;
 
@@ -922,24 +923,24 @@ implementation
         procedure handle_breakcontinueexit(const finallycode: tasmlabel; doreraise: boolean);
           begin
             { no exception happened, but maybe break/continue/exit }
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,0,reasonreg,endfinallylabel);
+            ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,0,reasonreg,endfinallylabel);
             if fc_exit in finallyexceptionstate.newflowcontrol then
-              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,2,reasonreg,oldCurrExitLabel);
+              ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,2,reasonreg,oldCurrExitLabel);
             if fc_break in finallyexceptionstate.newflowcontrol then
-              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,3,reasonreg,oldBreakLabel);
+              ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,3,reasonreg,oldBreakLabel);
             if fc_continue in finallyexceptionstate.newflowcontrol then
-              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,4,reasonreg,oldContinueLabel);
+              ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,4,reasonreg,oldContinueLabel);
             if doreraise then
               compiler.exceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,tek_normalfinally)
             else
-              hlcg.g_unreachable(current_asmdata.CurrAsmList);
+              ctx.hlcg.g_unreachable(current_asmdata.CurrAsmList);
             { redirect break/continue/exit to the label above, with the reasonbuf set appropriately }
             if fc_exit in finallyexceptionstate.newflowcontrol then
-              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,2,finallycode,excepttemps,exitfinallylabel);
+              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,2,finallycode,excepttemps,exitfinallylabel,ctx);
             if fc_break in finallyexceptionstate.newflowcontrol then
-              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,3,finallycode,excepttemps,breakfinallylabel);
+              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,3,finallycode,excepttemps,breakfinallylabel,ctx);
             if fc_continue in finallyexceptionstate.newflowcontrol then
-              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,4,finallycode,excepttemps,continuefinallylabel);
+              emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,4,finallycode,excepttemps,continuefinallylabel,ctx);
           end;
 
       begin
@@ -997,7 +998,7 @@ implementation
 
              flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
              current_asmdata.getjumplabel(finallyNoExceptionLabel);
-             hlcg.a_label(current_asmdata.CurrAsmList,finallyNoExceptionLabel);
+             ctx.hlcg.a_label(current_asmdata.CurrAsmList,finallyNoExceptionLabel);
              if not implicitframe then
                current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
              secondpass(third,ctx);
@@ -1005,8 +1006,8 @@ implementation
                exit;
              if not implicitframe then
                current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
-             reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-             hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+             reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+             ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
              handle_breakcontinueexit(finallyNoExceptionLabel,false);
 
              current_asmdata.CurrAsmList.concatList(tmplist);
@@ -1045,23 +1046,23 @@ implementation
          if not assigned(third) then
            begin
              { the value should now be in the exception handler }
-             reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-             hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+             reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+             ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
              if implicitframe then
                begin
-                 hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,0,reasonreg,endfinallylabel);
+                 ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,0,reasonreg,endfinallylabel);
                  { finally code only needed to be executed on exception (-> in
                    if-branch -> fc_inflowcontrol) }
                  if compiler.current_procinfo.procdef.generate_safecall_wrapper then
                    begin
-                     handle_safecall_exception;
+                     handle_safecall_exception(ctx);
                      { we have to jump immediately as we have to return the value of FPC_SAFECALL }
-                     hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+                     ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
                    end
                  else
                    compiler.exceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,exceptframekind);
                  { we have to load 0 into the execepttemp, else the program thinks an exception happened }
-                 emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,0,finallyexceptionstate.exceptionlabel,excepttemps,exitfinallylabel);
+                 emit_jump_out_of_try_finally_frame(current_asmdata.CurrAsmList,0,finallyexceptionstate.exceptionlabel,excepttemps,exitfinallylabel,ctx);
                end
              else
                begin
@@ -1073,7 +1074,7 @@ implementation
              if implicitframe then
                begin
                  if compiler.current_procinfo.procdef.generate_safecall_wrapper then
-                   handle_safecall_exception
+                   handle_safecall_exception(ctx)
                  else
                    compiler.exceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,exceptframekind);
                end
@@ -1084,7 +1085,7 @@ implementation
 
            end;
          compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         hlcg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
+         ctx.hlcg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1142,7 +1143,7 @@ implementation
                 psabiehprocinfo.PushLandingPad(ReRaiseLandingPad);
               end;
           end;
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(CurrentLandingPad) then
           begin
             psabiehprocinfo.CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);

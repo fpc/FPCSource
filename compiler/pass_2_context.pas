@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate sparc assembler for in call nodes
+    This unit handles the codegeneration pass
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,41 +19,52 @@
 
  ****************************************************************************
 }
-unit ncpucall;
+unit pass_2_context;
 
 {$i fpcdefs.inc}
 
 interface
 
-    uses
-      node,ncgcal,compilerbase;
+uses
+  compilerbase,
+  node,hlcgobj;
 
-    type
-       tsparccallnode = class(tcgcallnode)
-         procedure extra_post_call_code(ctx:tpassgeneratecodecontext);override;
-       end;
+type
 
+  { tpassgeneratecodecontextimpl }
+
+  tpassgeneratecodecontextimpl = class(tpassgeneratecodecontext)
+    hlcg: thlcgobj;
+    procedure create_hlcodegen(acompiler: TCompilerBase);
+  end;
+
+  { tpassgeneratecodecontexthelper }
+
+  tpassgeneratecodecontexthelper = class helper for tpassgeneratecodecontext
+  private
+    function GetHlcg: thlcgobj; inline;
+  public
+    property hlcg: thlcgobj read GetHlcg;
+  end;
 
 implementation
 
-    uses
-      cpubase,
-      aasmtai,aasmdata,
-      aasmcpu,
-      paramgr,
-      ncal,
-      compiler,nodehelper;
+uses
+  compiler;
 
+{ tpassgeneratecodecontextimpl }
 
-    procedure tsparccallnode.extra_post_call_code(ctx:tpassgeneratecodecontext);
-      begin
-{$ifndef SPARC64}
-        if paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.returndef.size and $3fffff));
-{$endif SPARC64}
-      end;
-
-
+procedure tpassgeneratecodecontextimpl.create_hlcodegen(acompiler: TCompilerBase);
 begin
-  ccallnode:=TSparcCallNode;
+  hlcgobj.create_hlcodegen(acompiler);
+  hlcg:=acompiler.hlcg;
+end;
+
+{ tpassgeneratecodecontexthelper }
+
+function tpassgeneratecodecontexthelper.GetHlcg: thlcgobj; inline;
+begin
+  result:=tpassgeneratecodecontextimpl(self).hlcg;
+end;
+
 end.

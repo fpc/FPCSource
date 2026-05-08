@@ -33,7 +33,7 @@ interface
 
     type
       tarmloadnode = class(tcgloadnode)
-         procedure generate_threadvar_access(gvs : tstaticvarsym); override;
+         procedure generate_threadvar_access(gvs : tstaticvarsym;ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -56,7 +56,7 @@ implementation
                             TARMLOADNODE
 *****************************************************************************}
 
-    procedure tarmloadnode.generate_threadvar_access(gvs: tstaticvarsym);
+    procedure tarmloadnode.generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext);
       var
         href: treference;
         hregister : tregister;

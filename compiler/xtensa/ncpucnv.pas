@@ -43,7 +43,7 @@ implementation
       verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
-      pass_1,pass_2,procinfo,ncal,
+      pass_1,pass_2,pass_2_context,procinfo,ncal,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,cgobj,nodehelper,cgcpu,compiler;
 
@@ -117,14 +117,14 @@ implementation
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              exit;
           end;
 
         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
@@ -217,7 +217,7 @@ implementation
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.s32inttype,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.s32inttype,true);
         ai:=taicpu.op_reg_reg_const(A_FLOAT,location.register,left.location.register,0);
         ai.oppostfix:=PF_S;
         current_asmdata.CurrAsmList.concat(ai);

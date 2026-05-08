@@ -38,7 +38,7 @@ interface
         protected
          procedure generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext); override;
          procedure generate_absaddr_access(vs: tabsolutevarsym); override;
-         procedure generate_threadvar_access(gvs: tstaticvarsym); override;
+         procedure generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext); override;
         public
          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
@@ -54,6 +54,7 @@ implementation
       nodehelper,
       cpubase,cpuinfo,
       parabase,paramgr,
+      pass_2_context,
       compiler;
 
 {*****************************************************************************
@@ -78,7 +79,7 @@ implementation
              the presence of a segment in the source reference to determine the
              destination reg size
           3) make_simple_ref is updated to remove unnecessary segment prefixes
-          4) hlcg.reference_reset_base is updated to set the segment on near_ss
+          4) ctx.hlcg.reference_reset_base is updated to set the segment on near_ss
              pointers }
         if (left.nodetype=loadparentfpn) and
            (compiler.globals.current_settings.x86memorymodel in x86_far_data_models) then
@@ -95,7 +96,7 @@ implementation
         inherited;
       end;
 
-    procedure ti8086loadnode.generate_threadvar_access(gvs: tstaticvarsym);
+    procedure ti8086loadnode.generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext);
       var
         segref: treference;
         segreg: TRegister;
@@ -111,7 +112,7 @@ implementation
           begin
             if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               begin
-                inherited generate_threadvar_access(gvs);
+                inherited;
                 exit;
               end;
 
@@ -138,15 +139,15 @@ implementation
               internalerror(2012120902);
             paraloc1.init(compiler.target);
             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
+            hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
             segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
             reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             segref.refaddr:=addr_seg;
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             href.segment:=segreg;
-            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
+            ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
+            ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
             { don't save the allocated register else the result will be destroyed later }
             if not(vo_is_weak_external in gvs.varoptions) then
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
@@ -160,7 +161,7 @@ implementation
             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
+            hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
             cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
             cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
@@ -172,12 +173,12 @@ implementation
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
+            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-            hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
+            ctx.hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
           end
         else
-          inherited generate_threadvar_access(gvs);
+          inherited;
       end;
 
     procedure ti8086loadnode.pass_generate_code(ctx:tpassgeneratecodecontext);

@@ -43,7 +43,7 @@ interface
           function pass_1: tnode; override;
           procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        protected
-          procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); override;
+          procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean; ctx:tpassgeneratecodecontext); override;
        end;
 
 implementation
@@ -56,7 +56,7 @@ implementation
       llvmbase,aasmllvm,aasmllvmmetadata,nodehelper,
       cgbase,cgutils,
       cpubase,
-      compiler;
+      pass_2_context,compiler;
 
 {*****************************************************************************
                            tllvmstringconstnode
@@ -132,14 +132,14 @@ implementation
             end;
             { get address of array as pchar }
             resptrdef:=cpointerdef.getreusable(resultdef,compiler);
-            hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
-            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
+            hreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
+            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
+            ctx.hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
           end;
       end;
 
 
-    procedure tllvmstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean);
+    procedure tllvmstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean; ctx:tpassgeneratecodecontext);
       var
         stringtype: tstringtype;
         strrecdef: trecorddef;
@@ -172,13 +172,13 @@ implementation
         { pointerdef to the string data array }
         dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
         { load the address of the string data }
-        reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
+        reg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
         reference_reset_symbol(href,lab_str,0,compiler.globals.const_align(strpointerdef.size),[]);
         current_asmdata.CurrAsmList.concat(
           taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef,compiler),href,
           compiler.deftypes.s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
-        hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
+        ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
       end;
 
 {*****************************************************************************
@@ -196,7 +196,7 @@ implementation
       begin
          { llvm supports floating point constants directly }
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+         location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
          case tfloatdef(resultdef).floattype of
            s32real,s64real:
              current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,location.register,resultdef,value_real,resultdef));

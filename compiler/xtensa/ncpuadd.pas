@@ -59,7 +59,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,procinfo,
+      cpuinfo,pass_1,pass_2,pass_2_context,procinfo,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
@@ -92,9 +92,9 @@ interface
             pass_left_right(ctx);
 
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
             { initialize the result }
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -127,7 +127,7 @@ interface
         current_asmdata.getjumplabel(falselab);
 
         location_reset_jump(location,truelab,falselab);
-        force_reg_left_right(false,false);
+        force_reg_left_right(false,false,ctx);
 
         case nodetype of
           equaln:
@@ -167,7 +167,7 @@ interface
 
         location_reset_jump(location,truelab,falselab);
 
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
 
         if is_signed(left.resultdef) then
           case nodetype of
@@ -197,7 +197,7 @@ interface
         else
           begin
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_INT),true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_INT),true);
 
             if nf_swapped in flags then
                cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel)
@@ -241,7 +241,7 @@ interface
         location_reset_jump(location,truelabel,falselabel);
 
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -249,7 +249,7 @@ interface
         left_reg:=left.location.register64;
         { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
         if right.location.loc=LOC_CONSTANT then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
         right_reg:=right.location.register64;
 
         case NodeType of
@@ -392,8 +392,8 @@ interface
         if (nf_swapped in flags) then
           swapleftright;
 
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         cmpop:=false;
         inv:=false;
@@ -499,11 +499,11 @@ interface
                        (torddef(left.resultdef).ordtype=u64bit)) or
                       ((right.resultdef.typ=orddef) and
                        (torddef(right.resultdef).ordtype=u64bit));
-            force_reg_left_right(true,true);
+            force_reg_left_right(true,true,ctx);
 
             { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
             if right.location.loc=LOC_CONSTANT then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);

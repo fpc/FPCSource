@@ -33,7 +33,7 @@ interface
 
     type
       tllvmcallparanode = class(tcgcallparanode)
-        procedure push_formal_para; override;
+        procedure push_formal_para(ctx:tpassgeneratecodecontext); override;
       end;
 
       tllvmcallnode = class(tcgcallnode)
@@ -53,14 +53,14 @@ implementation
        symconst,symdef,
        compiler;
 
-    procedure tllvmcallparanode.push_formal_para;
+    procedure tllvmcallparanode.push_formal_para(ctx:tpassgeneratecodecontext);
       begin
         if parasym.vardef<>compiler.deftypes.llvm_metadatatype then
           begin;
             inherited;
             exit;
           end;
-        push_value_para;
+        push_value_para(ctx);
       end;
 
 {*****************************************************************************

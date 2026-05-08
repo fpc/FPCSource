@@ -44,7 +44,7 @@ implementation
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
-      cgbase,pass_1,pass_2,procinfo,
+      cgbase,pass_1,pass_2,pass_2_context,procinfo,
       ncon,ncal,ninl,compinnr,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,
@@ -153,9 +153,9 @@ implementation
 
             { the idea behind this code is based on the cardinal to double code in the PPC and x86 CG (KB) }
             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(double),sizeof(double),tt_normal,tempref);
-            hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,$43300000,tempref);
+            ctx.hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,$43300000,tempref);
             inc(tempref.offset,sizeof(aint));
-            hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,tempref);
+            ctx.hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,tempref);
             dec(tempref.offset,sizeof(aint));
             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,S_FD,tempref,location.register));
 
@@ -178,7 +178,7 @@ implementation
           end;
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.osuinttype,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.osuinttype,false);
 
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
@@ -222,7 +222,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 begin
                   location.size:=newsize;
@@ -242,7 +242,7 @@ implementation
 
         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) or
            ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :

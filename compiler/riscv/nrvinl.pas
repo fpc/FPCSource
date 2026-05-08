@@ -70,7 +70,7 @@ implementation
       symconst,symdef,
       defutil,
       procinfo,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpuinfo,ncgutil,
       nodehelper,cgutils,cgobj,rgobj,tgobj,compiler;
 
@@ -224,7 +224,7 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
        end;
@@ -287,7 +287,7 @@ implementation
          op: TAsmOp;
        begin
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
          if (location.size in [OS_S64,OS_64]) then
@@ -325,7 +325,7 @@ implementation
          op: TAsmOp;
        begin
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
          if (location.size in [OS_S64,OS_64]) then
@@ -421,7 +421,7 @@ implementation
              for i:=1 to 3 do
                begin
                  if not(paraarray[i].location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-                   hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
@@ -456,7 +456,7 @@ implementation
              for i:=low(paraarray) to high(paraarray) do
                begin
                  if not(paraarray[i].location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-                   hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,
+                   ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,true);
                end;
 

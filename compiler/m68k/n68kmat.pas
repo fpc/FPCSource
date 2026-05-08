@@ -60,7 +60,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,symtable,aasmbase,aasmtai,aasmdata,aasmcpu,
-      pass_1,pass_2,procinfo,
+      pass_1,pass_2,pass_2_context,procinfo,
       ncon,
       cpuinfo,paramgr,defutil,parabase,
       tgobj,ncgutil,cgobj,nodehelper,cgutils,rgobj,rgcpu,cgcpu,cg64f32,
@@ -84,7 +84,7 @@ implementation
             opsize:=def_cgsize(resultdef);
 
             if ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
 
             case left.location.loc of
               LOC_FLAGS :
@@ -117,12 +117,12 @@ implementation
                 begin
                   if is_64bit(resultdef) then
                     begin
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo));
                     end
                   else
                     begin
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                       if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                         begin
                           hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -249,7 +249,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u64inttype,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u64inttype,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -312,7 +312,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location_copy(location,left.location);
 
             { determine operator }
@@ -329,7 +329,7 @@ implementation
             else
               begin
                 { load shift count in a register if necessary }
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,location.register);
               end;
           end;

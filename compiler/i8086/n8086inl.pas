@@ -54,7 +54,7 @@ implementation
     defutil,
     aasmbase,aasmtai,aasmdata,aasmcpu,
     symtype,symdef,symsym,symcpu,
-    cgbase,pass_1,pass_2,
+    cgbase,pass_1,pass_2,pass_2_context,
     cpuinfo,cpubase,paramgr,
     nbas,nadd,ncon,ncal,ncnv,nld,nmem,nmat,ncgutil,
     tgobj,
@@ -356,24 +356,24 @@ implementation
                     addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
                  else
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,compiler.deftypes.s16inttype,addvalue<=1);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,compiler.deftypes.s16inttype,addvalue<=1);
                      hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
                      { insert multiply with addvalue if its >1 }
                      if addvalue>1 then
-                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,compiler.deftypes.s16inttype,addvalue.svalue,hregister);
+                       ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,compiler.deftypes.s16inttype,addvalue.svalue,hregister);
                      addconstant:=false;
                    end;
                end;
              { write the add instruction }
              if addconstant then
                begin
-                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
+                 ctx.hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    smallint(addvalue.svalue),
                    tmploc);
                end
              else
                begin
-                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
+                 ctx.hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    hregister,tmploc);
                end;
            end
@@ -391,7 +391,7 @@ implementation
          if opsize in [OS_64,OS_S64] then
            begin
             secondpass(left,ctx);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -416,7 +416,7 @@ implementation
          else if opsize in [OS_32,OS_S32] then
            begin
             secondpass(left,ctx);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);

@@ -45,7 +45,7 @@ implementation
       globtype,constexp,
       cutils,
       aasmdata,defutil,
-      pass_2,
+      pass_2,pass_2_context,
       ncon,
       cgbase,cgutils,cgobj,nodehelper;
 
@@ -77,7 +77,7 @@ implementation
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
           { location_force_reg can be also used to change the size of a register }
           (left.location.size<>opsize) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
         location_reset(location,LOC_REGISTER,opsize);
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
@@ -94,7 +94,7 @@ implementation
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                { location_force_reg can be also used to change the size of a register }
               (right.location.size<>opsize) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
 
             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
           end;

@@ -42,7 +42,8 @@ interface
       aasmbase,aasmdata,
       defutil,
       cgbase,cgutils,cga,cgobj,nodehelper,cgx86,
-      tgobj;
+      tgobj,
+      pass_2_context;
 
     function tx8664addnode.use_generic_mul64bit: boolean;
     begin
@@ -120,12 +121,12 @@ interface
           begin
             {LOC_CONSTANT for example.}
             reg:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,reg);
+            ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,reg);
           end;
         { Allocate RAX. }
         cg.getcpuregister(current_asmdata.CurrAsmList,rega);
         { Load the right value. }
-        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,right.location,rega);
+        ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,right.location,rega);
         { Also allocate RDX, since it is also modified by a mul (JM). }
         cg.getcpuregister(current_asmdata.CurrAsmList,regd);
 

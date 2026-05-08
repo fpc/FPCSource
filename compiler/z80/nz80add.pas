@@ -54,7 +54,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,procinfo,
+      cpuinfo,pass_1,pass_2,pass_2_context,procinfo,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
@@ -171,7 +171,7 @@ interface
                 swapleftright;
 
               if left.location.loc<>LOC_REGISTER then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
@@ -184,7 +184,7 @@ interface
                       cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                     end
                   else
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
                 end;
               case right.location.loc of
                 LOC_CONSTANT:
@@ -242,7 +242,7 @@ interface
               swapleftright;
 
             if left.location.loc<>LOC_REGISTER then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
@@ -254,7 +254,7 @@ interface
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end
                 else
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
               end;
             case right.location.loc of
               LOC_CONSTANT:
@@ -288,7 +288,7 @@ interface
               swapleftright;
 
             if left.location.loc<>LOC_REGISTER then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
@@ -299,7 +299,7 @@ interface
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_SUB,NR_A,right.location.reference));
                   end
                 else
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
               end;
             case right.location.loc of
               LOC_CONSTANT:
@@ -368,7 +368,7 @@ interface
         if NodeType in [equaln,unequaln] then
           begin
             if left.location.loc<>LOC_REGISTER then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
@@ -398,7 +398,7 @@ interface
                     cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                   end
                 else
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
               end;
             case right.location.loc of
               LOC_CONSTANT:
@@ -474,7 +474,7 @@ interface
               actualnodetype:=NodeType;
 
             if left.location.loc<>LOC_REGISTER then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
@@ -532,7 +532,7 @@ interface
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end
                 else
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
               end;
             case right.location.loc of
               LOC_CONSTANT:

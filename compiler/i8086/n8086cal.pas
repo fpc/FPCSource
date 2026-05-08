@@ -38,7 +38,7 @@ interface
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
           procedure extra_call_ref_code(var ref: treference);override;
-          function do_call_ref(ref: treference): tcgpara;override;
+          function do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;override;
           function can_call_ref(var ref: treference): boolean; override;
         public
           function pass_1: tnode; override;
@@ -58,6 +58,7 @@ implementation
       nodehelper,
       symcpu,
       cga,cgobj,cgx86,cpuinfo,
+      pass_2_context,
       compiler;
 
 
@@ -104,13 +105,13 @@ implementation
       end;
 
 
-    function ti8086callnode.do_call_ref(ref: treference): tcgpara;
+    function ti8086callnode.do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;
       begin
         if is_proc_far(procdefinition) then
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
-        result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
+        result:=ctx.hlcg.get_call_result_cgpara(procdefinition,typedef)
       end;
 
 

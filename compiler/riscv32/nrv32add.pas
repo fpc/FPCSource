@@ -89,7 +89,7 @@ unit nrv32add;
         location_reset_jump(location,truelabel,falselabel);
 
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));

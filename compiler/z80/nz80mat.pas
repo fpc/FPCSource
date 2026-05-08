@@ -44,7 +44,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       ncon,
       cpubase,cpuinfo,
       ncgutil,cgobj,cgutils,
@@ -63,7 +63,7 @@ implementation
         if not handle_locjump then
           begin
             if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             case left.location.loc of
               LOC_FLAGS :
                 begin
@@ -121,7 +121,7 @@ implementation
                 begin
                   if tcgsize2size[def_cgsize(left.resultdef)]<>tcgsize2size[def_cgsize(resultdef)] then
                     internalerror(2020042209);
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
                   if tcgsize2size[def_cgsize(left.resultdef)]=1 then
                     begin
                       cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);

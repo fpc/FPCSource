@@ -62,7 +62,7 @@ uses
   aasmbase, aasmcpu, aasmtai, aasmdata,
   defutil,
   procinfo,
-  cgobj, hlcgobj, pass_2,
+  cgobj, hlcgobj, pass_2, pass_2_context,
   ncon,
   cpubase,
   ncgutil, cgcpu, cgutils,
@@ -88,7 +88,7 @@ begin
   location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
   { put numerator in register }
-  hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
+  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
   numerator := left.location.Register;
 
   if (nodetype = divn) and
@@ -111,7 +111,7 @@ begin
   else
   begin
     { load divider in a register if necessary }
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
       right.resultdef, right.resultdef, True);
     divider := right.location.Register;
 
@@ -192,7 +192,7 @@ begin
   location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
 
   { load left operator in a register }
-  hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, resultdef, true);
+  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, resultdef, true);
   hreg64hi := left.location.register64.reghi;
   hreg64lo := left.location.register64.reglo;
 
@@ -255,7 +255,7 @@ begin
         LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE,
         LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF:
           begin
-            hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags.reg2:=NR_R0;
             location.resflags.cond:=OC_EQ;
@@ -285,7 +285,7 @@ end;
 procedure TMIPSunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
 begin
   secondpass(left,ctx);
-  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
   case location.size of

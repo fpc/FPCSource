@@ -51,7 +51,7 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,nodehelper,pass_2,procinfo,
+      cgbase,cgobj,nodehelper,pass_2,pass_2_context,procinfo,
       ncon,nutils,
       cpubase,
       ncgutil,cgcpu,cgutils,
@@ -171,8 +171,8 @@ implementation
                { num=ffff... and div=8000... <=>
                  num xor not(div xor 8000...) = 0
                  (and we have the "eon" operation, which performs "xor not(...)" }
-               tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
-               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,low(int64),numerator,tmpreg);
+               tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+               ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,low(int64),numerator,tmpreg);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_EON,
                  tmpreg,numerator,tmpreg));
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,0));
@@ -200,7 +200,7 @@ implementation
         resultreg:=location.register;
 
         { put numerator in register }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         numerator:=left.location.register;
 
         if (right.nodetype=ordconstn) then
@@ -414,7 +414,7 @@ implementation
         else
           begin
             { load divider in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             divider:=right.location.register;
 
             { ARM-64 developer guides recommend checking for division by zero conditions
@@ -475,7 +475,7 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,
                     left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -504,7 +504,7 @@ implementation
     procedure taarch64unaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,location.register,left.location.register));

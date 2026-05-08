@@ -59,7 +59,7 @@ interface
       cgbase,cgcpu,cgutils,
       cpupara,
       ncon,nset,nadd,nmat,
-      nodehelper, ncgutil,cgobj,pass_2,
+      nodehelper, ncgutil,cgobj,pass_2,pass_2_context,
       compiler;
 
 {*****************************************************************************
@@ -192,8 +192,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -233,8 +233,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getfpuresflags;
@@ -249,7 +249,7 @@ interface
     procedure taarch64addnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         if right.location.loc=LOC_CONSTANT then
           begin
@@ -278,7 +278,7 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         if right.location.loc=LOC_CONSTANT then
           begin
@@ -315,11 +315,11 @@ interface
                 swapleftright;
               { we can't handle left as a constant yet }
               if left.location.loc=LOC_CONSTANT then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
               if right.location.loc=LOC_CONSTANT then
                 begin
-                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,right.location.value,left.location.register,tmpreg);
+                  ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,right.location.value,left.location.register,tmpreg);
                   tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),tmpreg,abs(right.location.value),NR_XZR,NR_NO,false,false)
                 end
               else
@@ -340,7 +340,7 @@ interface
         unsigned : boolean;
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -378,11 +378,11 @@ interface
             unsigned:=not(is_signed(left.resultdef)) or
                       not(is_signed(right.resultdef));
             pass_left_right(ctx);
-            force_reg_left_right(true,true);
+            force_reg_left_right(true,true,ctx);
             { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
               say "a constant register is okay, but an ordinal constant isn't) }
             if right.location.loc=LOC_CONSTANT then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
@@ -421,7 +421,7 @@ interface
 
                 { allocate registers }
                 if not (tnotnode(right).left.location.loc in [LOC_REGISTER, LOC_CREGISTER]) then
-                  hlcg.location_force_reg(
+                  ctx.hlcg.location_force_reg(
                     current_asmdata.CurrAsmList,
                     tnotnode(right).left.location,
                     tnotnode(right).left.resultdef,
@@ -431,7 +431,7 @@ interface
                   );
 
                 if not (left.location.loc in [LOC_REGISTER, LOC_CREGISTER]) then
-                  hlcg.location_force_reg(
+                  ctx.hlcg.location_force_reg(
                     current_asmdata.CurrAsmList,
                     left.location,
                     left.resultdef,
@@ -439,7 +439,7 @@ interface
                     false
                   );
 
-                set_result_location_reg;
+                set_result_location_reg(ctx);
 
                 case nodetype of
                   andn:
@@ -458,7 +458,7 @@ interface
                   extensions since it will be full of 1s, so do this by
                   downsizing the register from 32-bit to the target size }
                 if (def_cgsize(resultdef) in [OS_8, OS_16]) then
-                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,torddef(compiler.deftypes.u32inttype),resultdef,self.location.register,self.location.register);
+                  ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,torddef(compiler.deftypes.u32inttype),resultdef,self.location.register,self.location.register);
 
                 { Overflow can't happen with bic/orn/eon }
                 Exit;

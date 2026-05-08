@@ -60,7 +60,7 @@ interface
       nutils,cgbase,procinfo,
       ncal,ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
-      nodehelper,compiler;
+      pass_2_context,nodehelper,compiler;
 
 {*****************************************************************************
                                 simplify
@@ -434,8 +434,8 @@ interface
         pointernode: tnode;
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
-        set_result_location_reg;
+        force_reg_left_right(true,true,ctx);
+        set_result_location_reg(ctx);
 
         if (left.resultdef.typ=pointerdef) and (right.resultdef.typ<>pointerdef) then
           pointernode:=left
@@ -469,8 +469,8 @@ interface
                 else
                   begin
                     { int_reg + farptr_const }
-                    tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                    hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                    tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                    ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
                       right.location.value,tmpreg);
                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                       left.location.register,tmpreg,location.register);
@@ -507,8 +507,8 @@ interface
             else
               begin
                 { farptr_const - int_reg }
-                tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
                   left.location.value,tmpreg);
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                   right.location.register,tmpreg,location.register);
@@ -945,11 +945,11 @@ interface
                   { maybe we can reuse a constant register when the
                     operation is a comparison that doesn't change the
                     value of the register }
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u16inttype,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u16inttype,true);
                 end;
               end;
 
-            emit_generic_code(A_CMP,OS_16,true,false,false);
+            emit_generic_code(A_CMP,OS_16,true,false,false,ctx);
             tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
             tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
           end;
@@ -1016,12 +1016,12 @@ interface
         begin
           {LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
         end;
       {Allocate AX.}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
       {Load the right value.}
-      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_AX);
+      ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_AX);
       {Also allocate DX, since it is also modified by a mul (JM).}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
 

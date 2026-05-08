@@ -69,7 +69,7 @@ implementation
       procinfo,
       compinnr,cpuinfo,defutil,symdef,
       aasmdata,aasmcpu,aasmtai,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       cpubase,ncgutil,cgobj,cgcpu,nodehelper,
       nutils,ncal,
       compiler;
@@ -129,7 +129,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             begin
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CFPUREGISTER then
                 begin
@@ -139,12 +139,12 @@ implementation
             end;
           fpu_soft:
             begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               location_copy(location,left.location);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CMMREGISTER then
                 begin
@@ -472,7 +472,7 @@ implementation
 
         secondpass(left,ctx);
         opsize:=def_cgsize(left.resultdef);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
@@ -561,13 +561,13 @@ implementation
              for i:=1 to 3 do
                begin
                  if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
-             hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+             ctx.hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                paraarray[3].location.register,location.register,mms_movescalar);
              if is_double(resultdef) then
                oppostfix:=PF_F64

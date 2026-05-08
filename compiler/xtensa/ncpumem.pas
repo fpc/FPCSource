@@ -28,12 +28,12 @@ interface
       globtype,
       cgbase,cpubase,
       symtype,
-      nmem,ncgmem,
+      node,nmem,ncgmem,
       compilerbase;
 
     type
       tcpuvecnode = class(tcgvecnode)
-        procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
+        procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint; ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -49,7 +49,7 @@ implementation
                              TCPUVECNODE
 *****************************************************************************}
 
-     procedure tcpuvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
+     procedure tcpuvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint; ctx:tpassgeneratecodecontext);
        var
          hreg: tregister;
          op: TAsmOp;
@@ -82,7 +82,7 @@ implementation
              location.reference.alignment:=newalignment(location.reference.alignment,l);
            end
          else
-           inherited update_reference_reg_mul(maybe_const_reg,regsize,l);
+           inherited;
        end;
 
 begin

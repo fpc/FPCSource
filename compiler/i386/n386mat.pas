@@ -52,7 +52,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       ncon,
       cpubase,cpuinfo,
       cga,ncgutil,cgobj,cgutils,
@@ -88,7 +88,7 @@ implementation
             secondpass(right,ctx);
             if compiler.verbose.codegenerror then
               exit;
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg1:=left.location.register;
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
@@ -133,7 +133,7 @@ implementation
             { load left operator in a register }
             if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
               ((left.location.loc=LOC_CREGISTER) and ((v.svalue and 31)<>0)) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -181,14 +181,14 @@ implementation
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
             { load left operator in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
 
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
             { load right operators in a register }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u32inttype,right.location,NR_ECX);
+            ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u32inttype,right.location,NR_ECX);
 
             { left operator is already in a register }
             { hence are both in a register }

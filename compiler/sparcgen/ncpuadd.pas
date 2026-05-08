@@ -59,7 +59,7 @@ interface
       cgbase,cgsparc,cgcpu,cgutils,
       cpuinfo,cpupara,
       ncon,nset,nadd,
-      nodehelper,ncgutil,cgobj,compiler;
+      pass_2_context,nodehelper,ncgutil,cgobj,compiler;
 
 {*****************************************************************************
                                TSparcAddNode
@@ -193,8 +193,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,(left.location.loc<>LOC_CFPUREGISTER));
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,(left.location.loc<>LOC_CFPUREGISTER));
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         if left.location.loc<>LOC_CFPUREGISTER then
@@ -250,8 +250,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getfpuresflags;
@@ -274,7 +274,7 @@ interface
     procedure tsparcaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         if right.location.loc = LOC_CONSTANT then
           tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
@@ -294,7 +294,7 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
-        force_reg_left_right(false,false);
+        force_reg_left_right(false,false,ctx);
 
         case nodetype of
           equaln,
@@ -378,7 +378,7 @@ interface
 
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -452,7 +452,7 @@ interface
         unsigned : boolean;
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -479,7 +479,7 @@ interface
         if (nodetype=muln) and is_64bit(resultdef) then
           begin
             pass_left_right(ctx);
-            force_reg_left_right(true,false);
+            force_reg_left_right(true,false,ctx);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef SPARC64}
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);

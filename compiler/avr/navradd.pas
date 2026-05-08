@@ -50,7 +50,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,procinfo,
+      cpuinfo,pass_1,pass_2,pass_2_context,procinfo,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
@@ -153,7 +153,7 @@ interface
       begin
         pass_left_right(ctx);
         location_reset(location,LOC_FLAGS,OS_NO);
-        force_reg_left_right(false,false);
+        force_reg_left_right(false,false,ctx);
 
         case nodetype of
           equaln:
@@ -193,7 +193,7 @@ interface
         i : longint;
       begin
         pass_left_right(ctx);
-        force_reg_left_right(true,true);
+        force_reg_left_right(true,true,ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -204,7 +204,7 @@ interface
             { if we have to swap back and left is a constant, force it to a register because we cannot generate
               the needed code using a constant }
             if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
 
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);

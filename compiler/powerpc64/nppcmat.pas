@@ -55,7 +55,7 @@ uses
   symconst, symdef,
   aasmbase, aasmcpu, aasmtai,aasmdata,
   defutil,
-  cgbase, cgutils, cgobj, hlcgobj, pass_1, pass_2,
+  cgbase, cgutils, cgobj, hlcgobj, pass_1, pass_2, pass_2_context,
   ncon, procinfo, nbas, nld, nadd,
   cpubase, cpuinfo,
   ncgutil, cgcpu, rgobj, compiler, nodehelper;
@@ -184,7 +184,7 @@ begin
 
   { put numerator in register }
   size:=def_cgsize(left.resultdef);
-  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
     left.resultdef,left.resultdef,true);
   location_copy(location,left.location);
   numerator := location.register;
@@ -210,7 +210,7 @@ begin
 
   if (not done) then begin
     { load divider in a register if necessary }
-    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
     if (right.nodetype <> ordconstn) then
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR7,
         right.location.register, 0))
@@ -269,7 +269,7 @@ begin
   secondpass(right,ctx);
 
   { load left operators in a register }
-  hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
+  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
     left.resultdef, left.resultdef, true);
   location_copy(location, left.location);
   resultreg := location.register;
@@ -295,7 +295,7 @@ begin
       shiftval, hregister1, resultreg)
   end else begin
     { load shift count in a register if necessary }
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
       right.resultdef, right.resultdef, true);
     hregister2 := right.location.register;
     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resultdef), hregister2,
@@ -317,7 +317,7 @@ begin
   secondpass(left,ctx);
   begin
     if left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
     location_copy(location, left.location);
     location.loc := LOC_REGISTER;
     case left.location.loc of
@@ -394,7 +394,7 @@ begin
         LOC_SUBSETREG, LOC_CSUBSETREG,
         LOC_SUBSETREF, LOC_CSUBSETREF:
           begin
-            hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
               left.resultdef, left.resultdef, true);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPDI,
               left.location.register, 0));
@@ -409,7 +409,7 @@ begin
   end
   else
   begin
-    hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
       left.resultdef, left.resultdef, true);
     location_copy(location, left.location);
     location.loc := LOC_REGISTER;

@@ -58,7 +58,7 @@ implementation
       defutil,systemstypes,systems,
       symtype,symconst,symtable,
       cgbase,cgobj,nodehelper,cgutils,
-      pass_2,procinfo,
+      pass_2,pass_2_context,procinfo,
       ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
       ncgutil,
@@ -239,7 +239,7 @@ implementation
            not(is_64bitint(resultdef)) then
           begin
             size:=def_cgsize(left.resultdef);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
             location_copy(location,left.location);
             location.loc := LOC_REGISTER;
@@ -258,7 +258,7 @@ implementation
               end
             else
               begin
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef,true);
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef,true);
 
                 if is_signed(left.resultdef) or
                    is_signed(right.resultdef) then
@@ -273,7 +273,7 @@ implementation
 
             { put numerator in register }
             size:=def_cgsize(left.resultdef);
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
               left.resultdef,left.resultdef,true);
             location_copy(location,left.location);
             numerator:=location.register;
@@ -329,7 +329,7 @@ implementation
               LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,
               LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF :
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   if is_64bit(resultdef) then
                     begin
@@ -406,7 +406,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             begin
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               location:=left.location;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
                 location.register,left.location.register,0),
@@ -414,7 +414,7 @@ implementation
             end;
           fpu_soft:
             begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               location:=left.location;
               case location.size of
                 OS_32:
@@ -427,7 +427,7 @@ implementation
             end
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.init_settings.fputype] then
             begin
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -443,7 +443,7 @@ implementation
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.init_settings.fputype] then
             begin
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -556,7 +556,7 @@ implementation
         { load left operator in a register }
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
            (left.location.size<>OS_64) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
 
         lreg := left.location.register64;
         resreg := location.register64;
@@ -610,7 +610,7 @@ implementation
             { force right operator into a register }
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                (right.location.size<>OS_32) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
             if nodetype = shln then
               shift_by_variable(lreg.reglo, lreg.reghi, resreg.reglo, resreg.reghi, right.location.register, SM_LSL)

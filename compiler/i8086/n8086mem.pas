@@ -51,7 +51,7 @@ interface
         protected
          function get_address_type: tdef;override;
          function first_arraydef: tnode;override;
-         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
+         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -65,7 +65,7 @@ implementation
       nld,ncon,nadd,ncal,ncnv,
       cgutils,cgobj,
       defutil,nodehelper,
-      pass_1,pass_2,ncgutil,
+      pass_1,pass_2,pass_2_context,ncgutil,
       compiler;
 
 {*****************************************************************************
@@ -97,10 +97,10 @@ implementation
             secondpass(left,ctx);
 
             location_reset(location,LOC_REGISTER,OS_16);
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidnearpointertype);
+            location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidnearpointertype);
             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               internalerror(2015103003);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.voidnearpointertype,left.location.reference,location.register);
+            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.voidnearpointertype,left.location.reference,location.register);
           end
         else
           inherited;
@@ -128,12 +128,12 @@ implementation
             else
               location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             case left.location.loc of
                LOC_CREGISTER,
                LOC_REGISTER:
                  begin
-                   hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
+                   ctx.hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
                    location.reference.segment := cg.GetNextReg(left.location.register);
                  end;
@@ -172,12 +172,12 @@ implementation
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init(compiler.target);
                paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-               hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
+               ctx.hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paraloc1.done;
-               hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
-               hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
-               hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+               ctx.hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+               ctx.hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
+               ctx.hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_checkpointer_called];
              end;
           end
@@ -235,7 +235,7 @@ implementation
       end;
 
 
-    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
+    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint;ctx:tpassgeneratecodecontext);
       var
         saveseg: TRegister;
       begin

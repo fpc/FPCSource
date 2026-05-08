@@ -60,7 +60,7 @@ implementation
       defutil,
       symtype,symconst,symtable,
       cgobj,hlcgobj,cgutils,
-      pass_2,procinfo,
+      pass_2,pass_2_context,procinfo,
       ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
       ncgutil,
@@ -129,7 +129,7 @@ implementation
         if is_64bit(resultdef) then
           begin
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,resultdef,resultdef,false);
             hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,left.location.register64.reglo,left.location.register64.reghi,hreg1);
             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -171,7 +171,7 @@ implementation
         else
           begin
             location:=left.location;
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
             if is_cbool(resultdef) then
               begin
                 { normalize }
@@ -224,7 +224,7 @@ implementation
           not(FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             if location.size in [OS_64,OS_S64,OS_F64] then
               begin
@@ -249,7 +249,7 @@ implementation
         else
           begin
             if not(left.location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER]) then
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             ai:=taicpu.op_reg_reg(A_NEG,location.register,left.location.register);
@@ -301,7 +301,7 @@ implementation
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
           { location_force_reg can be also used to change the size of a register }
           (left.location.size<>opsize) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
         location_reset(location,LOC_REGISTER,opsize);
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         location.registerhi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -326,15 +326,15 @@ implementation
                is done since most target cpu which will use this
                node do not support a shift count in a mem. location (cec)
              }
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
-             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
+             ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
           end;
         { shl/shr nodes return the same type as left, which can be different
           from opdef }
         if opdef<>resultdef then
           begin
-            hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+            hcountreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
             location.register:=hcountreg;
           end;
       end;

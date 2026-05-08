@@ -102,7 +102,7 @@ implementation
     uses
       verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,symtype,aasmtai,aasmdata,aasmcpu,defutil,defcmp,
-      procinfo,cgbase,cgexcept,pass_1,pass_2,parabase,compinnr,
+      procinfo,cgbase,cgexcept,pass_1,pass_2,pass_2_context,parabase,compinnr,
       cpubase,cpuinfo,cpupi,
       nbas,nld,ncon,ncnv,ncal,ninl,nmem,nadd,nutils,
       tgobj,paramgr,
@@ -115,14 +115,14 @@ implementation
     procedure twasmwhilerepeatnode.pass_generate_code_condition(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
         // reversing the condition
         if not (lnf_checknegate in loopflags) then
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_eqz));
 
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
       end;
 
 
@@ -152,7 +152,7 @@ implementation
 
         if lnf_testatbegin in loopflags then
         begin
-          hlcg.a_label(current_asmdata.CurrAsmList,lcont);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,lcont);
           pass_generate_code_condition(ctx);
         end;
 
@@ -169,14 +169,14 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if not (lnf_testatbegin in loopflags) then
           begin
-            hlcg.a_label(current_asmdata.CurrAsmList,lcont);
+            ctx.hlcg.a_label(current_asmdata.CurrAsmList,lcont);
             pass_generate_code_condition(ctx);
           end;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) ); // jump back to loop
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_loop));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
 
         compiler.current_procinfo.CurrContinueLabel:=oldclabel;
         compiler.current_procinfo.CurrBreakLabel:=oldblabel;
@@ -205,17 +205,17 @@ implementation
         //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
         secondpass(left,ctx); // condition expressions
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
         if is_64bit(left.resultdef) then
           begin
-            thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+            thlcgwasm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
             current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_ne));
-            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
 
         if Assigned(right) then
           secondpass(right,ctx); // then branchs
@@ -606,35 +606,35 @@ implementation
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,6));
 
                 { exit the 'continue' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
                 if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldContinueLabel));
                   end;
 
                 { exit the 'break' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
                 if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldBreakLabel));
                   end;
 
                 { exit the 'exit' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-                hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
                 if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
                   end;
 
@@ -649,14 +649,14 @@ implementation
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
               end
             else
               begin
                 doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
               end;
           end
         else
@@ -786,35 +786,35 @@ implementation
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4));
 
                 { exit the 'continue' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
                 if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldContinueLabel));
                   end;
 
                 { exit the 'break' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
                 if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldBreakLabel));
                   end;
 
                 { exit the 'exit' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-                hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
                 if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
                   end;
 
@@ -827,14 +827,14 @@ implementation
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
               end
             else
               begin
                 doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
               end;
           end
         else
@@ -902,9 +902,9 @@ implementation
 
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=OldCurrRaiseLabel;
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
@@ -982,40 +982,40 @@ implementation
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4));
 
                 { exit the 'continue' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
                 if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,OldContinueLabel));
                   end;
 
                 { exit the 'break' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
                 if in_loop then
-                  hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+                  ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
                 if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,OldBreakLabel));
                   end;
 
                 { exit the 'exit' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-                hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
                 if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
                   begin
-                    hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                    ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                     current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
                   end;
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-                hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
+                ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
 
                 compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
                 if in_loop then
@@ -1025,22 +1025,22 @@ implementation
                   end;
                 tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=OldCurrRaiseLabel;
 
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
-                hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+                ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
               end
             else
               begin
                 doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
-                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
               end;
           end
         else
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-            hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+            ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
@@ -1088,22 +1088,22 @@ implementation
           var
             reasonreg : tregister;
           begin
-            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+            reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+            ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+            thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
             current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
 
         procedure generate_exceptreason_check_br(reason: tcgint; l: TAsmLabel);
           var
             reasonreg : tregister;
           begin
-            reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-            hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+            reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+            ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+            thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
 
       begin
@@ -1174,30 +1174,30 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1260,33 +1260,33 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_check_br(reason: tcgint; l: tasmlabel);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_throw(reason: tcgint);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
@@ -1368,37 +1368,37 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the 'catch' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1462,33 +1462,33 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_check_br(reason: tcgint; l: tasmlabel);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_throw(reason: tcgint);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
@@ -1564,12 +1564,12 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
         { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the inner 'try..end_try' block }
@@ -1578,24 +1578,24 @@ implementation
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1661,35 +1661,35 @@ implementation
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_check_br(reason: tcgint; l: tasmsymbol);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         end;
 
       procedure generate_exceptreason_reraise(reason: tcgint);
         var
           reasonreg : tregister;
         begin
-          reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
-          hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
-          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
+          reasonreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype);
+          ctx.hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,compiler.deftypes.exceptionreasontype,excepttemps.reasonbuf,reasonreg);
+          thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-          hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+          ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+          ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
 
@@ -1768,39 +1768,39 @@ implementation
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the inner 'try..end_try' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,raisefinallylabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,raisefinallylabel);
 
         { exceptionreason:=1 (exception) }
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
         { exceptionreason:=4 (continue) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,4,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2)); // jump to the 'finally' section
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
         { exceptionreason:=3 (break) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,3,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1)); // jump to the 'finally' section
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
         { exceptionreason:=2 (exit) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
+        ctx.hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,compiler.deftypes.exceptionreasontype,2,excepttemps.reasonbuf);
         { proceed to the 'finally' section, which follow immediately, no need for jumps }
 
         { exit the outer 'try..finally' block }
@@ -1913,7 +1913,7 @@ implementation
           begin
             location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
-            hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
+            ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
         compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
@@ -1957,35 +1957,35 @@ implementation
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,7));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
         if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldContinueLabel));
           end;
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
         if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldBreakLabel));
           end;
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-        hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
         if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
           end;
 
@@ -2000,7 +2000,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
@@ -2060,7 +2060,7 @@ implementation
           begin
             location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
-            hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
+            ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
         compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
@@ -2102,35 +2102,35 @@ implementation
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,5));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
         if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldContinueLabel));
           end;
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
         if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldBreakLabel));
           end;
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-        hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
         if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
           end;
 
@@ -2143,7 +2143,7 @@ implementation
 
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
 
@@ -2206,7 +2206,7 @@ implementation
           begin
             location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
-            hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
+            ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
         compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
@@ -2253,40 +2253,40 @@ implementation
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,6));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewContinueLabel);
         if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldContinueLabel));
           end;
 
         { exit the 'break' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // break
         if in_loop then
-          hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
+          ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewBreakLabel);
         if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldBreakLabel));
           end;
 
         { exit the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));  // exit
-        hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrExitLabel);
         if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
           begin
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+            ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
             current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,oldCurrExitLabel));
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
+        ctx.hlcg.a_label(current_asmdata.CurrAsmList,NewCurrRaiseLabel);
 
         compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
         if in_loop then
@@ -2296,9 +2296,9 @@ implementation
           end;
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=oldCurrRaiseLabel;
 
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
-        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
-        hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+        ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 

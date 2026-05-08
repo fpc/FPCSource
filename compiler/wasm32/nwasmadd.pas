@@ -67,6 +67,7 @@ interface
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       //njvmcon,
       cgobj, symtype, tgobj,
+      pass_2_context,
       compiler;
 
 {*****************************************************************************
@@ -96,7 +97,7 @@ interface
         pass_left_right(ctx);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
 
         commutative:=false;
         case nodetype of
@@ -144,16 +145,16 @@ interface
             (nf_swapped in flags)) then
           swapleftright;
 
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         { could be optimized in the future by keeping the results on the stack,
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
           2-slot elements -- also adjust expectloc in that case! }
-        thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgwasm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
     procedure twasmaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
@@ -226,17 +227,17 @@ interface
             (nf_swapped in flags)) then
           swapleftright;
 
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
         { could be optimized in the future by keeping the results on the stack,
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
           2-slot elements -- also adjust expectloc in that case! }
-          set_result_location_reg;
-        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+          set_result_location_reg(ctx);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
 
@@ -277,13 +278,13 @@ interface
                  ((nf_swapped in flags) and (nodetype = lten)) then
                 swapleftright;
 
-              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-              thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,OP_AND,resultdef);
-              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-              thlcgwasm(hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,resultdef,OC_EQ);
-              set_result_location_reg;
-              thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+              thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+              thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(ctx.hlcg).a_op_stack(current_asmdata.CurrAsmList,OP_AND,resultdef);
+              thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(ctx.hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,resultdef,OC_EQ);
+              set_result_location_reg(ctx);
+              thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
             end;
           else
             internalerror(2021060103);
@@ -298,20 +299,20 @@ interface
             (anf_short_bool in addnodeflags)) then
         begin
           secondpass(left,ctx);
-          thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+          thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
           if is_64bit(left.resultdef) then
             begin
-              thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+              thlcgwasm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_ne));
-              thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+              thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
             end;
 
           if is_64bit(left.resultdef) then
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
           else
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
 
           case nodetype of
               andn :
@@ -319,10 +320,10 @@ interface
                    // inside of IF (the condition evaluated as true)
                    // for "and" must evaluate the right section
                    secondpass(right,ctx);
-                   thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+                   thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
-                   thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+                   thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
 
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
@@ -330,7 +331,7 @@ interface
                      current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
                    else
                      current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
-                   thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+                   thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
                 end;
               orn :
                 begin
@@ -340,23 +341,23 @@ interface
                      current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 1) )
                    else
                      current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
-                   thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+                   thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
-                   thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+                   thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
                    // inside of ELSE (the condition evaluated as false)
                    // for "or" must evaluate the right part
                    secondpass(right,ctx);
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
-                   thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+                   thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
                 end;
               else
                 Internalerror(2019091902);
               end;
           current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-          set_result_location_reg;
-          thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+          set_result_location_reg(ctx);
+          thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
         end else
           inherited;
       end;
@@ -376,22 +377,22 @@ interface
           cmpop:=swap_opcmp(cmpop);
 
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          thlcgwasm(hlcg).a_cmp_loc_reg_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register)
+          thlcgwasm(ctx.hlcg).a_cmp_loc_reg_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register)
         else case right.location.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            thlcgwasm(hlcg).a_cmp_reg_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location);
+            thlcgwasm(ctx.hlcg).a_cmp_reg_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location);
           LOC_REFERENCE,LOC_CREFERENCE:
-            thlcgwasm(hlcg).a_cmp_ref_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location);
+            thlcgwasm(ctx.hlcg).a_cmp_ref_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location);
           LOC_CONSTANT:
-            thlcgwasm(hlcg).a_cmp_const_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location);
+            thlcgwasm(ctx.hlcg).a_cmp_const_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location);
           else
             begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-              thlcgwasm(hlcg).a_cmp_reg_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location);
+              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              thlcgwasm(ctx.hlcg).a_cmp_reg_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location);
             end;
         end;
-        set_result_location_reg;
-        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        set_result_location_reg(ctx);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
 begin

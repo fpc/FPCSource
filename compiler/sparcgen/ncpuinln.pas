@@ -48,7 +48,7 @@ implementation
       cutils,verbose,
       symconst,symdef,
       aasmtai,aasmdata,aasmcpu,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       nodehelper,ncgutil,cgobj,cgutils,compiler;
@@ -60,7 +60,7 @@ implementation
     procedure tsparcinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin

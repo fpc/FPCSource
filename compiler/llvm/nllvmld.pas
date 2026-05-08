@@ -42,7 +42,7 @@ interface
 
       tllvmarrayconstructornode = class(tcgarrayconstructornode)
        protected
-        procedure makearrayref(var ref: treference; eledef: tdef); override;
+        procedure makearrayref(var ref: treference; eledef: tdef; ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -55,6 +55,7 @@ implementation
        symtable,symconst,symdef,symsym,defutil,
        procinfo,tgobj,
        llvmbase,cgbase,nodehelper,
+       pass_2_context,
        compiler;
 
 function tllvmloadnode.pass_1: tnode;
@@ -118,16 +119,16 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
               else
                 selfdef:=cpointerdef.getreusable(left.resultdef,compiler);
               mpref:=href;
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(compiler.deftypes.methodpointertype),procreg,'proc',mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(compiler.deftypes.methodpointertype),selfreg,'self',mpref);
+              ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),mpref);
+              ctx.hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(compiler.deftypes.methodpointertype),procreg,'proc',mpref);
+              ctx.hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(compiler.deftypes.methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment,href.volatility);
               location.reference:=href;
             end;
         end;
       labelsym:
         begin
-          selfreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
+          selfreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
           ai:=taillvm.blockaddress(compiler.deftypes.voidcodepointertype,
               current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               location.reference.symbol
@@ -144,11 +145,11 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
 { tllvmarrayconstructornode }
 
-procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef; ctx:tpassgeneratecodecontext);
   begin
     { the array elements are addressed as pointer to the individual elements ->
       convert }
-    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(eledef,compiler),ref);
+    ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(eledef,compiler),ref);
   end;
 
 

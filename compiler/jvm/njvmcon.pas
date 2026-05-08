@@ -89,7 +89,7 @@ implementation
       globals,cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symcpu,symtable,symconst,
       aasmdata,aasmcpu,defutil,
-      nutils,ncnv,nld,nmem,pjvm,pass_1,
+      nutils,ncnv,nld,nmem,pjvm,pass_1,pass_2_context,
       cgbase,nodehelper,hlcgcpu,cgutils,cpubase,
       compiler
       ;
@@ -155,9 +155,9 @@ implementation
     procedure tjvmrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgjvm(hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,value_real);
-        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+        thlcgjvm(ctx.hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,value_real);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -224,13 +224,13 @@ implementation
     procedure tjvmstringconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
         case cst_type of
           cst_ansistring:
             begin
               if len<>0 then
                 internalerror(2012052604);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,location.register);
+              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,location.register);
               { done }
               exit;
             end;
@@ -243,8 +243,8 @@ implementation
           else
             internalerror(2012052602);
         end;
-        thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
     class function tjvmstringconstnode.emptydynstrnil: boolean;

@@ -63,7 +63,7 @@ implementation
       verbose,globals,globtype,compiler,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,pass_1,pass_2,
+      cgbase,cga,pass_1,pass_2,pass_2_context,
       cpuinfo,
       ncnv,
       cpubase,
@@ -106,7 +106,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               exit;
@@ -116,7 +116,7 @@ implementation
          resflags:=F_NE;
 
          if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
          case left.location.loc of
             LOC_CREFERENCE,
@@ -138,7 +138,7 @@ implementation
                 else
 {$endif not cpu64bitalu}
                  begin
-                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
@@ -276,7 +276,7 @@ implementation
         use_bt:=true;
 {$endif i8086}
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         if int_to_real_mm_location then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
@@ -376,7 +376,7 @@ implementation
               signtested:=false;
 
             { We need to load from a reference }
-            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             { don't change left.location.reference, because if it's a temp we
               need the original location at the end so we can free it }
             leftref:=left.location.reference;

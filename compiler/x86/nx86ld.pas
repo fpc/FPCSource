@@ -32,7 +32,7 @@ interface
     type
       tx86loadnode = class(tcgloadnode)
        protected
-         procedure generate_threadvar_access(gvs: tstaticvarsym); override;
+         procedure generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -51,7 +51,7 @@ implementation
                            TX86LOADNODE
 *****************************************************************************}
 
-    procedure tx86loadnode.generate_threadvar_access(gvs: tstaticvarsym);
+    procedure tx86loadnode.generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext);
       var
         paraloc1 : tcgpara;
         pd: tprocdef;

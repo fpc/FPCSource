@@ -35,7 +35,7 @@ interface
            procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
            procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
-           procedure genlinearlist(hp : pcaselabel);override;
+           procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -152,10 +152,10 @@ implementation
       end;
 
 
-    procedure trvcasenode.genlinearlist(hp: pcaselabel);
+    procedure trvcasenode.genlinearlist(hp: pcaselabel;ctx:tpassgeneratecodecontext);
       begin
         { a sub-based list makes no sense for RiscV having no flags }
-        genlinearcmplist(hp);
+        genlinearcmplist(hp,ctx);
       end;
 
 

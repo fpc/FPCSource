@@ -343,7 +343,7 @@ procedure tx64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
         cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
         if (compiler.current_procinfo.procdef.proccalloption=pocall_safecall) then
           begin
-            handle_safecall_exception;
+            handle_safecall_exception(ctx);
             cg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
           end
         else

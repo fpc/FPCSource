@@ -60,7 +60,7 @@ implementation
       verbose,globtype,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       ncgutil,procinfo,
       cpubase,aasmcpu,
       rgobj,tgobj,cgobj,nodehelper,compiler;
@@ -88,7 +88,7 @@ implementation
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              exit;
@@ -98,7 +98,7 @@ implementation
         opsize := def_cgsize(left.resultdef);
 
         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
         case left.location.loc of
           LOC_CREFERENCE, LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER:

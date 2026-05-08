@@ -30,7 +30,7 @@ interface
     uses
       symdef,
       cgutils,
-      ncgcal,parabase;
+      node,ncgcal,parabase;
 
     type
 
@@ -38,10 +38,10 @@ interface
 
        tx86callnode = class(tcgcallnode)
         protected
-         procedure do_release_unused_return_value;override;
+         procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext);override;
          procedure set_result_location(realresdef: tstoreddef);override;
          function can_call_ref(var ref: treference):boolean;override;
-         function do_call_ref(ref: treference): tcgpara;override;
+         function do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;override;
        end;
 
 
@@ -50,6 +50,7 @@ implementation
     uses
       globtype,cgobj,
       cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu,
+      pass_2_context,
       nodehelper;
 
 
@@ -57,7 +58,7 @@ implementation
                              TX86CALLNODE
 *****************************************************************************}
 
-    procedure tx86callnode.do_release_unused_return_value;
+    procedure tx86callnode.do_release_unused_return_value(ctx:tpassgeneratecodecontext);
       begin
         case location.loc of
           LOC_FPUREGISTER :
@@ -67,7 +68,7 @@ implementation
                tcgx86(cg).dec_fpu_stack;
              end
           else
-            inherited do_release_unused_return_value;
+            inherited;
         end;
       end;
 
@@ -101,10 +102,10 @@ implementation
     end;
 
 
-  function tx86callnode.do_call_ref(ref: treference): tcgpara;
+  function tx86callnode.do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;
     begin
       current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
-      result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
+      result:=ctx.hlcg.get_call_result_cgpara(procdefinition,typedef)
     end;
 
 end.

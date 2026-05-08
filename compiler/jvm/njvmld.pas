@@ -47,14 +47,14 @@ type
   tjvmassignmentnode  = class(tcgassignmentnode)
    protected
     function direct_shortstring_assignment: boolean; override;
-    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;override;
+    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference; ctx:tpassgeneratecodecontext): boolean;override;
    public
     function pass_1: tnode; override;
   end;
 
   tjvmarrayconstructornode = class(tcgarrayconstructornode)
    protected
-    procedure makearrayref(var ref: treference; eledef: tdef); override;
+    procedure makearrayref(var ref: treference; eledef: tdef; ctx:tpassgeneratecodecontext); override;
     procedure advancearrayoffset(var ref: treference; elesize: asizeint); override;
     procedure wrapmanagedvarrec(var n: tnode);override;
   end;
@@ -66,7 +66,7 @@ uses
   nbas,nld,ncal,ncon,ninl,nmem,ncnv,nutils,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
-  pass_1,
+  pass_1,pass_2_context,
   cpubase,cgbase,hlcgobj,cpuinfo,
   compiler,nodehelper;
 
@@ -80,7 +80,7 @@ function tjvmassignmentnode.direct_shortstring_assignment: boolean;
   end;
 
 
-function tjvmassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
+function tjvmassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const newref: treference; ctx:tpassgeneratecodecontext): boolean;
   begin
     { don't do this when compiling for Dalvik, because it can invalidate the
       debug information (which Dalvik uses as extra type information) }
@@ -263,15 +263,15 @@ procedure tjvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
           generate_nested_access(tabstractnormalvarsym(symtableentry),ctx);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
         location.reference.arrayreftype:=art_indexconst;
-        location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
+        location.reference.base:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
         location.reference.indexoffset:=0;
         { load the field from the nestedfpstruct, or the parameter location.
           In both cases, the result is an array of one element containing the
           parameter value }
         if assigned(left) then
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,left.location,location.reference.base)
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,left.location,location.reference.base)
         else
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
       end
     else if symtableentry.typ=procsym then
       { handled in tjvmcnvnode.first_proc_to_procvar }
@@ -283,13 +283,13 @@ procedure tjvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
 { tjvmarrayconstructornode }
 
-procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef; ctx:tpassgeneratecodecontext);
   var
     basereg: tregister;
   begin
     { arrays are implicitly dereferenced }
-    basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
-    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,basereg);
+    basereg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
+    ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,basereg);
     reference_reset_base(ref,basereg,0,ctempposinvalid,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;

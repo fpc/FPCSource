@@ -36,7 +36,7 @@ type
 
   tppccallnode = class(tcgcallnode)
    protected
-    function get_call_reg(list: TAsmList): tregister; override;
+    function get_call_reg(list: TAsmList;ctx:tpassgeneratecodecontext): tregister; override;
     procedure unget_call_reg(list: TAsmList; reg: tregister); override;
    public
     function pass_1: tnode; override;
@@ -56,7 +56,7 @@ uses
   cgcpu, cpupi, procinfo, compiler, nodehelper;
 
 
-function tppccallnode.get_call_reg(list: TAsmList): tregister;
+function tppccallnode.get_call_reg(list: TAsmList;ctx:tpassgeneratecodecontext): tregister;
   begin
     { on the ppc64/ELFv2 abi, all indirect calls must go via R12, so that the
       called function can use R12 as PIC base register }

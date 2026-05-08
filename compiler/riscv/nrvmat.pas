@@ -45,7 +45,7 @@ implementation
       symdef,
       nodehelper,
       defutil,
-      pass_2,
+      pass_2,pass_2_context,
       compiler;
 
 
@@ -53,8 +53,8 @@ implementation
       begin
         secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         case tfloatdef(left.resultdef).floattype of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_S,location.register,left.location.register));

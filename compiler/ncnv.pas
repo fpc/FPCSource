@@ -4907,7 +4907,7 @@ implementation
            @ttypeconvnode._second_nothing   { procvar_2_funcref }
          );
       type
-         tprocedureofobject = procedure of object;
+         tprocedureofobject = procedure(ctx:tpassgeneratecodecontext) of object;
 
       var
          r : TMethod;
@@ -4917,7 +4917,7 @@ implementation
          { and should be quite portable too        }
          r.Code:=secondconvert[c];
          r.Data:=self;
-         tprocedureofobject(r)();
+         tprocedureofobject(r)(ctx);
       end;
 
 {*****************************************************************************

@@ -52,6 +52,7 @@ interface
       ncon,nset,cgutils,tgobj,
       cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
+      pass_2_context,
       nodehelper,
       compiler;
 
@@ -380,7 +381,7 @@ interface
         if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
          begin
            if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
            else
             begin
               location_swap(left.location,right.location);
@@ -498,7 +499,7 @@ interface
         begin
           { LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.osuinttype,left.location,reg);
         end;
 
       if (CPUX86_HAS_BMI2 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and
@@ -507,7 +508,7 @@ interface
         is_64bit(resultdef)) then
         begin
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EDX);
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EDX);
           reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           if use_ref then
@@ -530,7 +531,7 @@ interface
           { Allocate EAX. }
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
           { Load the right value. }
-          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EAX);
+          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.osuinttype,right.location,NR_EAX);
           { Also allocate EDX, since it is also modified by a mul (JM). }
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
 

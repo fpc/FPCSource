@@ -62,7 +62,7 @@ interface
       cutils,verbose,globals,compiler,
       symconst,symdef,
       aasmbase,aasmtai,aasmcpu,aasmdata,defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,pass_2_context,
       ncon,
       cpubase,cpuinfo,
       cga,cgobj,nodehelper,cgx86,cgutils,
@@ -176,7 +176,7 @@ interface
             if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
               begin
                 if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
-                  hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                  ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
@@ -207,14 +207,14 @@ interface
                 if UseAVX then
                   begin
                     if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                      ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                     location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
                     cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
                   end
                 else
                   begin
                     if not(left.location.loc=LOC_MMREGISTER) then
-                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+                      ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                     location.register:=left.location.register;
                     cg.a_opmm_ref_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,location.register,mms_movescalar);
                   end;
@@ -328,7 +328,7 @@ interface
 {$if defined(cpu32bitalu)}
                  if is_64bit(resultdef) then
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo);
                    end
@@ -336,7 +336,7 @@ interface
 {$elseif defined(cpu16bitalu)}
                  if is_64bit(resultdef) then
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
                      emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
@@ -344,14 +344,14 @@ interface
                    end
                  else if is_32bit(resultdef) then
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_L,cg.GetNextReg(left.location.register),left.location.register);
                    end
                  else
 {$endif}
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                    end;
@@ -743,7 +743,7 @@ interface
           regd:=newreg(R_INTREGISTER,RS_EDX,cgsize2subreg(R_INTREGISTER,cgsize));
 
         location_reset(location,LOC_REGISTER,cgsize);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
@@ -964,7 +964,7 @@ DefaultDiv:
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,hreg1);
+                ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,hreg1);
                 emit_reg(op,opsize,hreg1);
               end;
 

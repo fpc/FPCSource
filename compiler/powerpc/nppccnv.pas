@@ -59,7 +59,7 @@ implementation
       verbose,globtype,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,symcpu,
-      cgbase,cgutils,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,pass_2_context,
       ncon,ncal,
       ncgutil,procinfo,
       cpubase,aasmcpu,
@@ -167,7 +167,7 @@ implementation
           internalerror(200110011);
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         case left.location.loc of
           LOC_REGISTER:
             begin

@@ -60,7 +60,7 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,hlcgobj,pass_2,procinfo,
+      cgbase,cgobj,hlcgobj,pass_2,pass_2_context,procinfo,
       ncon,
       cpubase,
       ncgutil,cgcpu,cgutils,compiler,nodehelper;
@@ -102,7 +102,7 @@ implementation
          location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
          { put numerator in register }
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          numerator := left.location.register;
          resultreg := location.register;
 
@@ -134,7 +134,7 @@ implementation
                     (right.location.value<simm13lo) or
                     (right.location.value>simm13hi) then
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
                        right.resultdef,right.resultdef,true);
                      divider:=right.location.register;
                    end;
@@ -203,7 +203,7 @@ implementation
                     (right.location.value<simm13lo) or
                     (right.location.value>simm13hi) then
                    begin
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
                        right.resultdef,right.resultdef,true);
                      divider:=right.location.register;
                    end;
@@ -276,7 +276,7 @@ implementation
          location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
          { put numerator in register }
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          numerator := left.location.register;
          resultreg := location.register;
 
@@ -306,7 +306,7 @@ implementation
                 (right.location.value<simm13lo) or
                 (right.location.value>simm13hi) then
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                 ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
                    right.resultdef,right.resultdef,true);
                  divider:=right.location.register;
                end;
@@ -393,7 +393,7 @@ implementation
         location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
 
         { load left operator in a register }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
 
@@ -463,7 +463,7 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 {$ifndef SPARC64}
                   if is_64bit(left.resultdef) then
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ORcc,
@@ -488,7 +488,7 @@ implementation
     procedure tsparcunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         case location.size of

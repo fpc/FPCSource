@@ -53,11 +53,11 @@ interface
 {$else cpu64bitalu}
         function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
-        function GetHLCG: thlcgobj; inline;
+        //function GetHLCG: thlcgobj; inline;
         function GetParaManager: TParaManager; inline;
         function GetTG: ttgobj; inline;
       public
-        property hlcg: thlcgobj read GetHLCG;
+        //property hlcg: thlcgobj read GetHLCG;
         property cg: tcg read GetCG;
 {$ifdef cpu64bitalu}
         property cg128: tcg128 read GetCG128;
@@ -92,10 +92,10 @@ implementation
     end;
 {$endif cpu64bitalu}
 
-  function tnodehelper.GetHLCG: thlcgobj; inline;
-    begin
-      result:=self.compiler.hlcg;
-    end;
+  //function tnodehelper.GetHLCG: thlcgobj; inline;
+  //  begin
+  //    result:=self.compiler.hlcg;
+  //  end;
 
   function tnodehelper.GetParaManager: TParaManager; inline;
     begin

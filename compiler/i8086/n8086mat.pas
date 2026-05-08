@@ -53,7 +53,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       ncon,
       cpubase,cpuinfo,
       cga,ncgutil,cgobj,cgutils,
@@ -117,7 +117,7 @@ implementation
           internalerror(2001090506);
         { put numerator in register }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
@@ -374,7 +374,7 @@ implementation
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,hreg1);
+                ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,hreg1);
                 emit_reg(op,S_W,hreg1);
               end;
 
@@ -409,7 +409,7 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         { load left operator in a register }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
         location.register64.reglo:=hreg64lo;
@@ -430,7 +430,7 @@ implementation
             { load right operators in a register }
             tmpreg64.reghi:=NR_NO;
             tmpreg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,tmpreg64.reglo);
+            ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,tmpreg64.reglo);
             if nodetype=shln then
               cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,tmpreg64,location.register64)
             else

@@ -62,7 +62,7 @@ implementation
       aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpuinfo,ncgutil,nutils,
       nodehelper,cgutils,cgobj,rgobj,tgobj,compiler;
 
@@ -168,7 +168,7 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
        end;
@@ -224,7 +224,7 @@ implementation
          if (compiler.globals.current_settings.cputype < cpu_PPC970) then
            internalerror(2007020901);
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
            left.location.register));

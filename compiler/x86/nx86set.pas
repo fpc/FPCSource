@@ -38,8 +38,8 @@ interface
       tx86casenode = class(tcgcasenode)
          function  has_jumptable : boolean;override;
          procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
-         procedure genlinearlist(hp : pcaselabel);override;
-         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);override;
+         procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
+         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt;ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -49,7 +49,7 @@ implementation
       verbose,globals,compiler,
       symconst,symdef,defutil,cutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,pass_2,tgobj,
+      cgbase,pass_2,pass_2_context,tgobj,
       ncon,
       cpubase,
       cga,cgobj,nodehelper,cgutils,ncgutil,
@@ -215,7 +215,7 @@ implementation
       end;
 
 
-    procedure tx86casenode.genlinearlist(hp : pcaselabel);
+    procedure tx86casenode.genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);
       var
         first : boolean;
         lastrange : boolean;
@@ -318,7 +318,7 @@ implementation
 {$else i8086}
            if (with_sign and (min_label<0)) then
 {$endif i8086}
-             genlinearcmplist(hp)
+             genlinearcmplist(hp,ctx)
            else
              begin
                 if (labelcnt>1) or not(cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) then
@@ -343,7 +343,7 @@ implementation
              end;
         end;
 
-      procedure tx86casenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
+      procedure tx86casenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt;ctx:tpassgeneratecodecontext);
         var
           lesslabel,greaterlabel : tasmlabel;
           cond_gt: TResFlags;
@@ -371,34 +371,34 @@ implementation
           if p^._low=p^._high then
             begin
               if greaterlabel=lesslabel then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
               else
                 begin
                   cmplow:=p^._low-1<>parentvalue;
                   if cmplow then
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                    ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
                   if p^._high+1<>parentvalue then
                     begin
                       if cmplow then
-                        hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
+                        ctx.hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
                       else
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
+                        ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
                     end;
                 end;
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end
           else
             begin
               if p^._low-1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
               if p^._high+1<>parentvalue then
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+                ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
+              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end;
            if assigned(p^.less) then
-             genjmptreeentry(p^.less,p^._low);
+             genjmptreeentry(p^.less,p^._low,ctx);
            if assigned(p^.greater) then
-             genjmptreeentry(p^.greater,p^._high);
+             genjmptreeentry(p^.greater,p^._high,ctx);
         end;
 
 
@@ -572,9 +572,9 @@ implementation
          opdef:=cgsize_orddef(opsize);
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) then
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
          if (right.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
-           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,left.resultdef,opdef,true);
+           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,left.resultdef,opdef,true);
 
          if genjumps then
           begin
@@ -583,7 +583,7 @@ implementation
               To do: Build in support for LOC_JUMP }
 
             { load and zero or sign extend as necessary }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
+            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
             pleftreg:=left.location.register;
 
             { Get a label to jump to the end }
@@ -614,7 +614,7 @@ implementation
                     { yes, is the lower bound <> 0? }
                     if (setparts[i].start <> 0) then
                       begin
-                        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
+                        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                         hreg:=left.location.register;
                         pleftreg:=hreg;
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
@@ -701,7 +701,7 @@ implementation
 
                   if (tcgsize2size[right.location.size] < 2) or
                      (right.location.loc = LOC_CONSTANT) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u16inttype,true);
+                    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u16inttype,true);
 
                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                   emit_const_reg(A_MOV,S_W,1,hreg);
@@ -725,14 +725,14 @@ implementation
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   location.resflags:=F_NE;
 {$else i8086}
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,left.location,setbase);
 
                   if (tcgsize2size[right.location.size] < opdef.size) or
                     (right.location.loc = LOC_CONSTANT) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
                     ((right.resultdef.size<=compiler.deftypes.u32inttype.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
+                    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
                   hreg:=left.location.register;
 
@@ -768,7 +768,7 @@ implementation
                   if (left.location.loc=LOC_CONSTANT) or
                      (setbase<>0) then
                     begin
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
                       register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
                     end;
 
@@ -801,7 +801,7 @@ implementation
                   if (left.location.loc=LOC_CONSTANT) or
                      (setbase<>0) then
                     begin
-                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
                       register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
                     end;
 
@@ -872,7 +872,7 @@ implementation
                else
                 begin
 {$ifdef i8086}
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
 
                   if TCGSize2Size[left.location.size] > 2 then
@@ -896,7 +896,7 @@ implementation
                   pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
 
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+                    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
 
                   if (opsize >= OS_S8) or { = if signed }
                      ((left.resultdef.typ=orddef) and
@@ -971,13 +971,13 @@ implementation
                       location.resflags:=F_NE;
                    end;
 {$else i8086}
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
+                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
 
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
                     ((right.resultdef.size<=opdef.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
-                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+                    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
 
                   pleftreg:=left.location.register;
 

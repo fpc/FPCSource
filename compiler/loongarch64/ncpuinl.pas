@@ -61,7 +61,7 @@ implementation
       symconst,symdef,
       defutil,
       procinfo,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpuinfo,ncgutil,
       nodehelper,cgutils,cgobj,rgobj,tgobj,
       compiler;
@@ -119,7 +119,7 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
        end;
@@ -175,7 +175,7 @@ implementation
          hreg: tregister;
        begin
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
          hreg:= cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
@@ -195,7 +195,7 @@ implementation
          hreg: tregister;
        begin
          secondpass(left,ctx);
-         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
          hreg:= cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);

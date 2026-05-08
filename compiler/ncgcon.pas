@@ -47,7 +47,7 @@ interface
        tcgstringconstnode = class(tstringconstnode)
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        protected
-         procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); virtual;
+         procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean;ctx:tpassgeneratecodecontext); virtual;
        end;
 
        tcgsetconstnode = class(tsetconstnode)
@@ -76,6 +76,7 @@ implementation
       symconst,symdef,aasmtai,aasmdata,defutil,
       cpuinfo,cpubase,
       cgbase,cgutils,
+      pass_2_context,
       nodehelper,cclasses
       ;
 
@@ -371,8 +372,8 @@ implementation
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, def_cgsize(strpointerdef));
-             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
-             load_dynstring(strpointerdef, elementdef, winlikewidestring);
+             location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
+             load_dynstring(strpointerdef, elementdef, winlikewidestring, ctx);
            end
          else
            begin
@@ -382,14 +383,14 @@ implementation
       end;
 
 
-    procedure tcgstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean);
+    procedure tcgstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean;ctx:tpassgeneratecodecontext);
       var
         href: treference;
       begin
         reference_reset_symbol(href, lab_str,
           ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring, compiler.target),
           compiler.globals.const_align(strpointerdef.size),[]);
-        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
+        ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
 
 

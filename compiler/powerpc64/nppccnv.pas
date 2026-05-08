@@ -59,7 +59,7 @@ uses
   verbose, globtype, globals, systems,
   symconst, symdef, aasmbase, aasmtai,aasmdata,
   defutil, symcpu,
-  cgbase, cgutils, pass_1, pass_2,
+  cgbase, cgutils, pass_1, pass_2, pass_2_context,
   ncon, ncal,procinfo,
   ncgutil,
   cpubase, aasmcpu,
@@ -148,7 +148,7 @@ begin
   end;
 
   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
   case left.location.loc of
     // the conversion algorithm does not modify the input register, so it can
     // be used for both LOC_REGISTER and LOC_CREGISTER

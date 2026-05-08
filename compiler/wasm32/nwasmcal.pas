@@ -46,8 +46,8 @@ interface
        twasmcallnode = class(tcgcallnode)
        protected
          function  pass_typecheck:tnode;override;
-         procedure extra_post_call_code; override;
-         procedure do_release_unused_return_value; override;
+         procedure extra_post_call_code(ctx:tpassgeneratecodecontext); override;
+         procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext); override;
          procedure set_result_location(realresdef: tstoreddef); override;
        end;
 
@@ -56,7 +56,7 @@ implementation
 
     uses
       globals, globtype, verbose, aasmdata, defutil, tgobj, hlcgcpu, symconst, symsym, symcpu,
-      nodehelper, compiler;
+      pass_2_context, nodehelper, compiler;
 
       { twasmcallparanode }
 
@@ -125,13 +125,13 @@ implementation
           end;
       end;
 
-    procedure twasmcallnode.extra_post_call_code;
+    procedure twasmcallnode.extra_post_call_code(ctx:tpassgeneratecodecontext);
       begin
-        thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
-        hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+        thlcgwasm(ctx.hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
+        ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       end;
 
-    procedure twasmcallnode.do_release_unused_return_value;
+    procedure twasmcallnode.do_release_unused_return_value(ctx:tpassgeneratecodecontext);
       var
         ft: TWasmFuncType;
         i: Integer;
@@ -143,7 +143,7 @@ implementation
         for i:=1 to Length(ft.results) do
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
-            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
         ft.free; // no nil needed
       end;

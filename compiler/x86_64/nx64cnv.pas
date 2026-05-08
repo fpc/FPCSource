@@ -67,6 +67,7 @@ implementation
       ncnv,
       cpubase,cpuinfo,
       cgutils,cgobj,nodehelper,cgx86,
+      pass_2_context,
       compiler;
 
 
@@ -135,7 +136,7 @@ implementation
 
                    { Get sign bit }
                    if not(left.location.loc in [LOC_REGISTER,LOC_REFERENCE]) then
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
                    case left.location.loc of
                      LOC_REGISTER :
                        begin

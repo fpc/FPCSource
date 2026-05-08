@@ -34,7 +34,7 @@ interface
            procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
            procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
-           procedure genlinearlist(hp : pcaselabel); override;
+           procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext); override;
        end;
 
 
@@ -139,7 +139,7 @@ implementation
       end;
 
 
-    procedure tgppccasenode.genlinearlist(hp : pcaselabel);
+    procedure tgppccasenode.genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);
 
       var
          first, lastrange : boolean;
@@ -169,7 +169,7 @@ implementation
            if (get_min_value(left.resultdef) >= int64(low(smallint))) and
               (get_max_value(left.resultdef) <= int64(high(word))) then
              begin
-               genlinearcmplist(hp);
+               genlinearcmplist(hp,ctx);
                exit;
              end;
            if assigned(t^.less) then
@@ -224,7 +224,7 @@ implementation
          { do we need to generate cmps? }
          if (with_sign and (min_label<0)) or
             (def_cgsize(opsize) in [OS_32,OS_64,OS_S64]) then
-           genlinearcmplist(hp)
+           genlinearcmplist(hp,ctx)
          else
            begin
               last:=0;

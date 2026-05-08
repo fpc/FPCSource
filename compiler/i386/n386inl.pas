@@ -41,7 +41,7 @@ implementation
     globtype,globals,compinnr,
     defutil,
     aasmbase,aasmdata,
-    cgbase,pass_2,
+    cgbase,pass_2,pass_2_context,
     cpuinfo,cpubase,
     cga,cgutils,cgx86,cgobj,hlcgobj,
     ninl,ncon,ncal,
@@ -94,7 +94,7 @@ implementation
           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
           { load left operator in a register }
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,false);
+          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,false);
           hreg64hi:=op1.location.register64.reghi;
           hreg64lo:=op1.location.register64.reglo;
 
