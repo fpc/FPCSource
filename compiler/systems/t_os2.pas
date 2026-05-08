@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      seq_no:longint;
 
       ar_member_size:longint;
 
@@ -142,7 +143,6 @@ var aout_str_size:longint;
     aout_treloc_count:longint;
 
     aout_size:longint;
-    seq_no:longint;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
