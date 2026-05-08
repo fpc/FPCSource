@@ -53,6 +53,7 @@ interface
       private
         FSections: TFPHashObjectList;
         FGroups: TFPHashObjectList;
+        FEC: PExternChain;
 {$ifndef i8086}
         using_relative : boolean;
 {$endif i8086}
@@ -67,6 +68,7 @@ interface
         procedure AddSegmentToGroup(const grpname,segname: string);
         procedure WriteGroup(data:TObject;arg:pointer);
         procedure WriteGroups;
+        procedure AddSymbol(const symname : string; defined : boolean);
       protected
         function single2str(d: single): string; override;
         function double2str(d: double): string; override;
@@ -727,6 +729,11 @@ interface
 {$endif i8086}
       end;
 
+    procedure TX86NasmAssembler.AddSymbol(const symname : string; defined : boolean);
+      begin
+        aasmcpu.AddSymbol(FEC,symname,defined);
+      end;
+
     procedure TX86NasmAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
 {$ifdef cpuextended}
     type
@@ -1255,7 +1262,7 @@ interface
                     if SmartAsm then
                       begin
                         WriteSmartExternals;
-                        FreeExternChainList;
+                        FreeExternChainList(FEC);
                       end;
                     WriteGroups;
                     writer.AsmClose;
@@ -1416,7 +1423,7 @@ interface
       if SmartAsm then
         begin
           WriteSmartExternals;
-          FreeExternChainList;
+          FreeExternChainList(FEC);
         end;
       WriteGroups;
 {$ifdef EXTDEBUG}

@@ -717,11 +717,8 @@ interface
         next : PExternChain;
       end;
 
-    var
-      FEC : PExternChain = nil;
-
-    procedure AddSymbol(symname : string; defined : boolean);
-    procedure FreeExternChainList;
+    procedure AddSymbol(var FEC: PExternChain; symname : string; defined : boolean);
+    procedure FreeExternChainList(var FEC: PExternChain);
 
 implementation
 
@@ -733,7 +730,7 @@ implementation
        compiler,
        cpuinfo;
 
-    procedure AddSymbol(symname : string; defined : boolean);
+    procedure AddSymbol(var FEC: PExternChain; symname : string; defined : boolean);
     var
        EC : PExternChain;
     begin
@@ -755,7 +752,7 @@ implementation
       FEC^.is_defined := defined;
     end;
 
-    procedure FreeExternChainList;
+    procedure FreeExternChainList(var FEC: PExternChain);
     var
        EC : PExternChain;
     begin
