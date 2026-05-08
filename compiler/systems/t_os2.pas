@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure write_ar(const name:string;size:longint);
       procedure finish_ar;
       procedure aout_init;
       function aout_sym(const name:string;typ,other:byte;desc:word;
@@ -163,7 +164,7 @@ begin
 end;
 
 
-procedure write_ar(const name:string;size:longint);
+procedure timportlibos2.write_ar(const name:string;size:longint);
 
 var ar:ar_hdr;
     time:TSystemTime;
