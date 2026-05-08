@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure aout_init;
       function aout_sym(const name:string;typ,other:byte;desc:word;
                         value:longint):longint;
       procedure aout_text_byte(b:byte);
@@ -198,7 +199,7 @@ begin
         blockwrite(out_file,a,1);
 end;
 
-procedure aout_init;
+procedure timportlibos2.aout_init;
 
 begin
   aout_str_size:=sizeof(longint);
