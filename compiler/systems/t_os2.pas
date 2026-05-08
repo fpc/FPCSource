@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
       procedure aout_finish;
       procedure aout_write;
       procedure AddImport(const module:string;index:longint;const name,mangledname:string);
@@ -241,7 +242,7 @@ begin
     aout_text_byte(li_ar(d)[3]);
 end;
 
-procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
+procedure timportlibos2.aout_treloc(address,symbolnum,pcrel,len,ext:longint);
 
 begin
     if aout_treloc_count>=sizeof(aout_treloc_tab) div sizeof(reloc) then
