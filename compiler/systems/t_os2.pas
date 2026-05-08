@@ -58,7 +58,16 @@ implementation
            27:                 Reference to symbol or segment
            28..31              Not used}
       end;
+      nlist=packed record     {This is the layout of a symbol table entry.}
+          strofs:longint;     {Offset in string table}
+          typ:byte;           {Type of the symbol}
+          other:byte;         {Other information}
+          desc:word;          {More information}
+          value:longint;      {Value (address)}
+      end;
+
     private
+      aout_sym_tab:array[0..5] of nlist;
 
       aout_text:array[0..63] of byte;
       aout_text_size:longint;
@@ -116,7 +125,7 @@ type    nlist=packed record     {This is the layout of a symbol table entry.}
             value:longint;      {Value (address)}
         end;
 
-        a_out_header=packed record
+type    a_out_header=packed record
             magic:word;         {Magic word, must be $0107}
             machtype:byte;      {Machine type}
             flags:byte;         {Flags}
@@ -142,7 +151,6 @@ type    nlist=packed record     {This is the layout of a symbol table entry.}
 var aout_str_size:longint;
     aout_str_tab:array[0..2047] of char;
     aout_sym_count:longint;
-    aout_sym_tab:array[0..5] of nlist;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
