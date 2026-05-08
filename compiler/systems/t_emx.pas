@@ -46,7 +46,57 @@ implementation
 
   type
     TImportLibEMX=class(timportlib)
+    private type
+      reloc=packed record     {This is the layout of a relocation table
+                               entry.}
+          address:longint;    {Fixup location}
+          remaining:longint;
+          {Meaning of bits for remaining:
+           0..23:              Symbol number or segment
+           24:                 Self-relative fixup if non-zero
+           25..26:             Fixup size (0: 1 byte, 1: 2, 2: 4 bytes)
+           27:                 Reference to symbol or segment
+           28..31              Not used}
+      end;
+      nlist=packed record     {This is the layout of a symbol table entry.}
+          strofs:longint;     {Offset in string table}
+          typ:byte;           {Type of the symbol}
+          other:byte;         {Other information}
+          desc:word;          {More information}
+          value:longint;      {Value (address)}
+      end;
 
+    private
+      aout_str_size:longint;
+      aout_str_tab:array[0..2047] of char;
+      aout_sym_count:longint;
+      aout_sym_tab:array[0..5] of nlist;
+
+      aout_text:array[0..63] of byte;
+      aout_text_size:longint;
+
+      aout_treloc_tab:array[0..1] of reloc;
+      aout_treloc_count:longint;
+
+      aout_size:longint;
+      seq_no:longint;
+
+      ar_member_size:longint;
+
+      out_file:file;
+
+      procedure write_ar(const name:string;size:longint);
+      procedure finish_ar;
+      procedure aout_init;
+      function aout_sym(const name:string;typ,other:byte;desc:word;
+                        value:longint):longint;
+      procedure aout_text_byte(b:byte);
+      procedure aout_text_dword(d:longint);
+      procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
+      procedure aout_finish;
+      procedure aout_write;
+      procedure AddImport(const module:string;index:longint;const name,mangledname:string);
+    public
       procedure generatelib;override;
     end;
 
@@ -70,27 +120,7 @@ const   n_ext   = 1;
         n_imp1  = $68;
         n_imp2  = $6a;
 
-type    reloc=packed record     {This is the layout of a relocation table
-                                 entry.}
-            address:longint;    {Fixup location}
-            remaining:longint;
-            {Meaning of bits for remaining:
-             0..23:              Symbol number or segment
-             24:                 Self-relative fixup if non-zero
-             25..26:             Fixup size (0: 1 byte, 1: 2, 2: 4 bytes)
-             27:                 Reference to symbol or segment
-             28..31              Not used}
-        end;
-
-        nlist=packed record     {This is the layout of a symbol table entry.}
-            strofs:longint;     {Offset in string table}
-            typ:byte;           {Type of the symbol}
-            other:byte;         {Other information}
-            desc:word;          {More information}
-            value:longint;      {Value (address)}
-        end;
-
-        a_out_header=packed record
+type    a_out_header=packed record
             magic:word;         {Magic word, must be $0107}
             machtype:byte;      {Machine type}
             flags:byte;         {Flags}
@@ -113,25 +143,6 @@ type    reloc=packed record     {This is the layout of a relocation table
             ar_fmag:array[0..1] of char;
         end;
 
-var aout_str_size:longint;
-    aout_str_tab:array[0..2047] of char;
-    aout_sym_count:longint;
-    aout_sym_tab:array[0..5] of nlist;
-
-    aout_text:array[0..63] of byte;
-    aout_text_size:longint;
-
-    aout_treloc_tab:array[0..1] of reloc;
-    aout_treloc_count:longint;
-
-    aout_size:longint;
-    seq_no:longint;
-
-    ar_member_size:longint;
-
-    out_file:file;
-
-
 procedure PackTime (var T: TSystemTime; var P: longint);
 
 var zs:longint;
@@ -153,7 +164,7 @@ begin
 end;
 
 
-procedure write_ar(const name:string;size:longint);
+procedure TImportLibEMX.write_ar(const name:string;size:longint);
 
 var ar:ar_hdr;        {PackTime is platform independent}
     time:TSystemTime;
@@ -180,7 +191,7 @@ begin
     blockwrite(out_file,ar,sizeof(ar));
 end;
 
-procedure finish_ar;
+procedure TImportLibEMX.finish_ar;
 
 var a:byte;
 
@@ -190,7 +201,7 @@ begin
         blockwrite(out_file,a,1);
 end;
 
-procedure aout_init;
+procedure TImportLibEMX.aout_init;
 
 begin
   aout_str_size:=sizeof(longint);
@@ -199,8 +210,8 @@ begin
   aout_treloc_count:=0;
 end;
 
-function aout_sym(const name:string;typ,other:byte;desc:word;
-                  value:longint):longint;
+function TImportLibEMX.aout_sym(const name:string;typ,other:byte;desc:word;
+                                value:longint):longint;
 
 begin
     if aout_str_size+length(name)+1>sizeof(aout_str_tab) then
@@ -218,7 +229,7 @@ begin
     inc(aout_sym_count);
 end;
 
-procedure aout_text_byte(b:byte);
+procedure TImportLibEMX.aout_text_byte(b:byte);
 
 begin
     if aout_text_size>=sizeof(aout_text) then
@@ -227,7 +238,7 @@ begin
     inc(aout_text_size);
 end;
 
-procedure aout_text_dword(d:longint);
+procedure TImportLibEMX.aout_text_dword(d:longint);
 
 type li_ar=array[0..3] of byte;
 
@@ -238,7 +249,7 @@ begin
     aout_text_byte(li_ar(d)[3]);
 end;
 
-procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
+procedure TImportLibEMX.aout_treloc(address,symbolnum,pcrel,len,ext:longint);
 
 begin
     if aout_treloc_count>=sizeof(aout_treloc_tab) div sizeof(reloc) then
@@ -249,7 +260,7 @@ begin
     inc(aout_treloc_count);
 end;
 
-procedure aout_finish;
+procedure TImportLibEMX.aout_finish;
 
 begin
     while (aout_text_size and 3)<>0 do
@@ -258,7 +269,7 @@ begin
      sizeof(reloc)+aout_sym_count*sizeof(aout_sym_tab[0])+aout_str_size;
 end;
 
-procedure aout_write;
+procedure TImportLibEMX.aout_write;
 
 var ao:a_out_header;
 
@@ -282,7 +293,7 @@ begin
 end;
 
 
-procedure AddImport(const module:string;index:longint;const name,mangledname:string);
+procedure TImportLibEMX.AddImport(const module:string;index:longint;const name,mangledname:string);
 {func       = Name of function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
