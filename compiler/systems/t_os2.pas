@@ -47,6 +47,8 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      function aout_sym(const name:string;typ,other:byte;desc:word;
+                        value:longint):longint;
       procedure aout_text_byte(b:byte);
       procedure aout_text_dword(d:longint);
       procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
@@ -205,8 +207,8 @@ begin
   aout_treloc_count:=0;
 end;
 
-function aout_sym(const name:string;typ,other:byte;desc:word;
-                  value:longint):longint;
+function timportlibos2.aout_sym(const name:string;typ,other:byte;desc:word;
+                                value:longint):longint;
 
 begin
     if aout_str_size+length(name)+1>sizeof(aout_str_tab) then
