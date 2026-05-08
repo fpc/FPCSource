@@ -12,7 +12,7 @@
         .globl  __init
         .globl  __dos_init
         .globl  __dos_syscall
-        .comm _excptregptr, 4
+        .globl  _excptregptr
 
         .text
 
