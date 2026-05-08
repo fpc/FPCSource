@@ -59,6 +59,7 @@ implementation
            28..31              Not used}
       end;
     private
+      aout_text_size:longint;
 
       aout_treloc_tab:array[0..1] of reloc;
       aout_treloc_count:longint;
@@ -142,7 +143,6 @@ var aout_str_size:longint;
     aout_sym_tab:array[0..5] of nlist;
 
     aout_text:array[0..63] of byte;
-    aout_text_size:longint;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
