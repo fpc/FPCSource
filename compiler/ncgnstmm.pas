@@ -32,7 +32,7 @@ interface
        tcgnestloadparentfpnode = class(tcgloadparentfpnode)
           function pass_typecheck: tnode; override;
           function pass_1: tnode; override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -136,7 +136,7 @@ implementation
       end;
 
 
-    procedure tcgnestloadparentfpnode.pass_generate_code;
+    procedure tcgnestloadparentfpnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { should be handled in pass 1 }
         internalerror(2011060202);

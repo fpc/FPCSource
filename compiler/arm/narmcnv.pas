@@ -34,8 +34,8 @@ interface
          protected
            function first_int_to_real: tnode;override;
            function first_real_to_real: tnode;override;
-           procedure second_int_to_real;override;
-           procedure second_int_to_bool;override;
+           procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
+           procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -157,7 +157,7 @@ implementation
       end;
 
 
-    procedure tarmtypeconvnode.second_int_to_real;
+    procedure tarmtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
       const
         signedprec2vfppf: array[boolean,OS_F32..OS_F64] of toppostfix =
           ((PF_F32U32,PF_F64U32),
@@ -267,7 +267,7 @@ implementation
       end;
 
 
-    procedure tarmtypeconvnode.second_int_to_bool;
+    procedure tarmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       var
         hreg1,
         hregister : tregister;
@@ -276,7 +276,7 @@ implementation
         hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
          if compiler.verbose.codegenerror then
           exit;
 

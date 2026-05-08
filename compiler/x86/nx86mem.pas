@@ -28,11 +28,11 @@ interface
       globtype,
       cgbase,cpubase,
       symtype,
-      nmem,ncgmem;
+      node,nmem,ncgmem;
 
     type
       tx86derefnode = class(tcgderefnode)
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tx86vecnode = class(tcgvecnode)
@@ -52,9 +52,9 @@ implementation
                            TX86DEREFNODE
 *****************************************************************************}
 
-     procedure tx86derefnode.pass_generate_code;
+     procedure tx86derefnode.pass_generate_code(ctx:tpassgeneratecodecontext);
        begin
-         inherited pass_generate_code;
+         inherited;
          case tcpupointerdef(left.resultdef).x86pointertyp of
            x86pt_near: ;
            x86pt_near_cs: location.reference.segment:=NR_CS;

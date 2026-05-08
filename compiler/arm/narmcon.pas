@@ -32,7 +32,7 @@ interface
     type
       tarmrealconstnode = class(tcgrealconstnode)
         function pass_1 : tnode;override;
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
   implementation
@@ -67,7 +67,7 @@ interface
       end;
 
 
-    procedure tarmrealconstnode.pass_generate_code;
+    procedure tarmrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
       const

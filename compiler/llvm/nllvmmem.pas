@@ -46,7 +46,7 @@ interface
         constarrayoffset: aint;
         arraytopointerconverted: boolean;
        public
-        procedure pass_generate_code; override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
         procedure update_reference_offset(var ref: treference; index, mulsize: ASizeInt); override;
@@ -103,7 +103,7 @@ implementation
 
   { tllvmvecnode }
 
-  procedure tllvmvecnode.pass_generate_code;
+  procedure tllvmvecnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     var
       locref: preference;
       hreg: tregister;

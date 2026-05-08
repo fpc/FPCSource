@@ -43,12 +43,12 @@ interface
        end;
 
        tjvmrealconstnode = class(tcgrealconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tjvmstringconstnode = class(tstringconstnode)
           function pass_1: tnode; override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
           class function emptydynstrnil: boolean; override;
        end;
 
@@ -68,7 +68,7 @@ interface
        tjvmsetconstnode = class(tcgsetconstnode)
           setconsttype: tjvmsetconsttype;
           function pass_1: tnode; override;
-          procedure pass_generate_code; override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
           constructor create(s : pconstset;def:tdef;acompiler: TCompilerBase);override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy: tnode; override;
@@ -152,7 +152,7 @@ implementation
                            TJVMREALCONSTNODE
 *****************************************************************************}
 
-    procedure tjvmrealconstnode.pass_generate_code;
+    procedure tjvmrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
@@ -221,7 +221,7 @@ implementation
       end;
 
 
-    procedure tjvmstringconstnode.pass_generate_code;
+    procedure tjvmstringconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
@@ -404,7 +404,7 @@ implementation
       end;
 
 
-    procedure tjvmsetconstnode.pass_generate_code;
+    procedure tjvmsetconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         case setconsttype of
           sct_constsymbol:

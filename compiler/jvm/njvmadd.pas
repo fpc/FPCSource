@@ -38,15 +38,15 @@ interface
        protected
           function jvm_first_addset: tnode;
 
-          procedure second_generic_compare(unsigned: boolean);
+          procedure second_generic_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
 
-          procedure pass_left_right;override;
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_cmpboolean;override;
-          procedure second_cmp64bit;override;
-          procedure second_add64bit; override;
-          procedure second_cmpordinal;override;
+          procedure pass_left_right(ctx:tpassgeneratecodecontext);override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpboolean(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
        end;
 
   implementation
@@ -334,7 +334,7 @@ interface
       end;
 
 
-    procedure tjvmaddnode.second_generic_compare(unsigned: boolean);
+    procedure tjvmaddnode.second_generic_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -342,7 +342,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
         { swap the operands to make it easier for the optimizer to optimize
           the operand stack slot reloading in case both are in a register }
         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
@@ -371,21 +371,21 @@ interface
         hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
-    procedure tjvmaddnode.pass_left_right;
+    procedure tjvmaddnode.pass_left_right(ctx:tpassgeneratecodecontext);
       begin
         if not((nodetype in [orn,andn]) and
                is_boolean(left.resultdef)) then
           swapleftright;
-        inherited pass_left_right;
+        inherited;
       end;
 
 
-    procedure tjvmaddnode.second_addfloat;
+    procedure tjvmaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
         commutative : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
@@ -449,7 +449,7 @@ interface
       end;
 
 
-    procedure tjvmaddnode.second_cmpfloat;
+    procedure tjvmaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -458,7 +458,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
         { swap the operands to make it easier for the optimizer to optimize
           the operand stack slot reloading in case both are in a register }
         if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
@@ -496,27 +496,27 @@ interface
       end;
 
 
-    procedure tjvmaddnode.second_cmpboolean;
+    procedure tjvmaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(true);
+        second_generic_compare(true,ctx);
       end;
 
 
-    procedure tjvmaddnode.second_cmp64bit;
+    procedure tjvmaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(not is_signed(left.resultdef));
+        second_generic_compare(not is_signed(left.resultdef),ctx);
       end;
 
 
-    procedure tjvmaddnode.second_add64bit;
+    procedure tjvmaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_opordinal;
+        second_opordinal(ctx);
       end;
 
 
-    procedure tjvmaddnode.second_cmpordinal;
+    procedure tjvmaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(not is_signed(left.resultdef));
+        second_generic_compare(not is_signed(left.resultdef),ctx);
       end;
 
 begin

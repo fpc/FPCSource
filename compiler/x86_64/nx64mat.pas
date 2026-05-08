@@ -30,7 +30,7 @@ interface
 
     type
       tx8664shlshrnode = class(tx86shlshrnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tx8664unaryminusnode = class(tx86unaryminusnode)
@@ -55,14 +55,14 @@ implementation
 *****************************************************************************}
 
 
-    procedure tx8664shlshrnode.pass_generate_code;
+    procedure tx8664shlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
         opsize : tcgsize;
         mask : aint;
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
 
         { determine operator }
         if nodetype=shln then

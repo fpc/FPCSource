@@ -34,11 +34,11 @@ interface
     end;
 
     tx64onnode=class(tcgonnode)
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
     tx64tryexceptnode=class(tcgtryexceptnode)
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
     tx64tryfinallynode=class(tcgtryfinallynode)
@@ -47,7 +47,7 @@ interface
       constructor create_implicit(l,r:TNode;acompiler:TCompilerBase);override;
       function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
 implementation
@@ -88,13 +88,13 @@ end;
 
 { tx64onnode }
 
-procedure tx64onnode.pass_generate_code;
+procedure tx64onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     exceptvarsym : tlocalvarsym;
   begin
     if (compiler.target.info.system<>system_x86_64_win64) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
 
@@ -119,7 +119,7 @@ procedure tx64onnode.pass_generate_code;
     cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
     if assigned(right) then
-      secondpass(right);
+      secondpass(right,ctx);
 
     { deallocate exception symbol }
     if assigned(exceptvarsym) then
@@ -259,7 +259,7 @@ procedure emit_nop(cg:tcg);
   end;
 
 
-procedure tx64tryfinallynode.pass_generate_code;
+procedure tx64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     trylabel,
     endtrylabel,
@@ -272,7 +272,7 @@ procedure tx64tryfinallynode.pass_generate_code;
   begin
     if (compiler.target.info.system<>system_x86_64_win64) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
 
@@ -322,7 +322,7 @@ procedure tx64tryfinallynode.pass_generate_code;
           unwind code instead of just JMP }
         if not implicitframe then
           flowcontrol:=flowcontrol+[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
-        secondpass(left);
+        secondpass(left,ctx);
         flowcontrol:=flowcontrol-[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         if compiler.verbose.codegenerror then
           exit;
@@ -370,7 +370,7 @@ procedure tx64tryfinallynode.pass_generate_code;
     if not implicitframe then
       tcgprocinfo(compiler.current_procinfo).generate_exceptfilter(finalizepi);
     { right is a call to finalizer procedure }
-    secondpass(right);
+    secondpass(right,ctx);
 
     if compiler.verbose.codegenerror then
       exit;
@@ -392,7 +392,7 @@ procedure tx64tryfinallynode.pass_generate_code;
 
 { tx64tryexceptnode }
 
-procedure tx64tryexceptnode.pass_generate_code;
+procedure tx64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     trylabel,
     exceptlabel,oldendexceptlabel,
@@ -416,7 +416,7 @@ procedure tx64tryexceptnode.pass_generate_code;
   begin
     if (compiler.target.info.system<>system_x86_64_win64) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
     location_reset(location,LOC_VOID,OS_NO);
@@ -455,7 +455,7 @@ procedure tx64tryexceptnode.pass_generate_code;
 
     { control flow in try block needs no special handling,
       just make sure that target labels are outside the scope }
-    secondpass(left);
+    secondpass(left,ctx);
     tryflowcontrol:=flowcontrol;
     if compiler.verbose.codegenerror then
       goto errorexit;
@@ -504,7 +504,7 @@ procedure tx64tryexceptnode.pass_generate_code;
             hlist.concat(tai_const.create_rva_sym(onlabel));
             compiler.current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
-            secondpass(hnode);
+            secondpass(hnode,ctx);
             inc(onnodecount.value);
             hnode:=tonnode(hnode).left;
           end;
@@ -525,7 +525,7 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         { here we don't have to reset flowcontrol           }
         { the default and on flowcontrols are handled equal }
-        secondpass(t1);
+        secondpass(t1,ctx);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
         if (flowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
           cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);

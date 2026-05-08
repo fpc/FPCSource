@@ -32,7 +32,7 @@ interface
        ti386inlinenode = class(tx86inlinenode)
        public
          function first_sar: tnode; override;
-         procedure second_rox_sar; override;
+         procedure second_rox_sar(ctx:tpassgeneratecodecontext); override;
        end;
 
 implementation
@@ -64,7 +64,7 @@ implementation
     end;
 
 
-  procedure ti386inlinenode.second_rox_sar;
+  procedure ti386inlinenode.second_rox_sar(ctx:tpassgeneratecodecontext);
     var
       op1: tnode;
       hreg64hi,hreg64lo: tregister;
@@ -81,7 +81,7 @@ implementation
              assigned(tcallparanode(left).right) then
             begin
               op1:=tcallparanode(tcallparanode(left).right).left;
-              secondpass(tcallparanode(left).left);
+              secondpass(tcallparanode(left).left,ctx);
               v:=Tordconstnode(tcallparanode(left).left).value.svalue and 63;
             end
           else
@@ -89,7 +89,7 @@ implementation
               op1:=left;
               v:=1;
             end;
-          secondpass(op1);
+          secondpass(op1,ctx);
 
           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
@@ -118,7 +118,7 @@ implementation
           location.register64.reglo:=hreg64lo;
         end
       else
-        inherited second_rox_sar;
+        inherited;
     end;
 
 begin

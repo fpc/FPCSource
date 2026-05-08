@@ -31,16 +31,16 @@ interface
     type
       taarch64moddivnode = class(tmoddivnode)
          function pass_1: tnode; override;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       taarch64notnode = class(tcgnotnode)
-         procedure second_boolean;override;
+         procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       taarch64unaryminusnode = class(tcgunaryminusnode)
          function pass_1: tnode; override;
-         procedure second_float; override;
+         procedure second_float(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -69,7 +69,7 @@ implementation
       end;
 
 
-    procedure taarch64moddivnode.pass_generate_code;
+    procedure taarch64moddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          op         : tasmop;
          tmpreg,
@@ -185,8 +185,8 @@ implementation
          end;
 
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
         { avoid warning }
         divider := NR_NO;
         largernumreg := NR_NO;
@@ -459,9 +459,9 @@ implementation
                                taarch64notnode
 *****************************************************************************}
 
-    procedure taarch64notnode.second_boolean;
+    procedure taarch64notnode.second_boolean(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of
@@ -501,9 +501,9 @@ implementation
       end;
 
 
-    procedure taarch64unaryminusnode.second_float;
+    procedure taarch64unaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);

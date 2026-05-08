@@ -32,12 +32,12 @@ unit nrv32add;
     type
       trv32addnode = class(trvaddnode)
       private
-        procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean);
-        procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean);
+        procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean;ctx:tpassgeneratecodecontext);
+        procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean;ctx:tpassgeneratecodecontext);
       protected
         function use_generic_mul32to64: boolean; override;
 
-        procedure second_cmp64bit; override;
+        procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
       end;
 
   implementation
@@ -55,7 +55,7 @@ unit nrv32add;
     const
       cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
 
-    procedure trv32addnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
+    procedure trv32addnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
@@ -64,7 +64,7 @@ unit nrv32add;
       end;
 
 
-    procedure trv32addnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
+    procedure trv32addnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
@@ -77,7 +77,7 @@ unit nrv32add;
         result:=true;
       end;
 
-    procedure trv32addnode.second_cmp64bit;
+    procedure trv32addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -88,7 +88,7 @@ unit nrv32add;
         current_asmdata.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -132,26 +132,26 @@ unit nrv32add;
           if nf_swapped in flags then
             case NodeType of
               ltn:
-                cmp64_lt(right_reg, left_reg,unsigned);
+                cmp64_lt(right_reg, left_reg,unsigned, ctx);
               lten:
-                cmp64_le(right_reg, left_reg,unsigned);
+                cmp64_le(right_reg, left_reg,unsigned, ctx);
               gtn:
-                cmp64_lt(left_reg, right_reg,unsigned);
+                cmp64_lt(left_reg, right_reg,unsigned, ctx);
               gten:
-                cmp64_le(left_reg, right_reg,unsigned);
+                cmp64_le(left_reg, right_reg,unsigned, ctx);
               else
                 internalerror(2019051034);
             end
           else
             case NodeType of
               ltn:
-                cmp64_lt(left_reg, right_reg,unsigned);
+                cmp64_lt(left_reg, right_reg,unsigned, ctx);
               lten:
-                cmp64_le(left_reg, right_reg,unsigned);
+                cmp64_le(left_reg, right_reg,unsigned, ctx);
               gtn:
-                cmp64_lt(right_reg, left_reg,unsigned);
+                cmp64_lt(right_reg, left_reg,unsigned, ctx);
               gten:
-                cmp64_le(right_reg, left_reg,unsigned);
+                cmp64_le(right_reg, left_reg,unsigned, ctx);
               else
                 internalerror(2019051033);
             end;

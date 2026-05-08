@@ -33,19 +33,19 @@ unit ncpuadd;
     type
       tloongarch64addnode = class(tcgaddnode)
       private
-        procedure Cmp(signed,is_smallset: boolean);
+        procedure Cmp(signed,is_smallset: boolean;ctx:tpassgeneratecodecontext);
       protected
-        procedure second_cmpsmallset;override;
-        procedure second_cmpordinal;override;
-        procedure second_cmp64bit; override;
+        procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
 
-        procedure second_addordinal; override;
-        procedure second_add64bit; override;
+        procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
+        procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
 
-        procedure pass_left_and_right;
+        procedure pass_left_and_right(ctx:tpassgeneratecodecontext);
 
-        procedure second_addfloat;override;
-        procedure second_cmpfloat;override;
+        procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
       public
         function use_generic_mul32to64: boolean; override;
         function pass_1 : tnode;override;
@@ -66,13 +66,13 @@ implementation
       compiler;
 
 
-    procedure tloongarch64addnode.Cmp(signed,is_smallset: boolean);
+    procedure tloongarch64addnode.Cmp(signed,is_smallset: boolean;ctx:tpassgeneratecodecontext);
       var
         flabel,tlabel: tasmlabel;
         op, opi: TAsmOp;
         allow_constant : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         allow_constant:=(not is_smallset) or not (nodetype in [lten,gten]);
 
@@ -204,35 +204,35 @@ implementation
 
 
     { Smallset means the one all bits in another one. }
-    procedure tloongarch64addnode.second_cmpsmallset;
+    procedure tloongarch64addnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       begin
-        Cmp(false,true);
+        Cmp(false,true,ctx);
       end;
 
 
-    procedure tloongarch64addnode.second_cmpordinal;
+    procedure tloongarch64addnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned: Boolean;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        Cmp(not unsigned,false);
+        Cmp(not unsigned,false,ctx);
       end;
 
 
-    procedure tloongarch64addnode.second_cmp64bit;
+    procedure tloongarch64addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         unsigned: Boolean;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        Cmp(not unsigned,false);
+        Cmp(not unsigned,false,ctx);
       end;
 
 
-    procedure tloongarch64addnode.second_addordinal;
+    procedure tloongarch64addnode.second_addordinal(ctx:tpassgeneratecodecontext);
       const
         multops: array[boolean] of TAsmOp = (A_MULW_D_W,A_MULW_D_WU);
       var
@@ -246,7 +246,7 @@ implementation
           begin
             unsigned:=not(is_signed(left.resultdef)) or
                       not(is_signed(right.resultdef));
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true,true);
             { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
               say "a constant register is okay, but an ordinal constant isn't) }
@@ -257,17 +257,17 @@ implementation
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
           end
         else
-          inherited second_addordinal;
+          inherited;
       end;
 
 
-    procedure tloongarch64addnode.second_add64bit;
+    procedure tloongarch64addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_addordinal;
+        second_addordinal(ctx);
       end;
 
 
-    procedure tloongarch64addnode.pass_left_and_right;
+    procedure tloongarch64addnode.pass_left_and_right(ctx:tpassgeneratecodecontext);
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -276,18 +276,18 @@ implementation
         if (left.nodetype=ordconstn) then
          swapleftright;
 
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
       end;
 
 
-    procedure tloongarch64addnode.second_addfloat;
+    procedure tloongarch64addnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op    : TAsmOp;
         cmpop,
         singleprec: boolean;
       begin
-        pass_left_and_right;
+        pass_left_and_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -389,9 +389,9 @@ implementation
           end;
       end;
 
-    procedure tloongarch64addnode.second_cmpfloat;
+    procedure tloongarch64addnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       begin
-        second_addfloat;
+        second_addfloat(ctx);
       end;
 
     function tloongarch64addnode.use_generic_mul32to64: boolean;

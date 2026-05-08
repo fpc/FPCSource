@@ -36,7 +36,7 @@ interface
        protected
          function typecheck_int_to_int: tnode;override;
          function typecheck_proc_to_procvar: tnode;override;
-         procedure second_proc_to_procvar;override;
+         procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -85,7 +85,7 @@ implementation
       end;
 
 
-    procedure t8086typeconvnode.second_proc_to_procvar;
+    procedure t8086typeconvnode.second_proc_to_procvar(ctx:tpassgeneratecodecontext);
       begin
         if (tcnf_proc_2_procvar_get_offset_only in convnodeflags) and
             is_proc_far(tabstractprocdef(resultdef)) then

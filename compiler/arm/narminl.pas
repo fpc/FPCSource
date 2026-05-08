@@ -41,24 +41,24 @@ interface
         function first_cos_real: tnode; override;
         function first_sin_real: tnode; override;
         }
-        procedure second_abs_real; override;
-        procedure second_sqr_real; override;
-        procedure second_sqrt_real; override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
         { atn,sin,cos,lgn isn't supported by the linux fpe
-        procedure second_arctan_real; override;
-        procedure second_ln_real; override;
-        procedure second_cos_real; override;
-        procedure second_sin_real; override;
+        procedure second_arctan_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_ln_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_cos_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sin_real(ctx:tpassgeneratecodecontext); override;
         }
-        procedure second_prefetch; override;
-        procedure second_abs_long; override;
-        procedure second_fma; override;
+        procedure second_prefetch(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_long(ctx:tpassgeneratecodecontext); override;
+        procedure second_fma(ctx:tpassgeneratecodecontext); override;
 
         function first_cpu: tnode; override;
-        procedure pass_generate_code_cpu; override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext); override;
         function pass_typecheck_cpu: tnode; override;
       private
-        procedure load_fpu_location(out singleprec: boolean);
+        procedure load_fpu_location(out singleprec: boolean;ctx:tpassgeneratecodecontext);
       end;
 
 
@@ -105,7 +105,7 @@ implementation
       end;
 
 
-     procedure tarminlinenode.pass_generate_code_cpu;
+     procedure tarminlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
        begin
          case inlinenumber of
            in_arm_yield:
@@ -116,14 +116,14 @@ implementation
                  handle it, so encode it in hex if the cpu does not support it }
                current_asmdata.CurrAsmList.concat(tai_const.Create_32bit(longint($e320f001)));
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
 
-    procedure tarminlinenode.load_fpu_location(out singleprec: boolean);
+    procedure tarminlinenode.load_fpu_location(out singleprec: boolean;ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
@@ -300,12 +300,12 @@ implementation
     }
 
 
-    procedure tarminlinenode.second_abs_real;
+    procedure tarminlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       var
         singleprec: boolean;
         pf: TOpPostfix;
       begin
-        load_fpu_location(singleprec);
+        load_fpu_location(singleprec,ctx);
         case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
@@ -338,12 +338,12 @@ implementation
       end;
 
 
-    procedure tarminlinenode.second_sqr_real;
+    procedure tarminlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       var
         singleprec: boolean;
         pf: TOpPostfix;
       begin
-        load_fpu_location(singleprec);
+        load_fpu_location(singleprec,ctx);
         case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
@@ -369,12 +369,12 @@ implementation
       end;
 
 
-    procedure tarminlinenode.second_sqrt_real;
+    procedure tarminlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       var
         singleprec: boolean;
         pf: TOpPostfix;
       begin
-        load_fpu_location(singleprec);
+        load_fpu_location(singleprec,ctx);
         case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
@@ -428,7 +428,7 @@ implementation
       end;
     }
 
-    procedure tarminlinenode.second_prefetch;
+    procedure tarminlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
       var
         ref : treference;
         r : tregister;
@@ -440,7 +440,7 @@ implementation
              checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
-             secondpass(left);
+             secondpass(left,ctx);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
             case left.location.loc of
@@ -459,18 +459,18 @@ implementation
           end;
       end;
 
-    procedure tarminlinenode.second_abs_long;
+    procedure tarminlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
         opsize : tcgsize;
         ovloc: tlocation;
       begin
         if GenerateThumbCode or is_64bitint(left.resultdef)  then
           begin
-            inherited second_abs_long;
+            inherited;
             exit;
           end;
 
-        secondpass(left);
+        secondpass(left,ctx);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
@@ -495,7 +495,7 @@ implementation
       end;
 
 
-    procedure tarminlinenode.second_fma;
+    procedure tarminlinenode.second_fma(ctx:tpassgeneratecodecontext);
       const
         op : array[false..true,false..true] of TAsmOp =
           { positive product }
@@ -555,7 +555,7 @@ implementation
                end;
 
               for i:=1 to 3 do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { no memory operand is allowed }
              for i:=1 to 3 do

@@ -44,20 +44,20 @@ interface
          }
          procedure emit_float_sign_change(r: tregister; _size : tdef);virtual;
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;virtual;abstract;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);virtual;abstract;
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-         procedure second_64bit;virtual;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);virtual;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
-         procedure second_integer;virtual;
-         procedure second_float;virtual;
-         procedure second_float_emulated;virtual;
+         procedure second_integer(ctx:tpassgeneratecodecontext);virtual;
+         procedure second_float(ctx:tpassgeneratecodecontext);virtual;
+         procedure second_float_emulated(ctx:tpassgeneratecodecontext);virtual;
       public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tcgmoddivnode = class(tmoddivnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       protected
          { This routine must do an actual 32-bit division, be it
            signed or unsigned. The result must set into the the
@@ -103,28 +103,28 @@ interface
 
       tcgshlshrnode = class(tshlshrnode)
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;virtual;abstract;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);virtual;abstract;
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-         procedure second_64bit;virtual;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);virtual;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
-         procedure second_integer;virtual;
-         procedure pass_generate_code;override;
+         procedure second_integer(ctx:tpassgeneratecodecontext);virtual;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tcgnotnode = class(tnotnode)
       protected
          function handle_locjump: boolean;
-         procedure second_boolean;virtual;abstract;
+         procedure second_boolean(ctx:tpassgeneratecodecontext);virtual;abstract;
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;virtual;abstract;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);virtual;abstract;
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-         procedure second_64bit;virtual;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);virtual;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
-         procedure second_integer;virtual;
+         procedure second_integer(ctx:tpassgeneratecodecontext);virtual;
       public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -198,12 +198,12 @@ implementation
 
 
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-    procedure tcgunaryminusnode.second_64bit;
+    procedure tcgunaryminusnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         tr: tregister;
         hl: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_REGISTER,left.location.size);
         location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -228,9 +228,9 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
-    procedure tcgunaryminusnode.second_float_emulated;
+    procedure tcgunaryminusnode.second_float_emulated(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location:=left.location;
         case location.size of
@@ -248,9 +248,9 @@ implementation
       end;
 
 
-    procedure tcgunaryminusnode.second_float;
+    procedure tcgunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         case left.location.loc of
           LOC_REFERENCE,
@@ -291,11 +291,11 @@ implementation
       end;
 
 
-    procedure tcgunaryminusnode.second_integer;
+    procedure tcgunaryminusnode.second_integer(ctx:tpassgeneratecodecontext);
       var
         hl: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -316,27 +316,27 @@ implementation
       end;
 
 
-    procedure tcgunaryminusnode.pass_generate_code;
+    procedure tcgunaryminusnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          if is_64bit(left.resultdef) then
-           second_64bit
+           second_64bit(ctx)
          else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
-             second_mmx
+             second_mmx(ctx)
          else
 {$endif SUPPORT_MMX}
            if (left.resultdef.typ=floatdef) then
              begin
                if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
-                 second_float_emulated
+                 second_float_emulated(ctx)
                else
-                 second_float;
+                 second_float(ctx);
              end
          else
-           second_integer;
+           second_integer(ctx);
       end;
 
 
@@ -356,7 +356,7 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
-    procedure tcgmoddivnode.pass_generate_code;
+    procedure tcgmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          hreg1 : tregister;
          hdenom : tregister;
@@ -367,10 +367,10 @@ implementation
          opdef : tdef;
          pd: tprocdef;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
          if compiler.verbose.codegenerror then
           exit;
-         secondpass(right);
+         secondpass(right,ctx);
          if compiler.verbose.codegenerror then
           exit;
          location_copy(location,left.location);
@@ -483,7 +483,7 @@ implementation
 
 
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-    procedure tcgshlshrnode.second_64bit;
+    procedure tcgshlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       begin
          { already hanled in 1st pass }
          internalerror(2002081501);
@@ -491,7 +491,7 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
-    procedure tcgshlshrnode.second_integer;
+    procedure tcgshlshrnode.second_integer(ctx:tpassgeneratecodecontext);
       var
          op : topcg;
          opdef,shiftcountdef: tdef;
@@ -608,21 +608,21 @@ implementation
       end;
 
 
-    procedure tcgshlshrnode.pass_generate_code;
+    procedure tcgshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
-             second_mmx
+             second_mmx(ctx)
          else
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          if is_64bit(left.resultdef) then
-           second_64bit
+           second_64bit(ctx)
          else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
-           second_integer;
+           second_integer(ctx);
       end;
 
 
@@ -631,9 +631,9 @@ implementation
 *****************************************************************************}
 
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-    procedure tcgnotnode.second_64bit;
+    procedure tcgnotnode.second_64bit(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_reset(location,LOC_REGISTER,left.location.size);
@@ -645,9 +645,9 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
-    procedure tcgnotnode.second_integer;
+    procedure tcgnotnode.second_integer(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_reset(location,LOC_REGISTER,left.location.size);
@@ -673,20 +673,20 @@ implementation
       end;
 
 
-    procedure tcgnotnode.pass_generate_code;
+    procedure tcgnotnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if is_boolean(resultdef) then
-          second_boolean
+          second_boolean(ctx)
 {$ifdef SUPPORT_MMX}
         else if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
-          second_mmx
+          second_mmx(ctx)
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         else if is_64bit(left.resultdef) then
-          second_64bit
+          second_64bit(ctx)
 {$endif not cpu64bitalu and not cpuhighleveltarget}
         else
-          second_integer;
+          second_integer(ctx);
       end;
 
 begin

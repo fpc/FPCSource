@@ -36,11 +36,11 @@ interface
 
       ti8086loadnode = class(tx86loadnode)
         protected
-         procedure generate_nested_access(vs: tsym); override;
+         procedure generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext); override;
          procedure generate_absaddr_access(vs: tabsolutevarsym); override;
          procedure generate_threadvar_access(gvs: tstaticvarsym); override;
         public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -60,7 +60,7 @@ implementation
                             TI8086LOADNODE
 *****************************************************************************}
 
-    procedure ti8086loadnode.generate_nested_access(vs: tsym);
+    procedure ti8086loadnode.generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext);
       begin
         inherited;
 
@@ -180,7 +180,7 @@ implementation
           inherited generate_threadvar_access(gvs);
       end;
 
-    procedure ti8086loadnode.pass_generate_code;
+    procedure ti8086loadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         gvs: tstaticvarsym;
         segref: treference;
@@ -195,14 +195,14 @@ implementation
               if (vo_is_dll_var in gvs.varoptions) then
               { DLL variable }
                 begin
-                  inherited pass_generate_code;
+                  inherited;
                   exit;
                 end
               { Thread variable }
               else if (vo_is_thread_var in gvs.varoptions) then
                 begin
                   { this will be handled in ti8086loadnode.generate_threadvar_access }
-                  inherited pass_generate_code;
+                  inherited;
                   exit;
                 end
               { Normal (or external) variable }
@@ -211,7 +211,7 @@ implementation
                   if ((compiler.globals.current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions)) or
                      (not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit) then
                     begin
-                      inherited pass_generate_code;
+                      inherited;
                       if location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                         location.reference.segment:=NR_DS;
                       exit;
@@ -249,7 +249,7 @@ implementation
             end;
           procsym:
             begin
-              inherited pass_generate_code;
+              inherited;
               if compiler.globals.current_settings.x86memorymodel in x86_near_code_models then
                 begin
                   if (location.loc=LOC_REFERENCE) or (location.loc=LOC_CREFERENCE) then
@@ -257,7 +257,7 @@ implementation
                 end;
             end;
           else
-            inherited pass_generate_code;
+            inherited;
         end;
       end;
 

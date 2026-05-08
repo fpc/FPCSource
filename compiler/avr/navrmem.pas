@@ -26,12 +26,12 @@ unit navrmem;
   interface
 
     uses
-      nmem,ncgmem,
+      node,nmem,ncgmem,
       compilerbase;
 
     type
       tavraddrnode = class(tcgaddrnode)
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
   implementation
@@ -42,15 +42,14 @@ unit navrmem;
       aasmdata,
       cgbase,cgutils,
       nodehelper,
-      node,
       pass_2,
       compiler;
 
-    procedure tavraddrnode.pass_generate_code;
+    procedure tavraddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         href : treference;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
 
          href:=left.location.reference;
 

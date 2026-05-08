@@ -39,23 +39,23 @@ interface
         function first_frac_real: tnode; override;
         function first_fma : tnode; override;
         function first_minmax : tnode; override;
-        procedure second_abs_real; override;
-        procedure second_sqr_real; override;
-        procedure second_sqrt_real; override;
-        procedure second_abs_long; override;
-        procedure second_round_real; override;
-        procedure second_trunc_real; override;
-        procedure second_int_real; override;
-        procedure second_frac_real; override;
-        procedure second_get_frame; override;
-        procedure second_fma; override;
-        procedure second_prefetch; override;
-        procedure second_minmax; override;
-        procedure pass_generate_code_cpu; override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_long(ctx:tpassgeneratecodecontext); override;
+        procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_int_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_frac_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_get_frame(ctx:tpassgeneratecodecontext); override;
+        procedure second_fma(ctx:tpassgeneratecodecontext); override;
+        procedure second_prefetch(ctx:tpassgeneratecodecontext); override;
+        procedure second_minmax(ctx:tpassgeneratecodecontext); override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext); override;
         function pass_typecheck_cpu: tnode; override;
         function first_cpu: tnode; override;
       private
-        procedure load_fpu_location;
+        procedure load_fpu_location(ctx:tpassgeneratecodecontext);
       end;
 
 
@@ -101,20 +101,20 @@ implementation
       end;
 
 
-     procedure taarch64inlinenode.pass_generate_code_cpu;
+     procedure taarch64inlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
        begin
          case inlinenumber of
            in_a64_yield:
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD));
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
 
-    procedure taarch64inlinenode.load_fpu_location;
+    procedure taarch64inlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -197,36 +197,36 @@ implementation
      end;
 
 
-    procedure taarch64inlinenode.second_abs_real;
+    procedure taarch64inlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,left.location.register));
         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
-    procedure taarch64inlinenode.second_sqr_real;
+    procedure taarch64inlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,left.location.register,left.location.register));
         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
-    procedure taarch64inlinenode.second_sqrt_real;
+    procedure taarch64inlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,left.location.register));
         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
-    procedure taarch64inlinenode.second_abs_long;
+    procedure taarch64inlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
         opsize : tcgsize;
         hl: TAsmLabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
@@ -246,11 +246,11 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_round_real;
+    procedure taarch64inlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
@@ -264,9 +264,9 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_trunc_real;
+    procedure taarch64inlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
@@ -275,11 +275,11 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_int_real;
+    procedure taarch64inlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -288,11 +288,11 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_frac_real;
+    procedure taarch64inlinenode.second_frac_real(ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -302,7 +302,7 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_get_frame;
+    procedure taarch64inlinenode.second_get_frame(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_CREGISTER,OS_ADDR);
         { this routine is used to get the frame pointer for backtracing
@@ -313,7 +313,7 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_fma;
+    procedure taarch64inlinenode.second_fma(ctx:tpassgeneratecodecontext);
       const
         op : array[false..true,false..true] of TAsmOp =
           { positive product }
@@ -370,7 +370,7 @@ implementation
           end;
 
          for i:=1 to 3 do
-          secondpass(paraarray[i]);
+          secondpass(paraarray[i],ctx);
 
         { no memory operand is allowed }
         for i:=1 to 3 do
@@ -388,7 +388,7 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_prefetch;
+    procedure taarch64inlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
       var
         ref : treference;
         r : tregister;
@@ -398,7 +398,7 @@ implementation
         checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
-        secondpass(left);
+        secondpass(left,ctx);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
        case left.location.loc of
@@ -435,7 +435,7 @@ implementation
       end;
 
 
-    procedure taarch64inlinenode.second_minmax;
+    procedure taarch64inlinenode.second_minmax(ctx:tpassgeneratecodecontext);
       var
         paraarray : array[1..2] of tnode;
         i: Integer;
@@ -447,7 +447,7 @@ implementation
           paraarray[2]:=tcallparanode(parameters).paravalue;
 
         for i:=low(paraarray) to high(paraarray) do
-           secondpass(paraarray[i]);
+           secondpass(paraarray[i],ctx);
 
         if is_single(resultdef) or is_double(resultdef) then
            begin

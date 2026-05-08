@@ -44,10 +44,10 @@ interface
         function first_trunc_real: tnode; override;
         function first_popcnt: tnode; override;
        public
-        procedure second_length; override;
-        procedure second_high; override;
-        procedure second_sqr_real; override;
-        procedure second_trunc_real; override;
+        procedure second_length(ctx:tpassgeneratecodecontext); override;
+        procedure second_high(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -343,11 +343,11 @@ implementation
       end;
 
 
-    procedure tllvminlinenode.second_length;
+    procedure tllvminlinenode.second_length(ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
       begin
-        second_high;
+        second_high(ctx);
         { Dynamic arrays do not have their length attached but their maximum index }
         if is_dynamic_array(left.resultdef) then
           begin
@@ -358,14 +358,14 @@ implementation
       end;
 
 
-    procedure tllvminlinenode.second_high;
+    procedure tllvminlinenode.second_high(ctx:tpassgeneratecodecontext);
       var
         lengthlab, nillab: tasmlabel;
         hregister: tregister;
         href: treference;
         lendef: tdef;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if is_shortstring(left.resultdef) then
          begin
             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -411,9 +411,9 @@ implementation
       end;
 
 
-    procedure tllvminlinenode.second_sqr_real;
+    procedure tllvminlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location.loc:=expectloc;
         if expectloc=LOC_MMREGISTER then
           begin
@@ -434,9 +434,9 @@ implementation
       end;
 
 
-    procedure tllvminlinenode.second_trunc_real;
+    procedure tllvminlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if use_vectorfpu(left.resultdef) then
           hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true)
         else

@@ -26,11 +26,11 @@ unit nrvmat;
   interface
 
     uses
-      ncgmat,compilerbase;
+      node,ncgmat,compilerbase;
 
     type
       trvunaryminusnode = class(tcgunaryminusnode)
-        procedure second_float;override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -49,9 +49,9 @@ implementation
       compiler;
 
 
-    procedure trvunaryminusnode.second_float;
+    procedure trvunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);

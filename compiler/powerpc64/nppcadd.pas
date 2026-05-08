@@ -30,9 +30,9 @@ uses
 
 type
   tppcaddnode = class(tgenppcaddnode)
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   private
-    procedure emit_compare(unsigned: boolean); override;
+    procedure emit_compare(unsigned: boolean;ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -53,7 +53,7 @@ uses
                                   Helpers
 *****************************************************************************}
 
-procedure tppcaddnode.emit_compare(unsigned: boolean);
+procedure tppcaddnode.emit_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
 const
   {                  unsigned  useconst  32bit-op }
   cmpop_table : array[boolean, boolean, boolean] of TAsmOp = (
@@ -139,7 +139,7 @@ end;
                                 pass_2
 *****************************************************************************}
 
-procedure tppcaddnode.pass_generate_code;
+procedure tppcaddnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 { is also being used for xor, and "mul", "sub, or and comparative }
 { operators                                                }
 var
@@ -163,7 +163,7 @@ begin
         if is_boolean(left.resultdef) and
           is_boolean(right.resultdef) then
         begin
-          second_addboolean;
+          second_addboolean(ctx);
           exit;
         end;
       end;
@@ -177,7 +177,7 @@ begin
         { normalsets are already handled in pass1 }
         if not is_smallset(left.resultdef) then
           internalerror(2001090403);
-        second_addsmallset;
+        second_addsmallset(ctx);
         exit;
       end;
     arraydef:
@@ -192,7 +192,7 @@ begin
       end;
     floatdef:
       begin
-        second_addfloat;
+        second_addfloat(ctx);
         exit;
       end;
     else
@@ -204,7 +204,7 @@ begin
   unsigned := not (is_signed(left.resultdef)) or
     not (is_signed(right.resultdef));
 
-  pass_left_and_right;
+  pass_left_and_right(ctx);
 
   { Convert flags to register first }
   { can any of these things be in the flags actually?? (JM) }
@@ -221,7 +221,7 @@ begin
 
   checkoverflow:= (nodetype in [addn,subn,muln]) and needoverflowcheck;
 
-  load_left_right(cmpop, checkoverflow);
+  load_left_right(cmpop, checkoverflow, ctx);
 
   if not (cmpop) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -287,7 +287,7 @@ begin
           current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
           {$endif extdebug}
 
-          emit_compare(unsigned);
+          emit_compare(unsigned,ctx);
         end;
       else
         internalerror(2019051032);

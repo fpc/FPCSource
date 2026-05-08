@@ -33,18 +33,18 @@ interface
         protected
           function use_moddiv64bitint_helper: boolean; override;
         public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tjvmshlshrnode = class(tshlshrnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tjvmnotnode = class(tcghlnotnode)
       end;
 
       tjvmunaryminusnode = class(tcgunaryminusnode)
-        procedure second_float;override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -75,15 +75,15 @@ implementation
       end;
 
 
-    procedure tjvmmoddivnode.pass_generate_code;
+    procedure tjvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         tmpreg: tregister;
         lab: tasmlabel;
         op: topcg;
         isu32int: boolean;
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,left.location.size);
          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
@@ -166,12 +166,12 @@ implementation
                              tjvmshlshrnode
 *****************************************************************************}
 
-    procedure tjvmshlshrnode.pass_generate_code;
+    procedure tjvmshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
         location_reset(location,LOC_REGISTER,left.location.size);
         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
@@ -189,11 +189,11 @@ implementation
                             tjvmunaryminustnode
 *****************************************************************************}
 
-    procedure tjvmunaryminusnode.second_float;
+    procedure tjvmunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         opc: tasmop;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
         thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);

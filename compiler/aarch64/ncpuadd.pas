@@ -35,14 +35,14 @@ interface
           function  GetFPUResFlags:TResFlags;
        protected
           function use_fma : boolean;override;
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_cmpboolean;override;
-          procedure second_cmpsmallset;override;
-          procedure second_cmpordinal;override;
-          procedure second_addordinal;override;
-          procedure second_add64bit; override;
-          procedure second_cmp64bit; override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpboolean(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
        public
           function use_generic_mul32to64: boolean; override;
           function pass_1 : tnode;override;
@@ -182,11 +182,11 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_addfloat;
+    procedure taarch64addnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if nf_swapped in flags then
           swapleftright;
 
@@ -225,9 +225,9 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_cmpfloat;
+    procedure taarch64addnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if nf_swapped in flags then
           swapleftright;
 
@@ -246,9 +246,9 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_cmpboolean;
+    procedure taarch64addnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         if right.location.loc=LOC_CONSTANT then
@@ -269,12 +269,12 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_cmpsmallset;
+    procedure taarch64addnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         op: tasmop;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -335,11 +335,11 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_cmpordinal;
+    procedure taarch64addnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -362,7 +362,7 @@ interface
       end;
 
 
-    procedure taarch64addnode.second_addordinal;
+    procedure taarch64addnode.second_addordinal(ctx:tpassgeneratecodecontext);
       const
         multops: array[boolean] of TAsmOp = (A_SMULL,A_UMULL);
       var
@@ -377,7 +377,7 @@ interface
           begin
             unsigned:=not(is_signed(left.resultdef)) or
                       not(is_signed(right.resultdef));
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true,true);
             { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
               say "a constant register is okay, but an ordinal constant isn't) }
@@ -413,11 +413,11 @@ interface
                     input }
                   swapleftright;
 
-                secondpass(left);
+                secondpass(left,ctx);
 
                 { Skip the not node completely }
                 Include(right.transientflags, tnf_do_not_execute);
-                secondpass(tnotnode(right).left);
+                secondpass(tnotnode(right).left,ctx);
 
                 { allocate registers }
                 if not (tnotnode(right).left.location.loc in [LOC_REGISTER, LOC_CREGISTER]) then
@@ -466,19 +466,19 @@ interface
           end;
 
         { Default behaviour }
-        inherited second_addordinal;
+        inherited;
       end;
 
 
-    procedure taarch64addnode.second_add64bit;
+    procedure taarch64addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_addordinal;
+        second_addordinal(ctx);
       end;
 
 
-    procedure taarch64addnode.second_cmp64bit;
+    procedure taarch64addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_cmpordinal;
+        second_cmpordinal(ctx);
       end;
 
 

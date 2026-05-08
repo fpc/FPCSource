@@ -34,22 +34,22 @@ unit nrvadd;
       trvaddnode = class(tcgaddnode)
         function pass_1: tnode; override;
       protected
-        procedure Cmp(signed,is_smallset: boolean);
+        procedure Cmp(signed,is_smallset: boolean;ctx:tpassgeneratecodecontext);
 
         function use_mul_helper: boolean; override;
 
-        procedure second_cmpsmallset;override;
-        procedure second_cmpordinal;override;
-        procedure second_cmp64bit; override;
+        procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
 
-        procedure second_addordinal; override;
+        procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
 
-        procedure pass_left_and_right;
+        procedure pass_left_and_right(ctx:tpassgeneratecodecontext);
 
         function use_fma: boolean; override;
 
-        procedure second_addfloat;override;
-        procedure second_cmpfloat;override;
+        procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -71,13 +71,13 @@ implementation
      low_value = {$ifdef CPU64BITALU} low(int64) {$else} low(longint) {$endif};
 {$endif}
 
-    procedure trvaddnode.Cmp(signed,is_smallset: boolean);
+    procedure trvaddnode.Cmp(signed,is_smallset: boolean;ctx:tpassgeneratecodecontext);
       var
         flabel,tlabel: tasmlabel;
         op, opi: TAsmOp;
         allow_constant : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         allow_constant:=(not is_smallset) or not (nodetype in [lten,gten]);
 
@@ -219,35 +219,35 @@ implementation
       end;
 
 
-    procedure trvaddnode.second_cmpsmallset;
+    procedure trvaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       begin
-        Cmp(false,true);
+        Cmp(false,true,ctx);
       end;
 
 
-    procedure trvaddnode.second_cmpordinal;
+    procedure trvaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned: Boolean;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        Cmp(not unsigned,false);
+        Cmp(not unsigned,false,ctx);
       end;
 
 
-    procedure trvaddnode.second_cmp64bit;
+    procedure trvaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         unsigned: Boolean;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        Cmp(not unsigned,false);
+        Cmp(not unsigned,false,ctx);
       end;
 
 
-    procedure trvaddnode.second_addordinal;
+    procedure trvaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned: boolean;
       begin
@@ -259,7 +259,7 @@ implementation
           begin
             unsigned:=not(is_signed(left.resultdef)) or
                       not(is_signed(right.resultdef));
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true,true);
             { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
               say "a constant register is okay, but an ordinal constant isn't) }
@@ -270,7 +270,7 @@ implementation
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MUL,location.register,left.location.register,right.location.register));
           end
         else
-          inherited second_addordinal;
+          inherited;
       end;
 
 
@@ -322,7 +322,7 @@ implementation
       end;
 
 
-    procedure trvaddnode.pass_left_and_right;
+    procedure trvaddnode.pass_left_and_right(ctx:tpassgeneratecodecontext);
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -331,8 +331,8 @@ implementation
         if (left.nodetype=ordconstn) then
          swapleftright;
 
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
       end;
 
 
@@ -345,7 +345,7 @@ implementation
       end;
 
 
-    procedure trvaddnode.second_addfloat;
+    procedure trvaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op    : TAsmOp;
         cmpop,
@@ -355,7 +355,7 @@ implementation
       begin
         l1:=nil;
         l2:=nil;
-        pass_left_and_right;
+        pass_left_and_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -506,9 +506,9 @@ implementation
           end;
       end;
 
-    procedure trvaddnode.second_cmpfloat;
+    procedure trvaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       begin
-        second_addfloat;
+        second_addfloat(ctx);
       end;
 
 end.

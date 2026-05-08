@@ -44,20 +44,20 @@ interface
         function first_fma: tnode; override;
         function first_minmax: tnode; override;
 
-        procedure second_sqrt_real; override;
-        procedure second_abs_real; override;
-        procedure second_sqr_real; override;
-        procedure second_round_real; override;
-        procedure second_trunc_real; override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
 
-        procedure second_fma; override;
-        procedure second_minmax; override;
+        procedure second_fma(ctx:tpassgeneratecodecontext); override;
+        procedure second_minmax(ctx:tpassgeneratecodecontext); override;
 
         function pass_typecheck_cpu: tnode; override;
         function first_cpu: tnode; override;
-        procedure pass_generate_code_cpu; override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext); override;
       protected
-        procedure load_fpu_location;
+        procedure load_fpu_location(ctx:tpassgeneratecodecontext);
       end;
 
 implementation
@@ -110,13 +110,13 @@ implementation
       end;
 
 
-     procedure trvinlinenode.pass_generate_code_cpu;
+     procedure trvinlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
        begin
          case inlinenumber of
            in_riscv_pause:
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_PAUSE));
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
@@ -220,20 +220,20 @@ implementation
 
 
      { load the FPU into the an fpu register }
-     procedure trvinlinenode.load_fpu_location;
+     procedure trvinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
        end;
 
 
-    procedure trvinlinenode.second_sqrt_real;
+    procedure trvinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
         location.loc:=LOC_FPUREGISTER;
-        load_fpu_location;
+        load_fpu_location(ctx);
         case left.location.size of
           OS_F32:
             begin
@@ -253,12 +253,12 @@ implementation
       end;
 
 
-     procedure trvinlinenode.second_abs_real;
+     procedure trvinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FSGNJX_S
          else
@@ -267,12 +267,12 @@ implementation
        end;
 
 
-     procedure trvinlinenode.second_sqr_real;
+     procedure trvinlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
        var
          op: tasmop;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FMUL_S
          else
@@ -282,11 +282,11 @@ implementation
        end;
 
 
-     procedure trvinlinenode.second_round_real;
+     procedure trvinlinenode.second_round_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
        begin
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
@@ -320,11 +320,11 @@ implementation
        end;
 
 
-     procedure trvinlinenode.second_trunc_real;
+     procedure trvinlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
        begin
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
@@ -358,7 +358,7 @@ implementation
        end;
 
 
-     procedure trvinlinenode.second_fma;
+     procedure trvinlinenode.second_fma(ctx:tpassgeneratecodecontext);
        const
          op : array[os_f32..os_f64,false..true,false..true] of TAsmOp =
            (
@@ -415,7 +415,7 @@ implementation
                end;
 
               for i:=1 to 3 do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { no memory operand is allowed }
              for i:=1 to 3 do
@@ -436,7 +436,7 @@ implementation
        end;
 
 
-    procedure trvinlinenode.second_minmax;
+    procedure trvinlinenode.second_minmax(ctx:tpassgeneratecodecontext);
       var
         paraarray : array[1..2] of tnode;
         i: Integer;
@@ -448,7 +448,7 @@ implementation
           paraarray[2]:=tcallparanode(parameters).paravalue;
 
         for i:=low(paraarray) to high(paraarray) do
-           secondpass(paraarray[i]);
+           secondpass(paraarray[i],ctx);
 
         if is_single(resultdef) or is_double(resultdef) then
            begin

@@ -32,20 +32,20 @@ interface
     type
       tarmmoddivnode = class(tmoddivnode)
         function first_moddivint: tnode;override;
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tarmnotnode = class(tcgnotnode)
-        procedure second_boolean;override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       tarmunaryminusnode = class(tcgunaryminusnode)
         function pass_1: tnode; override;
-        procedure second_float;override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
       tarmshlshrnode = class(tcgshlshrnode)
-         procedure second_64bit;override;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);override;
          function first_shlshr64bitint: tnode; override;
       end;
 
@@ -129,7 +129,7 @@ implementation
       end;
 
 
-    procedure tarmmoddivnode.pass_generate_code;
+    procedure tarmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         power  : longint;
         numerator,
@@ -231,8 +231,8 @@ implementation
 }
 
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
 
         if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and
            (nodetype=divn) and
@@ -313,11 +313,11 @@ implementation
                                TARMNOTNODE
 *****************************************************************************}
 
-    procedure tarmnotnode.second_boolean;
+    procedure tarmnotnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tmpreg : TRegister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of
@@ -396,11 +396,11 @@ implementation
           end;
       end;
 
-    procedure tarmunaryminusnode.second_float;
+    procedure tarmunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         pf: TOpPostfix;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
@@ -464,7 +464,7 @@ implementation
           result := nil;
       end;
 
-    procedure tarmshlshrnode.second_64bit;
+    procedure tarmshlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         v : TConstExprInt;
         so: tshifterop;

@@ -34,14 +34,14 @@ interface
     type
        tllvmrealconstnode = class(tcgrealconstnode)
           function pass_1 : tnode;override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tllvmstringconstnode = class(tcgstringconstnode)
           constructor createpchar(s: pchar; l: longint; def: tdef; acompiler: TCompilerBase); override;
           function pass_typecheck: tnode; override;
           function pass_1: tnode; override;
-          procedure pass_generate_code; override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        protected
           procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); override;
        end;
@@ -98,7 +98,7 @@ implementation
       end;
 
 
-    procedure tllvmstringconstnode.pass_generate_code;
+    procedure tllvmstringconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         datadef, resptrdef: tdef;
         hreg: tregister;
@@ -109,7 +109,7 @@ implementation
             location.register:=tllvmmetadata.getpcharreg(@valueas[0],len);
             exit;
           end;
-        inherited pass_generate_code;
+        inherited;
         if cst_type in [cst_conststring,cst_shortstring] then
           begin
             if location.loc<>LOC_CREFERENCE then
@@ -192,7 +192,7 @@ implementation
       end;
 
 
-    procedure tllvmrealconstnode.pass_generate_code;
+    procedure tllvmrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          { llvm supports floating point constants directly }
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));

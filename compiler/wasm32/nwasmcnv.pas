@@ -34,10 +34,10 @@ interface
        twasmtypeconvnode = class(tcgtypeconvnode)
        protected
          function first_int_to_real: tnode; override;
-         procedure second_int_to_real;override;
-         procedure second_int_to_bool;override;
-         procedure second_ansistring_to_pchar;override;
-         procedure second_class_to_intf;override;
+         procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
+         procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
+         procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);override;
+         procedure second_class_to_intf(ctx:tpassgeneratecodecontext);override;
        public
          function target_specific_explicit_typeconv: boolean;override;
        end;
@@ -68,7 +68,7 @@ implementation
       end;
 
 
-    procedure twasmtypeconvnode.second_int_to_real;
+    procedure twasmtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
       begin
@@ -123,9 +123,9 @@ implementation
       end;
 
 
-    procedure twasmtypeconvnode.second_int_to_bool;
+    procedure twasmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -166,7 +166,7 @@ implementation
       end;
 
 
-    procedure twasmtypeconvnode.second_ansistring_to_pchar;
+    procedure twasmtypeconvnode.second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);
       var
         hr : treference;
       begin
@@ -194,7 +194,7 @@ implementation
       end;
 
 
-    procedure twasmtypeconvnode.second_class_to_intf;
+    procedure twasmtypeconvnode.second_class_to_intf(ctx:tpassgeneratecodecontext);
       var
         hd : tobjectdef;
         ImplIntf : TImplementedInterface;

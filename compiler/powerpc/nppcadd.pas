@@ -30,15 +30,15 @@ interface
 
     type
        tppcaddnode = class(tgenppcaddnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          protected
           function use_generic_mul32to64: boolean; override;
          private
-          procedure emit_compare(unsigned : boolean); override;
+          procedure emit_compare(unsigned : boolean;ctx:tpassgeneratecodecontext); override;
 {$ifdef SUPPORT_MMX}
-          procedure second_addmmx;override;
+          procedure second_addmmx(ctx:tpassgeneratecodecontext);override;
 {$endif SUPPORT_MMX}
-          procedure second_add64bit;override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
        end;
 
   implementation
@@ -67,7 +67,7 @@ interface
                                   Helpers
 *****************************************************************************}
 
-    procedure tppcaddnode.emit_compare(unsigned: boolean);
+    procedure tppcaddnode.emit_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
       var
         op : tasmop;
         tmpreg : tregister;
@@ -141,7 +141,7 @@ interface
                                 Add64bit
 *****************************************************************************}
 
-    procedure tppcaddnode.second_add64bit;
+    procedure tppcaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel : tasmlabel;
@@ -169,7 +169,7 @@ interface
             right.location.register64.reglo := right.location.register64.reghi;
 
           // and call the normal emit_compare
-          emit_compare(unsigned);
+          emit_compare(unsigned,ctx);
           location_copy(left.location,oldleft);
           location_copy(right.location,oldright);
         end;
@@ -178,7 +178,7 @@ interface
       procedure emit_cmp64_lo;
 
         begin
-          emit_compare(true);
+          emit_compare(true,ctx);
         end;
 
 
@@ -267,7 +267,7 @@ interface
         falselabel:=nil;
         firstcomplex(self);
 
-        pass_left_and_right;
+        pass_left_and_right(ctx);
 
         cmpop:=false;
         unsigned:=((left.resultdef.typ=orddef) and
@@ -322,7 +322,7 @@ interface
             current_asmdata.getjumplabel(falselabel);
           end;
 
-        load_left_right(cmpop,needoverflowcheck or (nodetype = muln));
+        load_left_right(cmpop,needoverflowcheck or (nodetype = muln),ctx);
 
         if (nodetype<>muln) and
            (not needoverflowcheck or
@@ -565,7 +565,7 @@ interface
                                 pass_2
 *****************************************************************************}
 
-    procedure tppcaddnode.pass_generate_code;
+    procedure tppcaddnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     { is also being used for xor, and "mul", "sub, or and comparative }
     { operators                                                }
       var
@@ -588,14 +588,14 @@ interface
                if is_boolean(left.resultdef) and
                   is_boolean(right.resultdef) then
                  begin
-                   second_addboolean;
+                   second_addboolean(ctx);
                    exit;
                  end
                { 64bit operations }
                else if is_64bit(resultdef) or
                        is_64bit(left.resultdef) then
                  begin
-                   second_add64bit;
+                   second_add64bit(ctx);
                    exit;
                  end;
              end;
@@ -609,7 +609,7 @@ interface
                { normalsets are already handled in pass1 }
                if not is_smallset(left.resultdef) then
                 internalerror(200109042);
-               second_addsmallset;
+               second_addsmallset(ctx);
                exit;
              end;
            arraydef :
@@ -624,7 +624,7 @@ interface
              end;
            floatdef :
              begin
-               second_addfloat;
+               second_addfloat(ctx);
                exit;
              end;
            else
@@ -636,7 +636,7 @@ interface
          unsigned:=not(is_signed(left.resultdef)) or
                    not(is_signed(right.resultdef));
 
-         pass_left_and_right;
+         pass_left_and_right(ctx);
 
          { Convert flags to register first }
          { can any of these things be in the flags actually?? (JM) }
@@ -655,7 +655,7 @@ interface
            (nodetype in [addn,subn,muln]) and
            needoverflowcheck;
 
-         load_left_right(cmpop, checkoverflow);
+         load_left_right(cmpop, checkoverflow, ctx);
 
          if not(cmpop) then
            location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -725,7 +725,7 @@ interface
                  end;
                ltn,lten,gtn,gten,equaln,unequaln :
                  begin
-                   emit_compare(unsigned);
+                   emit_compare(unsigned,ctx);
                  end;
                else
                  internalerror(2019050945);

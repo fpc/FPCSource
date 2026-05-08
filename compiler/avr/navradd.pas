@@ -34,10 +34,10 @@ interface
        private
          function  GetResFlags(unsigned:Boolean):TResFlags;
        protected
-         procedure second_cmpordinal;override;
-         procedure second_cmpsmallset;override;
-         procedure second_cmp64bit;override;
-         procedure second_cmp;
+         procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp(ctx:tpassgeneratecodecontext);
        public
          function pass_1 : tnode;override;
        end;
@@ -131,7 +131,7 @@ interface
       end;
 
 
-    procedure tavraddnode.second_cmpsmallset;
+    procedure tavraddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
 
       procedure gencmp(tmpreg1,tmpreg2 : tregister);
         var
@@ -151,7 +151,7 @@ interface
       var
         tmpreg : tregister;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         location_reset(location,LOC_FLAGS,OS_NO);
         force_reg_left_right(false,false);
 
@@ -186,13 +186,13 @@ interface
       end;
 
 
-    procedure tavraddnode.second_cmp;
+    procedure tavraddnode.second_cmp(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
         tmpreg1,tmpreg2 : tregister;
         i : longint;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -294,9 +294,9 @@ interface
       end;
 
 
-    procedure tavraddnode.second_cmp64bit;
+    procedure tavraddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_cmp;
+        second_cmp(ctx);
       end;
 
 
@@ -327,9 +327,9 @@ interface
       end;
 
 
-    procedure tavraddnode.second_cmpordinal;
+    procedure tavraddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
-        second_cmp;
+        second_cmp(ctx);
       end;
 
 begin

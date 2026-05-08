@@ -34,14 +34,14 @@ interface
           function  GetResFlags(unsigned,use64bit:Boolean):TResFlags;
           function  GetFPUResFlags:TResFlags;
        protected
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_cmpboolean;override;
-          procedure second_cmpsmallset;override;
-          procedure second_cmp64bit;override;
-          procedure second_add64bit;override;
-          procedure second_cmpordinal;override;
-          procedure second_addordinal;override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpboolean(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
        public
           function pass_1: tnode; override;
           function use_generic_mul32to64: boolean; override;
@@ -183,11 +183,11 @@ interface
       end;
 
 
-    procedure tsparcaddnode.second_addfloat;
+    procedure tsparcaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -240,11 +240,11 @@ interface
       end;
 
 
-    procedure tsparcaddnode.second_cmpfloat;
+    procedure tsparcaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       var
         op : tasmop;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -271,9 +271,9 @@ interface
       end;
 
 
-    procedure tsparcaddnode.second_cmpboolean;
+    procedure tsparcaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         if right.location.loc = LOC_CONSTANT then
@@ -286,11 +286,11 @@ interface
       end;
 
 
-    procedure tsparcaddnode.second_cmpsmallset;
+    procedure tsparcaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -322,20 +322,20 @@ interface
       end;
 
 
-    procedure tsparcaddnode.second_add64bit;
+    procedure tsparcaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
 {$ifdef SPARC64}
-        second_addordinal;
+        second_addordinal(ctx);
 {$else SPARC64}
-        inherited second_add64bit;
+        inherited;
 {$endif SPARC64}
       end;
 
 
-    procedure tsparcaddnode.second_cmp64bit;
+    procedure tsparcaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
 {$ifdef SPARC64}
       begin
-        second_cmpordinal;
+        second_cmpordinal(ctx);
       end;
 {$else SPARC64}
       var
@@ -377,7 +377,7 @@ interface
         end;
 
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -447,11 +447,11 @@ interface
 {$endif SPARC64}
 
 
-    procedure tsparcaddnode.second_cmpordinal;
+    procedure tsparcaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -469,7 +469,7 @@ interface
     const
       multops: array[boolean] of TAsmOp = (A_SMUL, A_UMUL);
 
-    procedure tsparcaddnode.second_addordinal;
+    procedure tsparcaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned: boolean;
       begin
@@ -478,7 +478,7 @@ interface
 
         if (nodetype=muln) and is_64bit(resultdef) then
           begin
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true,false);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef SPARC64}
@@ -492,7 +492,7 @@ interface
 {$endif SPARC64}
           end
         else
-          inherited second_addordinal;
+          inherited;
       end;
 
 

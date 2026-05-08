@@ -27,7 +27,7 @@ interface
 
     uses
       parabase,
-      ncal,ncgcal,
+      node,ncal,ncgcal,
       cgutils,
       compilerbase;
 
@@ -41,7 +41,7 @@ interface
         function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; override;
         function can_call_ref(var ref: treference): boolean; override;
         procedure pushparas; override;
-        procedure pass_generate_code; override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -120,7 +120,7 @@ implementation
       end;
 
 
-    procedure tllvmcallnode.pass_generate_code;
+    procedure tllvmcallnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         asmsym: tasmsymbol;
       begin

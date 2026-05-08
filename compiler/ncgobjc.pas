@@ -27,15 +27,15 @@ unit ncgobjc;
 interface
 
 uses
-  nobjc;
+  node,nobjc;
 
 type
   tcgobjcselectornode = class(tobjcselectornode)
-    procedure pass_generate_code; override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tcgobjcprotocolnode = class(tobjcprotocolnode)
-    procedure pass_generate_code; override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -45,14 +45,14 @@ uses
     aasmbase,aasmdata,
     cgbase,cgutils,defutil,objcgutl,compiler,
     symconst,symsym,symdef,
-    node,nld,ncon,
+    nld,ncon,
     verbose;
 
 {*****************************************************************************
                            TCGOBJCSELECTORNODE
 *****************************************************************************}
 
-procedure tcgobjcselectornode.pass_generate_code;
+procedure tcgobjcselectornode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     pool   : THashSet;
     entry  : PHashSetItem;
@@ -89,7 +89,7 @@ procedure tcgobjcselectornode.pass_generate_code;
                            TCGOBJCPROTOCOLNODE
 *****************************************************************************}
 
-procedure tcgobjcprotocolnode.pass_generate_code;
+procedure tcgobjcprotocolnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   begin
     { first needs support for writing class definitions }
     internalerror(2009072601);

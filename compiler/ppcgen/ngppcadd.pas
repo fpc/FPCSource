@@ -34,13 +34,13 @@ interface
        tgenppcaddnode = class(tcgaddnode)
           function pass_1: tnode; override;
          protected
-          procedure pass_left_and_right;
-          procedure load_left_right(cmpop, load_constants: boolean);
+          procedure pass_left_and_right(ctx:tpassgeneratecodecontext);
+          procedure load_left_right(cmpop, load_constants: boolean;ctx:tpassgeneratecodecontext);
           function  getresflags : tresflags;
-          procedure emit_compare(unsigned: boolean); virtual; abstract;
-          procedure second_addfloat;override;
-          procedure second_addboolean;override;
-          procedure second_addsmallset;override;
+          procedure emit_compare(unsigned: boolean;ctx:tpassgeneratecodecontext); virtual; abstract;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_addboolean(ctx:tpassgeneratecodecontext);override;
+          procedure second_addsmallset(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -85,7 +85,7 @@ implementation
                                   Helpers
 *****************************************************************************}
 
-    procedure tgenppcaddnode.pass_left_and_right;
+    procedure tgenppcaddnode.pass_left_and_right(ctx:tpassgeneratecodecontext);
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -94,12 +94,12 @@ implementation
         if (left.nodetype=ordconstn) then
          swapleftright;
 
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
       end;
 
 
-    procedure tgenppcaddnode.load_left_right(cmpop, load_constants: boolean);
+    procedure tgenppcaddnode.load_left_right(cmpop, load_constants: boolean;ctx:tpassgeneratecodecontext);
 
       procedure load_node(var n: tnode);
         begin
@@ -199,7 +199,7 @@ implementation
                                 AddBoolean
 *****************************************************************************}
 
-    procedure tgenppcaddnode.second_addboolean;
+    procedure tgenppcaddnode.second_addboolean(ctx:tpassgeneratecodecontext);
       var
         cgop      : TOpCg;
         cgsize  : TCgSize;
@@ -229,14 +229,14 @@ implementation
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            secondpass(left);
+            secondpass(left,ctx);
             if (left.expectloc=LOC_JUMP)<>
                (left.location.loc=LOC_JUMP) then
               internalerror(2003122901);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
 
-            secondpass(right);
+            secondpass(right,ctx);
             if (right.expectloc=LOC_JUMP)<>
                (right.location.loc=LOC_JUMP) then
               internalerror(200312292);
@@ -251,7 +251,7 @@ implementation
              else
               location_reset(location,LOC_FLAGS,OS_NO);
 
-            load_left_right(cmpop,false);
+            load_left_right(cmpop,false,ctx);
 
             if (left.location.loc = LOC_CONSTANT) then
               swapleftright;
@@ -294,7 +294,7 @@ implementation
             end;
          end
         else
-          inherited second_addboolean;
+          inherited;
       end;
 
 
@@ -302,13 +302,13 @@ implementation
                                 AddFloat
 *****************************************************************************}
 
-    procedure tgenppcaddnode.second_addfloat;
+    procedure tgenppcaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op    : TAsmOp;
         cmpop,
         singleprec : boolean;
       begin
-        pass_left_and_right;
+        pass_left_and_right(ctx);
 
         cmpop:=false;
         singleprec:=tfloatdef(left.resultdef).floattype=s32real;
@@ -389,7 +389,7 @@ implementation
                                 AddSmallSet
 *****************************************************************************}
 
-    procedure tgenppcaddnode.second_addsmallset;
+    procedure tgenppcaddnode.second_addsmallset(ctx:tpassgeneratecodecontext);
       var
         cgop   : TOpCg;
         setbase: aint;
@@ -402,14 +402,14 @@ implementation
             { this code currently assumes big endian }
             if (left.nodetype=setelementn) or (right.nodetype=setelementn) then
               begin
-                inherited second_addsmallsetelement;
+                inherited second_addsmallsetelement(ctx);
                 exit;
               end
           end;
 
         cgop:=OP_None;
 
-        pass_left_and_right;
+        pass_left_and_right(ctx);
 
         { when a setdef is passed, it has to be a smallset }
         if (not(nf_swapped in flags) and
@@ -431,7 +431,7 @@ implementation
          else
           location_reset(location,LOC_FLAGS,OS_NO);
 
-        load_left_right(cmpop,false);
+        load_left_right(cmpop,false,ctx);
 
         if not(cmpop) then
           location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -512,7 +512,7 @@ implementation
           equaln,
           unequaln :
             begin
-              emit_compare(true);
+              emit_compare(true,ctx);
               opdone := true;
             end;
           lten,gten:

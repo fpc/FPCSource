@@ -35,16 +35,16 @@ type
     function first_sqr_real: tnode; override;
     function first_sqrt_real: tnode; override;
     function first_gteCommand: tnode;
-    procedure second_abs_real; override;
-    procedure second_sqr_real; override;
-    procedure second_sqrt_real; override;
-    procedure second_get_frame; override;
-    procedure second_gteCommand;
-    procedure pass_generate_code_cpu;override;
+    procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+    procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+    procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+    procedure second_get_frame(ctx:tpassgeneratecodecontext); override;
+    procedure second_gteCommand(ctx:tpassgeneratecodecontext);
+    procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);override;
     function pass_typecheck_cpu:tnode;override;
     function first_cpu : tnode;override;
   private
-    procedure load_fpu_location;
+    procedure load_fpu_location(ctx:tpassgeneratecodecontext);
   end;
 
 
@@ -67,9 +67,9 @@ uses
                               tMIPSELinlinenode
 *****************************************************************************}
 
-procedure tMIPSELinlinenode.load_fpu_location;
+procedure tMIPSELinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
   location_copy(location, left.location);
   if left.location.loc = LOC_CFPUREGISTER then
@@ -116,9 +116,9 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_abs_real;
+procedure tMIPSELinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
 begin
-  load_fpu_location;
+  load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_s, location.Register, left.location.Register));
@@ -130,9 +130,9 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_sqr_real;
+procedure tMIPSELinlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
 begin
-  load_fpu_location;
+  load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MUL_s, location.Register, left.location.Register, left.location.Register));
@@ -144,9 +144,9 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_sqrt_real;
+procedure tMIPSELinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
 begin
-  load_fpu_location;
+  load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRT_s, location.Register, left.location.Register));
@@ -158,7 +158,7 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_get_frame;
+procedure tMIPSELinlinenode.second_get_frame(ctx:tpassgeneratecodecontext);
 begin
   location_reset(location,LOC_CREGISTER,OS_ADDR);
   location.register:=NR_FRAME_POINTER_REG;
@@ -171,10 +171,10 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_gteCommand;
+procedure tMIPSELinlinenode.second_gteCommand(ctx:tpassgeneratecodecontext);
 begin
   
-  secondpass(left);
+  secondpass(left,ctx);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
@@ -182,9 +182,9 @@ begin
 
 end;
 
-procedure tMIPSELinlinenode.pass_generate_code_cpu;
+procedure tMIPSELinlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
 begin
-  if inlinenumber = in_gtecommand_x then second_gteCommand;
+  if inlinenumber = in_gtecommand_x then second_gteCommand(ctx);
 end;
 
 

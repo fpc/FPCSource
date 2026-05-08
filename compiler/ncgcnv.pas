@@ -39,32 +39,32 @@ interface
        protected
 {$ifdef cpuflags}
          { CPUs without flags need a specific implementation of int -> bool }
-         procedure second_int_to_bool;override;
+         procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
 {$endif cpuflags}
-         procedure second_int_to_int;override;
-         procedure second_cstring_to_pchar;override;
-         procedure second_cstring_to_int;override;
-         procedure second_string_to_chararray;override;
-         procedure second_array_to_pointer;override;
-         procedure second_pointer_to_array;override;
-         procedure second_char_to_string;override;
-         procedure second_real_to_real;override;
-         procedure second_cord_to_pointer;override;
-         procedure second_proc_to_procvar;override;
-         procedure second_nil_to_methodprocvar;override;
-         procedure second_bool_to_int;override;
-         procedure second_bool_to_bool;override;
-         procedure second_ansistring_to_pchar;override;
-         procedure second_class_to_intf;override;
-         procedure second_char_to_char;override;
-         procedure second_elem_to_openarray;override;
-         procedure second_nothing;override;
+         procedure second_int_to_int(ctx:tpassgeneratecodecontext);override;
+         procedure second_cstring_to_pchar(ctx:tpassgeneratecodecontext);override;
+         procedure second_cstring_to_int(ctx:tpassgeneratecodecontext);override;
+         procedure second_string_to_chararray(ctx:tpassgeneratecodecontext);override;
+         procedure second_array_to_pointer(ctx:tpassgeneratecodecontext);override;
+         procedure second_pointer_to_array(ctx:tpassgeneratecodecontext);override;
+         procedure second_char_to_string(ctx:tpassgeneratecodecontext);override;
+         procedure second_real_to_real(ctx:tpassgeneratecodecontext);override;
+         procedure second_cord_to_pointer(ctx:tpassgeneratecodecontext);override;
+         procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);override;
+         procedure second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);override;
+         procedure second_bool_to_int(ctx:tpassgeneratecodecontext);override;
+         procedure second_bool_to_bool(ctx:tpassgeneratecodecontext);override;
+         procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);override;
+         procedure second_class_to_intf(ctx:tpassgeneratecodecontext);override;
+         procedure second_char_to_char(ctx:tpassgeneratecodecontext);override;
+         procedure second_elem_to_openarray(ctx:tpassgeneratecodecontext);override;
+         procedure second_nothing(ctx:tpassgeneratecodecontext);override;
        public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgasnode = class(tasnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
   implementation
@@ -93,7 +93,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_int_to_int;
+    procedure tcgtypeconvnode.second_int_to_int(ctx:tpassgeneratecodecontext);
       var
         orgsize,
         newsize : tcgsize;
@@ -176,7 +176,7 @@ interface
 
 
 {$ifdef cpuflags}
-    procedure tcgtypeconvnode.second_int_to_bool;
+    procedure tcgtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       var
         hregister : tregister;
         href      : treference;
@@ -184,7 +184,7 @@ interface
         hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
          exit;
 
@@ -295,7 +295,7 @@ interface
 {$endif cpuflags}
 
 
-    procedure tcgtypeconvnode.second_cstring_to_pchar;
+    procedure tcgtypeconvnode.second_cstring_to_pchar(ctx:tpassgeneratecodecontext);
 
       var
         hr : treference;
@@ -346,7 +346,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_cstring_to_int;
+    procedure tcgtypeconvnode.second_cstring_to_int(ctx:tpassgeneratecodecontext);
       begin
         { this can't happen because constants are already processed in
           pass 1 }
@@ -354,7 +354,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_string_to_chararray;
+    procedure tcgtypeconvnode.second_string_to_chararray(ctx:tpassgeneratecodecontext);
       begin
         if is_chararray(left.resultdef) then
           begin
@@ -366,7 +366,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_array_to_pointer;
+    procedure tcgtypeconvnode.second_array_to_pointer(ctx:tpassgeneratecodecontext);
 
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -375,7 +375,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_pointer_to_array;
+    procedure tcgtypeconvnode.second_pointer_to_array(ctx:tpassgeneratecodecontext);
 
       begin
         { assume natural alignment, volatility of pointer has no effect on the volatility
@@ -421,7 +421,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_char_to_string;
+    procedure tcgtypeconvnode.second_char_to_string(ctx:tpassgeneratecodecontext);
       var
         tmpref: treference;
       begin
@@ -445,7 +445,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_real_to_real;
+    procedure tcgtypeconvnode.second_real_to_real(ctx:tpassgeneratecodecontext);
 {$ifdef x86}
       var
         tr: treference;
@@ -537,7 +537,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_cord_to_pointer;
+    procedure tcgtypeconvnode.second_cord_to_pointer(ctx:tpassgeneratecodecontext);
       begin
         { this can't happen because constants are already processed in
           pass 1 }
@@ -545,7 +545,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_proc_to_procvar;
+    procedure tcgtypeconvnode.second_proc_to_procvar(ctx:tpassgeneratecodecontext);
       var
         href: treference;
         tmpreg: tregister;
@@ -630,7 +630,7 @@ interface
           end;
       end;
 
-    procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
+    procedure Tcgtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);
     begin
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,compiler.deftypes.voidpointertype);
@@ -639,11 +639,11 @@ interface
       hlcg.a_load_const_reg(current_asmdata.currasmlist,compiler.deftypes.voidcodepointertype,0,location.register);
     end;
 
-    procedure tcgtypeconvnode.second_bool_to_int;
+    procedure tcgtypeconvnode.second_bool_to_int(ctx:tpassgeneratecodecontext);
       var
          newsize: tcgsize;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
          location_copy(location,left.location);
          newsize:=def_cgsize(resultdef);
          { byte(bytebool) or word(wordbool) or longint(longbool) must be }
@@ -668,7 +668,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_bool_to_bool;
+    procedure tcgtypeconvnode.second_bool_to_bool(ctx:tpassgeneratecodecontext);
       begin
         { we can reuse the conversion already available
           in bool_to_int to resize the value. But when the
@@ -685,25 +685,25 @@ interface
            { a cbool must be converted to -1/0 }
            not is_cbool(resultdef) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             if (left.location.loc <> left.expectloc) then
               internalerror(2010081601);
             location_copy(location,left.location);
           end
         else if (resultdef.size=left.resultdef.size) and
            (is_cbool(resultdef)=is_cbool(left.resultdef)) then
-          second_bool_to_int
+          second_bool_to_int(ctx)
         else
           begin
             if (resultdef.size<>left.resultdef.size) then
               { remove nf_explicit to perform full conversion if boolean sizes are different }
               exclude(flags, nf_explicit);
-            second_int_to_bool;
+            second_int_to_bool(ctx);
           end;
       end;
 
 
-    procedure tcgtypeconvnode.second_ansistring_to_pchar;
+    procedure tcgtypeconvnode.second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);
       var
          l1 : tasmlabel;
          hr : treference;
@@ -723,7 +723,7 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_class_to_intf;
+    procedure tcgtypeconvnode.second_class_to_intf(ctx:tpassgeneratecodecontext);
       var
          l1 : tasmlabel;
          hd : tobjectdef;
@@ -785,19 +785,19 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_char_to_char;
+    procedure tcgtypeconvnode.second_char_to_char(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2007081202);
       end;
 
-    procedure tcgtypeconvnode.second_elem_to_openarray;
+    procedure tcgtypeconvnode.second_elem_to_openarray(ctx:tpassgeneratecodecontext);
       begin
         { nothing special to do by default }
-        second_nothing;
+        second_nothing(ctx);
       end;
 
 
-    procedure tcgtypeconvnode.second_nothing;
+    procedure tcgtypeconvnode.second_nothing(ctx:tpassgeneratecodecontext);
       var
         newsize : tcgsize;
       begin
@@ -860,18 +860,18 @@ interface
 {$endif TESTOBJEXT2}
 
 
-    procedure tcgtypeconvnode.pass_generate_code;
+    procedure tcgtypeconvnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { the boolean routines can be called with LOC_JUMP and
           call secondpass themselves in the helper }
         if not(convtype in [tc_bool_2_int,tc_bool_2_bool,tc_int_2_bool]) then
          begin
-           secondpass(left);
+           secondpass(left,ctx);
            if compiler.verbose.codegenerror then
             exit;
          end;
 
-        second_call_helper(convtype);
+        second_call_helper(convtype,ctx);
 
 {$ifdef TESTOBJEXT2}
          { Check explicit conversions to objects pointers !! }
@@ -886,9 +886,9 @@ interface
       end;
 
 
-    procedure tcgasnode.pass_generate_code;
+    procedure tcgasnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(call);
+        secondpass(call,ctx);
         location_copy(location,call.location);
       end;
 

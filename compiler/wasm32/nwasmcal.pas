@@ -35,10 +35,10 @@ interface
 
        twasmcallparanode = class(tcgcallparanode)
        private
-         procedure secondpass_all;
-         procedure push_all;
+         procedure secondpass_all(ctx:tpassgeneratecodecontext);
+         procedure push_all(ctx:tpassgeneratecodecontext);
        public
-         procedure secondcallparan;override;
+         procedure secondcallparan(ctx:tpassgeneratecodecontext);override;
        end;
 
        { twasmcallnode }
@@ -60,31 +60,31 @@ implementation
 
       { twasmcallparanode }
 
-        procedure twasmcallparanode.secondpass_all;
+        procedure twasmcallparanode.secondpass_all(ctx:tpassgeneratecodecontext);
           begin
             { Skip nothingn nodes which are used after disabling
               a parameter }
             if (left.nodetype<>nothingn) then
-              secondcallparan_do_secondpass;
+              secondcallparan_do_secondpass(ctx);
 
             { next parameter }
             if assigned(right) then
-              twasmcallparanode(right).secondpass_all;
+              twasmcallparanode(right).secondpass_all(ctx);
           end;
 
-        procedure twasmcallparanode.push_all;
+        procedure twasmcallparanode.push_all(ctx:tpassgeneratecodecontext);
           begin
             { Skip nothingn nodes which are used after disabling
               a parameter }
             if (left.nodetype<>nothingn) then
-              secondcallparan_after_secondpass;
+              secondcallparan_after_secondpass(ctx);
 
             { next parameter }
             if assigned(right) then
-              twasmcallparanode(right).push_all;
+              twasmcallparanode(right).push_all(ctx);
           end;
 
-        procedure twasmcallparanode.secondcallparan;
+        procedure twasmcallparanode.secondcallparan(ctx:tpassgeneratecodecontext);
           begin
             if not(assigned(parasym)) then
               internalerror(200304242);
@@ -94,8 +94,8 @@ implementation
               This is because the evaluation phase can generate labels, which
               wreaks havoc in our 'goto' label resolution algorithm, when there
               are labels at different stack heights. }
-            secondpass_all;
-            push_all;
+            secondpass_all(ctx);
+            push_all(ctx);
           end;
 
       { twasmcallnode }

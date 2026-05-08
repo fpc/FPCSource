@@ -31,10 +31,10 @@ interface
     type
        tcgaddnode = class(taddnode)
 {          function pass_1: tnode; override;}
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          protected
           { call secondpass for both left and right }
-          procedure pass_left_right; virtual;
+          procedure pass_left_right(ctx:tpassgeneratecodecontext); virtual;
           { set the register of the result location }
           procedure set_result_location_reg;
           { load left and right nodes into registers }
@@ -42,30 +42,30 @@ interface
 
           function cmpnode2topcmp(unsigned: boolean): TOpCmp;
 
-          procedure second_opfloat;
-          procedure second_opboolean;
-          procedure second_opsmallset;
-          procedure second_op64bit;
-          procedure second_opordinal;
+          procedure second_opfloat(ctx:tpassgeneratecodecontext);
+          procedure second_opboolean(ctx:tpassgeneratecodecontext);
+          procedure second_opsmallset(ctx:tpassgeneratecodecontext);
+          procedure second_op64bit(ctx:tpassgeneratecodecontext);
+          procedure second_opordinal(ctx:tpassgeneratecodecontext);
 
-          procedure second_addstring;virtual;
-          procedure second_addfloat;virtual;abstract;
-          procedure second_addboolean;virtual;
-          procedure second_addsmallset;virtual;
-          procedure second_addsmallsetelement;virtual;
+          procedure second_addstring(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_addboolean(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_addsmallset(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_addsmallsetelement(ctx:tpassgeneratecodecontext);virtual;
 {$ifdef x86}
 {$ifdef SUPPORT_MMX}
-          procedure second_opmmx;virtual;abstract;
+          procedure second_opmmx(ctx:tpassgeneratecodecontext);virtual;abstract;
 {$endif SUPPORT_MMX}
 {$endif x86}
-          procedure second_opvector;virtual;abstract;
-          procedure second_add64bit;virtual;
-          procedure second_addordinal;virtual;
-          procedure second_cmpfloat;virtual;abstract;
-          procedure second_cmpboolean;virtual;
-          procedure second_cmpsmallset;virtual;abstract;
-          procedure second_cmp64bit;virtual;abstract;
-          procedure second_cmpordinal;virtual;abstract;
+          procedure second_opvector(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_addordinal(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cmpboolean(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);virtual;abstract;
 
           function needoverflowcheck: boolean;
        end;
@@ -87,7 +87,7 @@ interface
                                   Helpers
 *****************************************************************************}
 
-    procedure tcgaddnode.pass_left_right;
+    procedure tcgaddnode.pass_left_right(ctx:tpassgeneratecodecontext);
 {$if defined(x86) and not defined(llvm)}
       var
         tmpreg     : tregister;
@@ -101,7 +101,7 @@ interface
         if (left.nodetype=ordconstn) then
           swapleftright;
 
-        secondpass(left);
+        secondpass(left,ctx);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
 {$if defined(x86) and not defined(llvm)}
@@ -115,7 +115,7 @@ interface
           end;
 {$endif x86 and not llvm}
 
-        secondpass(right);
+        secondpass(right,ctx);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
 {$if defined(x86) and not defined(llvm)}
@@ -219,7 +219,7 @@ interface
                                 Smallsets
 *****************************************************************************}
 
-    procedure tcgaddnode.second_opsmallset;
+    procedure tcgaddnode.second_opsmallset(ctx:tpassgeneratecodecontext);
       begin
         { when a setdef is passed, it has to be a smallset }
         if not(
@@ -228,21 +228,21 @@ interface
               ) then
           internalerror(200203302);
         if (left.nodetype=setelementn) or (right.nodetype=setelementn) then
-          second_addsmallsetelement
+          second_addsmallsetelement(ctx)
         else if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
-          second_cmpsmallset
+          second_cmpsmallset(ctx)
         else
-          second_addsmallset;
+          second_addsmallset(ctx);
       end;
 
 
-    procedure tcgaddnode.second_addsmallset;
+    procedure tcgaddnode.second_addsmallset(ctx:tpassgeneratecodecontext);
       var
         cgop    : TOpCg;
         opdone  : boolean;
       begin
         opdone := false;
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
         set_result_location_reg;
         case nodetype of
@@ -309,7 +309,7 @@ interface
       end;
 
 
-    procedure tcgaddnode.second_addsmallsetelement;
+    procedure tcgaddnode.second_addsmallsetelement(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         mask,
@@ -321,7 +321,7 @@ interface
         { no range support for smallsets }
         if assigned(tsetelementnode(right).right) then
           internalerror(20080303);
-        pass_left_right;
+        pass_left_right(ctx);
         { setelementn is a special case, it must be on right }
         if (nf_swapped in flags) and
            (left.nodetype=setelementn) then
@@ -370,16 +370,16 @@ interface
                                 Boolean
 *****************************************************************************}
 
-    procedure tcgaddnode.second_opboolean;
+    procedure tcgaddnode.second_opboolean(ctx:tpassgeneratecodecontext);
       begin
         if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-          second_cmpboolean
+          second_cmpboolean(ctx)
         else
-          second_addboolean;
+          second_addboolean(ctx);
       end;
 
 
-    procedure tcgaddnode.second_addboolean;
+    procedure tcgaddnode.second_addboolean(ctx:tpassgeneratecodecontext);
       var
         cgop    : TOpCg;
         truelabel, falselabel : tasmlabel;
@@ -394,7 +394,7 @@ interface
             case nodetype of
               andn :
                 begin
-                   secondpass(left);
+                   secondpass(left,ctx);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
                    hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
                    current_asmdata.getjumplabel(truelabel);
@@ -402,7 +402,7 @@ interface
                 end;
               orn :
                 begin
-                   secondpass(left);
+                   secondpass(left,ctx);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
                    hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
                    current_asmdata.getjumplabel(falselabel);
@@ -415,7 +415,7 @@ interface
             oldflowcontrol:=flowcontrol;
             include(flowcontrol,fc_inflowcontrol);
 
-            secondpass(right);
+            secondpass(right,ctx);
             { jump to the same labels as the left side, since the andn/orn
               merges the results of left and right }
             hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,right,location.truelabel,location.falselabel);
@@ -424,7 +424,7 @@ interface
           end
         else
           begin
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(false,true);
             set_result_location_reg;
 
@@ -470,16 +470,16 @@ interface
                                 64-bit
 *****************************************************************************}
 
-    procedure tcgaddnode.second_op64bit;
+    procedure tcgaddnode.second_op64bit(ctx:tpassgeneratecodecontext);
       begin
         if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-          second_cmp64bit
+          second_cmp64bit(ctx)
         else
-          second_add64bit;
+          second_add64bit(ctx);
       end;
 
 
-    procedure tcgaddnode.second_add64bit;
+    procedure tcgaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         op         : TOpCG;
         checkoverflow : boolean;
@@ -487,7 +487,7 @@ interface
       begin
         ovloc.loc:=LOC_VOID;
 
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(false,true);
         set_result_location_reg;
 
@@ -622,7 +622,7 @@ interface
                                 Strings
 *****************************************************************************}
 
-    procedure tcgaddnode.second_addstring;
+    procedure tcgaddnode.second_addstring(ctx:tpassgeneratecodecontext);
       begin
         { this should already be handled in pass1 }
         internalerror(2002072402);
@@ -633,12 +633,12 @@ interface
                                 Floats
 *****************************************************************************}
 
-    procedure tcgaddnode.second_opfloat;
+    procedure tcgaddnode.second_opfloat(ctx:tpassgeneratecodecontext);
       begin
         if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-          second_cmpfloat
+          second_cmpfloat(ctx)
         else
-          second_addfloat;
+          second_addfloat(ctx);
       end;
 
 
@@ -646,16 +646,16 @@ interface
                                 Ordinals
 *****************************************************************************}
 
-    procedure tcgaddnode.second_opordinal;
+    procedure tcgaddnode.second_opordinal(ctx:tpassgeneratecodecontext);
       begin
          if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) then
-           second_cmpordinal
+           second_cmpordinal(ctx)
          else
-           second_addordinal;
+           second_addordinal(ctx);
       end;
 
 
-    procedure tcgaddnode.second_addordinal;
+    procedure tcgaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned,
         checkoverflow : boolean;
@@ -665,7 +665,7 @@ interface
       begin
         ovloc.loc:=LOC_VOID;
 
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
         set_result_location_reg;
 
@@ -759,9 +759,9 @@ interface
       end;
 
 
-    procedure tcgaddnode.second_cmpboolean;
+    procedure tcgaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
-        second_cmpordinal;
+        second_cmpordinal(ctx);
       end;
 
     function tcgaddnode.needoverflowcheck: boolean;
@@ -778,7 +778,7 @@ interface
                                 pass_generate_code;
 *****************************************************************************}
 
-    procedure tcgaddnode.pass_generate_code;
+    procedure tcgaddnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         case left.resultdef.typ of
           orddef :
@@ -786,23 +786,23 @@ interface
               { handling boolean expressions }
               if is_boolean(left.resultdef) and
                  is_boolean(right.resultdef) then
-                second_opboolean
+                second_opboolean(ctx)
 {$ifndef cpu64bitalu}
               { 64bit operations }
               else if is_64bit(left.resultdef) then
-                second_op64bit
+                second_op64bit(ctx)
 {$endif cpu64bitalu}
               else
-                second_opordinal;
+                second_opordinal(ctx);
             end;
           stringdef :
             begin
-              second_addstring;
+              second_addstring(ctx);
             end;
           setdef :
             begin
               if is_smallset(tsetdef(left.resultdef)) then
-                second_opsmallset
+                second_opsmallset(ctx)
               else
                 internalerror(200109041);
             end;
@@ -810,23 +810,23 @@ interface
             begin
               { support dynarr=nil }
               if is_dynamic_array(left.resultdef) then
-                second_opordinal
+                second_opordinal(ctx)
               else
                 if (cs_support_vectors in compiler.globals.current_settings.globalswitches) and
                    is_vector(left.resultdef) then
-                  second_opvector
+                  second_opvector(ctx)
 {$ifdef SUPPORT_MMX}
               else
                 if is_mmx_able_array(left.resultdef) then
-                  second_opmmx
+                  second_opmmx(ctx)
 {$endif SUPPORT_MMX}
               else
                 internalerror(200306016);
             end;
           floatdef :
-            second_opfloat;
+            second_opfloat(ctx);
           else
-            second_opordinal;
+            second_opordinal(ctx);
         end;
       end;
 

@@ -31,15 +31,15 @@ interface
     type
        ti8086inlinenode = class(tx86inlinenode)
          function pass_typecheck_cpu: tnode; override;
-         procedure pass_generate_code_cpu;override;
+         procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);override;
          function typecheck_faraddr: tnode;
          function typecheck_seg: tnode; override;
          function first_seg: tnode; override;
-         procedure second_seg; override;
-         procedure second_get_frame;override;
+         procedure second_seg(ctx:tpassgeneratecodecontext); override;
+         procedure second_get_frame(ctx:tpassgeneratecodecontext);override;
          function first_IncDec: tnode;override;
-         procedure second_incdec;override;
-         procedure second_abs_long;override;
+         procedure second_incdec(ctx:tpassgeneratecodecontext);override;
+         procedure second_abs_long(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -72,14 +72,14 @@ implementation
          end;
        end;
 
-     procedure ti8086inlinenode.pass_generate_code_cpu;
+     procedure ti8086inlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
        begin
          case inlinenumber of
            in_x86_inportl,
            in_x86_outportl:
              internalerror(2018070302);
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
@@ -202,11 +202,11 @@ implementation
          result:=nil;
        end;
 
-     procedure ti8086inlinenode.second_seg;
+     procedure ti8086inlinenode.second_seg(ctx:tpassgeneratecodecontext);
        var
          segref: treference;
        begin
-         secondpass(left);
+         secondpass(left,ctx);
 
          if left.resultdef.typ=procvardef then
            begin
@@ -256,7 +256,7 @@ implementation
            end;
        end;
 
-     procedure ti8086inlinenode.second_get_frame;
+     procedure ti8086inlinenode.second_get_frame(ctx:tpassgeneratecodecontext);
        begin
          if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
            begin
@@ -268,7 +268,7 @@ implementation
              current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,cg.GetNextReg(location.register)));
            end
          else
-           inherited second_get_frame;
+           inherited;
        end;
 
      function ti8086inlinenode.first_IncDec: tnode;
@@ -310,7 +310,7 @@ implementation
            result:=inherited;
        end;
 
-     procedure ti8086inlinenode.second_incdec;
+     procedure ti8086inlinenode.second_incdec(ctx:tpassgeneratecodecontext);
        const
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
        var
@@ -329,9 +329,9 @@ implementation
              { is used in that expression then SSL may move it to another }
              { register                                                   }
              if assigned(tcallparanode(left).right) then
-               secondpass(tcallparanode(tcallparanode(left).right).left);
+               secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
              { load first parameter, must be a reference }
-             secondpass(tcallparanode(left).left);
+             secondpass(tcallparanode(left).left,ctx);
              tmploc:=tcallparanode(left).left.location;
              tmploc.size:=OS_S16;
              { get addvalue }
@@ -378,11 +378,11 @@ implementation
                end;
            end
          else
-           inherited second_incdec;
+           inherited;
        end;
 
 
-     procedure ti8086inlinenode.second_abs_long;
+     procedure ti8086inlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
        var
          opsize: TCgSize;
          hl: TAsmLabel;
@@ -390,7 +390,7 @@ implementation
          opsize:=def_cgsize(left.resultdef);
          if opsize in [OS_64,OS_S64] then
            begin
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -415,7 +415,7 @@ implementation
            end
          else if opsize in [OS_32,OS_S32] then
            begin
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -434,7 +434,7 @@ implementation
               end;
            end
          else
-           inherited second_abs_long;
+           inherited;
        end;
 
 begin

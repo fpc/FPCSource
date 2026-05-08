@@ -40,14 +40,14 @@ interface
          function first_cmppointer: tnode; override;
          function first_cmphugepointer: tnode;
          function first_cmpfarpointer: tnode;
-         procedure second_addordinal; override;
-         procedure second_add64bit;override;
-         procedure second_addfarpointer;
-         procedure second_cmp64bit;override;
-         procedure second_cmp32bit;
-         procedure second_cmpfarpointer;
-         procedure second_cmpordinal;override;
-         procedure second_mul(unsigned: boolean);
+         procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
+         procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_addfarpointer(ctx:tpassgeneratecodecontext);
+         procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp32bit(ctx:tpassgeneratecodecontext);
+         procedure second_cmpfarpointer(ctx:tpassgeneratecodecontext);
+         procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+         procedure second_mul(unsigned: boolean;ctx:tpassgeneratecodecontext);
        end;
 
   implementation
@@ -162,25 +162,25 @@ interface
     end;
 
     { handles all multiplications }
-    procedure ti8086addnode.second_addordinal;
+    procedure ti8086addnode.second_addordinal(ctx:tpassgeneratecodecontext);
     var
       unsigned: boolean;
     begin
       unsigned:=not(is_signed(left.resultdef)) or
                 not(is_signed(right.resultdef));
       if nodetype=muln then
-        second_mul(unsigned)
+        second_mul(unsigned,ctx)
       else if is_farpointer(left.resultdef) xor is_farpointer(right.resultdef) then
-        second_addfarpointer
+        second_addfarpointer(ctx)
       else
-        inherited second_addordinal;
+        inherited;
     end;
 
 {*****************************************************************************
                                 Add64bit
 *****************************************************************************}
 
-    procedure ti8086addnode.second_add64bit;
+    procedure ti8086addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         op         : TOpCG;
         op1,op2    : TAsmOp;
@@ -191,7 +191,7 @@ interface
         unsigned:boolean;
         r:Tregister;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         op1:=A_NONE;
         op2:=A_NONE;
@@ -428,12 +428,12 @@ interface
       end;
 
 
-    procedure ti8086addnode.second_addfarpointer;
+    procedure ti8086addnode.second_addfarpointer(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         pointernode: tnode;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
         set_result_location_reg;
 
@@ -519,7 +519,7 @@ interface
       end;
 
 
-    procedure ti8086addnode.second_cmp64bit;
+    procedure ti8086addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel : tasmlabel;
@@ -642,7 +642,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
 
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u64bit)) or
@@ -741,7 +741,7 @@ interface
          end;
       end;
 
-    procedure ti8086addnode.second_cmp32bit;
+    procedure ti8086addnode.second_cmp32bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -820,7 +820,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
 
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u32bit)) or
@@ -910,16 +910,16 @@ interface
       end;
 
 
-    procedure ti8086addnode.second_cmpfarpointer;
+    procedure ti8086addnode.second_cmpfarpointer(ctx:tpassgeneratecodecontext);
       begin
         { handle = and <> as a 32-bit comparison }
         if nodetype in [equaln,unequaln] then
           begin
-            second_cmp32bit;
+            second_cmp32bit(ctx);
             exit;
           end;
 
-        pass_left_right;
+        pass_left_right(ctx);
 
         { <, >, <= and >= compare the 16-bit offset only }
         if (right.location.loc=LOC_CONSTANT) and
@@ -958,14 +958,14 @@ interface
       end;
 
 
-    procedure ti8086addnode.second_cmpordinal;
+    procedure ti8086addnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
         if is_farpointer(left.resultdef) then
-          second_cmpfarpointer
+          second_cmpfarpointer(ctx)
         else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) or is_farprocvar(left.resultdef) then
-          second_cmp32bit
+          second_cmp32bit(ctx)
         else
-          inherited second_cmpordinal;
+          inherited;
       end;
 
 
@@ -973,7 +973,7 @@ interface
                                 x86 MUL
 *****************************************************************************}
 
-    procedure ti8086addnode.second_mul(unsigned: boolean);
+    procedure ti8086addnode.second_mul(unsigned: boolean;ctx:tpassgeneratecodecontext);
 
     var reg:Tregister;
         ref:Treference;
@@ -988,7 +988,7 @@ interface
       reg:=NR_NO;
       reference_reset(ref,sizeof(pint),[]);
 
-      pass_left_right;
+      pass_left_right(ctx);
 
       overflowcheck:=needoverflowcheck;
 

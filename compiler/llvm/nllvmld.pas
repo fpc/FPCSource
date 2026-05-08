@@ -35,7 +35,7 @@ interface
     type
       tllvmloadnode = class(tcgnestloadnode)
         function pass_1: tnode; override;
-        procedure pass_generate_code; override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
       end;
 
       { tllvmarrayconstructornode }
@@ -73,7 +73,7 @@ function tllvmloadnode.pass_1: tnode;
     end;
   end;
 
-procedure tllvmloadnode.pass_generate_code;
+procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     pvdef: tprocvardef;
     href, mpref: treference;

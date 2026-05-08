@@ -36,22 +36,22 @@ type
   tmipsaddnode = class(tcgaddnode)
   private
 {$ifdef cpu32bit}
-    procedure cmp64_lt(left_reg, right_reg: TRegister64;unsigned:boolean);
-    procedure cmp64_le(left_reg, right_reg: TRegister64;unsigned:boolean);
-    procedure second_mul64bit;
+    procedure cmp64_lt(left_reg, right_reg: TRegister64;unsigned:boolean;ctx:tpassgeneratecodecontext);
+    procedure cmp64_le(left_reg, right_reg: TRegister64;unsigned:boolean;ctx:tpassgeneratecodecontext);
+    procedure second_mul64bit(ctx:tpassgeneratecodecontext);
 {$endif cpu32bit}
-    procedure second_generic_cmp32(unsigned,is_smallset: boolean);
+    procedure second_generic_cmp32(unsigned,is_smallset: boolean;ctx:tpassgeneratecodecontext);
   protected
-    procedure second_addfloat; override;
-    procedure second_cmpfloat; override;
-    procedure second_cmpboolean; override;
-    procedure second_cmpsmallset; override;
+    procedure second_addfloat(ctx:tpassgeneratecodecontext); override;
+    procedure second_cmpfloat(ctx:tpassgeneratecodecontext); override;
+    procedure second_cmpboolean(ctx:tpassgeneratecodecontext); override;
+    procedure second_cmpsmallset(ctx:tpassgeneratecodecontext); override;
 {$ifdef cpu32bit}
-    procedure second_add64bit; override;
-    procedure second_cmp64bit; override;
+    procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
+    procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
 {$endif cpu32bit}
-    procedure second_cmpordinal; override;
-    procedure second_addordinal; override;
+    procedure second_cmpordinal(ctx:tpassgeneratecodecontext); override;
+    procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
 {$ifdef cpu32bit}
   public
     function use_generic_mul32to64: boolean; override;
@@ -81,13 +81,13 @@ uses
                                tmipsaddnode
 *****************************************************************************}
 
-procedure tmipsaddnode.second_generic_cmp32(unsigned,is_smallset: boolean);
+procedure tmipsaddnode.second_generic_cmp32(unsigned,is_smallset: boolean;ctx:tpassgeneratecodecontext);
 var
   cond: TOpCmp;
   allow_constant : boolean;
   dreg : tregister;
 begin
-  pass_left_right;
+  pass_left_right(ctx);
   allow_constant:=(not is_smallset) or not (nodetype in [lten,gten]);
   force_reg_left_right(True, allow_constant);
   location_reset(location,LOC_FLAGS,OS_NO);
@@ -117,12 +117,12 @@ end;
 
 
 {$ifdef cpu32bit}
-procedure tmipsaddnode.second_add64bit;
+procedure tmipsaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
 begin
   if (nodetype=muln) then
-    second_mul64bit
+    second_mul64bit(ctx)
   else
-    inherited second_add64bit;
+    inherited;
 end;
 {$endif cpu32bit}
 
@@ -131,7 +131,7 @@ const
   cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
 
 {$ifdef cpu32bit}
-procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
+procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
 begin
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
@@ -140,7 +140,7 @@ begin
 end;
 
 
-procedure tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
+procedure tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
 begin
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
@@ -149,7 +149,7 @@ begin
 end;
 
 
-procedure tmipsaddnode.second_cmp64bit;
+procedure tmipsaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
 var
   truelabel,
   falselabel: tasmlabel;
@@ -160,7 +160,7 @@ begin
   current_asmdata.getjumplabel(falselabel);
   location_reset_jump(location,truelabel,falselabel);
 
-  pass_left_right;
+  pass_left_right(ctx);
   force_reg_left_right(true,true);
 
   unsigned:=not(is_signed(left.resultdef)) or
@@ -204,26 +204,26 @@ begin
     if nf_swapped in flags then
       case NodeType of
         ltn:
-          cmp64_lt(right_reg, left_reg,unsigned);
+          cmp64_lt(right_reg, left_reg,unsigned,ctx);
         lten:
-          cmp64_le(right_reg, left_reg,unsigned);
+          cmp64_le(right_reg, left_reg,unsigned,ctx);
         gtn:
-          cmp64_lt(left_reg, right_reg,unsigned);
+          cmp64_lt(left_reg, right_reg,unsigned,ctx);
         gten:
-          cmp64_le(left_reg, right_reg,unsigned);
+          cmp64_le(left_reg, right_reg,unsigned,ctx);
         else
           internalerror(2019051034);
       end
     else
       case NodeType of
         ltn:
-          cmp64_lt(left_reg, right_reg,unsigned);
+          cmp64_lt(left_reg, right_reg,unsigned,ctx);
         lten:
-          cmp64_le(left_reg, right_reg,unsigned);
+          cmp64_le(left_reg, right_reg,unsigned,ctx);
         gtn:
-          cmp64_lt(right_reg, left_reg,unsigned);
+          cmp64_lt(right_reg, left_reg,unsigned,ctx);
         gten:
-          cmp64_le(right_reg, left_reg,unsigned);
+          cmp64_le(right_reg, left_reg,unsigned,ctx);
         else
           internalerror(2019051033);
       end;
@@ -232,11 +232,11 @@ end;
 {$endif cpu32bit}
 
 
-procedure tmipsaddnode.second_addfloat;
+procedure tmipsaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
 var
   op: TAsmOp;
 begin
-  pass_left_right;
+  pass_left_right(ctx);
   if (nf_swapped in flags) then
     swapleftright;
 
@@ -293,12 +293,12 @@ const
     (A_C_LT_D, A_C_LE_D, A_C_LT_D, A_C_LE_D, A_C_EQ_D, A_C_EQ_D)
   );
 
-procedure tmipsaddnode.second_cmpfloat;
+procedure tmipsaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
 var
   op: tasmop;
   lreg,rreg: tregister;
 begin
-  pass_left_right;
+  pass_left_right(ctx);
   if nf_swapped in flags then
     swapleftright;
 
@@ -328,31 +328,31 @@ begin
 end;
 
 
-procedure tmipsaddnode.second_cmpboolean;
+procedure tmipsaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
 begin
-  second_generic_cmp32(true,false);
+  second_generic_cmp32(true,false,ctx);
 end;
 
 
-procedure tmipsaddnode.second_cmpsmallset;
+procedure tmipsaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
 begin
-  second_generic_cmp32(true,true);
+  second_generic_cmp32(true,true,ctx);
 end;
 
 
-procedure tmipsaddnode.second_cmpordinal;
+procedure tmipsaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
 var
   unsigned: boolean;
 begin
   unsigned := not (is_signed(left.resultdef)) or not (is_signed(right.resultdef));
-  second_generic_cmp32(unsigned,false);
+  second_generic_cmp32(unsigned,false,ctx);
 end;
 
 
 const
   multops: array[boolean] of TAsmOp = (A_MULT, A_MULTU);
 
-procedure tmipsaddnode.second_addordinal;
+procedure tmipsaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
 var
   unsigned: boolean;
 begin
@@ -361,7 +361,7 @@ begin
             not(is_signed(right.resultdef));
   if (nodetype=muln) and is_64bit(resultdef) then
     begin
-      pass_left_right;
+      pass_left_right(ctx);
       force_reg_left_right(true,false);
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -372,17 +372,17 @@ begin
     end
   else
 {$endif cpu32bit}
-    inherited second_addordinal;
+    inherited;
 end;
 
 {$ifdef cpu32bit}
-procedure tmipsaddnode.second_mul64bit;
+procedure tmipsaddnode.second_mul64bit(ctx:tpassgeneratecodecontext);
 var
   list: TAsmList;
   hreg1,hreg2,tmpreg: TRegister;
 begin
   list:=current_asmdata.CurrAsmList;
-  pass_left_right;
+  pass_left_right(ctx);
   location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
   hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
   { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }

@@ -35,12 +35,12 @@ interface
     type
        tcgloadnode = class(tloadnode)
          protected
-          procedure generate_nested_access(vs: tsym);virtual;
+          procedure generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext);virtual;
           procedure generate_absaddr_access(vs: tabsolutevarsym); virtual;
           procedure generate_threadvar_access(gvs: tstaticvarsym); virtual;
           function use_indirect_symbol(gvs: tstaticvarsym): boolean;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
           procedure changereflocation(const ref: treference);
        end;
 
@@ -48,7 +48,7 @@ interface
         protected
           function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;virtual;
         public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgarrayconstructornode = class(tarrayconstructornode)
@@ -56,11 +56,11 @@ interface
           procedure makearrayref(var ref: treference; eledef: tdef);virtual;
           procedure advancearrayoffset(var ref: treference; elesize: asizeint);virtual;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgrttinode = class(trttinode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -240,12 +240,12 @@ implementation
       end;
 
 
-    procedure tcgloadnode.generate_nested_access(vs: tsym);
+    procedure tcgloadnode.generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext);
       var
         { parameter declared as tsym to reduce interface unit dependencies }
         lvs: tabstractnormalvarsym absolute vs;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           internalerror(200309286);
         if lvs.localloc.loc<>LOC_REFERENCE then
@@ -411,7 +411,7 @@ implementation
                 );
       end;
 
-    procedure tcgloadnode.pass_generate_code;
+    procedure tcgloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hregister : tregister;
         vs   : tabstractnormalvarsym;
@@ -510,7 +510,7 @@ implementation
                 vs:=tabstractnormalvarsym(symtableentry);
                 { Nested variable }
                 if assigned(left) then
-                  generate_nested_access(vs)
+                  generate_nested_access(vs,ctx)
                 else
                   location:=vs.localloc;
 
@@ -559,7 +559,7 @@ implementation
                      { cpus with 16 bit address registers don't use registerhi here, so allocate already here a register for all purposes }
                      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
 {$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
-                     secondpass(left);
+                     secondpass(left,ctx);
 
                      { load class instance/classrefdef address }
                      if left.location.loc=LOC_CONSTANT then
@@ -722,7 +722,7 @@ implementation
                              SecondAssignment
 *****************************************************************************}
 
-    procedure tcgassignmentnode.pass_generate_code;
+    procedure tcgassignmentnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          shuffle : pmmshuffle;
          hlabel : tasmlabel;
@@ -763,18 +763,18 @@ implementation
         if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
             (node_complexity(right)>node_complexity(left)) and not(has_conditional_nodes(right)) then
          begin
-           secondpass(right);
+           secondpass(right,ctx);
            if compiler.verbose.codegenerror then
              exit;
 
-           secondpass(left);
+           secondpass(left,ctx);
            if compiler.verbose.codegenerror then
              exit;
          end
         else
          begin
            { calculate left sides }
-           secondpass(left);
+           secondpass(left,ctx);
            if compiler.verbose.codegenerror then
              exit;
 
@@ -784,7 +784,7 @@ implementation
            oldflowcontrol:=flowcontrol;
            include(flowcontrol,fc_lefthandled);
 
-           secondpass(right);
+           secondpass(right,ctx);
            flowcontrol:=oldflowcontrol;
 
            if compiler.verbose.codegenerror then
@@ -1276,7 +1276,7 @@ implementation
       end;
 
 
-    procedure tcgarrayconstructornode.pass_generate_code;
+    procedure tcgarrayconstructornode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hp    : tarrayconstructornode;
         href,
@@ -1324,7 +1324,7 @@ implementation
            if assigned(hp.left) then
             begin
               freetemp:=true;
-              secondpass(hp.left);
+              secondpass(hp.left,ctx);
               if (hp.left.location.loc=LOC_JUMP)<>
                  (hp.left.expectloc=LOC_JUMP) then
                 internalerror(2007103101);
@@ -1568,7 +1568,7 @@ implementation
                            SecondRTTI
 *****************************************************************************}
 
-    procedure tcgrttinode.pass_generate_code;
+    procedure tcgrttinode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         indirect : boolean;
       begin

@@ -32,7 +32,7 @@ interface
       trvrealconstnode = class(tcgrealconstnode)
         function pass_1 : tnode;override;
 
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       private
         function is_real_constant: boolean;
       end;
@@ -76,7 +76,7 @@ implementation
       end;
 
 
-    procedure trvrealconstnode.pass_generate_code;
+    procedure trvrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if is_real_constant then
           begin
@@ -92,7 +92,7 @@ implementation
               Internalerror(2025011103);
           end
         else
-          inherited pass_generate_code;
+          inherited;
       end;
 
 begin

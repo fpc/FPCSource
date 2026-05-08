@@ -33,7 +33,7 @@ interface
 
 
       tm68knotnode = class(tcgnotnode)
-         procedure second_boolean;override;
+         procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       tm68kmoddivnode = class(tcgmoddivnode)
@@ -44,11 +44,11 @@ interface
       end;
 
       tm68kunaryminusnode = class(tcgunaryminusnode)
-        procedure second_float;override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
       tm68kshlshrnode = class(tshlshrnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
@@ -73,12 +73,12 @@ implementation
                                TM68KNOTNODE
 *****************************************************************************}
 
-    procedure tm68knotnode.second_boolean;
+    procedure tm68knotnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         hreg: tregister;
         opsize : tcgsize;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             opsize:=def_cgsize(resultdef);
@@ -189,11 +189,11 @@ implementation
                           TM68KUNARYMINUSNODE
 *****************************************************************************}
 
-    procedure tm68kunaryminusnode.second_float;
+    procedure tm68kunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         href: treference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
 
@@ -236,14 +236,14 @@ implementation
           result := nil;
       end;
 
-    procedure tm68kshlshrnode.pass_generate_code;
+    procedure tm68kshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hregister, hreg64hi, hreg64lo : tregister;
         op : topcg;
         shiftval: aint;
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
         if is_64bit(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_64);

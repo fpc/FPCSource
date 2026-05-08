@@ -32,8 +32,8 @@ interface
        tcputypeconvnode = class(tcgtypeconvnode)
        protected
          function first_real_to_real: tnode;override;
-         procedure second_int_to_bool;override;
-         procedure second_int_to_real;override;
+         procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
+         procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
          function first_int_to_real: tnode;override;
        end;
 
@@ -96,14 +96,14 @@ implementation
       end;
 
 
-    procedure tcputypeconvnode.second_int_to_bool;
+    procedure tcputypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       var
         hreg1, onereg: tregister;
         href      : treference;
         hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
 
@@ -211,7 +211,7 @@ implementation
       end;
 
 
-    procedure tcputypeconvnode.second_int_to_real;
+    procedure tcputypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
       var
         ai: taicpu;
       begin

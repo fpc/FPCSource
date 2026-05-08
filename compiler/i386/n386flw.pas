@@ -34,11 +34,11 @@ interface
     end;
 
     ti386onnode=class(tcgonnode)
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
     ti386tryexceptnode=class(tcgtryexceptnode)
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
     ti386tryfinallynode=class(tcgtryfinallynode)
@@ -48,7 +48,7 @@ interface
       function pass_1: tnode;override;
       function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
-      procedure pass_generate_code;override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
     end;
 
 implementation
@@ -89,14 +89,14 @@ end;
 
 { ti386onnode }
 
-procedure ti386onnode.pass_generate_code;
+procedure ti386onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     oldflowcontrol : tflowcontrol;
     exceptvarsym : tlocalvarsym;
   begin
     if (compiler.target.info.system<>system_i386_win32) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
 
@@ -124,7 +124,7 @@ procedure ti386onnode.pass_generate_code;
     cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
     if assigned(right) then
-      secondpass(right);
+      secondpass(right,ctx);
 
     { deallocate exception symbol }
     if assigned(exceptvarsym) then
@@ -307,7 +307,7 @@ procedure emit_scope_end;
     emit_reg_ref(A_MOV,S_L,hreg2,href);
   end;
 
-procedure ti386tryfinallynode.pass_generate_code;
+procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     finallylabel,
     exceptlabel,
@@ -325,7 +325,7 @@ procedure ti386tryfinallynode.pass_generate_code;
   begin
     if (compiler.target.info.system<>system_i386_win32) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
     location_reset(location,LOC_VOID,OS_NO);
@@ -397,7 +397,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     { try code }
     if assigned(left) then
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         tryflowcontrol:=flowcontrol;
         if compiler.verbose.codegenerror then
           exit;
@@ -428,7 +428,7 @@ procedure ti386tryfinallynode.pass_generate_code;
 
     flowcontrol:=[fc_inflowcontrol];
     { right is a call to finalizer procedure }
-    secondpass(right);
+    secondpass(right,ctx);
 
     { goto is allowed if it stays inside the finally block,
       this is checked using the exception block number }
@@ -480,7 +480,7 @@ procedure ti386tryfinallynode.pass_generate_code;
 
 { ti386tryexceptnode }
 
-procedure ti386tryexceptnode.pass_generate_code;
+procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     exceptlabel,oldendexceptlabel,
     lastonlabel,
@@ -506,7 +506,7 @@ procedure ti386tryexceptnode.pass_generate_code;
   begin
     if (compiler.target.info.system<>system_i386_win32) then
       begin
-        inherited pass_generate_code;
+        inherited;
         exit;
       end;
     location_reset(location,LOC_VOID,OS_NO);
@@ -580,7 +580,7 @@ procedure ti386tryexceptnode.pass_generate_code;
         compiler.current_procinfo.CurrBreakLabel:=breaktrylabel;
       end;
 
-    secondpass(left);
+    secondpass(left,ctx);
     tryflowcontrol:=flowcontrol;
     if compiler.verbose.codegenerror then
       goto errorexit;
@@ -642,7 +642,7 @@ procedure ti386tryexceptnode.pass_generate_code;
             hlist.concat(tai_const.create_sym(onlabel));
             compiler.current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
-            secondpass(hnode);
+            secondpass(hnode,ctx);
             inc(onnodecount.value);
             hnode:=tonnode(hnode).left;
           end;
@@ -663,7 +663,7 @@ procedure ti386tryexceptnode.pass_generate_code;
       begin
         { here we don't have to reset flowcontrol           }
         { the default and on flowcontrols are handled equal }
-        secondpass(t1);
+        secondpass(t1,ctx);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
         if (flowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
           cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);

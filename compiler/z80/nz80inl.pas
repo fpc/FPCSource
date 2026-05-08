@@ -33,7 +33,7 @@ unit nz80inl;
       tz80inlinenode = class(tcginlinenode)
         function pass_typecheck_cpu:tnode;override;
         function first_cpu : tnode;override;
-        procedure pass_generate_code_cpu;override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);override;
       end;
 
   implementation
@@ -87,7 +87,7 @@ unit nz80inl;
       end;
 
 
-    procedure tz80inlinenode.pass_generate_code_cpu;
+    procedure tz80inlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
 
       procedure inport;
         var
@@ -96,7 +96,7 @@ unit nz80inl;
           ref : treference;
         begin
           portnumber:=left;
-          secondpass(portnumber);
+          secondpass(portnumber,ctx);
           if (portnumber.location.loc=LOC_CONSTANT) and
               (portnumber.location.value>=0) and
               (portnumber.location.value<=$ff) then
@@ -129,8 +129,8 @@ unit nz80inl;
         begin
           portnumber:=tcallparanode(tcallparanode(left).right).left;
           portdata:=tcallparanode(left).left;
-          secondpass(portdata);
-          secondpass(portnumber);
+          secondpass(portdata,ctx);
+          secondpass(portnumber,ctx);
           if (portnumber.location.loc=LOC_CONSTANT) and
               (portnumber.location.value>=0) and
               (portnumber.location.value<=$ff) then
@@ -163,7 +163,7 @@ unit nz80inl;
           in_z80_outport:
             outport;
           else
-            inherited pass_generate_code_cpu;
+            inherited;
         end;
       end;
 

@@ -31,11 +31,11 @@ unit navrinl;
 
     type
       tavrinlinenode = class(tcginlinenode)
-        procedure second_abs_long; override;
+        procedure second_abs_long(ctx:tpassgeneratecodecontext); override;
 
         function pass_typecheck_cpu:tnode;override;
         function first_cpu : tnode;override;
-        procedure pass_generate_code_cpu;override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);override;
       end;
 
   implementation
@@ -55,13 +55,13 @@ unit navrinl;
       cpubase,
       compiler;
 
-    procedure tavrinlinenode.second_abs_long;
+    procedure tavrinlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
         hl: TAsmLabel;
         size: TCgSize;
         dummyloc: tlocation;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
@@ -153,7 +153,7 @@ unit navrinl;
       end;
 
 
-    procedure tavrinlinenode.pass_generate_code_cpu;
+    procedure tavrinlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
       var
         para1,para2,para3,para4: tcallparanode;
         ref: treference;
@@ -180,7 +180,7 @@ unit navrinl;
             end;
           in_avr_restore:
             begin
-              secondpass(left);
+              secondpass(left,ctx);
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_OUT, NIO_SREG, left.location.register));
             end;
@@ -190,8 +190,8 @@ unit navrinl;
               para3:=tcallparanode(tcallparanode(para4).nextpara);
               para2:=tcallparanode(tcallparanode(para3).nextpara);
               para1:=tcallparanode(tcallparanode(para2).nextpara);
-              secondpass(tcallparanode(para1).paravalue);
-              secondpass(tcallparanode(para2).paravalue);
+              secondpass(tcallparanode(para1).paravalue,ctx);
+              secondpass(tcallparanode(para2).paravalue,ctx);
 
               cg.getcpuregister(current_asmdata.CurrAsmList,NR_R30);
               cg.getcpuregister(current_asmdata.CurrAsmList,NR_R31);
@@ -233,7 +233,7 @@ unit navrinl;
                 end;
             end
           else
-            inherited pass_generate_code_cpu;
+            inherited;
         end;
       end;
 

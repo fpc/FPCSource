@@ -31,7 +31,7 @@ interface
     type
        tx86realconstnode = class(tcgrealconstnode)
           function pass_1 : tnode;override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -63,7 +63,7 @@ implementation
       end;
 
 
-    procedure tx86realconstnode.pass_generate_code;
+    procedure tx86realconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          if is_number_float(value_real) then
            begin
@@ -122,10 +122,10 @@ implementation
                    end;
                end
             else
-              inherited pass_generate_code;
+              inherited;
            end
          else
-           inherited pass_generate_code;
+           inherited;
       end;
 
 

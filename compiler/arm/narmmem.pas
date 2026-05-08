@@ -28,12 +28,12 @@ interface
     uses
       globtype,
       symtype,
-      cgbase,cpubase,nmem,ncgmem,
+      cgbase,cpubase,node,nmem,ncgmem,
       compilerbase;
 
     type
       tarmloadparentfpnode = class(tcgloadparentfpnode)
-        procedure pass_generate_code; override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -55,7 +55,7 @@ implementation
                         TARMLOADPARENTFPNODE
 *****************************************************************************}
 
-    procedure tarmloadparentfpnode.pass_generate_code;
+    procedure tarmloadparentfpnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { normally, we cannot use the stack pointer as normal register on arm thumb }
         if (GenerateThumbCode) and
@@ -67,7 +67,7 @@ implementation
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,compiler.current_procinfo.framepointer,location.register);
           end
         else
-          inherited pass_generate_code;
+          inherited;
       end;
 
 {*****************************************************************************

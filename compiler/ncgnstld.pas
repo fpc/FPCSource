@@ -40,7 +40,7 @@ interface
         protected
          nestsym: tsym;
          nestsymderef: tderef;
-         procedure generate_nested_access(vs: tsym);override;
+         procedure generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext);override;
          function  keep_param_address_in_nested_struct: boolean; virtual;
         public
          function  pass_typecheck: tnode; override;
@@ -69,14 +69,14 @@ implementation
                           TCGNESTLOADNODE
 *****************************************************************************}
 
-    procedure tcgnestloadnode.generate_nested_access(vs: tsym);
+    procedure tcgnestloadnode.generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext);
       begin
         { left has been transformed into a string of accesses that result in
           the location of the original variable's copy in the appropriate
           parentfpstruct (via tcgnestloadparentfpnode.pass_1). In case it is a
           var/out/constref parameter, that "copy" will have been a copy of the
           address so the normal handling of such parameters in ncgld is ok) }
-        secondpass(left);
+        secondpass(left,ctx);
         location:=left.location;
       end;
 

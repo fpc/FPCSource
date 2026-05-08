@@ -34,7 +34,7 @@ type
   tcghlnotnode = class(tcgnotnode)
     function pass_1: tnode; override;
    protected
-    procedure second_boolean; override;
+    procedure second_boolean(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -58,9 +58,9 @@ function tcghlnotnode.pass_1: tnode;
   end;
 
 
-procedure tcghlnotnode.second_boolean;
+procedure tcghlnotnode.second_boolean(ctx:tpassgeneratecodecontext);
   begin
-    secondpass(left);
+    secondpass(left,ctx);
     hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
     { switch true and false labels to invert result }
     location_reset_jump(location,left.location.falselabel,left.location.truelabel);

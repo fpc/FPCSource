@@ -38,15 +38,15 @@ interface
         "If" is also implemented as a block, identical to high-level language. }
       twasmifnode = class(tcgifnode)
       public
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       { twasmwhilerepeatnode }
 
       twasmwhilerepeatnode = class(tcgwhilerepeatnode)
       public
-        procedure pass_generate_code_condition;
-        procedure pass_generate_code;override;
+        procedure pass_generate_code_condition(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       { twasmraisenode }
@@ -65,36 +65,36 @@ interface
 
       twasmtryexceptnode = class(tcgtryexceptnode)
       private
-        procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_native_exnref_exceptions;
-        procedure pass_generate_code_native_legacy_exceptions;
-        procedure pass_generate_code_bf_exceptions;
+        procedure pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       public
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       { twasmtryfinallynode }
 
       twasmtryfinallynode = class(tcgtryfinallynode)
       private
-        procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_native_exnref_exceptions;
-        procedure pass_generate_code_native_legacy_exceptions;
-        procedure pass_generate_code_bf_exceptions;
+        procedure pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       public
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       { twasmonnode }
 
       twasmonnode = class(tcgonnode)
       private
-        procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_native_exnref_exceptions;
-        procedure pass_generate_code_native_legacy_exceptions;
-        procedure pass_generate_code_bf_exceptions;
+        procedure pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
+        procedure pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       public
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -112,9 +112,9 @@ implementation
                            twasmwhilerepeatnode
 *****************************************************************************}
 
-    procedure twasmwhilerepeatnode.pass_generate_code_condition;
+    procedure twasmwhilerepeatnode.pass_generate_code_condition(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
         // reversing the condition
@@ -126,7 +126,7 @@ implementation
       end;
 
 
-    procedure twasmwhilerepeatnode.pass_generate_code;
+    procedure twasmwhilerepeatnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
@@ -153,7 +153,7 @@ implementation
         if lnf_testatbegin in loopflags then
         begin
           hlcg.a_label(current_asmdata.CurrAsmList,lcont);
-          pass_generate_code_condition;
+          pass_generate_code_condition(ctx);
         end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
@@ -161,7 +161,7 @@ implementation
         compiler.current_procinfo.CurrContinueLabel:=lcont;
         compiler.current_procinfo.CurrBreakLabel:=lbreak;
 
-        secondpass(right);
+        secondpass(right,ctx);
 
         if (lnf_testatbegin in loopflags) then
           current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1) ); // jump back to the external loop
@@ -170,7 +170,7 @@ implementation
         if not (lnf_testatbegin in loopflags) then
           begin
             hlcg.a_label(current_asmdata.CurrAsmList,lcont);
-            pass_generate_code_condition;
+            pass_generate_code_condition(ctx);
           end;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) ); // jump back to loop
 
@@ -189,7 +189,7 @@ implementation
                                twasmifnode
 *****************************************************************************}
 
-    procedure twasmifnode.pass_generate_code;
+    procedure twasmifnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         oldflowcontrol: tflowcontrol;
       begin
@@ -204,7 +204,7 @@ implementation
 
         //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
-        secondpass(left); // condition expressions
+        secondpass(left,ctx); // condition expressions
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
         if is_64bit(left.resultdef) then
@@ -218,12 +218,12 @@ implementation
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
         if Assigned(right) then
-          secondpass(right); // then branchs
+          secondpass(right,ctx); // then branchs
 
         if Assigned(t1) then // else branch
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_else));
-            secondpass(t1);
+            secondpass(t1,ctx);
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
@@ -481,13 +481,13 @@ implementation
                              twasmtryexceptnode
 *****************************************************************************}
 
-    procedure twasmtryexceptnode.pass_generate_code_no_exceptions;
+    procedure twasmtryexceptnode.pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        secondpass(left);
+        secondpass(left,ctx);
       end;
 
-    procedure twasmtryexceptnode.pass_generate_code_native_exnref_exceptions;
+    procedure twasmtryexceptnode.pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
       var
         trystate,doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
         destroytemps,
@@ -524,7 +524,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { try block }
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           goto errorexit;
 
@@ -537,7 +537,7 @@ implementation
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -602,7 +602,7 @@ implementation
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
-                secondpass(t1);
+                secondpass(t1,ctx);
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
@@ -673,7 +673,7 @@ implementation
           trystate.newflowcontrol - [fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryexceptnode.pass_generate_code_native_legacy_exceptions;
+    procedure twasmtryexceptnode.pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
       var
         trystate,doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
         destroytemps,
@@ -708,7 +708,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
         { try block }
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           goto errorexit;
 
@@ -719,7 +719,7 @@ implementation
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -782,7 +782,7 @@ implementation
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
-                secondpass(t1);
+                secondpass(t1,ctx);
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
@@ -851,7 +851,7 @@ implementation
           trystate.newflowcontrol - [fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryexceptnode.pass_generate_code_bf_exceptions;
+    procedure twasmtryexceptnode.pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       var
         trystate,doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
         destroytemps,
@@ -894,7 +894,7 @@ implementation
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=NewCurrRaiseLabel;
 
         { try block }
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           goto errorexit;
 
@@ -910,7 +910,7 @@ implementation
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -978,7 +978,7 @@ implementation
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
-                secondpass(t1);
+                secondpass(t1,ctx);
 
                 compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
@@ -1053,16 +1053,16 @@ implementation
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=OldCurrRaiseLabel;
       end;
 
-    procedure twasmtryexceptnode.pass_generate_code;
+    procedure twasmtryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_no_exceptions
+          pass_generate_code_no_exceptions(ctx)
         else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_exnref_exceptions
+          pass_generate_code_native_exnref_exceptions(ctx)
         else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_legacy_exceptions
+          pass_generate_code_native_legacy_exceptions(ctx)
         else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_bf_exceptions
+          pass_generate_code_bf_exceptions(ctx)
         else
           internalerror(2021091705);
       end;
@@ -1071,7 +1071,7 @@ implementation
                              twasmtryfinallynode
 *****************************************************************************}
 
-    procedure twasmtryfinallynode.pass_generate_code_no_exceptions;
+    procedure twasmtryfinallynode.pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
       var
         exitfinallylabel,
         continuefinallylabel,
@@ -1163,7 +1163,7 @@ implementation
         { try code }
         if assigned(left) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             if compiler.verbose.codegenerror then
               exit;
           end;
@@ -1211,7 +1211,7 @@ implementation
           flags regarding break/contrinue/etc. because we have to give an
           error in case one of those is used in the finally-code }
         flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-        secondpass(right);
+        secondpass(right,ctx);
         { goto is allowed if it stays inside the finally block,
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
@@ -1243,7 +1243,7 @@ implementation
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryfinallynode.pass_generate_code_native_exnref_exceptions;
+    procedure twasmtryfinallynode.pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
       var
         exitfinallylabel,
         continuefinallylabel,
@@ -1354,7 +1354,7 @@ implementation
         { try code }
         if assigned(left) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             if compiler.verbose.codegenerror then
               exit;
           end;
@@ -1412,7 +1412,7 @@ implementation
           flags regarding break/contrinue/etc. because we have to give an
           error in case one of those is used in the finally-code }
         flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-        secondpass(right);
+        secondpass(right,ctx);
         { goto is allowed if it stays inside the finally block,
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
@@ -1445,7 +1445,7 @@ implementation
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryfinallynode.pass_generate_code_native_legacy_exceptions;
+    procedure twasmtryfinallynode.pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
       var
         exitfinallylabel,
         continuefinallylabel,
@@ -1553,7 +1553,7 @@ implementation
         { try code }
         if assigned(left) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             if compiler.verbose.codegenerror then
               exit;
           end;
@@ -1609,7 +1609,7 @@ implementation
           flags regarding break/contrinue/etc. because we have to give an
           error in case one of those is used in the finally-code }
         flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-        secondpass(right);
+        secondpass(right,ctx);
         { goto is allowed if it stays inside the finally block,
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
@@ -1642,7 +1642,7 @@ implementation
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryfinallynode.pass_generate_code_bf_exceptions;
+    procedure twasmtryfinallynode.pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       var
         raisefinallylabel,
         exitfinallylabel,
@@ -1757,7 +1757,7 @@ implementation
         { try code }
         if assigned(left) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             if compiler.verbose.codegenerror then
               exit;
           end;
@@ -1816,7 +1816,7 @@ implementation
           flags regarding break/contrinue/etc. because we have to give an
           error in case one of those is used in the finally-code }
         flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-        secondpass(right);
+        secondpass(right,ctx);
         { goto is allowed if it stays inside the finally block,
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
@@ -1849,16 +1849,16 @@ implementation
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryfinallynode.pass_generate_code;
+    procedure twasmtryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_no_exceptions
+          pass_generate_code_no_exceptions(ctx)
         else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_exnref_exceptions
+          pass_generate_code_native_exnref_exceptions(ctx)
         else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_legacy_exceptions
+          pass_generate_code_native_legacy_exceptions(ctx)
         else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_bf_exceptions
+          pass_generate_code_bf_exceptions(ctx)
         else
           internalerror(2021091704);
       end;
@@ -1867,13 +1867,13 @@ implementation
                                   twasmonnode
 *****************************************************************************}
 
-    procedure twasmonnode.pass_generate_code_no_exceptions;
+    procedure twasmonnode.pass_generate_code_no_exceptions(ctx:tpassgeneratecodecontext);
       begin
         { should not be called }
         internalerror(2021092803);
       end;
 
-    procedure twasmonnode.pass_generate_code_native_exnref_exceptions;
+    procedure twasmonnode.pass_generate_code_native_exnref_exceptions(ctx:tpassgeneratecodecontext);
       var
         exceptvarsym : tlocalvarsym;
         exceptlocdef: tdef;
@@ -1953,7 +1953,7 @@ implementation
           end;
 
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
@@ -2017,10 +2017,10 @@ implementation
 
         { next on node }
         if assigned(left) then
-          secondpass(left);
+          secondpass(left,ctx);
       end;
 
-    procedure twasmonnode.pass_generate_code_native_legacy_exceptions;
+    procedure twasmonnode.pass_generate_code_native_legacy_exceptions(ctx:tpassgeneratecodecontext);
       var
         exceptvarsym : tlocalvarsym;
         exceptlocdef: tdef;
@@ -2098,7 +2098,7 @@ implementation
           end;
 
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
@@ -2160,10 +2160,10 @@ implementation
 
         { next on node }
         if assigned(left) then
-          secondpass(left);
+          secondpass(left,ctx);
       end;
 
-    procedure twasmonnode.pass_generate_code_bf_exceptions;
+    procedure twasmonnode.pass_generate_code_bf_exceptions(ctx:tpassgeneratecodecontext);
       var
         exceptvarsym : tlocalvarsym;
         exceptlocdef: tdef;
@@ -2249,7 +2249,7 @@ implementation
           end;
 
         if assigned(right) then
-          secondpass(right);
+          secondpass(right,ctx);
 
         compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
@@ -2315,19 +2315,19 @@ implementation
 
         { next on node }
         if assigned(left) then
-          secondpass(left);
+          secondpass(left,ctx);
       end;
 
-    procedure twasmonnode.pass_generate_code;
+    procedure twasmonnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_no_exceptions
+          pass_generate_code_no_exceptions(ctx)
         else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_exnref_exceptions
+          pass_generate_code_native_exnref_exceptions(ctx)
         else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_native_legacy_exceptions
+          pass_generate_code_native_legacy_exceptions(ctx)
         else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
-          pass_generate_code_bf_exceptions
+          pass_generate_code_bf_exceptions(ctx)
         else
           internalerror(2021092802);
       end;

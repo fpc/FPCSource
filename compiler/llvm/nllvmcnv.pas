@@ -39,27 +39,27 @@ interface
           function first_int_to_bool: tnode; override;
           function first_nil_to_methodprocvar: tnode; override;
          { function first_real_to_real: tnode; override; }
-         { procedure second_int_to_int;override; }
-         { procedure second_string_to_string;override; }
-         { procedure second_cstring_to_pchar;override; }
-         { procedure second_string_to_chararray;override; }
-         { procedure second_array_to_pointer;override; }
-         procedure second_pointer_to_array;override;
-         { procedure second_chararray_to_string;override; }
-         { procedure second_char_to_string;override; }
-         procedure second_int_to_real;override;
-         { procedure second_real_to_real;override; }
-         { procedure second_cord_to_pointer;override; }
-         procedure second_proc_to_procvar;override;
-         procedure second_nil_to_methodprocvar; override;
-         { procedure second_bool_to_int;override; }
-         procedure second_int_to_bool;override;
-         { procedure second_load_smallset;override;  }
-         { procedure second_ansistring_to_pchar;override; }
-         { procedure second_pchar_to_string;override; }
-         { procedure second_class_to_intf;override; }
-         { procedure second_char_to_char;override; }
-          procedure second_nothing; override;
+         { procedure second_int_to_int(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_string_to_string(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_cstring_to_pchar(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_string_to_chararray(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_array_to_pointer(ctx:tpassgeneratecodecontext);override; }
+         procedure second_pointer_to_array(ctx:tpassgeneratecodecontext);override;
+         { procedure second_chararray_to_string(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_char_to_string(ctx:tpassgeneratecodecontext);override; }
+         procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
+         { procedure second_real_to_real(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_cord_to_pointer(ctx:tpassgeneratecodecontext);override; }
+         procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);override;
+         procedure second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext); override;
+         { procedure second_bool_to_int(ctx:tpassgeneratecodecontext);override; }
+         procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
+         { procedure second_load_smallset(ctx:tpassgeneratecodecontext);override;  }
+         { procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_pchar_to_string(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_class_to_intf(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_char_to_char(ctx:tpassgeneratecodecontext);override; }
+          procedure second_nothing(ctx:tpassgeneratecodecontext); override;
        end;
 
 implementation
@@ -176,7 +176,7 @@ function tllvmtypeconvnode.first_nil_to_methodprocvar: tnode;
   end;
 
 
-procedure tllvmtypeconvnode.second_pointer_to_array;
+procedure tllvmtypeconvnode.second_pointer_to_array(ctx:tpassgeneratecodecontext);
   var
     hreg: tregister;
   begin
@@ -188,7 +188,7 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
   end;
 
 
-procedure tllvmtypeconvnode.second_int_to_real;
+procedure tllvmtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
   var
     op: tllvmop;
     llvmtodef: tdef;
@@ -209,7 +209,7 @@ procedure tllvmtypeconvnode.second_int_to_real;
   end;
 
 
-procedure tllvmtypeconvnode.second_proc_to_procvar;
+procedure tllvmtypeconvnode.second_proc_to_procvar(ctx:tpassgeneratecodecontext);
   begin
     inherited;
     if not tabstractprocdef(resultdef).is_addressonly and
@@ -225,7 +225,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
   end;
 
 
-procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
+procedure tllvmtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);
   var
     href: treference;
   begin
@@ -238,13 +238,13 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
   end;
 
 
-procedure tllvmtypeconvnode.second_int_to_bool;
+procedure tllvmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
   var
     truelabel,
     falselabel: tasmlabel;
     newsize  : tcgsize;
   begin
-    secondpass(left);
+    secondpass(left,ctx);
     if compiler.verbose.codegenerror then
       exit;
 
@@ -285,7 +285,7 @@ procedure tllvmtypeconvnode.second_int_to_bool;
   end;
 
 
-procedure tllvmtypeconvnode.second_nothing;
+procedure tllvmtypeconvnode.second_nothing(ctx:tpassgeneratecodecontext);
   var
     hreg: tregister;
   begin

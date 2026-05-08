@@ -75,7 +75,7 @@ interface
           function docompare(p: tnode) : boolean; override;
           function retains_value_location:boolean;
           function assign_allowed:boolean;
-          procedure second_call_helper(c : tconverttype);
+          procedure second_call_helper(c : tconverttype;ctx:tpassgeneratecodecontext);
           { always called before any other type conversion checks. If it
             returns true, the type conversion is ok and no further checks/
             handling are required. }
@@ -216,54 +216,54 @@ interface
           function _first_set_to_set : tnode;
           function _first_string_to_string : tnode;
 
-          procedure _second_int_to_int;virtual;
-          procedure _second_string_to_string;virtual;
-          procedure _second_cstring_to_pchar;virtual;
-          procedure _second_cstring_to_int;virtual;
-          procedure _second_string_to_chararray;virtual;
-          procedure _second_array_to_pointer;virtual;
-          procedure _second_pointer_to_array;virtual;
-          procedure _second_chararray_to_string;virtual;
-          procedure _second_char_to_string;virtual;
-          procedure _second_int_to_real;virtual;
-          procedure _second_real_to_real;virtual;
-          procedure _second_cord_to_pointer;virtual;
-          procedure _second_proc_to_procvar;virtual;
-          procedure _second_nil_to_methodprocvar;virtual;
-          procedure _second_bool_to_int;virtual;
-          procedure _second_int_to_bool;virtual;
-          procedure _second_bool_to_bool;virtual;
-          procedure _second_set_to_set;virtual;
-          procedure _second_ansistring_to_pchar;virtual;
-          procedure _second_class_to_intf;virtual;
-          procedure _second_char_to_char;virtual;
-          procedure _second_elem_to_openarray;virtual;
-          procedure _second_nothing; virtual;
+          procedure _second_int_to_int(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_string_to_string(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_cstring_to_pchar(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_cstring_to_int(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_string_to_chararray(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_array_to_pointer(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_pointer_to_array(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_chararray_to_string(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_char_to_string(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_int_to_real(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_real_to_real(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_cord_to_pointer(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_proc_to_procvar(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_bool_to_int(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_int_to_bool(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_bool_to_bool(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_set_to_set(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_class_to_intf(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_char_to_char(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_elem_to_openarray(ctx:tpassgeneratecodecontext);virtual;
+          procedure _second_nothing(ctx:tpassgeneratecodecontext); virtual;
 
         protected
-          procedure second_int_to_int;virtual;abstract;
-          procedure second_string_to_string;virtual;abstract;
-          procedure second_cstring_to_pchar;virtual;abstract;
-          procedure second_cstring_to_int;virtual;abstract;
-          procedure second_string_to_chararray;virtual;abstract;
-          procedure second_array_to_pointer;virtual;abstract;
-          procedure second_pointer_to_array;virtual;abstract;
-          procedure second_chararray_to_string;virtual;abstract;
-          procedure second_char_to_string;virtual;abstract;
-          procedure second_int_to_real;virtual;abstract;
-          procedure second_real_to_real;virtual;abstract;
-          procedure second_cord_to_pointer;virtual;abstract;
-          procedure second_proc_to_procvar;virtual;abstract;
-          procedure second_nil_to_methodprocvar;virtual;abstract;
-          procedure second_bool_to_int;virtual;abstract;
-          procedure second_int_to_bool;virtual;abstract;
-          procedure second_bool_to_bool;virtual;abstract;
-          procedure second_set_to_set;virtual;abstract;
-          procedure second_ansistring_to_pchar;virtual;abstract;
-          procedure second_class_to_intf;virtual;abstract;
-          procedure second_char_to_char;virtual;abstract;
-          procedure second_elem_to_openarray;virtual;abstract;
-          procedure second_nothing; virtual;abstract;
+          procedure second_int_to_int(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_string_to_string(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cstring_to_pchar(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cstring_to_int(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_string_to_chararray(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_array_to_pointer(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_pointer_to_array(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_chararray_to_string(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_char_to_string(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_int_to_real(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_real_to_real(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_cord_to_pointer(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_bool_to_int(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_int_to_bool(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_bool_to_bool(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_set_to_set(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_class_to_intf(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_char_to_char(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_elem_to_openarray(ctx:tpassgeneratecodecontext);virtual;abstract;
+          procedure second_nothing(ctx:tpassgeneratecodecontext); virtual;abstract;
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
 
@@ -303,7 +303,7 @@ interface
           constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
           constructor create_internal(l,r : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
        tisnodeclass = class of tisnode;
 
@@ -4721,143 +4721,143 @@ implementation
       end;
 
 
-    procedure ttypeconvnode._second_int_to_int;
+    procedure ttypeconvnode._second_int_to_int(ctx:tpassgeneratecodecontext);
       begin
-        second_int_to_int;
+        second_int_to_int(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_string_to_string;
+    procedure ttypeconvnode._second_string_to_string(ctx:tpassgeneratecodecontext);
       begin
-        second_string_to_string;
+        second_string_to_string(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_cstring_to_pchar;
+    procedure ttypeconvnode._second_cstring_to_pchar(ctx:tpassgeneratecodecontext);
       begin
-        second_cstring_to_pchar;
+        second_cstring_to_pchar(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_cstring_to_int;
+    procedure ttypeconvnode._second_cstring_to_int(ctx:tpassgeneratecodecontext);
       begin
-        second_cstring_to_int;
+        second_cstring_to_int(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_string_to_chararray;
+    procedure ttypeconvnode._second_string_to_chararray(ctx:tpassgeneratecodecontext);
       begin
-        second_string_to_chararray;
+        second_string_to_chararray(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_array_to_pointer;
+    procedure ttypeconvnode._second_array_to_pointer(ctx:tpassgeneratecodecontext);
       begin
-        second_array_to_pointer;
+        second_array_to_pointer(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_pointer_to_array;
+    procedure ttypeconvnode._second_pointer_to_array(ctx:tpassgeneratecodecontext);
       begin
-        second_pointer_to_array;
+        second_pointer_to_array(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_chararray_to_string;
+    procedure ttypeconvnode._second_chararray_to_string(ctx:tpassgeneratecodecontext);
       begin
-        second_chararray_to_string;
+        second_chararray_to_string(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_char_to_string;
+    procedure ttypeconvnode._second_char_to_string(ctx:tpassgeneratecodecontext);
       begin
-        second_char_to_string;
+        second_char_to_string(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_int_to_real;
+    procedure ttypeconvnode._second_int_to_real(ctx:tpassgeneratecodecontext);
       begin
-        second_int_to_real;
+        second_int_to_real(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_real_to_real;
+    procedure ttypeconvnode._second_real_to_real(ctx:tpassgeneratecodecontext);
       begin
-        second_real_to_real;
+        second_real_to_real(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_cord_to_pointer;
+    procedure ttypeconvnode._second_cord_to_pointer(ctx:tpassgeneratecodecontext);
       begin
-        second_cord_to_pointer;
+        second_cord_to_pointer(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_proc_to_procvar;
+    procedure ttypeconvnode._second_proc_to_procvar(ctx:tpassgeneratecodecontext);
       begin
-        second_proc_to_procvar;
+        second_proc_to_procvar(ctx);
       end;
 
-    procedure ttypeconvnode._second_nil_to_methodprocvar;
+    procedure ttypeconvnode._second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);
       begin
-        second_nil_to_methodprocvar;
+        second_nil_to_methodprocvar(ctx);
       end;
 
-    procedure ttypeconvnode._second_bool_to_int;
+    procedure ttypeconvnode._second_bool_to_int(ctx:tpassgeneratecodecontext);
       begin
-        second_bool_to_int;
-      end;
-
-
-    procedure ttypeconvnode._second_int_to_bool;
-      begin
-        second_int_to_bool;
+        second_bool_to_int(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_bool_to_bool;
+    procedure ttypeconvnode._second_int_to_bool(ctx:tpassgeneratecodecontext);
       begin
-        second_bool_to_bool;
+        second_int_to_bool(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_set_to_set;
+    procedure ttypeconvnode._second_bool_to_bool(ctx:tpassgeneratecodecontext);
       begin
-        second_set_to_set;
+        second_bool_to_bool(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_ansistring_to_pchar;
+    procedure ttypeconvnode._second_set_to_set(ctx:tpassgeneratecodecontext);
       begin
-        second_ansistring_to_pchar;
+        second_set_to_set(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_class_to_intf;
+    procedure ttypeconvnode._second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);
       begin
-        second_class_to_intf;
+        second_ansistring_to_pchar(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_char_to_char;
+    procedure ttypeconvnode._second_class_to_intf(ctx:tpassgeneratecodecontext);
       begin
-        second_char_to_char;
+        second_class_to_intf(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_elem_to_openarray;
+    procedure ttypeconvnode._second_char_to_char(ctx:tpassgeneratecodecontext);
       begin
-        second_elem_to_openarray;
+        second_char_to_char(ctx);
       end;
 
 
-    procedure ttypeconvnode._second_nothing;
+    procedure ttypeconvnode._second_elem_to_openarray(ctx:tpassgeneratecodecontext);
       begin
-        second_nothing;
+        second_elem_to_openarray(ctx);
       end;
 
 
-    procedure ttypeconvnode.second_call_helper(c : tconverttype);
+    procedure ttypeconvnode._second_nothing(ctx:tpassgeneratecodecontext);
+      begin
+        second_nothing(ctx);
+      end;
+
+
+    procedure ttypeconvnode.second_call_helper(c : tconverttype;ctx:tpassgeneratecodecontext);
       const
          secondconvert : array[tconverttype] of pointer = (
            @ttypeconvnode._second_nothing, {none}
@@ -5134,7 +5134,7 @@ implementation
 
     { dummy pass_2, it will never be called, but we need one since }
     { you can't instantiate an abstract class                      }
-    procedure tisnode.pass_generate_code;
+    procedure tisnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
       end;
 

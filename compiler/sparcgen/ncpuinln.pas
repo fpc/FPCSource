@@ -33,11 +33,11 @@ interface
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
-        procedure second_abs_real; override;
-        procedure second_sqr_real; override;
-        procedure second_sqrt_real; override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
       private
-        procedure load_fpu_location;
+        procedure load_fpu_location(ctx:tpassgeneratecodecontext);
       end;
 
 
@@ -57,9 +57,9 @@ implementation
                               tsparcinlinenode
 *****************************************************************************}
 
-    procedure tsparcinlinenode.load_fpu_location;
+    procedure tsparcinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
@@ -91,9 +91,9 @@ implementation
       end;
 
 
-    procedure tsparcinlinenode.second_abs_real;
+    procedure tsparcinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         case tfloatdef(left.resultdef).floattype of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABSs,left.location.register,location.register));
@@ -107,9 +107,9 @@ implementation
       end;
 
 
-    procedure tsparcinlinenode.second_sqr_real;
+    procedure tsparcinlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         case tfloatdef(left.resultdef).floattype of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMULs,left.location.register,left.location.register,location.register));
@@ -123,9 +123,9 @@ implementation
       end;
 
 
-    procedure tsparcinlinenode.second_sqrt_real;
+    procedure tsparcinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
-        load_fpu_location;
+        load_fpu_location(ctx);
         case tfloatdef(left.resultdef).floattype of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTs,left.location.register,location.register));

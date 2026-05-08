@@ -40,14 +40,14 @@ interface
 
       trv32shlshrnode = class(tcgshlshrnode)
         function first_shlshr64bitint: tnode;override;
-        procedure second_64bit;override;
+        procedure second_64bit(ctx:tpassgeneratecodecontext);override;
       end;
 
       trv32unaryminusnode = class(trvunaryminusnode)
       end;
 
       trv32notnode = class(tcgnotnode)
-        procedure second_boolean; override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -64,11 +64,11 @@ implementation
       ncgutil,cgcpu,
       compiler,nodehelper;
 
-    procedure trv32notnode.second_boolean;
+    procedure trv32notnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tlabel, flabel: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of
@@ -137,7 +137,7 @@ implementation
       end;
 
 
-    procedure trv32shlshrnode.second_64bit;
+    procedure trv32shlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         v : TConstExprInt;
         lreg, resreg: TRegister64;

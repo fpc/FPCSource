@@ -31,26 +31,26 @@ interface
     type
       tx86unaryminusnode = class(tcgunaryminusnode)
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;override;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);override;
 {$endif SUPPORT_MMX}
-         procedure second_float;override;
+         procedure second_float(ctx:tpassgeneratecodecontext);override;
          function pass_1:tnode;override;
       end;
 
       tx86notnode = class(tcgnotnode)
-         procedure second_boolean;override;
+         procedure second_boolean(ctx:tpassgeneratecodecontext);override;
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;override;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);override;
 {$endif SUPPORT_MMX}
       end;
 
       tx86moddivnode = class(tcgmoddivnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tx86shlshrnode = class(tcgshlshrnode)
 {$ifdef SUPPORT_MMX}
-         procedure second_mmx;override;
+         procedure second_mmx(ctx:tpassgeneratecodecontext);override;
 {$endif SUPPORT_MMX}
       end;
 
@@ -101,13 +101,13 @@ interface
 
 
 {$ifdef SUPPORT_MMX}
-    procedure tx86unaryminusnode.second_mmx;
+    procedure tx86unaryminusnode.second_mmx(ctx:tpassgeneratecodecontext);
       var
         op : tasmop;
         hreg : tregister;
       begin
         op:=A_NONE;
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
         hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
         emit_reg_reg(A_PXOR,S_NO,hreg,hreg);
@@ -163,13 +163,13 @@ interface
 {$endif SUPPORT_MMX}
 
 
-    procedure tx86unaryminusnode.second_float;
+    procedure tx86unaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         l1: TAsmLabel;
         href: treference;
         reg: tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         if expectloc=LOC_MMREGISTER then
           begin
@@ -252,7 +252,7 @@ interface
                                TX86NOTNODE
 *****************************************************************************}
 
-    procedure tx86notnode.second_boolean;
+    procedure tx86notnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
          opsize : tcgsize;
          {$if defined(cpu32bitalu) or defined(cpu16bitalu)}
@@ -261,7 +261,7 @@ interface
       begin
         opsize:=def_cgsize(resultdef);
 
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
          begin
            case left.location.loc of
@@ -366,12 +366,12 @@ interface
 
 
 {$ifdef SUPPORT_MMX}
-    procedure tx86notnode.second_mmx;
+    procedure tx86notnode.second_mmx(ctx:tpassgeneratecodecontext);
 
     var hreg,r:Tregister;
 
     begin
-      secondpass(left);
+      secondpass(left,ctx);
       location_reset(location,LOC_MMXREGISTER,OS_NO);
       r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
       emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
@@ -410,7 +410,7 @@ interface
                              TX86MODDIVNODE
 *****************************************************************************}
 
-    procedure tx86moddivnode.pass_generate_code;
+    procedure tx86moddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hreg1,hreg2,hreg3,hreg4,rega,regd,tempreg:Tregister;
         power:longint;
@@ -726,10 +726,10 @@ interface
           end;
 
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
-        secondpass(right);
+        secondpass(right,ctx);
         if compiler.verbose.codegenerror then
           exit;
 
@@ -981,16 +981,16 @@ DefaultDiv:
 
 
 {$ifdef SUPPORT_MMX}
-    procedure tx86shlshrnode.second_mmx;
+    procedure tx86shlshrnode.second_mmx(ctx:tpassgeneratecodecontext);
       var
         op         : TAsmOp;
         mmxbase    : tmmxtype;
         hregister  : tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
-        secondpass(right);
+        secondpass(right,ctx);
         if compiler.verbose.codegenerror then
           exit;
 

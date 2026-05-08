@@ -40,34 +40,34 @@ interface
         function first_trunc_real:tnode;override;
         function first_round_real:tnode;override;
         function first_popcnt:tnode;override;
-        procedure second_abs_real;override;
-        procedure second_int_real;override;
-        procedure second_sqrt_real;override;
-        procedure second_trunc_real;override;
-        procedure second_round_real;override;
-        procedure second_high; override;
-        procedure second_popcnt;override;
-        procedure second_memory_size;
-        procedure second_memory_grow;
-        procedure second_memory_fill;
-        procedure second_memory_copy;
-        procedure second_unreachable;
-        procedure second_throw_fpcexception;
-        procedure second_atomic_fence;
-        procedure second_atomic_load(op: TAsmOp);
-        procedure second_atomic_store(op: TAsmOp);
-        procedure second_atomic_rmw_x_y(op: TAsmOp);
-        procedure second_atomic_rmw_x_y_z(op: TAsmOp);
-        procedure second_tls_get(const SymStr: string);
-        procedure second_set_base_pointer;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext);override;
+        procedure second_int_real(ctx:tpassgeneratecodecontext);override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext);override;
+        procedure second_trunc_real(ctx:tpassgeneratecodecontext);override;
+        procedure second_round_real(ctx:tpassgeneratecodecontext);override;
+        procedure second_high(ctx:tpassgeneratecodecontext); override;
+        procedure second_popcnt(ctx:tpassgeneratecodecontext);override;
+        procedure second_memory_size(ctx:tpassgeneratecodecontext);
+        procedure second_memory_grow(ctx:tpassgeneratecodecontext);
+        procedure second_memory_fill(ctx:tpassgeneratecodecontext);
+        procedure second_memory_copy(ctx:tpassgeneratecodecontext);
+        procedure second_unreachable(ctx:tpassgeneratecodecontext);
+        procedure second_throw_fpcexception(ctx:tpassgeneratecodecontext);
+        procedure second_atomic_fence(ctx:tpassgeneratecodecontext);
+        procedure second_atomic_load(op: TAsmOp;ctx:tpassgeneratecodecontext);
+        procedure second_atomic_store(op: TAsmOp;ctx:tpassgeneratecodecontext);
+        procedure second_atomic_rmw_x_y(op: TAsmOp;ctx:tpassgeneratecodecontext);
+        procedure second_atomic_rmw_x_y_z(op: TAsmOp;ctx:tpassgeneratecodecontext);
+        procedure second_tls_get(const SymStr: string;ctx:tpassgeneratecodecontext);
+        procedure second_set_base_pointer(ctx:tpassgeneratecodecontext);
       protected
         function first_sqr_real: tnode; override;
       public
         function pass_typecheck_cpu: tnode; override;
         function first_cpu: tnode; override;
-        procedure pass_generate_code_cpu; override;
-        procedure second_length;override;
-        procedure second_sqr_real; override;
+        procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext); override;
+        procedure second_length(ctx:tpassgeneratecodecontext);override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -130,9 +130,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_abs_real;
+    procedure twasminlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -152,9 +152,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_int_real;
+    procedure twasminlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -174,9 +174,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_sqrt_real;
+    procedure twasminlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -196,9 +196,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_trunc_real;
+    procedure twasminlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -224,9 +224,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_round_real;
+    procedure twasminlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
@@ -258,11 +258,11 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_high;
+    procedure twasminlinenode.second_high(ctx:tpassgeneratecodecontext);
       var
         hightype: TWasmBasicType;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(is_dynamic_array(left.resultdef)) then
           Internalerror(2019122801);
         { determine the WasmBasicType of the result }
@@ -315,9 +315,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_popcnt;
+    procedure twasminlinenode.second_popcnt(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
@@ -333,7 +333,7 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_memory_size;
+    procedure twasminlinenode.second_memory_size(ctx:tpassgeneratecodecontext);
       begin
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_size));
         thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
@@ -344,9 +344,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_memory_grow;
+    procedure twasminlinenode.second_memory_grow(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
@@ -359,11 +359,11 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_memory_fill;
+    procedure twasminlinenode.second_memory_fill(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
@@ -372,7 +372,7 @@ implementation
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
-        secondpass(tcallparanode(tcallparanode(left).right).left);
+        secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
@@ -381,7 +381,7 @@ implementation
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
-        secondpass(tcallparanode(left).left);
+        secondpass(tcallparanode(left).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
@@ -395,11 +395,11 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_memory_copy;
+    procedure twasminlinenode.second_memory_copy(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
@@ -408,7 +408,7 @@ implementation
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
-        secondpass(tcallparanode(tcallparanode(left).right).left);
+        secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
@@ -417,7 +417,7 @@ implementation
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
-        secondpass(tcallparanode(left).left);
+        secondpass(tcallparanode(left).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
@@ -431,14 +431,14 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_unreachable;
+    procedure twasminlinenode.second_unreachable(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_unreachable));
       end;
 
 
-    procedure twasminlinenode.second_throw_fpcexception;
+    procedure twasminlinenode.second_throw_fpcexception(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
         if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
@@ -448,16 +448,16 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_atomic_fence;
+    procedure twasminlinenode.second_atomic_fence(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_atomic_fence));
       end;
 
 
-    procedure twasminlinenode.second_atomic_load(op: TAsmOp);
+    procedure twasminlinenode.second_atomic_load(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
@@ -469,11 +469,11 @@ implementation
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
-    procedure twasminlinenode.second_atomic_store(op: TAsmOp);
+    procedure twasminlinenode.second_atomic_store(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        secondpass(tcallparanode(tcallparanode(left).right).left);
+        secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
@@ -482,7 +482,7 @@ implementation
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
-        secondpass(tcallparanode(left).left);
+        secondpass(tcallparanode(left).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
@@ -496,9 +496,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_atomic_rmw_x_y(op: TAsmOp);
+    procedure twasminlinenode.second_atomic_rmw_x_y(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
-        secondpass(tcallparanode(tcallparanode(left).right).left);
+        secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
@@ -507,7 +507,7 @@ implementation
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
-        secondpass(tcallparanode(left).left);
+        secondpass(tcallparanode(left).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
@@ -524,9 +524,9 @@ implementation
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
-    procedure twasminlinenode.second_atomic_rmw_x_y_z(op: TAsmOp);
+    procedure twasminlinenode.second_atomic_rmw_x_y_z(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
-        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
@@ -535,7 +535,7 @@ implementation
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
-        secondpass(tcallparanode(tcallparanode(left).right).left);
+        secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
@@ -544,7 +544,7 @@ implementation
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
-        secondpass(tcallparanode(left).left);
+        secondpass(tcallparanode(left).left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
@@ -562,7 +562,7 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_tls_get(const SymStr: string);
+    procedure twasminlinenode.second_tls_get(const SymStr: string;ctx:tpassgeneratecodecontext);
       var
         sym: TWasmGlobalAsmSymbol;
       begin
@@ -577,12 +577,12 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_set_base_pointer;
+    procedure twasminlinenode.second_set_base_pointer(ctx:tpassgeneratecodecontext);
       var
         pd: tcpuprocdef;
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        secondpass(left);
+        secondpass(left,ctx);
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
@@ -856,176 +856,176 @@ implementation
       end;
 
 
-    procedure twasminlinenode.pass_generate_code_cpu;
+    procedure twasminlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
       begin
         case inlinenumber of
           in_wasm32_memory_size:
-            second_memory_size;
+            second_memory_size(ctx);
           in_wasm32_memory_grow:
-            second_memory_grow;
+            second_memory_grow(ctx);
           in_wasm32_memory_fill:
-            second_memory_fill;
+            second_memory_fill(ctx);
           in_wasm32_memory_copy:
-            second_memory_copy;
+            second_memory_copy(ctx);
           in_wasm32_unreachable:
-            second_unreachable;
+            second_unreachable(ctx);
           in_wasm32_throw_fpcexception:
-            second_throw_fpcexception;
+            second_throw_fpcexception(ctx);
           in_wasm32_atomic_fence:
-            second_atomic_fence;
+            second_atomic_fence(ctx);
           in_wasm32_i32_atomic_rmw8_add_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_add_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_add_u,ctx);
           in_wasm32_i32_atomic_rmw16_add_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_add_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_add_u,ctx);
           in_wasm32_i32_atomic_rmw_add:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_add);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_add,ctx);
           in_wasm32_i64_atomic_rmw8_add_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_add_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_add_u,ctx);
           in_wasm32_i64_atomic_rmw16_add_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_add_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_add_u,ctx);
           in_wasm32_i64_atomic_rmw32_add_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_add_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_add_u,ctx);
           in_wasm32_i64_atomic_rmw_add:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_add);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_add,ctx);
           in_wasm32_i32_atomic_rmw8_sub_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_sub_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_sub_u,ctx);
           in_wasm32_i32_atomic_rmw16_sub_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_sub_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_sub_u,ctx);
           in_wasm32_i32_atomic_rmw_sub:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_sub);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_sub,ctx);
           in_wasm32_i64_atomic_rmw8_sub_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_sub_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_sub_u,ctx);
           in_wasm32_i64_atomic_rmw16_sub_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_sub_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_sub_u,ctx);
           in_wasm32_i64_atomic_rmw32_sub_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_sub_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_sub_u,ctx);
           in_wasm32_i64_atomic_rmw_sub:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_sub);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_sub,ctx);
           in_wasm32_i32_atomic_rmw8_and_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_and_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_and_u,ctx);
           in_wasm32_i32_atomic_rmw16_and_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_and_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_and_u,ctx);
           in_wasm32_i32_atomic_rmw_and:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_and);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_and,ctx);
           in_wasm32_i64_atomic_rmw8_and_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_and_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_and_u,ctx);
           in_wasm32_i64_atomic_rmw16_and_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_and_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_and_u,ctx);
           in_wasm32_i64_atomic_rmw32_and_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_and_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_and_u,ctx);
           in_wasm32_i64_atomic_rmw_and:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_and);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_and,ctx);
           in_wasm32_i32_atomic_rmw8_or_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_or_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_or_u,ctx);
           in_wasm32_i32_atomic_rmw16_or_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_or_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_or_u,ctx);
           in_wasm32_i32_atomic_rmw_or:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_or);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_or,ctx);
           in_wasm32_i64_atomic_rmw8_or_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_or_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_or_u,ctx);
           in_wasm32_i64_atomic_rmw16_or_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_or_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_or_u,ctx);
           in_wasm32_i64_atomic_rmw32_or_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_or_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_or_u,ctx);
           in_wasm32_i64_atomic_rmw_or:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_or);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_or,ctx);
           in_wasm32_i32_atomic_rmw8_xor_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_xor_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_xor_u,ctx);
           in_wasm32_i32_atomic_rmw16_xor_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_xor_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_xor_u,ctx);
           in_wasm32_i32_atomic_rmw_xor:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_xor);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_xor,ctx);
           in_wasm32_i64_atomic_rmw8_xor_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_xor_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_xor_u,ctx);
           in_wasm32_i64_atomic_rmw16_xor_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_xor_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_xor_u,ctx);
           in_wasm32_i64_atomic_rmw32_xor_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_xor_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_xor_u,ctx);
           in_wasm32_i64_atomic_rmw_xor:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_xor);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_xor,ctx);
           in_wasm32_i32_atomic_rmw8_xchg_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw8_xchg_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw8_xchg_u,ctx);
           in_wasm32_i32_atomic_rmw16_xchg_u:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw16_xchg_u);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw16_xchg_u,ctx);
           in_wasm32_i32_atomic_rmw_xchg:
-            second_atomic_rmw_x_y(a_i32_atomic_rmw_xchg);
+            second_atomic_rmw_x_y(a_i32_atomic_rmw_xchg,ctx);
           in_wasm32_i64_atomic_rmw8_xchg_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw8_xchg_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw8_xchg_u,ctx);
           in_wasm32_i64_atomic_rmw16_xchg_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw16_xchg_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw16_xchg_u,ctx);
           in_wasm32_i64_atomic_rmw32_xchg_u:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw32_xchg_u);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw32_xchg_u,ctx);
           in_wasm32_i64_atomic_rmw_xchg:
-            second_atomic_rmw_x_y(a_i64_atomic_rmw_xchg);
+            second_atomic_rmw_x_y(a_i64_atomic_rmw_xchg,ctx);
           in_wasm32_i32_atomic_rmw8_cmpxchg_u:
-            second_atomic_rmw_x_y_z(a_i32_atomic_rmw8_cmpxchg_u);
+            second_atomic_rmw_x_y_z(a_i32_atomic_rmw8_cmpxchg_u,ctx);
           in_wasm32_i32_atomic_rmw16_cmpxchg_u:
-            second_atomic_rmw_x_y_z(a_i32_atomic_rmw16_cmpxchg_u);
+            second_atomic_rmw_x_y_z(a_i32_atomic_rmw16_cmpxchg_u,ctx);
           in_wasm32_i32_atomic_rmw_cmpxchg:
-            second_atomic_rmw_x_y_z(a_i32_atomic_rmw_cmpxchg);
+            second_atomic_rmw_x_y_z(a_i32_atomic_rmw_cmpxchg,ctx);
           in_wasm32_i64_atomic_rmw8_cmpxchg_u:
-            second_atomic_rmw_x_y_z(a_i64_atomic_rmw8_cmpxchg_u);
+            second_atomic_rmw_x_y_z(a_i64_atomic_rmw8_cmpxchg_u,ctx);
           in_wasm32_i64_atomic_rmw16_cmpxchg_u:
-            second_atomic_rmw_x_y_z(a_i64_atomic_rmw16_cmpxchg_u);
+            second_atomic_rmw_x_y_z(a_i64_atomic_rmw16_cmpxchg_u,ctx);
           in_wasm32_i64_atomic_rmw32_cmpxchg_u:
-            second_atomic_rmw_x_y_z(a_i64_atomic_rmw32_cmpxchg_u);
+            second_atomic_rmw_x_y_z(a_i64_atomic_rmw32_cmpxchg_u,ctx);
           in_wasm32_i64_atomic_rmw_cmpxchg:
-            second_atomic_rmw_x_y_z(a_i64_atomic_rmw_cmpxchg);
+            second_atomic_rmw_x_y_z(a_i64_atomic_rmw_cmpxchg,ctx);
           in_wasm32_memory_atomic_wait32:
-            second_atomic_rmw_x_y_z(a_memory_atomic_wait32);
+            second_atomic_rmw_x_y_z(a_memory_atomic_wait32,ctx);
           in_wasm32_memory_atomic_wait64:
-            second_atomic_rmw_x_y_z(a_memory_atomic_wait64);
+            second_atomic_rmw_x_y_z(a_memory_atomic_wait64,ctx);
           in_wasm32_memory_atomic_notify:
-            second_atomic_rmw_x_y(a_memory_atomic_notify);
+            second_atomic_rmw_x_y(a_memory_atomic_notify,ctx);
           in_i32_atomic_load8_u:
-            second_atomic_load(a_i32_atomic_load8_u);
+            second_atomic_load(a_i32_atomic_load8_u,ctx);
           in_i32_atomic_load16_u:
-            second_atomic_load(a_i32_atomic_load16_u);
+            second_atomic_load(a_i32_atomic_load16_u,ctx);
           in_i32_atomic_load:
-            second_atomic_load(a_i32_atomic_load);
+            second_atomic_load(a_i32_atomic_load,ctx);
           in_i64_atomic_load8_u:
-            second_atomic_load(a_i64_atomic_load8_u);
+            second_atomic_load(a_i64_atomic_load8_u,ctx);
           in_i64_atomic_load16_u:
-            second_atomic_load(a_i64_atomic_load16_u);
+            second_atomic_load(a_i64_atomic_load16_u,ctx);
           in_i64_atomic_load32_u:
-            second_atomic_load(a_i64_atomic_load32_u);
+            second_atomic_load(a_i64_atomic_load32_u,ctx);
           in_i64_atomic_load:
-            second_atomic_load(a_i64_atomic_load);
+            second_atomic_load(a_i64_atomic_load,ctx);
           in_i32_atomic_store8:
-            second_atomic_store(a_i32_atomic_store8);
+            second_atomic_store(a_i32_atomic_store8,ctx);
           in_i32_atomic_store16:
-            second_atomic_store(a_i32_atomic_store16);
+            second_atomic_store(a_i32_atomic_store16,ctx);
           in_i32_atomic_store:
-            second_atomic_store(a_i32_atomic_store);
+            second_atomic_store(a_i32_atomic_store,ctx);
           in_i64_atomic_store8:
-            second_atomic_store(a_i64_atomic_store8);
+            second_atomic_store(a_i64_atomic_store8,ctx);
           in_i64_atomic_store16:
-            second_atomic_store(a_i64_atomic_store16);
+            second_atomic_store(a_i64_atomic_store16,ctx);
           in_i64_atomic_store32:
-            second_atomic_store(a_i64_atomic_store32);
+            second_atomic_store(a_i64_atomic_store32,ctx);
           in_i64_atomic_store:
-            second_atomic_store(a_i64_atomic_store);
+            second_atomic_store(a_i64_atomic_store,ctx);
           in_wasm32_tls_size:
-            second_tls_get(TLS_SIZE_SYM);
+            second_tls_get(TLS_SIZE_SYM,ctx);
           in_wasm32_tls_align:
-            second_tls_get(TLS_ALIGN_SYM);
+            second_tls_get(TLS_ALIGN_SYM,ctx);
           in_wasm32_tls_base:
-            second_tls_get(TLS_BASE_SYM);
+            second_tls_get(TLS_BASE_SYM,ctx);
           in_wasm32_set_base_pointer:
-            second_set_base_pointer;
+            second_set_base_pointer(ctx);
           else
-            inherited pass_generate_code_cpu;
+            inherited;
         end;
       end;
 
 
-    procedure twasminlinenode.second_length;
+    procedure twasminlinenode.second_length(ctx:tpassgeneratecodecontext);
       var
         lendef : tdef;
         href : treference;
         extra_slots: LongInt;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if is_shortstring(left.resultdef) then
           begin
             location_copy(location,left.location);
@@ -1079,9 +1079,9 @@ implementation
       end;
 
 
-    procedure twasminlinenode.second_sqr_real;
+    procedure twasminlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);

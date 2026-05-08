@@ -36,20 +36,20 @@ interface
 
        twasmaddnode = class(tcgaddnode)
        protected
-          procedure second_generic_compare(unsigned: boolean);
+          procedure second_generic_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
 
-          procedure pass_left_right;override;
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_cmpboolean;override;
-          procedure second_cmp64bit;override;
-          procedure second_add64bit; override;
-          procedure second_cmpordinal;override;
-          procedure second_cmpsmallset;override;
+          procedure pass_left_right(ctx:tpassgeneratecodecontext);override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpboolean(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
 
           // special treatment for short-boolean expressions
           // using IF block, instead of direct labels
-          procedure second_addboolean; override;
+          procedure second_addboolean(ctx:tpassgeneratecodecontext); override;
        public
           function pass_1: tnode;override;
        end;
@@ -80,20 +80,20 @@ interface
           expectloc:=LOC_REGISTER;
       end;
 
-    procedure twasmaddnode.pass_left_right;
+    procedure twasmaddnode.pass_left_right(ctx:tpassgeneratecodecontext);
       begin
         //if not((nodetype in [orn,andn]) and
         //       is_boolean(left.resultdef)) then
         //  swapleftright;
-        inherited pass_left_right;
+        inherited;
       end;
 
-    procedure twasmaddnode.second_addfloat;
+    procedure twasmaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
         commutative : boolean;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
@@ -156,14 +156,14 @@ interface
         thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
-    procedure twasmaddnode.second_cmpfloat;
+    procedure twasmaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
         commutative : boolean;
         cmpResultType : tdef;
       begin
         cmpResultType := compiler.deftypes.s32inttype;
-        pass_left_right;
+        pass_left_right(ctx);
 
         commutative:=false;
         case nodetype of
@@ -240,38 +240,38 @@ interface
       end;
 
 
-    procedure twasmaddnode.second_cmpboolean;
+    procedure twasmaddnode.second_cmpboolean(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(true);
+        second_generic_compare(true,ctx);
       end;
 
 
-    procedure twasmaddnode.second_cmp64bit;
+    procedure twasmaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(not is_signed(left.resultdef));
+        second_generic_compare(not is_signed(left.resultdef),ctx);
       end;
 
 
-    procedure twasmaddnode.second_add64bit;
+    procedure twasmaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_opordinal;
+        second_opordinal(ctx);
       end;
 
 
-    procedure twasmaddnode.second_cmpordinal;
+    procedure twasmaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
-        second_generic_compare(not is_signed(left.resultdef));
+        second_generic_compare(not is_signed(left.resultdef),ctx);
       end;
 
 
-    procedure twasmaddnode.second_cmpsmallset;
+    procedure twasmaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       begin
         case nodetype of
           equaln,unequaln:
-            second_generic_compare(true);
+            second_generic_compare(true,ctx);
           lten,gten:
             begin
-              pass_left_right;
+              pass_left_right(ctx);
 
               if (not(nf_swapped in flags) and (nodetype = gten)) or
                  ((nf_swapped in flags) and (nodetype = lten)) then
@@ -291,13 +291,13 @@ interface
       end;
 
 
-    procedure twasmaddnode.second_addboolean;
+    procedure twasmaddnode.second_addboolean(ctx:tpassgeneratecodecontext);
       begin
         if (nodetype in [orn,andn]) and
            (not(cs_full_boolean_eval in compiler.globals.current_settings.localswitches) or
             (anf_short_bool in addnodeflags)) then
         begin
-          secondpass(left);
+          secondpass(left,ctx);
           thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
           if is_64bit(left.resultdef) then
@@ -318,7 +318,7 @@ interface
                 begin
                    // inside of IF (the condition evaluated as true)
                    // for "and" must evaluate the right section
-                   secondpass(right);
+                   secondpass(right,ctx);
                    thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
@@ -346,7 +346,7 @@ interface
                    thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
                    // inside of ELSE (the condition evaluated as false)
                    // for "or" must evaluate the right part
-                   secondpass(right);
+                   secondpass(right,ctx);
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
                    thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
@@ -361,11 +361,11 @@ interface
           inherited;
       end;
 
-    procedure twasmaddnode.second_generic_compare(unsigned: boolean);
+    procedure twasmaddnode.second_generic_compare(unsigned: boolean;ctx:tpassgeneratecodecontext);
       var
         cmpop: TOpCmp;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         { swap the operands to make it easier for the optimizer to optimize
           the operand stack slot reloading in case both are in a register }
         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and

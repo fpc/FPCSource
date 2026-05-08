@@ -39,11 +39,11 @@ interface
          procedure set_absvarsym_resultdef; override;
         public
          get_offset_only: boolean;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        ti8086derefnode = class(tx86derefnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
@@ -90,11 +90,11 @@ implementation
       end;
 
 
-    procedure ti8086addrnode.pass_generate_code;
+    procedure ti8086addrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if get_offset_only then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
 
             location_reset(location,LOC_REGISTER,OS_16);
             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidnearpointertype);
@@ -110,7 +110,7 @@ implementation
                              TI8086DEREFNODE
 *****************************************************************************}
 
-    procedure ti8086derefnode.pass_generate_code;
+    procedure ti8086derefnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         paraloc1 : tcgpara;
         pd : tprocdef;
@@ -120,7 +120,7 @@ implementation
       begin
         if tcpupointerdef(left.resultdef).x86pointertyp in [x86pt_far,x86pt_huge] then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             { assume natural alignment, except for packed records }
             if not(resultdef.typ in [recorddef,objectdef]) or
                (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
@@ -182,7 +182,7 @@ implementation
              end;
           end
         else
-          inherited pass_generate_code;
+          inherited;
       end;
 
 {*****************************************************************************

@@ -29,7 +29,7 @@ in_x86_movss
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -69,7 +69,7 @@ in_x86_movaps
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -101,7 +101,7 @@ in_x86_movss_to_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -126,7 +126,7 @@ in_x86_movaps_to_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -143,7 +143,7 @@ in_x86_movss_to_val
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -161,7 +161,7 @@ in_x86_movss_from_val
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -193,7 +193,7 @@ in_x86_movlps
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -215,7 +215,7 @@ in_x86_movlps_to_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -486,7 +486,7 @@ in_x86_movlhps
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -520,7 +520,7 @@ in_x86_addss
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -556,7 +556,7 @@ in_x86_addss_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -818,7 +818,7 @@ in_x86_addps_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -836,7 +836,7 @@ in_x86_cmpss
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -854,7 +854,7 @@ in_x86_cmpss_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -902,7 +902,7 @@ in_x86_cmpps
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -948,7 +948,7 @@ in_x86_cmpps_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -966,7 +966,7 @@ in_x86_cvtsi2ss
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
@@ -986,7 +986,7 @@ in_x86_cvtss2si
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_INT);
@@ -1006,7 +1006,7 @@ in_x86_cvtss2si_from_mem
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_REGISTER,OS_INT);
@@ -1026,7 +1026,7 @@ in_x86_cvtpi2ps
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1048,7 +1048,7 @@ in_x86_cvtps2pi
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMXREGISTER,OS_M64);
@@ -1068,7 +1068,7 @@ in_x86_cvtps2pi_from_mem
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMXREGISTER,OS_M64);
@@ -1100,7 +1100,7 @@ in_x86_pmulhuw_mmx
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1132,7 +1132,7 @@ in_x86_pmulhuw_mmx_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1150,7 +1150,7 @@ in_x86_pextrw_mmx
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_INT);
@@ -1168,7 +1168,7 @@ in_x86_pinsrw_mmx
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
@@ -1186,7 +1186,7 @@ in_x86_pmovmskb_mmx
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_INT);
@@ -1204,7 +1204,7 @@ in_x86_pshufw
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMXREGISTER,OS_M64);
@@ -1222,7 +1222,7 @@ in_x86_pshufw_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMXREGISTER,OS_M64);
@@ -1242,7 +1242,7 @@ in_x86_movmskpd
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_32);
@@ -1260,7 +1260,7 @@ in_x86_movsd_to_val
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1278,7 +1278,7 @@ in_x86_movsd_from_val
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1308,7 +1308,7 @@ in_x86_addsd
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1338,7 +1338,7 @@ in_x86_addsd_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1358,7 +1358,7 @@ in_x86_maxsd
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1412,7 +1412,7 @@ in_x86_sqrtpd
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1430,7 +1430,7 @@ in_x86_sqrtsd
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1448,7 +1448,7 @@ in_x86_sqrtsd_from_mem
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1466,7 +1466,7 @@ in_x86_cmpsd
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1484,7 +1484,7 @@ in_x86_cmpsd_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1504,7 +1504,7 @@ in_x86_cvtpd2pi
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1524,7 +1524,7 @@ in_x86_cvtpd2pi_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1544,7 +1544,7 @@ in_x86_cvtsd2si
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.sinttype,false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1564,7 +1564,7 @@ in_x86_cvtsd2si_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.sinttype,false);
     location_make_ref(paraarray[2].location);
@@ -1582,7 +1582,7 @@ in_x86_cvtsi2sd
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.u32inttype,true);
@@ -1602,7 +1602,7 @@ in_x86_cvtsi2sd_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1620,7 +1620,7 @@ in_x86_movd_from_reg
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.u32inttype,true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1652,7 +1652,7 @@ in_x86_movq_from_mem
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1670,7 +1670,7 @@ in_x86_pmovmskb
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[1].location, paraarray[1].resultdef,compiler.deftypes.u32inttype,false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1688,7 +1688,7 @@ in_x86_pextrw_sse2
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_16);
@@ -1710,7 +1710,7 @@ in_x86_pinsrw_sse2
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.u32inttype,true);
@@ -1728,7 +1728,7 @@ in_x86_pinsrw_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1764,7 +1764,7 @@ in_x86_psllw_sse2_imm
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location:=paraarray[1].location;
@@ -1781,7 +1781,7 @@ in_x86_maskmovdqu
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     hlcg.getcpuregister(current_asmdata.CurrAsmList,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});
     hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,compiler.deftypes.voidpointertype,paraarray[1].location,{$if defined(cpu64bitalu)}NR_RDI{$else}NR_EDI{$endif});
@@ -1801,7 +1801,7 @@ in_x86_movq2dq
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_force_mmxreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1829,7 +1829,7 @@ in_x86_pshufhw
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1855,7 +1855,7 @@ in_x86_pshufhw_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1877,7 +1877,7 @@ in_x86_blendvps
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -1903,7 +1903,7 @@ in_x86_blendvps_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -1925,7 +1925,7 @@ in_x86_roundss_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1943,7 +1943,7 @@ in_x86_roundsd
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1961,7 +1961,7 @@ in_x86_roundsd_from_mem
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);
@@ -1981,7 +1981,7 @@ in_x86_insertps_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -2001,7 +2001,7 @@ in_x86_extractps
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_32);
@@ -2021,7 +2021,7 @@ in_x86_extractps_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -2038,7 +2038,7 @@ in_x86_pinsrb_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -2057,7 +2057,7 @@ in_x86_pinsrq
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, paraarray[2].location, paraarray[2].resultdef,compiler.deftypes.uinttype,true);
@@ -2077,7 +2077,7 @@ in_x86_pinsrq_from_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, false);
     location_make_ref(paraarray[2].location);
@@ -2096,7 +2096,7 @@ in_x86_pextrb
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_8);
@@ -2114,7 +2114,7 @@ in_x86_pextrb_to_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -2131,7 +2131,7 @@ in_x86_pextrw_sse41_to_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -2149,7 +2149,7 @@ in_x86_pextrq
 
     GetParameters(2);
 
-    for i := 1 to 2 do secondpass(paraarray[i]);
+    for i := 1 to 2 do secondpass(paraarray[i],ctx);
 
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[1].location, true);
     location_reset(location,LOC_REGISTER,OS_32);
@@ -2169,7 +2169,7 @@ in_x86_pextrq_to_mem
 
     GetParameters(3);
 
-    for i := 1 to 3 do secondpass(paraarray[i]);
+    for i := 1 to 3 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_force_mmreg(current_asmdata.CurrAsmList, paraarray[2].location, true);
@@ -2189,7 +2189,7 @@ in_x86_pmovsxbq_from_mem
 
     GetParameters(1);
 
-    for i := 1 to 1 do secondpass(paraarray[i]);
+    for i := 1 to 1 do secondpass(paraarray[i],ctx);
 
     location_make_ref(paraarray[1].location);
     location_reset(location,LOC_MMREGISTER,OS_M128);

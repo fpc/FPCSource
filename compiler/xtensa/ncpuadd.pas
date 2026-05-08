@@ -32,22 +32,22 @@ interface
     type
        TCPUAddNode = class(tcgaddnode)
        private
-         procedure pass_left_and_right;
-         procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean);
-         procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean);
+         procedure pass_left_and_right(ctx:tpassgeneratecodecontext);
+         procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean; ctx:tpassgeneratecodecontext);
+         procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean; ctx:tpassgeneratecodecontext);
        protected
          function pass_1 : tnode;override;
          function first_addfloat: tnode;override;
          function use_generic_mul32to64: boolean;override;
          function use_generic_mul64bit: boolean;override;
-         procedure second_addordinal;override;
-         procedure second_cmpordinal;override;
-         procedure second_cmpsmallset;override;
-         procedure second_cmp64bit;override;
-         procedure second_add64bit;override;
-         procedure second_cmpfloat;override;
-         procedure second_addfloat;override;
-         procedure second_cmp;
+         procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+         procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp(ctx:tpassgeneratecodecontext);
          function use_fma: boolean;override;
        end;
 
@@ -76,7 +76,7 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_addordinal;
+    procedure TCPUAddNode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
         ophigh: tasmop;
       begin
@@ -89,7 +89,7 @@ interface
             else
               ophigh:=A_MULSH;
 
-            pass_left_right;
+            pass_left_right(ctx);
 
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -110,12 +110,12 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmpsmallset;
+    procedure TCPUAddNode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         truelab, falselab: TAsmLabel;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         if (not(nf_swapped in flags) and
             (nodetype = lten)) or
@@ -154,13 +154,13 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmp;
+    procedure TCPUAddNode.second_cmp(ctx:tpassgeneratecodecontext);
       var
         cond: TOpCmp;
         instr: taicpu;
         truelab, falselab: TAsmLabel;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         current_asmdata.getjumplabel(truelab);
         current_asmdata.getjumplabel(falselab);
@@ -211,7 +211,7 @@ interface
     const
       cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
 
-    procedure TCPUAddNode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
+    procedure TCPUAddNode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
@@ -220,7 +220,7 @@ interface
       end;
 
 
-    procedure TCPUAddNode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
+    procedure TCPUAddNode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
@@ -229,7 +229,7 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmp64bit;
+    procedure TCPUAddNode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -240,7 +240,7 @@ interface
         current_asmdata.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -269,26 +269,26 @@ interface
           if nf_swapped in flags then
             case NodeType of
               ltn:
-                cmp64_lt(right_reg, left_reg,unsigned);
+                cmp64_lt(right_reg, left_reg,unsigned,ctx);
               lten:
-                cmp64_le(right_reg, left_reg,unsigned);
+                cmp64_le(right_reg, left_reg,unsigned,ctx);
               gtn:
-                cmp64_lt(left_reg, right_reg,unsigned);
+                cmp64_lt(left_reg, right_reg,unsigned,ctx);
               gten:
-                cmp64_le(left_reg, right_reg,unsigned);
+                cmp64_le(left_reg, right_reg,unsigned,ctx);
               else
                 internalerror(2020082202);
             end
           else
             case NodeType of
               ltn:
-                cmp64_lt(left_reg, right_reg,unsigned);
+                cmp64_lt(left_reg, right_reg,unsigned,ctx);
               lten:
-                cmp64_le(left_reg, right_reg,unsigned);
+                cmp64_le(left_reg, right_reg,unsigned,ctx);
               gtn:
-                cmp64_lt(right_reg, left_reg,unsigned);
+                cmp64_lt(right_reg, left_reg,unsigned,ctx);
               gten:
-                cmp64_le(right_reg, left_reg,unsigned);
+                cmp64_le(right_reg, left_reg,unsigned,ctx);
               else
                 internalerror(2020082203);
             end;
@@ -327,13 +327,13 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmpordinal;
+    procedure TCPUAddNode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
-        second_cmp;
+        second_cmp(ctx);
       end;
 
 
-    procedure TCPUAddNode.pass_left_and_right;
+    procedure TCPUAddNode.pass_left_and_right(ctx:tpassgeneratecodecontext);
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -342,8 +342,8 @@ interface
         if (left.nodetype=ordconstn) then
          swapleftright;
 
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
       end;
 
 
@@ -381,14 +381,14 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_addfloat;
+    procedure TCPUAddNode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op    : TAsmOp;
         cmpop,
         singleprec , inv: boolean;
         ai : taicpu;
       begin
-        pass_left_and_right;
+        pass_left_and_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -481,20 +481,20 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmpfloat;
+    procedure TCPUAddNode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       begin
-        second_addfloat;
+        second_addfloat(ctx);
       end;
 
 
-    procedure TCPUAddNode.second_add64bit;
+    procedure TCPUAddNode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         unsigned: Boolean;
         tmpreg: tregister;
       begin
         if nodetype=muln then
           begin
-            pass_left_right;
+            pass_left_right(ctx);
             unsigned:=((left.resultdef.typ=orddef) and
                        (torddef(left.resultdef).ordtype=u64bit)) or
                       ((right.resultdef.typ=orddef) and

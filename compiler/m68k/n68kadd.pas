@@ -36,18 +36,18 @@ interface
           function getresflags(unsigned: boolean) : tresflags;
           function getfloatresflags: tresflags;
           function inlineable_realconstnode(const n: tnode): boolean;
-          procedure second_mul64bit;
+          procedure second_mul64bit(ctx:tpassgeneratecodecontext);
        protected
           function use_generic_mul64bit: boolean; override;
           function use_generic_mul32to64: boolean; override;
           function use_mul_helper: boolean; override;
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_addordinal;override;
-          procedure second_cmpordinal;override;
-          procedure second_cmpsmallset;override;
-          procedure second_add64bit;override;
-          procedure second_cmp64bit;override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -161,12 +161,12 @@ implementation
                                 AddFloat
 *****************************************************************************}
 
-    procedure t68kaddnode.second_addfloat;
+    procedure t68kaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op    : TAsmOp;
         href  : TReference;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         case nodetype of
           addn :
@@ -228,13 +228,13 @@ implementation
       end;
 
 
-    procedure t68kaddnode.second_cmpfloat;
+    procedure t68kaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         ai: taicpu;
         href  : TReference;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -308,13 +308,13 @@ implementation
                                 Smallsets
 *****************************************************************************}
 
-    procedure t68kaddnode.second_cmpsmallset;
+    procedure t68kaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
      var
        tmpreg : tregister;
        opsize: topsize;
        cmpsize : tcgsize;
      begin
-       pass_left_right;
+       pass_left_right(ctx);
 
        location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -378,7 +378,7 @@ implementation
         result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
-    procedure t68kaddnode.second_addordinal;
+    procedure t68kaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
       const
         mul_op_signed: array[boolean] of tasmop = ( A_MULU, A_MULS );
       var
@@ -415,7 +415,7 @@ implementation
             internalerror(2013120111);
         end;
 
-        pass_left_right;
+        pass_left_right(ctx);
         if (nodetype=subn) and (nf_swapped in flags) then
           swapleftright;
 
@@ -493,7 +493,7 @@ implementation
       end;
 
 
-    procedure t68kaddnode.second_cmpordinal;
+    procedure t68kaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
      var
       unsigned : boolean;
       tmpreg : tregister;
@@ -505,7 +505,7 @@ implementation
        unsigned:=not(is_signed(left.resultdef)) or
                    not(is_signed(right.resultdef));
        { this puts constant operand (if any) to the right }
-       pass_left_right;
+       pass_left_right(ctx);
        { tentatively assume left size (correct for possible TST, will fix later) }
        cmpsize:=def_cgsize(left.resultdef);
        opsize:=tcgsize2opsize[cmpsize];
@@ -610,21 +610,21 @@ implementation
         not (CPUM68K_HAS_64BITMUL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]);
     end;
 
-    procedure t68kaddnode.second_add64bit;
+    procedure t68kaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
     begin
       if (nodetype=muln) then
-        second_mul64bit
+        second_mul64bit(ctx)
       else
-        inherited second_add64bit;
+        inherited;
     end;
 
-    procedure t68kaddnode.second_mul64bit;
+    procedure t68kaddnode.second_mul64bit(ctx:tpassgeneratecodecontext);
       var
        list: TAsmList;
        hreg1,hreg2,tmpreg: TRegister;
       begin
         list:=current_asmdata.CurrAsmList;
-        pass_left_right;
+        pass_left_right(ctx);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
@@ -706,7 +706,7 @@ implementation
           end;
       end;
 
-    procedure t68kaddnode.second_cmp64bit;
+    procedure t68kaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -783,7 +783,7 @@ implementation
         truelabel:=nil;
         falselabel:=nil;
         { This puts constant operand (if any) to the right }
-        pass_left_right;
+        pass_left_right(ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));

@@ -46,6 +46,7 @@ interface
       private
         tempinfo_flags_map : TFPList;
         tempflags_swapped : boolean;
+        FCodeGenContext: TPassGenerateCodeContext;
         function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
         function GetTG: ttgobj; inline;
@@ -2098,6 +2099,7 @@ implementation
           end
         else
           begin
+            FCodeGenContext:=TPassGenerateCodeContext.Create;
             create_hlcodegen(compiler);
 
             setup_eh;
@@ -2149,7 +2151,7 @@ implementation
 {$endif DEBUG_NODE_XML}
 
             { generate code for the node tree }
-            do_secondpass(code);
+            do_secondpass(code,FCodeGenContext);
             aktproccode.concatlist(current_asmdata.CurrAsmList);
 
             { The position of the loadpara_asmnode is now known }
@@ -2428,6 +2430,7 @@ implementation
             { stop tempgen and ra }
             hlcg.done_register_allocators;
             destroy_hlcodegen(compiler);
+            FreeAndNil(FCodeGenContext);
           end;
 
         dfabuilder.free;

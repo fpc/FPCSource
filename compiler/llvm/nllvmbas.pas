@@ -28,7 +28,7 @@ interface
     uses
        globtype,cclasses,
        aasmbase,aasmtai,aasmdata,
-       nbas,ncgbas,
+       node,nbas,ncgbas,
        symsym,
        compilerbase;
 
@@ -46,7 +46,7 @@ interface
         public
          constructor create(p : TAsmList; acompiler: TCompilerBase); override;
          destructor destroy; override;
-         procedure pass_generate_code; override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
       tllvmtempinfoaccessor = class(ttempinfoaccessor)
@@ -55,7 +55,7 @@ interface
       end;
 
        tllvmtempcreatenode = class(tcgtempcreatenode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
   implementation
@@ -64,7 +64,6 @@ interface
       verbose,cutils,
       cgbase,cgutils,paramgr,
       symconst,symdef,procinfo,
-      node,
       cpubase,llvmbase,aasmllvm,
       compiler,nodehelper
       ;
@@ -196,7 +195,7 @@ interface
       end;
 
 
-    procedure tllvmasmnode.pass_generate_code;
+    procedure tllvmasmnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         oldasmlist: tasmlist;
         asmai: tai;
@@ -248,7 +247,7 @@ interface
                           TTEMPCREATENODE
 *****************************************************************************}
 
-    procedure tllvmtempcreatenode.pass_generate_code;
+    procedure tllvmtempcreatenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         inherited;
 

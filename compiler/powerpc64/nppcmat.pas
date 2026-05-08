@@ -31,19 +31,19 @@ uses
 type
   tppcmoddivnode = class(tmoddivnode)
     function pass_1: tnode; override;
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tppcshlshrnode = class(tshlshrnode)
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tppcunaryminusnode = class(tunaryminusnode)
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tppcnotnode = class(tcgnotnode)
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -119,7 +119,7 @@ begin
     include(compiler.current_procinfo.flags, pi_do_call);
 end;
 
-procedure tppcmoddivnode.pass_generate_code;
+procedure tppcmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 const         { signed   overflow }
   divops: array[boolean, boolean] of tasmop =
     ((A_DIVDU, A_DIVDU_),(A_DIVD, A_DIVDO_));
@@ -178,8 +178,8 @@ var
 
 
 begin
-  secondpass(left);
-  secondpass(right);
+  secondpass(left,ctx);
+  secondpass(right,ctx);
   location_copy(location,left.location);
 
   { put numerator in register }
@@ -255,7 +255,7 @@ end;
                              TPPCSHLRSHRNODE
 *****************************************************************************}
 
-procedure tppcshlshrnode.pass_generate_code;
+procedure tppcshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
 var
   resultreg, hregister1, hregister2 : tregister;
@@ -265,8 +265,8 @@ var
   shiftval: aint;
 
 begin
-  secondpass(left);
-  secondpass(right);
+  secondpass(left,ctx);
+  secondpass(right,ctx);
 
   { load left operators in a register }
   hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
@@ -307,14 +307,14 @@ end;
                           TPPCUNARYMINUSNODE
 *****************************************************************************}
 
-procedure tppcunaryminusnode.pass_generate_code;
+procedure tppcunaryminusnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
 var
   src1: tregister;
   op: tasmop;
 
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   begin
     if left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -374,10 +374,10 @@ end;
                                TPPCNOTNODE
 *****************************************************************************}
 
-procedure tppcnotnode.pass_generate_code;
+procedure tppcnotnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   if is_boolean(resultdef) then
   begin
     if not handle_locjump then

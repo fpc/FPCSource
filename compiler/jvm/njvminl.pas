@@ -60,13 +60,13 @@ interface
           function first_setlength: tnode; override;
           function first_length: tnode; override;
 
-          procedure second_length; override;
-          procedure second_sqr_real; override;
-          procedure second_trunc_real; override;
-          procedure second_new; override;
-          procedure second_setlength; override;
+          procedure second_length(ctx:tpassgeneratecodecontext); override;
+          procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_new(ctx:tpassgeneratecodecontext); override;
+          procedure second_setlength(ctx:tpassgeneratecodecontext); override;
        protected
-          procedure load_fpu_location;
+          procedure load_fpu_location(ctx:tpassgeneratecodecontext);
        end;
 
 implementation
@@ -639,7 +639,7 @@ implementation
       end;
 
 
-    procedure tjvminlinenode.second_length;
+    procedure tjvminlinenode.second_length(ctx:tpassgeneratecodecontext);
       begin
         if is_dynamic_array(left.resultdef) or
            is_open_array(left.resultdef) or
@@ -647,7 +647,7 @@ implementation
           begin
             location_reset(location,LOC_REGISTER,OS_S32);
             location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
-            secondpass(left);
+            secondpass(left,ctx);
             thlcgjvm(hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
           end
@@ -669,9 +669,9 @@ implementation
 *)
 
      { load the FPU value on the evaluation stack }
-     procedure tjvminlinenode.load_fpu_location;
+     procedure tjvminlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
        begin
-         secondpass(left);
+         secondpass(left,ctx);
          thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
        end;
 
@@ -695,9 +695,9 @@ implementation
       end;
 *)
 
-     procedure tjvminlinenode.second_sqr_real;
+     procedure tjvminlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
        begin
-         load_fpu_location;
+         load_fpu_location(ctx);
          location_reset(location,LOC_FPUREGISTER,location.size);
          location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
          case left.location.size of
@@ -722,9 +722,9 @@ implementation
        end;
 
 
-    procedure tjvminlinenode.second_trunc_real;
+    procedure tjvminlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
-         load_fpu_location;
+         load_fpu_location(ctx);
          location_reset(location,LOC_REGISTER,left.location.size);
          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
          case left.location.size of
@@ -746,7 +746,7 @@ implementation
       end;
 
 
-    procedure tjvminlinenode.second_new;
+    procedure tjvminlinenode.second_new(ctx:tpassgeneratecodecontext);
       var
         arr: tnode;
         hp: tcallparanode;
@@ -764,7 +764,7 @@ implementation
         { put all the dimensions on the stack }
         repeat
           inc(paracount);
-          secondpass(hp.left);
+          secondpass(hp.left,ctx);
           thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.location);
           hp:=tcallparanode(hp.right);
         until not assigned(hp);
@@ -776,7 +776,7 @@ implementation
       end;
 
 
-    procedure tjvminlinenode.second_setlength;
+    procedure tjvminlinenode.second_setlength(ctx:tpassgeneratecodecontext);
       var
         target: tnode;
         lenpara: tnode;
@@ -790,7 +790,7 @@ implementation
            (tordconstnode(lenpara).value<>0) then
           internalerror(2011031801);
 
-        secondpass(target);
+        secondpass(target,ctx);
         { can't directly load from stack to destination, because if target is
           a reference then its address must be placed on the stack before the
           value }

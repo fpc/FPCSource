@@ -46,27 +46,27 @@ interface
           function first_proc_to_procvar: tnode; override;
           function first_ansistring_to_pchar: tnode; override;
 
-          procedure second_int_to_int;override;
-          procedure second_cstring_to_pchar;override;
-         { procedure second_string_to_chararray;override; }
-         { procedure second_array_to_pointer;override; }
+          procedure second_int_to_int(ctx:tpassgeneratecodecontext);override;
+          procedure second_cstring_to_pchar(ctx:tpassgeneratecodecontext);override;
+         { procedure second_string_to_chararray(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_array_to_pointer(ctx:tpassgeneratecodecontext);override; }
           function first_int_to_real: tnode; override;
-          procedure second_pointer_to_array;override;
-         { procedure second_chararray_to_string;override; }
-         { procedure second_char_to_string;override; }
-          procedure second_int_to_real;override;
-         { procedure second_real_to_real;override; }
-         { procedure second_cord_to_pointer;override; }
-          procedure second_proc_to_procvar;override;
-          procedure second_nil_to_methodprocvar;override;
-          procedure second_bool_to_int;override;
-          procedure second_int_to_bool;override;
-         { procedure second_load_smallset;override;  }
-         { procedure second_ansistring_to_pchar;override; }
-         { procedure second_pchar_to_string;override; }
-         { procedure second_class_to_intf;override; }
-         { procedure second_char_to_char;override; }
-          procedure second_elem_to_openarray; override;
+          procedure second_pointer_to_array(ctx:tpassgeneratecodecontext);override;
+         { procedure second_chararray_to_string(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_char_to_string(ctx:tpassgeneratecodecontext);override; }
+          procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
+         { procedure second_real_to_real(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_cord_to_pointer(ctx:tpassgeneratecodecontext);override; }
+          procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);override;
+          procedure second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);override;
+          procedure second_bool_to_int(ctx:tpassgeneratecodecontext);override;
+          procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
+         { procedure second_load_smallset(ctx:tpassgeneratecodecontext);override;  }
+         { procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_pchar_to_string(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_class_to_intf(ctx:tpassgeneratecodecontext);override; }
+         { procedure second_char_to_char(ctx:tpassgeneratecodecontext);override; }
+          procedure second_elem_to_openarray(ctx:tpassgeneratecodecontext); override;
           function target_specific_explicit_typeconv: boolean; override;
           function target_specific_general_typeconv: boolean; override;
          protected
@@ -80,7 +80,7 @@ interface
          function target_specific_typecheck: boolean;override;
         public
          function pass_1 : tnode;override;
-         procedure pass_generate_code; override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
          function dogetcopy: tnode; override;
          function docompare(p: tnode): boolean; override;
          constructor ppuload(t: tnodetype; ppufile: tcompilerppufile); override;
@@ -92,7 +92,7 @@ interface
          function target_specific_typecheck: boolean;override;
         public
          function pass_1 : tnode;override;
-         procedure pass_generate_code; override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
 implementation
@@ -556,7 +556,7 @@ implementation
                              SecondTypeConv
 *****************************************************************************}
 
-    procedure tjvmtypeconvnode.second_int_to_int;
+    procedure tjvmtypeconvnode.second_int_to_int(ctx:tpassgeneratecodecontext);
       var
         ressize,
         leftsize : longint;
@@ -617,20 +617,20 @@ implementation
       end;
 
 
-    procedure tjvmtypeconvnode.second_cstring_to_pchar;
+    procedure tjvmtypeconvnode.second_cstring_to_pchar(ctx:tpassgeneratecodecontext);
       begin
         location_copy(location,left.location);
       end;
 
 
-    procedure tjvmtypeconvnode.second_pointer_to_array;
+    procedure tjvmtypeconvnode.second_pointer_to_array(ctx:tpassgeneratecodecontext);
       begin
         { arrays are implicit pointers in Java -> same location }
         location_copy(location,left.location);
       end;
 
 
-    procedure tjvmtypeconvnode.second_int_to_real;
+    procedure tjvmtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
       var
         srcsize, ressize: longint;
 
@@ -704,13 +704,13 @@ implementation
       end;
 
 
-    procedure tjvmtypeconvnode.second_proc_to_procvar;
+    procedure tjvmtypeconvnode.second_proc_to_procvar(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2011072506);
       end;
 
 
-    procedure tjvmtypeconvnode.second_nil_to_methodprocvar;
+    procedure tjvmtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecontext);
       var
         r: Treference;
       begin
@@ -721,11 +721,11 @@ implementation
       end;
 
 
-    procedure tjvmtypeconvnode.second_bool_to_int;
+    procedure tjvmtypeconvnode.second_bool_to_int(ctx:tpassgeneratecodecontext);
       var
          newsize: tcgsize;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
          location_copy(location,left.location);
          newsize:=def_cgsize(resultdef);
          { byte(bytebool) or word(wordbool) or longint(longbool) must be }
@@ -755,12 +755,12 @@ implementation
       end;
 
 
-    procedure tjvmtypeconvnode.second_int_to_bool;
+    procedure tjvmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       var
         hlabel1,hlabel2: tasmlabel;
         newsize  : tcgsize;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
 
@@ -815,7 +815,7 @@ implementation
      end;
 
 
-    procedure tjvmtypeconvnode.second_elem_to_openarray;
+    procedure tjvmtypeconvnode.second_elem_to_openarray(ctx:tpassgeneratecodecontext);
       var
         primitivetype: boolean;
         opc: tasmop;
@@ -1551,7 +1551,7 @@ implementation
     end;
 
 
-  function asis_generate_code(node: tasisnode; opcode: tasmop): boolean;
+  function asis_generate_code(node: tasisnode; opcode: tasmop;ctx:tpassgeneratecodecontext): boolean;
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       hlcg: thlcgobj;
@@ -1568,7 +1568,7 @@ implementation
           exit;
         end;
       result:=true;
-      secondpass(node.left);
+      secondpass(node.left,ctx);
       thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
       tg.location_freetemp(current_asmdata.CurrAsmList,node.left.location);
       { Perform a checkcast instruction, which will raise an exception in case
@@ -1604,9 +1604,9 @@ implementation
     end;
 
 
-  procedure tjvmasnode.pass_generate_code;
+  procedure tjvmasnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     begin
-      if not asis_generate_code(self,a_checkcast) then
+      if not asis_generate_code(self,a_checkcast,ctx) then
         inherited;
     end;
 
@@ -1657,9 +1657,9 @@ implementation
     end;
 
 
-  procedure tjvmisnode.pass_generate_code;
+  procedure tjvmisnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     begin
-      if not asis_generate_code(self,a_instanceof) then
+      if not asis_generate_code(self,a_instanceof,ctx) then
         inherited;
     end;
 

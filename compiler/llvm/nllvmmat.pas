@@ -32,7 +32,7 @@ uses
 
 type
   tllvmmoddivnode = class(tcgmoddivnode)
-    procedure pass_generate_code; override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tllvmshlshrnode = class(tcgshlshrnode)
@@ -64,7 +64,7 @@ uses
                                tllvmmoddivnode
 *****************************************************************************}
 
-procedure tllvmmoddivnode.pass_generate_code;
+procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   var
     op: tllvmop;
     hl: tasmlabel;
@@ -72,8 +72,8 @@ procedure tllvmmoddivnode.pass_generate_code;
     tmpovreg2: tregister;
     ovloc: tlocation;
   begin
-    secondpass(left);
-    secondpass(right);
+    secondpass(left,ctx);
+    secondpass(right,ctx);
     if is_signed(left.resultdef) then
       if nodetype=divn then
         op:=la_sdiv

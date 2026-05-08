@@ -36,13 +36,13 @@ interface
         function pass_1: tnode; override;
         procedure force_reg_left_right(allow_swap, allow_constant: boolean); override;
        protected
-        procedure second_cmpsmallset; override;
-        procedure second_cmpordinal; override;
-        procedure second_add64bit; override;
-        procedure second_cmp64bit; override;
-        procedure second_addfloat; override;
-        procedure second_cmpfloat; override;
-        procedure second_opvector; override;
+        procedure second_cmpsmallset(ctx:tpassgeneratecodecontext); override;
+        procedure second_cmpordinal(ctx:tpassgeneratecodecontext); override;
+        procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
+        procedure second_cmp64bit(ctx:tpassgeneratecodecontext); override;
+        procedure second_addfloat(ctx:tpassgeneratecodecontext); override;
+        procedure second_cmpfloat(ctx:tpassgeneratecodecontext); override;
+        procedure second_opvector(ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -160,13 +160,13 @@ implementation
     end;
 
 
-  procedure tllvmaddnode.second_cmpsmallset;
+  procedure tllvmaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
     var
       tmpreg,
       tmpreg2: tregister;
       cmpop : topcmp;
     begin
-      pass_left_right;
+      pass_left_right(ctx);
 
       location_reset(location,LOC_REGISTER,OS_8);
       location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
@@ -209,13 +209,13 @@ implementation
     end;
 
 
-  procedure tllvmaddnode.second_cmpordinal;
+  procedure tllvmaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
     var
       tmpreg: tregister;
       cmpop: topcmp;
       unsigned : boolean;
     begin
-      pass_left_right;
+      pass_left_right(ctx);
       force_reg_left_right(true,true);
 
       unsigned:=not(is_signed(left.resultdef)) or
@@ -268,26 +268,26 @@ implementation
     end;
 
 
-  procedure tllvmaddnode.second_add64bit;
+  procedure tllvmaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
     begin
-      second_addordinal;
+      second_addordinal(ctx);
     end;
 
 
-  procedure tllvmaddnode.second_cmp64bit;
+  procedure tllvmaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
     begin
-      second_cmpordinal;
+      second_cmpordinal(ctx);
     end;
 
 
-  procedure tllvmaddnode.second_addfloat;
+  procedure tllvmaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
     var
       tmpreg: tregister;
       op    : tllvmop;
       llvmfpcmp : tllvmfpcmp;
       size  : tdef;
     begin
-      pass_left_right;
+      pass_left_right(ctx);
 
       { get the operands in the correct order; there are no special cases here,
         everything is register-based }
@@ -354,12 +354,12 @@ implementation
     end;
 
 
-  procedure tllvmaddnode.second_cmpfloat;
+  procedure tllvmaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
     begin
-      second_addfloat;
+      second_addfloat(ctx);
     end;
 
-  procedure tllvmaddnode.second_opvector;
+  procedure tllvmaddnode.second_opvector(ctx:tpassgeneratecodecontext);
 
     var
       lv, rv: tdef;
@@ -374,7 +374,7 @@ implementation
          not tarraydef(resultdef).is_hwvector then
         internalerror(2022090710);
 
-      pass_left_right;
+      pass_left_right(ctx);
       if (nf_swapped in flags) then
         swapleftright;
 

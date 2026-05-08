@@ -275,7 +275,7 @@ interface
           procedure get_paratype;
           procedure firstcallparan;
           procedure insert_typeconv;
-          procedure secondcallparan;virtual;abstract;
+          procedure secondcallparan(ctx:tpassgeneratecodecontext);virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var prn:tnodeprinter);override;
           { returns whether a parameter contains a type conversion from }

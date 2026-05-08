@@ -54,8 +54,8 @@ uses
        flowcontrol : tflowcontrol;
 
 { produces the actual code }
-function do_secondpass(var p : tnode) : boolean;
-procedure secondpass(p : tnode);
+function do_secondpass(var p : tnode;ctx:tpassgeneratecodecontext) : boolean;
+procedure secondpass(p : tnode;ctx:tpassgeneratecodecontext);
 
 
 implementation
@@ -178,7 +178,7 @@ implementation
       end;
 {$endif EXTDEBUG}
 
-     procedure secondpass(p : tnode);
+     procedure secondpass(p : tnode;ctx:tpassgeneratecodecontext);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
@@ -217,7 +217,7 @@ implementation
             if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
-            p.pass_generate_code;
+            p.pass_generate_code(ctx);
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,false);
@@ -252,7 +252,7 @@ implementation
       end;
 
 
-    function do_secondpass(var p : tnode) : boolean;
+    function do_secondpass(var p : tnode;ctx:tpassgeneratecodecontext) : boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -263,7 +263,7 @@ implementation
          { clear errors before starting }
          compiler.verbose.codegenerror:=false;
          if not(tnf_error in p.transientflags) then
-           secondpass(p);
+           secondpass(p,ctx);
          do_secondpass:=compiler.verbose.codegenerror;
       end;
 

@@ -43,24 +43,24 @@ interface
         function first_round_real: tnode; override;
         function first_trunc_real: tnode; override;
 
-        procedure second_length; override;
-        procedure second_abs_real; override;
-        procedure second_sqr_real; override;
-        procedure second_sqrt_real; override;
-        {procedure second_arctan_real; override;
-        procedure second_ln_real; override;}
-        procedure second_cos_real; override;
-        procedure second_sin_real; override;
-        procedure second_int_real; override;
-        procedure second_frac_real; override;
-        procedure second_round_real; override;
-        procedure second_trunc_real; override;
-        {procedure second_prefetch; override;
-        procedure second_abs_long; override;}
+        procedure second_length(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+        {procedure second_arctan_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_ln_real(ctx:tpassgeneratecodecontext); override;}
+        procedure second_cos_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_sin_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_int_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_frac_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+        procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
+        {procedure second_prefetch(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_long(ctx:tpassgeneratecodecontext); override;}
       protected
         function second_incdec_tempregdef: tdef; override;
       private
-        procedure second_do_operation(op: TAsmOp);
+        procedure second_do_operation(op: TAsmOp;ctx:tpassgeneratecodecontext);
       end;
 
 
@@ -77,14 +77,14 @@ implementation
                               t68kinlinenode
 *****************************************************************************}
 
-    procedure t68kinlinenode.second_Length;
+    procedure t68kinlinenode.second_Length(ctx:tpassgeneratecodecontext);
       var
         lengthlab,zerolab : tasmlabel;
         hregister : tregister;
         lendef : tdef;
         href : treference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if is_shortstring(left.resultdef) then
          begin
            location_copy(location,left.location);
@@ -234,15 +234,15 @@ implementation
       end;
 
 
-    procedure t68kinlinenode.second_abs_real;
+    procedure t68kinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_abs_real called!')));
-        second_do_operation(A_FABS);
+        second_do_operation(A_FABS,ctx);
       end;
 
-    procedure t68kinlinenode.second_sqr_real;
+    procedure t68kinlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015022202);
@@ -260,35 +260,35 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
       end;
 
-    procedure t68kinlinenode.second_sqrt_real;
+    procedure t68kinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
-        second_do_operation(A_FSQRT);
+        second_do_operation(A_FSQRT,ctx);
       end;
 
-    procedure t68kinlinenode.second_sin_real;
+    procedure t68kinlinenode.second_sin_real(ctx:tpassgeneratecodecontext);
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sin_real called!')));
-        second_do_operation(A_FSIN);
+        second_do_operation(A_FSIN,ctx);
       end;
 
-    procedure t68kinlinenode.second_cos_real;
+    procedure t68kinlinenode.second_cos_real(ctx:tpassgeneratecodecontext);
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_cos_real called!')));
-        second_do_operation(A_FCOS);
+        second_do_operation(A_FCOS,ctx);
       end;
 
-    procedure t68kinlinenode.second_int_real;
+    procedure t68kinlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_int_real called!')));
-        second_do_operation(A_FINTRZ);
+        second_do_operation(A_FINTRZ,ctx);
       end;
 
-    procedure t68kinlinenode.second_do_operation(op: TAsmOp);
+    procedure t68kinlinenode.second_do_operation(op: TAsmOp;ctx:tpassgeneratecodecontext);
       var
         href: TReference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015022204);
@@ -318,12 +318,12 @@ implementation
         end;
       end;
 
-    procedure t68kinlinenode.second_frac_real;
+    procedure t68kinlinenode.second_frac_real(ctx:tpassgeneratecodecontext);
       var
         href: TReference;
         hreg: TRegister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         if not (FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2017052102);
@@ -354,12 +354,12 @@ implementation
         end;
       end;
 
-    procedure t68kinlinenode.second_round_real;
+    procedure t68kinlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       var
         size: tcgsize;
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_round_real called!')));
-        secondpass(left);
+        secondpass(left,ctx);
         size:=def_cgsize(resultdef);
 
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -370,13 +370,13 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],left.location.register,location.register));
       end;
 
-    procedure t68kinlinenode.second_trunc_real;
+    procedure t68kinlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       var
         hreg: TRegister;
         size: tcgsize;
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_trunc_real called!')));
-        second_do_operation(A_FINTRZ);
+        second_do_operation(A_FINTRZ,ctx);
         size:=def_cgsize(resultdef);
 
         hreg:=location.register;

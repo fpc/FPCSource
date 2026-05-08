@@ -47,14 +47,14 @@ interface
           procedure push_copyout_para;virtual;abstract;
           function maybe_push_unused_para:boolean;virtual;
 
-          procedure secondcallparan_do_secondpass;
-          procedure secondcallparan_after_secondpass;
+          procedure secondcallparan_do_secondpass(ctx:tpassgeneratecodecontext);
+          procedure secondcallparan_after_secondpass(ctx:tpassgeneratecodecontext);
        public
           tempcgpara : tcgpara;
 
           constructor create(expr,next : tnode;acompiler:TCompilerBase);override;
           destructor destroy;override;
-          procedure secondcallparan;override;
+          procedure secondcallparan(ctx:tpassgeneratecodecontext);override;
        end;
 
        { tcgcallnode }
@@ -62,9 +62,9 @@ interface
        tcgcallnode = class(tcallnode)
        private
           function can_skip_para_push(aparasym: tparavarsym): boolean;
-          procedure handle_return_value;
+          procedure handle_return_value(ctx:tpassgeneratecodecontext);
           procedure release_unused_return_value;
-          procedure copy_back_paras;
+          procedure copy_back_paras(ctx:tpassgeneratecodecontext);
           procedure release_para_temps;
           procedure reorder_parameters;
           procedure freeparas;
@@ -128,7 +128,7 @@ interface
           function get_call_reg(list: TAsmList): tregister; virtual;
           procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
        public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
           destructor destroy;override;
        end;
 
@@ -331,15 +331,15 @@ implementation
       end;
 
 
-    procedure tcgcallparanode.secondcallparan_do_secondpass;
+    procedure tcgcallparanode.secondcallparan_do_secondpass(ctx:tpassgeneratecodecontext);
       begin
         if assigned(fparainit) then
-          secondpass(fparainit);
-        secondpass(left);
+          secondpass(fparainit,ctx);
+        secondpass(left,ctx);
       end;
 
 
-    procedure tcgcallparanode.secondcallparan_after_secondpass;
+    procedure tcgcallparanode.secondcallparan_after_secondpass(ctx:tpassgeneratecodecontext);
       var
         pushaddr: boolean;
       begin
@@ -452,7 +452,7 @@ implementation
       end;
 
 
-    procedure tcgcallparanode.secondcallparan;
+    procedure tcgcallparanode.secondcallparan(ctx:tpassgeneratecodecontext);
       begin
          if not(assigned(parasym)) then
            internalerror(200304242);
@@ -461,13 +461,13 @@ implementation
            a parameter }
          if (left.nodetype<>nothingn) then
            begin
-             secondcallparan_do_secondpass;
-             secondcallparan_after_secondpass;
+             secondcallparan_do_secondpass(ctx);
+             secondcallparan_after_secondpass(ctx);
            end;
 
          { next parameter }
          if assigned(right) then
-           tcallparanode(right).secondcallparan;
+           tcallparanode(right).secondcallparan(ctx);
       end;
 
 
@@ -625,7 +625,7 @@ implementation
         result:=internal_can_skip_para_push(paramanager,aparasym);
       end;
 
-    procedure tcgcallnode.handle_return_value;
+    procedure tcgcallnode.handle_return_value(ctx:tpassgeneratecodecontext);
       var
         realresdef: tstoreddef;
       begin
@@ -678,7 +678,7 @@ implementation
           also be used as parameter and may not be finalized yet }
         if assigned(funcretnode) then
           begin
-            funcretnode.pass_generate_code;
+            funcretnode.pass_generate_code(ctx);
             { Decrease refcount for refcounted types, this can be skipped when
               we have used a temp, because then it is already done from tempcreatenode.
               Also no finalize is needed, because there is no risk of exceptions from the
@@ -750,7 +750,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.copy_back_paras;
+    procedure tcgcallnode.copy_back_paras(ctx:tpassgeneratecodecontext);
       var
         ppn : tcallparanode;
       begin
@@ -758,7 +758,7 @@ implementation
         while assigned(ppn) do
           begin
              if assigned(ppn.paracopyback) then
-               secondpass(ppn.paracopyback);
+               secondpass(ppn.paracopyback,ctx);
              ppn:=tcallparanode(ppn.right);
           end;
       end;
@@ -1011,7 +1011,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.pass_generate_code;
+    procedure tcgcallnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         name_to_call: TSymStr;
         regs_to_save_int,
@@ -1039,7 +1039,7 @@ implementation
          extra_pre_call_code;
 
          if assigned(callinitblock) then
-           secondpass(tnode(callinitblock));
+           secondpass(tnode(callinitblock),ctx);
 
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
          regs_to_save_address:=paramanager.get_volatile_registers_address(procdefinition.proccalloption);
@@ -1082,7 +1082,7 @@ implementation
           end;
 
          if assigned(left) then
-           tcallparanode(left).secondcallparan;
+           tcallparanode(left).secondcallparan(ctx);
 
          { procedure variable or normal function call ? }
          if (right=nil) then
@@ -1120,7 +1120,7 @@ implementation
                    internalerror(200304021);
 
                  { load the VMT entry (address of the virtual method) }
-                 secondpass(vmt_entry);
+                 secondpass(vmt_entry,ctx);
 
                  { register call for WPO }
                  if (not assigned(compiler.current_procinfo) or
@@ -1225,7 +1225,7 @@ implementation
          else
            { now procedure variable case }
            begin
-              secondpass(right);
+              secondpass(right,ctx);
 
               { can we directly call the procvar in a memory location? }
               callref:=false;
@@ -1381,16 +1381,16 @@ implementation
 
          { handle function results }
          if (not is_void(resultdef)) then
-           handle_return_value
+           handle_return_value(ctx)
          else
            location_reset(location,LOC_VOID,OS_NO);
 
          { convert persistent temps for parameters and function result to normal temps }
          if assigned(callcleanupblock) then
-           secondpass(tnode(callcleanupblock));
+           secondpass(tnode(callcleanupblock),ctx);
 
          { copy back copy-out parameters if any }
-         copy_back_paras;
+         copy_back_paras(ctx);
 
          { release temps and finalize unused return values, must be
            after the callcleanupblock because that converts temps

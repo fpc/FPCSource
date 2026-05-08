@@ -31,7 +31,7 @@ interface
 
     type
        tcgsetelementnode = class(tsetelementnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -47,7 +47,7 @@ interface
          procedure in_smallset(opdef: tdef; setbase: aint); virtual;
 
          function pass_1: tnode;override;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        protected
          function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean; virtual;
          function analizeset(const Aset:Tconstset;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
@@ -60,7 +60,7 @@ interface
             80x86 version, this version does not emit jump tables,
             because of portability problems.
           }
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
 
         protected
           with_sign : boolean;
@@ -107,10 +107,10 @@ implementation
                           TCGSETELEMENTNODE
 *****************************************************************************}
 
-    procedure tcgsetelementnode.pass_generate_code;
+    procedure tcgsetelementnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { load the set element's value }
-        secondpass(left);
+        secondpass(left,ctx);
 
         { also a second value ? }
         if assigned(right) then
@@ -277,7 +277,7 @@ implementation
           expectloc := LOC_JUMP;
       end;
 
-    procedure tcginnode.pass_generate_code;
+    procedure tcginnode.pass_generate_code(ctx:tpassgeneratecodecontext);
        var
          adjustment,
          setbase    : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
@@ -367,14 +367,14 @@ implementation
            { "right" and not "swapped left" in that case)                   }
            firstcomplex(self);
 
-         secondpass(left);
+         secondpass(left,ctx);
          if (left.expectloc=LOC_JUMP)<>
             (left.location.loc=LOC_JUMP) then
            internalerror(2007070101);
 
          { Only process the right if we are not generating jumps }
          if not genjumps then
-           secondpass(right);
+           secondpass(right,ctx);
          if compiler.verbose.codegenerror then
            exit;
 
@@ -1191,7 +1191,7 @@ implementation
         genjmptreeentry(root,root^._high+10);
       end;
 
-    procedure tcgcasenode.pass_generate_code;
+    procedure tcgcasenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
@@ -1232,7 +1232,7 @@ implementation
               jmp_le:=OC_BE;
            end;
 
-         secondpass(left);
+         secondpass(left,ctx);
          if (left.expectloc=LOC_JUMP)<>
             (left.location.loc=LOC_JUMP) then
            internalerror(2006050501);
@@ -1353,7 +1353,7 @@ implementation
                begin
                  current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));
                  cg.a_label(current_asmdata.CurrAsmList,blocklabel);
-                 secondpass(statement);
+                 secondpass(statement,ctx);
                  { don't come back to case line }
                  compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
@@ -1370,7 +1370,7 @@ implementation
          if Assigned(elseblock) then
            begin
 
-             secondpass(elseblock);
+             secondpass(elseblock,ctx);
            end;
 
          current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));

@@ -42,31 +42,31 @@ unit nx86add;
         procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize;AllocFlags:boolean);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
-        procedure second_cmpfloatvector;
+        procedure second_cmpfloatvector(ctx:tpassgeneratecodecontext);
 
-        procedure second_addfloatsse;
-        procedure second_addfloatavx;
+        procedure second_addfloatsse(ctx:tpassgeneratecodecontext);
+        procedure second_addfloatavx(ctx:tpassgeneratecodecontext);
       public
         function pass_1 : tnode;override;
         function simplify(forinline : boolean) : tnode; override;
         function use_fma : boolean;override;
-        procedure second_addfloat;override;
+        procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
 {$ifndef i8086}
-        procedure second_addsmallset;override;
-        procedure second_addsmallsetelement;override;
+        procedure second_addsmallset(ctx:tpassgeneratecodecontext);override;
+        procedure second_addsmallsetelement(ctx:tpassgeneratecodecontext);override;
 {$endif not i8086}
-        procedure second_add64bit;override;
-        procedure second_cmpfloat;override;
-        procedure second_cmpsmallset;override;
-        procedure second_cmp64bit;override;
+        procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+        procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
 
-        procedure second_cmpordinal;override;
-        procedure second_addordinal;override;
-        procedure second_addboolean;override;
+        procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+        procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
+        procedure second_addboolean(ctx:tpassgeneratecodecontext);override;
 {$ifdef SUPPORT_MMX}
-        procedure second_opmmx;override;
+        procedure second_opmmx(ctx:tpassgeneratecodecontext);override;
 {$endif SUPPORT_MMX}
-        procedure second_opvector;override;
+        procedure second_opvector(ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -506,7 +506,7 @@ unit nx86add;
 *****************************************************************************}
 
 {$ifndef i8086}
-    procedure tx86addnode.second_addsmallset;
+    procedure tx86addnode.second_addsmallset(ctx:tpassgeneratecodecontext);
       var
         setbase : aint;
         opdef  : tdef;
@@ -517,7 +517,7 @@ unit nx86add;
         all_member_optimization:boolean;
 
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         noswap:=false;
         extra_not:=false;
@@ -641,12 +641,12 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_addsmallsetelement;
+    procedure tx86addnode.second_addsmallsetelement(ctx:tpassgeneratecodecontext);
       var
         setbase, mask: aint;
       begin
         if resultdef.size=1 then
-          inherited second_addsmallsetelement
+          inherited
         else
           begin
             if nodetype<>addn then
@@ -654,7 +654,7 @@ unit nx86add;
             { no range support for smallsets }
             if assigned(tsetelementnode(right).right) then
               internalerror(2022090501);
-            pass_left_right;
+            pass_left_right(ctx);
             { setelementn is a special case, it must be on right }
             if (nf_swapped in flags) and
                (left.nodetype=setelementn) then
@@ -685,13 +685,13 @@ unit nx86add;
 {$endif not i8086}
 
 
-    procedure tx86addnode.second_cmpsmallset;
+    procedure tx86addnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       var
         opdef  : tdef;
         opsize : TCGSize;
         op     : TAsmOp;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         opdef:=left.resultdef;
         opsize:=int_cgsize(opdef.size);
         case nodetype of
@@ -728,7 +728,7 @@ unit nx86add;
 *****************************************************************************}
 
 {$ifdef SUPPORT_MMX}
-    procedure tx86addnode.second_opmmx;
+    procedure tx86addnode.second_opmmx(ctx:tpassgeneratecodecontext);
       var
         op         : TAsmOp;
         cmpop      : boolean;
@@ -736,7 +736,7 @@ unit nx86add;
         hreg,
         hregister  : tregister;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         cmpop:=false;
         op:=A_NOP;
@@ -924,7 +924,7 @@ unit nx86add;
                                 AddFloat
 *****************************************************************************}
 
-    procedure tx86addnode.second_addfloatsse;
+    procedure tx86addnode.second_addfloatsse(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
         sqr_sum : boolean;
@@ -949,7 +949,7 @@ unit nx86add;
             right:=tmp;
           end;
 
-        pass_left_right;
+        pass_left_right(ctx);
         { fpu operands are always in reversed order on the stack }
         if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
@@ -1072,7 +1072,7 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_addfloatavx;
+    procedure tx86addnode.second_addfloatavx(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
         sqr_sum : boolean;
@@ -1101,7 +1101,7 @@ unit nx86add;
           end;
 {$endif dummy}
 
-        pass_left_right;
+        pass_left_right(ctx);
         { fpu operands are always in reversed order on the stack }
         if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
@@ -1600,7 +1600,7 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_cmpfloatvector;
+    procedure tx86addnode.second_cmpfloatvector(ctx:tpassgeneratecodecontext);
       var
         op : tasmop;
       const
@@ -1613,7 +1613,7 @@ unit nx86add;
           op:=ops_double[UseAVX]
         else
           internalerror(200402222);
-        pass_left_right;
+        pass_left_right(ctx);
 
         { fpu operands are always in reversed order on the stack }
         if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
@@ -1665,11 +1665,11 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_opvector;
+    procedure tx86addnode.second_opvector(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -1728,7 +1728,7 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_addfloat;
+    procedure tx86addnode.second_addfloat(ctx:tpassgeneratecodecontext);
       const
         ops_add:  array[boolean] of TAsmOp = (A_FADDP,A_FADD);
         ops_mul:  array[boolean] of TAsmOp = (A_FMULP,A_FMUL);
@@ -1744,9 +1744,9 @@ unit nx86add;
         if use_vectorfpu(resultdef) then
           begin
             if UseAVX then
-              second_addfloatavx
+              second_addfloatavx(ctx)
             else
-              second_addfloatsse;
+              second_addfloatsse(ctx);
             exit;
           end;
 
@@ -1766,7 +1766,7 @@ unit nx86add;
             hp.Free;
           end;
 
-        pass_left_right;
+        pass_left_right(ctx);
         prepare_x87_locations(refnode);
         hasref:=assigned(refnode);
 
@@ -1802,7 +1802,7 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_cmpfloat;
+    procedure tx86addnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
 {$ifdef i8086}
       var
         tmpref: treference;
@@ -1810,11 +1810,11 @@ unit nx86add;
       begin
         if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
-            second_cmpfloatvector;
+            second_cmpfloatvector(ctx);
             exit;
           end;
 
-        pass_left_right;
+        pass_left_right(ctx);
         force_left_and_right_fpureg;
 
 {$ifndef x86_64}
@@ -1868,10 +1868,10 @@ unit nx86add;
                                   Add64bit
 *****************************************************************************}
 
-    procedure tx86addnode.second_add64bit;
+    procedure tx86addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
 {$ifdef cpu64bitalu}
-        second_addordinal;
+        second_addordinal(ctx);
 {$else cpu64bitalu}
         { must be implemented separate }
         internalerror(200402042);
@@ -1879,10 +1879,10 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_cmp64bit;
+    procedure tx86addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
 {$ifdef cpu64bitalu}
-        second_cmpordinal;
+        second_cmpordinal(ctx);
 {$else cpu64bitalu}
         { must be implemented separate }
         internalerror(200402043);
@@ -1894,7 +1894,7 @@ unit nx86add;
                                   AddOrdinal
 *****************************************************************************}
 
-    procedure tx86addnode.second_addordinal;
+    procedure tx86addnode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
          opsize : tcgsize;
          unsigned : boolean;
@@ -2013,11 +2013,11 @@ unit nx86add;
                    if (right.nodetype <> notn) then
                      swapleftright;
 
-                   secondpass(left);
+                   secondpass(left,ctx);
 
                    { Skip the not node completely }
                    Include(right.transientflags, tnf_do_not_execute);
-                   secondpass(tnotnode(right).left);
+                   secondpass(tnotnode(right).left,ctx);
 
                    { allocate registers }
                    hlcg.location_force_reg(
@@ -2089,7 +2089,7 @@ unit nx86add;
                        if (right.nodetype <> subn) then
                          swapleftright;
 
-                       secondpass(left);
+                       secondpass(left,ctx);
 
                        { Skip the subtract and shift nodes completely }
                        Include(right.transientflags, tnf_do_not_execute);
@@ -2114,7 +2114,7 @@ unit nx86add;
                            tshlshrnode(taddnode(right).left).right := indexnode;
                          end;
 {$endif x86_64}
-                       secondpass(indexnode);
+                       secondpass(indexnode,ctx);
 
                        MakeBZHI(False);
                        Exit;
@@ -2151,7 +2151,7 @@ unit nx86add;
                            tshlshrnode(left).right := indexnode;
                          end;
 {$endif x86_64}
-                       secondpass(indexnode);
+                       secondpass(indexnode,ctx);
 
                        tmpreg := cg.getintregister(current_asmdata.CurrAsmList, opsize);
                        cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, -1, tmpreg);
@@ -2166,7 +2166,7 @@ unit nx86add;
          end;
 {$endif not i8086}
 
-       pass_left_right;
+       pass_left_right(ctx);
 
        { do we have to allocate a register? If yes, then three opcode instructions are better, however for sub three op code instructions
          make no sense if right is a reference }
@@ -2299,20 +2299,20 @@ unit nx86add;
      end;
 
 
-    procedure tx86addnode.second_addboolean;
+    procedure tx86addnode.second_addboolean(ctx:tpassgeneratecodecontext);
       begin
         if (nodetype in [orn,andn]) and
            (not(cs_full_boolean_eval in compiler.globals.current_settings.localswitches) or
           (anf_short_bool in addnodeflags)) then
-          inherited second_addboolean
+          inherited
         else if is_64bit(left.resultdef) then
           inherited
         else
-          second_addordinal;
+          second_addordinal(ctx);
       end;
 
 
-    procedure tx86addnode.second_cmpordinal;
+    procedure tx86addnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
          opdef  : tdef;
          opsize : tcgsize;
@@ -2323,7 +2323,7 @@ unit nx86add;
          opdef:=left.resultdef;
          opsize:=def_cgsize(opdef);
 
-         pass_left_right;
+         pass_left_right(ctx);
 
          if (right.location.loc=LOC_CONSTANT) and
             (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE])

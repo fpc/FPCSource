@@ -31,8 +31,8 @@ interface
     type
        tx8664addnode = class(tx86addnode)
          function use_generic_mul64bit: boolean; override;
-         procedure second_addordinal; override;
-         procedure second_mul;
+         procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
+         procedure second_mul(ctx:tpassgeneratecodecontext);
        end;
 
   implementation
@@ -53,7 +53,7 @@ interface
                                 Addordinal
 *****************************************************************************}
 
-    procedure tx8664addnode.second_addordinal;
+    procedure tx8664addnode.second_addordinal(ctx:tpassgeneratecodecontext);
     begin
       { filter unsigned MUL opcode, which requires special handling.
         Note that when overflow checking is off, we can use IMUL instead. }
@@ -62,18 +62,18 @@ interface
         (not(is_signed(left.resultdef)) or
          not(is_signed(right.resultdef))) then
       begin
-        second_mul;
+        second_mul(ctx);
         exit;
       end;
 
-      inherited second_addordinal;
+      inherited;
     end;
 
 {*****************************************************************************
                                 MUL
 *****************************************************************************}
 
-    procedure tx8664addnode.second_mul;
+    procedure tx8664addnode.second_mul(ctx:tpassgeneratecodecontext);
       var
         reg,rega,regd:Tregister;
         ref:Treference;
@@ -102,7 +102,7 @@ interface
             internalerror(2013102703);
         end;
 
-        pass_left_right;
+        pass_left_right(ctx);
 
         { The location.register will be filled in later (JM) }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));

@@ -35,11 +35,11 @@ interface
          protected
           procedure set_absvarsym_resultdef; override;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        ti386vecnode = class(tx86vecnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -65,9 +65,9 @@ implementation
       end;
 
 
-    procedure ti386addrnode.pass_generate_code;
+    procedure ti386addrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-        inherited pass_generate_code;
+        inherited;
         { for use of other segments, not used }
         {if left.location.reference.segment<>NR_NO then
           location.segment:=left.location.reference.segment;}
@@ -78,9 +78,9 @@ implementation
                              TI386VECNODE
 *****************************************************************************}
 
-    procedure ti386vecnode.pass_generate_code;
+    procedure ti386vecnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-        inherited pass_generate_code;
+        inherited;
         if vnf_memseg in vecnodeflags then
           location.reference.segment:=NR_FS;
       end;

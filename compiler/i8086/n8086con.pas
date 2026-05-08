@@ -38,7 +38,7 @@ interface
 {$ifdef DEBUG_NODE_XML}
         procedure XMLPrintNodeData(var prn:tnodeprinter); override;
 {$endif DEBUG_NODE_XML}
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -82,7 +82,7 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure ti8086pointerconstnode.pass_generate_code;
+    procedure ti8086pointerconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { far pointer? }
         if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then

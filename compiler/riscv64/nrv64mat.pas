@@ -46,7 +46,7 @@ unit nrv64mat;
       end;
 
       trv64notnode = class(tcgnotnode)
-        procedure second_boolean; override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -66,11 +66,11 @@ implementation
       ncgutil,cgcpu,
       compiler,nodehelper;
 
-    procedure trv64notnode.second_boolean;
+    procedure trv64notnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tlabel, flabel: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of

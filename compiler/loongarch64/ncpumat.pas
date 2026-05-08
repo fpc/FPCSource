@@ -45,7 +45,7 @@ unit ncpumat;
       end;
 
       tloongarch64notnode = class(tcgnotnode)
-        procedure second_boolean; override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -65,11 +65,11 @@ implementation
       ncgutil,cgcpu,
       compiler;
 
-    procedure tloongarch64notnode.second_boolean;
+    procedure tloongarch64notnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tlabel, flabel: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of

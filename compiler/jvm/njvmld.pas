@@ -41,7 +41,7 @@ type
     function keep_param_address_in_nested_struct: boolean; override;
    public
     function is_addr_param_load: boolean; override;
-    procedure pass_generate_code; override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
   tjvmassignmentnode  = class(tcgassignmentnode)
@@ -254,13 +254,13 @@ function tjvmloadnode.is_addr_param_load: boolean;
   end;
 
 
-procedure tjvmloadnode.pass_generate_code;
+procedure tjvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
   begin
     if is_copyout_addr_param_load then
       begin
         { in case of nested access, load address of field in nestedfpstruct }
         if assigned(left) then
-          generate_nested_access(tabstractnormalvarsym(symtableentry));
+          generate_nested_access(tabstractnormalvarsym(symtableentry),ctx);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
         location.reference.arrayreftype:=art_indexconst;
         location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
@@ -277,7 +277,7 @@ procedure tjvmloadnode.pass_generate_code;
       { handled in tjvmcnvnode.first_proc_to_procvar }
       internalerror(2011072408)
     else
-      inherited pass_generate_code;
+      inherited;
   end;
 
 

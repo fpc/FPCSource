@@ -34,7 +34,7 @@ interface
 
   type
     taarch64loadparentfpnode = class(tcgloadparentfpnode)
-      procedure pass_generate_code; override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
     end;
 
     taarch64vecnode = class(tcgvecnode)
@@ -56,9 +56,9 @@ implementation
 
   { taarch64loadparentfpnode }
 
-  procedure taarch64loadparentfpnode.pass_generate_code;
+  procedure taarch64loadparentfpnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     begin
-      inherited pass_generate_code;
+      inherited;
       { see the comments in tcgaarch64.g_proc_entry }
       if (location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
          (location.register=NR_STACK_POINTER_REG) then

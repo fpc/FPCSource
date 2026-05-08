@@ -59,31 +59,31 @@ interface
           function simplify(forinline : boolean) : tnode; override;
 
           { second pass override to generate these nodes }
-          procedure pass_generate_code_cpu;override;
-          procedure second_IncludeExclude;override;
-          procedure second_AndOrXorShiftRot_assign;override;
-          procedure second_pi; override;
-          procedure second_arctan_real; override;
-          procedure second_abs_real; override;
-          procedure second_round_real; override;
-          procedure second_sqr_real; override;
-          procedure second_sqrt_real; override;
-          procedure second_ln_real; override;
-          procedure second_cos_real; override;
-          procedure second_sin_real; override;
-          procedure second_trunc_real; override;
+          procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);override;
+          procedure second_IncludeExclude(ctx:tpassgeneratecodecontext);override;
+          procedure second_AndOrXorShiftRot_assign(ctx:tpassgeneratecodecontext);override;
+          procedure second_pi(ctx:tpassgeneratecodecontext); override;
+          procedure second_arctan_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_ln_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_cos_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_sin_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
 
-          procedure second_prefetch;override;
+          procedure second_prefetch(ctx:tpassgeneratecodecontext);override;
 
-          procedure second_abs_long;override;
-          procedure second_popcnt;override;
-          procedure second_fma;override;
-          procedure second_frac_real;override;
-          procedure second_int_real;override;
-          procedure second_high;override;
-          procedure second_minmax;override;
+          procedure second_abs_long(ctx:tpassgeneratecodecontext);override;
+          procedure second_popcnt(ctx:tpassgeneratecodecontext);override;
+          procedure second_fma(ctx:tpassgeneratecodecontext);override;
+          procedure second_frac_real(ctx:tpassgeneratecodecontext);override;
+          procedure second_int_real(ctx:tpassgeneratecodecontext);override;
+          procedure second_high(ctx:tpassgeneratecodecontext);override;
+          procedure second_minmax(ctx:tpassgeneratecodecontext);override;
        private
-          procedure load_fpu_location(lnode: tnode);
+          procedure load_fpu_location(lnode: tnode;ctx:tpassgeneratecodecontext);
        end;
 
 implementation
@@ -454,7 +454,7 @@ implementation
        end;
 
 
-     procedure tx86inlinenode.pass_generate_code_cpu;
+     procedure tx86inlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
 
        var
          paraarray : array[1..4] of tnode;
@@ -466,7 +466,7 @@ implementation
            portnumber: tnode;
          begin
            portnumber:=left;
-           secondpass(portnumber);
+           secondpass(portnumber,ctx);
            if (portnumber.location.loc=LOC_CONSTANT) and
               (portnumber.location.value>=0) and
               (portnumber.location.value<=255) then
@@ -499,8 +499,8 @@ implementation
          begin
            portnumber:=tcallparanode(tcallparanode(left).right).left;
            portdata:=tcallparanode(left).left;
-           secondpass(portdata);
-           secondpass(portnumber);
+           secondpass(portdata,ctx);
+           secondpass(portnumber,ctx);
            hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,dtype,portdata.location,dreg);
            if (portnumber.location.loc=LOC_CONSTANT) and
@@ -634,12 +634,12 @@ implementation
              get_segreg(NR_GS);
            {$i x86mmsecond.inc}
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
 
-     procedure tx86inlinenode.second_AndOrXorShiftRot_assign;
+     procedure tx86inlinenode.second_AndOrXorShiftRot_assign(ctx:tpassgeneratecodecontext);
 {$ifndef i8086}
        var
          opsize : tcgsize;
@@ -690,8 +690,8 @@ implementation
                          tshlshrnode(taddnode(valuenode).left).right:=indexnode;
                        end;
 {$endif x86_64}
-                     secondpass(indexnode);
-                     secondpass(loadnode);
+                     secondpass(indexnode,ctx);
+                     secondpass(loadnode,ctx);
 
                      { allocate registers }
                      hlcg.location_force_reg(
@@ -724,10 +724,10 @@ implementation
            end;
 {$endif not i8086}
 
-         inherited second_AndOrXorShiftRot_assign;
+         inherited;
        end;
 
-     procedure tx86inlinenode.second_pi;
+     procedure tx86inlinenode.second_pi(ctx:tpassgeneratecodecontext);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          emit_none(A_FLDPI,S_NO);
@@ -737,11 +737,11 @@ implementation
 
 
      { load the FPU into the an fpu register }
-     procedure tx86inlinenode.load_fpu_location(lnode: tnode);
+     procedure tx86inlinenode.load_fpu_location(lnode: tnode;ctx:tpassgeneratecodecontext);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
-         secondpass(lnode);
+         secondpass(lnode,ctx);
          case lnode.location.loc of
            LOC_FPUREGISTER:
              ;
@@ -767,15 +767,15 @@ implementation
        end;
 
 
-     procedure tx86inlinenode.second_arctan_real;
+     procedure tx86inlinenode.second_arctan_real(ctx:tpassgeneratecodecontext);
        begin
-         load_fpu_location(left);
+         load_fpu_location(left,ctx);
          emit_none(A_FLD1,S_NO);
          emit_none(A_FPATAN,S_NO);
        end;
 
 
-     procedure tx86inlinenode.second_abs_real;
+     procedure tx86inlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
 
        function needs_indirect:boolean; inline;
          begin
@@ -789,7 +789,7 @@ implementation
        begin
          if use_vectorfpu(resultdef) then
            begin
-             secondpass(left);
+             secondpass(left,ctx);
              if left.location.loc<>LOC_MMREGISTER then
                hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,UseAVX);
              if UseAVX then
@@ -830,18 +830,18 @@ implementation
            end
          else
            begin
-             load_fpu_location(left);
+             load_fpu_location(left,ctx);
              emit_none(A_FABS,S_NO);
            end;
        end;
 
 
-     procedure tx86inlinenode.second_round_real;
+     procedure tx86inlinenode.second_round_real(ctx:tpassgeneratecodecontext);
        begin
 {$ifdef x86_64}
          if use_vectorfpu(left.resultdef) then
            begin
-             secondpass(left);
+             secondpass(left,ctx);
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
@@ -867,7 +867,7 @@ implementation
          else
 {$endif x86_64}
           begin
-            load_fpu_location(left);
+            load_fpu_location(left,ctx);
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
@@ -877,7 +877,7 @@ implementation
        end;
 
 
-     procedure tx86inlinenode.second_trunc_real;
+     procedure tx86inlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
        var
          oldcw,newcw : treference;
        begin
@@ -885,7 +885,7 @@ implementation
          if use_vectorfpu(left.resultdef) and
            not((left.location.loc=LOC_FPUREGISTER) and (compiler.globals.current_settings.fputype>=fpu_sse3)) then
            begin
-             secondpass(left);
+             secondpass(left,ctx);
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
@@ -913,7 +913,7 @@ implementation
           begin
             if (compiler.globals.current_settings.fputype>=fpu_sse3) then
               begin
-                load_fpu_location(left);
+                load_fpu_location(left,ctx);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
@@ -937,7 +937,7 @@ implementation
                     emit_ref(A_FNSTCW,S_NO,oldcw);
                   end;
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
-                load_fpu_location(left);
+                load_fpu_location(left,ctx);
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
@@ -952,12 +952,12 @@ implementation
        end;
 
 
-     procedure tx86inlinenode.second_sqr_real;
+     procedure tx86inlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
 
        begin
          if use_vectorfpu(resultdef) then
            begin
-             secondpass(left);
+             secondpass(left,ctx);
              location_reset(location,LOC_MMREGISTER,left.location.size);
              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
              if UseAVX then
@@ -975,17 +975,17 @@ implementation
            end
          else
            begin
-             load_fpu_location(left);
+             load_fpu_location(left,ctx);
              emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
            end;
        end;
 
 
-     procedure tx86inlinenode.second_sqrt_real;
+     procedure tx86inlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
        begin
          if use_vectorfpu(resultdef) then
            begin
-             secondpass(left);
+             secondpass(left,ctx);
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_MMREGISTER,left.location.size);
              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -1014,22 +1014,22 @@ implementation
            end
          else
            begin
-             load_fpu_location(left);
+             load_fpu_location(left,ctx);
              if left.location.loc=LOC_REFERENCE then
                tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
              emit_none(A_FSQRT,S_NO);
            end;
        end;
 
-     procedure tx86inlinenode.second_ln_real;
+     procedure tx86inlinenode.second_ln_real(ctx:tpassgeneratecodecontext);
        begin
-         load_fpu_location(left);
+         load_fpu_location(left,ctx);
          emit_none(A_FLDLN2,S_NO);
          emit_none(A_FXCH,S_NO);
          emit_none(A_FYL2X,S_NO);
        end;
 
-     procedure tx86inlinenode.second_cos_real;
+     procedure tx86inlinenode.second_cos_real(ctx:tpassgeneratecodecontext);
        begin
 {$ifdef i8086}
        { FCOS is 387+ }
@@ -1039,11 +1039,11 @@ implementation
            exit;
          end;
 {$endif i8086}
-         load_fpu_location(left);
+         load_fpu_location(left,ctx);
          emit_none(A_FCOS,S_NO);
        end;
 
-     procedure tx86inlinenode.second_sin_real;
+     procedure tx86inlinenode.second_sin_real(ctx:tpassgeneratecodecontext);
        begin
 {$ifdef i8086}
        { FSIN is 387+ }
@@ -1053,11 +1053,11 @@ implementation
            exit;
          end;
 {$endif i8086}
-         load_fpu_location(left);
+         load_fpu_location(left,ctx);
          emit_none(A_FSIN,S_NO)
        end;
 
-     procedure tx86inlinenode.second_prefetch;
+     procedure tx86inlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
        var
          ref : treference;
          r : tregister;
@@ -1071,7 +1071,7 @@ implementation
              checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
-             secondpass(left);
+             secondpass(left,ctx);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
              case left.location.loc of
@@ -1090,7 +1090,7 @@ implementation
        end;
 
 
-    procedure tx86inlinenode.second_abs_long;
+    procedure tx86inlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
         hregister : tregister;
         opsize : tcgsize;
@@ -1103,7 +1103,7 @@ implementation
         else if not(CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -1123,7 +1123,7 @@ implementation
 {$endif i8086 or i386}
           begin
             opsize:=def_cgsize(left.resultdef);
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             location:=left.location;
@@ -1151,7 +1151,7 @@ implementation
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
 
-      procedure tx86inlinenode.second_IncludeExclude;
+      procedure tx86inlinenode.second_IncludeExclude(ctx:tpassgeneratecodecontext);
         var
          hregister,
          hregister2: tregister;
@@ -1187,8 +1187,8 @@ implementation
               opsize:=OS_32;
             end;
           bitsperop:=(8*tcgsize2size[opsize]);
-          secondpass(tcallparanode(left).left);
-          secondpass(tcallparanode(tcallparanode(left).right).left);
+          secondpass(tcallparanode(left).left,ctx);
+          secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
           setbase:=tsetdef(tcallparanode(left).left.resultdef).setbase;
           if tcallparanode(tcallparanode(left).right).left.location.loc=LOC_CONSTANT then
             begin
@@ -1248,11 +1248,11 @@ implementation
         end;
 
 
-    procedure tx86inlinenode.second_popcnt;
+    procedure tx86inlinenode.second_popcnt(ctx:tpassgeneratecodecontext);
       var
         opsize: tcgsize;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         opsize:=tcgsize2unsigned[left.location.size];
 
@@ -1279,7 +1279,7 @@ implementation
       end;
 
 
-    procedure tx86inlinenode.second_fma;
+    procedure tx86inlinenode.second_fma(ctx:tpassgeneratecodecontext);
 {$ifndef i8086}
       const
         op : array[false..true,false..true,s32real..s64real,0..3] of TAsmOp =
@@ -1356,7 +1356,7 @@ implementation
                end;
 
               for i:=1 to 3 do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { only one memory operand is allowed }
              gotmem:=false;
@@ -1441,13 +1441,13 @@ implementation
       end;
 
 
-    procedure tx86inlinenode.second_frac_real;
+    procedure tx86inlinenode.second_frac_real(ctx:tpassgeneratecodecontext);
       var
         extrareg : TRegister;
       begin
         if use_vectorfpu(resultdef) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -1509,11 +1509,11 @@ implementation
       end;
 
 
-    procedure tx86inlinenode.second_int_real;
+    procedure tx86inlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
         if use_vectorfpu(resultdef) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,left.location.size);
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -1545,13 +1545,13 @@ implementation
       end;
 
 
-    procedure tx86inlinenode.second_high;
+    procedure tx86inlinenode.second_high(ctx:tpassgeneratecodecontext);
       var
         donelab: tasmlabel;
         hregister : tregister;
         href : treference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(is_dynamic_array(left.resultdef)) then
           Internalerror(2019122809);
         { length in dynamic arrays is at offset -sizeof(pint) }
@@ -1581,7 +1581,7 @@ implementation
       end;
 
 
-    procedure tx86inlinenode.second_minmax;
+    procedure tx86inlinenode.second_minmax(ctx:tpassgeneratecodecontext);
 {$ifndef i8086}
       const
         oparray : array[false..true,false..true,s32real..s64real] of TAsmOp =
@@ -1624,7 +1624,7 @@ implementation
              paraarray[2]:=tcallparanode(parameters).paravalue;
 
              for i:=low(paraarray) to high(paraarray) do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { only one memory operand is allowed }
              gotmem:=false;
@@ -1721,7 +1721,7 @@ implementation
              paraarray[2]:=tcallparanode(parameters).paravalue;
 
              for i:=low(paraarray) to high(paraarray) do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              if paraarray[2].location.loc = LOC_CONSTANT then
                begin

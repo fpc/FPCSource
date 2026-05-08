@@ -47,7 +47,7 @@ interface
         procedure genlinearlist(hp : pcaselabel);override;
         procedure genlinearcmplist(hp : pcaselabel);override;
       public
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -291,7 +291,7 @@ implementation
       end;
 
 
-    procedure twasmcasenode.pass_generate_code;
+    procedure twasmcasenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         oldflowcontrol: tflowcontrol;
         ShortcutElse: Boolean;
@@ -327,7 +327,7 @@ implementation
             jmp_le:=OC_BE;
           end;
 
-        secondpass(left);
+        secondpass(left,ctx);
         if (left.expectloc=LOC_JUMP)<>
            (left.location.loc=LOC_JUMP) then
           internalerror(2006050501);
@@ -449,7 +449,7 @@ implementation
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
                 hlcg.a_label(current_asmdata.CurrAsmList,blocklabel);
 
-                secondpass(statement);
+                secondpass(statement,ctx);
                 { don't come back to case line }
                 compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
                 current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,endlabel));
@@ -466,7 +466,7 @@ implementation
         if Assigned(elseblock) then
           begin
 
-            secondpass(elseblock);
+            secondpass(elseblock,ctx);
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));

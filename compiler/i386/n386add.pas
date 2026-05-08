@@ -32,11 +32,11 @@ interface
        ti386addnode = class(tx86addnode)
          function use_generic_mul32to64: boolean; override;
          function use_generic_mul64bit: boolean; override;
-         procedure second_addordinal; override;
-         procedure second_add64bit;override;
-         procedure second_cmp64bit;override;
-         procedure second_mul(unsigned: boolean);
-         procedure second_mul64bit;
+         procedure second_addordinal(ctx:tpassgeneratecodecontext); override;
+         procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_mul(unsigned: boolean;ctx:tpassgeneratecodecontext);
+         procedure second_mul64bit(ctx:tpassgeneratecodecontext);
        protected
          procedure set_mul_result_location;
        end;
@@ -72,7 +72,7 @@ interface
 
     { handles all unsigned multiplications, and 32->64 bit signed ones.
       32bit-only signed mul is handled by generic codegen }
-    procedure ti386addnode.second_addordinal;
+    procedure ti386addnode.second_addordinal(ctx:tpassgeneratecodecontext);
     var
       unsigned: boolean;
     begin
@@ -84,16 +84,16 @@ interface
          not is_64bit(resultdef) then
         unsigned:=false;
       if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
-        second_mul(unsigned)
+        second_mul(unsigned,ctx)
       else
-        inherited second_addordinal;
+        inherited;
     end;
 
 {*****************************************************************************
                                 Add64bit
 *****************************************************************************}
 
-    procedure ti386addnode.second_add64bit;
+    procedure ti386addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         op         : TOpCG;
         op1,op2    : TAsmOp;
@@ -105,7 +105,7 @@ interface
         unsigned:boolean;
         r:Tregister;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         op1:=A_NONE;
         op2:=A_NONE;
@@ -136,7 +136,7 @@ interface
             op:=OP_AND;
           muln:
             begin
-              second_mul64bit;
+              second_mul64bit(ctx);
               exit;
             end
           else
@@ -243,7 +243,7 @@ interface
       end;
 
 
-    procedure ti386addnode.second_cmp64bit;
+    procedure ti386addnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel,
@@ -326,7 +326,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
 
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u64bit)) or
@@ -467,7 +467,7 @@ interface
     end;
 
 
-    procedure ti386addnode.second_mul(unsigned: boolean);
+    procedure ti386addnode.second_mul(unsigned: boolean;ctx:tpassgeneratecodecontext);
 
     var reg,reghi,reglo:Tregister;
         ref:Treference;
@@ -478,7 +478,7 @@ interface
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
 
     begin
-      pass_left_right;
+      pass_left_right(ctx);
       reg:=NR_NO;
       reference_reset(ref,sizeof(pint),[]);
 
@@ -556,7 +556,7 @@ interface
     end;
 
 
-    procedure ti386addnode.second_mul64bit;
+    procedure ti386addnode.second_mul64bit(ctx:tpassgeneratecodecontext);
     var
       list: TAsmList;
       hreg1,hreg2: tregister;

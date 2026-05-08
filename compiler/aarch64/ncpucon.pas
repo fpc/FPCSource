@@ -32,7 +32,7 @@ interface
     type
       taarch64realconstnode = class(tcgrealconstnode)
         function pass_1 : tnode;override;
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
   implementation
@@ -63,7 +63,7 @@ interface
       end;
 
 
-    procedure taarch64realconstnode.pass_generate_code;
+    procedure taarch64realconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hreg : TRegister;
       begin
@@ -84,7 +84,7 @@ interface
               hreg,hreg,hreg));
           end
         else
-          Inherited pass_generate_code;
+          Inherited;
       end;
 
 begin

@@ -31,7 +31,7 @@ interface
 
     type
        tx86innode = class(tinnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          function pass_1 : tnode;override;
        end;
 
@@ -418,7 +418,7 @@ implementation
            exit;
       end;
 
-    procedure tx86innode.pass_generate_code;
+    procedure tx86innode.pass_generate_code(ctx:tpassgeneratecodecontext);
        type
          Tsetpart=record
            range : boolean;      {Part is a range.}
@@ -548,11 +548,11 @@ implementation
          { "right" and not "swapped left" in that case)                 }
          if not(genjumps) then
            firstcomplex(self);
-         secondpass(left);
+         secondpass(left,ctx);
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
-            secondpass(right);
+            secondpass(right,ctx);
           end;
          if compiler.verbose.codegenerror then
           exit;

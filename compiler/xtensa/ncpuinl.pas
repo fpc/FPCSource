@@ -31,13 +31,13 @@ unit ncpuinl;
     type
       tcpuinlinenode = class(tcginlinenode)
         function first_abs_real: tnode; override;
-        procedure second_abs_long; override;
-        procedure second_abs_real; override;
+        procedure second_abs_long(ctx:tpassgeneratecodecontext); override;
+        procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
         function first_fma: tnode; override;
-        procedure second_fma; override;
+        procedure second_fma(ctx:tpassgeneratecodecontext); override;
         function first_minmax: tnode; override;
-        procedure second_minmax; override;
-        procedure second_prefetch; override;
+        procedure second_minmax(ctx:tpassgeneratecodecontext); override;
+        procedure second_prefetch(ctx:tpassgeneratecodecontext); override;
       end;
 
   implementation
@@ -58,17 +58,17 @@ unit ncpuinl;
       cpubase,
       compiler;
 
-    procedure tcpuinlinenode.second_abs_long;
+    procedure tcpuinlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
        hl: TAsmLabel;
       begin
         if is_64bitint(resultdef) then
           begin
-            inherited second_abs_long;
+            inherited;
             exit;
           end;
 
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
@@ -97,11 +97,11 @@ unit ncpuinl;
       end;
 
 
-    procedure tcpuinlinenode.second_abs_real;
+    procedure tcpuinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
         if not(is_single(resultdef)) then
           InternalError(2020091101);
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,OS_F32);
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -123,7 +123,7 @@ unit ncpuinl;
       end;
 
 
-    procedure tcpuinlinenode.second_fma;
+    procedure tcpuinlinenode.second_fma(ctx:tpassgeneratecodecontext);
       const
         op : array[false..true] of TAsmOp =
           (A_MADD,
@@ -165,7 +165,7 @@ unit ncpuinl;
                  negproduct:=not(negproduct);
                end;
               for i:=1 to 3 do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { no memory operand is allowed }
              for i:=1 to 3 do
@@ -206,7 +206,7 @@ unit ncpuinl;
       end;
 
 
-    procedure tcpuinlinenode.second_minmax;
+    procedure tcpuinlinenode.second_minmax(ctx:tpassgeneratecodecontext);
       var
         paraarray : array[1..2] of tnode;
         i: Integer;
@@ -219,7 +219,7 @@ unit ncpuinl;
              paraarray[2]:=tcallparanode(parameters).paravalue;
 
               for i:=low(paraarray) to high(paraarray) do
-               secondpass(paraarray[i]);
+               secondpass(paraarray[i],ctx);
 
              { no memory operand is allowed }
              for i:=low(paraarray) to high(paraarray) do
@@ -255,7 +255,7 @@ unit ncpuinl;
       end;
 
 
-    procedure tcpuinlinenode.second_prefetch;
+    procedure tcpuinlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
       var
         ref : treference;
         r : tregister;
@@ -265,7 +265,7 @@ unit ncpuinl;
         checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
-        secondpass(left);
+        secondpass(left,ctx);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
        case left.location.loc of

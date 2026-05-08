@@ -33,7 +33,7 @@ unit nrv64add;
       protected
         function pass_1: tnode; override;
 
-        procedure second_add64bit; override;
+        procedure second_add64bit(ctx:tpassgeneratecodecontext); override;
 
         function use_generic_mul32to64: boolean; override;
       end;
@@ -82,9 +82,9 @@ unit nrv64add;
       end;
 
 
-    procedure trv64addnode.second_add64bit;
+    procedure trv64addnode.second_add64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_addordinal;
+        second_addordinal(ctx);
       end;
 
 

@@ -32,11 +32,11 @@ interface
       ti8086moddivnode = class(tmoddivnode)
          function use_moddiv32bit_helper: boolean;
          function first_moddivint: tnode; override;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       ti8086shlshrnode = class(tx86shlshrnode)
-         procedure second_64bit;override;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);override;
          function first_shlshr64bitint: tnode; override;
       end;
 
@@ -94,7 +94,7 @@ implementation
       end;
 
 
-   procedure ti8086moddivnode.pass_generate_code;
+   procedure ti8086moddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hreg1,hreg2:Tregister;
         power:longint;
@@ -105,10 +105,10 @@ implementation
         m_low,m_high,j,k : dword;
         invertsign: Boolean;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
-        secondpass(right);
+        secondpass(right,ctx);
         if compiler.verbose.codegenerror then
           exit;
 
@@ -400,7 +400,7 @@ implementation
         result := nil;
       end;
 
-    procedure ti8086shlshrnode.second_64bit;
+    procedure ti8086shlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;

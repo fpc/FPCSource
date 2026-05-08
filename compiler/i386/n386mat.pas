@@ -31,11 +31,11 @@ interface
 
     type
       ti386moddivnode = class(tx86moddivnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       ti386shlshrnode = class(tx86shlshrnode)
-         procedure second_64bit;override;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);override;
          function first_shlshr64bitint: tnode; override;
       end;
 
@@ -65,7 +65,7 @@ implementation
 
 
 
-   procedure ti386moddivnode.pass_generate_code;
+   procedure ti386moddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hreg1:Tregister;
         power:longint;
@@ -82,10 +82,10 @@ implementation
            (cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
           begin
             { signed divide-by-power-of-two optimized for size }
-            secondpass(left);
+            secondpass(left,ctx);
             if compiler.verbose.codegenerror then
               exit;
-            secondpass(right);
+            secondpass(right,ctx);
             if compiler.verbose.codegenerror then
               exit;
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
@@ -105,7 +105,7 @@ implementation
             location.register:=hreg1;
           end
         else
-          inherited pass_generate_code;
+          inherited;
       end;
 
 
@@ -119,7 +119,7 @@ implementation
         result := nil;
       end;
 
-    procedure ti386shlshrnode.second_64bit;
+    procedure ti386shlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;

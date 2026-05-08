@@ -39,11 +39,11 @@ interface
          function use_mul_helper: boolean;override;
          function first_cmppointer: tnode;override;
          function pass_1 : tnode;override;
-         procedure second_cmpordinal;override;
-         procedure second_cmpsmallset;override;
-         procedure second_cmp64bit;override;
-         procedure second_cmp16_32_64bit;
-         procedure second_cmp;
+         procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+         procedure second_cmp16_32_64bit(ctx:tpassgeneratecodecontext);
+         procedure second_cmp(ctx:tpassgeneratecodecontext);
        end;
 
   implementation
@@ -150,21 +150,21 @@ interface
       end;
 
 
-    procedure TZ80AddNode.second_cmpsmallset;
+    procedure TZ80AddNode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       begin
         case nodetype of
           equaln,unequaln:
             begin
               if left.resultdef.size>=2 then
                 internalerror(2021100302);
-              second_cmp;
+              second_cmp(ctx);
             end;
           lten,gten:
             begin
               if left.resultdef.size>=2 then
                 internalerror(2021100302);
 
-              pass_left_right;
+              pass_left_right(ctx);
 
               if (not(nf_swapped in flags) and (nodetype = lten)) or
                  ((nf_swapped in flags) and (nodetype = gten)) then
@@ -220,7 +220,7 @@ interface
       end;
 
 
-    procedure TZ80AddNode.second_cmp;
+    procedure TZ80AddNode.second_cmp(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
         tmpreg1,tmpreg2 : tregister;
@@ -234,7 +234,7 @@ interface
         opdef:=left.resultdef;
         opsize:=def_cgsize(opdef);
 
-        pass_left_right;
+        pass_left_right(ctx);
 
         if (opsize=OS_8) or ((opsize=OS_S8) and (NodeType in [equaln,unequaln])) then
           begin
@@ -335,13 +335,13 @@ interface
       end;
 
 
-    procedure TZ80AddNode.second_cmp64bit;
+    procedure TZ80AddNode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_cmp16_32_64bit;
+        second_cmp16_32_64bit(ctx);
       end;
 
 
-    procedure TZ80AddNode.second_cmp16_32_64bit;
+    procedure TZ80AddNode.second_cmp16_32_64bit(ctx:tpassgeneratecodecontext);
       var
         truelabel,
         falselabel: tasmlabel;
@@ -353,7 +353,7 @@ interface
       begin
         truelabel:=nil;
         falselabel:=nil;
-        pass_left_right;
+        pass_left_right(ctx);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -671,12 +671,12 @@ interface
       end;
 
 
-    procedure TZ80AddNode.second_cmpordinal;
+    procedure TZ80AddNode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       begin
         if left.resultdef.size>=2 then
-          second_cmp16_32_64bit
+          second_cmp16_32_64bit(ctx)
         else
-          second_cmp;
+          second_cmp(ctx);
       end;
 
 begin

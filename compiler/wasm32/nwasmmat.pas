@@ -31,21 +31,21 @@ interface
 
     type
       twasmmoddivnode = class(tmoddivnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       twasmshlshrnode = class(tshlshrnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       twasmnotnode = class(tcgnotnode)
       protected
-        procedure second_boolean;override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       twasmunaryminusnode = class(tcgunaryminusnode)
-        procedure second_integer;override;
-        procedure second_float;override;
+        procedure second_integer(ctx:tpassgeneratecodecontext);override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -66,15 +66,15 @@ implementation
                              twasmmoddivnode
 *****************************************************************************}
 
-    procedure twasmmoddivnode.pass_generate_code;
+    procedure twasmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         tmpreg: tregister;
         lab: tasmlabel;
         ovloc: tlocation;
         op: topcg;
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,left.location.size);
          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
@@ -135,12 +135,12 @@ implementation
                              twasmshlshrnode
 *****************************************************************************}
 
-    procedure twasmshlshrnode.pass_generate_code;
+    procedure twasmshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
       begin
-        secondpass(left);
-        secondpass(right);
+        secondpass(left,ctx);
+        secondpass(right,ctx);
         location_reset(location,LOC_REGISTER,left.location.size);
         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
@@ -160,9 +160,9 @@ implementation
                                twasmnotnode
 *****************************************************************************}
 
-    procedure twasmnotnode.second_boolean;
+    procedure twasmnotnode.second_boolean(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_reset(location,LOC_REGISTER,left.location.size);
@@ -175,11 +175,11 @@ implementation
                             twasmunaryminusnode
 *****************************************************************************}
 
-    procedure twasmunaryminusnode.second_integer;
+    procedure twasmunaryminusnode.second_integer(ctx:tpassgeneratecodecontext);
       var
         hl: tasmlabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -200,11 +200,11 @@ implementation
       end;
 
 
-    procedure twasmunaryminusnode.second_float;
+    procedure twasmunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         opc: tasmop;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);

@@ -40,18 +40,18 @@ interface
           function first_sqr_real: tnode; override;
           function first_trunc_real: tnode; override;
           function first_round_real: tnode; override;
-          procedure second_sqrt_real; override;
-          procedure second_abs_real; override;
-          procedure second_sqr_real; override;
-          procedure second_trunc_real; override;
-          procedure second_round_real; override;
-          procedure second_prefetch;override;
+          procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_prefetch(ctx:tpassgeneratecodecontext);override;
           function pass_typecheck_cpu: tnode; override;
           function first_cpu: tnode; override;
-          procedure pass_generate_code_cpu; override;
+          procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext); override;
        protected
-          procedure load_fpu_location;
-          procedure second_trunc_round_real(op: tasmop);
+          procedure load_fpu_location(ctx:tpassgeneratecodecontext);
+          procedure second_trunc_round_real(op: tasmop;ctx:tpassgeneratecodecontext);
        end;
 
 implementation
@@ -98,7 +98,7 @@ implementation
       end;
 
 
-     procedure tgppcinlinenode.pass_generate_code_cpu;
+     procedure tgppcinlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
        begin
          case inlinenumber of
            in_ppc_yield:
@@ -109,7 +109,7 @@ implementation
 {$endif powerpc64}
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,NR_R27,NR_R27,NR_R27));
            else
-             inherited pass_generate_code_cpu;
+             inherited;
          end;
        end;
 
@@ -164,22 +164,22 @@ implementation
 
 
      { load the FPU into the an fpu register }
-     procedure tgppcinlinenode.load_fpu_location;
+     procedure tgppcinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
        end;
 
 
-    procedure tgppcinlinenode.second_sqrt_real;
+    procedure tgppcinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
         if (compiler.globals.current_settings.cputype < cpu_PPC970) then
           internalerror(2007020910);
         location.loc:=LOC_FPUREGISTER;
-        load_fpu_location;
+        load_fpu_location(ctx);
         case left.location.size of
           OS_F32:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
@@ -193,21 +193,21 @@ implementation
       end;
 
 
-     procedure tgppcinlinenode.second_abs_real;
+     procedure tgppcinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,
            left.location.register));
        end;
 
 
-     procedure tgppcinlinenode.second_sqr_real;
+     procedure tgppcinlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
        var
          op: tasmop;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FMULS
          else
@@ -217,13 +217,13 @@ implementation
        end;
 
 
-     procedure tgppcinlinenode.second_trunc_round_real(op: tasmop);
+     procedure tgppcinlinenode.second_trunc_round_real(op: tasmop;ctx:tpassgeneratecodecontext);
        var
          tmpreg: tregister;
        begin
          if (compiler.globals.current_settings.cputype < cpu_PPC970) then
            internalerror(2007020901);
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
@@ -236,19 +236,19 @@ implementation
        end;
 
 
-    procedure tgppcinlinenode.second_trunc_real;
+    procedure tgppcinlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
-        second_trunc_round_real(A_FCTIDZ);
+        second_trunc_round_real(A_FCTIDZ,ctx);
       end;
 
 
-    procedure tgppcinlinenode.second_round_real;
+    procedure tgppcinlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       begin
-        second_trunc_round_real(A_FCTID);
+        second_trunc_round_real(A_FCTID,ctx);
       end;
 
 
-     procedure tgppcinlinenode.second_prefetch;
+     procedure tgppcinlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
        var
          r: tregister;
          checkpointer_used : boolean;
@@ -257,7 +257,7 @@ implementation
          checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
          if checkpointer_used then
            node_change_local_switch(left,cs_checkpointer,false);
-         secondpass(left);
+         secondpass(left,ctx);
          if checkpointer_used then
            node_change_local_switch(left,cs_checkpointer,false);
          case left.location.loc of

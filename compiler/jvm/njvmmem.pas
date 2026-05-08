@@ -39,12 +39,12 @@ interface
          function isdererence: boolean;
         public
          function pass_typecheck: tnode; override;
-         procedure pass_generate_code; override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
        tjvmderefnode = class(tcgderefnode)
           function pass_typecheck: tnode; override;
-          procedure pass_generate_code; override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
        tjvmsubscriptnode = class(tcgsubscriptnode)
@@ -54,7 +54,7 @@ interface
 
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
          function pass_1: tnode; override;
-         procedure pass_generate_code; override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
        tjvmvecnode = class(tcgvecnode)
@@ -62,7 +62,7 @@ interface
           function gen_array_rangecheck: tnode; override;
         public
          function pass_1: tnode; override;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -96,11 +96,11 @@ implementation
       end;
 
 
-    procedure tjvmderefnode.pass_generate_code;
+    procedure tjvmderefnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         implicitptr: boolean;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         implicitptr:=jvmimplicitpointertype(resultdef);
         if implicitptr then
           begin
@@ -289,11 +289,11 @@ implementation
       end;
 
 
-    procedure tjvmaddrnode.pass_generate_code;
+    procedure tjvmaddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         implicitptr: boolean;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         implicitptr:=jvmimplicitpointertype(left.resultdef);
         if implicitptr then
           { this is basically a typecast: the left node is an implicit
@@ -342,7 +342,7 @@ implementation
       end;
 
 
-    procedure tjvmloadvmtaddrnode.pass_generate_code;
+    procedure tjvmloadvmtaddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
           tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true),AT_METADATA)));
@@ -412,7 +412,7 @@ implementation
       end;
 
 
-    procedure tjvmvecnode.pass_generate_code;
+    procedure tjvmvecnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         psym: tsym;
         newsize: tcgsize;
@@ -427,7 +427,7 @@ implementation
           As far as arrays are concerned: we have to create a trefererence
           with arrayreftype in [art_indexreg,art_indexref], and ref.base =
           pointer to the array (i.e., left.location.register) }
-        secondpass(left);
+        secondpass(left,ctx);
         newsize:=def_cgsize(resultdef);
         if left.location.loc=LOC_CREFERENCE then
           location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility)
@@ -437,7 +437,7 @@ implementation
           and then asking for the size doesn't make any sense }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,true);
         location.reference.base:=left.location.register;
-        secondpass(right);
+        secondpass(right,ctx);
         if (right.expectloc=LOC_JUMP)<>
            (right.location.loc=LOC_JUMP) then
           internalerror(2011090501);

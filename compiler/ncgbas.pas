@@ -33,30 +33,30 @@ interface
 
     type
        tcgnothingnode = class(tnothingnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgasmnode = class(tasmnode)
          protected
           procedure ResolveRef(const filepos: tfileposinfo; var op:toper); virtual;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgstatementnode = class(tstatementnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgblocknode = class(tblocknode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgtempcreatenode = class(ttempcreatenode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgtemprefnode = class(ttemprefnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
           { Changes the location of this temp to ref. Useful when assigning }
           { another temp to this one. The current location will be freed.   }
           { Can only be called in pass 2 (since earlier, the temp location  }
@@ -65,11 +65,11 @@ interface
        end;
 
        tcgtempdeletenode = class(ttempdeletenode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgfinalizetempsnode = class(tfinalizetempsnode)
-          procedure pass_generate_code; override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
        end;
 
   implementation
@@ -93,7 +93,7 @@ interface
                                  TNOTHING
 *****************************************************************************}
 
-    procedure tcgnothingnode.pass_generate_code;
+    procedure tcgnothingnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -105,7 +105,7 @@ interface
                                TSTATEMENTNODE
 *****************************************************************************}
 
-    procedure tcgstatementnode.pass_generate_code;
+    procedure tcgstatementnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          hp : tstatementnode;
       begin
@@ -116,7 +116,7 @@ interface
           begin
             if assigned(hp.left) then
              begin
-               secondpass(hp.left);
+               secondpass(hp.left,ctx);
                { Compiler inserted blocks can return values }
                location_copy(hp.location,hp.left.location);
              end;
@@ -266,7 +266,7 @@ interface
       end;
 
 
-    procedure tcgasmnode.pass_generate_code;
+    procedure tcgasmnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       procedure ReLabel(var p:tasmsymbol);
         begin
@@ -443,7 +443,7 @@ interface
                              TBLOCKNODE
 *****************************************************************************}
 
-    procedure tcgblocknode.pass_generate_code;
+    procedure tcgblocknode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         hp : tstatementnode;
         oldexitlabel : tasmlabel;
@@ -472,7 +472,7 @@ interface
             begin
               if assigned(hp.left) then
                begin
-                 secondpass(hp.left);
+                 secondpass(hp.left,ctx);
                  location_copy(hp.location,hp.left.location);
                end;
               location_copy(location,hp.location);
@@ -496,7 +496,7 @@ interface
                           TTEMPCREATENODE
 *****************************************************************************}
 
-    procedure tcgtempcreatenode.pass_generate_code;
+    procedure tcgtempcreatenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -537,13 +537,13 @@ interface
                              TTEMPREFNODE
 *****************************************************************************}
 
-    procedure tcgtemprefnode.pass_generate_code;
+    procedure tcgtemprefnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if ti_executeinitialisation in tempflags then
           begin
             { avoid recursion }
             excludetempflag(ti_executeinitialisation);
-            secondpass(tempinfo^.tempinitcode);
+            secondpass(tempinfo^.tempinitcode,ctx);
             if (ti_reference in tempflags) then
               begin
                 case tempinfo^.tempinitcode.location.loc of
@@ -608,7 +608,7 @@ interface
                            TTEMPDELETENODE
 *****************************************************************************}
 
-    procedure tcgtempdeletenode.pass_generate_code;
+    procedure tcgtempdeletenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if ti_reference in tempflags then
           begin
@@ -759,7 +759,7 @@ interface
                          TCGFINALIZETEMPSNODE
 *****************************************************************************}
 
-    procedure tcgfinalizetempsnode.pass_generate_code;
+    procedure tcgfinalizetempsnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         hlcg.gen_finalize_code(current_asmdata.CurrAsmList);
         location.loc:=LOC_VOID;

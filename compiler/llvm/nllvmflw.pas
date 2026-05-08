@@ -47,7 +47,7 @@ interface
 
     tllvmraisenode = class(tcgraisenode)
       function pass_1: tnode; override;
-      procedure pass_generate_code; override;
+      procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
     end;
 
 
@@ -113,7 +113,7 @@ implementation
       end;
 
 
-    procedure tllvmraisenode.pass_generate_code;
+    procedure tllvmraisenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         currexceptlabel: tasmlabel;
       begin

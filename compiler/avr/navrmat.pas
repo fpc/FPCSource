@@ -31,13 +31,13 @@ interface
 
     type
       tavrnotnode = class(tcgnotnode)
-        procedure second_boolean;override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       tavrshlshrnode = class(tcgshlshrnode)
         function pass_1: tnode;override;
-        procedure second_integer;override;
-        procedure second_64bit;override;
+        procedure second_integer(ctx:tpassgeneratecodecontext);override;
+        procedure second_64bit(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -59,13 +59,13 @@ implementation
                                TAVRNOTNODE
 *****************************************************************************}
 
-    procedure tavrnotnode.second_boolean;
+    procedure tavrnotnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         i : longint;
         falselabel,truelabel,skiplabel: TAsmLabel;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             { short code? }
@@ -157,7 +157,7 @@ implementation
       end;
 
 
-    procedure tavrshlshrnode.second_integer;
+    procedure tavrshlshrnode.second_integer(ctx:tpassgeneratecodecontext);
       var
          op : topcg;
          opdef: tdef;
@@ -225,10 +225,10 @@ implementation
       end;
 
 
-    procedure tavrshlshrnode.second_64bit;
+    procedure tavrshlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       begin
-        second_integer;
-        // inherited second_64bit;
+        second_integer(ctx);
+        // inherited;
       end;
 
 begin

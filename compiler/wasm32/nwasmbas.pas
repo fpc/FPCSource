@@ -27,14 +27,14 @@ unit nwasmbas;
 interface
 
     uses
-      nbas,ncgbas;
+      node,nbas,ncgbas;
 
     type
 
       { twasmblocknode }
 
       twasmblocknode=class(tcgblocknode)
-        procedure pass_generate_code; override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -42,19 +42,18 @@ implementation
     uses
       aasmdata,aasmcpu,
       cpubase,
-      hlcgobj,hlcgcpu,
-      node;
+      hlcgobj,hlcgcpu;
 
     { twasmblocknode }
 
-    procedure twasmblocknode.pass_generate_code;
+    procedure twasmblocknode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if nf_block_with_exit in flags then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
           end;
 
-        inherited pass_generate_code;
+        inherited;
 
         if nf_block_with_exit in flags then
           begin

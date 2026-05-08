@@ -33,26 +33,26 @@ interface
 
     type
        tcgloadvmtaddrnode = class(tloadvmtaddrnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgloadparentfpnode = class(tloadparentfpnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgaddrnode = class(taddrnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgderefnode = class(tderefnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgsubscriptnode = class(tsubscriptnode)
          protected
           function handle_platform_subscript: boolean; virtual;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgvecnode = class(tvecnode)
@@ -75,7 +75,7 @@ interface
          procedure second_dynamicarray;virtual;
          function valid_index_size(size: tcgsize): boolean;virtual;
        public
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -96,7 +96,7 @@ implementation
                               TCGLOADVMTADDRNODE
 *****************************************************************************}
 
-    procedure tcgloadvmtaddrnode.pass_generate_code;
+    procedure tcgloadvmtaddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         href    : treference;
         pool    : THashSet;
@@ -155,7 +155,7 @@ implementation
                         TCGLOADPARENTFPNODE
 *****************************************************************************}
 
-    procedure tcgloadparentfpnode.pass_generate_code;
+    procedure tcgloadparentfpnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         currpi : tprocinfo;
         hsym   : tparavarsym;
@@ -200,9 +200,9 @@ implementation
                              TCGADDRNODE
 *****************************************************************************}
 
-    procedure tcgaddrnode.pass_generate_code;
+    procedure tcgaddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-         secondpass(left);
+         secondpass(left,ctx);
 
          location_reset(location,LOC_REGISTER,int_cgsize(resultdef.size));
          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
@@ -224,7 +224,7 @@ implementation
                            TCGDEREFNODE
 *****************************************************************************}
 
-    procedure tcgderefnode.pass_generate_code;
+    procedure tcgderefnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         paraloc1 : tcgpara;
         pd : tprocdef;
@@ -260,7 +260,7 @@ implementation
              replacenode(hp^,taddnode(hp^).right);
            end;
 
-         secondpass(left);
+         secondpass(left,ctx);
 
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -328,7 +328,7 @@ implementation
         result:=false;
       end;
 
-    procedure tcgsubscriptnode.pass_generate_code;
+    procedure tcgsubscriptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         asmsym: tasmsymbol;
         paraloc1 : tcgpara;
@@ -342,7 +342,7 @@ implementation
         hreg : TRegister;
       begin
          sym:=nil;
-         secondpass(left);
+         secondpass(left,ctx);
          if compiler.verbose.codegenerror then
            exit;
          paraloc1.init(compiler.target);
@@ -853,7 +853,7 @@ implementation
         paraloc2.done;
       end;
 
-    procedure tcgvecnode.pass_generate_code;
+    procedure tcgvecnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          offsetdec,
@@ -882,7 +882,7 @@ implementation
            bytemulsize:=mulsize div 8;
 
          newsize:=def_cgsize(resultdef);
-         secondpass(left);
+         secondpass(left,ctx);
          if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
            location_reset_ref(location,left.location.loc,newsize,left.location.reference.alignment,left.location.reference.volatility)
          else
@@ -1008,7 +1008,7 @@ implementation
               { offset can only differ from 0 if arraydef }
               if cs_check_range in compiler.globals.current_settings.localswitches then
                 begin
-                  secondpass(right);
+                  secondpass(right,ctx);
                   case left.resultdef.typ of
                     arraydef :
                       rangecheck_array;
@@ -1117,7 +1117,7 @@ implementation
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 internalerror(200304237);
-              secondpass(right);
+              secondpass(right,ctx);
               if (right.expectloc=LOC_JUMP)<>
                  (right.location.loc=LOC_JUMP) then
                 internalerror(2006010801);

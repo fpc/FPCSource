@@ -282,6 +282,9 @@ interface
        transientflagsequal : TTransientNodeFlags = [tnf_error];
 
     type
+      tpassgeneratecodecontext = class
+      end;
+
       tnodelist = class
       end;
 
@@ -353,7 +356,7 @@ interface
            the node }
          procedure det_temp;virtual;abstract;
 
-         procedure pass_generate_code;virtual;abstract;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);virtual;abstract;
 
          { comparing of nodes }
          function isequal(p : tnode) : boolean;

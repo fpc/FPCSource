@@ -41,13 +41,13 @@ interface
           function use_generic_mul64bit: boolean; override;
        protected
           function first_addfloat: tnode; override;
-          procedure second_addordinal;override;
-          procedure second_addfloat;override;
-          procedure second_cmpfloat;override;
-          procedure second_cmpordinal;override;
-          procedure second_cmpsmallset;override;
-          procedure second_cmp64bit;override;
-          procedure second_add64bit;override;
+          procedure second_addordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_addfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpfloat(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpordinal(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmpsmallset(ctx:tpassgeneratecodecontext);override;
+          procedure second_cmp64bit(ctx:tpassgeneratecodecontext);override;
+          procedure second_add64bit(ctx:tpassgeneratecodecontext);override;
        end;
 
   implementation
@@ -167,13 +167,13 @@ interface
       end;
 
 
-    procedure tarmaddnode.second_addfloat;
+    procedure tarmaddnode.second_addfloat(ctx:tpassgeneratecodecontext);
       var
         op : TAsmOp;
         singleprec: boolean;
         pf: TOpPostfix;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -274,12 +274,12 @@ interface
       end;
 
 
-    procedure tarmaddnode.second_cmpfloat;
+    procedure tarmaddnode.second_cmpfloat(ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
         pf: TOpPostfix;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         if (nf_swapped in flags) then
           swapleftright;
 
@@ -351,12 +351,12 @@ interface
       end;
 
 
-    procedure tarmaddnode.second_cmpsmallset;
+    procedure tarmaddnode.second_cmpsmallset(ctx:tpassgeneratecodecontext);
       var
         tmpreg : tregister;
         b: byte;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -411,7 +411,7 @@ interface
       end;
 
 
-    procedure tarmaddnode.second_cmp64bit;
+    procedure tarmaddnode.second_cmp64bit(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
         oldnodetype : tnodetype;
@@ -426,7 +426,7 @@ interface
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        pass_left_right;
+        pass_left_right(ctx);
 
         { pass_left_right moves possible consts to the right, the only
           remaining case with left consts (currency) can take this path too (KB) }
@@ -531,7 +531,7 @@ interface
           end;
       end;
 
-    procedure tarmaddnode.second_add64bit;
+    procedure tarmaddnode.second_add64bit(ctx:tpassgeneratecodecontext);
       var
         asmList : TAsmList;
         ll,rl,res : TRegister64;
@@ -540,7 +540,7 @@ interface
         if (nodetype in [muln]) then
           begin
             asmList := current_asmdata.CurrAsmList;
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT));
             set_result_location_reg;
 
@@ -556,7 +556,7 @@ interface
             asmList.concat(taicpu.op_reg_reg_reg(A_ADD,res.reghi,tmpreg,res.reghi));
           end
         else
-          inherited second_add64bit;
+          inherited;
       end;
 
     function tarmaddnode.pass_1 : tnode;
@@ -604,13 +604,13 @@ interface
       end;
 
 
-    procedure tarmaddnode.second_cmpordinal;
+    procedure tarmaddnode.second_cmpordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned : boolean;
         tmpreg : tregister;
         b : byte;
       begin
-        pass_left_right;
+        pass_left_right(ctx);
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
@@ -639,7 +639,7 @@ interface
     const
       multops: array[boolean] of TAsmOp = (A_SMULL, A_UMULL);
 
-    procedure tarmaddnode.second_addordinal;
+    procedure tarmaddnode.second_addordinal(ctx:tpassgeneratecodecontext);
       var
         unsigned: boolean;
       begin
@@ -648,7 +648,7 @@ interface
            not(GenerateThumbCode) and
            (CPUARM_HAS_UMULL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            pass_left_right;
+            pass_left_right(ctx);
             force_reg_left_right(true, false);
             set_result_location_reg;
             unsigned:=not(is_signed(left.resultdef)) or
@@ -658,7 +658,7 @@ interface
                                         left.location.register,right.location.register));
           end
         else
-          inherited second_addordinal;
+          inherited;
       end;
 
     function tarmaddnode.use_generic_mul32to64: boolean;

@@ -31,26 +31,26 @@ uses
 type
   tMIPSELtypeconvnode = class(TCgTypeConvNode)
   protected
-    { procedure second_int_to_int;override; }
-    { procedure second_string_to_string;override; }
-    { procedure second_cstring_to_pchar;override; }
-    { procedure second_string_to_chararray;override; }
-    { procedure second_array_to_pointer;override; }
+    { procedure second_int_to_int(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_string_to_string(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_cstring_to_pchar(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_string_to_chararray(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_array_to_pointer(ctx:tpassgeneratecodecontext);override; }
     function first_int_to_real: tnode; override;
-    { procedure second_pointer_to_array;override; }
-    { procedure second_chararray_to_string;override; }
-    { procedure second_char_to_string;override; }
-    procedure second_int_to_real; override;
-    { procedure second_real_to_real; override; }
-    { procedure second_cord_to_pointer;override; }
-    { procedure second_proc_to_procvar;override; }
-    { procedure second_bool_to_int;override; }
-    procedure second_int_to_bool; override;
-    { procedure second_load_smallset;override;  }
-    { procedure second_ansistring_to_pchar;override; }
-    { procedure second_pchar_to_string;override; }
-    { procedure second_class_to_intf;override; }
-    { procedure second_char_to_char;override; }
+    { procedure second_pointer_to_array(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_chararray_to_string(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_char_to_string(ctx:tpassgeneratecodecontext);override; }
+    procedure second_int_to_real(ctx:tpassgeneratecodecontext); override;
+    { procedure second_real_to_real(ctx:tpassgeneratecodecontext); override; }
+    { procedure second_cord_to_pointer(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_proc_to_procvar(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_bool_to_int(ctx:tpassgeneratecodecontext);override; }
+    procedure second_int_to_bool(ctx:tpassgeneratecodecontext); override;
+    { procedure second_load_smallset(ctx:tpassgeneratecodecontext);override;  }
+    { procedure second_ansistring_to_pchar(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_pchar_to_string(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_class_to_intf(ctx:tpassgeneratecodecontext);override; }
+    { procedure second_char_to_char(ctx:tpassgeneratecodecontext);override; }
   end;
 
 implementation
@@ -124,7 +124,7 @@ end;
                              SecondTypeConv
 *****************************************************************************}
 
-procedure tMIPSELtypeconvnode.second_int_to_real;
+procedure tMIPSELtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
 
   procedure loadsigned(restype: tfloattype);
   begin
@@ -199,7 +199,7 @@ begin
 end;
 
 
-procedure tMIPSELtypeconvnode.second_int_to_bool;
+procedure tMIPSELtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
 var
   hreg1, hreg2: tregister;
   opsize: tcgsize;
@@ -207,7 +207,7 @@ var
   newsize  : tcgsize;
   href: treference;
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   if compiler.verbose.codegenerror then
     exit;
 

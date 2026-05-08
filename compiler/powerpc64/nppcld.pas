@@ -30,7 +30,7 @@ uses
 
 type
   tppcloadnode = class(tcgloadnode)
-    procedure pass_generate_code override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -45,9 +45,9 @@ uses
   procinfo,
   nld;
 
-procedure tppcloadnode.pass_generate_code;
+procedure tppcloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 begin
-  inherited pass_generate_code;
+  inherited;
 end;
 
 

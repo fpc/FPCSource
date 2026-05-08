@@ -29,23 +29,23 @@ interface
     uses
        aasmbase,
        symtype,
-       ncon;
+       node,ncon;
 
     type
        tcgrealconstnode = class(trealconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgordconstnode = class(tordconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgpointerconstnode = class(tpointerconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgstringconstnode = class(tstringconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        protected
          procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); virtual;
        end;
@@ -55,15 +55,15 @@ interface
           function emitvarsetconst: tasmsymbol; virtual;
           procedure handlevarsetconst;
          public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgnilnode = class(tnilnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgguidconstnode = class(tguidconstnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -84,7 +84,7 @@ implementation
                            TCGREALCONSTNODE
 *****************************************************************************}
 
-    procedure tcgrealconstnode.pass_generate_code;
+    procedure tcgrealconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
       const
@@ -189,7 +189,7 @@ implementation
                             TCGORDCONSTNODE
 *****************************************************************************}
 
-    procedure tcgordconstnode.pass_generate_code;
+    procedure tcgordconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
 {$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
@@ -204,7 +204,7 @@ implementation
                           TCGPOINTERCONSTNODE
 *****************************************************************************}
 
-    procedure tcgpointerconstnode.pass_generate_code;
+    procedure tcgpointerconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          { an integer const. behaves as a memory reference }
          location_reset(location,LOC_CONSTANT,OS_ADDR);
@@ -216,7 +216,7 @@ implementation
                           TCGSTRINGCONSTNODE
 *****************************************************************************}
 
-    procedure tcgstringconstnode.pass_generate_code;
+    procedure tcgstringconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          lastlabel: tasmlabofs;
          l: longint;
@@ -444,7 +444,7 @@ implementation
       end;
 
 
-    procedure tcgsetconstnode.pass_generate_code;
+    procedure tcgsetconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
        type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
@@ -483,7 +483,7 @@ implementation
                              TCGNILNODE
 *****************************************************************************}
 
-    procedure tcgnilnode.pass_generate_code;
+    procedure tcgnilnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_CONSTANT,OS_ADDR);
          location.value:=0;
@@ -494,7 +494,7 @@ implementation
                           TCGGUIDCONSTNODE
 *****************************************************************************}
 
-    procedure tcgguidconstnode.pass_generate_code;
+    procedure tcgguidconstnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          lastlabel   : tasmlabel;
          entry       : PHashSetItem;

@@ -30,7 +30,7 @@ interface
 
     type
       tSparcmoddivnode = class(tmoddivnode)
-        procedure pass_generate_code;override;
+        procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
 {$ifdef SPARC64}
         function use_moddiv64bitint_helper : boolean; override;
 {$endif SPARC64}
@@ -38,18 +38,18 @@ interface
 
       tSparcshlshrnode = class(tcgshlshrnode)
 {$ifndef SPARC64}
-         procedure second_64bit;override;
+         procedure second_64bit(ctx:tpassgeneratecodecontext);override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
 {$endif SPARC64}
       end;
 
       tSparcnotnode = class(tcgnotnode)
-         procedure second_boolean;override;
+         procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
       tsparcunaryminusnode = class(tcgunaryminusnode)
-         procedure second_float; override;
+         procedure second_float(ctx:tpassgeneratecodecontext); override;
       end;
 
 implementation
@@ -78,7 +78,7 @@ implementation
       end;
 
 
-    procedure tSparcmoddivnode.pass_generate_code;
+    procedure tSparcmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       const
         { 64 bit   signed  overflow }
         divops: array[boolean, boolean, boolean] of tasmop =
@@ -96,8 +96,8 @@ implementation
          ai : taicpu;
          no_overflow : boolean;
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
@@ -255,7 +255,7 @@ implementation
         cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
       end;
 {$else sparc64}
-    procedure tSparcmoddivnode.pass_generate_code;
+    procedure tSparcmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
@@ -270,8 +270,8 @@ implementation
          overflowlabel : tasmlabel;
          ai : taicpu;
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
@@ -377,7 +377,7 @@ implementation
       end;
 
 
-    procedure tSparcshlshrnode.second_64bit;
+    procedure tSparcshlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         hregister,hreg64hi,hreg64lo : tregister;
         op : topcg;
@@ -447,9 +447,9 @@ implementation
                                TSPARCNOTNODE
 *****************************************************************************}
 
-    procedure tsparcnotnode.second_boolean;
+    procedure tsparcnotnode.second_boolean(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             case left.location.loc of
@@ -485,9 +485,9 @@ implementation
                                    TSPARCUNARYMINUSNODE
 *****************************************************************************}
 
-    procedure tsparcunaryminusnode.second_float;
+    procedure tsparcunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);

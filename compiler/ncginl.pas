@@ -30,44 +30,44 @@ interface
 
     type
        tcginlinenode = class(tinlinenode)
-          procedure pass_generate_code;override;
-          procedure pass_generate_code_cpu;virtual;
-          procedure second_sizeoftypeof;virtual;
-          procedure second_length;virtual;
-          procedure second_predsucc;virtual;
-          procedure second_incdec;virtual;
-          procedure second_AndOrXorShiftRot_assign;virtual;
-          procedure second_NegNot_assign;virtual;
-          procedure second_typeinfo;virtual;
-          procedure second_includeexclude;virtual;
-          procedure second_pi; virtual;
-          procedure second_arctan_real; virtual;
-          procedure second_abs_real; virtual;
-          procedure second_sqr_real; virtual;
-          procedure second_sqrt_real; virtual;
-          procedure second_ln_real; virtual;
-          procedure second_cos_real; virtual;
-          procedure second_sin_real; virtual;
-          procedure second_assigned; virtual;
-          procedure second_get_frame;virtual;
-          procedure second_get_caller_frame;virtual;
-          procedure second_get_caller_addr;virtual;
-          procedure second_prefetch; virtual;
-          procedure second_round_real; virtual;
-          procedure second_trunc_real; virtual;
-          procedure second_int_real; virtual;
-          procedure second_abs_long; virtual;
-          procedure second_rox_sar; virtual;
-          procedure second_bsfbsr; virtual;
-          procedure second_new; virtual;
-          procedure second_setlength; virtual; abstract;
-          procedure second_box; virtual; abstract;
-          procedure second_popcnt; virtual;
-          procedure second_seg; virtual; abstract;
-          procedure second_fma; virtual;
-          procedure second_frac_real; virtual;
-          procedure second_high; virtual;
-          procedure second_minmax; virtual;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
+          procedure pass_generate_code_cpu(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_sizeoftypeof(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_length(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_predsucc(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_incdec(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_AndOrXorShiftRot_assign(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_NegNot_assign(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_typeinfo(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_includeexclude(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_pi(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_arctan_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_abs_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_sqr_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_sqrt_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_ln_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_cos_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_sin_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_assigned(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_get_frame(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_get_caller_frame(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_get_caller_addr(ctx:tpassgeneratecodecontext);virtual;
+          procedure second_prefetch(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_round_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_trunc_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_int_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_abs_long(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_rox_sar(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_bsfbsr(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_new(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_setlength(ctx:tpassgeneratecodecontext); virtual; abstract;
+          procedure second_box(ctx:tpassgeneratecodecontext); virtual; abstract;
+          procedure second_popcnt(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_seg(ctx:tpassgeneratecodecontext); virtual; abstract;
+          procedure second_fma(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_frac_real(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_high(ctx:tpassgeneratecodecontext); virtual;
+          procedure second_minmax(ctx:tpassgeneratecodecontext); virtual;
        protected
           function  second_incdec_tempregdef: tdef;virtual;
        end;
@@ -96,80 +96,80 @@ implementation
 *****************************************************************************}
 
 
-    procedure tcginlinenode.pass_generate_code;
+    procedure tcginlinenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          case inlinenumber of
             in_sizeof_x,
             in_typeof_x :
-              second_SizeofTypeOf;
+              second_SizeofTypeOf(ctx);
             in_length_x :
-              second_Length;
+              second_Length(ctx);
             in_pred_x,
             in_succ_x:
-               second_PredSucc;
+               second_PredSucc(ctx);
             in_dec_x,
             in_inc_x :
-              second_IncDec;
+              second_IncDec(ctx);
             in_typeinfo_x:
-              second_TypeInfo;
+              second_TypeInfo(ctx);
             in_include_x_y,
             in_exclude_x_y:
-              second_IncludeExclude;
+              second_IncludeExclude(ctx);
             in_pi_real:
-              second_pi;
+              second_pi(ctx);
             in_sin_real:
-              second_sin_real;
+              second_sin_real(ctx);
             in_arctan_real:
-              second_arctan_real;
+              second_arctan_real(ctx);
             in_abs_real:
-              second_abs_real;
+              second_abs_real(ctx);
             in_abs_long:
-              second_abs_long;
+              second_abs_long(ctx);
             in_round_real:
-              second_round_real;
+              second_round_real(ctx);
             in_trunc_real:
-              second_trunc_real;
+              second_trunc_real(ctx);
             in_int_real:
-              second_int_real;
+              second_int_real(ctx);
             in_sqr_real:
-              second_sqr_real;
+              second_sqr_real(ctx);
             in_sqrt_real:
-              second_sqrt_real;
+              second_sqrt_real(ctx);
             in_ln_real:
-              second_ln_real;
+              second_ln_real(ctx);
             in_cos_real:
-               second_cos_real;
+               second_cos_real(ctx);
             in_frac_real:
-              second_frac_real;
+              second_frac_real(ctx);
             in_prefetch_var:
-              second_prefetch;
+              second_prefetch(ctx);
             in_assigned_x:
-              second_assigned;
+              second_assigned(ctx);
             in_get_frame:
-              second_get_frame;
+              second_get_frame(ctx);
             in_get_caller_frame:
-              second_get_caller_frame;
+              second_get_caller_frame(ctx);
             in_get_caller_addr:
-              second_get_caller_addr;
+              second_get_caller_addr(ctx);
             in_unaligned_x:
               begin
-                secondpass(tcallparanode(left).left);
+                secondpass(tcallparanode(left).left,ctx);
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
             in_aligned_x:
               begin
-                secondpass(tcallparanode(left).left);
+                secondpass(tcallparanode(left).left,ctx);
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=resultdef.alignment;
               end;
             in_volatile_x:
               begin
-                secondpass(tcallparanode(left).left);
+                secondpass(tcallparanode(left).left,ctx);
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE,LOC_SUBSETREF,LOC_CSUBSETREF] then
                   location.reference.volatility:=[vol_read,vol_write];
@@ -198,25 +198,25 @@ implementation
             in_ror_x_y,
             in_sar_x,
             in_sar_x_y:
-              second_rox_sar;
+              second_rox_sar(ctx);
             in_bsf_x,
             in_bsr_x:
-               second_BsfBsr;
+               second_BsfBsr(ctx);
             in_new_x:
-               second_new;
+               second_new(ctx);
             in_setlength_x:
-               second_setlength;
+               second_setlength(ctx);
             in_box_x:
-               second_box;
+               second_box(ctx);
             in_popcnt_x:
-               second_popcnt;
+               second_popcnt(ctx);
             in_seg_x:
-               second_seg;
+               second_seg(ctx);
             in_fma_single,
             in_fma_double,
             in_fma_extended,
             in_fma_float128:
-               second_fma;
+               second_fma(ctx);
             in_max_longint,
             in_max_dword,
             in_min_longint,
@@ -229,7 +229,7 @@ implementation
             in_min_double,
             in_max_single,
             in_max_double:
-               second_minmax;
+               second_minmax(ctx);
             in_and_assign_x_y,
             in_or_assign_x_y,
             in_xor_assign_x_y,
@@ -238,19 +238,19 @@ implementation
             in_shr_assign_x_y,
             in_rol_assign_x_y,
             in_ror_assign_x_y:
-               second_AndOrXorShiftRot_assign;
+               second_AndOrXorShiftRot_assign(ctx);
             in_neg_assign_x,
             in_not_assign_x:
-               second_NegNot_assign;
+               second_NegNot_assign(ctx);
             in_high_x:
-              second_high;
+              second_high(ctx);
             else
-               pass_generate_code_cpu;
+               pass_generate_code_cpu(ctx);
          end;
       end;
 
 
-    procedure tcginlinenode.pass_generate_code_cpu;
+    procedure tcginlinenode.pass_generate_code_cpu(ctx:tpassgeneratecodecontext);
       begin
         Internalerror(2017110103);
       end;
@@ -260,7 +260,7 @@ implementation
 *****************************************************************************}
 
     { second_handle_ the sizeof and typeof routines }
-    procedure tcginlinenode.second_SizeOfTypeOf;
+    procedure tcginlinenode.second_SizeOfTypeOf(ctx:tpassgeneratecodecontext);
       begin
         { handled in pass 1 }
         internalerror(2015122701);
@@ -271,14 +271,14 @@ implementation
                           LENGTH GENERIC HANDLING
 *****************************************************************************}
 
-    procedure tcginlinenode.second_Length;
+    procedure tcginlinenode.second_Length(ctx:tpassgeneratecodecontext);
       var
         lengthlab : tasmlabel;
         hregister : tregister;
         lendef : tdef;
         href : treference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if is_shortstring(left.resultdef) then
          begin
            location_copy(location,left.location);
@@ -325,13 +325,13 @@ implementation
                           HIGH(<dyn. array>) GENERIC HANDLING
 *****************************************************************************}
 
-    procedure tcginlinenode.second_high;
+    procedure tcginlinenode.second_high(ctx:tpassgeneratecodecontext);
       var
         loadlab, nillab, donelab: tasmlabel;
         hregister : tregister;
         href : treference;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not(is_dynamic_array(left.resultdef)) then
           Internalerror(2019122801);
         { length in dynamic arrays is at offset -sizeof(pint) }
@@ -362,11 +362,11 @@ implementation
                          PRED/SUCC GENERIC HANDLING
 *****************************************************************************}
 
-    procedure tcginlinenode.second_PredSucc;
+    procedure tcginlinenode.second_PredSucc(ctx:tpassgeneratecodecontext);
       var
          cgop : topcg;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if inlinenumber=in_pred_x then
            cgop:=OP_SUB
         else
@@ -400,7 +400,7 @@ implementation
           second_incdec_tempregdef:=left.resultdef;
         end;
 
-      procedure tcginlinenode.second_IncDec;
+      procedure tcginlinenode.second_IncDec(ctx:tpassgeneratecodecontext);
        const
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
         var
@@ -422,9 +422,9 @@ implementation
           { is used in that expression then SSL may move it to another }
           { register                                                   }
           if assigned(tcallparanode(left).right) then
-            secondpass(tcallparanode(tcallparanode(left).right).left);
+            secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
           { load first parameter, must be a reference }
-          secondpass(tcallparanode(left).left);
+          secondpass(tcallparanode(left).left,ctx);
           { get addvalue }
           case tcallparanode(left).left.resultdef.typ of
             orddef,
@@ -540,7 +540,7 @@ implementation
 {*****************************************************************************
               AND/OR/XOR/SHIFT/ROTATE ASSIGN GENERIC HANDLING
 *****************************************************************************}
-      procedure tcginlinenode.second_AndOrXorShiftRot_assign;
+      procedure tcginlinenode.second_AndOrXorShiftRot_assign(ctx:tpassgeneratecodecontext);
         const
           andorxorop:array[in_and_assign_x_y..in_ror_assign_x_y] of TOpCG=
             (OP_AND,OP_OR,OP_XOR,OP_SAR,OP_SHL,OP_SHR,OP_ROL,OP_ROR);
@@ -563,9 +563,9 @@ implementation
           { first secondpass first argument, because if the second arg }
           { is used in that expression then SSL may move it to another }
           { register                                                   }
-          secondpass(tcallparanode(left).left);
+          secondpass(tcallparanode(left).left,ctx);
           { load second parameter, must be a reference }
-          secondpass(tcallparanode(tcallparanode(left).right).left);
+          secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
 
           { when constant, just get the maskvalue }
           if is_constintnode(tcallparanode(left).left) then
@@ -623,12 +623,12 @@ implementation
 {*****************************************************************************
                        NEG/NOT ASSIGN GENERIC HANDLING
 *****************************************************************************}
-      procedure tcginlinenode.second_NegNot_assign;
+      procedure tcginlinenode.second_NegNot_assign(ctx:tpassgeneratecodecontext);
         const
           negnotop:array[in_neg_assign_x..in_not_assign_x] of TOpCG=(OP_NEG,OP_NOT);
         begin
           { load parameter, must be a reference }
-          secondpass(left);
+          secondpass(left,ctx);
 
           location_reset(location,LOC_VOID,OS_NO);
 
@@ -644,7 +644,7 @@ implementation
 {*****************************************************************************
                          TYPEINFO GENERIC HANDLING
 *****************************************************************************}
-      procedure tcginlinenode.second_typeinfo;
+      procedure tcginlinenode.second_typeinfo(ctx:tpassgeneratecodecontext);
         begin
           internalerror(2013060301);
         end;
@@ -654,14 +654,14 @@ implementation
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
 
-      procedure tcginlinenode.second_IncludeExclude;
+      procedure tcginlinenode.second_IncludeExclude(ctx:tpassgeneratecodecontext);
         var
           setpara, elepara: tnode;
         begin
           { the set }
-          secondpass(tcallparanode(left).left);
+          secondpass(tcallparanode(left).left,ctx);
           { the element to set }
-          secondpass(tcallparanode(tcallparanode(left).right).left);
+          secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
 
           setpara:=tcallparanode(left).left;
           elepara:=tcallparanode(tcallparanode(left).right).left;
@@ -689,72 +689,72 @@ implementation
   These routines all call internal RTL routines, so if they are
   called here, they give an internal error
 }
-    procedure tcginlinenode.second_pi;
+    procedure tcginlinenode.second_pi(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071801);
       end;
 
-    procedure tcginlinenode.second_arctan_real;
+    procedure tcginlinenode.second_arctan_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071802);
       end;
 
-    procedure tcginlinenode.second_abs_real;
+    procedure tcginlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071803);
       end;
 
-    procedure tcginlinenode.second_round_real;
+    procedure tcginlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071804);
       end;
 
-    procedure tcginlinenode.second_trunc_real;
+    procedure tcginlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071805);
       end;
 
-    procedure tcginlinenode.second_int_real;
+    procedure tcginlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2016112702);
       end;
 
-    procedure tcginlinenode.second_sqr_real;
+    procedure tcginlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071806);
       end;
 
-    procedure tcginlinenode.second_sqrt_real;
+    procedure tcginlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071807);
       end;
 
-    procedure tcginlinenode.second_ln_real;
+    procedure tcginlinenode.second_ln_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071808);
       end;
 
-    procedure tcginlinenode.second_cos_real;
+    procedure tcginlinenode.second_cos_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071809);
       end;
 
-    procedure tcginlinenode.second_sin_real;
+    procedure tcginlinenode.second_sin_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2002071810);
       end;
 
 
-    procedure tcginlinenode.second_prefetch;
+    procedure tcginlinenode.second_prefetch(ctx:tpassgeneratecodecontext);
       begin
       end;
 
-    procedure tcginlinenode.second_frac_real;
+    procedure tcginlinenode.second_frac_real(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2017052104);
       end;
 
-    procedure tcginlinenode.second_abs_long;
+    procedure tcginlinenode.second_abs_long(ctx:tpassgeneratecodecontext);
       var
         tempreg1, tempreg2: tregister;
 {$if not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
@@ -762,7 +762,7 @@ implementation
 {$endif not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
         ovloc: tlocation;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location:=left.location;
 {$if not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
@@ -810,12 +810,12 @@ implementation
                          ASSIGNED GENERIC HANDLING
 *****************************************************************************}
 
-    procedure tcginlinenode.second_assigned;
+    procedure tcginlinenode.second_assigned(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2013091602);
       end;
 
-    procedure Tcginlinenode.second_get_frame;
+    procedure Tcginlinenode.second_get_frame(ctx:tpassgeneratecodecontext);
 
     begin
 {$if defined(x86) or defined(arm)}
@@ -832,7 +832,7 @@ implementation
         end;
     end;
 
-    procedure Tcginlinenode.second_get_caller_frame;
+    procedure Tcginlinenode.second_get_caller_frame(ctx:tpassgeneratecodecontext);
 
     var
       frame_reg:Tregister;
@@ -843,7 +843,7 @@ implementation
 
       if left<>nil then
         begin
-          secondpass(left);
+          secondpass(left,ctx);
           if left.location.loc=LOC_CONSTANT then
             use_frame_pointer:=true
           else
@@ -871,7 +871,7 @@ implementation
         end;
     end;
 
-    procedure Tcginlinenode.second_get_caller_addr;
+    procedure Tcginlinenode.second_get_caller_addr(ctx:tpassgeneratecodecontext);
       var
         frame_ref:Treference;
       begin
@@ -892,7 +892,7 @@ implementation
       end;
 
 
-    procedure tcginlinenode.second_rox_sar;
+    procedure tcginlinenode.second_rox_sar(ctx:tpassgeneratecodecontext);
       var
         op : topcg;
         op1,op2 : tnode;
@@ -903,7 +903,7 @@ implementation
           begin
             op1:=tcallparanode(tcallparanode(left).right).left;
             op2:=tcallparanode(left).left;
-            secondpass(op2);
+            secondpass(op2,ctx);
           end
         else
           begin
@@ -911,7 +911,7 @@ implementation
             op2:=nil;
           end;
 
-        secondpass(op1);
+        secondpass(op1,ctx);
         case inlinenumber of
           in_ror_x,
           in_ror_x_y:
@@ -992,12 +992,12 @@ implementation
       end;
 
 
-    procedure tcginlinenode.second_BsfBsr;
+    procedure tcginlinenode.second_BsfBsr(ctx:tpassgeneratecodecontext);
     var
       reverse: boolean;
       opsize: tcgsize;
     begin
-      secondpass(left);
+      secondpass(left,ctx);
 
       opsize:=tcgsize2unsigned[left.location.size];
       if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1009,25 +1009,25 @@ implementation
     end;
 
 
-    procedure tcginlinenode.second_new;
+    procedure tcginlinenode.second_new(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2011012202);
       end;
 
 
-    procedure tcginlinenode.second_popcnt;
+    procedure tcginlinenode.second_popcnt(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2012082602);
       end;
 
 
-    procedure tcginlinenode.second_fma;
+    procedure tcginlinenode.second_fma(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2014032701);
       end;
 
 
-    procedure tcginlinenode.second_minmax;
+    procedure tcginlinenode.second_minmax(ctx:tpassgeneratecodecontext);
       begin
         internalerror(2020120510);
       end;

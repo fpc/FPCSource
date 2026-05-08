@@ -30,7 +30,7 @@ type
   tcgaddsstringcharoptnode = class(taddsstringcharoptnode)
      function pass_typecheck: tnode; override;
      function pass_1: tnode; override;
-     procedure pass_generate_code; override;
+     procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
   end;
 
 
@@ -76,7 +76,7 @@ begin
 end;
 
 
-procedure tcgaddsstringcharoptnode.pass_generate_code;
+procedure tcgaddsstringcharoptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 var
   l: tasmlabel;
   href,href2 :  treference;
@@ -87,7 +87,7 @@ begin
   l:=nil;
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_generate_code                                     }
-  secondpass(left);
+  secondpass(left,ctx);
   if not(tg.istemp(left.location.reference) and
          (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
@@ -98,7 +98,7 @@ begin
        location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
        left.location.reference:=href;
     end;
-  secondpass(right);
+  secondpass(right,ctx);
   { special case for string := string + char (JM) }
   hreg:=NR_NO;
 

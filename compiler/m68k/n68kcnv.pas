@@ -34,8 +34,8 @@ interface
          protected
           function typecheck_int_to_int: tnode; override;
           function first_int_to_real: tnode; override;
-          procedure second_int_to_real;override;
-          procedure second_int_to_bool;override;
+          procedure second_int_to_real(ctx:tpassgeneratecodecontext);override;
+          procedure second_int_to_bool(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -128,7 +128,7 @@ implementation
 
 
 
-    procedure tm68ktypeconvnode.second_int_to_real;
+    procedure tm68ktypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
 
       var
         l: tasmlabel;
@@ -199,7 +199,7 @@ implementation
        end;
 
 
-    procedure tm68ktypeconvnode.second_int_to_bool;
+    procedure tm68ktypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       var
         hreg1,
         hreg2    : tregister;
@@ -210,7 +210,7 @@ implementation
         hlabel   : tasmlabel;
         tmpreference : treference;
       begin
-         secondpass(left);
+         secondpass(left,ctx);
 
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }

@@ -34,23 +34,23 @@ uses
 
 type
   tMIPSELmoddivnode = class(tmoddivnode)
-    procedure pass_generate_code;override;
+    procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
   end;
 
   tMIPSELshlshrnode = class(tcgshlshrnode)
 {$ifdef cpu32bit}
-    procedure second_64bit;override;
+    procedure second_64bit(ctx:tpassgeneratecodecontext);override;
     { everything will be handled in pass_2 }
     function first_shlshr64bitint: tnode; override;
 {$endif cpu32bit}
   end;
 
   tMIPSELnotnode = class(tcgnotnode)
-    procedure second_boolean; override;
+    procedure second_boolean(ctx:tpassgeneratecodecontext); override;
   end;
 
   TMIPSunaryminusnode = class(tcgunaryminusnode)
-    procedure second_float; override;
+    procedure second_float(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -76,14 +76,14 @@ uses
 const
   ops_div: array[boolean] of tasmop = (A_DIVU, A_DIV);
 
-procedure tMIPSELmoddivnode.pass_generate_code;
+procedure tMIPSELmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 var
   power: longint;
   tmpreg, numerator, divider: tregister;
   hl,hl2: tasmlabel;
 begin
-  secondpass(left);
-  secondpass(right);
+  secondpass(left,ctx);
+  secondpass(right,ctx);
   location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
   location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
@@ -176,7 +176,7 @@ begin
 end;
 
 
-procedure tMIPSELshlshrnode.second_64bit;
+procedure tMIPSELshlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
 var
   hregister, hreg64hi, hreg64lo: tregister;
   op: topcg;
@@ -243,11 +243,11 @@ end;
                                TMIPSelNOTNODE
 *****************************************************************************}
 
-procedure tMIPSELnotnode.second_boolean;
+procedure tMIPSELnotnode.second_boolean(ctx:tpassgeneratecodecontext);
 var
   tmpreg : TRegister;
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   if not handle_locjump then
     begin
       case left.location.loc of
@@ -282,9 +282,9 @@ end;
                                TMIPSunaryminusnode
 *****************************************************************************}
 
-procedure TMIPSunaryminusnode.second_float;
+procedure TMIPSunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
 begin
-  secondpass(left);
+  secondpass(left,ctx);
   hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);

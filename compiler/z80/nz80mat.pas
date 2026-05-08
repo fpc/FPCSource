@@ -34,7 +34,7 @@ interface
 
       tz80notnode = class(tcgnotnode)
       protected
-        procedure second_boolean;override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -55,11 +55,11 @@ implementation
 *****************************************************************************}
 
 
-    procedure tz80notnode.second_boolean;
+    procedure tz80notnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         i: Integer;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if not handle_locjump then
           begin
             if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then

@@ -36,23 +36,23 @@ interface
        tjvmraisenode = class(traisenode)
           function pass_typecheck: tnode; override;
           function pass_1: tnode; override;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tjvmtryexceptnode = class(ttryexceptnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          protected
           procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmtryfinallynode = class(ttryfinallynode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          protected
           procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmonnode = class(tonnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -149,11 +149,11 @@ implementation
       end;
 
 
-    procedure tjvmraisenode.pass_generate_code;
+    procedure tjvmraisenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         if assigned(left) then
           begin
-            secondpass(left);
+            secondpass(left,ctx);
             thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
           end
         else
@@ -173,7 +173,7 @@ implementation
        endexceptlabel : tasmlabel;
 
 
-    procedure tjvmtryexceptnode.pass_generate_code;
+    procedure tjvmtryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          oldendexceptlabel,
@@ -202,7 +202,7 @@ implementation
          { set control flow labels for the try block }
 
          hlcg.a_label(current_asmdata.CurrAsmList,begintrylabel);
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
          tryflowcontrol:=flowcontrol;
 
@@ -217,7 +217,7 @@ implementation
          flowcontrol:=[fc_inflowcontrol];
          { on-statements }
          if assigned(right) then
-           secondpass(right);
+           secondpass(right,ctx);
 
          { default handling except handling }
          if assigned(t1) then
@@ -240,7 +240,7 @@ implementation
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
              { and generate the exception handling code }
-             secondpass(t1);
+             secondpass(t1,ctx);
 
              { free the temp containing the exception and invalidate }
              tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
@@ -273,7 +273,7 @@ implementation
                                    SecondOn
     *****************************************************************************}
 
-    procedure tjvmonnode.pass_generate_code;
+    procedure tjvmonnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          thisonlabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
@@ -313,7 +313,7 @@ implementation
          thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,exceptvarsym.vardef,current_except_loc);
 
          if assigned(right) then
-           secondpass(right);
+           secondpass(right,ctx);
 
          { clear some stuff }
          tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
@@ -325,14 +325,14 @@ implementation
 
          { next on node }
          if assigned(left) then
-           secondpass(left);
+           secondpass(left,ctx);
       end;
 
 {*****************************************************************************
                              SecondTryFinally
 *****************************************************************************}
 
-    procedure tjvmtryfinallynode.pass_generate_code;
+    procedure tjvmtryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          begintrylabel,
          endtrylabel,
@@ -400,7 +400,7 @@ implementation
               current_asmdata.getaddrlabel(begintrylabel);
               current_asmdata.getaddrlabel(endtrylabel);
               hlcg.a_label(current_asmdata.CurrAsmList,begintrylabel);
-              secondpass(left);
+              secondpass(left,ctx);
               hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
               tryflowcontrol:=flowcontrol;
               if compiler.verbose.codegenerror then
@@ -418,7 +418,7 @@ implementation
          { duplicate finally code for case when exception happened }
          if assigned(begintrylabel) then
            finallycodecopy:=right.getcopy;
-         secondpass(right);
+         secondpass(right,ctx);
          { goto is allowed if it stays inside the finally block,
            this is checked using the exception block number }
          if (flowcontrol-[fc_gotolabel])<>[fc_inflowcontrol] then
@@ -488,7 +488,7 @@ implementation
              thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
              thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
              { generate the finally code again }
-             secondpass(finallycodecopy);
+             secondpass(finallycodecopy,ctx);
              finallycodecopy.free;
              { reraise the exception }
              thlcgjvm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);

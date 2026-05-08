@@ -31,21 +31,21 @@ interface
     type
       tppcmoddivnode = class(tmoddivnode)
          function pass_1: tnode;override;
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tppcshlshrnode = class(tshlshrnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
 
       tppcunaryminusnode = class(tunaryminusnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
       tppcnotnode = class(tcgnotnode)
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
       end;
 
 implementation
@@ -75,7 +75,7 @@ implementation
       end;
 
 
-    procedure tppcmoddivnode.pass_generate_code;
+    procedure tppcmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
@@ -155,8 +155,8 @@ implementation
 
 
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
          location_copy(location,left.location);
 
          { put numerator in register }
@@ -236,7 +236,7 @@ implementation
         result := nil;
       end;
 
-    procedure tppcshlshrnode.pass_generate_code;
+    procedure tppcshlshrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          resultreg, hregister1,hregister2,
@@ -246,8 +246,8 @@ implementation
          shiftval: aint;
 
       begin
-         secondpass(left);
-         secondpass(right);
+         secondpass(left,ctx);
+         secondpass(right,ctx);
 
          if is_64bit(left.resultdef) then
            begin
@@ -411,7 +411,7 @@ implementation
                           TPPCUNARYMINUSNODE
 *****************************************************************************}
 
-    procedure tppcunaryminusnode.pass_generate_code;
+    procedure tppcunaryminusnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
         src1: tregister;
@@ -419,7 +419,7 @@ implementation
 
       begin
          src1:=NR_NO;
-         secondpass(left);
+         secondpass(left,ctx);
          if is_64bit(left.resultdef) then
            begin
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -511,12 +511,12 @@ implementation
                                TPPCNOTNODE
 *****************************************************************************}
 
-    procedure tppcnotnode.pass_generate_code;
+    procedure tppcnotnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          tmpreg: tregister;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if is_boolean(resultdef) then
           begin
             if not handle_locjump then

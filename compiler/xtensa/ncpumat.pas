@@ -37,17 +37,17 @@ interface
       end;
 
       tcpunotnode = class(tcgnotnode)
-        procedure second_boolean;override;
+        procedure second_boolean(ctx:tpassgeneratecodecontext);override;
         function pass_1: tnode;override;
       end;
 
       tcpuunaryminusnode = class(tcgunaryminusnode)
         function pass_1: tnode; override;
-        procedure second_float;override;
+        procedure second_float(ctx:tpassgeneratecodecontext);override;
       end;
 
       tcpushlshrnode = class(tcgshlshrnode)
-        procedure second_64bit;override;
+        procedure second_64bit(ctx:tpassgeneratecodecontext);override;
         function pass_1: tnode;override;
       end;
 
@@ -119,12 +119,12 @@ implementation
       end;
 
 
-    procedure tcpunotnode.second_boolean;
+    procedure tcpunotnode.second_boolean(ctx:tpassgeneratecodecontext);
       var
         tmpreg, hreg1, hreg2, hreg3: TRegister;
         instr: taicpu;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
 
         if is_64bit(resultdef) then
           begin
@@ -215,11 +215,11 @@ implementation
         expectloc:=LOC_REGISTER;
       end;
 
-    procedure tcpuunaryminusnode.second_float;
+    procedure tcpuunaryminusnode.second_float(ctx:tpassgeneratecodecontext);
       var
         ai : taicpu;
       begin
-        secondpass(left);
+        secondpass(left,ctx);
         if (compiler.globals.current_settings.fputype=fpu_soft) or (tfloatdef(left.resultdef).floattype<>s32real) or
           not(FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
@@ -280,7 +280,7 @@ implementation
       end;
 
 
-    procedure tcpushlshrnode.second_64bit;
+    procedure tcpushlshrnode.second_64bit(ctx:tpassgeneratecodecontext);
       var
         op: topcg;
         opsize: TCgSize;

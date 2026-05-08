@@ -42,32 +42,32 @@ interface
        tcgwhilerepeatnode = class(twhilerepeatnode)
           usedregvars: tusedregvars;
 
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
           procedure sync_regvars(checkusedregvars: boolean);
        end;
 
        tcgifnode = class(tifnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgfornode = class(tfornode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgexitnode = class(texitnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgbreaknode = class(tbreaknode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgcontinuenode = class(tcontinuenode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcggotonode = class(tgotonode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcglabelnode = class(tlabelnode)
@@ -75,13 +75,13 @@ interface
           asmlabel : tasmlabel;
        public
           function getasmlabel : tasmlabel; virtual;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgraisenode = class(traisenode)
          function pass_1: tnode;override;
 {$ifndef SkipABIEH}
-         procedure pass_generate_code;override;
+         procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
 {$endif SkipABIEH}
        end;
 
@@ -92,7 +92,7 @@ interface
 
           procedure emit_jump_out_of_try_except_frame(list: TasmList; frametype: tframetype; const exceptiontate: tcgexceptionstatehandler.texceptionstate; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel, outerlabel: tasmlabel); virtual;
         public
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgtryfinallynode = class(ttryfinallynode)
@@ -101,11 +101,11 @@ interface
           function get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate): tasmlabel;
         public
           procedure handle_safecall_exception;
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
        tcgonnode = class(tonnode)
-          procedure pass_generate_code;override;
+          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -157,7 +157,7 @@ implementation
       end;
 
 
-    procedure tcgwhilerepeatnode.pass_generate_code;
+    procedure tcgwhilerepeatnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
@@ -193,7 +193,7 @@ implementation
          compiler.current_procinfo.CurrBreakLabel:=lbreak;
 
          if assigned(right) then
-           secondpass(right);
+           secondpass(right,ctx);
 
          hlcg.a_label(current_asmdata.CurrAsmList,lcont);
          if lnf_checknegate in loopflags then
@@ -206,7 +206,7 @@ implementation
              truelabel:=lloop;
              falselabel:=lbreak;
           end;
-         secondpass(left);
+         secondpass(left,ctx);
 
          hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,left,truelabel,falselabel);
          hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
@@ -224,7 +224,7 @@ implementation
                                tcgIFNODE
 *****************************************************************************}
 
-    procedure tcgifnode.pass_generate_code;
+    procedure tcgifnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          hl : tasmlabel;
@@ -247,7 +247,7 @@ implementation
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
-         secondpass(left);
+         secondpass(left,ctx);
 
 (*
          { save regvars loaded in the beginning so that we can restore them }
@@ -270,7 +270,7 @@ implementation
          if assigned(right) then
            begin
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
-              secondpass(right);
+              secondpass(right,ctx);
            end;
 
          { save current asmlist (previous instructions + then-block) and }
@@ -307,7 +307,7 @@ implementation
                      current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
                 end;
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
-              secondpass(t1);
+              secondpass(t1,ctx);
 (*
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
@@ -389,7 +389,7 @@ implementation
                               SecondFor
 *****************************************************************************}
 
-    procedure tcgfornode.pass_generate_code;
+    procedure tcgfornode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         { for nodes are converted in pass_1 in a while loop }
         internalerror(2015082501);
@@ -400,7 +400,7 @@ implementation
                               SecondExitN
 *****************************************************************************}
 
-    procedure tcgexitnode.pass_generate_code;
+    procedure tcgexitnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -408,7 +408,7 @@ implementation
            include(flowcontrol,fc_gotolabel);
          include(flowcontrol,fc_exit);
          if assigned(left) then
-           secondpass(left);
+           secondpass(left,ctx);
 
          if (fc_unwind_exit in flowcontrol) then
            hlcg.g_local_unwind(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel)
@@ -423,7 +423,7 @@ implementation
                               SecondBreakN
 *****************************************************************************}
 
-    procedure tcgbreaknode.pass_generate_code;
+    procedure tcgbreaknode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -446,7 +446,7 @@ implementation
                               SecondContinueN
 *****************************************************************************}
 
-    procedure tcgcontinuenode.pass_generate_code;
+    procedure tcgcontinuenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -469,7 +469,7 @@ implementation
                              SecondGoto
 *****************************************************************************}
 
-    procedure tcggotonode.pass_generate_code;
+    procedure tcggotonode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
        begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -499,7 +499,7 @@ implementation
       end;
 
 
-    procedure tcglabelnode.pass_generate_code;
+    procedure tcglabelnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
          location_reset(location,LOC_VOID,OS_NO);
          if not (nf_internal in flags) then
@@ -538,7 +538,7 @@ implementation
        end;
 
 
-    procedure tcgtryexceptnode.pass_generate_code;
+    procedure tcgtryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
       var
          oldendexceptlabel,
@@ -605,7 +605,7 @@ implementation
             compiler.current_procinfo.CurrBreakLabel:=breaktrylabel;
           end;
 
-         secondpass(left);
+         secondpass(left,ctx);
          if compiler.verbose.codegenerror then
            goto errorexit;
 
@@ -632,7 +632,7 @@ implementation
          flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
          { on statements }
          if assigned(right) then
-           secondpass(right);
+           secondpass(right,ctx);
 
          afteronflowcontrol:=flowcontrol;
 
@@ -671,7 +671,7 @@ implementation
                  { except block needs line info }
                  current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
-                 secondpass(t1);
+                 secondpass(t1,ctx);
 
                  compiler.exceptionstatehandler.handle_nested_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraisestate);
 
@@ -735,7 +735,7 @@ implementation
       end;
 
 
-    procedure tcgonnode.pass_generate_code;
+    procedure tcgonnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          nextonlabel,
          exitonlabel,
@@ -795,7 +795,7 @@ implementation
                  compiler.current_procinfo.CurrBreakLabel:=breakonlabel;
                end;
 
-              secondpass(right);
+              secondpass(right,ctx);
            end;
 
          compiler.exceptionstatehandler.handle_nested_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraisestate);
@@ -850,7 +850,7 @@ implementation
 
          { next on node }
          if assigned(left) then
-           secondpass(left);
+           secondpass(left,ctx);
       end;
 
 {*****************************************************************************
@@ -903,7 +903,7 @@ implementation
       end;
 
 
-    procedure tcgtryfinallynode.pass_generate_code;
+    procedure tcgtryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
          endfinallylabel,
          exitfinallylabel,
@@ -978,7 +978,7 @@ implementation
          { try code }
          if assigned(left) then
            begin
-              secondpass(left);
+              secondpass(left,ctx);
               if compiler.verbose.codegenerror then
                 exit;
            end;
@@ -1000,7 +1000,7 @@ implementation
              hlcg.a_label(current_asmdata.CurrAsmList,finallyNoExceptionLabel);
              if not implicitframe then
                current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
-             secondpass(third);
+             secondpass(third,ctx);
              if compiler.verbose.codegenerror then
                exit;
              if not implicitframe then
@@ -1027,7 +1027,7 @@ implementation
            flags regarding break/contrinue/etc. because we have to give an
            error in case one of those is used in the finally-code }
          flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-         secondpass(right);
+         secondpass(right,ctx);
          { goto is allowed if it stays inside the finally block,
            this is checked using the exception block number }
          if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
@@ -1112,7 +1112,7 @@ implementation
 
 {$ifndef SkipABIEH}
     { has to be factored out as well }
-    procedure tcgraisenode.pass_generate_code;
+    procedure tcgraisenode.pass_generate_code(ctx:tpassgeneratecodecontext);
       var
         CurrentLandingPad, CurrentAction, ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;

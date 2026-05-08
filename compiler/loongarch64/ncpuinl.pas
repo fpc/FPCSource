@@ -43,13 +43,13 @@ interface
           function first_round_real: tnode; override;
           function first_trunc_real: tnode; override;
 
-          procedure second_sqrt_real; override;
-          procedure second_abs_real; override;
-          procedure second_sqr_real; override;
-          procedure second_round_real; override;
-          procedure second_trunc_real; override;
+          procedure second_sqrt_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_abs_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_sqr_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_round_real(ctx:tpassgeneratecodecontext); override;
+          procedure second_trunc_real(ctx:tpassgeneratecodecontext); override;
        protected
-          procedure load_fpu_location;
+          procedure load_fpu_location(ctx:tpassgeneratecodecontext);
        end;
 
 implementation
@@ -115,22 +115,22 @@ implementation
 
 
      { load the FPU into the an fpu register }
-     procedure tloongarch64inlinenode.load_fpu_location;
+     procedure tloongarch64inlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
        end;
 
 
-     procedure tloongarch64inlinenode.second_sqrt_real;
+     procedure tloongarch64inlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FSQRT_S
          else
@@ -140,12 +140,12 @@ implementation
        end;
 
 
-     procedure tloongarch64inlinenode.second_abs_real;
+     procedure tloongarch64inlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FABS_S
          else
@@ -154,12 +154,12 @@ implementation
        end;
 
 
-     procedure tloongarch64inlinenode.second_sqr_real;
+     procedure tloongarch64inlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
        var
          op: tasmop;
        begin
          location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
+         load_fpu_location(ctx);
          if (left.location.size = OS_F32) then
            op := A_FMUL_S
          else
@@ -169,12 +169,12 @@ implementation
        end;
 
 
-     procedure tloongarch64inlinenode.second_round_real;
+     procedure tloongarch64inlinenode.second_round_real(ctx:tpassgeneratecodecontext);
        var
          op: TAsmOp;
          hreg: tregister;
        begin
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
@@ -189,12 +189,12 @@ implementation
        end;
 
 
-     procedure tloongarch64inlinenode.second_trunc_real;
+     procedure tloongarch64inlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
        var
          op,movop: TAsmOp;
          hreg: tregister;
        begin
-         secondpass(left);
+         secondpass(left,ctx);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
