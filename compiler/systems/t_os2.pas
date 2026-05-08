@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure aout_finish;
       procedure AddImport(const module:string;index:longint;const name,mangledname:string);
     public
       procedure generatelib;override;
@@ -250,7 +251,7 @@ begin
     inc(aout_treloc_count);
 end;
 
-procedure aout_finish;
+procedure timportlibos2.aout_finish;
 
 begin
     while (aout_text_size and 3)<>0 do
