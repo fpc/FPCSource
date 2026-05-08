@@ -654,21 +654,12 @@ implementation
          exportprocedure(hp);
       end;
 
-    var
-      Gl_DoubleIndex:boolean;
-      Gl_DoubleIndexValue:longint;
-
     function IdxCompare(Item1, Item2: Pointer): Integer;
       var
         I1:texported_item absolute Item1;
         I2:texported_item absolute Item2;
       begin
         Result:=I1.index-I2.index;
-        if(Result=0)and(Item1<>Item2)then
-         begin
-          Gl_DoubleIndex:=true;
-          Gl_DoubleIndexValue:=I1.index;
-         end;
       end;
 
 
@@ -713,6 +704,22 @@ implementation
 
 
     procedure TExportLibWin.generatelib;
+
+      function CheckForDuplicatedIndex(out DoubleIndexValue: longint): boolean;
+        var
+          i: Integer;
+        begin
+          result:=false;
+          DoubleIndexValue:=0;
+          for i:=1 to EList_indexed.Count-1 do
+            if texported_item(EList_indexed[i-1]).index=texported_item(EList_indexed[i]).index then
+              begin
+                result:=true;
+                DoubleIndexValue:=texported_item(EList_indexed[i]).index;
+                exit;
+              end;
+        end;
+
       var
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;
@@ -726,13 +733,13 @@ implementation
          i,autoindex,ni_high : longint;
          hole : boolean;
          asmsym : TAsmSymbol;
+         DoubleIndexValue : longint;
       begin
-         Gl_DoubleIndex:=false;
          ELIst_indexed.Sort(@IdxCompare);
 
-         if Gl_DoubleIndex then
+         if CheckForDuplicatedIndex(DoubleIndexValue) then
            begin
-             compiler.verbose.Message1(parser_e_export_ordinal_double,tostr(Gl_DoubleIndexValue));
+             compiler.verbose.Message1(parser_e_export_ordinal_double,tostr(DoubleIndexValue));
              FreeAndNil(EList_indexed);
              FreeAndNil(EList_nonindexed);
              exit;
