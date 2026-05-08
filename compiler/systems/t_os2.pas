@@ -120,14 +120,6 @@ const   n_ext   = 1;
         n_imp1  = $68;
         n_imp2  = $6a;
 
-type    nlist=packed record     {This is the layout of a symbol table entry.}
-            strofs:longint;     {Offset in string table}
-            typ:byte;           {Type of the symbol}
-            other:byte;         {Other information}
-            desc:word;          {More information}
-            value:longint;      {Value (address)}
-        end;
-
 type    a_out_header=packed record
             magic:word;         {Magic word, must be $0107}
             machtype:byte;      {Machine type}
