@@ -47,6 +47,7 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+      procedure aout_text_dword(d:longint);
       procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
       procedure aout_finish;
       procedure aout_write;
@@ -231,7 +232,7 @@ begin
     inc(aout_text_size);
 end;
 
-procedure aout_text_dword(d:longint);
+procedure timportlibos2.aout_text_dword(d:longint);
 
 type li_ar=array[0..3] of byte;
 
