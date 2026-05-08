@@ -47,6 +47,9 @@ implementation
   type
     timportlibos2=class(timportlib)
     private
+
+      out_file:file;
+
       procedure write_ar(const name:string;size:longint);
       procedure finish_ar;
       procedure aout_init;
@@ -140,8 +143,6 @@ var aout_str_size:longint;
     seq_no:longint;
 
     ar_member_size:longint;
-
-    out_file:file;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
