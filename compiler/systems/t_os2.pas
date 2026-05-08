@@ -67,6 +67,7 @@ implementation
       end;
 
     private
+      aout_sym_count:longint;
       aout_sym_tab:array[0..5] of nlist;
 
       aout_text:array[0..63] of byte;
@@ -150,7 +151,6 @@ type    a_out_header=packed record
 
 var aout_str_size:longint;
     aout_str_tab:array[0..2047] of char;
-    aout_sym_count:longint;
 
 procedure PackTime (var T: TSystemTime; var P: longint);
 
