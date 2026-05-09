@@ -44,7 +44,7 @@ uses
   cutils, verbose, globals,
   symconst, symdef, paramgr,
   aasmbase, aasmtai,aasmdata, aasmcpu, defutil, htypechk,
-  cgbase, cpuinfo, pass_1, pass_2,
+  cgbase, cpuinfo, pass_1, pass_2, pass_2_context,
   cpupara, cgcpu, cgutils,procinfo,
   ncon, nset,
   ncgutil, tgobj, rgobj, rgcpu, cgobj, compiler, nodehelper;
@@ -98,7 +98,7 @@ begin
       opsize := OS_32
     else
       opsize := OS_S32;
-    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize,
+    ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize,
       left.location.register, left.location.register);
   end;
 
@@ -112,8 +112,8 @@ begin
       useconst := true
     else begin
       useconst := false;
-      tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-      cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, right.location.value, tmpreg);
+      tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+      ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, right.location.value, tmpreg);
     end
   end else
     useconst := false;
@@ -224,7 +224,7 @@ begin
   load_left_right(cmpop, checkoverflow, ctx);
 
   if not (cmpop) then
-    location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+    location.register := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
   if not (checkoverflow) then begin
     case nodetype of
@@ -250,11 +250,11 @@ begin
           if (left.location.loc = LOC_CONSTANT) then
             swapleftright;
           if (right.location.loc <> LOC_CONSTANT) then
-            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
+            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
               left.location.register, right.location.register,
               location.register)
           else
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
               right.location.value, left.location.register,
               location.register);
         end;
@@ -264,20 +264,20 @@ begin
             swapleftright;
           if left.location.loc <> LOC_CONSTANT then
             if right.location.loc <> LOC_CONSTANT then begin
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
                 right.location.register, left.location.register,
                 location.register);
             end else begin
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+              ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
                 right.location.value, left.location.register,
                 location.register);
             end
           else
           begin
-            tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-            cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT,
+            tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+            ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT,
               left.location.value, tmpreg);
-            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
               right.location.register, tmpreg, location.register);
           end;
         end;
@@ -314,7 +314,7 @@ begin
       end;
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, location.register,
         left.location.register, right.location.register));
-      cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+      ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
     end
     else
     begin
@@ -325,7 +325,7 @@ begin
               left.location.register, right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD, location.register,
               left.location.register));
-            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+            ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
           end;
         subn:
           begin
@@ -335,23 +335,23 @@ begin
               left.location.register, right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD,
               left.location.register, location.register));
-            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+            ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
           end;
         muln:
           begin
             { calculate the upper 64 bits of the product, = 0 if no overflow }
-            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_R0);
+            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_R0);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU_, NR_R0,
               left.location.register, right.location.register));
-            cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_R0);
+            ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_R0);
             { calculate the real result }
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLD, location.register,
               left.location.register, right.location.register));
             { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
             current_asmdata.getjumplabel(hl);
-            tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList, OC_EQ, hl);
-            cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
-            cg.a_label(current_asmdata.CurrAsmList, hl);
+            tcgppc(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, OC_EQ, hl);
+            ctx.cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
+            ctx.cg.a_label(current_asmdata.CurrAsmList, hl);
           end;
         else
           internalerror(2019051031);

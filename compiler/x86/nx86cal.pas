@@ -39,8 +39,8 @@ interface
        tx86callnode = class(tcgcallnode)
         protected
          procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext);override;
-         procedure set_result_location(realresdef: tstoreddef);override;
-         function can_call_ref(var ref: treference):boolean;override;
+         procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);override;
+         function can_call_ref(var ref: treference;ctx:tpassgeneratecodecontext):boolean;override;
          function do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;override;
        end;
 
@@ -65,7 +65,7 @@ implementation
              begin
                { release FPU stack }
                emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-               tcgx86(cg).dec_fpu_stack;
+               tcgx86(ctx.cg).dec_fpu_stack;
              end
           else
             inherited;
@@ -73,20 +73,20 @@ implementation
       end;
 
 
-  procedure tx86callnode.set_result_location(realresdef: tstoreddef);
+  procedure tx86callnode.set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);
     begin
       if (retloc.location^.loc=LOC_FPUREGISTER) then
         begin
-          tcgx86(cg).inc_fpu_stack;
+          tcgx86(ctx.cg).inc_fpu_stack;
           location_reset(location,LOC_FPUREGISTER,retloc.location^.size);
           location.register:=retloc.location^.register;
         end
       else
-        inherited set_result_location(realresdef);
+        inherited;
     end;
 
 
-  function tx86callnode.can_call_ref(var ref: treference): boolean;
+  function tx86callnode.can_call_ref(var ref: treference;ctx:tpassgeneratecodecontext): boolean;
     const
 {$if defined(i386)}
       save_all_regs=[pocall_far16,pocall_oldfpccall];
@@ -94,7 +94,7 @@ implementation
       save_all_regs=[];
 {$endif}
     begin
-      tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
+      tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
       { do not use a ref. for calling conventions which allocate all registers, the reg. allocator cannot handle this, see
         also issue #28639, I were not able to create a simple example though to cause the resulting endless spilling }
       result:=((getsupreg(ref.base)<first_int_imreg) and (getsupreg(ref.index)<first_int_imreg)) or

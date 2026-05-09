@@ -33,8 +33,8 @@ interface
         protected
          procedure gen_syscall_para(para: tcallparanode); override;
         public
-         procedure do_syscall;override;
-         procedure pop_parasize(pop_size: longint);override;
+         procedure do_syscall(ctx:tpassgeneratecodecontext);override;
+         procedure pop_parasize(pop_size: longint;ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -44,7 +44,7 @@ implementation
       globtype,systemstypes,systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,rgobj,rgcpu,
@@ -52,7 +52,7 @@ implementation
       compiler,nodehelper;
 
 
-    procedure tm68kcallnode.pop_parasize(pop_size: longint);
+    procedure tm68kcallnode.pop_parasize(pop_size: longint;ctx:tpassgeneratecodecontext);
       begin
         if (pop_size<>0) and not (po_noreturn in procdefinition.procoptions) then
           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_SP));
@@ -66,7 +66,7 @@ implementation
       end;
 
 
-    procedure tm68kcallnode.do_syscall;
+    procedure tm68kcallnode.do_syscall(ctx:tpassgeneratecodecontext);
       var
         tmpref: treference;
       begin
@@ -105,13 +105,13 @@ implementation
                 begin
                   if po_syscall_has_importnr in tprocdef(procdefinition).procoptions then
                     begin
-                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_D2);
+                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_D2);
                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,tprocdef(procdefinition).import_nr,NR_D2));
                     end;
                   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,15));
                   current_asmdata.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
                   if po_syscall_has_importnr in tprocdef(procdefinition).procoptions then
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_D2);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_D2);
                 end
               else
                 internalerror(2017081201);

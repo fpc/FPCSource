@@ -74,7 +74,7 @@ begin
   location_copy(location, left.location);
   if left.location.loc = LOC_CFPUREGISTER then
   begin
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
+    location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
     location.loc      := LOC_FPUREGISTER;
   end;
 end;

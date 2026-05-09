@@ -112,7 +112,7 @@ unit nrv64cnv;
 
         restype:=tfloatdef(resultdef).floattype;
 
-        location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
+        location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, true);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_64bit(left.resultdef),is_signed(left.resultdef),restype], location.register, left.location.register));

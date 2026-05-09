@@ -104,8 +104,8 @@ interface
             else
               begin
                 useconst := false;
-                tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
+                tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
                     right.location.value,tmpreg);
                end
           end
@@ -191,10 +191,10 @@ interface
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -204,24 +204,24 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
                 begin
                   nodetype := unequaln;
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                   nodetype := equaln;
                 end;
               unequaln:
                 begin
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                 end;
               else
                 internalerror(2019050947);
@@ -238,20 +238,20 @@ interface
                 begin
                    { the comparison of the low dword always has }
                    { to be always unsigned!                     }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               equaln:
                 begin
                    nodetype := unequaln;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                   ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
                    nodetype := equaln;
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               else
                 internalerror(2019050946);
@@ -355,11 +355,11 @@ interface
                       else
                         begin
                           if (aint(right.location.value64) <> 0) then
-                            tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32)
+                            tempreg64.reglo := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32)
                           else
                             tempreg64.reglo := left.location.register64.reglo;
                           if ((right.location.value64 shr 32) <> 0) then
-                            tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32)
+                            tempreg64.reghi := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32)
                           else
                             tempreg64.reghi := left.location.register64.reghi;
                         end;
@@ -369,46 +369,46 @@ interface
                         { positive values < 65535 using XOR.        }
                         if (longint(right.location.value64) >= -32767) and
                            (longint(right.location.value64) < 0) then
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
+                          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                             aint(right.location.value64),
                             left.location.register64.reglo,tempreg64.reglo)
                         else
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
+                          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
                             aint(right.location.value64),
                             left.location.register64.reglo,tempreg64.reglo);
 
                       if ((right.location.value64 shr 32) <> 0) then
                         if (longint(right.location.value64 shr 32) >= -32767) and
                            (longint(right.location.value64 shr 32) < 0) then
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
+                          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                             aint(right.location.value64 shr 32),
                             left.location.register64.reghi,tempreg64.reghi)
                         else
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
+                          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
                             aint(right.location.value64 shr 32),
                             left.location.register64.reghi,tempreg64.reghi);
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                       tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                       tempreg64.reglo := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                       tempreg64.reghi := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                        ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,
                          left.location.register64,right.location.register64,
                          tempreg64);
                     end;
 
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_R0);
+                  ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_R0);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR_,NR_R0,
                     tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_R0);
+                  ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_R0);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
                 end;
               xorn,orn,andn,addn:
                 begin
-                  location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reglo := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reghi := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
@@ -421,8 +421,8 @@ interface
                 end;
               subn:
                 begin
-                  location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reglo := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reghi := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   if left.location.loc <> LOC_CONSTANT then
                     begin
                       if right.location.loc <> LOC_CONSTANT then
@@ -542,7 +542,7 @@ interface
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,location.register64.reghi,left.location.register64.reghi))
                   else
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register64.reghi,location.register64.reghi));
-                cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
+                ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
               end
             else
               begin
@@ -658,7 +658,7 @@ interface
          load_left_right(cmpop, checkoverflow, ctx);
 
          if not(cmpop) then
-           location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+           location.register := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
          if not(checkoverflow) then
            begin
@@ -685,11 +685,11 @@ interface
                    if (left.location.loc = LOC_CONSTANT) then
                      swapleftright;
                    if (right.location.loc <> LOC_CONSTANT) then
-                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,OS_INT,
+                     ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,OS_INT,
                        left.location.register,right.location.register,
                        location.register)
                    else
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,OS_INT,
+                     ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,OS_INT,
                        right.location.value,left.location.register,
                      location.register);
                  end;
@@ -699,11 +699,11 @@ interface
                      swapleftright;
                    if left.location.loc <> LOC_CONSTANT then
                      if right.location.loc <> LOC_CONSTANT then
-                       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
+                       ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                          right.location.register,left.location.register,
                          location.register)
                      else
-                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
+                       ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                          right.location.value,left.location.register,
                          location.register)
                    else
@@ -716,10 +716,10 @@ interface
                        end
                      else
                        begin
-                         tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                         cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
+                         tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                         ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
                            left.location.value,tmpreg);
-                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
+                         ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
                        end;
                  end;
@@ -752,7 +752,7 @@ interface
                  end;
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
                    left.location.register,right.location.register));
-                 cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
+                 ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
               end
              else
               begin
@@ -762,7 +762,7 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register,
                         left.location.register,right.location.register));
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,location.register,left.location.register));
-                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
+                      ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
                     end;
                   subn:
                     begin
@@ -771,23 +771,23 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                         left.location.register,right.location.register));
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register,location.register));
-                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
+                      ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
                     end;
                   muln:
                     begin
                       { calculate the upper 32 bits of the product, = 0 if no overflow }
-                      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_R0);
+                      ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_R0);
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHWU_,NR_R0,
                         left.location.register,right.location.register));
-                      cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_R0);
+                      ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_R0);
                       { calculate the real result }
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLW,location.register,
                         left.location.register,right.location.register));
                       { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
                       current_asmdata.getjumplabel(hl);
-                      tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,hl);
-                      cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-                      cg.a_label(current_asmdata.CurrAsmList,hl);
+                      tcgppc(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,hl);
+                      ctx.cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                      ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
                     end;
                   else
                     internalerror(2019050944);

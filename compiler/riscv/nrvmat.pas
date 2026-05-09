@@ -65,7 +65,7 @@ implementation
           else
             Internalerror(2025010901);
         end;
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 

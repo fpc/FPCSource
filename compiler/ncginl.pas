@@ -306,7 +306,7 @@ implementation
            { if the string pointer is nil, the length is 0 -> reuse the register
              that originally held the string pointer for the length, so that we
              can keep the original nil/0 as length in that case }
-           hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+           hregister:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
            ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then
              ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
@@ -315,7 +315,7 @@ implementation
            if is_dynamic_array(left.resultdef) then
              ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
 
-           cg.a_label(current_asmdata.CurrAsmList,lengthlab);
+           ctx.cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
@@ -346,13 +346,13 @@ implementation
         { if the string pointer is nil, the length is 0 -> reuse the register
           that originally held the string pointer for the length, so that we
           can keep the original nil/0 as length in that case }
-        hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+        hregister:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
         ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.sizesinttype,resultdef,href,hregister);
         ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,donelab);
 
-        cg.a_label(current_asmdata.CurrAsmList,nillab);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,nillab);
         ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,resultdef,1,hregister);
-        cg.a_label(current_asmdata.CurrAsmList,donelab);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,donelab);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=hregister;
       end;
@@ -379,8 +379,8 @@ implementation
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
           end
         else
@@ -530,8 +530,8 @@ implementation
               { see mantis #14841 (JM)                                       }
               if ([cs_check_overflow,cs_check_range] * compiler.globals.current_settings.localswitches <> []) then
                 internalerror(2006111010);
-//              cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
-//              cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
+//              ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
+//              ctx.cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
 //                 tcallparanode(left).left.resultdef);
             end;
         end;
@@ -769,10 +769,10 @@ implementation
         if is_64bitint(left.resultdef) then
           begin
             location:=left.location;
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             ctx.cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
-            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
+            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
             tempreg64.reghi:=left.location.register64.reghi;
             tempreg64.reglo:=left.location.register64.reghi;
             ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),tempreg64,location.register64);
@@ -878,16 +878,16 @@ implementation
         if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+            location.register:=ctx.cg.getaddressregister(current_asmdata.currasmlist);
             reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{compiler.current_procinfo.calc_stackframe_size}tg.lasttemp,ctempposinvalid,sizeof(pint),[]);
-            cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+            ctx.cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+            location.register:=ctx.cg.getaddressregister(current_asmdata.currasmlist);
             reference_reset_base(frame_ref,compiler.current_procinfo.framepointer,sizeof(pint),ctempposinvalid,sizeof(pint),[]);
-            cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+            ctx.cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end;
       end;
 
@@ -933,8 +933,8 @@ implementation
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -1004,8 +1004,8 @@ implementation
         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,inlinenumber=in_bsr_x,node_not_zero(left),opsize,location.size,left.location.register,location.register);
+      location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+      ctx.cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,inlinenumber=in_bsr_x,node_not_zero(left),opsize,location.size,left.location.register,location.register);
     end;
 
 

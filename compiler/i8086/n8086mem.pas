@@ -135,23 +135,23 @@ implementation
                  begin
                    ctx.hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
-                   location.reference.segment := cg.GetNextReg(left.location.register);
+                   location.reference.segment := ctx.cg.GetNextReg(left.location.register);
                  end;
                LOC_CREFERENCE,
                LOC_REFERENCE:
                  begin
-                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,location.reference.base);
-                    location.reference.segment:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                    location.reference.base:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                    ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,location.reference.base);
+                    location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                     tmpref:=left.location.reference;
                     inc(tmpref.offset,2);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,tmpref,location.reference.segment);
+                    ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,tmpref,location.reference.segment);
                  end;
                LOC_CONSTANT:
                  begin
                    location.reference.offset:=left.location.value and $FFFF;
-                   location.reference.segment:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                   cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
+                   location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                   ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
                  end;
                else
                  internalerror(2005070302);

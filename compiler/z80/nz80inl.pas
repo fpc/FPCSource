@@ -110,7 +110,7 @@ unit nz80inl;
             begin
               { data can be put anywhere, but port number must be in C }
               ctx.hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_C);
-              dreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+              dreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
               ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u8inttype,portnumber.location,NR_C);
               reference_reset_base(ref,NR_C,0,ctempposinvalid,1,[]);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_IN,dreg,ref));
@@ -147,7 +147,7 @@ unit nz80inl;
             begin
               { data can reside anywhere, but port number must be in C }
               ctx.hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_C);
-              dreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+              dreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
               ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,compiler.deftypes.u8inttype,portdata.location,dreg);
               ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,compiler.deftypes.u8inttype,portnumber.location,NR_C);
               reference_reset_base(ref,NR_C,0,ctempposinvalid,1,[]);

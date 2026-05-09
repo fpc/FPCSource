@@ -37,10 +37,10 @@ type
   tppccallnode = class(tcgcallnode)
    protected
     function get_call_reg(list: TAsmList;ctx:tpassgeneratecodecontext): tregister; override;
-    procedure unget_call_reg(list: TAsmList; reg: tregister); override;
+    procedure unget_call_reg(list: TAsmList; reg: tregister;ctx:tpassgeneratecodecontext); override;
    public
     function pass_1: tnode; override;
-    procedure do_syscall; override;
+    procedure do_syscall(ctx:tpassgeneratecodecontext); override;
   end;
 
 implementation
@@ -49,7 +49,7 @@ uses
   globtype, systemstypes, systems,
   cutils, verbose, globals,
   symconst, symbase, symsym, symtable, defutil, paramgr, parabase,
-  pass_2,
+  pass_2,pass_2_context,
   cpuinfo, cpubase, aasmbase, aasmtai, aasmcpu,
   nmem, nld, ncnv,
   ncgutil, cgutils, cgobj, tgobj, rgobj, rgcpu,
@@ -60,14 +60,14 @@ function tppccallnode.get_call_reg(list: TAsmList;ctx:tpassgeneratecodecontext):
   begin
     { on the ppc64/ELFv2 abi, all indirect calls must go via R12, so that the
       called function can use R12 as PIC base register }
-    cg.getcpuregister(list,NR_R12);
+    ctx.cg.getcpuregister(list,NR_R12);
     result:=NR_R12;
   end;
 
 
-procedure tppccallnode.unget_call_reg(list: TAsmList; reg: tregister);
+procedure tppccallnode.unget_call_reg(list: TAsmList; reg: tregister;ctx:tpassgeneratecodecontext);
   begin
-    cg.ungetcpuregister(list,NR_R12);
+    ctx.cg.ungetcpuregister(list,NR_R12);
   end;
 
 function tppccallnode.pass_1: tnode;
@@ -83,7 +83,7 @@ function tppccallnode.pass_1: tnode;
   end;
 
 
-procedure tppccallnode.do_syscall;
+procedure tppccallnode.do_syscall(ctx:tpassgeneratecodecontext);
 begin
   { no MorphOS style syscalls supported. Only implemented to avoid abstract
    method not implemented compiler warning. }

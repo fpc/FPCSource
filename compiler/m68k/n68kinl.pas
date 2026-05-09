@@ -122,10 +122,10 @@ implementation
            current_asmdata.getjumplabel(lengthlab);
            ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmlist,lengthlab);
 
-           cg.a_label(current_asmdata.CurrAsmList,zerolab);
+           ctx.cg.a_label(current_asmdata.CurrAsmList,zerolab);
            ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
 
-           cg.a_label(current_asmdata.CurrAsmList,lengthlab);
+           ctx.cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
@@ -253,9 +253,9 @@ implementation
         if left.location.loc=LOC_CFPUREGISTER then
           begin
             //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
-            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             location.loc := LOC_FPUREGISTER;
-            cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+            ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
           end;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
       end;
@@ -303,14 +303,14 @@ implementation
             end;
           LOC_CFPUREGISTER:
             begin
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
             end;
           else
@@ -333,19 +333,19 @@ implementation
         case left.location.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             begin
-              hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+              hreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              hreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
-              cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,href,location.register);
+              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+              ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,href,location.register);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
             end;

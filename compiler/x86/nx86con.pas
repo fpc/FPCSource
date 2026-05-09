@@ -43,6 +43,7 @@ implementation
       cpubase,
       aasmdata,
       cga,cgx86,cgobj,cgbase,cgutils,
+      pass_2_context,
       compiler,
       nodehelper;
 
@@ -72,7 +73,7 @@ implementation
                   emit_none(A_FLD1,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
-                  tcgx86(cg).inc_fpu_stack;
+                  tcgx86(ctx.cg).inc_fpu_stack;
                end
              else if (value_real=2.0) and (cs_create_pic in compiler.globals.current_settings.moduleswitches) and not(use_vectorfpu(resultdef)) then
                begin
@@ -80,7 +81,7 @@ implementation
                   emit_reg_reg(A_FADD,S_NO,NR_ST,NR_ST);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
-                  tcgx86(cg).inc_fpu_stack;
+                  tcgx86(ctx.cg).inc_fpu_stack;
                end
              else if (value_real=-1.0) and not(use_vectorfpu(resultdef)) then
                begin
@@ -88,14 +89,14 @@ implementation
                   emit_none(A_FCHS,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
-                  tcgx86(cg).inc_fpu_stack;
+                  tcgx86(ctx.cg).inc_fpu_stack;
                end
              else if (value_real=0.0) and (get_real_sign(value_real)=1) then
                begin
                  if use_vectorfpu(resultdef) then
                    begin
                      location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-                     location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                     location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
                      if UseAVX then
                        begin
                          if is_single(resultdef) then
@@ -118,7 +119,7 @@ implementation
                         emit_none(A_FCHS,S_NO);
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                       location.register:=NR_ST;
-                      tcgx86(cg).inc_fpu_stack;
+                      tcgx86(ctx.cg).inc_fpu_stack;
                    end;
                end
             else

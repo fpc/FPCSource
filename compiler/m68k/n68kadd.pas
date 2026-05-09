@@ -195,15 +195,15 @@ implementation
         if (FPUM68K_HAS_FLOATIMMEDIATE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
            inlineable_realconstnode(left) then
           begin
-            location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FMOVE,tcgsize2opsize[left.location.size],trealconstnode(left).value_real,location.register))
           end
         else
           begin
             ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
-            location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-            cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+            location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
           end;
 
         { emit the actual operation }
@@ -218,7 +218,7 @@ implementation
                 else
                   begin
                     href:=right.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+                    tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
                   end;
               end
@@ -252,7 +252,7 @@ implementation
                 if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                   begin
                     href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+                    tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[left.location.size],href,right.location.register));
                     toggleflag(nf_swapped);
                     location.resflags:=getfloatresflags;
@@ -276,7 +276,7 @@ implementation
                       if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                         begin
                           href:=left.location.reference;
-                          tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                          tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
                           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FTST,tcgsize2opsize[left.location.size],href))
                         end
                       else
@@ -291,7 +291,7 @@ implementation
                     else
                       begin
                         href:=right.location.reference;
-                        tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+                        tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
                       end;
                   end;
@@ -356,10 +356,10 @@ implementation
          lten,
          gten:
            begin
-             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+             tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),false);
-             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,cmpsize,left.location.register,right.location.register,tmpreg);
+             ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,cmpsize,left.location.register,right.location.register,tmpreg);
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,tmpreg,right.location.register));
              location.resflags:=F_E;
            end;
@@ -387,7 +387,7 @@ implementation
         list    : tasmlist;
         href    : treference;
       begin
-        { if we need to handle overflow checking, fall back to the generic cg }
+        { if we need to handle overflow checking, fall back to the generic ctx.cg }
         if (nodetype in [addn,subn,muln]) and
            needoverflowcheck then
           begin
@@ -430,9 +430,9 @@ implementation
             list.concat(tai_comment.create(strpnew('second_addordinal: mul32to64bit')));
 
             asmop:=mul_op_signed[cgop = OP_IMUL];
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            cg.a_load_reg_reg(list,left.location.size,OS_INT,left.location.register,location.register64.reglo);
+            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            ctx.cg.a_load_reg_reg(list,left.location.size,OS_INT,left.location.register,location.register64.reglo);
 
             if not (right.location.size in [OS_S32, OS_32]) or
                not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
@@ -449,7 +449,7 @@ implementation
               LOC_CREFERENCE:
                 begin
                   href:=right.location.reference;
-                  tcg68k(cg).fixref(list,href,false);
+                  tcg68k(ctx.cg).fixref(list,href,false);
                   list.concat(taicpu.op_ref_reg_reg(asmop,S_L,href,location.register64.reghi,location.register64.reglo));
                  end;
               else
@@ -467,10 +467,10 @@ implementation
           end;
 
         if isaddressregister(left.location.register) and (nodetype in [addn,subn]) then
-           location.register := cg.getaddressregister(current_asmdata.CurrAsmList)
+           location.register := ctx.cg.getaddressregister(current_asmdata.CurrAsmList)
         else
-           location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+           location.register := ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
 
         if ((location.size <> right.location.size) and not (right.location.loc in [LOC_CONSTANT])) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
@@ -481,12 +481,12 @@ implementation
         case right.location.loc of
           LOC_REGISTER,
           LOC_CREGISTER:
-            cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.register,location.register);
+            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.register,location.register);
           LOC_CONSTANT:
-            cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.value,location.register);
+            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.value,location.register);
           LOC_REFERENCE,
           LOC_CREFERENCE:
-            cg.a_op_ref_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.reference,location.register);
+            ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.reference,location.register);
         else
           internalerror(2016052101);
         end;
@@ -520,7 +520,7 @@ implementation
            if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,cmpsize) then
              begin
                href:=left.location.reference;
-               tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+               tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
              end
@@ -529,8 +529,8 @@ implementation
                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                  begin
-                   tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
-                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
+                   tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
+                   ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
                  end
                else
                  tmpreg:=left.location.register;
@@ -544,7 +544,7 @@ implementation
          !!see remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
        if (opsize<>S_L) and (compiler.globals.current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
          begin
-           { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
+           { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing ctx.cg we can assume
                 that high bits of registers are correct.
              2) Assuming that extension depends only on source signedness --> destination OS_32 is acceptable. }
            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_32),false);
@@ -575,7 +575,7 @@ implementation
          LOC_CREFERENCE:
            begin
              href:=right.location.reference;
-             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+             tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,href,
                left.location.register));
            end;
@@ -637,10 +637,10 @@ implementation
               see also #40182 }
             if right.location.value64=0 then
               begin
-                location.register64.reglo:=cg.getintregister(list,OS_INT);
-                cg.a_load_const_reg(list,OS_INT,0,location.register64.reglo);
-                location.register64.reghi:=cg.getintregister(list,OS_INT);
-                cg.a_load_const_reg(list,OS_INT,0,location.register64.reghi);
+                location.register64.reglo:=ctx.cg.getintregister(list,OS_INT);
+                ctx.cg.a_load_const_reg(list,OS_INT,0,location.register64.reglo);
+                location.register64.reghi:=ctx.cg.getintregister(list,OS_INT);
+                ctx.cg.a_load_const_reg(list,OS_INT,0,location.register64.reghi);
                 exit;
               end;
 
@@ -650,16 +650,16 @@ implementation
             { Omit zero terms, if any }
             if hi(right.location.value64)<>0 then
               begin
-                hreg2:=cg.getintregister(list,OS_INT);
-                cg.a_load_const_reg(list,OS_INT,longint(hi(right.location.value64)),hreg2);
+                hreg2:=ctx.cg.getintregister(list,OS_INT);
+                ctx.cg.a_load_const_reg(list,OS_INT,longint(hi(right.location.value64)),hreg2);
                 list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reglo,hreg2));
               end;
             if lo(right.location.value64)<>0 then
               begin
-                hreg1:=cg.getintregister(list,OS_INT);
-                tmpreg:=cg.getintregister(list,OS_INT);
-                cg.a_load_const_reg(list,OS_INT,longint(lo(right.location.value64)),hreg1);
-                cg.a_load_reg_reg(list,OS_INT,OS_INT,hreg1,tmpreg);
+                hreg1:=ctx.cg.getintregister(list,OS_INT);
+                tmpreg:=ctx.cg.getintregister(list,OS_INT);
+                ctx.cg.a_load_const_reg(list,OS_INT,longint(lo(right.location.value64)),hreg1);
+                ctx.cg.a_load_reg_reg(list,OS_INT,OS_INT,hreg1,tmpreg);
                 list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reghi,hreg1));
               end;
           end
@@ -669,10 +669,10 @@ implementation
             ctx.hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
             ctx.hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
             tmpreg:=right.location.register64.reglo;
-            hreg1:=cg.getintregister(list,OS_INT);
-            hreg2:=cg.getintregister(list,OS_INT);
-            cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reglo,hreg1);
-            cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reghi,hreg2);
+            hreg1:=ctx.cg.getintregister(list,OS_INT);
+            hreg2:=ctx.cg.getintregister(list,OS_INT);
+            ctx.cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reglo,hreg1);
+            ctx.cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reghi,hreg2);
             list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reghi,hreg1));
             list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reglo,hreg2));
           end;
@@ -690,14 +690,14 @@ implementation
               location.register64.reghi:=hreg1
             else
               internalerror(2017052501);
-            location.register64.reglo:=cg.getintregister(list,OS_INT);
-            cg.a_load_const_reg(list,OS_INT,0,location.register64.reglo);
+            location.register64.reglo:=ctx.cg.getintregister(list,OS_INT);
+            ctx.cg.a_load_const_reg(list,OS_INT,0,location.register64.reglo);
           end
         else
           begin
-            location.register64.reghi:=cg.getintregister(list,OS_INT);
-            location.register64.reglo:=cg.getintregister(list,OS_INT);
-            cg.a_load_reg_reg(list,OS_INT,OS_INT,left.location.register64.reglo,location.register64.reglo);
+            location.register64.reghi:=ctx.cg.getintregister(list,OS_INT);
+            location.register64.reglo:=ctx.cg.getintregister(list,OS_INT);
+            ctx.cg.a_load_reg_reg(list,OS_INT,OS_INT,left.location.register64.reglo,location.register64.reglo);
             list.concat(taicpu.op_reg_reg_reg(A_MULU,S_L,tmpreg,location.register64.reghi,location.register64.reglo));
             if (hreg2<>NR_NO) then
               list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg2,location.register64.reghi));
@@ -722,11 +722,11 @@ implementation
             ltn,gtn:
               begin
                 if (hlab<>location.truelabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                 { cheat a little bit for the negative test }
                 toggleflag(nf_swapped);
                 if (hlab<>location.falselabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                 toggleflag(nf_swapped);
               end;
             lten,gten:
@@ -737,20 +737,20 @@ implementation
                 else
                   nodetype:=gtn;
                 if (hlab<>location.truelabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                 { cheat for the negative test }
                 if nodetype=ltn then
                   nodetype:=gtn
                 else
                   nodetype:=ltn;
                 if (hlab<>location.falselabel) then
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                 nodetype:=oldnodetype;
               end;
             equaln:
-              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+              ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
             unequaln:
-              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
             else
               ;
           end;
@@ -761,18 +761,18 @@ implementation
           case nodetype of
             ltn,gtn,lten,gten:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
               end;
             equaln:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
               end;
             unequaln:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
               end;
             else
               ;
@@ -812,7 +812,7 @@ implementation
             if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,OS_INT) then
               begin
                 href:=left.location.reference;
-                tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
                 firstjmp64bitcmp;
                 inc(href.offset,4);
@@ -859,7 +859,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               href:=right.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reghi));
               firstjmp64bitcmp;
               inc(href.offset,4);
@@ -872,7 +872,7 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
               firstjmp64bitcmp;
               if assigned(hlab) then
-                cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
               else
                 begin
                   current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));

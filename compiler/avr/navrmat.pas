@@ -80,14 +80,14 @@ implementation
                 current_asmdata.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-                cg.a_label(current_asmdata.CurrAsmList,skiplabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,skiplabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
               end
             else if (left.location.loc in [LOC_SUBSETREF,LOC_CSUBSETREF]) and
               (left.location.sref.bitlen=1) and (left.location.sref.bitindexreg=NR_NO) then
               begin
-                tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+                tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
                 ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
                 current_asmdata.getjumplabel(truelabel);
@@ -97,22 +97,22 @@ implementation
                 current_asmdata.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-                cg.a_label(current_asmdata.CurrAsmList,skiplabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,skiplabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
               end
             else
               case left.location.loc of
                  LOC_FLAGS :
                    begin
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      location_copy(location,left.location);
                      inverse_flags(location.resflags);
                    end;
                  LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF,
                  LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                    begin
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
 
@@ -122,7 +122,7 @@ implementation
                          if i=5 then
                            tmpreg:=left.location.registerhi
                          else
-                           tmpreg:=cg.GetNextReg(tmpreg);
+                           tmpreg:=ctx.cg.GetNextReg(tmpreg);
                          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg));
                        end;
                      location_reset(location,LOC_FLAGS,OS_NO);
@@ -182,8 +182,8 @@ implementation
         location_reset(location,LOC_REGISTER,opsize);
         if is_64bit(resultdef) then
           begin
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.registerhi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.registerhi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
           location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);

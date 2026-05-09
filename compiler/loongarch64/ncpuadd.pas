@@ -82,7 +82,7 @@ implementation
           swapleftright;
 
         location_reset(location,LOC_REGISTER,OS_INT);
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
         if signed then op:=A_SLT else op:=A_SLTU;
         if signed then opi:=A_SLTI else opi:=A_SLTUI;
@@ -99,7 +99,7 @@ implementation
 
               if right.location.loc=LOC_CONSTANT then
                 if right.location.value = 0 then
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
+                  ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
                 else
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
               else
@@ -117,7 +117,7 @@ implementation
 
               if right.location.loc=LOC_CONSTANT then
                 if right.location.value = 0 then
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
+                  ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
                 else
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
               else
@@ -253,7 +253,7 @@ implementation
             if right.location.loc=LOC_CONSTANT then
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
           end
         else
@@ -373,19 +373,19 @@ implementation
           begin
             { TODO This should be like mips, but... }
             { location_reset(location, LOC_FLAGS, OS_NO); }
-            { location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size); }
+            { location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size); }
             location_reset(location,LOC_REGISTER,OS_8);
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,NR_FCC0,left.location.register,right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVCF2GR,location.register,NR_FCC0));
-            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
           end
         else
           begin
             location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
           end;
       end;
 

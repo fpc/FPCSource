@@ -104,7 +104,7 @@ unit ncpuinl;
         secondpass(left,ctx);
         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,OS_F32);
-        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),PF_S));
       end;
 
@@ -175,7 +175,7 @@ unit ncpuinl;
                end;
 
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
-             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
              ctx.hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                paraarray[3].location.register,location.register);
@@ -185,7 +185,7 @@ unit ncpuinl;
              ai.oppostfix:=PF_S;
              current_asmdata.CurrAsmList.concat(ai);
 
-             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2020112401);
@@ -230,7 +230,7 @@ unit ncpuinl;
                end;
 
              location_reset(location,LOC_REGISTER,paraarray[1].location.size);
-             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
              case inlinenumber of
                in_min_dword:
@@ -248,7 +248,7 @@ unit ncpuinl;
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
                location.register,paraarray[1].location.register,paraarray[2].location.register));
 
-             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2020120502);
@@ -272,8 +272,8 @@ unit ncpuinl;
          LOC_CREFERENCE,
          LOC_REFERENCE:
            begin
-             r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+             r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+             ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
              reference_reset_base(ref,r,0,location.reference.temppos,left.location.reference.alignment,location.reference.volatility);
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_DPFR,ref.base,ref.offset));
            end;

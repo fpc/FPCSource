@@ -34,7 +34,7 @@ interface
          procedure gen_syscall_para(para: tcallparanode); override;
         public
          procedure extra_call_code;override;
-         procedure do_syscall;override;
+         procedure do_syscall(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -44,7 +44,7 @@ implementation
       globtype,systemstypes,systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
-      cgbase,pass_2,
+      cgbase,pass_2,pass_2_context,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,rgobj,rgcpu,
@@ -71,14 +71,14 @@ implementation
           end;
       end;
 
-    procedure tppccallnode.do_syscall;
+    procedure tppccallnode.do_syscall(ctx:tpassgeneratecodecontext);
 
       procedure do_call_ref(constref ref: treference);
         begin
-          cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,ref,NR_R0);
-          cg.a_call_reg(current_asmdata.CurrAsmList,NR_R0);
-          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
+          ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+          ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,ref,NR_R0);
+          ctx.cg.a_call_reg(current_asmdata.CurrAsmList,NR_R0);
+          ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
         end;
 
       var
@@ -98,22 +98,22 @@ implementation
               if ([po_syscall_basefirst,po_syscall_basenone,
                    po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
-                  get_syscall_call_ref(tmpref,NR_R12);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  get_syscall_call_ref(tmpref,NR_R12,ctx);
 
                   do_call_ref(tmpref);
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
                 end
               else if po_syscall_legacy in tprocdef(procdefinition).procoptions then
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R3);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R3);
 
                   { R3 must contain the call offset }
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
                   reference_reset_base(tmpref,NR_R2,100,ctempposinvalid,4,[]); { 100 ($64) is EmulDirectCallOS offset }
 
                   do_call_ref(tmpref);
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R3);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R3);
                 end
               else
                 internalerror(2005010403);

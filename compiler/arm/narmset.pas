@@ -44,7 +44,7 @@ interface
       tarmcasenode = class(tcgcasenode)
          procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
          function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);override;
          procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
          procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt;ctx:tpassgeneratecodecontext);override;
       end;
@@ -102,7 +102,7 @@ implementation
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
               right.resultdef, right.resultdef, true);
 
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,right.location.register,1 shl (left.location.value-setbase)));
           end
         else
@@ -120,7 +120,7 @@ implementation
             if GenerateThumbCode or GenerateThumb2Code then
               begin
                 ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHL,opdef,left.location.register,hregister);
-                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_TST,right.location.register,hregister));
               end
             else
@@ -128,7 +128,7 @@ implementation
                 shifterop_reset(so);
                 so.rs:=left.location.register;
                 so.shiftmode:=SM_LSL;
-                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_TST,right.location.register,hregister,so));
               end;
           end;
@@ -151,7 +151,7 @@ implementation
       end;
 
 
-    procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
+    procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);
       var
         last : TConstExprInt;
         tmpreg,
@@ -221,20 +221,20 @@ implementation
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(min_),hregister,elselabel);
+             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_gt,aint(max_),hregister,elselabel);
+             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
         { make it a 32bit register }
-        indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
+        indexreg:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
+        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
 
         if GenerateThumb2Code then
           begin
             if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               internalerror(2013082101);
             { adjust index }
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             { create reference and generate jump table }
             reference_reset(href,4,[]);
             href.base:=NR_PC;
@@ -244,7 +244,7 @@ implementation
             current_asmdata.CurrAsmList.Concat(taicpu.op_ref(A_TBH,href));
             { generate jump table }
             current_asmdata.getjumplabel(tablelabel);
-            cg.a_label(current_asmdata.CurrAsmList,tablelabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             last:=min_;
             genitem_thumb2(current_asmdata.CurrAsmList,hp);
           end
@@ -252,27 +252,27 @@ implementation
           begin
             if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               internalerror(2013082102);
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             current_asmdata.getaddrlabel(tablelabel);
 
-            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
+            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
 
-            basereg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
+            basereg:=ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
             reference_reset_symbol(href,tablelabel,0,4,[]);
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
+            ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
 
             reference_reset(href,0,[]);
             href.base:=basereg;
             href.index:=indexreg;
 
-            tmpreg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, tmpreg);
+            tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, tmpreg);
 
             { do not use BX here to avoid switching into arm mode }
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV, NR_PC, tmpreg));
 
             current_asmdata.CurrAsmList.Concat(tai_align.Create(4));
-            cg.a_label(current_asmdata.CurrAsmList,tablelabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             { generate jump table }
             last:=min_;
             genitem(current_asmdata.CurrAsmList,hp);
@@ -280,7 +280,7 @@ implementation
         else
           begin
             { adjust index }
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,
               min_+ord(not(cs_create_pic in compiler.globals.current_settings.moduleswitches)),
               indexreg,indexreg);
             { create reference and generate jump table }
@@ -293,13 +293,13 @@ implementation
               begin
                 picoffset:=-8;
                 current_asmdata.getaddrlabel(piclabel);
-                indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,indexreg);
-                cg.a_label(current_asmdata.CurrAsmList,piclabel);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,indexreg,NR_PC);
+                indexreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,indexreg);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,piclabel);
+                ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,indexreg,NR_PC);
               end
             else
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
+              ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
             { generate jump table }
             last:=min_;
             genitem(current_asmdata.CurrAsmList,hp);
@@ -322,20 +322,20 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resultdef)) then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                 ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
-                      tbasecgarm(cg).cgsetflags:=true;
+                      tbasecgarm(ctx.cg).cgsetflags:=true;
                       { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be used }
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tbasecgarm(cg).cgsetflags:=false;
-                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
+                      ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
+                      tbasecgarm(ctx.cg).cgsetflags:=false;
+                      ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
                   lastrange:=false;
@@ -350,11 +350,11 @@ implementation
                        { have we to adjust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
-                           tbasecgarm(cg).cgsetflags:=true;
+                           tbasecgarm(ctx.cg).cgsetflags:=true;
                            { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                              then genlinearlist wouldn't be use }
-                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low)), hregister);
-                           tbasecgarm(cg).cgsetflags:=false;
+                           ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low)), hregister);
+                           tbasecgarm(ctx.cg).cgsetflags:=false;
                          end;
                     end
                   else
@@ -363,23 +363,23 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      tbasecgarm(cg).cgsetflags:=true;
+                      tbasecgarm(ctx.cg).cgsetflags:=true;
                       { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be use }
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tbasecgarm(cg).cgsetflags:=false;
+                      ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
+                      tbasecgarm(ctx.cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                        ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
-                  tbasecgarm(cg).cgsetflags:=true;
+                  tbasecgarm(ctx.cg).cgsetflags:=true;
                   { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                     then genlinearlist wouldn't be use }
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_32,aint(int64(t^._high-t^._low)),hregister);
-                  tbasecgarm(cg).cgsetflags:=false;
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+                  ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_32,aint(int64(t^._high-t^._low)),hregister);
+                  tbasecgarm(ctx.cg).cgsetflags:=false;
+                  ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
                   last:=t^._high;
                   lastrange:=true;
@@ -409,10 +409,10 @@ implementation
                 last:=0;
                 lastrange:=false;
                 first:=true;
-                cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                 genitem(hp);
-                cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+                ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;
 
@@ -428,7 +428,7 @@ implementation
            else
              cond_gt:=F_HI;
           current_asmdata.CurrAsmList.concat(cai_align.Create(compiler.globals.current_settings.alignment.jumpalign));
-          cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
+          ctx.cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
 
           { calculate labels for left and right }
           if p^.less=nil then

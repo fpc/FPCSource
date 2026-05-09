@@ -48,6 +48,7 @@ implementation
       cpuinfo,
       cgutils,
       procinfo,
+      pass_2_context,
       compiler,
       nodehelper;
 
@@ -63,8 +64,8 @@ implementation
           (compiler.current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,compiler.current_procinfo.framepointer,location.register);
+            location.register:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,compiler.current_procinfo.framepointer,location.register);
           end
         else
           inherited;
@@ -86,9 +87,9 @@ implementation
            inherited update_reference_reg_mul(maybe_const_reg,regsize,l,ctx)
          else if (location.reference.base<>NR_NO) then
            begin
-             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.base);
+             hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+             ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
+             tbasecgarm(ctx.cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.base);
              location.reference.base:=hreg;
              { update alignment }
              if (location.reference.alignment=0) then
@@ -97,9 +98,9 @@ implementation
            end
          else if (location.reference.index<>NR_NO) then
            begin
-             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.index);
+             hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+             ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
+             tbasecgarm(ctx.cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.index);
              location.reference.base:=hreg;
              location.reference.index:=NR_NO;
              { update alignment }

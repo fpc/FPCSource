@@ -28,16 +28,16 @@ interface
 { $define AnsiStrRef}
 
     uses
-      nx86cal,ncal,compilerbase;
+      node,nx86cal,ncal,compilerbase;
 
     type
        ti386callnode = class(tx86callnode)
        protected
           procedure gen_syscall_para(para: tcallparanode); override;
-          procedure pop_parasize(pop_size:longint);override;
+          procedure pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);override;
           procedure extra_interrupt_code;override;
        public
-         procedure do_syscall;override;
+         procedure do_syscall(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -54,6 +54,7 @@ implementation
       symdef,symsym,symcpu,symconst,
       cga,cgobj,cgx86,
       cpuinfo,
+      pass_2_context,
       compiler,
       nodehelper;
 
@@ -63,7 +64,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure ti386callnode.do_syscall;
+    procedure ti386callnode.do_syscall(ctx:tpassgeneratecodecontext);
       var
         tmpref: treference;
       begin
@@ -74,11 +75,11 @@ implementation
                 begin
                   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-                  get_syscall_call_ref(tmpref,NR_EAX);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  get_syscall_call_ref(tmpref,NR_EAX,ctx);
 
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
                   exit;
                 end;
               internalerror(2016090104);
@@ -103,7 +104,7 @@ implementation
       end;
 
 
-    procedure ti386callnode.pop_parasize(pop_size:longint);
+    procedure ti386callnode.pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);
       var
         hreg : tregister;
         href : treference;
@@ -147,7 +148,7 @@ implementation
         { better than an add on all processors }
         if pop_size=4 then
           begin
-            hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
           end
         { the pentium has two pipes and pop reg is pairable }
@@ -157,9 +158,9 @@ implementation
              not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
              (compiler.globals.current_settings.optimizecputype=cpu_Pentium) then
             begin
-               hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+               hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+               hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
             end
         else

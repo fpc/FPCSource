@@ -26,15 +26,15 @@ unit narmcal;
 interface
 
     uses
-      symdef,ncal,ncgcal,
+      symdef,node,ncal,ncgcal,
       compilerbase;
 
     type
        tarmcallnode = class(tcgcallnode)
          procedure gen_syscall_para(para: tcallparanode); override;
-         procedure set_result_location(realresdef: tstoreddef);override;
+         procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);override;
        public
-         procedure do_syscall;override;
+         procedure do_syscall(ctx:tpassgeneratecodecontext);override;
        end;
 
 implementation
@@ -45,7 +45,7 @@ implementation
     cgbase,cgobj,cgutils,cpuinfo,cpubase,cutils,
     ncgutil,tgobj,nld,
     systemstypes,systems,
-    compiler,nodehelper;
+    pass_2_context,compiler,nodehelper;
 
   procedure tarmcallnode.gen_syscall_para(para: tcallparanode);
     begin
@@ -53,7 +53,7 @@ implementation
       para.left:=compiler.cloadnode(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
     end;
 
-  procedure tarmcallnode.do_syscall;
+  procedure tarmcallnode.do_syscall(ctx:tpassgeneratecodecontext);
     var
       tmpref: treference;
     begin
@@ -64,12 +64,12 @@ implementation
                 begin
                   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
-                  get_syscall_call_ref(tmpref,NR_R12);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  get_syscall_call_ref(tmpref,NR_R12,ctx);
 
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                  cg.a_call_reg(current_asmdata.CurrAsmList,NR_R12);
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
+                  ctx.cg.a_call_reg(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
                   exit;
                 end;
               internalerror(2016110601);
@@ -79,7 +79,7 @@ implementation
       end;
     end;
 
-  procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
+  procedure tarmcallnode.set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);
     begin
       if (realresdef.typ=floatdef) and
          (compiler.target.info.abi<>abi_eabihf) and

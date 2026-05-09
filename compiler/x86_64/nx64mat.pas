@@ -79,11 +79,11 @@ implementation
           (left.location.size<>opsize) then
           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
         location_reset(location,LOC_REGISTER,opsize);
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
             tordconstnode(right).value.uvalue and mask,left.location.register,location.register)
         else
           begin
@@ -96,7 +96,7 @@ implementation
               (right.location.size<>opsize) then
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
 
-            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
+            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
           end;
       end;
 

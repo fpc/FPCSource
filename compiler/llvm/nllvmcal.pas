@@ -39,8 +39,8 @@ interface
       tllvmcallnode = class(tcgcallnode)
        protected
         function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; override;
-        function can_call_ref(var ref: treference): boolean; override;
-        procedure pushparas; override;
+        function can_call_ref(var ref: treference; ctx:tpassgeneratecodecontext): boolean; override;
+        procedure pushparas(ctx:tpassgeneratecodecontext); override;
         procedure pass_generate_code(ctx:tpassgeneratecodecontext); override;
       end;
 
@@ -86,13 +86,13 @@ implementation
           result:=inherited;
       end;
 
-    function tllvmcallnode.can_call_ref(var ref: treference): boolean;
+    function tllvmcallnode.can_call_ref(var ref: treference; ctx:tpassgeneratecodecontext): boolean;
       begin
         result:=false;
       end;
 
 
-    procedure tllvmcallnode.pushparas;
+    procedure tllvmcallnode.pushparas(ctx:tpassgeneratecodecontext);
       var
         n: tcgcallparanode;
         paraindex: longint;

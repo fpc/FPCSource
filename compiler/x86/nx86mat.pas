@@ -109,7 +109,7 @@ interface
         op:=A_NONE;
         secondpass(left,ctx);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
-        hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+        hreg:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
         emit_reg_reg(A_PXOR,S_NO,hreg,hreg);
         case left.location.loc of
           LOC_MMXREGISTER:
@@ -118,13 +118,13 @@ interface
             end;
           LOC_CMMXREGISTER:
             begin
-               location.register:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+               location.register:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
                emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
-               location.register:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+               location.register:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
                emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
             end;
           else
@@ -179,9 +179,9 @@ interface
                   ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
-                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-                cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,location.register,location.register,nil);
-                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,left.location,location.register,mms_movescalar);
+                location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                ctx.cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,location.register,location.register,nil);
+                ctx.cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,left.location,location.register,mms_movescalar);
               end
             else
               begin
@@ -208,15 +208,15 @@ interface
                   begin
                     if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
                       ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-                    location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-                    cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
+                    location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                    ctx.cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
                   end
                 else
                   begin
                     if not(left.location.loc=LOC_MMREGISTER) then
                       ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                     location.register:=left.location.register;
-                    cg.a_opmm_ref_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,location.register,mms_movescalar);
+                    ctx.cg.a_opmm_ref_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,location.register,mms_movescalar);
                   end;
               end;
           end
@@ -228,7 +228,7 @@ interface
               LOC_CREFERENCE:
                 begin
                   location.register:=NR_ST;
-                  cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
+                  ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
                      left.location.size,location.size,
                      left.location.reference,location.register);
                   emit_none(A_FCHS,S_NO);
@@ -237,7 +237,7 @@ interface
               LOC_CFPUREGISTER:
                 begin
                    { "load st,st" is ignored by the code generator }
-                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,NR_ST);
+                   ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,NR_ST);
                    location.register:=NR_ST;
                    emit_none(A_FCHS,S_NO);
                 end;
@@ -277,41 +277,41 @@ interface
 {$if defined(cpu32bitalu)}
                  if is_64bit(resultdef) then
                    begin
-                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
-                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                     hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                     tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
                      inc(left.location.reference.offset,4);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
                    end
                  else
 {$elseif defined(cpu16bitalu)}
                  if is_64bit(resultdef) then
                    begin
-                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
-                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                     hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
+                     tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
-                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
-                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                    end
                  else if is_32bit(resultdef) then
                    begin
-                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
-                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                     hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
+                     tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                    end
                  else
 {$endif}
                    begin
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_const_ref(A_CMP, TCGSize2Opsize[opsize], 0, left.location.reference);
                    end;
                  location_reset(location,LOC_FLAGS,OS_NO);
@@ -329,7 +329,7 @@ interface
                  if is_64bit(resultdef) then
                    begin
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo);
                    end
                  else
@@ -337,22 +337,22 @@ interface
                  if is_64bit(resultdef) then
                    begin
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
-                     emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     emit_reg_reg(A_OR,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
+                     emit_reg_reg(A_OR,S_W,ctx.cg.GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
                      emit_reg_reg(A_OR,S_W,left.location.register64.reghi,left.location.register64.reglo);
                    end
                  else if is_32bit(resultdef) then
                    begin
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     emit_reg_reg(A_OR,S_L,cg.GetNextReg(left.location.register),left.location.register);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     emit_reg_reg(A_OR,S_L,ctx.cg.GetNextReg(left.location.register),left.location.register);
                    end
                  else
 {$endif}
                    begin
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                    end;
                  location_reset(location,LOC_FLAGS,OS_NO);
@@ -373,7 +373,7 @@ interface
     begin
       secondpass(left,ctx);
       location_reset(location,LOC_MMXREGISTER,OS_NO);
-      r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
       emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
       { load operand }
       case left.location.loc of
@@ -381,20 +381,20 @@ interface
           location_copy(location,left.location);
         LOC_CMMXREGISTER:
           begin
-            location.register:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+            location.register:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
             emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
           end;
         LOC_REFERENCE,
         LOC_CREFERENCE:
           begin
-            location.register:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+            location.register:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
             emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
           end;
         else
           internalerror(2019050906);
       end;
       { load mask }
-      hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+      hreg:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
       emit_reg_reg(A_MOVD,S_NO,r,hreg);
       { lower 32 bit }
       emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
@@ -504,13 +504,13 @@ interface
 
                 Inc(m);
 
-                cg.getcpuregister(current_asmdata.CurrAsmList, exp_regd);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList, exp_regd);
                 emit_const_reg(A_MOV, exp_opsize, aint(m), exp_regd);
-                hreg2 := cg.getintregister(current_asmdata.CurrAsmList, cgsize);
+                hreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, cgsize);
                 hreg4 := hreg2;
                 setsubreg(hreg4, SubSize);
 
-                cg.ungetcpuregister(current_asmdata.CurrAsmList, exp_regd);
+                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList, exp_regd);
                 emit_reg_reg_reg(A_MULX, exp_opsize, hreg3, hreg4, hreg4);
               end
             else
@@ -521,20 +521,20 @@ interface
                 if (s = 0) and m_add then
                   InternalError(2021090204);
 
-                cg.getcpuregister(current_asmdata.CurrAsmList, regd);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList, regd);
                 emit_const_reg(A_MOV, opsize, aint(m), regd);
-                hreg2 := cg.getintregister(current_asmdata.CurrAsmList, cgsize);
-                cg.ungetcpuregister(current_asmdata.CurrAsmList, regd);
+                hreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, cgsize);
+                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList, regd);
                 emit_reg_reg_reg(A_MULX, opsize, hreg1, hreg2, hreg2);
 
                 if m_add then
                   begin
                     { addition can overflow, shift first bit considering carry,
                       then shift remaining bits in regular way. }
-                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                    ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     emit_reg_reg(A_ADD, opsize, hreg1, hreg2);
                     emit_const_reg(A_RCR, opsize, 1, hreg2);
-                    cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                    ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     dec(s);
                   end;
                 if s<>0 then
@@ -549,7 +549,7 @@ interface
 {$ifdef x86_64}
                 if (cgsize in [OS_64,OS_S64]) and (d > $7FFFFFFF) then { Cannot use 64-bit constants in IMUL }
                   begin
-                    hreg4 := cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg4 := ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_const_reg(A_MOV, opsize, aint(d), hreg4);
                     emit_reg_reg(A_IMUL, opsize, hreg4, hreg2);
                   end
@@ -652,14 +652,14 @@ interface
 
                 Inc(m);
 
-                cg.getcpuregister(current_asmdata.CurrAsmList,exp_rega);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,exp_rega);
                 emit_const_reg(A_MOV,exp_opsize,aint(m),exp_rega);
-                cg.getcpuregister(current_asmdata.CurrAsmList,exp_regd);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,exp_regd);
                 emit_reg(A_MUL,exp_opsize,hreg3);
-                cg.ungetcpuregister(current_asmdata.CurrAsmList,exp_rega);
+                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,exp_rega);
                 if DoMod then
                   begin
-                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
                   end;
               end
@@ -671,14 +671,14 @@ interface
                 if (s = 0) and m_add then
                   InternalError(2021090202);
 
-                cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,rega);
                 emit_const_reg(A_MOV,opsize,aint(m),rega);
-                cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,regd);
                 emit_reg(A_MUL,opsize,hreg1);
-                cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
                 if DoMod then
                   begin
-                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
                   end;
 
@@ -686,10 +686,10 @@ interface
                   begin
                     { addition can overflow, shift first bit considering carry,
                       then shift remaining bits in regular way. }
-                    cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                    ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                     emit_reg_reg(A_ADD,opsize,hreg1,regd);
                     emit_const_reg(A_RCR,opsize,1,regd);
-                    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                    ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                     dec(s);
                   end;
                 if s<>0 then
@@ -704,7 +704,7 @@ interface
 {$ifdef x86_64}
                 if (cgsize in [OS_64,OS_S64]) and (d > $7FFFFFFF) then { Cannot use 64-bit constants in IMUL }
                   begin
-                    hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg3:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_const_reg(A_MOV,opsize,aint(d),hreg3);
                     emit_reg_reg(A_IMUL,opsize,hreg3,regd);
                   end
@@ -715,11 +715,11 @@ interface
                 emit_reg_reg(A_SUB,opsize,regd,hreg2);
               end;
 
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
             if not DoMod then
               begin
-                hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,hreg2);
+                hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,hreg2);
               end;
 
             location.register:=hreg2;
@@ -759,31 +759,31 @@ interface
                     { use a sequence without jumps, saw this in
                       comp.compilers (JM) }
                     { no jumps, but more operations }
-                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
                     if power=1 then
                       begin
                         {If the left value is negative, hreg2=(1 shl power)-1=1, otherwise 0.}
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-1,hreg2);
+                        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-1,hreg2);
                       end
                     else
                       begin
                         {If the left value is negative, hreg2=$ffffffff, otherwise 0.}
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg2);
+                        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg2);
                         {If negative, hreg2=(1 shl power)-1, otherwise 0.}
                         { (don't use emit_const_reg, because if value>high(longint)
                            then it must first be loaded into a register) }
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,(aint(1) shl power)-1,hreg2);
+                        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,(aint(1) shl power)-1,hreg2);
                       end;
                     { add to the left value }
                     emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
                     { do the shift }
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,power,hreg1);
+                    ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,power,hreg1);
                     if invertsign then
                       emit_reg(A_NEG,opsize,hreg1);
                   end
                 else
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,power,hreg1);
+                  ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,power,hreg1);
                 location.register:=hreg1;
               end
             else
@@ -792,12 +792,12 @@ interface
                   begin
                     e:=tordconstnode(right).value.svalue;
                     calc_divconst_magic_signed(resultdef.size*8,e,sm,s);
-                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,rega);
                     emit_const_reg(A_MOV,opsize,sm,rega);
-                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,regd);
                     emit_reg(A_IMUL,opsize,hreg1);
                     { only the high half of result is used }
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
                     { add or subtract dividend }
                     if (e>0) and (sm<0) then
                       emit_reg_reg(A_ADD,opsize,hreg1,regd)
@@ -812,16 +812,16 @@ interface
                     { if e>=0, hreg1 still contains dividend }
                     emit_const_reg(A_SHR,opsize,left.resultdef.size*8-1,hreg1);
                     emit_reg_reg(A_ADD,opsize,hreg1,regd);
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                    location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
                   end
                 else
                   begin
                     d:=tordconstnode(right).value.uvalue;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
-                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                         { Ensure that the whole register is 0, since SETcc only sets the lowest byte }
 
                         { If the operands are 64 bits, this XOR routine will be shrunk by the
@@ -830,14 +830,14 @@ interface
 
                         if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
                           begin
-                            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                            hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                             emit_const_reg(A_MOV,opsize,aint(d),hreg2);
-                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
                           end
                         else
                           begin
-                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             emit_const_reg(A_CMP,opsize,aint(d),hreg1);
                           end;
                         { NOTE: SBB and SETAE are both 3 bytes long without the REX prefix,
@@ -847,11 +847,11 @@ interface
 
                         { Emit a SETcc instruction that depends on the carry bit being zero,
                           that is, the numerator is greater than or equal to the denominator. }
-                        tempreg:=cg.makeregsize(current_asmdata.CurrAsmList,location.register,OS_8);
+                        tempreg:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,location.register,OS_8);
                         instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
                         instr.condition:=C_AE;
                         current_asmdata.CurrAsmList.concat(instr);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
                       DoUnsignedReciprocalDivision;
@@ -876,18 +876,18 @@ interface
                     if not (CPUX86_HAS_CMOV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       goto DefaultDiv;
 
-                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                    hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg3:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
 
                     m := aword(-aint(d)); { Two's complement of d }
 
                     if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
                       begin
-                        hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                         emit_const_reg(A_MOV,opsize,aint(d),hreg2);
                         emit_const_reg(A_MOV,opsize,aint(m),hreg3);
                         emit_reg_reg(A_XOR,opsize,location.register,location.register);
-                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
                       end
                     else
@@ -895,7 +895,7 @@ interface
                         emit_const_reg(A_MOV,opsize,aint(m),hreg3);
                         emit_reg_reg(A_XOR,opsize,location.register,location.register);
 
-                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_const_reg(A_CMP,opsize,aint(d),hreg1);
                       end;
 
@@ -904,7 +904,7 @@ interface
                     instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
                     instr.condition := C_AE;
                     current_asmdata.CurrAsmList.concat(instr);
-                    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                    ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                     emit_reg_reg(A_ADD,opsize,hreg1,location.register);
                   end
@@ -916,16 +916,16 @@ interface
           end
         else if (nodetype=modn) and (right.nodetype=ordconstn) and (is_signed(left.resultdef)) and isabspowerof2(tordconstnode(right).value,power) then
           begin
-            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
             if power=1 then
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg1,hreg2)
+              ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg1,hreg2)
             else
               begin
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg1,hreg2);
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg2,hreg2);
+                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg1,hreg2);
+                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg2,hreg2);
               end;
             emit_reg_reg(A_ADD,opsize,hreg1,hreg2);
-            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,not((aint(1) shl power)-1),hreg2);
+            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,not((aint(1) shl power)-1),hreg2);
             emit_reg_reg(A_SUB,opsize,hreg2,hreg1);
             location.register:=hreg1;
           end
@@ -933,9 +933,9 @@ interface
           begin
 DefaultDiv:
             {Bring denominator to a register.}
-            cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,rega);
             emit_reg_reg(A_MOV,opsize,hreg1,rega);
-            cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,regd);
             {Sign extension depends on the left type.}
             if is_signed(left.resultdef) then
               case left.resultdef.size of
@@ -963,19 +963,19 @@ DefaultDiv:
               emit_reg(op,opsize,right.location.register)
             else
               begin
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
+                hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
                 ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,hreg1);
                 emit_reg(op,opsize,hreg1);
               end;
 
             { Copy the result into a new register. Release R/EAX & R/EDX.}
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
             if nodetype=divn then
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,rega,location.register)
+              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,rega,location.register)
             else
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
+              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
           end;
       end;
 
@@ -1032,7 +1032,7 @@ DefaultDiv:
            { register variable ? }
            if (left.location.loc=LOC_CMMXREGISTER) then
             begin
-              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+              hregister:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
               emit_reg_reg(A_MOVQ,S_NO,left.location.register,hregister);
             end
            else
@@ -1040,8 +1040,8 @@ DefaultDiv:
               if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                internalerror(2018022505);
 
-              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
-              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+              hregister:=tcgx86(ctx.cg).getmmxregister(current_asmdata.CurrAsmList);
+              tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
               emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
             end;
 
@@ -1060,7 +1060,7 @@ DefaultDiv:
             emit_const_reg(op,S_NO,right.location.value,left.location.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+              tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
               emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
             end;
           else

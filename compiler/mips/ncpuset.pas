@@ -27,6 +27,7 @@ interface
 
 uses
   globtype,
+  node,
   nset,
   ncgset,
   compilerbase;
@@ -36,7 +37,7 @@ type
   protected
     procedure optimizevalues(var max_linear_list: int64; var max_dist: qword); override;
     function has_jumptable: boolean; override;
-    procedure genjumptable(hp: pcaselabel; min_, max_: int64); override;
+    procedure genjumptable(hp: pcaselabel; min_, max_: int64;ctx:tpassgeneratecodecontext); override;
   end;
 
 
@@ -50,6 +51,7 @@ uses
   aasmbase, aasmtai, aasmcpu, aasmdata,
   cgbase, cgutils, cgobj,
   defutil,procinfo,
+  pass_2_context,
   compiler,
   nodehelper;
 
@@ -66,7 +68,7 @@ begin
 end;
 
 
-procedure tcpucasenode.genjumptable(hp: pcaselabel; min_, max_: int64);
+procedure tcpucasenode.genjumptable(hp: pcaselabel; min_, max_: int64;ctx:tpassgeneratecodecontext);
 var
   table: tasmlabel;
   last:  TConstExprInt;
@@ -107,24 +109,24 @@ begin
   if not (jumptable_no_range) then
     begin
       { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-      cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+      ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
       { case expr greater than max_ => goto elselabel }
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+      ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
       min_:=0;
     end;
   current_asmdata.getjumplabel(table);
-  indexreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
+  indexreg := ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+  ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
   { create reference }
   reference_reset_symbol(href, table, 0, sizeof(aint), []);
   href.offset := (-aint(min_)) * 4;
   href.base:=indexreg;
-  jmpreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-  cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
+  jmpreg := ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
 
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
-      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
+      ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
       labeltyp:=aitconst_gotoff_symbol;
     end
   else

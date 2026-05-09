@@ -128,7 +128,7 @@ procedure tMIPSELtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
 
   procedure loadsigned(restype: tfloattype);
   begin
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
+    location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
     if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
       { 32-bit values can be loaded directly }
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MTC1, left.location.register, location.register))
@@ -136,7 +136,7 @@ procedure tMIPSELtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
       begin
         { Load memory in fpu register }
         ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+        ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
         tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
       end;
 
@@ -168,27 +168,27 @@ begin
 
     { Always load into 64-bit FPU register }
     loadsigned(s64real);
-    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, left.location.register, l2);
+    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, left.location.register, l2);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }
       s32real,
       s64real:
       begin
-        hregister := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
+        hregister := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(4294967296.0));
 
-        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
+        ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));
-        cg.a_label(current_asmdata.CurrAsmList, l2);
+        ctx.cg.a_label(current_asmdata.CurrAsmList, l2);
 
         { cut off if we should convert to single }
         if tfloatdef(resultdef).floattype = s32real then
         begin
           hregister := location.Register;
-          location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
+          location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_S_D, location.Register, hregister));
         end;
       end;
@@ -238,71 +238,71 @@ begin
     begin
       if left.location.loc in [LOC_CREFERENCE, LOC_REFERENCE] then
       begin
-        hreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+        hreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, opsize);
 {$ifndef cpu64bitalu}
         if left.location.size in [OS_64,OS_S64] then
           begin
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg2);
-            hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg2);
+            hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             href:=left.location.reference;
             inc(href.offset,4);
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hreg1);
-            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg2);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hreg1);
+            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg2);
           end
           else
 {$endif not cpu64bitalu}
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
       end
       else
         begin
-          hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 {$ifndef cpu64bitalu}
           if left.location.size in [OS_64,OS_S64] then
             begin
-              hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg2);
+              hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg2);
              end
            else
 {$endif not cpu64bitalu}
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
+             ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
          end;
-       hreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+       hreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, opsize);
        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg1, NR_R0, hreg2));
     end;
     LOC_JUMP:
     begin
-      hreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+      hreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
       current_asmdata.getjumplabel(hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
-      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
-      cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
-      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
-      cg.a_label(current_asmdata.CurrAsmList, hlabel);
+      ctx.cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
+      ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
+      ctx.cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
+      ctx.cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
+      ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
+      ctx.cg.a_label(current_asmdata.CurrAsmList, hlabel);
     end;
     LOC_FLAGS:
     begin
-      hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-      cg.g_flags2reg(current_asmdata.CurrAsmList,OS_INT,left.location.resflags,hreg1);
+      hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      ctx.cg.g_flags2reg(current_asmdata.CurrAsmList,OS_INT,left.location.resflags,hreg1);
     end
     else
       internalerror(10062);
   end;
   { Now hreg1 is either 0 or 1. For C booleans it must be 0 or -1. }
   if is_cbool(resultdef) then
-    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,hreg1,hreg1);
+    ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,hreg1,hreg1);
 
 {$ifndef cpu64bitalu}
   if (location.size in [OS_64,OS_S64]) then
     begin
       location.register64.reglo:=hreg1;
-      location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+      location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
       if (is_cbool(resultdef)) then
        { reglo is either 0 or -1 -> reghi has to become the same }
-          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+          ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
        else
        { unsigned }
-         cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+         ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
        end
        else
 {$endif not cpu64bitalu}

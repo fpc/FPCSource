@@ -105,12 +105,12 @@ implementation
            if tordconstnode(right).value=0 then
              internalerror(2020021601)
            else if tordconstnode(right).value=1 then
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, numerator, resultreg)
+             ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, numerator, resultreg)
            else if (tordconstnode(right).value = int64(-1)) then
              begin
                // note: only in the signed case possible..., may overflow
                if cs_check_overflow in compiler.globals.current_settings.localswitches then
-                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                 ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_NEG,
                  resultreg,numerator),toppostfix(ord(cs_check_overflow in compiler.globals.current_settings.localswitches)*ord(PF_S))));
@@ -119,26 +119,26 @@ implementation
              begin
                if (is_signed(right.resultdef)) then
                  begin
-                    helper2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                    helper2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
                     if power = 1 then
                       helper1:=numerator
                     else
                       begin
-                        helper1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,resultdef.size*8-1,numerator,helper1);
+                        helper1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                        ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,resultdef.size*8-1,numerator,helper1);
                       end;
                     shifterop_reset(so);
                     so.shiftmode:=SM_LSR;
                     so.shiftimm:=resultdef.size*8-power;
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,helper2,numerator,helper1,so));
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,def_cgsize(resultdef),power,helper2,resultreg);
+                    ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,def_cgsize(resultdef),power,helper2,resultreg);
 
                     if (tordconstnode(right).value < 0) then
                       { Invert the result }
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG,resultreg,resultreg));
                   end
                 else
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,opsize,power,numerator,resultreg)
+                  ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,opsize,power,numerator,resultreg)
              end
            else
              { Generic division }
@@ -151,8 +151,8 @@ implementation
                { If we didn't acquire the original divisor earlier, grab it now }
                if divider = NR_NO then
                  begin
-                   divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                   cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
+                   divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                   ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
                  end;
 
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,divider));
@@ -180,7 +180,7 @@ implementation
                  (-1) }
                location_reset(overflowloc,LOC_FLAGS,OS_NO);
                overflowloc.resflags:=F_EQ;
-               cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,location,resultdef,overflowloc);
+               ctx.cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,location,resultdef,overflowloc);
              end;
          end;
 
@@ -196,7 +196,7 @@ implementation
 
         { set result location }
         location_reset(location,LOC_REGISTER,opsize);
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
         resultreg:=location.register;
 
         { put numerator in register }
@@ -225,8 +225,8 @@ implementation
                       (if cs_opt_size is not set, then the divisor is a power of 2) }
                     else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                       begin
-                        divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
+                        divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
                       end
                   end;
 
@@ -257,8 +257,8 @@ implementation
                   begin
                     if (nodetype=modn) then { Signed mod doesn't work properly }
                       begin
-                        divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
+                        divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
                         genOrdConstNodeDiv;
                       end
                     else
@@ -267,7 +267,7 @@ implementation
                         dividend := tordconstnode(right).value.svalue;
 
                         calc_divconst_magic_signed(resultdef.size * 8, dividend, reciprocal_signed, shift);
-                        cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, reciprocal_signed, resultreg);
+                        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, reciprocal_signed, resultreg);
 
                         { SMULH is only available for the full 64-bit registers }
                         if opsize in [OS_64, OS_S64] then
@@ -286,8 +286,8 @@ implementation
                         { Store divisor for later (and executed at the same time as the multiplication) }
                         if nodetype=modn then
                           begin
-                            divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                            cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,dividend,divider);
+                            divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                            ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,dividend,divider);
                           end;
 
                         { add or subtract dividend }
@@ -340,7 +340,7 @@ implementation
                   begin
                     calc_divconst_magic_unsigned(resultdef.size * 8, tordconstnode(right).value, reciprocal, magic_add, shift);
                     { Add explicit typecast to tcgint type, to avoid range or overflow check }
-                    cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, tcgint(reciprocal), resultreg);
+                    ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, tcgint(reciprocal), resultreg);
                     { UMULH is only available for the full 64-bit registers }
                     if opsize in [OS_64, OS_S64] then
                       begin
@@ -358,8 +358,8 @@ implementation
                     { Store divisor for later (and executed at the same time as the multiplication) }
                     if (nodetype=modn) then
                       begin
-                        divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
+                        divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
                       end;
 
                     if magic_add then
@@ -379,8 +379,8 @@ implementation
 
                         high_bit := QWord(1) shl ((resultdef.size * 8) - shift);
 
-                        tmpreg := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-                        cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, high_bit, tmpreg);
+                        tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, opsize);
+                        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, high_bit, tmpreg);
 
                         { Generate ADDS instruction }
                         hp := taicpu.op_reg_reg_reg(A_ADD,resultreg,resultreg,numerator);
@@ -431,8 +431,8 @@ implementation
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,divider,0));
                 current_asmdata.getjumplabel(hl);
                 current_asmdata.CurrAsmList.concat(taicpu.op_cond_sym(A_B,C_NE,hl));
-                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIVBYZERO',false);
-                cg.a_label(current_asmdata.CurrAsmList,hl);
+                ctx.cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIVBYZERO',false);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
               end;
           end;
 
@@ -445,8 +445,8 @@ implementation
             { If we didn't acquire the original divisor earlier, grab it now }
             if divider = NR_NO then
               begin
-                divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
+                divider:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);
               end;
 
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_MSUB,resultreg,
@@ -506,9 +506,9 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,location.register,left.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 begin

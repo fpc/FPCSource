@@ -37,7 +37,7 @@ interface
       ti8086loadnode = class(tx86loadnode)
         protected
          procedure generate_nested_access(vs: tsym;ctx:tpassgeneratecodecontext); override;
-         procedure generate_absaddr_access(vs: tabsolutevarsym); override;
+         procedure generate_absaddr_access(vs: tabsolutevarsym;ctx:tpassgeneratecodecontext); override;
          procedure generate_threadvar_access(gvs: tstaticvarsym;ctx:tpassgeneratecodecontext); override;
         public
          procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
@@ -86,12 +86,12 @@ implementation
           location.reference.segment:=NR_SS;
       end;
 
-    procedure ti8086loadnode.generate_absaddr_access(vs: tabsolutevarsym);
+    procedure ti8086loadnode.generate_absaddr_access(vs: tabsolutevarsym;ctx:tpassgeneratecodecontext);
       begin
         if tcpuabsolutevarsym(symtableentry).absseg then
           begin
-            location.reference.segment:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tcpuabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
+            location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+            ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tcpuabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
           end;
         inherited;
       end;
@@ -140,10 +140,10 @@ implementation
             paraloc1.init(compiler.target);
             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-            segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+            segreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
             reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             segref.refaddr:=addr_seg;
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             href.segment:=segreg;
             ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
@@ -153,18 +153,18 @@ implementation
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[]);
-            cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
+            ctx.cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
-            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
-            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+            ctx.cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+            ctx.cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
+            ctx.cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
             hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
-            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-            cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
-            cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+            ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
             { no relocation needed, load the address of the variable only, the
               layout of a threadvar is (4 bytes pointer):
                 0 - Threadvar index
@@ -174,7 +174,7 @@ implementation
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
             ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
-            cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
             ctx.hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
           end
         else
@@ -230,11 +230,11 @@ implementation
                       else
                         refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
 
-                      segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                      segreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
 
                       reference_reset_symbol(segref,refsym,0,0,[]);
                       segref.refaddr:=addr_seg;
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
 
                       reference_reset_symbol(location.reference,refsym,0,location.reference.alignment,[]);
                       location.reference.segment:=segreg;

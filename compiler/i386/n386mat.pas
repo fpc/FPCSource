@@ -90,16 +90,16 @@ implementation
               exit;
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg1:=left.location.register;
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
             current_asmdata.getjumplabel(hl);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NS,hl);
-            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NS,hl);
+            ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if power=1 then
               emit_reg(A_INC,S_L,hreg1)
             else
               emit_const_reg(A_ADD,S_L,tordconstnode(right).value.svalue-1,hreg1);
-            cg.a_label(current_asmdata.CurrAsmList,hl);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
             emit_const_reg(A_SAR,S_L,power,hreg1);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=hreg1;
@@ -142,14 +142,14 @@ implementation
               begin
                 if nodetype=shln then
                   begin
-                    hreg64hi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    hreg64hi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
                     if ((v and 31) <> 0) then
                       emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
                   end
                 else
                   begin
-                    hreg64lo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    hreg64lo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
                     if ((v and 31) <> 0) then
                       emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
@@ -187,7 +187,7 @@ implementation
             hreg64lo:=left.location.register64.reglo;
 
             { load right operators in a register }
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
+            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
             ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u32inttype,right.location,NR_ECX);
 
             { left operator is already in a register }
@@ -198,17 +198,17 @@ implementation
             { so we've to do some tricks here                           }
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_const_reg(A_TEST,S_B,32,NR_CL);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
-            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
+            ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if nodetype=shln then
               begin
                 emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
                 emit_reg_reg(A_MOV,S_L,hreg64lo,hreg64hi);
                 emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-                cg.a_label(current_asmdata.CurrAsmList,l2);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,l2);
                 emit_reg_reg_reg(A_SHLD,S_L,NR_CL,hreg64lo,hreg64hi);
                 emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
               end
@@ -217,14 +217,14 @@ implementation
                 emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
                 emit_reg_reg(A_MOV,S_L,hreg64hi,hreg64lo);
                 emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-                cg.a_label(current_asmdata.CurrAsmList,l2);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,l2);
                 emit_reg_reg_reg(A_SHRD,S_L,NR_CL,hreg64hi,hreg64lo);
                 emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
               end;
-            cg.a_label(current_asmdata.CurrAsmList,l3);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,l3);
 
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_ECX);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_ECX);
             location.register64.reglo:=hreg64lo;
             location.register64.reghi:=hreg64hi;
           end;

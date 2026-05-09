@@ -178,42 +178,42 @@ implementation
             begin
               leftreg := left.location.register;
               if signed then
-                valuereg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT)
+                valuereg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT)
               else
                 valuereg := leftreg;
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              leftreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              leftreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               valuereg := leftreg;
               if signed then
                 size := OS_S32
               else
                 size := OS_32;
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),
+              ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),
                 size,left.location.reference,leftreg);
             end
           else
             internalerror(200110012);
          end;
-         tempreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+         tempreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
-         cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,tempreg,ref);
+         ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,tempreg,ref);
          if signed then
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
              leftreg,$8000));
          inc(ref.offset,4);
-         cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,valuereg,ref);
+         ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
 
-         tmpfpureg := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
+         tmpfpureg := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
            tmpfpureg);
          tempconst.free;
 
-         location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,ref,location.register);
+         location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,ref,location.register);
 
          tg.ungetiftemp(current_asmdata.CurrAsmList,ref);
 

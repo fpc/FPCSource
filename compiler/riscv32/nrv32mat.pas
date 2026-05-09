@@ -33,8 +33,8 @@ interface
 
     type
       trv32moddivnode = class(tcgmoddivnode)
-        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
-        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
+        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister; ctx:tpassgeneratecodecontext); override;
+        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister; ctx:tpassgeneratecodecontext); override;
         function first_moddivint: tnode; override;
       end;
 
@@ -96,7 +96,7 @@ implementation
           end;
       end;
 
-    procedure trv32moddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister);
+    procedure trv32moddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister; ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
       begin
@@ -108,7 +108,7 @@ implementation
         current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
-    procedure trv32moddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister);
+    procedure trv32moddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister; ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
       begin
@@ -153,8 +153,8 @@ implementation
 
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
         { load left operator in a register }
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
@@ -184,7 +184,7 @@ implementation
             else if (v < 32) then
               if nodetype=shln then
                 begin
-                  tmpreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  tmpreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   emit_instr(taicpu.op_reg_reg_const(A_SRLI,tmpreg1,lreg.reglo,32-v.uvalue));
                   emit_instr(taicpu.op_reg_reg_const(A_SLLI,resreg.reglo,lreg.reglo,v.uvalue));
                   emit_instr(taicpu.op_reg_reg_const(A_SLLI,resreg.reghi,lreg.reghi,v.uvalue));
@@ -192,7 +192,7 @@ implementation
                 end
               else
                 begin
-                  tmpreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  tmpreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   emit_instr(taicpu.op_reg_reg_const(A_SLLI,tmpreg1,lreg.reghi,32-v.uvalue));
                   emit_instr(taicpu.op_reg_reg_const(A_SRLI,resreg.reglo,lreg.reglo,v.uvalue));
                   emit_instr(taicpu.op_reg_reg_const(A_SRLI,resreg.reghi,lreg.reghi,v.uvalue));
@@ -210,8 +210,8 @@ implementation
 
             current_asmdata.getjumplabel(less32);
             current_asmdata.getjumplabel(finished);
-            tmpreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            tmpreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            tmpreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
             if nodetype = shln then
               begin
@@ -219,8 +219,8 @@ implementation
                 emit_instr(taicpu.op_reg_sym(A_BLTZ,tmpreg1,less32));
                 emit_instr(taicpu.op_reg_const(A_LI,resreg.reglo,0));
                 emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reghi,lreg.reglo,tmpreg1));
-                cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
-                cg.a_label(current_asmdata.CurrAsmList,less32);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,less32);
                 { simple case were we know where the bit ends up, useful when bitmasks are created }
                 if (left.nodetype=ordconstn) and (tordconstnode(left).value=1) then
                   begin
@@ -244,8 +244,8 @@ implementation
                 emit_instr(taicpu.op_reg_sym(A_BLTZ,tmpreg1,less32));
                 emit_instr(taicpu.op_reg_const(A_LI,resreg.reghi,0));
                 emit_instr(taicpu.op_reg_reg_reg(A_SRL,resreg.reglo,lreg.reghi,tmpreg1));
-                cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
-                cg.a_label(current_asmdata.CurrAsmList,less32);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
+                ctx.cg.a_label(current_asmdata.CurrAsmList,less32);
                 emit_instr(taicpu.op_reg_const(A_LI,tmpreg1,31));
                 emit_instr(taicpu.op_reg_reg_const(A_SLLI,tmpreg2,lreg.reghi,1));
                 emit_instr(taicpu.op_reg_reg_reg(A_SUB,tmpreg1,tmpreg1,right.location.register64.reglo));
@@ -254,7 +254,7 @@ implementation
                 emit_instr(taicpu.op_reg_reg_reg(A_SRL,resreg.reghi,lreg.reghi,right.location.register64.reglo));
                 emit_instr(taicpu.op_reg_reg_reg(A_OR,resreg.reglo,resreg.reglo,tmpreg2));
               end;
-            cg.a_label(current_asmdata.CurrAsmList,finished);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,finished);
           end;
       end;
 

@@ -188,7 +188,7 @@ interface
               ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
               case nodetype of
                 addn :
@@ -218,7 +218,7 @@ interface
               ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
               singleprec:=tfloatdef(left.resultdef).floattype=s32real;
               if singleprec then
@@ -240,7 +240,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
                  location.register,left.location.register,right.location.register),pf));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
@@ -250,7 +250,7 @@ interface
               ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
               case nodetype of
                 addn :
@@ -266,7 +266,7 @@ interface
               end;
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op, location.register,left.location.register,right.location.register), PF_F32));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
           else
             internalerror(200308251);
@@ -296,7 +296,7 @@ interface
               ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
                    left.location.register,right.location.register),
@@ -323,8 +323,8 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
                 left.location.register,right.location.register), pf));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VMRS,NR_APSR_nzcv,NR_FPSCR));
               location.resflags:=GetFpuResFlags;
             end
@@ -340,8 +340,8 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
                 left.location.register,right.location.register),PF_F32));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_VMRS, NR_APSR_nzcv, NR_FPSCR));
             end
           else
@@ -377,7 +377,7 @@ interface
           equaln,
           unequaln:
             begin
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if right.location.loc = LOC_CONSTANT then
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
               else
@@ -390,17 +390,17 @@ interface
           lten,
           gten:
             begin
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
               if right.location.loc = LOC_CONSTANT then
                 begin
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,right.location.value,left.location.register,tmpreg);
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,right.location.value,left.location.register,tmpreg);
+                  ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,right.location.value));
                 end
               else
                 begin
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+                  ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
                 end;
               location.resflags:=F_EQ;
@@ -440,7 +440,7 @@ interface
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             { Optimize for the common case of int64 < 0 }
             if nodetype in [ltn, gtn] then
               begin
@@ -451,10 +451,10 @@ interface
             else
               begin
                 location.resflags:=getresflags(unsigned);
-                dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                dummyreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
                 if GenerateThumbCode then
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
+                  ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
                 else
                   current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
               end;
@@ -469,14 +469,14 @@ interface
               begin
                 location_reset(location,LOC_FLAGS,OS_NO);
                 location.resflags:=getresflags(unsigned);
-                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 if GenerateThumbCode or GenerateThumb2Code then
                   begin
                     current_asmdata.getjumplabel(l);
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
+                    ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-                    cg.a_label(current_asmdata.CurrAsmList,l);
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l);
                   end
                 else
                   current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
@@ -487,17 +487,17 @@ interface
                 current_asmdata.getjumplabel(truelabel);
                 current_asmdata.getjumplabel(falselabel);
                 location_reset_jump(location,truelabel,falselabel);
-                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 { the jump the sequence is a little bit hairy }
                 case nodetype of
                    ltn,gtn:
                      begin
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),location.truelabel);
+                        ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),location.truelabel);
                         { cheat a little bit for the negative test }
                         toggleflag(nf_swapped);
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),location.falselabel);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),location.falselabel);
+                        ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         toggleflag(nf_swapped);
                      end;
                    lten,gten:
@@ -507,26 +507,26 @@ interface
                           nodetype:=ltn
                         else
                           nodetype:=gtn;
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
+                        ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                         { cheat for the negative test }
                         if nodetype=ltn then
                           nodetype:=gtn
                         else
                           nodetype:=ltn;
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
+                        ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         nodetype:=oldnodetype;
                      end;
                    else
                      ;
                 end;
-                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
                 { the comparison of the low dword have to be
                    always unsigned!                            }
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
-                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+                ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               end;
           end;
       end;
@@ -549,10 +549,10 @@ interface
             rl:=right.location.register64;
             res:=location.register64;
 
-            tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             asmList.concat(taicpu.op_reg_reg_reg(A_MUL,tmpreg,ll.reglo,rl.reghi));
             asmList.concat(taicpu.op_reg_reg_reg_reg(A_UMULL,res.reglo,res.reghi,rl.reglo,ll.reglo));
-            tbasecgarm(cg).safe_mla(asmList,tmpreg,rl.reglo,ll.reghi,tmpreg);
+            tbasecgarm(ctx.cg).safe_mla(asmList,tmpreg,rl.reglo,ll.reghi,tmpreg);
             asmList.concat(taicpu.op_reg_reg_reg(A_ADD,res.reghi,tmpreg,res.reghi));
           end
         else
@@ -615,7 +615,7 @@ interface
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
-        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if right.location.loc = LOC_CONSTANT then
           begin
              if (not(GenerateThumbCode) and is_shifter_const(right.location.value,b)) or
@@ -623,8 +623,8 @@ interface
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin
-                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
+                 tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                 ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
                    right.location.value,tmpreg);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
                end;

@@ -80,7 +80,7 @@ interface
           function  blocklabel(id:longint):tasmlabel;
           procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);virtual;
           function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaselabel;min_,max_ : int64); virtual;
+          procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext); virtual;
           procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext); virtual;
           procedure genlinearcmplist(hp : pcaselabel;ctx:tpassgeneratecodecontext); virtual;
 
@@ -555,7 +555,7 @@ implementation
                    end;
 {$ifndef cpuhighleveltarget}
                  location.size := def_cgsize(resultdef);
-                 location.register := cg.makeregsize(current_asmdata.CurrAsmList, location.register, location.size);
+                 location.register := ctx.cg.makeregsize(current_asmdata.CurrAsmList, location.register, location.size);
 {$else not cpuhighleveltarget}
                  hr:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
                  ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,uopdef,resultdef,location.register,hr);
@@ -667,7 +667,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
+    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);
       begin
         internalerror(200209161);
       end;
@@ -769,13 +769,13 @@ implementation
                   last:=0;
                   first:=true;
                   scratch_reg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   genitem(hp);
                 end
               else
                 begin
                   { If only one label exists, we can greatly simplify the checks to a simple comparison }
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   if hp^._low=hp^._high then
                     ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                   else
@@ -785,7 +785,7 @@ implementation
                       ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                     end;
                 end;
-              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+              ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
            end;
       end;
@@ -814,58 +814,58 @@ implementation
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low.svalue))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_EQ, aint(lo(int64(t^._low.svalue))),hregister, blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low.svalue))),hregister2,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_EQ, aint(lo(int64(t^._low.svalue))),hregister, blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$elseif defined(cpu16bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(hi(int64(t^._low.svalue)))),cg.GetNextReg(hregister2),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(lo(hi(int64(t^._low.svalue)))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(lo(int64(t^._low.svalue)))),cg.GetNextReg(hregister),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_EQ, aint(lo(lo(int64(t^._low.svalue)))),hregister, blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(hi(int64(t^._low.svalue)))),ctx.cg.GetNextReg(hregister2),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(lo(hi(int64(t^._low.svalue)))),hregister2,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(lo(int64(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_EQ, aint(lo(lo(int64(t^._low.svalue)))),hregister, blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(int32(t^._low.svalue))),cg.GetNextReg(hregister),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_EQ, aint(lo(int32(t^._low.svalue))),hregister, blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_NE, aint(hi(int32(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_EQ, aint(lo(int32(t^._low.svalue))),hregister, blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$elseif defined(cpu8bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister2))),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister2)),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(hi(int64(t^._low.svalue))))),cg.GetNextReg(hregister2),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(lo(int64(t^._low.svalue))))),cg.GetNextReg(hregister),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(lo(lo(int64(t^._low.svalue))))),hregister,blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister2),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(lo(lo(int64(t^._low.svalue))))),hregister,blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(int32(t^._low.svalue)))),cg.GetNextReg(hregister),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(lo(int32(t^._low.svalue)))),hregister, blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(lo(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(lo(int32(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(lo(int32(t^._low.svalue)))),hregister, blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S16,OS_16] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(int16(t^._low.svalue))),cg.GetNextReg(hregister),l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(int16(t^._low.svalue))),hregister, blocklabel(t^.blockid));
-                     cg.a_label(current_asmdata.CurrAsmList,l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_NE, aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8, OC_EQ, aint(lo(int16(t^._low.svalue))),hregister, blocklabel(t^.blockid));
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$endif}
@@ -889,90 +889,90 @@ implementation
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
                           current_asmdata.getjumplabel(l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low.svalue))),
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low.svalue))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low.svalue))),
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low.svalue))),
                                hregister2, l1);
                           { the comparison of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_B, aint(lo(int64(t^._low.svalue))), hregister, elselabel);
-                          cg.a_label(current_asmdata.CurrAsmList,l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_B, aint(lo(int64(t^._low.svalue))), hregister, elselabel);
+                          ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else
 {$elseif defined(cpu16bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
                           current_asmdata.getjumplabel(l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._low.svalue)))),
-                               cg.GetNextReg(hregister2), elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._low.svalue)))),
-                               cg.GetNextReg(hregister2), l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._low.svalue)))),
+                               ctx.cg.GetNextReg(hregister2), elselabel);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._low.svalue)))),
+                               ctx.cg.GetNextReg(hregister2), l1);
                           { the comparison of the low words must be always unsigned! }
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(hi(int64(t^._low.svalue)))),
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(hi(int64(t^._low.svalue)))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(lo(hi(int64(t^._low.svalue)))),
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(lo(hi(int64(t^._low.svalue)))),
                                hregister2, l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(hi(lo(int64(t^._low.svalue)))),
-                               cg.GetNextReg(hregister), elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(hi(lo(int64(t^._low.svalue)))),
-                               cg.GetNextReg(hregister), l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(lo(int64(t^._low.svalue)))), hregister, elselabel);
-                          cg.a_label(current_asmdata.CurrAsmList,l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(hi(lo(int64(t^._low.svalue)))),
+                               ctx.cg.GetNextReg(hregister), elselabel);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(hi(lo(int64(t^._low.svalue)))),
+                               ctx.cg.GetNextReg(hregister), l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(lo(int64(t^._low.svalue)))), hregister, elselabel);
+                          ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else if def_cgsize(opsize) in [OS_32,OS_S32] then
                        begin
                           current_asmdata.getjumplabel(l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._low.svalue))),
-                               cg.GetNextReg(hregister), elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._low.svalue))),
-                               cg.GetNextReg(hregister), l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._low.svalue))),
+                               ctx.cg.GetNextReg(hregister), elselabel);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._low.svalue))),
+                               ctx.cg.GetNextReg(hregister), l1);
                           { the comparison of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(int32(t^._low.svalue))), hregister, elselabel);
-                          cg.a_label(current_asmdata.CurrAsmList,l1);
+                          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(int32(t^._low.svalue))), hregister, elselabel);
+                          ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else
 {$elseif defined(cpu8bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
                          current_asmdata.getjumplabel(l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister2))),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister2))),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
                          { the comparison of the low words must be always unsigned! }
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister2)),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(hi(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister2)),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(hi(int64(t^._low.svalue))))),cg.GetNextReg(hregister2),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(hi(int64(t^._low.svalue))))),cg.GetNextReg(hregister2),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister)),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(lo(int64(t^._low.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(lo(int64(t^._low.svalue))))),cg.GetNextReg(hregister),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(lo(int64(t^._low.svalue))))),cg.GetNextReg(hregister),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(lo(int64(t^._low.svalue))))),hregister,elselabel);
-                         cg.a_label(current_asmdata.CurrAsmList,l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister2),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister2),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(lo(hi(int64(t^._low.svalue))))),hregister2,l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(lo(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(lo(int64(t^._low.svalue))))),hregister,elselabel);
+                         ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else if def_cgsize(opsize) in [OS_32,OS_S32] then
                        begin
                          current_asmdata.getjumplabel(l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8,jmp_gt,aint(hi(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_8,jmp_gt,aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
                          { the comparison of the low words must be always unsigned! }
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(hregister)),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(int32(t^._low.svalue)))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(int32(t^._low.svalue)))),cg.GetNextReg(hregister),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(int32(t^._low.svalue)))),cg.GetNextReg(hregister),l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(int32(t^._low.svalue)))),hregister,elselabel);
-                         cg.a_label(current_asmdata.CurrAsmList,l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(int32(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(int32(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(int32(t^._low.svalue)))),hregister,elselabel);
+                         ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else if def_cgsize(opsize) in [OS_16,OS_S16] then
                        begin
                          current_asmdata.getjumplabel(l1);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._low.svalue))),cg.GetNextReg(hregister),elselabel);
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._low.svalue))),cg.GetNextReg(hregister),l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),elselabel);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
                          { the comparison of the low dword must be always unsigned! }
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(int16(t^._low.svalue))),hregister,elselabel);
-                         cg.a_label(current_asmdata.CurrAsmList,l1);
+                         ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(int16(t^._low.svalue))),hregister,elselabel);
+                         ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else
 {$endif}
@@ -987,84 +987,84 @@ implementation
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high.svalue))), hregister2,
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high.svalue))), hregister2,
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._high.svalue))), hregister2,
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._high.svalue))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_BE, aint(lo(int64(t^._high.svalue))), hregister, blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_BE, aint(lo(int64(t^._high.svalue))), hregister, blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$elseif defined(cpu16bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._high.svalue)))), cg.GetNextReg(hregister2),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister2),
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._high.svalue)))), cg.GetNextReg(hregister2),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister2),
                            l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(hi(int64(t^._high.svalue)))), hregister2,
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(hi(int64(t^._high.svalue)))), hregister2,
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(lo(hi(int64(t^._high.svalue)))), hregister2,
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(lo(hi(int64(t^._high.svalue)))), hregister2,
                            l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(hi(lo(int64(t^._high.svalue)))), cg.GetNextReg(hregister),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(hi(lo(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister),
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(hi(lo(int64(t^._high.svalue)))), cg.GetNextReg(hregister),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_A, aint(hi(lo(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister),
                            l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_BE, aint(lo(lo(int64(t^._high.svalue)))), hregister, blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_BE, aint(lo(lo(int64(t^._high.svalue)))), hregister, blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._high.svalue))), cg.GetNextReg(hregister),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._high.svalue))), ctx.cg.GetNextReg(hregister),
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._high.svalue))), cg.GetNextReg(hregister),
+                     ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._high.svalue))), ctx.cg.GetNextReg(hregister),
                            l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_BE, aint(lo(int32(t^._high.svalue))), hregister, blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_BE, aint(lo(int32(t^._high.svalue))), hregister, blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$elseif defined(cpu8bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                     current_asmdata.getjumplabel(l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister2))),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister2))),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(hi(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister2)),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(hi(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister2)),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(hi(int64(t^._high.svalue))))),cg.GetNextReg(hregister2),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(hi(int64(t^._high.svalue))))),cg.GetNextReg(hregister2),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(hi(int64(t^._high.svalue))))),hregister2,blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(lo(hi(int64(t^._high.svalue))))),hregister2,l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(hi(lo(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(hi(lo(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(lo(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister)),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(lo(int64(t^._high.svalue))))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(lo(int64(t^._high.svalue))))),cg.GetNextReg(hregister),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(lo(int64(t^._high.svalue))))),cg.GetNextReg(hregister),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(lo(lo(int64(t^._high.svalue))))),hregister,blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(hregister2),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(hregister2),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(lo(hi(int64(t^._high.svalue))))),hregister2,blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(lo(hi(int64(t^._high.svalue))))),hregister2,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(hi(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(hi(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(hregister),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(lo(int64(t^._high.svalue))))),ctx.cg.GetNextReg(hregister),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(lo(lo(int64(t^._high.svalue))))),hregister,blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
                     current_asmdata.getjumplabel(l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._high.svalue)))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(int32(t^._high.svalue)))),cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(hregister))),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(int32(t^._high.svalue)))),cg.GetNextReg(cg.GetNextReg(hregister)),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(int32(t^._high.svalue)))),cg.GetNextReg(cg.GetNextReg(hregister)),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(int32(t^._high.svalue)))),cg.GetNextReg(hregister),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(int32(t^._high.svalue)))),cg.GetNextReg(hregister),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(lo(int32(t^._high.svalue)))),hregister,blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(lo(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(hi(lo(int32(t^._high.svalue)))),ctx.cg.GetNextReg(hregister),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_A,aint(hi(lo(int32(t^._high.svalue)))),ctx.cg.GetNextReg(hregister),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(lo(int32(t^._high.svalue)))),hregister,blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else if def_cgsize(opsize) in [OS_S16,OS_16] then
                   begin
                     current_asmdata.getjumplabel(l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._high.svalue))),cg.GetNextReg(hregister),blocklabel(t^.blockid));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._high.svalue))),cg.GetNextReg(hregister),l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(int16(t^._high.svalue))),hregister,blocklabel(t^.blockid));
-                    cg.a_label(current_asmdata.CurrAsmList,l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._high.svalue))),ctx.cg.GetNextReg(hregister),blocklabel(t^.blockid));
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._high.svalue))),ctx.cg.GetNextReg(hregister),l1);
+                    ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_BE,aint(lo(int16(t^._high.svalue))),hregister,blocklabel(t^.blockid));
+                    ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$endif}
@@ -1083,9 +1083,9 @@ implementation
       begin
          last:=0;
          lastwasrange:=false;
-         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+         ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
          genitem(hp);
-         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+         ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
          ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
       end;
 
@@ -1095,7 +1095,7 @@ implementation
           lesslabel,greaterlabel : tasmlabel;
         begin
           current_asmdata.CurrAsmList.concat(cai_align.Create(compiler.globals.current_settings.alignment.jumpalign));
-          cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
+          ctx.cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
 
           { calculate labels for left and right }
           if p^.less=nil then
@@ -1294,7 +1294,7 @@ implementation
                               (dist>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
-                           genjumptable(labels,min_label.svalue,max_label.svalue);
+                           genjumptable(labels,min_label.svalue,max_label.svalue,ctx);
                          end
                        else
                          begin
@@ -1326,7 +1326,7 @@ implementation
                                (dist<max_dist) and
                                (min_label>=int64(low(aint))) and
                                (max_label<=high(aint)) then
-                              genjumptable(labels,min_label.svalue,max_label.svalue)
+                              genjumptable(labels,min_label.svalue,max_label.svalue,ctx)
                             { value has been determined on an i7-4770 using a random case with random values
                               if more values are known, this can be handled depending on the target CPU
 
@@ -1352,7 +1352,7 @@ implementation
              if not shortcut then
                begin
                  current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));
-                 cg.a_label(current_asmdata.CurrAsmList,blocklabel);
+                 ctx.cg.a_label(current_asmdata.CurrAsmList,blocklabel);
                  secondpass(statement,ctx);
                  { don't come back to case line }
                  compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;

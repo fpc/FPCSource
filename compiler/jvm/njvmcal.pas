@@ -48,7 +48,7 @@ interface
         protected
          procedure wrapcomplexinlinepara(para: tcallparanode); override;
          procedure extra_pre_call_code(ctx:tpassgeneratecodecontext); override;
-         procedure set_result_location(realresdef: tstoreddef); override;
+         procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext); override;
          procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext);override;
          procedure extra_post_call_code(ctx:tpassgeneratecodecontext); override;
          function dispatch_procvar: tnode;
@@ -411,7 +411,7 @@ implementation
       end;
 
 
-    procedure tjvmcallnode.set_result_location(realresdef: tstoreddef);
+    procedure tjvmcallnode.set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);
       begin
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1,[]);
         { in case of jvmimplicitpointertype(), the function will have allocated

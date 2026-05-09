@@ -26,12 +26,12 @@ unit nz80cal;
 interface
 
     uses
-      ncgcal;
+      node,ncgcal;
 
     type
        tz80callnode = class(tcgcallnode)
        protected
-          procedure pop_parasize(pop_size:longint);override;
+          procedure pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -42,7 +42,7 @@ implementation
       aasmdata,aasmcpu,
       ncal,
       cgobj,
-      nodehelper;
+      pass_2_context,nodehelper;
 
 
 {*****************************************************************************
@@ -50,17 +50,17 @@ implementation
 *****************************************************************************}
 
 
-    procedure tz80callnode.pop_parasize(pop_size:longint);
+    procedure tz80callnode.pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);
       begin
         if pop_size>=2 then
           begin
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
             while pop_size>=2 do
               begin
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_POP,NR_AF));
                 dec(pop_size,2);
               end;
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
           end;
         if pop_size=1 then
           current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_INC,NR_SP));

@@ -47,7 +47,7 @@ interface
       cgbase,cgutils,cgobj,
       procinfo,
       ncon,
-      compiler,nodehelper;
+      pass_2_context,compiler,nodehelper;
 
 {*****************************************************************************
                            TARMREALCONSTNODE
@@ -70,7 +70,7 @@ interface
         if IsFloatImmediate(tfloatdef(resultdef).floattype,value_real) then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_realconst(A_FMOV,
               location.register,value_real));
           end
@@ -78,7 +78,7 @@ interface
         else if bestrealrec(value_real).Data=0 then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             hreg:=newreg(R_MMREGISTER,getsupreg(location.register),R_SUBMM16B);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_EOR,
               hreg,hreg,hreg));

@@ -34,7 +34,7 @@ interface
          protected
            procedure optimizevalues(var max_linear_list: int64; var max_dist: qword);override;
            function  has_jumptable: boolean;override;
-           procedure genjumptable(hp: pcaselabel ;min_, max_: int64);override;
+           procedure genjumptable(hp: pcaselabel ;min_, max_: int64;ctx:tpassgeneratecodecontext);override;
            procedure genlinearlist(hp: pcaselabel;ctx:tpassgeneratecodecontext);override;
        end;
 
@@ -47,7 +47,7 @@ implementation
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
-      pass_2,cgcpu,
+      pass_2,pass_2_context,cgcpu,
       ncon,
       tgobj,ncgutil,rgobj,aasmcpu,
       procinfo,
@@ -88,19 +88,19 @@ implementation
             { need we to test the first value }
             if first and (t^._low>get_min_value(left.resultdef)) then
               begin
-                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
               end;
             if t^._low=t^._high then
               begin
                  if t^._low-last=0 then
-                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                   ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                  else
                    begin
                      { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                        then genlinearlist wouldn't be used }
-                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
+                     ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
                        true,ovloc);
-                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
+                     ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                    end;
                  last:=t^._low;
                  lastrange:=false;
@@ -117,7 +117,7 @@ implementation
                         begin
                           { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                             then genlinearlist wouldn't be use }
-                          cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
+                          ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
                             true,ovloc);
                         end;
                    end
@@ -129,19 +129,19 @@ implementation
 
                      { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                        then genlinearlist wouldn't be use }
-                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
+                     ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
                        true,ovloc);
                      { no jump necessary here if the new range starts at }
                      { at the value following the previous one           }
                      if (aint(t^._low.svalue - last.svalue) <> 1) or
                         (not lastrange) then
-                       cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                       ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                    end;
                  { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                    then genlinearlist wouldn't be use }
-                 cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
+                 ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
                    true,ovloc);
-                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+                 ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
                  last:=t^._high;
                  lastrange:=true;
@@ -179,15 +179,15 @@ implementation
                 last:=0;
                 lastrange:=false;
                 first:=true;
-                cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                 genitem(hp);
-                cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+                ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;
 
 
-    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: int64);
+    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: int64;ctx:tpassgeneratecodecontext);
       var
         last: TConstExprInt;
         tablelabel: TAsmLabel;
@@ -237,11 +237,11 @@ implementation
         last:=min_;
         opcgsize:=def_cgsize(opsize);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
         if not(jumptable_no_range) then
           begin
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
         if compiler.target.info.system=system_aarch64_win64 then
@@ -249,14 +249,14 @@ implementation
         else
           { local label in order to avoid using GOT }
           current_asmdata.getlabel(tablelabel,alt_data);
-        indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_ADDR);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
+        indexreg:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_ADDR);
+        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
         reference_reset_symbol(href,tablelabel,0,4,[]);
-        basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
+        basereg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load the slot }
-        jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        jumpreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
         if compiler.target.info.system=system_aarch64_win64 then
           reference_reset_base(href,basereg,0,href.temppos,sizeof(aint),[])
         else
@@ -267,15 +267,15 @@ implementation
           begin
             { Use a 64-bit absolute table under aarch64-win64 }
             href.shiftimm:=3;
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
           end
         else
           begin
             { load table slot, 32-bit sign extended }
             href.shiftimm:=2;
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
+            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
             { add table address }
-            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
+            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
           end;
         { and finally jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));

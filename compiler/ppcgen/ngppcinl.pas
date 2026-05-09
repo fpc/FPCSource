@@ -170,7 +170,7 @@ implementation
          secondpass(left,ctx);
          ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
-         location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
        end;
 
 
@@ -225,13 +225,13 @@ implementation
            internalerror(2007020901);
          secondpass(left,ctx);
          ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-         tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         tmpreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
            left.location.register));
          location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0,[]);
          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,
            tt_normal,location.reference);
-         cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
+         ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
            location.reference);
        end;
 
@@ -264,7 +264,7 @@ implementation
            LOC_CREFERENCE,
            LOC_REFERENCE:
              begin
-               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+               r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                if (left.location.reference.offset = 0) and
                   not assigned(left.location.reference.symbol) then
                  begin
@@ -275,7 +275,7 @@ implementation
                  end
                else
                  begin
-                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+                   ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,r));
                  end;
              end;

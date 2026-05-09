@@ -120,18 +120,18 @@ interface
         else
           begin
             {LOC_CONSTANT for example.}
-            reg:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            reg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
             ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,reg);
           end;
         { Allocate RAX. }
-        cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+        ctx.cg.getcpuregister(current_asmdata.CurrAsmList,rega);
         { Load the right value. }
         ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,right.location,rega);
         { Also allocate RDX, since it is also modified by a mul (JM). }
-        cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+        ctx.cg.getcpuregister(current_asmdata.CurrAsmList,regd);
 
         if needoverflowcheck then
-          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+          ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
         if use_ref then
           emit_ref(A_MUL,opsize,ref)
@@ -140,16 +140,16 @@ interface
         if needoverflowcheck then
          begin
            current_asmdata.getjumplabel(hl4);
-           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-           cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-           cg.a_label(current_asmdata.CurrAsmList,hl4);
+           ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+           ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+           ctx.cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+           ctx.cg.a_label(current_asmdata.CurrAsmList,hl4);
          end;
         { Free RDX,RAX }
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+        ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+        ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
         { Allocate a new register and store the result in RAX in it. }
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,cgsize);
         emit_reg_reg(A_MOV,opsize,rega,location.register);
         tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
         tg.location_freetemp(current_asmdata.CurrAsmList,right.location);

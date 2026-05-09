@@ -74,7 +74,7 @@ implementation
                else
                  begin
                    ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                   tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
+                   tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
              end
@@ -95,10 +95,10 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                    tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_lt, elselabel);
+                    tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_lt, elselabel);
                   end;
                 ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._high.svalue-t^._low.svalue), hregister);
-                tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_le, blocklabel(t^.blockid));
+                tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_le, blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;

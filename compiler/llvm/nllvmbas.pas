@@ -42,7 +42,7 @@ interface
          fsymboldata: tfplist;
          function getllvmasmopindexforsym(sym: tabstractnormalvarsym): longint;
          function getllvmasmparasym(sym: tabstractnormalvarsym): tasmsymbol;
-         procedure ResolveRef(const filepos: tfileposinfo; var op: toper); override;
+         procedure ResolveRef(const filepos: tfileposinfo; var op: toper; ctx:tpassgeneratecodecontext); override;
         public
          constructor create(p : TAsmList; acompiler: TCompilerBase); override;
          destructor destroy; override;
@@ -115,7 +115,7 @@ interface
       end;
 
 
-    procedure tllvmasmnode.ResolveRef(const filepos: tfileposinfo; var op: toper);
+    procedure tllvmasmnode.ResolveRef(const filepos: tfileposinfo; var op: toper; ctx:tpassgeneratecodecontext);
       var
         sym: tabstractnormalvarsym;
         ref: treference;

@@ -159,13 +159,13 @@ begin
       end;
     LOC_REFERENCE, LOC_CREFERENCE:
       begin
-        leftreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+        leftreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
         valuereg := leftreg;
         if signed then
           size := OS_S64
         else
           size := OS_64;
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef),
+        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef),
           size, left.location.reference, leftreg);
       end
   else
@@ -174,39 +174,39 @@ begin
 
   if (signed) then begin
     // std rS, disp(r1)
-    cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, valuereg, disp);
+    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, valuereg, disp);
     // lfd frD, disp(r1)
-    location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, location.register);
+    location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, location.register);
     // fcfid frD, frD
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
       location.register));
   end else begin
     { ts:todo use TOC for this constant or at least schedule better }
     // lfd frC, const
-    tmpfpuconst := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
+    tmpfpuconst := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
       tmpfpuconst);
     tempconst.free;
 
-    tmpintreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
+    tmpintreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_64);
     // rldicl rT1, rS, 32, 32
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg1, valuereg, 32, 32));
     // rldicl rT2, rS, 0, 32
-    tmpintreg2 := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
+    tmpintreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_64);
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg2, valuereg, 0, 32));
 
     // std rT1, disp(r1)
-    cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg1, disp);
+    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg1, disp);
     // std rT2, disp2(r1)
-    cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg2, disp2);
+    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg2, disp2);
 
     // lfd frT1, disp(R1)
-    tmpfpureg := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, tmpfpureg);
+    tmpfpureg := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, tmpfpureg);
     // lfd frD, disp+8(R1)
-    location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp2, location.register);
+    location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp2, location.register);
 
     // fcfid frT1, frT1
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, tmpfpureg,

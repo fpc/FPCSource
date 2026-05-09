@@ -272,8 +272,8 @@ implementation
               {$ifdef cpu_uses_separate_address_registers}
                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
-                    location.reference.base := cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,
+                    location.reference.base := ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                    ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
                 else
@@ -283,7 +283,7 @@ implementation
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                 location.reference.base:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
                  ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
               end;
             LOC_CONSTANT:
@@ -363,7 +363,7 @@ implementation
                       {$ifdef cpu_uses_separate_address_registers}
                         if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                           begin
-                            location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            location.reference.base:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
                             ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                               left.location.register,location.reference.base);
                           end
@@ -459,8 +459,8 @@ implementation
                        if (location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
                          if (tcgsize2size[location.size]<=tcgsize2size[OS_INT]) then
                            begin
-                             hreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                             cg.a_loadmm_reg_intreg(current_asmdata.CurrAsmList,reg_cgsize(left.location.register),location.size,
+                             hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                             ctx.cg.a_loadmm_reg_intreg(current_asmdata.CurrAsmList,reg_cgsize(left.location.register),location.size,
                                left.location.register,hreg,mms_movescalar);
                              location_reset(left.location,LOC_REGISTER,int_cgsize(tcgsize2size[left.location.size]));
                              left.location.register:=hreg;
@@ -1054,7 +1054,7 @@ implementation
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
                       { we support only the case that one element fills at least one register }
                       for i:=1 to location.reference.offset mod 4 do
-                        hreg:=cg.GetNextReg(hreg);
+                        hreg:=ctx.cg.GetNextReg(hreg);
 {$endif defined(cpu8bitalu) or defined(cpu16bitalu)}
                       location_reset(location,left.location.loc,def_cgsize(tarraydef(left.resultdef).elementdef));
                       location.register:=hreg;

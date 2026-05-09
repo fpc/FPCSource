@@ -59,7 +59,7 @@ implementation
     symconst,symbase,symtable,symsym,symdef,
     cgbase,cgobj,cgcpu,cgutils,tgobj,
     cpubase,htypechk,
-    parabase,paramgr,pass_1,pass_2,ncgutil,cga,
+    parabase,paramgr,pass_1,pass_2,pass_2_context,ncgutil,cga,
     aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi,procdefutil,
     compiler,
     nodehelper;
@@ -106,7 +106,7 @@ procedure ti386onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     flowcontrol:=[fc_inflowcontrol];
 
     { RTL will put exceptobject into EAX when jumping here }
-    cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+    ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
     { Retrieve exception variable }
     if assigned(excepTSymtable) then
@@ -119,9 +119,9 @@ procedure ti386onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         exceptvarsym.localloc.loc:=LOC_REFERENCE;
         exceptvarsym.localloc.size:=OS_ADDR;
         tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.voidpointertype,exceptvarsym.localloc.reference);
-        cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
+        ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
       end;
-    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+    ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
     if assigned(right) then
       secondpass(right,ctx);
@@ -132,8 +132,8 @@ procedure ti386onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
         exceptvarsym.localloc.loc:=LOC_INVALID;
       end;
-    cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-    cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+    ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+    ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
     flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
   end;
@@ -268,16 +268,12 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
   end;
 
 
-procedure emit_scope_start(handler,data: TAsmSymbol);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    cg:tcg;
+procedure emit_scope_start(handler,data: TAsmSymbol;ctx:tpassgeneratecodecontext);
   var
     href: treference;
     hreg: tregister;
   begin
-    cg:=compiler.cg;
-    hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+    hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
@@ -288,17 +284,13 @@ procedure emit_scope_start(handler,data: TAsmSymbol);
     emit_reg_ref(A_MOV,S_L,NR_ESP,href);
   end;
 
-procedure emit_scope_end;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    cg:tcg;
+procedure emit_scope_end(ctx:tpassgeneratecodecontext);
   var
     href: treference;
     hreg,hreg2: tregister;
   begin
-    cg:=compiler.cg;
-    hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+    hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+    hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
@@ -373,14 +365,15 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     { Start of scope }
     if is_safecall then
       begin
-        with cg.rg[R_INTREGISTER] do
+        with ctx.cg.rg[R_INTREGISTER] do
           used_in_proc:=used_in_proc+[RS_EBX,RS_ESI,RS_EDI];
 
         current_asmdata.getjumplabel(exceptlabel);
         sym:=current_asmdata.RefAsmSymbol('__FPC_except_safecall',AT_FUNCTION);
         emit_scope_start(
           sym,
-          exceptlabel
+          exceptlabel,
+          ctx
         );
         compiler.current_module.add_extern_asmsym(sym);
       end
@@ -389,7 +382,8 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
         sym:=current_asmdata.RefAsmSymbol('__FPC_finally_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
-          current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION)
+          current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),
+          ctx
         );
         compiler.current_module.add_extern_asmsym(sym);
       end;
@@ -406,16 +400,16 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     { don't generate line info for internal cleanup }
     current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-    cg.a_label(current_asmdata.CurrAsmList,finallylabel);
-    emit_scope_end;
+    ctx.cg.a_label(current_asmdata.CurrAsmList,finallylabel);
+    emit_scope_end(ctx);
     if is_safecall then
       begin
         current_asmdata.getjumplabel(safecalllabel);
-        cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
-        cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
         handle_safecall_exception(ctx);
-        cg.a_label(current_asmdata.CurrAsmList,safecalllabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,safecalllabel);
       end;
 
     { end cleanup }
@@ -443,28 +437,28 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     if not implicitframe then
       begin
         if tryflowcontrol*[fc_exit,fc_break,fc_continue]<>[] then
-          cg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
+          ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
         { do some magic for exit,break,continue in the try block }
         if fc_exit in tryflowcontrol then
           begin
-            cg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
-            cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
-            cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+            ctx.cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
+            ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
           end;
         if fc_break in tryflowcontrol then
           begin
-            cg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
-            cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
-            cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+            ctx.cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
+            ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
           end;
         if fc_continue in tryflowcontrol then
           begin
-            cg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
-            cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
-            cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+            ctx.cg.g_call(current_asmdata.CurrAsmList,'_FPC_leave');
+            ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
           end;
       end;
-    cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
+    ctx.cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { end cleanup }
     current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -526,8 +520,8 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
 
     { Win32 SEH unwinding does not preserve registers. Indicate that they are
       going to be destroyed. }
-    cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,[RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]);
-    cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,[RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]);
+    ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,[RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]);
+    ctx.cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,[RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]);
 
     { save the old labels for control flow statements }
     oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
@@ -560,7 +554,8 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         sym:=current_asmdata.RefAsmSymbol('__FPC_on_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
-          filterlabel);
+          filterlabel,
+          ctx);
         compiler.current_module.add_extern_asmsym(sym);
       end
     else
@@ -568,7 +563,8 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         sym:=current_asmdata.RefAsmSymbol('__FPC_except_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
-          exceptlabel);
+          exceptlabel,
+          ctx);
         compiler.current_module.add_extern_asmsym(sym);
       end;
 
@@ -585,31 +581,31 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     if compiler.verbose.codegenerror then
       goto errorexit;
 
-    emit_scope_end;
+    emit_scope_end(ctx);
     { jump over except handlers }
-    cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+    ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
     if fc_exit in tryflowcontrol then
       begin
-        cg.a_label(current_asmdata.CurrAsmList,exittrylabel);
-        emit_scope_end;
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,exittrylabel);
+        emit_scope_end(ctx);
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
       end;
     if fc_break in tryflowcontrol then
       begin
-        cg.a_label(current_asmdata.CurrAsmList,breaktrylabel);
-        emit_scope_end;
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,breaktrylabel);
+        emit_scope_end(ctx);
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
     if fc_continue in tryflowcontrol then
       begin
-        cg.a_label(current_asmdata.CurrAsmList,continuetrylabel);
-        emit_scope_end;
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,continuetrylabel);
+        emit_scope_end(ctx);
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
     { target for catch-all handler }
-    cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
+    ctx.cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
 
     { set control flow labels for the except block }
     { and the on statements                        }
@@ -627,7 +623,7 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         { emit filter table to a temporary asmlist }
         hlist:=TAsmList.Create;
         new_section(hlist,sec_rodata,filterlabel.name,4);
-        cg.a_label(hlist,filterlabel);
+        ctx.cg.a_label(hlist,filterlabel);
         onnodecount:=tai_const.create_32bit(0);
         hlist.concat(onnodecount);
 
@@ -641,7 +637,7 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
             hlist.concat(tai_const.create_sym(sym));
             hlist.concat(tai_const.create_sym(onlabel));
             compiler.current_module.add_extern_asmsym(sym);
-            cg.a_label(current_asmdata.CurrAsmList,onlabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode,ctx);
             inc(onnodecount.value);
             hnode:=tonnode(hnode).left;
@@ -658,41 +654,41 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         hlist.free;
       end;
 
-    cg.a_label(current_asmdata.CurrAsmList,lastonlabel);
+    ctx.cg.a_label(current_asmdata.CurrAsmList,lastonlabel);
     if assigned(t1) then
       begin
         { here we don't have to reset flowcontrol           }
         { the default and on flowcontrols are handled equal }
         secondpass(t1,ctx);
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+        ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
         if (flowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
-          cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+          ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
       end;
     exceptflowcontrol:=flowcontrol;
 
     if fc_exit in exceptflowcontrol then
       begin
         { do some magic for exit in the try block }
-        cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
+        ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
       end;
 
     if fc_break in exceptflowcontrol then
       begin
-        cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
+        ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
 
     if fc_continue in exceptflowcontrol then
       begin
-        cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
+        ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
-    cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
+    ctx.cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
 errorexit:
     { restore all saved labels }

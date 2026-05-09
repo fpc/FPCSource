@@ -47,7 +47,7 @@ implementation
       defutil,
       cpuinfo,
       cgbase,cgobj,cgutils,
-      ncon,compiler,nodehelper;
+      ncon,pass_2_context,compiler,nodehelper;
 
 {*****************************************************************************
                            TARMREALCONSTNODE
@@ -81,7 +81,7 @@ implementation
         if is_real_constant then
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             if is_single(resultdef) then
               current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_FMV_W_X,location.register,NR_X0))
 {$ifdef RISCV64}

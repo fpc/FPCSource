@@ -177,11 +177,11 @@ interface
                 begin
                   if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
                     begin
-                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                      ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_AND,NR_A,right.location.reference));
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
-                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                      ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                     end
                   else
                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
@@ -189,19 +189,19 @@ interface
               case right.location.loc of
                 LOC_CONSTANT:
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_AND,NR_A,right.location.value));
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,right.location.value));
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end;
                 LOC_REGISTER,LOC_CREGISTER:
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_AND,NR_A,right.location.register));
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
@@ -248,10 +248,10 @@ interface
               begin
                 if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end
                 else
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
@@ -259,17 +259,17 @@ interface
             case right.location.loc of
               LOC_CONSTANT:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,right.location.value));
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                 end;
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
@@ -294,8 +294,8 @@ interface
               begin
                 if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                     current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_SUB,NR_A,right.location.reference));
                   end
                 else
@@ -304,14 +304,14 @@ interface
             case right.location.loc of
               LOC_CONSTANT:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SUB,NR_A,right.location.value));
                 end;
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_SUB,NR_A,right.location.register));
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
@@ -322,10 +322,10 @@ interface
                 internalerror(2020040403);
             end;
             current_asmdata.getjumplabel(l);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_PO,l);
+            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            cg.a_label(current_asmdata.CurrAsmList,l);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,l);
+            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned,NodeType);
@@ -374,28 +374,28 @@ interface
               begin
                 if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                     tmpref:=right.location.reference;
                     for i:=0 to size-1 do
                       begin
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
                         current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,tmpref));
                         case NodeType of
                           equaln:
                             if i<>(size-1) then
-                              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                              ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
                             else
-                              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
+                              ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                           unequaln:
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                           else
                             internalerror(2020042102);
                         end;
                         if i<>(size-1) then
-                          tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,1);
+                          tcgz80(ctx.cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,1);
                       end;
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                   end
                 else
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
@@ -403,47 +403,47 @@ interface
             case right.location.loc of
               LOC_CONSTANT:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                   for i:=0 to size-1 do
                     begin
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,byte(right.location.value shr (i*8))));
                       case NodeType of
                         equaln:
                           if i<>(size-1) then
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
                           else
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
+                            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                         unequaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                          ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
                           internalerror(2020042104);
                       end;
                     end;
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                   for i:=0 to size-1 do
                     begin
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,tcgz80(ctx.cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
                       case NodeType of
                         equaln:
                           if i<>(size-1) then
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
                           else
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
+                            ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                         unequaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                          ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
                           internalerror(2020042105);
                       end;
                     end;
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
@@ -480,12 +480,12 @@ interface
               begin
                 if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
                   begin
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                     tmpref:=right.location.reference;
-                    tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,size-1);
+                    tcgz80(ctx.cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,size-1);
                     for i:=size-1 downto 0 do
                       begin
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
                         if (i=(size-1)) and (not unsigned) then
                           op:=A_SUB
                         else
@@ -495,10 +495,10 @@ interface
                           case actualnodetype of
                             ltn,
                             lten:
-                              tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                              tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                             gtn,
                             gten:
-                              tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                              tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                             else
                               internalerror(2020042202);
                           end
@@ -506,30 +506,30 @@ interface
                           case actualnodetype of
                             ltn,
                             lten:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                             gtn,
                             gten:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                             else
                               internalerror(2020042207);
                           end
                         else
                           case actualnodetype of
                             ltn:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                             lten:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
                             gtn:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
                             gten:
-                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                              tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
                             else
                               internalerror(2020042203);
                           end;
                         if i<>0 then
-                          tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
+                          tcgz80(ctx.cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
                       end;
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                   end
                 else
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
@@ -537,10 +537,10 @@ interface
             case right.location.loc of
               LOC_CONSTANT:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                   for i:=size-1 downto 0 do
                     begin
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
                       if (i=(size-1)) and (not unsigned) then
                         op:=A_SUB
                       else
@@ -550,10 +550,10 @@ interface
                         case actualnodetype of
                           ltn,
                           lten:
-                            tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                            tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                           gtn,
                           gten:
-                            tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                            tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
                             internalerror(2020042210);
                         end
@@ -561,48 +561,48 @@ interface
                         case actualnodetype of
                           ltn,
                           lten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                           gtn,
                           gten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
                             internalerror(2020042211);
                         end
                       else
                         case actualnodetype of
                           ltn:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                           lten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
                           gtn:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
                           gten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
                           else
                             internalerror(2020042215);
                         end;
                     end;
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                 end;
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                   for i:=size-1 downto 0 do
                     begin
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(ctx.cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
                       if (i=(size-1)) and (not unsigned) then
                         op:=A_SUB
                       else
                         op:=A_CP;
-                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(op,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(op,NR_A,tcgz80(ctx.cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
                       if (i=(size-1)) and (not unsigned) then
                         case actualnodetype of
                           ltn,
                           lten:
-                            tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                            tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                           gtn,
                           gten:
-                            tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                            tcgz80(ctx.cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
                             internalerror(2020042212);
                         end
@@ -610,28 +610,28 @@ interface
                         case actualnodetype of
                           ltn,
                           lten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
                           gtn,
                           gten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
                             internalerror(2020042213);
                         end
                       else
                         case actualnodetype of
                           ltn:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                           lten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
                           gtn:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
                           gten:
-                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                            tcgz80(ctx.cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
                           else
                             internalerror(2020042216);
                         end;
                     end;
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin

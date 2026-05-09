@@ -32,7 +32,7 @@ interface
 
     type
       ti386loadnode = class(tx86loadnode)
-         procedure generate_absaddr_access(vs: tabsolutevarsym); override;
+         procedure generate_absaddr_access(vs: tabsolutevarsym;ctx:tpassgeneratecodecontext); override;
       end;
 
 
@@ -48,7 +48,7 @@ implementation
                             TI386LOADNODE
 *****************************************************************************}
 
-    procedure ti386loadnode.generate_absaddr_access(vs: tabsolutevarsym);
+    procedure ti386loadnode.generate_absaddr_access(vs: tabsolutevarsym;ctx:tpassgeneratecodecontext);
       begin
         if tcpuabsolutevarsym(symtableentry).absseg then
           location.reference.segment:=NR_FS;

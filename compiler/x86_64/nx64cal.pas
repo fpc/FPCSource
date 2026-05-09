@@ -27,16 +27,16 @@ interface
 
     uses
       symdef,
-      ncal,nx86cal;
+      node,ncal,nx86cal;
 
     type
        tx8664callnode = class(tx86callnode)
        protected
          procedure gen_syscall_para(para: tcallparanode); override;
          procedure extra_call_code;override;
-         procedure set_result_location(realresdef: tstoreddef);override;
+         procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);override;
        public
-         procedure do_syscall;override;
+         procedure do_syscall(ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -49,9 +49,9 @@ implementation
       symconst,symcpu,nld,
       aasmtai,aasmdata,aasmcpu,
       cpupi,
-      nodehelper;
+      pass_2_context,nodehelper;
 
-    procedure tx8664callnode.do_syscall;
+    procedure tx8664callnode.do_syscall(ctx:tpassgeneratecodecontext);
       var
         tmpref: treference;
       begin
@@ -62,11 +62,11 @@ implementation
                 begin
                   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
-                  get_syscall_call_ref(tmpref,NR_R12);
+                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  get_syscall_call_ref(tmpref,NR_R12,ctx);
 
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
                   exit;
                 end;
               internalerror(2016120101);
@@ -100,7 +100,7 @@ implementation
       end;
 
 
-    procedure tx8664callnode.set_result_location(realresdef: tstoreddef);
+    procedure tx8664callnode.set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);
       begin
         { avoid useless "movq %xmm0,%rax" and "movq %rax,%xmm0" instructions
           (which moreover for some reason are not supported by the Darwin
@@ -110,7 +110,7 @@ implementation
            (retloc.location^.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
           begin
             location_reset(location,LOC_MMREGISTER,retloc.location^.size);
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,retloc.location^.size);
+            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,retloc.location^.size);
           end
         else
           inherited

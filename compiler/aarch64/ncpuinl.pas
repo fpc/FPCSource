@@ -117,7 +117,7 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         location.loc:=LOC_MMREGISTER;
       end;
 
@@ -201,7 +201,7 @@ implementation
       begin
         load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,left.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -209,7 +209,7 @@ implementation
       begin
         load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,left.location.register,left.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -217,7 +217,7 @@ implementation
       begin
         load_fpu_location(ctx);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,left.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -230,7 +230,7 @@ implementation
         opsize:=def_cgsize(left.resultdef);
         ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
@@ -253,14 +253,14 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        hreg:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        hreg:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
         { round as floating point using current rounding mode }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRINTX,hreg,left.location.register));
         { convert to signed integer rounding towards zero (there's no "round to
           integer using current rounding mode") }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCVTZS,location.register,hreg));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -269,7 +269,7 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { convert to signed integer rounding towards zero }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCVTZS,location.register,left.location.register));
       end;
@@ -282,9 +282,9 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRINTZ,location.register,left.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -295,10 +295,10 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRINTZ,location.register,left.location.register));
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,left.location.register,location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -380,11 +380,11 @@ implementation
           end;
 
         location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[negproduct,negop3],
           location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[3].location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -405,8 +405,8 @@ implementation
          LOC_CREFERENCE,
          LOC_REFERENCE:
            begin
-             r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+             r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+             ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
              reference_reset_base(ref,r,0,location.reference.temppos,left.location.reference.alignment,location.reference.volatility);
              current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_PRFM,0,ref));
            end;
@@ -460,7 +460,7 @@ implementation
                end;
 
              location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
-             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,
                paraarray[1].location.register,paraarray[2].location.register));
@@ -478,7 +478,7 @@ implementation
                  Internalerror(2021121802);
              end;
 
-             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else if is_32bitint(resultdef) or is_64bitint(resultdef) then
            begin
@@ -491,7 +491,7 @@ implementation
                end;
 
              location_reset(location,LOC_REGISTER,paraarray[1].location.size);
-             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,
                paraarray[1].location.register,paraarray[2].location.register));

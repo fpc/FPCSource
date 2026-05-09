@@ -43,7 +43,7 @@ implementation
       aasmdata,aasmcpu,
       cgutils,cgobj,
       symconst,symcpu,
-      compiler,nodehelper;
+      pass_2_context,compiler,nodehelper;
 
 {*****************************************************************************
                              TCPUVECNODE
@@ -63,7 +63,7 @@ implementation
                else
                  Internalerror(2020042201);
              end;
-             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
              if location.reference.base<>NR_NO then
                begin
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,hreg,maybe_const_reg,location.reference.base));

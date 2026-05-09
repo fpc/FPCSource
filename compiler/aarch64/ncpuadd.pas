@@ -196,7 +196,7 @@ interface
         ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
         case nodetype of
           addn :
@@ -221,7 +221,7 @@ interface
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
            location.register,left.location.register,right.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -242,7 +242,7 @@ interface
         { signalling compare so we can get exceptions }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMPE,
              left.location.register,right.location.register));
-        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -254,11 +254,11 @@ interface
         if right.location.loc=LOC_CONSTANT then
           begin
             if right.location.value>=0 then
-              Tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMP,left.location.size,left.location.register,right.location.value,NR_XZR,NR_NO,false,false)
+              Tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMP,left.location.size,left.location.register,right.location.value,NR_XZR,NR_NO,false,false)
             else
               { avoid overflow if value=low(int64) }
 {$push}{$r-}{$q-}
-              Tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMN,left.location.size,left.location.register,-right.location.value,NR_XZR,NR_NO,false,false)
+              Tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMN,left.location.size,left.location.register,-right.location.value,NR_XZR,NR_NO,false,false)
 {$pop}
           end
         else
@@ -300,7 +300,7 @@ interface
           unequaln:
             begin
               if right.location.loc=LOC_CONSTANT then
-                tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),left.location.register,abs(right.location.value),NR_XZR,NR_NO,false,false)
+                tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),left.location.register,abs(right.location.value),NR_XZR,NR_NO,false,false)
               else
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
               location.resflags:=getresflags(true);
@@ -316,11 +316,11 @@ interface
               { we can't handle left as a constant yet }
               if left.location.loc=LOC_CONSTANT then
                 ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
               if right.location.loc=LOC_CONSTANT then
                 begin
                   ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,right.location.value,left.location.register,tmpreg);
-                  tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),tmpreg,abs(right.location.value),NR_XZR,NR_NO,false,false)
+                  tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),tmpreg,abs(right.location.value),NR_XZR,NR_NO,false,false)
                 end
               else
                 begin
@@ -348,10 +348,10 @@ interface
         if right.location.loc = LOC_CONSTANT then
           begin
             if right.location.value>=0 then
-              Tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMP,left.location.size,left.location.register,right.location.value,NR_XZR,NR_NO,false,false)
+              Tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMP,left.location.size,left.location.register,right.location.value,NR_XZR,NR_NO,false,false)
             else
 {$push}{$r-}{$q-}
-              Tcgaarch64(cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMN,left.location.size,left.location.register,-right.location.value,NR_XZR,NR_NO,false,false)
+              Tcgaarch64(ctx.cg).handle_reg_imm12_reg(current_asmdata.CurrAsmList,A_CMN,left.location.size,left.location.register,-right.location.value,NR_XZR,NR_NO,false,false)
 {$pop}
           end
         else
@@ -384,7 +384,7 @@ interface
             if right.location.loc=LOC_CONSTANT then
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
             Exit;
           end

@@ -34,7 +34,7 @@ interface
          protected
            procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -46,7 +46,7 @@ implementation
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
-      pass_2,cgcpu,
+      pass_2,pass_2_context,cgcpu,
       ncon,
       tgobj,ncgutil,rgobj,aasmcpu,
       procinfo,
@@ -71,7 +71,7 @@ implementation
       end;
 
 
-    procedure tloongarch64casenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
+    procedure tloongarch64casenode.genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -112,24 +112,24 @@ implementation
           jr z
         }
 
-        indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
+        indexreg:= ctx.cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
+        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
+        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
-          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
+          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
         current_asmdata.getjumplabel(table);
-        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
         { la.pcrel x,tbl }
         reference_reset_symbol(href, table, 0, 4,[]);
         href.refaddr:=addr_pcrel;
-        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
         { alsl.d y,idx,x,3 }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_const(A_ALSL_D,hregister,indexreg,hregister,3));
         { ld.d z,y,0 }
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
         { jr z }
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
         href.refaddr:=addr_reg;

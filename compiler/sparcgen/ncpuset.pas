@@ -37,7 +37,7 @@ unit ncpuset;
          protected
            procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
            function has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);override;
        end;
 
 
@@ -50,7 +50,7 @@ unit ncpuset;
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,cgobj,
       defutil,procinfo,
-      compiler,nodehelper;
+      pass_2_context,compiler,nodehelper;
 
     procedure tcpucasenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
@@ -65,7 +65,7 @@ unit ncpuset;
       end;
 
 
-    procedure tcpucasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
+    procedure tcpucasenode.genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);
       var
         base,
         table : tasmlabel;
@@ -104,21 +104,21 @@ unit ncpuset;
         if not(jumptable_no_range) then
           begin
             { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
             { case expr greater than max_ => goto elselabel }
-            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+            ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
             min_:=0;
           end;
         current_asmdata.getjumplabel(table);
-        indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        indexreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
 {$ifdef SPARC64}
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,3,hregister,indexreg);
+        ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,3,hregister,indexreg);
 {$else SPARC64}
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,hregister,indexreg);
+        ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,hregister,indexreg);
 {$endif SPARC64}
         { create reference }
         current_asmdata.getjumplabel(base);
-        cg.a_label(current_asmdata.CurrAsmList,base);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,base);
         reference_reset_symbol(href,table,(-aint(min_))*sizeof(pint),sizeof(pint),[]);
         href.relsymbol:=base;
         { Generate the following code:
@@ -130,34 +130,34 @@ unit ncpuset;
               ld    [%o7+%basereg],%jmpreg
               jmp   %o7+%jmpreg                              }
         { CALL overwrites %o7, tell reg.allocator about that }
-        cg.getcpuregister(current_asmdata.CurrAsmList,NR_O7);
+        ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_O7);
         current_asmdata.CurrAsmList.concat(taicpu.op_sym_ofs(A_CALL,base,8));
 
-        basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        { TODO: incorporate handling such references into cg.a_loadaddr_ref_reg? }
+        basereg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        { TODO: incorporate handling such references into ctx.cg.a_loadaddr_ref_reg? }
         href.refaddr:=addr_high;
         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_SETHI,href,basereg));
         href.refaddr:=addr_low;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref_reg(A_OR,basereg,href,basereg));
 
         { add index }
-        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,indexreg,basereg);
+        ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,indexreg,basereg);
 
-        jmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        jmpreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
         reference_reset_base(href,NR_O7,0,ctempposinvalid,sizeof(pint),[]);
         href.index:=basereg;
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jmpreg);
+        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jmpreg);
         href.index:=jmpreg;
         href.refaddr:=addr_full;
         current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JMP,href));
 
         { Delay slot }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_O7);
+        ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_O7);
 
         { generate jump table }
         current_asmdata.CurrAsmList.Concat(tai_align.Create(sizeof(pint)));
-        cg.a_label(current_asmdata.CurrAsmList,table);
+        ctx.cg.a_label(current_asmdata.CurrAsmList,table);
         genitem(current_asmdata.CurrAsmList,hp);
       end;
 

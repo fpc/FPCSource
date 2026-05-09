@@ -111,16 +111,16 @@ begin
     if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
       begin
         { get register for the char }
-        hreg := cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,hreg);
+        hreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
         tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
       end
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_INT,left.location.reference,lengthreg);
+  lengthreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_INT,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
   if tg.istemp(left.location.reference) then
@@ -135,7 +135,7 @@ begin
         len:=255
       else
         len:=tstringdef(left.resultdef).len;
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,len,lengthreg,l)
+      ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,len,lengthreg,l)
     end;
 
   { no, so increase the length and add the new character }
@@ -150,7 +150,7 @@ begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
       { have a scalefactor) and use lengthreg as base  }
-      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,href2.base,lengthreg);
+      ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,href2.base,lengthreg);
       href2.base := lengthreg;
     end
   else
@@ -171,16 +171,16 @@ begin
     begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
-      cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,hreg,href2);
+      ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,hreg,href2);
     end
   else
-    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,tordconstnode(right).value.svalue,href2);
-  lengthreg:=cg.makeregsize(current_asmdata.CurrAsmList,lengthreg,OS_8);
+    ctx.cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,tordconstnode(right).value.svalue,href2);
+  lengthreg:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,lengthreg,OS_8);
   { increase the string length }
-  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_8,1,lengthreg);
-  cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,lengthreg,left.location.reference);
+  ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_8,1,lengthreg);
+  ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,lengthreg,left.location.reference);
   if checklength then
-    cg.a_label(current_asmdata.CurrAsmList,l);
+    ctx.cg.a_label(current_asmdata.CurrAsmList,l);
   location_copy(location,left.location);
 end;
 

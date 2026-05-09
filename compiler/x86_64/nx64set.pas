@@ -28,12 +28,12 @@ interface
     uses
       constexp,
       globtype,
-      nset,nx86set;
+      node,nset,nx86set;
 
     type
       tx8664casenode = class(tx86casenode)
          procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);override;
       end;
 
 
@@ -47,7 +47,7 @@ implementation
       cgbase,
       cpubase,procinfo,
       cga,cgutils,cgobj,cgx86,
-      nodehelper;
+      pass_2_context,nodehelper;
 
 
 {*****************************************************************************
@@ -62,7 +62,7 @@ implementation
 
     { Always generate position-independent jump table, it is twice less in size at a price
       of two extra instructions (which shouldn't cause more slowdown than pipeline trashing) }
-    procedure tx8664casenode.genjumptable(hp : pcaselabel; min_,max_ : int64);
+    procedure tx8664casenode.genjumptable(hp : pcaselabel; min_,max_ : int64;ctx:tpassgeneratecodecontext);
       var
         last: TConstExprInt;
         tablelabel: TAsmLabel;
@@ -145,9 +145,9 @@ implementation
             else
               begin
                 { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-                cg.a_op_const_reg(jtlist,OP_SUB,opcgsize,aint(min_),hregister);
+                ctx.cg.a_op_const_reg(jtlist,OP_SUB,opcgsize,aint(min_),hregister);
                 { case expr greater than max_ => goto elselabel }
-                cg.a_cmp_const_reg_label(jtlist,opcgsize,OC_A,Range,hregister,elselabel);
+                ctx.cg.a_cmp_const_reg_label(jtlist,opcgsize,OC_A,Range,hregister,elselabel);
                 min_:=0;
                 { do not sign extend when we load the index register, as we applied an offset above }
                 opcgsize:=tcgsize2unsigned[opcgsize];
@@ -156,23 +156,23 @@ implementation
 
         { local label in order to avoid using GOT }
         current_asmdata.getlabel(tablelabel,alt_data);
-        indexreg:=cg.makeregsize(jtlist,hregister,OS_ADDR);
-        cg.a_load_reg_reg(jtlist,opcgsize,OS_ADDR,hregister,indexreg);
+        indexreg:=ctx.cg.makeregsize(jtlist,hregister,OS_ADDR);
+        ctx.cg.a_load_reg_reg(jtlist,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
         reference_reset_symbol(href,tablelabel,0,4,[]);
-        basereg:=cg.getaddressregister(jtlist);
-        cg.a_loadaddr_ref_reg(jtlist,href,basereg);
+        basereg:=ctx.cg.getaddressregister(jtlist);
+        ctx.cg.a_loadaddr_ref_reg(jtlist,href,basereg);
         { load table slot, 32-bit sign extended }
         reference_reset_base(href,basereg,-aint(min_)*4,ctempposinvalid,4,[]);
         href.index:=indexreg;
         href.scalefactor:=4;
-        jumpreg:=cg.getaddressregister(jtlist);
-        cg.a_load_ref_reg(jtlist,OS_S32,OS_ADDR,href,jumpreg);
+        jumpreg:=ctx.cg.getaddressregister(jtlist);
+        ctx.cg.a_load_ref_reg(jtlist,OS_S32,OS_ADDR,href,jumpreg);
         { add table address }
         reference_reset_base(href,basereg,0,ctempposinvalid,sizeof(pint),[]);
         href.index:=jumpreg;
         href.scalefactor:=1;
-        cg.a_loadaddr_ref_reg(jtlist,href,jumpreg);
+        ctx.cg.a_loadaddr_ref_reg(jtlist,href,jumpreg);
         { and finally jump }
         emit_reg(A_JMP,S_NO,jumpreg);
         { generate jump table }

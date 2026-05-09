@@ -49,6 +49,7 @@ implementation
       cpubase,
       parabase,
       procinfo,
+      pass_2_context,
       compiler,
       nodehelper;
 
@@ -78,15 +79,15 @@ implementation
                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
                       href.refaddr:=addr_tlsgd;
                       href.relsymbol:=l;
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-                      cg.a_label(current_asmdata.CurrAsmList,l);
-                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,NR_PC,NR_R0);
-                      cg.g_call(current_asmdata.CurrAsmList,'__tls_get_addr');
-                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      ctx.cg.a_label(current_asmdata.CurrAsmList,l);
+                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,NR_PC,NR_R0);
+                      ctx.cg.g_call(current_asmdata.CurrAsmList,'__tls_get_addr');
+                      ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
                       reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
                       location.reference.base:=hregister;
 {$else use_tls_dialect_gnu}
@@ -101,26 +102,26 @@ implementation
                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
                       href.refaddr:=addr_tlsdesc;
                       href.relsymbol:=l;
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,NR_R0);
-                      cg.a_label(current_asmdata.CurrAsmList,l);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,NR_R0);
+                      ctx.cg.a_label(current_asmdata.CurrAsmList,l);
 
                       { we have to go the ugly way so we can set addr_tlscall }
-                      cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                      cg.a_call_name(current_asmdata.CurrAsmList,gvs.mangledname,false);
+                      ctx.cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                      ctx.cg.a_call_name(current_asmdata.CurrAsmList,gvs.mangledname,false);
                       with taicpu(current_asmdata.CurrAsmList.Last) do
                         begin
                           if opcode<>A_BL then
                             Internalerror(2019092902);
                           oper[0]^.ref^.refaddr:=addr_tlscall;
                         end;
-                      cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                      ctx.cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
 
-                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
+                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
                       reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
                       location.reference.base:=compiler.current_procinfo.tlsoffset;
                       include(compiler.current_procinfo.flags,pi_needs_tls);
@@ -134,14 +135,14 @@ implementation
                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
                       href.refaddr:=addr_tpoff;
                       href.relsymbol:=l;
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-                      cg.a_label(current_asmdata.CurrAsmList,l);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      ctx.cg.a_label(current_asmdata.CurrAsmList,l);
                       reference_reset(href,0,[]);
                       href.base:=NR_PC;
                       href.index:=hregister;
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                       location.reference.base:=compiler.current_procinfo.tlsoffset;
                       include(compiler.current_procinfo.flags,pi_needs_tls);
                       location.reference.index:=hregister;
@@ -151,8 +152,8 @@ implementation
                     begin
                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
                       href.refaddr:=addr_tpoff;
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+                      ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                       reference_reset(href,0,[]);
                       location.reference.base:=compiler.current_procinfo.tlsoffset;
                       include(compiler.current_procinfo.flags,pi_needs_tls);

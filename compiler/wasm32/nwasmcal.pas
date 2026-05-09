@@ -48,7 +48,7 @@ interface
          function  pass_typecheck:tnode;override;
          procedure extra_post_call_code(ctx:tpassgeneratecodecontext); override;
          procedure do_release_unused_return_value(ctx:tpassgeneratecodecontext); override;
-         procedure set_result_location(realresdef: tstoreddef); override;
+         procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext); override;
        end;
 
 
@@ -148,7 +148,7 @@ implementation
         ft.free; // no nil needed
       end;
 
-    procedure twasmcallnode.set_result_location(realresdef: tstoreddef);
+    procedure twasmcallnode.set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);
       begin
         // default implementation is placing the return value on LOC_REGISTER.
         // WebAssembly always returns the value on stack.

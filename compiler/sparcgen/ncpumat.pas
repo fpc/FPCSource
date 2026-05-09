@@ -99,7 +99,7 @@ implementation
          secondpass(left,ctx);
          secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+         location.register:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
          { put numerator in register }
          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -115,16 +115,16 @@ implementation
                begin
                  if is_signed(left.resultdef) Then
                    begin
-                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,63,numerator,tmpreg);
+                     tmpreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,63,numerator,tmpreg);
                      { if signed, tmpreg=right value-1, otherwise 0 }
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
+                     ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
                      { add to the left value }
-                     cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
+                     ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                     ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
                    end
                  else
-                   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+                   ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
                end
              else
                begin
@@ -166,7 +166,7 @@ implementation
                        end;
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
                      if not no_overflow then
-                       cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                       ctx.cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
                      if (divider<>NR_NO) then
                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULX,resultreg,divider,resultreg))
                      else
@@ -184,16 +184,16 @@ implementation
                begin
                  if is_signed(left.resultdef) Then
                    begin
-                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
+                     tmpreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
                      { if signed, tmpreg=right value-1, otherwise 0 }
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
+                     ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
                      { add to the left value }
-                     cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
+                     ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                     ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
                    end
                  else
-                   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+                   ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
                end
              else
                begin
@@ -215,7 +215,7 @@ implementation
                  { Fill %y with the -1 or 0 depending on the highest bit }
                  if is_signed(left.resultdef) then
                    begin
-                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     tmpreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
                    end
@@ -240,7 +240,7 @@ implementation
                      ai.delayslot_annulled:=true;
                      current_asmdata.CurrAsmList.concat(ai);
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
-                     cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                     ctx.cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
                      if (divider<>NR_NO) then
                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg))
                      else
@@ -252,7 +252,7 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
+        ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
       end;
 {$else sparc64}
     procedure tSparcmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
@@ -273,7 +273,7 @@ implementation
          secondpass(left,ctx);
          secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+         location.register:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
          { put numerator in register }
          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -287,16 +287,16 @@ implementation
            begin
              if is_signed(left.resultdef) Then
                begin
-                 tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
+                 tmpreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                 ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
                  { if signed, tmpreg=right value-1, otherwise 0 }
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
+                 ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
                  { add to the left value }
-                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
+                 ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                 ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
                end
              else
-               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+               ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
            end
          else
            begin
@@ -318,7 +318,7 @@ implementation
              { Fill %y with the -1 or 0 depending on the highest bit }
              if is_signed(left.resultdef) then
                begin
-                 tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                 tmpreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
                end
@@ -343,7 +343,7 @@ implementation
                  ai.delayslot_annulled:=true;
                  current_asmdata.CurrAsmList.concat(ai);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
-                 cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                 ctx.cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
                  if (divider<>NR_NO) then
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg))
                  else
@@ -354,7 +354,7 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
+        ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
       end;
 {$endif sparc64}
 
@@ -399,8 +399,8 @@ implementation
 
         shiftval := tordconstnode(right).value.svalue and 63;
         op := ops[nodetype=shln];
-        location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
-        location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reglo:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
 
         { Emitting "left shl 1" as "left+left" is twice shorter }
         if (nodetype=shln) and (shiftval=1) then
@@ -409,33 +409,33 @@ implementation
           begin
             if nodetype = shln then
               begin
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
+                ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
                 { if shiftval and 31 = 0, it will optimize to MOVE }
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, shiftval and 31, hreg64lo, location.register64.reghi);
+                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, shiftval and 31, hreg64lo, location.register64.reghi);
               end
             else
               begin
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, shiftval and 31, hreg64hi, location.register64.reglo);
+                ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, shiftval and 31, hreg64hi, location.register64.reglo);
               end;
           end
         else
           begin
-            hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
+            hregister := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_32);
 
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64hi, location.register64.reghi);
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64lo, location.register64.reglo);
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64hi, location.register64.reghi);
+            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64lo, location.register64.reglo);
             if shiftval <> 0 then
               begin
                 if nodetype = shln then
                   begin
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, 32-shiftval, hreg64lo, hregister);
-                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reghi, location.register64.reghi);
+                    ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, 32-shiftval, hreg64lo, hregister);
+                    ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reghi, location.register64.reghi);
                   end
                 else
                   begin
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, 32-shiftval, hreg64hi, hregister);
-                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reglo, location.register64.reglo);
+                    ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, 32-shiftval, hreg64hi, hregister);
+                    ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reglo, location.register64.reglo);
                   end;
               end;
           end;
@@ -490,7 +490,7 @@ implementation
         secondpass(left,ctx);
         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         case location.size of
           OS_F32:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEGs,left.location.register,location.register));

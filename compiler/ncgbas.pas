@@ -38,7 +38,7 @@ interface
 
        tcgasmnode = class(tasmnode)
          protected
-          procedure ResolveRef(const filepos: tfileposinfo; var op:toper); virtual;
+          procedure ResolveRef(const filepos: tfileposinfo; var op:toper;ctx:tpassgeneratecodecontext); virtual;
          public
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
@@ -130,7 +130,7 @@ interface
 *****************************************************************************}
 
 
-    procedure tcgasmnode.ResolveRef(const filepos: tfileposinfo; var op:toper);
+    procedure tcgasmnode.ResolveRef(const filepos: tfileposinfo; var op:toper;ctx:tpassgeneratecodecontext);
       var
         sym : tabstractnormalvarsym;
 {$ifdef x86}
@@ -224,9 +224,9 @@ interface
 {$endif x86}
 {$ifdef avr}
                       case sofs of
-                        1: op.reg:=cg.GetNextReg(op.reg);
-                        2: op.reg:=cg.GetNextReg(cg.GetNextReg(op.reg));
-                        3: op.reg:=cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(op.reg)));
+                        1: op.reg:=ctx.cg.GetNextReg(op.reg);
+                        2: op.reg:=ctx.cg.GetNextReg(ctx.cg.GetNextReg(op.reg));
+                        3: op.reg:=ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(op.reg)));
                       end;
 {$endif avr}
                     end;
@@ -301,7 +301,7 @@ interface
          { Allocate registers used in the assembler block }
          { asmnf_has_registerlist means that registers are specified and already allocated }
          if not (asmnf_has_registerlist in asmnodeflags) then
-           cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+           ctx.cg.allocallcpuregisters(current_asmdata.CurrAsmList);
 
          if (po_inline in compiler.current_procinfo.procdef.procoptions) then
            begin
@@ -331,7 +331,7 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
-                          ResolveRef(taicpu(hp2).fileinfo,taicpu(hp2).oper[i-1]^);
+                          ResolveRef(taicpu(hp2).fileinfo,taicpu(hp2).oper[i-1]^,ctx);
                           with taicpu(hp2).oper[i-1]^ do
                            begin
                              case typ of
@@ -384,7 +384,7 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
                          begin
-                           ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^);
+                           ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^,ctx);
 {$ifdef x86}
                            with taicpu(hp).oper[i-1]^ do
                              begin
@@ -432,7 +432,7 @@ interface
 
          { Release register used in the assembler block }
          if not (asmnf_has_registerlist in asmnodeflags) then
-           cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+           ctx.cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
 
          { Switch back to the CPU instruction set of the target CPU }
          current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[compiler.globals.current_settings.cputype]));
@@ -483,7 +483,7 @@ interface
         { write exitlabel }
         if nf_block_with_exit in flags then
           begin
-            cg.a_label(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel);
+            ctx.cg.a_label(current_asmdata.CurrAsmList,compiler.current_procinfo.CurrExitLabel);
             compiler.current_procinfo.CurrExitLabel:=oldexitlabel;
             { the exit statements inside this block are not exit statements }
             { out of the parent                                             }
@@ -665,54 +665,54 @@ interface
 {$if defined(cpu32bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
                     end
                   else
 {$elseif defined(cpu16bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reghi));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reglo));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register64.reghi));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register64.reglo));
                     end
                   else
                   if tempinfo^.location.size in [OS_32,OS_S32] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register));
                     end
                   else
 {$elseif defined(cpu8bitalu) and not defined(cpuhighleveltarget)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reghi));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reghi)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reghi))));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reglo));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reglo)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reglo))));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register64.reghi));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register64.reghi)));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register64.reghi))));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register64.reglo));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register64.reglo)));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register64.reglo))));
                     end
                   else
                   if tempinfo^.location.size in [OS_32,OS_S32] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register))));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register)));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(tempinfo^.location.register))));
                     end
                   else
                   if tempinfo^.location.size in [OS_16,OS_S16] then
                     begin
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,ctx.cg.GetNextReg(tempinfo^.location.register));
                     end
                   else
 {$endif}
-                    cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                    ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER
@@ -727,7 +727,7 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-                  cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                  ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_FPUREGISTER
@@ -742,7 +742,7 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-                  cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                  ctx.cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_MMREGISTER

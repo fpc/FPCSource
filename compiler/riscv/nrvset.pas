@@ -34,7 +34,7 @@ interface
          protected
            procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);override;
            procedure genlinearlist(hp : pcaselabel;ctx:tpassgeneratecodecontext);override;
        end;
 
@@ -47,7 +47,7 @@ implementation
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
-      pass_2,cgcpu,
+      pass_2,pass_2_context,cgcpu,
       ncon,
       tgobj,ncgutil,rgobj,aasmcpu,
       procinfo,
@@ -71,7 +71,7 @@ implementation
       end;
 
 
-    procedure trvcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
+    procedure trvcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64;ctx:tpassgeneratecodecontext);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -118,30 +118,30 @@ implementation
 
         { make it a 32bit register }
         // allocate base and index registers register
-        indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
+        indexreg:= ctx.cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
+        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
+        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
           begin
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
+             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
           end;
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
+        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
         reference_reset_symbol(href, table, 0, 4,[]);
 
-        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+        hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
         href.index:=indexreg;
-        indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        indexreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
         { load table entry }
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
+        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
         { add table base }
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
+        ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
         { jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_JALR,NR_X0, indexreg));
 

@@ -87,7 +87,7 @@ implementation
           swapleftright;
 
         location_reset(location,LOC_REGISTER,OS_INT);
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
         if signed then op:=A_SLT else op:=A_SLTU;
         if signed then opi:=A_SLTI else opi:=A_SLTIU;
@@ -266,7 +266,7 @@ implementation
             if right.location.loc=LOC_CONSTANT then
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MUL,location.register,left.location.register,right.location.register));
           end
         else
@@ -451,17 +451,17 @@ implementation
         if not cmpop then
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_8);
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
             if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
               begin
-                tmpreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                tmpreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                tmpreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                 if singleprec then
                   begin
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FEQ_S,tmpreg1,right.location.register,right.location.register));
@@ -491,15 +491,15 @@ implementation
         if not cmpop then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
           end
         else
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
             if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
-              cg.a_label(current_asmdata.CurrAsmList,l1);
+              ctx.cg.a_label(current_asmdata.CurrAsmList,l1);
 
             if inv then
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));

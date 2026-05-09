@@ -123,7 +123,7 @@ interface
           begin
             if use_vectorfpu(left.resultdef) then
               begin
-                tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+                tmpreg := ctx.cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
                 ctx.hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,tmpreg,mms_movescalar);
                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
@@ -131,8 +131,8 @@ interface
               end
             else
               begin
-                tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
-                cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
+                tmpreg := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
+                ctx.cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_FPUREGISTER,left.location.size);
                 left.location.register := tmpreg;
@@ -151,8 +151,8 @@ interface
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if location.size in [OS_64,OS_S64] then
           begin
-            location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reglo := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
 {$endif}
@@ -278,7 +278,7 @@ interface
                   if (right.location.loc=LOC_REGISTER) then
                     location.register:=right.location.register
                   else
-                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                    location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { make sure we don't modify left/right.location, because we told
                     force_reg_left_right above that they can be constant }
                   ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,resultdef,right.location.register,location.register);

@@ -101,11 +101,11 @@ implementation
           if (v=63) then
             begin
               emit_const_reg(A_SAR,S_L,31,hreg64hi);
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
+              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
             end
           else if (v>31) then
             begin
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
+              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
               emit_const_reg(A_SAR,S_L,31,hreg64hi);
               emit_const_reg(A_SAR,S_L,v and 31,hreg64lo);
             end

@@ -47,6 +47,7 @@ interface
       cgbase,cgutils,cgobj,
       procinfo,
       ncon,
+      pass_2_context,
       compiler,
       nodehelper;
 
@@ -86,7 +87,7 @@ interface
             (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.init_settings.fputype])) then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             if tfloatdef(resultdef).floattype=s32real then
               pf:=PF_F32
             else

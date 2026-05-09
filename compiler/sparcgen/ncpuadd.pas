@@ -277,7 +277,7 @@ interface
         force_reg_left_right(true,true,ctx);
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparcgen(ctx.cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
@@ -311,7 +311,7 @@ interface
                  ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,left.location.register,right.location.register,tmpreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,tmpreg,right.location.register,NR_G0));
               location.resflags.Init(NR_ICC,F_E);
@@ -352,13 +352,13 @@ interface
               lreg.reglo:=NR_G0;
               if lo(ls.location.value64)<>0 then
                 begin
-                  lreg.reglo:=cg.GetIntRegister(list,OS_INT);
-                  cg.a_load_const_reg(list,OS_INT,lo(ls.location.value64),lreg.reglo);
+                  lreg.reglo:=ctx.cg.GetIntRegister(list,OS_INT);
+                  ctx.cg.a_load_const_reg(list,OS_INT,lo(ls.location.value64),lreg.reglo);
                 end;
               if hi(ls.location.value64)<>0 then
                 begin
-                  lreg.reghi:=cg.GetIntRegister(list,OS_INT);
-                  cg.a_load_const_reg(list,OS_INT,hi(ls.location.value64),lreg.reghi);
+                  lreg.reghi:=ctx.cg.GetIntRegister(list,OS_INT);
+                  ctx.cg.a_load_const_reg(list,OS_INT,hi(ls.location.value64),lreg.reghi);
                 end;
             end
           else
@@ -366,8 +366,8 @@ interface
 
           if (rs.location.loc=LOC_CONSTANT) then
             begin
-              tcgsparcgen(cg).handle_reg_const_reg(list,A_SUBcc,lreg.reglo,lo(rs.location.value64),NR_G0);
-              tcgsparcgen(cg).handle_reg_const_reg(list,A_SUBXcc,lreg.reghi,hi(rs.location.value64),NR_G0);
+              tcgsparcgen(ctx.cg).handle_reg_const_reg(list,A_SUBcc,lreg.reglo,lo(rs.location.value64),NR_G0);
+              tcgsparcgen(ctx.cg).handle_reg_const_reg(list,A_SUBXcc,lreg.reghi,hi(rs.location.value64),NR_G0);
             end
           else
             begin
@@ -392,24 +392,24 @@ interface
               begin
                 if hi(right.location.value64)<>0 then
                   begin
-                    hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reghi,hi(right.location.value64),hreg1);
+                    hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                    tcgsparcgen(ctx.cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reghi,hi(right.location.value64),hreg1);
                   end
                 else
                   hreg1:=left.location.register64.reghi;
 
                 if lo(right.location.value64)<>0 then
                   begin
-                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reglo,lo(right.location.value64),hreg2);
+                    hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                    tcgsparcgen(ctx.cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reglo,lo(right.location.value64),hreg2);
                   end
                 else
                   hreg2:=left.location.register64.reglo;
               end
             else
               begin
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,left.location.register64.reghi,right.location.register64.reghi,hreg1));
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,left.location.register64.reglo,right.location.register64.reglo,hreg2));
               end;
@@ -458,7 +458,7 @@ interface
                   not(is_signed(right.resultdef));
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparcgen(ctx.cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
@@ -482,11 +482,11 @@ interface
             force_reg_left_right(true,false,ctx);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef SPARC64}
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MULX,left.location.register,right.location.register,location.register));
 {$else SPARC64}
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],left.location.register,right.location.register,location.register64.reglo));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV,NR_Y,location.register64.reghi));
 {$endif SPARC64}

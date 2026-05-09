@@ -33,8 +33,8 @@ unit ncpumat;
     type
       tloongarch64moddivnode = class(tcgmoddivnode)
         function use_moddiv64bitint_helper: boolean; override;
-        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
-        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
+        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister;ctx:tpassgeneratecodecontext); override;
+        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister;ctx:tpassgeneratecodecontext); override;
         function first_moddiv64bitint: tnode; override;
       end;
 
@@ -102,7 +102,7 @@ implementation
       end;
 
 
-    procedure tloongarch64moddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister);
+    procedure tloongarch64moddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister;ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
       begin
@@ -115,7 +115,7 @@ implementation
       end;
 
 
-    procedure tloongarch64moddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister);
+    procedure tloongarch64moddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister;ctx:tpassgeneratecodecontext);
       var
         op: TAsmOp;
       begin

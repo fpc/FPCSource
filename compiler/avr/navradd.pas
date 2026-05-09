@@ -137,13 +137,13 @@ interface
         var
           i : byte;
         begin
-          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+          ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
           for i:=2 to tcgsize2size[left.location.size] do
             begin
-              tmpreg1:=cg.GetNextReg(tmpreg1);
-              tmpreg2:=cg.GetNextReg(tmpreg2);
+              tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
+              tmpreg2:=ctx.cg.GetNextReg(tmpreg2);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
             end;
         end;
@@ -174,8 +174,8 @@ interface
                  ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
+              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
                 left.location.register,right.location.register,tmpreg);
               gencmp(tmpreg,right.location.register);
               location.resflags:=F_EQ;
@@ -207,7 +207,7 @@ interface
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
 
-        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
         if (not unsigned) and
           (right.location.loc=LOC_CONSTANT) and
@@ -221,7 +221,7 @@ interface
                 if i=5 then
                   tmpreg1:=left.location.registerhi
                 else
-                  tmpreg1:=cg.GetNextReg(tmpreg1);
+                  tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
               end;
 
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
@@ -239,10 +239,10 @@ interface
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
             else
               begin
-                cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
+                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
-                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
+                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
               end;
           end
         { on the left side, we allow only a constant if it is 0 }
@@ -266,9 +266,9 @@ interface
             else
               begin
                 if left.location.loc<>LOC_CONSTANT then
-                  tmpreg1:=cg.GetNextReg(tmpreg1);
+                  tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
                 if right.location.loc<>LOC_CONSTANT then
-                  tmpreg2:=cg.GetNextReg(tmpreg2);
+                  tmpreg2:=ctx.cg.GetNextReg(tmpreg2);
               end;
             if right.location.loc=LOC_CONSTANT then
               begin
@@ -277,8 +277,8 @@ interface
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
                 else
                   begin
-                    tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
+                    tmpreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+                    ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
                   end;
               end

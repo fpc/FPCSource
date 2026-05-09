@@ -123,7 +123,7 @@ implementation
       begin
         location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
         restype:=tfloatdef(resultdef).floattype;
-        location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
+        location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, true);
@@ -137,7 +137,7 @@ implementation
                 op:=A_FFINT_D_W
               else
                 internalerror(2022111929);
-              hreg:=cg.getfpuregister(current_asmdata.CurrAsmList, OS_F32);
+              hreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList, OS_F32);
               movop:=A_MOVGR2FR_W;
             end;
           OS_S64:
@@ -148,7 +148,7 @@ implementation
                 op:=A_FFINT_D_L
               else
                 internalerror(2022111930);
-              hreg:= cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
+              hreg:= ctx.cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
               movop:=A_MOVGR2FR_D;
             end;
         else
@@ -198,27 +198,27 @@ implementation
             begin
               if left.location.loc in [LOC_CREFERENCE, LOC_REFERENCE] then
                 begin
-                  hreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
+                  hreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, opsize);
+                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
                 end
               else
                 begin
-                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
+                  hreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
                 end;
-              hreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+              hreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, opsize);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg1, NR_R0, hreg2));
             end;
           LOC_JUMP:
             begin
-              hreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+              hreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
               current_asmdata.getjumplabel(hlabel);
-              cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
-              cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
-              cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
-              cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
-              cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
-              cg.a_label(current_asmdata.CurrAsmList, hlabel);
+              ctx.cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
+              ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
+              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
+              ctx.cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
+              ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
+              ctx.cg.a_label(current_asmdata.CurrAsmList, hlabel);
             end;
           LOC_FLAGS:
             Internalerror(2022111932);
@@ -227,7 +227,7 @@ implementation
         end;
         { Now hreg1 is either 0 or 1. For C booleans it must be 0 or -1. }
         if is_cbool(resultdef) then
-          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,hreg1,hreg1);
+          ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,hreg1,hreg1);
 
         location.Register := hreg1;
       end;

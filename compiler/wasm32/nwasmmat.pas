@@ -166,7 +166,7 @@ implementation
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_reset(location,LOC_REGISTER,left.location.size);
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { perform the NOT operation }
         ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
       end;
@@ -183,7 +183,7 @@ implementation
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
         if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
