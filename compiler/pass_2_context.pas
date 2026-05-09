@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj,cgobj;
+  node,hlcgobj,cgobj,tgobj;
 
 type
 
@@ -36,8 +36,10 @@ type
   tpassgeneratecodecontextimpl = class(tpassgeneratecodecontext)
   private
     hlcg: thlcgobj;
+    tg: ttgobj;
   public
     procedure create_hlcodegen(acompiler: TCompilerBase);
+    procedure create_tempgen(acompiler: TCompilerBase);
   end;
 
   { tpassgeneratecodecontexthelper }
@@ -72,6 +74,12 @@ procedure tpassgeneratecodecontextimpl.create_hlcodegen(acompiler: TCompilerBase
 begin
   hlcgobj.create_hlcodegen(acompiler);
   hlcg:=acompiler.hlcg;
+end;
+
+procedure tpassgeneratecodecontextimpl.create_tempgen(acompiler: TCompilerBase);
+begin
+  tcompiler(acompiler).tg:=tgobjclass.create(acompiler);
+  tg:=acompiler.tg;
 end;
 
 { tpassgeneratecodecontexthelper }

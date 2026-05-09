@@ -1081,7 +1081,7 @@ implementation
 
     procedure tcgprocinfo.setup_tempgen;
       begin
-        tcompiler(compiler).tg:=tgobjclass.create(compiler);
+        tpassgeneratecodecontextimpl(FCodeGenContext).create_tempgen(compiler);
 
 {$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(m68k)}
 {$if defined(arm)}
