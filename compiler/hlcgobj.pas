@@ -781,12 +781,12 @@ implementation
 {$ifdef cpu64bitalu}
   function thlcgobj.GetCG128: TCG128; inline;
     begin
-      result:=compiler.cg128;
+      result:=cg.cg128;
     end;
 {$else cpu64bitalu}
   function thlcgobj.GetCG64: TCG64; inline;
     begin
-      result:=compiler.cg64;
+      result:=cg.cg64;
     end;
 {$endif cpu64bitalu}
 
