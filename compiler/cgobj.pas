@@ -510,16 +510,16 @@ unit cgobj;
 
     tcg128 = class
        private
+        FCG: tcg;
         FCompiler: TCompilerBase;
-        function GetCG: tcg; inline;
         function GetTarget: TReadOnlyCompilerTarget; inline;
         procedure splitparaloc128(const cgpara: tcgpara; var cgparalo, cgparahi: tcgpara);
        protected
         property Compiler: TCompilerBase read FCompiler;
-        property cg: tcg read GetCG;
+        property cg: tcg read FCG;
         property Target: TReadOnlyCompilerTarget read GetTarget;
        public
-        constructor create(ACompiler: TCompilerBase);
+        constructor create(Acg: tcg; ACompiler: TCompilerBase);
 
         procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
         procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
@@ -3457,19 +3457,15 @@ implementation
         paralochi^.next:=nil;
       end;
 
-    function tcg128.GetCG: tcg; inline;
-      begin
-        Result:=compiler.cg;
-      end;
-
 
     function tcg128.GetTarget: TReadOnlyCompilerTarget; inline;
       begin
         Result:=Compiler.Target;
       end;
 
-    constructor tcg128.create(ACompiler: TCompilerBase);
+    constructor tcg128.create(Acg: tcg; ACompiler: TCompilerBase);
       begin
+        FCG:=Acg;
         FCompiler:=ACompiler;
       end;
 
