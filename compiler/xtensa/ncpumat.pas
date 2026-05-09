@@ -316,7 +316,7 @@ implementation
                shiftval:=tordconstnode(right).value.uvalue and 31
              else
                shiftval:=tordconstnode(right).value.uvalue and 63;
-             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+             ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                shiftval,left.location.register64,location.register64)
           end
         else

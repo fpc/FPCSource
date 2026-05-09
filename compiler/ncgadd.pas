@@ -442,11 +442,11 @@ interface
             if right.location.size in [OS_64,OS_S64] then
               begin
                 if right.location.loc <> LOC_CONSTANT then
-                  cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                  ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
                      left.location.register64,right.location.register64,
                      location.register64)
                 else
-                  cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                  ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
                      right.location.value,left.location.register64,
                      location.register64);
               end
@@ -569,11 +569,11 @@ interface
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.value64,
+                ctx.cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.value64,
                   left.location.register64,location.register64,
                   checkoverflow,ovloc)
               else
-                cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.register64,
+                ctx.cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.register64,
                   left.location.register64,location.register64,
                   checkoverflow,ovloc);
             end;
@@ -586,13 +586,13 @@ interface
                 begin
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
-                    cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                    ctx.cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                       right.location.register64,left.location.register64,
                       location.register64,
                       checkoverflow,ovloc)
                   else
                     // reg64 - const64
-                    cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                    ctx.cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                       right.location.value64,left.location.register64,
                       location.register64,
                       checkoverflow,ovloc)
@@ -601,7 +601,7 @@ interface
                 begin
                   // const64 - reg64
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                  cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                  ctx.cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
                     location.register64,
                     checkoverflow,ovloc);

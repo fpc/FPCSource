@@ -199,7 +199,7 @@ implementation
              else
                shiftval:=tordconstnode(right).value.uvalue and 63;
              if is_64bit(resultdef) then
-               cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+               ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                  shiftval,left.location.register64,location.register64)
              else
                ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,

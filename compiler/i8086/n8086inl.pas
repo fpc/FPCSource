@@ -395,7 +395,7 @@ implementation
             location:=left.location;
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
+            ctx.cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,cg.GetNextReg(left.location.register64.reghi));
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,cg.GetNextReg(left.location.register64.reghi),location.register64.reglo);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(location.register64.reglo));

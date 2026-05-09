@@ -381,7 +381,7 @@ implementation
           begin
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
+            ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
           end
         else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -479,7 +479,7 @@ implementation
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                 { use addvalue.svalue here to avoid an internal error if addvalue is unsigned and overflows int64, see #35298,
                   we are only interested in the bit pattern here }
-                cg64.a_op64_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),addvalue.svalue,tcallparanode(left).left.location)
+                ctx.cg64.a_op64_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),addvalue.svalue,tcallparanode(left).left.location)
               else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                 ctx.hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
@@ -496,10 +496,10 @@ implementation
                if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                  case tcallparanode(tcallparanode(left).right).left.location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
-                     cg64.a_op64_ref_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
+                     ctx.cg64.a_op64_ref_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
                        tcallparanode(tcallparanode(left).right).left.location.reference,tcallparanode(left).left.location);
                    LOC_REGISTER,LOC_CREGISTER:
-                     cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
+                     ctx.cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],def_cgsize(left.resultdef),
                        joinreg64(hregister,hregisterhi),tcallparanode(left).left.location);
                    else
                      Internalerror(2020042801);
@@ -594,7 +594,7 @@ implementation
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if (def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64]) and
                  (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
-                cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
+                ctx.cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
               else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                 ctx.hlcg.a_op_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
@@ -610,7 +610,7 @@ implementation
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                if (def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64]) and
                   (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
-                 cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),
+                 ctx.cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),
                    joinreg64(hregister,hregisterhi),tcallparanode(tcallparanode(left).right).left.location)
                else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -634,7 +634,7 @@ implementation
 
 {$if not defined(cpu64bitalu) } // and not defined(cpuhighleveltarget)}
           if (def_cgsize(left.resultdef) in [OS_64,OS_S64]) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-            cg64.a_op64_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location)
+            ctx.cg64.a_op64_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location)
           else
 {$endif not cpu64bitalu}
             ctx.hlcg.a_op_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location);
@@ -771,18 +771,18 @@ implementation
             location:=left.location;
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
+            ctx.cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
             tempreg64.reghi:=left.location.register64.reghi;
             tempreg64.reglo:=left.location.register64.reghi;
-            cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),tempreg64,location.register64);
+            ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),tempreg64,location.register64);
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
-                cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64,true,ovloc);
+                ctx.cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64,true,ovloc);
                 ctx.hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
               end
             else
-              cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64);
+              ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64);
           end
         else
 {$endif not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
@@ -946,7 +946,7 @@ implementation
              if op2.nodetype=ordconstn then
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                if def_cgsize(resultdef) in [OS_64,OS_S64] then
-                 cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                 ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
                    tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
                    op1.location.register64, location.register64)
                else
@@ -963,7 +963,7 @@ implementation
                        not(equal_defs(compiler.symtablestack,op2.resultdef,compiler.deftypes.alusinttype)) then
                        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
                                                op2.resultdef,compiler.deftypes.alusinttype,true);
-                     cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                     ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
                                              joinreg64(op2.location.register,NR_NO),op1.location.register64,
                                              location.register64);
                    end
@@ -983,7 +983,7 @@ implementation
         else
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           if def_cgsize(resultdef) in [OS_64,OS_S64] then
-            cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,
+            ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,
                                       op1.location.register64,location.register64)
           else
 {$endif not cpu64bitalu and not cpuhighleveltarget}

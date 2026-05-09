@@ -404,7 +404,7 @@ implementation
 
         { Emitting "left shl 1" as "left+left" is twice shorter }
         if (nodetype=shln) and (shiftval=1) then
-          cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_64,left.location.register64,left.location.register64,location.register64)
+          ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_64,left.location.register64,left.location.register64,location.register64)
         else if shiftval > 31 then
           begin
             if nodetype = shln then

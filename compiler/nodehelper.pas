@@ -48,22 +48,12 @@ interface
       tnodehelper = class helper for tnode
       private
         function GetCG: tcg; inline;
-{$ifdef cpu64bitalu}
-        function GetCG128: tcg128; inline;
-{$else cpu64bitalu}
-        function GetCG64: tcg64; inline;
-{$endif cpu64bitalu}
         //function GetHLCG: thlcgobj; inline;
         function GetParaManager: TParaManager; inline;
         function GetTG: ttgobj; inline;
       public
         //property hlcg: thlcgobj read GetHLCG;
         property cg: tcg read GetCG;
-{$ifdef cpu64bitalu}
-        property cg128: tcg128 read GetCG128;
-{$else cpu64bitalu}
-        property cg64: tcg64 read GetCG64;
-{$endif cpu64bitalu}
         property paramanager: TParaManager read GetParaManager;
         property tg: ttgobj read GetTG;
       end;
@@ -79,18 +69,6 @@ implementation
     begin
       result:=self.compiler.cg;
     end;
-
-{$ifdef cpu64bitalu}
-  function tnodehelper.GetCG128: tcg128; inline;
-    begin
-      result:=self.compiler.cg128;
-    end;
-{$else cpu64bitalu}
-  function tnodehelper.GetCG64: tcg64; inline;
-    begin
-      result:=self.compiler.cg64;
-    end;
-{$endif cpu64bitalu}
 
   //function tnodehelper.GetHLCG: thlcgobj; inline;
   //  begin

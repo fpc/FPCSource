@@ -421,9 +421,9 @@ implementation
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             if nodetype=shln then
-              cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,v,left.location.register64,location.register64)
+              ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,v,left.location.register64,location.register64)
             else
-              cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,v,left.location.register64,location.register64);
+              ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,v,left.location.register64,location.register64);
           end
         else
           begin
@@ -432,9 +432,9 @@ implementation
             tmpreg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
             ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,compiler.deftypes.u16inttype,right.location,tmpreg64.reglo);
             if nodetype=shln then
-              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,tmpreg64,location.register64)
+              ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,tmpreg64,location.register64)
             else
-              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,tmpreg64,location.register64);
+              ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,tmpreg64,location.register64);
           end;
       end;
 

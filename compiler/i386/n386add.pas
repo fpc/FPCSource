@@ -155,7 +155,7 @@ interface
             begin
               hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-              cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
+              ctx.cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
               location_reset(left.location,LOC_REGISTER,left.location.size);
               left.location.register64.reglo:=hregister;
               left.location.register64.reghi:=hregister2;
@@ -176,7 +176,7 @@ interface
            { when swapped another result register }
            if (nodetype=subn) and (nf_swapped in flags) then
             begin
-              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+              ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                 left.location.register64,
                 right.location.register64);
               location_swap(left.location,right.location);
@@ -184,7 +184,7 @@ interface
             end
            else
             begin
-              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+              ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                 right.location.register64,
                 left.location.register64);
             end;
@@ -195,11 +195,11 @@ interface
            if (nodetype=subn) and (nf_swapped in flags) then
             begin
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-              cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
+              ctx.cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_reg_reg(op1,opsize,left.location.register64.reglo,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reglo);
-              cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
+              ctx.cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
 
@@ -214,7 +214,7 @@ interface
               if mboverflow and needoverflowcheck then
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
-              cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
+              ctx.cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
                 left.location.register64);
             end;
           tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
@@ -621,8 +621,8 @@ interface
         begin
           hreg1:=cg.getintregister(list,OS_INT);
           hreg2:=cg.getintregister(list,OS_INT);
-          cg64.a_load64low_loc_reg(list,left.location,hreg1);
-          cg64.a_load64high_loc_reg(list,left.location,hreg2);
+          ctx.cg64.a_load64low_loc_reg(list,left.location,hreg1);
+          ctx.cg64.a_load64high_loc_reg(list,left.location,hreg2);
           case right.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
@@ -646,7 +646,7 @@ interface
 
       { load lo(right) into EAX }
       cg.getcpuregister(list,NR_EAX);
-      cg64.a_load64low_loc_reg(list,right.location,NR_EAX);
+      ctx.cg64.a_load64low_loc_reg(list,right.location,NR_EAX);
 
       { multiply EAX by lo(left), producing 64-bit value in EDX:EAX }
       cg.getcpuregister(list,NR_EDX);

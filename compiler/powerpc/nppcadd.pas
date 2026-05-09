@@ -392,7 +392,7 @@ interface
                     begin
                        tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                        tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,
+                       ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,
                          left.location.register64,right.location.register64,
                          tempreg64);
                     end;
@@ -413,10 +413,10 @@ interface
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,right.location.value64,
+                    ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,right.location.value64,
                       left.location.register64,location.register64)
                   else
-                    cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,location.size,right.location.register64,
+                    ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,location.size,right.location.register64,
                       left.location.register64,location.register64);
                 end;
               subn:
@@ -427,12 +427,12 @@ interface
                     begin
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
-                        cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                        ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                           right.location.register64,left.location.register64,
                           location.register64)
                       else
                         // reg64 - const64
-                        cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                        ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                           right.location.value64,left.location.register64,
                           location.register64)
                     end
@@ -474,7 +474,7 @@ interface
                       // const64 - reg64
                       ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
                         left.resultdef,left.resultdef,false);
-                      cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
+                      ctx.cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                         right.location.register64,left.location.register64,
                         location.register64);
                      end;

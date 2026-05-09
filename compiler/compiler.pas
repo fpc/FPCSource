@@ -239,11 +239,6 @@ type
     CompilerInited : boolean;
 
     function GetCG: tcg; inline;
-{$ifdef cpu64bitalu}
-    function GetCG128 : tcg128; inline;
-{$else cpu64bitalu}
-    function GetCG64 : tcg64; inline;
-{$endif cpu64bitalu}
     function Getcurrent_objectdef: tobjectdef; inline;
     procedure InitCompiler(const cmd:TCmdStr);
     procedure DoneCompiler;
@@ -288,13 +283,6 @@ type
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
     { Main code generator class }
     property cg: tcg read GetCG;
-{$ifdef cpu64bitalu}
-    { Code generator class for all operations working with 128-Bit operands }
-    property cg128 : tcg128 read GetCG128;
-{$else cpu64bitalu}
-    { Code generator class for all operations working with 64-Bit operands }
-    property cg64 : tcg64 read GetCG64;
-{$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
     property tg: ttgobj read Ftg write Ftg;
     property wpoinfomanager: twpoinfomanagerbase read Fwpoinfomanager write Fwpoinfomanager;
@@ -339,11 +327,6 @@ type
     function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
     function GetDefFile: TDefFile; inline;
     function GetDefTypes: tdefaulttypes; inline;
-{$ifdef cpu64bitalu}
-    function GetCG128 : tcg128; inline;
-{$else cpu64bitalu}
-    function GetCG64 : tcg64; inline;
-{$endif cpu64bitalu}
     function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
     function GetExportLib: TExportLib; inline;
     function Getgenerrordef: tdef; inline;
@@ -516,11 +499,6 @@ type
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
     property cg: tcg read GetCG;
-{$ifdef cpu64bitalu}
-    property cg128 : tcg128 read GetCG128;
-{$else cpu64bitalu}
-    property cg64 : tcg64 read GetCG64;
-{$endif cpu64bitalu}
     property paramanager: tparamanager read GetParaManager;
     property tg: ttgobj read GetTG;
     property wpoinfomanager: twpoinfomanagerbase read GetWpoInfoManager;
@@ -677,18 +655,6 @@ function TCompiler.GetCG: tcg; inline;
 begin
   Result:=hlcg.cg;
 end;
-
-{$ifdef cpu64bitalu}
-function TCompiler.GetCG128: tcg128;
-begin
-  Result:=cg.cg128;
-end;
-{$else cpu64bitalu}
-function TCompiler.GetCG64 : tcg64; inline;
-begin
-  Result:=cg.cg64;
-end;
-{$endif cpu64bitalu}
 
 
 function TCompiler.Compile(const cmd:TCmdStr):longint;
@@ -1195,18 +1161,6 @@ function TCompilerHelper.GetDefTypes: tdefaulttypes; inline;
 begin
   Result := TCompiler(Self).DefTypes;
 end;
-
-{$ifdef cpu64bitalu}
-function TCompilerHelper.GetCG128 : tcg128; inline;
-begin
-  Result := TCompiler(Self).cg128;
-end;
-{$else cpu64bitalu}
-function TCompilerHelper.GetCG64 : tcg64; inline;
-begin
-  Result := TCompiler(Self).cg64;
-end;
-{$endif cpu64bitalu}
 
 function TCompilerHelper.GetExceptionStateHandler: tcgexceptionstatehandler; inline;
 begin

@@ -252,7 +252,7 @@ implementation
                     //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool #1')));
                     reg64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     reg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                    cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,reg64);
+                    ctx.cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,reg64);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,reg64.reghi,reg64.reglo));
                     // it's not necessary to call TST after OR, which sets the flags as required already
                     //current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,reg64.reglo));

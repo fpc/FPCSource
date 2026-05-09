@@ -883,7 +883,7 @@ implementation
                 begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if (left.location.size in [OS_64,OS_S64]) or (right.location.size in [OS_64,OS_S64]) then
-                    cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
+                    ctx.cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                     ctx.hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,right.location.value,left.location);
@@ -898,11 +898,11 @@ implementation
 {$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                         if left.location.size in [OS_128,OS_S128] then
-                          cg128.a_load128_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register128)
+                          ctx.cg128.a_load128_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register128)
                         else
 {$else cpu64bitalu}
                         if left.location.size in [OS_64,OS_S64] then
-                          cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
+                          ctx.cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
 {$endif cpu64bitalu}
 {$endif not cpuhighleveltarget}
@@ -1001,7 +1001,7 @@ implementation
                     LOC_CSUBSETREF:
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if right.location.size in [OS_64,OS_S64] then
-                       cg64.a_load64_ref_subsetref(current_asmdata.CurrAsmList,right.location.reference,left.location.sref)
+                       ctx.cg64.a_load64_ref_subsetref(current_asmdata.CurrAsmList,right.location.reference,left.location.sref)
                       else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                        ctx.hlcg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.sref);
@@ -1044,13 +1044,13 @@ implementation
 {$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                   if left.location.size in [OS_128,OS_S128] then
-                    cg128.a_load128_reg_loc(current_asmdata.CurrAsmList,
+                    ctx.cg128.a_load128_reg_loc(current_asmdata.CurrAsmList,
                       right.location.register128,left.location)
                   else
 {$else cpu64bitalu}
                   { also OS_F64 in case of mmreg -> intreg }
                   if left.location.size in [OS_64,OS_S64,OS_F64] then
-                    cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,
+                    ctx.cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,
                       right.location.register64,left.location)
                   else
 {$endif cpu64bitalu}
@@ -1107,7 +1107,7 @@ implementation
                 begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if right.location.size in [OS_64,OS_S64] then
-                   cg64.a_load64_subsetref_loc(current_asmdata.CurrAsmList,right.location.sref,left.location)
+                   ctx.cg64.a_load64_subsetref_loc(current_asmdata.CurrAsmList,right.location.sref,left.location)
                   else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                   ctx.hlcg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
@@ -1121,7 +1121,7 @@ implementation
                     begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if left.location.size in [OS_64,OS_S64] then
-                        cg64.a_load64_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                        ctx.cg64.a_load64_const_loc(current_asmdata.CurrAsmList,1,left.location)
                       else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                         ctx.hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,1,left.location)
@@ -1130,7 +1130,7 @@ implementation
                     begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if left.location.size in [OS_64,OS_S64] then
-                        cg64.a_load64_const_loc(current_asmdata.CurrAsmList,-1,left.location)
+                        ctx.cg64.a_load64_const_loc(current_asmdata.CurrAsmList,-1,left.location)
                       else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                         ctx.hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,-1,left.location);
@@ -1140,7 +1140,7 @@ implementation
                   ctx.hlcg.a_label(current_asmdata.CurrAsmList,right.location.falselabel);
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if left.location.size in [OS_64,OS_S64] then
-                    cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
+                    ctx.cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
                   else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                     ctx.hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,0,left.location);
@@ -1161,9 +1161,9 @@ implementation
                           cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,r64.reglo);
                           cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                           cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
-                          cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
+                          ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
                             r64,r64);
-                          cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,r64,left.location);
+                          ctx.cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,r64,left.location);
                         end
                       else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -1204,7 +1204,7 @@ implementation
                               cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,r64.reglo);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
-                              cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,r64,left.location.reference);
+                              ctx.cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,r64,left.location.reference);
                             end
                           else
 {$endif not cpu64bitalu and not x86 and not cpuhighleveltarget}
@@ -1544,11 +1544,11 @@ implementation
 {$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                        if hp.left.location.size in [OS_128,OS_S128] then
-                         cg128.a_load128_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
+                         ctx.cg128.a_load128_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$else cpu64bitalu}
                        if hp.left.location.size in [OS_64,OS_S64] then
-                         cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
+                         ctx.cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$endif cpu64bitalu}
 {$endif not cpuhighleveltarget}

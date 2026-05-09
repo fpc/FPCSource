@@ -207,7 +207,7 @@ implementation
         location_reset(location,LOC_REGISTER,left.location.size);
         location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
+        ctx.cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
           left.location,joinreg64(location.register64.reglo,location.register64.reghi));
         { there's only overflow in case left was low(int64) -> -left = left }
         if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
@@ -640,7 +640,7 @@ implementation
         location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         { perform the NOT operation }
-        cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
+        ctx.cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 
