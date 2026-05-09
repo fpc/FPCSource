@@ -48,7 +48,7 @@ interface
         procedure a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
 implementation
 
@@ -151,9 +151,9 @@ implementation
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgwasm.Create(compiler);
+        result:=tcgwasm.Create(compiler);
       end;
 
 end.

@@ -60,7 +60,7 @@ unit cgcpu;
         function saved_xmm_reg_size: longint;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
@@ -568,9 +568,9 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgx86_64.create(compiler);
+        result:=tcgx86_64.create(compiler);
       end;
 
 end.

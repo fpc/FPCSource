@@ -58,7 +58,7 @@ unit cgcpu;
        procedure a_load64_reg_ref(list: TAsmList; reg: tregister64; const ref: treference);override;
      end;
 
-  procedure create_codegen(compiler: TCompilerBase);
+  function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
@@ -528,9 +528,9 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg := tcgrv32.create(compiler);
+        result := tcgrv32.create(compiler);
       end;
 
 end.

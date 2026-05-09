@@ -47,7 +47,7 @@ unit cgcpu;
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: aint); override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
 implementation
 
@@ -308,9 +308,9 @@ implementation
         end;
       end;
 
-procedure create_codegen(compiler: TCompilerBase);
+function create_codegen(compiler: TCompilerBase):tcg;
 begin
-  tcompiler(compiler).cg := tcgrv64.create(compiler);
+  result := tcgrv64.create(compiler);
 end;
 
 end.

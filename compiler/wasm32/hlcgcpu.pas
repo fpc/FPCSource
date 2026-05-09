@@ -59,7 +59,7 @@ uses
      public
       fntypelookup : TWasmProcTypeLookup;
 
-      constructor create(acompiler: TCompilerBase);
+      constructor create(acompiler: TCompilerBase); override;
       destructor Destroy; override;
 
       function RefStackPointerSym: TWasmGlobalAsmSymbol;
@@ -372,6 +372,7 @@ implementation
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
       fntypelookup:=TWasmProcTypeLookup.Create;
+      fcg:=create_codegen(compiler);
     end;
 
   destructor thlcgwasm.Destroy;
@@ -2931,7 +2932,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgwasm.create(compiler);
-      create_codegen(compiler);
     end;
 
 initialization

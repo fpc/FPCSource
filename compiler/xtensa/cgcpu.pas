@@ -104,7 +104,7 @@ interface
         //procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
     const
       TOpCG2AsmOp: array[topcg] of TAsmOp = (
@@ -1537,9 +1537,9 @@ implementation
       end;
 
 {$warnings off}
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgcpu.Create(compiler);
+        result:=tcgcpu.Create(compiler);
       end;
 
 end.

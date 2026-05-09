@@ -38,6 +38,9 @@ uses
 
   type
     thlcgmips = class(thlcg2ll)
+    public
+      constructor create(ACompiler: TCompilerBase); override;
+
       function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);override;
     protected
@@ -60,6 +63,13 @@ implementation
     cpuinfo,
     cgcpu,systems,
     compiler;
+
+  constructor thlcgmips.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
+
 
   function thlcgmips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var
@@ -288,7 +298,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgmips.create(compiler);
-      create_codegen(compiler);
     end;
 
 begin

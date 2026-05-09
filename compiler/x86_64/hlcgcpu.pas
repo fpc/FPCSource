@@ -36,6 +36,7 @@ interface
 
   type
     thlcgcpu = class(thlcgx86)
+     constructor create(ACompiler: TCompilerBase);override;
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
@@ -48,6 +49,13 @@ implementation
     symconst,
     hlcgobj,
     cgbase,cgutils,cgobj,cpubase,cgcpu,cpupi;
+
+  constructor thlcgcpu.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      Fcg:=create_codegen(compiler);
+    end;
+
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
     var
@@ -115,7 +123,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 begin

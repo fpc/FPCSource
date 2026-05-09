@@ -39,6 +39,8 @@ interface
 
   type
     thlcgcpu = class(thlcg2ll)
+      constructor create(ACompiler: TCompilerBase); override;
+
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
       procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); override;
       procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
@@ -64,6 +66,13 @@ implementation
 
   const
     bit_set_clr_instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
+
+  constructor thlcgcpu.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
+
 
   procedure thlcgcpu.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
     var
@@ -267,7 +276,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 begin

@@ -112,7 +112,7 @@ interface
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
     const
       TOpCG2AsmOpReg: array[topcg] of TAsmOp = (
@@ -2711,9 +2711,9 @@ implementation
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgaarch64.Create(compiler);
+        result:=tcgaarch64.Create(compiler);
       end;
 
 end.

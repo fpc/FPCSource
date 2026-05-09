@@ -238,6 +238,7 @@ type
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
+    function GetCG: tcg; inline;
 {$ifdef cpu64bitalu}
     function GetCG128 : tcg128; inline;
 {$else cpu64bitalu}
@@ -286,7 +287,7 @@ type
     {# Main high level code generator class }
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
     { Main code generator class }
-    property cg: tcg read Fcg write Fcg;
+    property cg: tcg read GetCG;
 {$ifdef cpu64bitalu}
     { Code generator class for all operations working with 128-Bit operands }
     property cg128 : tcg128 read GetCG128;
@@ -672,8 +673,13 @@ begin
   Result:=tobjectdef(current_structdef);
 end;
 
+function TCompiler.GetCG: tcg; inline;
+begin
+  Result:=hlcg.cg;
+end;
+
 {$ifdef cpu64bitalu}
-function TCompiler.Getcg128: tcg128; inline;
+function TCompiler.GetCG128: tcg128;
 begin
   Result:=cg.cg128;
 end;

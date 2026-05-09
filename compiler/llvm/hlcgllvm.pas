@@ -38,7 +38,7 @@ uses
     { thlcgllvm }
 
     thlcgllvm = class(thlcgobj)
-      constructor create(ACompiler: TCompilerBase);
+      constructor create(ACompiler: TCompilerBase); override;
 
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
@@ -198,7 +198,8 @@ implementation
 
   constructor thlcgllvm.create(ACompiler: TCompilerBase);
     begin
-      inherited
+      inherited;
+      fcg:=cgllvm.create_codegen(compiler)
     end;
 
 
@@ -2293,7 +2294,6 @@ implementation
         begin
           tgobjclass:=ttgllvm;
           tcompiler(compiler).hlcg:=thlcgllvm.create(compiler);
-          cgllvm.create_codegen(compiler)
         end
       else
         begin

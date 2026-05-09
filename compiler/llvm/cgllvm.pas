@@ -42,7 +42,7 @@ interface
         function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
 implementation
 
@@ -119,9 +119,9 @@ implementation
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgllvm.Create(compiler);
+        result:=tcgllvm.Create(compiler);
       end;
 
 end.

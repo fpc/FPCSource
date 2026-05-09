@@ -66,6 +66,8 @@ interface
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
+      constructor create(ACompiler: TCompilerBase);override;
+
       function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
 
       procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset: longint; temppos: treftemppos; alignment: longint; volatility: tvolatilityset); override;
@@ -106,6 +108,13 @@ implementation
     compiler;
 
   { thlcgcpu }
+
+  constructor thlcgcpu.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      FCG:=create_codegen(compiler);
+    end;
+
 
   function thlcgcpu.is_methodptr_like_type(d: tdef): boolean;
     var
@@ -740,7 +749,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 

@@ -1755,7 +1755,6 @@ implementation
 
     procedure tcgprocinfo.generate_exceptfilter(nestedpi: tcgprocinfo);
       var
-        saved_cg: tcg;
         saved_hlcg: thlcgobj;
       begin
         if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
@@ -1763,14 +1762,11 @@ implementation
         { flush code generated this far }
         aktproccode.concatlist(current_asmdata.CurrAsmList);
         { save the codegen }
-        saved_cg:=compiler.cg;
         saved_hlcg:=compiler.hlcg;
-        tcompiler(compiler).cg:=nil;
         tcompiler(compiler).hlcg:=nil;
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
-        tcompiler(compiler).cg:=saved_cg;
         tcompiler(compiler).hlcg:=saved_hlcg;
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;

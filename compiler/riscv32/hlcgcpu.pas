@@ -35,6 +35,7 @@ interface
 
   type
     thlcgcpu = class(thlcgriscv)
+      constructor create(ACompiler: TCompilerBase); override;
     end;
 
   procedure create_hlcodegen(compiler: TCompilerBase);
@@ -49,11 +50,16 @@ implementation
     compiler;
 
 
+  constructor thlcgcpu.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
+
 
   procedure create_hlcodegen(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 

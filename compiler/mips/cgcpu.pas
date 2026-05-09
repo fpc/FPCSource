@@ -108,7 +108,7 @@ type
   end;
 {$endif mips64}
 
-  procedure create_codegen(compiler: TCompilerBase);
+  function create_codegen(compiler: TCompilerBase):tcg;
 
   const
       TOpCmp2AsmCond : array[topcmp] of TAsmCond=(C_NONE,
@@ -2049,9 +2049,9 @@ end;
 {$endif mips64}
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=TCGMIPS.Create(compiler);
+        result:=TCGMIPS.Create(compiler);
       end;
 
 end.

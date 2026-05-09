@@ -38,6 +38,8 @@ interface
 
   type
     thlcgxtensa = class(thlcg2ll)
+      constructor create(ACompiler: TCompilerBase);override;
+
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);override;
     end;
@@ -56,7 +58,13 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgxtensa.create(compiler);
-      create_codegen(compiler);
+    end;
+
+
+  constructor thlcgxtensa.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
     end;
 
 

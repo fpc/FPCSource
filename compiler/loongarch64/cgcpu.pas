@@ -101,7 +101,7 @@ unit cgcpu;
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
   { OP_NONE,OP_MOVE,OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,
     OP_NOT,OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR,OP_ROL,OP_ROR }
@@ -1686,9 +1686,9 @@ implementation
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg := tcgloongarch64.create(compiler);
+        result := tcgloongarch64.create(compiler);
       end;
 
 end.

@@ -37,6 +37,8 @@ interface
 
   type
     tbasehlcgarm = class(thlcg2ll)
+      constructor create(ACompiler: TCompilerBase); override;
+
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
@@ -57,6 +59,13 @@ implementation
     hlcgobj,
     cgbase, cgutils, cpubase, cgobj, cgcpu,
     compiler;
+
+  constructor tbasehlcgarm.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
+
 
   procedure tbasehlcgarm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
@@ -263,7 +272,6 @@ implementation
         tcompiler(compiler).hlcg:=tthumbhlcgcpu.create(compiler)
       else
         tcompiler(compiler).hlcg:=tarmhlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 begin

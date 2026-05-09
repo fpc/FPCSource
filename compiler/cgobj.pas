@@ -638,8 +638,6 @@ unit cgobj;
 
     function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
 
-    procedure destroy_codegen(ACompiler: TCompilerBase);
-
 implementation
 
     uses
@@ -3643,12 +3641,6 @@ implementation
           include(result,is_data);
         if sym.bind=AB_WEAK_EXTERNAL then
           include(result,is_weak);
-      end;
-
-    procedure destroy_codegen(ACompiler: TCompilerBase);
-      begin
-        tcompiler(acompiler).cg.free;
-        tcompiler(acompiler).cg:=nil;
       end;
 
 end.

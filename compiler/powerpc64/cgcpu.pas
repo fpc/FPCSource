@@ -133,7 +133,7 @@ type
     procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
 
-  procedure create_codegen(compiler: TCompilerBase);
+  function create_codegen(compiler: TCompilerBase):tcg;
 
 const
   TShiftOpCG2AsmOpConst : array[boolean, OP_SAR..OP_SHR] of TAsmOp = (
@@ -1889,9 +1889,9 @@ begin
 end;
 
 
-procedure create_codegen(compiler: TCompilerBase);
+function create_codegen(compiler: TCompilerBase):tcg;
 begin
-  tcompiler(compiler).cg := tcgppc.create(compiler);
+  result := tcgppc.create(compiler);
 end;
 
 end.

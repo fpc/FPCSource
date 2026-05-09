@@ -45,7 +45,7 @@ interface
        procedure a_load_const_reg(list : TAsmList; size : TCGSize; a : tcgint; reg : TRegister);override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
@@ -209,9 +209,9 @@ interface
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=TCgSparc64.Create(compiler);
+        result:=TCgSparc64.Create(compiler);
       end;
 
 end.

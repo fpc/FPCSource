@@ -134,7 +134,7 @@ unit cgcpu;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_LD,A_ADD,A_AND,A_NONE,
@@ -2494,9 +2494,9 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgz80.create(compiler);
+        result:=tcgz80.create(compiler);
       end;
 
 end.

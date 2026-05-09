@@ -36,6 +36,8 @@ uses
 
 type
   thlcgcpu = class(thlcgriscv)
+    constructor create(ACompiler: TCompilerBase); override;
+
     procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); override;
   end;
 
@@ -52,6 +54,13 @@ implementation
     cgobj,cgcpu,compiler;
 
   { thlcgcpu }
+
+
+  constructor thlcgcpu.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
 
 
   procedure thlcgcpu.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
@@ -72,7 +81,6 @@ implementation
   procedure create_hlcodegen(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen(compiler);
     end;
 
 

@@ -66,7 +66,6 @@ unit hlcgobj;
        thlcgobj = class
        private
           FCompiler: TCompilerBase;
-          function GetCG: TCG; inline;
 {$ifdef cpu64bitalu}
           function GetCG128: TCG128; inline;
 {$else cpu64bitalu}
@@ -75,19 +74,22 @@ unit hlcgobj;
           function GetParaManager: TParaManager; inline;
           function GetTG: TTGObj; inline;
        protected
+          FCG: TCG;
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
           property TG: TTGObj read GetTG;
-          property CG: TCG read GetCG;
 {$ifdef cpu64bitalu}
           property CG128: TCG128 read GetCG128;
 {$else cpu64bitalu}
           property CG64: TCG64 read GetCG64;
 {$endif cpu64bitalu}
        public
+          property CG: TCG read FCG;
+       public
           {************************************************}
           {                 basic routines                 }
-          constructor create(ACompiler: TCompilerBase);
+          constructor create(ACompiler: TCompilerBase);virtual;
+          destructor destroy;override;
 
           {# Initialize the register allocators needed for the codegenerator.}
           procedure init_register_allocators;virtual;
@@ -739,6 +741,7 @@ unit hlcgobj;
 implementation
 
     uses
+       sysutils,
        globals,systemstypes,systems,
        fmodule,
        verbose,defutil,
@@ -758,7 +761,6 @@ implementation
       begin
         tcompiler(acompiler).hlcg.free;
         tcompiler(acompiler).hlcg:=nil;
-        destroy_codegen(acompiler);
       end;
 
   { thlcgobj }
@@ -771,11 +773,6 @@ implementation
   function thlcgobj.GetTG: TTGObj; inline;
     begin
       result:=compiler.tg;
-    end;
-
-  function thlcgobj.GetCG: TCG; inline;
-    begin
-      result:=compiler.cg;
     end;
 
 {$ifdef cpu64bitalu}
@@ -793,6 +790,11 @@ implementation
   constructor thlcgobj.create(ACompiler: TCompilerBase);
     begin
       FCompiler:=ACompiler;
+    end;
+
+  destructor thlcgobj.destroy;
+    begin
+      FreeAndNil(FCG);
     end;
 
   procedure thlcgobj.init_register_allocators;

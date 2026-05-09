@@ -240,7 +240,7 @@ unit cgcpu;
       winstackpagesize = 4096;
 
     function get_fpu_postfix(def : tdef) : toppostfix;
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
@@ -5514,23 +5514,23 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
         if GenerateThumb2Code then
           begin
-            tcompiler(compiler).cg:=tthumb2cgarm.create(compiler);
+            result:=tthumb2cgarm.create(compiler);
 
             casmoptimizer:=TCpuThumb2AsmOptimizer;
           end
         else if GenerateThumbCode then
           begin
-            tcompiler(compiler).cg:=tthumbcgarm.create(compiler);
+            result:=tthumbcgarm.create(compiler);
 
             // casmoptimizer:=TCpuThumbAsmOptimizer;
           end
         else
           begin
-            tcompiler(compiler).cg:=tarmcgarm.create(compiler);
+            result:=tarmcgarm.create(compiler);
 
             casmoptimizer:=TCpuAsmOptimizer;
           end;

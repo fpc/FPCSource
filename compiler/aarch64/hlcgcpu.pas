@@ -41,6 +41,8 @@ interface
     { thlcgaarch64 }
 
     thlcgaarch64 = class(thlcg2ll)
+      constructor create(ACompiler: TCompilerBase); override;
+
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
 
@@ -60,6 +62,13 @@ implementation
     cpubase,aasmcpu,parabase,
     cgobj,cgcpu,
     compiler;
+
+  constructor thlcgaarch64.create(ACompiler: TCompilerBase);
+    begin
+      inherited;
+      fcg:=create_codegen(compiler);
+    end;
+
 
   procedure thlcgaarch64.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
     var
@@ -231,7 +240,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgaarch64.create(compiler);
-      create_codegen(compiler);
     end;
 
 

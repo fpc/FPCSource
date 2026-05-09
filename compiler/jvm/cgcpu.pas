@@ -44,7 +44,7 @@ interface
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
       end;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
 implementation
 
@@ -121,9 +121,9 @@ implementation
       end;
 
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
       begin
-        tcompiler(compiler).cg:=tcgjvm.Create(compiler);
+        result:=tcgjvm.Create(compiler);
       end;
 
 end.

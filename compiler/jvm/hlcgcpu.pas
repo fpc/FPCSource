@@ -42,7 +42,7 @@ uses
       fevalstackheight,
       fmaxevalstackheight: longint;
      public
-      constructor create(acompiler: TCompilerBase);
+      constructor create(acompiler: TCompilerBase); override;
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
@@ -262,6 +262,7 @@ implementation
       inherited;
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
+      fcg:=create_codegen(compiler);
     end;
 
   procedure thlcgjvm.incstack(list: TasmList;slots: longint);
@@ -2575,7 +2576,6 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgjvm.create(compiler);
-      create_codegen(compiler);
     end;
 
 begin

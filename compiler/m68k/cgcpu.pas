@@ -135,7 +135,7 @@ unit cgcpu;
      function isvalidrefoffset(const ref: treference): boolean;
      function isvalidreference(const ref: treference): boolean;
 
-    procedure create_codegen(compiler: TCompilerBase);
+    function create_codegen(compiler: TCompilerBase):tcg;
 
   implementation
 
@@ -2732,9 +2732,9 @@ unit cgcpu;
       end;
 
 
-procedure create_codegen(compiler: TCompilerBase);
+function create_codegen(compiler: TCompilerBase):tcg;
   begin
-    tcompiler(compiler).cg := tcg68k.create(compiler);
+    result := tcg68k.create(compiler);
   end;
 
 end.
