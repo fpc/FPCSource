@@ -44,9 +44,19 @@ type
   private
     function GetCg: tcg; inline;
     function GetHlcg: thlcgobj; inline;
+{$ifdef cpu64bitalu}
+    function GetCG128: tcg128; inline;
+{$else cpu64bitalu}
+    function GetCG64: tcg64; inline;
+{$endif cpu64bitalu}
   public
     property hlcg: thlcgobj read GetHlcg;
     property cg: tcg read GetCg;
+{$ifdef cpu64bitalu}
+    property cg128: tcg128 read GetCG128;
+{$else cpu64bitalu}
+    property cg64: tcg64 read GetCG64;
+{$endif cpu64bitalu}
   end;
 
 implementation
@@ -73,5 +83,17 @@ function tpassgeneratecodecontexthelper.GetHlcg: thlcgobj; inline;
 begin
   result:=tpassgeneratecodecontextimpl(self).hlcg;
 end;
+
+{$ifdef cpu64bitalu}
+function tpassgeneratecodecontexthelper.GetCG128: tcg128; inline;
+begin
+  result:=cg.cg128;
+end;
+{$else cpu64bitalu}
+function tpassgeneratecodecontexthelper.GetCG64: tcg64; inline;
+begin
+  result:=cg.cg64;
+end;
+{$endif cpu64bitalu}
 
 end.
