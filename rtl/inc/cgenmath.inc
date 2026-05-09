@@ -78,17 +78,21 @@
 {$endif aix}
 
 
-{$ifndef SOLARIS}
 
-{$if defined(LINUX) or defined(BSD) or defined(AIX)}
+{$if defined(LINUX) or defined(BSD) or defined(AIX) or defined(SOLARIS)}
 const
   mathlibname = 'm';
+{$endif}
+{$ifdef HAIKU}
+const
+  mathlibname = 'root';
 {$endif}
 {$if not declared(mathlibname)}
 const
   mathlibname = 'c';
 {$endif}
 
+{$ifndef SOLARIS}
 {$ifndef FPC_SYSTEM_HAS_INT}
 {$define FPC_SYSTEM_HAS_INT}
 
