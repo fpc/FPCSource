@@ -126,7 +126,7 @@ const
     constructor tcgppc.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64 :=tcg64fppc.create(compiler);
+        Fcg64 :=tcg64fppc.create(self,compiler);
       end;
 
 

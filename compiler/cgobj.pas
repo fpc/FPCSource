@@ -546,17 +546,17 @@ unit cgobj;
 
     tcg64 = class
        private
+        FCG: tcg;
         FCompiler: TCompilerBase;
-        function GetCG: tcg; inline;
         function GetTarget: TReadOnlyCompilerTarget; inline;
         function GetTG: ttgobj; inline;
        protected
         property Compiler: TCompilerBase read FCompiler;
-        property cg: tcg read GetCG;
+        property cg: tcg read FCG;
         property tg: ttgobj read GetTG;
         property Target: TReadOnlyCompilerTarget read GetTarget;
        public
-        constructor create(ACompiler: TCompilerBase);
+        constructor create(Acg: tcg; ACompiler: TCompilerBase);
 
         procedure a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);virtual;abstract;
@@ -3189,15 +3189,10 @@ implementation
 *****************************************************************************}
 
 {$ifndef cpu64bitalu}
-    constructor tcg64.create(ACompiler: TCompilerBase);
+    constructor tcg64.create(Acg: tcg; ACompiler: TCompilerBase);
       begin
+        FCG:=Acg;
         FCompiler:=ACompiler;
-      end;
-
-
-    function tcg64.GetCG: tcg; inline;
-      begin
-        result:=compiler.cg;
       end;
 
 

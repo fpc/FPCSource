@@ -251,7 +251,7 @@ unit cgcpu;
     constructor tcg68k.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64 :=tcg64f68k.create(compiler);
+        Fcg64 :=tcg64f68k.create(self,compiler);
       end;
 
 

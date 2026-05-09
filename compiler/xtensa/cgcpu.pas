@@ -150,7 +150,7 @@ implementation
     constructor tcgcpu.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tcg64fxtensa.Create(compiler);
+        Fcg64:=tcg64fxtensa.Create(self,compiler);
       end;
 
 

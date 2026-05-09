@@ -283,7 +283,7 @@ unit cgcpu;
     constructor tarmcgarm.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tarmcg64farm.create(compiler);
+        Fcg64:=tarmcg64farm.create(self,compiler);
       end;
 
 
@@ -3700,7 +3700,7 @@ unit cgcpu;
     constructor tthumbcgarm.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tthumbcg64farm.create(compiler);
+        Fcg64:=tthumbcg64farm.create(self,compiler);
       end;
 
 
@@ -4396,7 +4396,7 @@ unit cgcpu;
     constructor tthumb2cgarm.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tthumb2cg64farm.create(compiler);
+        Fcg64:=tthumb2cg64farm.create(self,compiler);
       end;
 
 

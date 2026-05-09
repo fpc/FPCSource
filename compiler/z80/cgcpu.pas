@@ -155,7 +155,7 @@ unit cgcpu;
     constructor tcgz80.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tcg64fz80.create(compiler);
+        Fcg64:=tcg64fz80.create(self,compiler);
       end;
 
 

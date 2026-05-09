@@ -137,9 +137,9 @@ constructor TCGMIPS.create(ACompiler: TCompilerBase);
 begin
   inherited;
 {$ifdef mips64}
-  Fcg128:=tcg128.create(compiler);
+  Fcg128:=tcg128.create(self,compiler);
 {$else mips64}
-  Fcg64:=TCg64MPSel.Create(compiler);
+  Fcg64:=TCg64MPSel.Create(self,compiler);
 {$endif mips64}
 end;
 

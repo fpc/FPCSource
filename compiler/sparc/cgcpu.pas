@@ -75,7 +75,7 @@ interface
           use_unlimited_pic_mode:=true
         else
           use_unlimited_pic_mode:=false;
-        Fcg64:=TCg64Sparc.Create(compiler);
+        Fcg64:=TCg64Sparc.Create(self,compiler);
       end;
 
 

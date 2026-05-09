@@ -142,7 +142,7 @@ implementation
     constructor tcgaarch64.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg128:=tcg128.Create(compiler);
+        Fcg128:=tcg128.Create(self,compiler);
       end;
 
 

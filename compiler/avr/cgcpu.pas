@@ -153,7 +153,7 @@ unit cgcpu;
     constructor tcgavr.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64:=tcg64favr.create(compiler);
+        Fcg64:=tcg64favr.create(self,compiler);
       end;
 
 

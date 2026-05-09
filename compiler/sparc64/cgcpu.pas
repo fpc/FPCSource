@@ -61,7 +61,7 @@ interface
           use_unlimited_pic_mode:=true
         else
           use_unlimited_pic_mode:=false;
-        Fcg128:=tcg128.create(compiler);
+        Fcg128:=tcg128.create(self,compiler);
       end;
 
 

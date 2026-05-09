@@ -152,7 +152,7 @@ uses
 constructor tcgppc.create(ACompiler: TCompilerBase);
 begin
   inherited;
-  Fcg128:=tcg128.create(compiler);
+  Fcg128:=tcg128.create(self,compiler);
 end;
 
 function is_signed_cgsize(const size : TCgSize) : Boolean;

@@ -65,7 +65,7 @@ implementation
     constructor tcgrv64.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg128:=tcg128.create(compiler);
+        Fcg128:=tcg128.create(self,compiler);
       end;
 
 

@@ -132,7 +132,7 @@ unit cgcpu;
     constructor tcg8086.create(ACompiler: TCompilerBase);
       begin
         inherited;
-        Fcg64 := tcg64f8086.create(compiler);
+        Fcg64 := tcg64f8086.create(self,compiler);
       end;
 
 
