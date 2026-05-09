@@ -48,11 +48,9 @@ interface
       tnodehelper = class helper for tnode
       private
         function GetCG: tcg; inline;
-        //function GetHLCG: thlcgobj; inline;
         function GetParaManager: TParaManager; inline;
         function GetTG: ttgobj; inline;
       public
-        //property hlcg: thlcgobj read GetHLCG;
         property cg: tcg read GetCG;
         property paramanager: TParaManager read GetParaManager;
         property tg: ttgobj read GetTG;
@@ -69,11 +67,6 @@ implementation
     begin
       result:=self.compiler.cg;
     end;
-
-  //function tnodehelper.GetHLCG: thlcgobj; inline;
-  //  begin
-  //    result:=self.compiler.hlcg;
-  //  end;
 
   function tnodehelper.GetParaManager: TParaManager; inline;
     begin
