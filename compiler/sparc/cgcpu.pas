@@ -38,6 +38,8 @@ interface
 
     type
       TCGSparc=class(TCGSparcGen)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure a_load_reg_reg(list : TAsmList; fromsize,tosize : tcgsize; reg1,reg2 : tregister);override;
         procedure a_load_const_reg(list : TAsmList; size : TCGSize; a : tcgint; reg : TRegister);override;
       end;
@@ -65,6 +67,17 @@ interface
       verbose,
       systemstypes,systems,
       compiler;
+
+    constructor TCGSparc.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        if compiler.target.info.system=system_sparc_linux then
+          use_unlimited_pic_mode:=true
+        else
+          use_unlimited_pic_mode:=false;
+        Fcg64:=TCg64Sparc.Create(compiler);
+      end;
+
 
     procedure TCGSparc.a_load_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1,reg2:tregister);
       var
@@ -328,11 +341,6 @@ interface
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=TCgSparc.Create(compiler);
-        if compiler.target.info.system=system_sparc_linux then
-          TCgSparc(compiler.cg).use_unlimited_pic_mode:=true
-        else
-          TCgSparc(compiler.cg).use_unlimited_pic_mode:=false;
-        tcompiler(compiler).cg64:=TCg64Sparc.Create(compiler);
       end;
 
 end.

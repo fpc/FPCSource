@@ -46,6 +46,9 @@ unit cgcpu;
       public
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
+
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -147,6 +150,13 @@ unit cgcpu;
        procinfo,cpupi,
        paramgr,
        compiler;
+
+
+    constructor tcgz80.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tcg64fz80.create(compiler);
+      end;
 
 
     function tcgz80.use_push(const cgpara:tcgpara):boolean;
@@ -2487,7 +2497,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgz80.create(compiler);
-        tcompiler(compiler).cg64:=tcg64fz80.create(compiler);
       end;
 
 end.

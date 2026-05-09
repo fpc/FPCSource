@@ -34,6 +34,8 @@ unit cgcpu;
 
     type
       tcgrv32 = class(tcgrv)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -76,6 +78,13 @@ unit cgcpu;
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
 {$R-}
+
+    constructor tcgrv32.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64 :=tcg64frv.create(compiler);
+      end;
+
 
     procedure tcgrv32.init_register_allocators;
       begin
@@ -522,7 +531,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcgrv32.create(compiler);
-        tcompiler(compiler).cg64 :=tcg64frv.create(compiler);
       end;
 
 end.

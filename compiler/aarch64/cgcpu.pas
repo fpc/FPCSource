@@ -43,6 +43,7 @@ interface
         { changes register size without adding register allocation info }
         function makeregsize(reg: tregister; size: tcgsize): tregister; overload;
        public
+        constructor create(ACompiler: TCompilerBase);override;
         { simplifies "ref" so it can be used with "op". If "ref" can be used
           with a different load/Store operation that has the same meaning as the
           original one, "op" will be replaced with the alternative }
@@ -136,6 +137,13 @@ implementation
     ncgutil,
     procinfo,cpupi,
     compiler;
+
+
+    constructor tcgaarch64.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg128:=tcg128.Create(compiler);
+      end;
 
 
     procedure tcgaarch64.make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister);
@@ -2706,7 +2714,6 @@ implementation
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgaarch64.Create(compiler);
-        tcompiler(compiler).cg128:=tcg128.Create(compiler);
       end;
 
 end.

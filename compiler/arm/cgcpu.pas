@@ -147,6 +147,8 @@ unit cgcpu;
 
       { normal arm cg }
       tarmcgarm = class(tcgarm)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
       end;
@@ -171,6 +173,8 @@ unit cgcpu;
       end;
 
       tthumbcgarm = class(tbasecgarm)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -197,6 +201,8 @@ unit cgcpu;
       end;
 
       tthumb2cgarm = class(tcgarm)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -271,6 +277,13 @@ unit cgcpu;
           end
         else
           internalerror(200401271);
+      end;
+
+
+    constructor tarmcgarm.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tarmcg64farm.create(compiler);
       end;
 
 
@@ -3684,6 +3697,13 @@ unit cgcpu;
       end;
 
 
+    constructor tthumbcgarm.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tthumbcg64farm.create(compiler);
+      end;
+
+
     procedure tthumbcgarm.init_register_allocators;
       begin
         inherited init_register_allocators;
@@ -4370,6 +4390,13 @@ unit cgcpu;
         list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,1),PF_S));
         a_reg_dealloc(list,NR_DEFAULTFLAGS);
         a_label(list,l2);
+      end;
+
+
+    constructor tthumb2cgarm.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tthumb2cg64farm.create(compiler);
       end;
 
 
@@ -5492,21 +5519,18 @@ unit cgcpu;
         if GenerateThumb2Code then
           begin
             tcompiler(compiler).cg:=tthumb2cgarm.create(compiler);
-            tcompiler(compiler).cg64:=tthumb2cg64farm.create(compiler);
 
             casmoptimizer:=TCpuThumb2AsmOptimizer;
           end
         else if GenerateThumbCode then
           begin
             tcompiler(compiler).cg:=tthumbcgarm.create(compiler);
-            tcompiler(compiler).cg64:=tthumbcg64farm.create(compiler);
 
             // casmoptimizer:=TCpuThumbAsmOptimizer;
           end
         else
           begin
             tcompiler(compiler).cg:=tarmcgarm.create(compiler);
-            tcompiler(compiler).cg64:=tarmcg64farm.create(compiler);
 
             casmoptimizer:=TCpuAsmOptimizer;
           end;

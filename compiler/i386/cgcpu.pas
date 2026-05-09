@@ -38,6 +38,8 @@ unit cgcpu;
       private
         function use_push(const cgpara:tcgpara):boolean;
       public
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
 
         { passing parameter using push instead of mov }
@@ -72,6 +74,13 @@ unit cgcpu;
        globals,verbose,systemstypes,systems,cutils,
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,compiler;
+
+    constructor tcg386.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64 := tcg64f386.create(compiler);
+      end;
+
 
     function tcg386.use_push(const cgpara:tcgpara):boolean;
       begin
@@ -1210,7 +1219,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcg386.create(compiler);
-        tcompiler(compiler).cg64 := tcg64f386.create(compiler);
       end;
 
 end.

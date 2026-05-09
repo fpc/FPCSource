@@ -35,6 +35,8 @@ unit cgcpu;
 
     type
       tcgppc = class(tcgppcgen)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -119,6 +121,13 @@ const
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr,
        compiler;
+
+
+    constructor tcgppc.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64 :=tcg64fppc.create(compiler);
+      end;
 
 
     procedure tcgppc.init_register_allocators;
@@ -1789,7 +1798,6 @@ const
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcgppc.create(compiler);
-        tcompiler(compiler).cg64 :=tcg64fppc.create(compiler);
       end;
 
 end.

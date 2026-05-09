@@ -42,6 +42,9 @@ unit cgcpu;
       tcgavr = class(tcg)
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
+
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -145,6 +148,13 @@ unit cgcpu;
        procinfo,cpupi,
        paramgr,
        compiler;
+
+
+    constructor tcgavr.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tcg64favr.create(compiler);
+      end;
 
 
     procedure tcgavr.init_register_allocators;
@@ -3119,7 +3129,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgavr.create(compiler);
-        tcompiler(compiler).cg64:=tcg64favr.create(compiler);
       end;
 
 end.

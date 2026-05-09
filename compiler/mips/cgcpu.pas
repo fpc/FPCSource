@@ -41,6 +41,7 @@ uses
 type
   TCGMIPS = class(tcg)
   public
+    constructor create(ACompiler: TCompilerBase); override;
 
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
@@ -130,6 +131,17 @@ const
     A_NONE,A_NONE,A_ADDU,A_AND,A_NONE,A_NONE,A_MULT,A_MULTU,A_NONE,A_NONE,
     A_OR,A_SRAV,A_SLLV,A_SRLV,A_SUBU,A_XOR,A_NONE,A_NONE
   );
+
+
+constructor TCGMIPS.create(ACompiler: TCompilerBase);
+begin
+  inherited;
+{$ifdef mips64}
+  Fcg128:=tcg128.create(compiler);
+{$else mips64}
+  Fcg64:=TCg64MPSel.Create(compiler);
+{$endif mips64}
+end;
 
 
 procedure TCGMIPS.make_simple_ref(list: tasmlist; var ref: treference);
@@ -2040,11 +2052,6 @@ end;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=TCGMIPS.Create(compiler);
-{$ifdef mips64}
-        tcompiler(compiler).cg128:=tcg128.create(compiler);
-{$else mips64}
-        tcompiler(compiler).cg64:=TCg64MPSel.Create(compiler);
-{$endif mips64}
       end;
 
 end.

@@ -35,6 +35,8 @@ uses
 
 type
   tcgppc = class(tcgppcgen)
+    constructor create(ACompiler: TCompilerBase); override;
+
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
 
@@ -146,6 +148,12 @@ uses
   symconst, fmodule,
   rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
   compiler;
+
+constructor tcgppc.create(ACompiler: TCompilerBase);
+begin
+  inherited;
+  Fcg128:=tcg128.create(compiler);
+end;
 
 function is_signed_cgsize(const size : TCgSize) : Boolean;
 begin
@@ -1884,7 +1892,6 @@ end;
 procedure create_codegen(compiler: TCompilerBase);
 begin
   tcompiler(compiler).cg := tcgppc.create(compiler);
-  tcompiler(compiler).cg128:=tcg128.create(compiler);
 end;
 
 end.

@@ -41,6 +41,8 @@ unit cgcpu;
       );
       tcgloongarch64 = class(tcg)
       public
+        constructor create(ACompiler: TCompilerBase); override;
+
         procedure init_register_allocators; override;
         procedure done_register_allocators; override;
 
@@ -130,6 +132,13 @@ implementation
       symconst, fmodule, symtable,
       rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
       compiler;
+
+
+    constructor tcgloongarch64.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg128:=tcg128.create(compiler);
+      end;
 
 
     procedure tcgloongarch64.init_register_allocators;
@@ -1680,7 +1689,6 @@ implementation
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcgloongarch64.create(compiler);
-        tcompiler(compiler).cg128:=tcg128.create(compiler);
       end;
 
 end.

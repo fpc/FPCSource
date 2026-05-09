@@ -65,21 +65,24 @@ unit cgobj;
          private
           FCompiler: TCompilerBase;
           function GetParaManager: TParaManager; inline;
-{$ifdef cpu64bitalu}
-          function GetCG128: tcg128; inline;
-{$else cpu64bitalu}
-          function GetCG64: tcg64; inline;
-{$endif cpu64bitalu}
           function GetTG: ttgobj; inline;
          protected
+{$ifdef cpu64bitalu}
+          FCG128: tcg128;
+{$else cpu64bitalu}
+          FCG64: tcg64;
+{$endif cpu64bitalu}
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
-{$ifdef cpu64bitalu}
-          property cg128: tcg128 read GetCG128;
-{$else cpu64bitalu}
-          property cg64: tcg64 read GetCG64;
-{$endif cpu64bitalu}
           property tg: ttgobj read GetTG;
+         public
+{$ifdef cpu64bitalu}
+          { Code generator class for all operations working with 128-Bit operands }
+          property cg128: tcg128 read FCG128;
+{$else cpu64bitalu}
+          { Code generator class for all operations working with 64-Bit operands }
+          property cg64: tcg64 read FCG64;
+{$endif cpu64bitalu}
          public
           { how many times is this current code executed }
           executionweight : longint;
@@ -93,7 +96,8 @@ unit cgobj;
        {$endif}
           {************************************************}
           {                 basic routines                 }
-          constructor create(ACompiler: TCompilerBase);
+          constructor create(ACompiler: TCompilerBase);virtual;
+          destructor destroy;override;
 
           {# Initialize the register allocators needed for the codegenerator.}
           procedure init_register_allocators;virtual;
@@ -639,6 +643,7 @@ unit cgobj;
 implementation
 
     uses
+       sysutils,
        globals,fmodule,compiler,
        verbose,symsym,symtable,
        cutils,procinfo,
@@ -653,18 +658,6 @@ implementation
         result:=compiler.paramanager;
       end;
 
-{$ifdef cpu64bitalu}
-    function tcg.GetCG128: tcg128; inline;
-      begin
-        result:=compiler.cg128;
-      end;
-{$else cpu64bitalu}
-    function tcg.GetCG64: tcg64; inline;
-      begin
-        result:=compiler.cg64;
-      end;
-{$endif cpu64bitalu}
-
     function tcg.GetTG: ttgobj;
       begin
         result:=compiler.tg;
@@ -675,6 +668,15 @@ implementation
         FCompiler:=ACompiler;
       end;
 
+    destructor tcg.destroy;
+      begin
+{$ifdef cpu64bitalu}
+        FreeAndNil(FCG128);
+{$else cpu64bitalu}
+        FreeAndNil(FCG64);
+{$endif cpu64bitalu}
+        inherited;
+      end;
 
 {*****************************************************************************
                                 register allocation
@@ -3647,13 +3649,6 @@ implementation
       begin
         tcompiler(acompiler).cg.free;
         tcompiler(acompiler).cg:=nil;
-{$ifdef cpu64bitalu}
-        tcompiler(acompiler).cg128.free;
-        tcompiler(acompiler).cg128:=nil;
-{$else cpu64bitalu}
-        tcompiler(acompiler).cg64.free;
-        tcompiler(acompiler).cg64:=nil;
-{$endif cpu64bitalu}
       end;
 
 end.

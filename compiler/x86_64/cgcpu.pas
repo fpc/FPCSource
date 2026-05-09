@@ -35,6 +35,8 @@ unit cgcpu;
 
     type
       tcgx86_64 = class(tcgx86)
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
 
         procedure a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara); override;
@@ -67,6 +69,13 @@ unit cgcpu;
        cpuinfo,
        symtable,paramgr,cpupi,
        rgcpu,ncgutil;
+
+
+    constructor Tcgx86_64.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg128:=tcg128.create(compiler);
+      end;
 
 
     procedure Tcgx86_64.init_register_allocators;
@@ -562,7 +571,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgx86_64.create(compiler);
-        tcompiler(compiler).cg128:=tcg128.create(compiler);
       end;
 
 end.

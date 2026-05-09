@@ -40,6 +40,8 @@ interface
       private
         procedure fixref(list : TAsmList; var ref : treference);
       public
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -144,6 +146,13 @@ implementation
       C_GEU,
       C_None
     );
+
+    constructor tcgcpu.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64:=tcg64fxtensa.Create(compiler);
+      end;
+
 
     procedure tcgcpu.init_register_allocators;
       begin
@@ -1531,7 +1540,6 @@ implementation
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgcpu.Create(compiler);
-        tcompiler(compiler).cg64:=tcg64fxtensa.Create(compiler);
       end;
 
 end.

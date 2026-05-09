@@ -39,6 +39,8 @@ unit cgcpu;
       private
         function use_push(const cgpara:tcgpara):boolean;
       public
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -245,6 +247,12 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG68K                                       }
 {****************************************************************************}
+
+    constructor tcg68k.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64 :=tcg64f68k.create(compiler);
+      end;
 
 
     function tcg68k.use_push(const cgpara:tcgpara):boolean;
@@ -2727,7 +2735,6 @@ unit cgcpu;
 procedure create_codegen(compiler: TCompilerBase);
   begin
     tcompiler(compiler).cg := tcg68k.create(compiler);
-    tcompiler(compiler).cg64 :=tcg64f68k.create(compiler);
   end;
 
 end.

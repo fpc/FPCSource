@@ -41,6 +41,8 @@ unit cgcpu;
       private
         function use_push(const cgpara:tcgpara):boolean;
       public
+        constructor create(ACompiler: TCompilerBase);override;
+
         procedure init_register_allocators;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
@@ -126,6 +128,13 @@ unit cgcpu;
 { Range check must be disabled explicitly as the code uses
   implicit typecast to aint troughout }
 {$R-}
+
+    constructor tcg8086.create(ACompiler: TCompilerBase);
+      begin
+        inherited;
+        Fcg64 := tcg64f8086.create(compiler);
+      end;
+
 
     function tcg8086.use_push(const cgpara:tcgpara):boolean;
       begin
@@ -3298,7 +3307,6 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcg8086.create(compiler);
-        tcompiler(compiler).cg64 := tcg64f8086.create(compiler);
       end;
 
 end.

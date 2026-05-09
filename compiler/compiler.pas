@@ -197,13 +197,6 @@ type
     FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
     Fcg: tcg;
-{$ifdef cpu64bitalu}
-    { Code generator class for all operations working with 128-Bit operands }
-    Fcg128 : tcg128;
-{$else cpu64bitalu}
-    { Code generator class for all operations working with 64-Bit operands }
-    Fcg64 : tcg64;
-{$endif cpu64bitalu}
     Fparamanager : tparamanager;
     Ftg: ttgobj;
     Fwpoinfomanager: twpoinfomanagerbase;
@@ -245,6 +238,11 @@ type
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
+{$ifdef cpu64bitalu}
+    function GetCG128 : tcg128; inline;
+{$else cpu64bitalu}
+    function GetCG64 : tcg64; inline;
+{$endif cpu64bitalu}
     function Getcurrent_objectdef: tobjectdef; inline;
     procedure InitCompiler(const cmd:TCmdStr);
     procedure DoneCompiler;
@@ -291,10 +289,10 @@ type
     property cg: tcg read Fcg write Fcg;
 {$ifdef cpu64bitalu}
     { Code generator class for all operations working with 128-Bit operands }
-    property cg128 : tcg128 read Fcg128 write Fcg128;
+    property cg128 : tcg128 read GetCG128;
 {$else cpu64bitalu}
     { Code generator class for all operations working with 64-Bit operands }
-    property cg64 : tcg64 read Fcg64 write Fcg64;
+    property cg64 : tcg64 read GetCG64;
 {$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
     property tg: ttgobj read Ftg write Ftg;
@@ -673,6 +671,18 @@ function TCompiler.Getcurrent_objectdef: tobjectdef; inline;
 begin
   Result:=tobjectdef(current_structdef);
 end;
+
+{$ifdef cpu64bitalu}
+function TCompiler.Getcg128: tcg128; inline;
+begin
+  Result:=cg.cg128;
+end;
+{$else cpu64bitalu}
+function TCompiler.GetCG64 : tcg64; inline;
+begin
+  Result:=cg.cg64;
+end;
+{$endif cpu64bitalu}
 
 
 function TCompiler.Compile(const cmd:TCmdStr):longint;
