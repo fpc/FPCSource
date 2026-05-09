@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj;
+  node,hlcgobj,cgobj;
 
 type
 
@@ -42,9 +42,11 @@ type
 
   tpassgeneratecodecontexthelper = class helper for tpassgeneratecodecontext
   private
+    function GetCg: tcg; inline;
     function GetHlcg: thlcgobj; inline;
   public
     property hlcg: thlcgobj read GetHlcg;
+    property cg: tcg read GetCg;
   end;
 
 implementation
@@ -61,6 +63,11 @@ begin
 end;
 
 { tpassgeneratecodecontexthelper }
+
+function tpassgeneratecodecontexthelper.GetCg: tcg; inline;
+begin
+  result:=hlcg.CG;
+end;
 
 function tpassgeneratecodecontexthelper.GetHlcg: thlcgobj; inline;
 begin
