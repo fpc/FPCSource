@@ -144,3 +144,5 @@ operatingsystem_parameter_argv:
     .size  operatingsystem_parameter_envp,8
 operatingsystem_parameter_envp:
     .skip 8
+
+    .section .note.GNU-stack,"",%progbits

@@ -118,3 +118,5 @@ operatingsystem_parameter_argv:
 		.globl operatingsystem_parameter_envp
 operatingsystem_parameter_envp:
 		.skip 8
+
+	.section .note.GNU-stack,"",%progbits
