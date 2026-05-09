@@ -34,7 +34,9 @@ type
   { tpassgeneratecodecontextimpl }
 
   tpassgeneratecodecontextimpl = class(tpassgeneratecodecontext)
+  private
     hlcg: thlcgobj;
+  public
     procedure create_hlcodegen(acompiler: TCompilerBase);
   end;
 
