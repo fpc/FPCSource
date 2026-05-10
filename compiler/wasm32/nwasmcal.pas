@@ -127,8 +127,8 @@ implementation
 
     procedure twasmcallnode.extra_post_call_code(ctx:tpassgeneratecodecontext);
       begin
-        thlcgwasm(ctx.hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
-        ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+        thlcgwasm(ctx.hlcg).g_adjust_stack_after_call(ctx.CurrAsmList,procdefinition);
+        ctx.hlcg.g_maybe_checkforexceptions(ctx.CurrAsmList);
       end;
 
     procedure twasmcallnode.do_release_unused_return_value(ctx:tpassgeneratecodecontext);
@@ -142,8 +142,8 @@ implementation
           ft:=tcpuprocdef(procdefinition).create_functype;
         for i:=1 to Length(ft.results) do
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
-            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.concat(taicpu.op_none(a_drop));
+            thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
           end;
         ft.free; // no nil needed
       end;
@@ -153,7 +153,7 @@ implementation
         // default implementation is placing the return value on LOC_REGISTER.
         // WebAssembly always returns the value on stack.
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1,[]);
-        ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
+        ctx.tg.gethltemp(ctx.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
       end;
 
 begin

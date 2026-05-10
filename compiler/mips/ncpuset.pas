@@ -109,32 +109,32 @@ begin
   if not (jumptable_no_range) then
     begin
       { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-      ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+      ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
       { case expr greater than max_ => goto elselabel }
-      ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
       min_:=0;
     end;
   current_asmdata.getjumplabel(table);
-  indexreg := ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-  ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
+  indexreg := ctx.cg.getaddressregister(ctx.CurrAsmList);
+  ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
   { create reference }
   reference_reset_symbol(href, table, 0, sizeof(aint), []);
   href.offset := (-aint(min_)) * 4;
   href.base:=indexreg;
-  jmpreg := ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
+  jmpreg := ctx.cg.getaddressregister(ctx.CurrAsmList);
+  ctx.cg.a_load_ref_reg(ctx.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
 
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
-      ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
+      ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
       labeltyp:=aitconst_gotoff_symbol;
     end
   else
     labeltyp:=aitconst_ptr;
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_JR, jmpreg));
+  ctx.CurrAsmList.concat(taicpu.op_reg(A_JR, jmpreg));
   { Delay slot }
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  ctx.CurrAsmList.concat(taicpu.op_none(A_NOP));
   { generate jump table }
   new_section(jumpSegment,sec_rodata,compiler.current_procinfo.procdef.mangledname,sizeof(aint));
   jumpSegment.concat(Tai_label.Create(table));

@@ -358,18 +358,18 @@ interface
         location_reset_jump(location,truelabel,falselabel);
 
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          ctx.hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register,location.truelabel)
+          ctx.hlcg.a_cmp_loc_reg_label(ctx.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register,location.truelabel)
         else case right.location.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            ctx.hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location,location.truelabel);
+            ctx.hlcg.a_cmp_reg_loc_label(ctx.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location,location.truelabel);
           LOC_REFERENCE,LOC_CREFERENCE:
-            ctx.hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location,location.truelabel);
+            ctx.hlcg.a_cmp_ref_loc_label(ctx.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location,location.truelabel);
           LOC_CONSTANT:
-            ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location,location.truelabel);
+            ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location,location.truelabel);
           else
             internalerror(2011010413);
         end;
-        ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+        ctx.hlcg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
       end;
 
     procedure tjvmaddnode.pass_left_right(ctx:tpassgeneratecodecontext);
@@ -389,7 +389,7 @@ interface
         pass_left_right(ctx);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
 
         commutative:=false;
         case nodetype of
@@ -437,16 +437,16 @@ interface
             (nf_swapped in flags)) then
           swapleftright;
 
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1+ord(location.size=OS_F64));
+        ctx.CurrAsmList.concat(taicpu.op_none(op));
+        thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1+ord(location.size=OS_F64));
         { could be optimized in the future by keeping the results on the stack,
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
           2-slot elements -- also adjust expectloc in that case! }
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -473,8 +473,8 @@ interface
         current_asmdata.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
 
         { compares two floating point values and puts 1/0/-1 on stack depending
           on whether value1 >/=/< value2 }
@@ -488,12 +488,12 @@ interface
           op:=a_fcmpg
         else
           op:=a_fcmpl;
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,(1+ord(left.location.size=OS_F64))*2-1);
+        ctx.CurrAsmList.concat(taicpu.op_none(op));
+        thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,(1+ord(left.location.size=OS_F64))*2-1);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpop],location.truelabel));
-        thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
-        ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+        ctx.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpop],location.truelabel));
+        thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
+        ctx.hlcg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
       end;
 
 

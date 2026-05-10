@@ -99,7 +99,7 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
-              ctx.tg.gethltemp(current_asmdata.CurrAsmList,pvdef,pvdef.size,tt_normal,href);
+              ctx.tg.gethltemp(ctx.CurrAsmList,pvdef,pvdef.size,tt_normal,href);
               if compiler.target.info.endian=endian_little then
                 begin
                   procreg:=location.register;
@@ -119,21 +119,21 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
               else
                 selfdef:=cpointerdef.getreusable(left.resultdef,compiler);
               mpref:=href;
-              ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),mpref);
-              ctx.hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(compiler.deftypes.methodpointertype),procreg,'proc',mpref);
-              ctx.hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(compiler.deftypes.methodpointertype),selfreg,'self',mpref);
+              ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),mpref);
+              ctx.hlcg.g_load_reg_field_by_name(ctx.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(compiler.deftypes.methodpointertype),procreg,'proc',mpref);
+              ctx.hlcg.g_load_reg_field_by_name(ctx.CurrAsmList,selfdef,trecorddef(compiler.deftypes.methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment,href.volatility);
               location.reference:=href;
             end;
         end;
       labelsym:
         begin
-          selfreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidcodepointertype);
+          selfreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.voidcodepointertype);
           ai:=taillvm.blockaddress(compiler.deftypes.voidcodepointertype,
               current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               location.reference.symbol
             );
-          current_asmdata.CurrAsmList.concat(
+          ctx.CurrAsmList.concat(
             taillvm.op_reg_tai_size(la_bitcast,selfreg,ai,compiler.deftypes.voidcodepointertype)
           );
           reference_reset_base(location.reference,selfreg,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
@@ -149,7 +149,7 @@ procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: td
   begin
     { the array elements are addressed as pointer to the individual elements ->
       convert }
-    ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(eledef,compiler),ref);
+    ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(eledef,compiler),ref);
   end;
 
 

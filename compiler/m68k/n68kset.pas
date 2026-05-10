@@ -66,15 +66,15 @@ implementation
              genitem(t^.less);
            { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resultdef)) then
-             ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
+             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
            if t^._low=t^._high then
              begin
                if t^._low-last=0 then
-                 ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
+                 ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
                else
                  begin
-                   ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                   tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
+                   ctx.hlcg.a_op_const_reg(ctx.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
+                   tcg68k(ctx.cg).a_jmp_cond(ctx.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
              end
@@ -87,18 +87,18 @@ implementation
                   begin
                      { have we to adjust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                       ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue), hregister);
+                       ctx.hlcg.a_op_const_reg(ctx.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue), hregister);
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                    tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_lt, elselabel);
+                    ctx.hlcg.a_op_const_reg(ctx.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
+                    tcg68k(ctx.cg).a_jmp_cond(ctx.CurrAsmList, jmp_lt, elselabel);
                   end;
-                ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._high.svalue-t^._low.svalue), hregister);
-                tcg68k(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_le, blocklabel(t^.blockid));
+                ctx.hlcg.a_op_const_reg(ctx.CurrAsmList, OP_SUB, opsize, tcgint(t^._high.svalue-t^._low.svalue), hregister);
+                tcg68k(ctx.cg).a_jmp_cond(ctx.CurrAsmList, jmp_le, blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -124,15 +124,15 @@ implementation
               if tcgsize2size[newsize]>opsize.size then
                 begin
                   newdef:=cgsize_orddef(newsize);
-                  scratch_reg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,newdef);
-                  ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,newdef,hregister,scratch_reg);
+                  scratch_reg:=ctx.hlcg.getintregister(ctx.CurrAsmList,newdef);
+                  ctx.hlcg.a_load_reg_reg(ctx.CurrAsmList,opsize,newdef,hregister,scratch_reg);
                   hregister:=scratch_reg;
                   opsize:=newdef;
                 end;
               last:=0;
               first:=true;
               genitem(hp);
-              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+              ctx.hlcg.a_jmp_always(ctx.CurrAsmList,elselabel);
            end;
       end;
 

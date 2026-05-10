@@ -416,7 +416,7 @@ implementation
             begin
               reference_reset_symbol(segref,ref.symbol,0,ref.alignment,ref.volatility);
               segref.refaddr:=addr_seg;
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,cg.GetNextReg(r));
+              cg.a_load_ref_reg(list,OS_16,OS_16,segref,cg.GetNextReg(r));
             end
           else if ref.base=NR_BP then
             list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,cg.GetNextReg(r)))

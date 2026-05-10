@@ -4793,32 +4793,32 @@ implementation
             if (n.location.size in [OS_128,OS_S128]) then
               begin
                 rr.oldhi := n.location.register128.reghi;
-                rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                rr.new := cg.getintregister(list,OS_INT);
+                rr.newhi := cg.getintregister(list,OS_INT);
               end
             else
 {$else cpu64bitalu}
             if (n.location.size in [OS_64,OS_S64]) then
               begin
                 rr.oldhi := n.location.register64.reghi;
-                rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                rr.new := cg.getintregister(list,OS_32);
+                rr.newhi := cg.getintregister(list,OS_32);
               end
             else
 {$endif cpu64bitalu}
               if getregtype(rr.old)=R_ADDRESSREGISTER then
-                rr.new := getaddressregister(current_asmdata.CurrAsmList,n.resultdef)
+                rr.new := getaddressregister(list,n.resultdef)
               else
-                rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
+                rr.new := cg.getintregister(list,n.location.size);
           end;
         LOC_CFPUREGISTER:
-          rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);
+          rr.new := cg.getfpuregister(list,n.location.size);
 {$ifdef SUPPORT_MMX}
         LOC_CMMXREGISTER:
-          rr.new := tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+          rr.new := tcgx86(cg).getmmxregister(list);
 {$endif SUPPORT_MMX}
         LOC_CMMREGISTER:
-          rr.new := cg.getmmregister(current_asmdata.CurrAsmList,n.location.size);
+          rr.new := cg.getmmregister(list,n.location.size);
         else
           exit;
       end;
@@ -5797,7 +5797,7 @@ implementation
     begin
       pd:=search_system_proc('fpc_stackcheck');
       paraloc1.init(compiler.target);
-      paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+      paramanager.getcgtempparaloc(list,pd,1,paraloc1);
       a_load_const_cgpara(list,paraloc1.def,compiler.current_procinfo.calc_stackframe_size,paraloc1);
       paramanager.freecgpara(list,paraloc1);
       paraloc1.done;

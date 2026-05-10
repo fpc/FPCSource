@@ -62,21 +62,21 @@ unit navrinl;
         dummyloc: tlocation;
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
-        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
         size:=def_cgsize(resultdef);
 
         current_asmdata.getjumplabel(hl);
-        ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
-        ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,size,left.location.register,location.register);
+        ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
+        ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_NEG,size,left.location.register,location.register);
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
-          ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList,dummyloc,resultdef);
+          ctx.cg.g_overflowcheck(ctx.CurrAsmList,dummyloc,resultdef);
 
-        ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
+        ctx.cg.a_label(ctx.CurrAsmList,hl);
       end;
 
 
@@ -161,28 +161,28 @@ unit navrinl;
       begin
         case inlinenumber of
           in_avr_nop:
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+            ctx.CurrAsmList.concat(taicpu.op_none(A_NOP));
           in_avr_sleep:
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(A_SLEEP));
+            ctx.CurrAsmList.concat(taicpu.op_none(A_SLEEP));
           in_avr_sei:
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(A_SEI));
+            ctx.CurrAsmList.concat(taicpu.op_none(A_SEI));
           in_avr_wdr:
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(A_WDR));
+            ctx.CurrAsmList.concat(taicpu.op_none(A_WDR));
           in_avr_cli:
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
+            ctx.CurrAsmList.concat(taicpu.op_none(A_CLI));
           in_avr_save:
             begin
               location_reset(location,LOC_CREGISTER,OS_8);
-              location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+              location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_8);
 
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_IN, location.register, NIO_SREG));
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
+              ctx.CurrAsmList.concat(taicpu.op_reg_const(A_IN, location.register, NIO_SREG));
+              ctx.CurrAsmList.concat(taicpu.op_none(A_CLI));
             end;
           in_avr_restore:
             begin
               secondpass(left,ctx);
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_OUT, NIO_SREG, left.location.register));
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.CurrAsmList.concat(taicpu.op_const_reg(A_OUT, NIO_SREG, left.location.register));
             end;
           in_avr_des:
             begin
@@ -193,42 +193,42 @@ unit navrinl;
               secondpass(tcallparanode(para1).paravalue,ctx);
               secondpass(tcallparanode(para2).paravalue,ctx);
 
-              ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R30);
-              ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R31);
+              ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R30);
+              ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R31);
 
-              ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tcallparanode(para2).paravalue.location.reference,NR_R30);
+              ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,tcallparanode(para2).paravalue.location.reference,NR_R30);
               reference_reset(ref,0,[]);
               ref.base:=NR_R30;
               for r:=NR_R8 to NR_R15 do
                 begin
-                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,r);
-                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,ref,r);
+                  ctx.cg.getcpuregister(ctx.CurrAsmList,r);
+                  ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_8,OS_8,ref,r);
                   inc(ref.offset);
                 end;
-              ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tcallparanode(para1).paravalue.location.reference,NR_R30);
+              ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,tcallparanode(para1).paravalue.location.reference,NR_R30);
               reference_reset(ref,0,[]);
               ref.base:=NR_R30;
               for r:=NR_R0 to NR_R7 do
                 begin
-                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,r);
-                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,ref,r);
+                  ctx.cg.getcpuregister(ctx.CurrAsmList,r);
+                  ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_8,OS_8,ref,r);
                   inc(ref.offset);
                 end;
               if tordconstnode(para3.paravalue).value=0 then
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLH))
+                ctx.CurrAsmList.concat(taicpu.op_none(A_CLH))
               else
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_SEH));
-              current_asmdata.CurrAsmList.concat(taicpu.op_const(A_DES,int64(tordconstnode(para4.paravalue).value)));
+                ctx.CurrAsmList.concat(taicpu.op_none(A_SEH));
+              ctx.CurrAsmList.concat(taicpu.op_const(A_DES,int64(tordconstnode(para4.paravalue).value)));
 
               for r:=NR_R8 to NR_R15 do
-                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,r);
+                ctx.cg.ungetcpuregister(ctx.CurrAsmList,r);
 
               { save data }
               ref.offset:=0;
               for r:=NR_R0 to NR_R7 do
                 begin
-                  ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,r,ref);
-                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,r);
+                  ctx.cg.a_load_reg_ref(ctx.CurrAsmList,OS_8,OS_8,r,ref);
+                  ctx.cg.ungetcpuregister(ctx.CurrAsmList,r);
                   inc(ref.offset);
                 end;
             end

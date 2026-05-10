@@ -72,7 +72,7 @@ implementation
             if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) and
               (left.location.sreg.bitlen=1) then
               begin
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,left.location.sreg.subsetreg,left.location.sreg.startbit));
+                ctx.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,left.location.sreg.subsetreg,left.location.sreg.startbit));
                 current_asmdata.getjumplabel(truelabel);
                 current_asmdata.getjumplabel(falselabel);
                 { sbrc does a jump without an explicit label,
@@ -80,16 +80,16 @@ implementation
                 current_asmdata.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
-                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-                ctx.cg.a_label(current_asmdata.CurrAsmList,skiplabel);
-                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                ctx.cg.a_jmp_always(ctx.CurrAsmList,falselabel);
+                ctx.cg.a_label(ctx.CurrAsmList,skiplabel);
+                ctx.cg.a_jmp_always(ctx.CurrAsmList,truelabel);
               end
             else if (left.location.loc in [LOC_SUBSETREF,LOC_CSUBSETREF]) and
               (left.location.sref.bitlen=1) and (left.location.sref.bitindexreg=NR_NO) then
               begin
-                tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
+                tmpreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_8);
+                ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
+                ctx.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
                 current_asmdata.getjumplabel(truelabel);
                 current_asmdata.getjumplabel(falselabel);
                 { sbrc does a jump without an explicit label,
@@ -97,24 +97,24 @@ implementation
                 current_asmdata.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
-                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-                ctx.cg.a_label(current_asmdata.CurrAsmList,skiplabel);
-                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                ctx.cg.a_jmp_always(ctx.CurrAsmList,falselabel);
+                ctx.cg.a_label(ctx.CurrAsmList,skiplabel);
+                ctx.cg.a_jmp_always(ctx.CurrAsmList,truelabel);
               end
             else
               case left.location.loc of
                  LOC_FLAGS :
                    begin
-                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                      location_copy(location,left.location);
                      inverse_flags(location.resflags);
                    end;
                  LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF,
                  LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                    begin
-                     ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
+                     ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
+                     ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                     ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
 
                      tmpreg:=left.location.register;
                      for i:=2 to tcgsize2size[left.location.size] do
@@ -123,7 +123,7 @@ implementation
                            tmpreg:=left.location.registerhi
                          else
                            tmpreg:=ctx.cg.GetNextReg(tmpreg);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg));
+                         ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg));
                        end;
                      location_reset(location,LOC_FLAGS,OS_NO);
                      location.resflags:=F_EQ;
@@ -178,15 +178,15 @@ implementation
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
           { location_force_reg can be also used to change the size of a register }
           (left.location.size<>opsize) then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,opdef,true);
         location_reset(location,LOC_REGISTER,opsize);
         if is_64bit(resultdef) then
           begin
-            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.registerhi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+            location.registerhi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
           end
         else
-          location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
@@ -199,10 +199,10 @@ implementation
              else
                shiftval:=tordconstnode(right).value.uvalue and 63;
              if is_64bit(resultdef) then
-               ctx.cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+               ctx.cg64.a_op64_const_reg_reg(ctx.CurrAsmList,op,location.size,
                  shiftval,left.location.register64,location.register64)
              else
-               ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
+               ctx.hlcg.a_op_const_reg_reg(ctx.CurrAsmList,op,opdef,
                  shiftval,left.location.register,location.register);
           end
         else
@@ -211,15 +211,15 @@ implementation
                is done since most target cpu which will use this
                node do not support a shift count in a mem. location (cec)
              }
-             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
-             ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
+             ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,compiler.deftypes.sinttype,true);
+             ctx.hlcg.a_op_reg_reg_reg(ctx.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
           end;
         { shl/shr nodes return the same type as left, which can be different
           from opdef }
         if opdef<>resultdef then
           begin
-            hcountreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+            hcountreg:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+            ctx.hlcg.a_load_reg_reg(ctx.CurrAsmList,opdef,resultdef,location.register,hcountreg);
             location.register:=hcountreg;
           end;
       end;

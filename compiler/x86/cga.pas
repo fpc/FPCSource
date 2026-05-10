@@ -30,25 +30,26 @@ interface
        globtype,
        cpubase,cgbase,cgutils,
        aasmbase,aasmdata,aasmcpu,
+       node,
        compilerbase;
 
-    procedure emit_none(i : tasmop;s : topsize);
+    procedure emit_none(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize);
 
-    procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
-    procedure emit_ref(i : tasmop;s : topsize;ref : treference);
+    procedure emit_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg : tregister);
+    procedure emit_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference);
 
-    procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
-    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;ref : treference);
-    procedure emit_ref_reg(i : tasmop;s : topsize;ref : treference;reg : tregister);
-    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : treference);
-    procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
+    procedure emit_const_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : aint;reg : tregister);
+    procedure emit_const_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : aint;ref : treference);
+    procedure emit_ref_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference;reg : tregister);
+    procedure emit_reg_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg : tregister;ref : treference);
+    procedure emit_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg1,reg2 : tregister);
 
-    procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
-    procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
-    procedure emit_ref_reg_reg(i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
-    procedure emit_reg_ref_reg(i : tasmop;s : topsize; reg1 : tregister; ref : treference; reg2 : tregister);
+    procedure emit_const_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
+    procedure emit_reg_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
+    procedure emit_ref_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
+    procedure emit_reg_ref_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize; reg1 : tregister; ref : treference; reg2 : tregister);
 
-    procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
+    procedure emit_sym(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;op : tasmsymbol);
 
 
 implementation
@@ -56,6 +57,7 @@ implementation
     uses
        verbose,
        cgobj,cgx86,
+       pass_2_context,
        compiler;
 
 
@@ -63,112 +65,84 @@ implementation
                               Emit Assembler
 *****************************************************************************}
 
-    procedure emit_none(i : tasmop;s : topsize);
+    procedure emit_none(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize);
       begin
-         current_asmdata.CurrAsmList.concat(Taicpu.Op_none(i,s));
+         ctx.CurrAsmList.concat(Taicpu.Op_none(i,s));
       end;
 
-    procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
+    procedure emit_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg : tregister);
       begin
-         current_asmdata.CurrAsmList.concat(Taicpu.Op_reg(i,s,reg));
+         ctx.CurrAsmList.concat(Taicpu.Op_reg(i,s,reg));
       end;
 
-    procedure emit_ref(i : tasmop;s : topsize;ref : treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(i,s,ref));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_ref(i,s,ref));
       end;
 
-    procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
+    procedure emit_const_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : aint;reg : tregister);
       begin
-         current_asmdata.CurrAsmList.concat(Taicpu.Op_const_reg(i,s,c,reg));
+         ctx.CurrAsmList.concat(Taicpu.Op_const_reg(i,s,c,reg));
       end;
 
-    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;ref : treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_const_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : aint;ref : treference);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
       end;
 
-    procedure emit_ref_reg(i : tasmop;s : topsize;ref : treference;reg : tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_ref_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference;reg : tregister);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
       end;
 
-    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_reg_ref(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg : tregister;ref : treference);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
       end;
 
-    procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg1,reg2 : tregister);
 
     var instr:Taicpu;
 
     begin
-      cg:=compiler.cg;
       if not ((reg1=reg2) and (i=A_MOV)) then
         begin
           instr:=Taicpu.op_reg_reg(i,s,reg1,reg2);
-          current_asmdata.CurrAsmList.concat(instr);
+          ctx.CurrAsmList.concat(instr);
           if i=A_MOV then
-            cg.add_move_instruction(instr);
+            ctx.cg.add_move_instruction(instr);
         end;
     end;
 
-    procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
+    procedure emit_const_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
       begin
-         current_asmdata.CurrAsmList.concat(Taicpu.Op_const_reg_reg(i,s,c,reg1,reg2));
+         ctx.CurrAsmList.concat(Taicpu.Op_const_reg_reg(i,s,c,reg1,reg2));
       end;
 
-    procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
+    procedure emit_reg_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
       begin
-         current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
+         ctx.CurrAsmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
       end;
 
-    procedure emit_ref_reg_reg(i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_ref_reg_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(i,s,ref,reg1,reg2));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(i,s,ref,reg1,reg2));
       end;
 
-    procedure emit_reg_ref_reg(i : tasmop;s : topsize; reg1 : tregister; ref : treference; reg2 : tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
+    procedure emit_reg_ref_reg(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize; reg1 : tregister; ref : treference; reg2 : tregister);
       begin
-        cg:=compiler.cg;
-        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_ref_reg(i,s,reg1,ref,reg2));
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
+        ctx.CurrAsmList.concat(Taicpu.Op_reg_ref_reg(i,s,reg1,ref,reg2));
       end;
 
-    procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
+    procedure emit_sym(ctx:tpassgeneratecodecontext;i : tasmop;s : topsize;op : tasmsymbol);
       begin
-        current_asmdata.CurrAsmList.concat(Taicpu.Op_sym(i,s,op));
+        ctx.CurrAsmList.concat(Taicpu.Op_sym(i,s,op));
       end;
 
 end.

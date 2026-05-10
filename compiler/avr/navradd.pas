@@ -137,14 +137,14 @@ interface
         var
           i : byte;
         begin
-          ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+          ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
 
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
+          ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
           for i:=2 to tcgsize2size[left.location.size] do
             begin
               tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
               tmpreg2:=ctx.cg.GetNextReg(tmpreg2);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
             end;
         end;
 
@@ -174,8 +174,8 @@ interface
                  ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
-              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
-              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
+              tmpreg:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
+              ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_AND,location.size,
                 left.location.register,right.location.register,tmpreg);
               gencmp(tmpreg,right.location.register);
               location.resflags:=F_EQ;
@@ -204,10 +204,10 @@ interface
             { if we have to swap back and left is a constant, force it to a register because we cannot generate
               the needed code using a constant }
             if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
 
-        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
 
         if (not unsigned) and
           (right.location.loc=LOC_CONSTANT) and
@@ -224,7 +224,7 @@ interface
                   tmpreg1:=ctx.cg.GetNextReg(tmpreg1);
               end;
 
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
@@ -236,20 +236,20 @@ interface
           begin
             { decrease register pressure on registers >= r16 }
             if (right.location.value and $ff)=0 then
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
             else
               begin
-                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
-                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
+                ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R26);
+                ctx.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
+                ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
+                ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_R26);
               end;
           end
         { on the left side, we allow only a constant if it is 0 }
         else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
+          ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
         else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+          ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
 
         tmpreg1:=left.location.register;
         tmpreg2:=right.location.register;
@@ -274,19 +274,19 @@ interface
               begin
                 { just use R1? }
                 if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
+                  ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
                 else
                   begin
-                    tmpreg2:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                    ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+                    tmpreg2:=ctx.cg.getintregister(ctx.CurrAsmList,OS_8);
+                    ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
+                    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
                   end;
               end
             { above it is checked, if left=0, then a constant is allowed }
             else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
             else
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);

@@ -97,10 +97,10 @@ implementation
             secondpass(left,ctx);
 
             location_reset(location,LOC_REGISTER,OS_16);
-            location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidnearpointertype);
+            location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.voidnearpointertype);
             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               internalerror(2015103003);
-            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.voidnearpointertype,left.location.reference,location.register);
+            ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.resultdef,compiler.deftypes.voidnearpointertype,left.location.reference,location.register);
           end
         else
           inherited;
@@ -128,30 +128,30 @@ implementation
             else
               location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             case left.location.loc of
                LOC_CREGISTER,
                LOC_REGISTER:
                  begin
-                   ctx.hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
+                   ctx.hlcg.maybe_change_load_node_reg(ctx.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
                    location.reference.segment := ctx.cg.GetNextReg(left.location.register);
                  end;
                LOC_CREFERENCE,
                LOC_REFERENCE:
                  begin
-                    location.reference.base:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-                    ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,location.reference.base);
-                    location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                    location.reference.base:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+                    ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,left.location.reference,location.reference.base);
+                    location.reference.segment:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
                     tmpref:=left.location.reference;
                     inc(tmpref.offset,2);
-                    ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,tmpref,location.reference.segment);
+                    ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,tmpref,location.reference.segment);
                  end;
                LOC_CONSTANT:
                  begin
                    location.reference.offset:=left.location.value and $FFFF;
-                   location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                   ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
+                   location.reference.segment:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+                   ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
                  end;
                else
                  internalerror(2005070302);
@@ -171,13 +171,13 @@ implementation
                  internalerror(2012010603);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init(compiler.target);
-               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-               ctx.hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
-               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+               paramanager.getcgtempparaloc(ctx.CurrAsmList,pd,1,paraloc1);
+               ctx.hlcg.a_loadaddr_ref_cgpara(ctx.CurrAsmList,resultdef,location.reference,paraloc1);
+               paramanager.freecgpara(ctx.CurrAsmList,paraloc1);
                paraloc1.done;
-               ctx.hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
-               ctx.hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
-               ctx.hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+               ctx.hlcg.allocallcpuregisters(ctx.CurrAsmList);
+               ctx.hlcg.a_call_name(ctx.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
+               ctx.hlcg.deallocallcpuregisters(ctx.CurrAsmList);
                compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_checkpointer_called];
              end;
           end

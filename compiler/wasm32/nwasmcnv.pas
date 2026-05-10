@@ -115,11 +115,11 @@ implementation
             internalerror(2021010501);
         end;
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+        ctx.CurrAsmList.concat(taicpu.op_none(op));
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register := ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register := ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -128,41 +128,41 @@ implementation
         secondpass(left,ctx);
         if compiler.verbose.codegenerror then
           exit;
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgwasm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
-        thlcgwasm(ctx.hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,left.resultdef,OC_NE);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+        thlcgwasm(ctx.hlcg).a_cmp_stack_stack(ctx.CurrAsmList,left.resultdef,OC_NE);
         if is_cbool(resultdef) then
           begin
             if is_64bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
+              ctx.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
             else
-              current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+              ctx.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+            thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
             if is_64bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) )
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) )
             else if is_32bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, -1) )
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i32_const, -1) )
             else if is_16bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 65535) )
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 65535) )
             else if is_8bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 255) )
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 255) )
             else
               internalerror(2021100101);
-            thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
-            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+            thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+            ctx.CurrAsmList.Concat( taicpu.op_none(a_else) );
+            thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
             if is_64bit(resultdef) then
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
             else
-              current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
-            thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+              ctx.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+            thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+            ctx.CurrAsmList.concat(taicpu.op_none(a_end_if));
           end
         else
-          thlcgwasm(ctx.hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,resultdef,false);
+          thlcgwasm(ctx.hlcg).resize_stack_int_val(ctx.CurrAsmList,compiler.deftypes.u32inttype,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register := ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register := ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -170,27 +170,27 @@ implementation
       var
         hr : treference;
       begin
-        thlcgwasm(ctx.hlcg).a_cmp_const_loc_stack(current_asmdata.CurrAsmList,left.resultdef,OC_NE,0,left.location);
+        thlcgwasm(ctx.hlcg).a_cmp_const_loc_stack(ctx.CurrAsmList,left.resultdef,OC_NE,0,left.location);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_else));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_else));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
         { FPC_EMPTYCHAR is a widechar -> 2 bytes }
         reference_reset(hr,2,[]);
         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
         compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
-        thlcgwasm(ctx.hlcg).a_loadaddr_ref_stack(current_asmdata.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr);
+        thlcgwasm(ctx.hlcg).a_loadaddr_ref_stack(ctx.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr);
 
-        current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+        ctx.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -204,24 +204,24 @@ implementation
            LOC_CREFERENCE,
            LOC_REFERENCE:
              begin
-                location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
-                ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+                location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+                ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+                ctx.tg.location_freetemp(ctx.CurrAsmList,left.location);
              end;
            LOC_CREGISTER:
              begin
-                location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+                location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+                ctx.hlcg.a_load_reg_reg(ctx.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
              end;
            LOC_REGISTER:
              begin
                location.register:=left.location.register;
-               ctx.hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
+               ctx.hlcg.g_ptrtypecast_reg(ctx.CurrAsmList,left.resultdef,resultdef,location.register);
              end;
            LOC_CONSTANT:
              begin
-                location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,left.location.value,location.register);
+                location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+                ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,resultdef,left.location.value,location.register);
              end
            else
              internalerror(121120001);
@@ -235,14 +235,14 @@ implementation
                 case ImplIntf.IType of
                   etStandard:
                     begin
-                      thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register);
+                      thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(ctx.CurrAsmList,resultdef,OC_NE,0,location.register);
 
-                      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-                      thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+                      ctx.CurrAsmList.concat(taicpu.op_none(a_if));
+                      thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
-                      ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
+                      ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
 
-                      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+                      ctx.CurrAsmList.concat(taicpu.op_none(a_end_if));
                       break;
                     end;
                   else

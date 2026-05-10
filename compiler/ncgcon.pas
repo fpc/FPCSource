@@ -372,7 +372,7 @@ implementation
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, def_cgsize(strpointerdef));
-             location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
+             location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,strpointerdef);
              load_dynstring(strpointerdef, elementdef, winlikewidestring, ctx);
            end
          else
@@ -390,7 +390,7 @@ implementation
         reference_reset_symbol(href, lab_str,
           ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring, compiler.target),
           compiler.globals.const_align(strpointerdef.size),[]);
-        ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
+        ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
 
 

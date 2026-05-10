@@ -64,7 +64,7 @@ implementation
           LOC_FPUREGISTER :
              begin
                { release FPU stack }
-               emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
+               emit_reg(ctx,A_FSTP,S_NO,NR_FPU_RESULT_REG);
                tcgx86(ctx.cg).dec_fpu_stack;
              end
           else
@@ -94,7 +94,7 @@ implementation
       save_all_regs=[];
 {$endif}
     begin
-      tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
+      tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
       { do not use a ref. for calling conventions which allocate all registers, the reg. allocator cannot handle this, see
         also issue #28639, I were not able to create a simple example though to cause the resulting endless spilling }
       result:=((getsupreg(ref.base)<first_int_imreg) and (getsupreg(ref.index)<first_int_imreg)) or
@@ -104,7 +104,7 @@ implementation
 
   function tx86callnode.do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;
     begin
-      current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+      ctx.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       result:=ctx.hlcg.get_call_result_cgpara(procdefinition,typedef)
     end;
 

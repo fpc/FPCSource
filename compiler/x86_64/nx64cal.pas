@@ -33,7 +33,7 @@ interface
        tx8664callnode = class(tx86callnode)
        protected
          procedure gen_syscall_para(para: tcallparanode); override;
-         procedure extra_call_code;override;
+         procedure extra_call_code(ctx:tpassgeneratecodecontext);override;
          procedure set_result_location(realresdef: tstoreddef;ctx:tpassgeneratecodecontext);override;
        public
          procedure do_syscall(ctx:tpassgeneratecodecontext);override;
@@ -60,13 +60,13 @@ implementation
             begin
               if ([po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+                  ctx.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R12);
                   get_syscall_call_ref(tmpref,NR_R12,ctx);
 
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
-                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_R12);
                   exit;
                 end;
               internalerror(2016120101);
@@ -84,7 +84,7 @@ implementation
       end;
 
 
-    procedure tx8664callnode.extra_call_code;
+    procedure tx8664callnode.extra_call_code(ctx:tpassgeneratecodecontext);
       var
         mmregs : aint;
       begin
@@ -95,7 +95,7 @@ implementation
               mmregs:=varargsparas.mmregsused
             else
               mmregs:=0;
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOV,S_Q,mmregs,NR_RAX))
+            ctx.CurrAsmList.concat(taicpu.op_const_reg(A_MOV,S_Q,mmregs,NR_RAX))
           end;
       end;
 
@@ -110,7 +110,7 @@ implementation
            (retloc.location^.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
           begin
             location_reset(location,LOC_MMREGISTER,retloc.location^.size);
-            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,retloc.location^.size);
+            location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,retloc.location^.size);
           end
         else
           inherited

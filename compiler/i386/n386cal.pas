@@ -35,7 +35,7 @@ interface
        protected
           procedure gen_syscall_para(para: tcallparanode); override;
           procedure pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);override;
-          procedure extra_interrupt_code;override;
+          procedure extra_interrupt_code(ctx:tpassgeneratecodecontext);override;
        public
          procedure do_syscall(ctx:tpassgeneratecodecontext);override;
        end;
@@ -73,13 +73,13 @@ implementation
             begin
               if ([po_syscall_baselast, po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+                  ctx.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  ctx.cg.getcpuregister(ctx.CurrAsmList,NR_EAX);
                   get_syscall_call_ref(tmpref,NR_EAX,ctx);
 
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
-                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  ctx.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_EAX);
                   exit;
                 end;
               internalerror(2016090104);
@@ -97,10 +97,10 @@ implementation
       end;
 
 
-    procedure ti386callnode.extra_interrupt_code;
+    procedure ti386callnode.extra_interrupt_code(ctx:tpassgeneratecodecontext);
       begin
-        emit_none(A_PUSHF,S_L);
-        emit_reg(A_PUSH,S_L,NR_CS);
+        emit_none(ctx,A_PUSHF,S_L);
+        emit_reg(ctx,A_PUSH,S_L,NR_CS);
       end;
 
 
@@ -120,7 +120,7 @@ implementation
               begin
                 reference_reset_base(href,NR_STACK_POINTER_REG,pop_size,ctempposinvalid,0,[]);
                 { it is better to use lea here }
-                current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_ESP));
+                ctx.CurrAsmList.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_ESP));
               end;
             exit;
           end;
@@ -148,8 +148,8 @@ implementation
         { better than an add on all processors }
         if pop_size=4 then
           begin
-            hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
+            hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            ctx.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
@@ -158,14 +158,14 @@ implementation
              not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
              (compiler.globals.current_settings.optimizecputype=cpu_Pentium) then
             begin
-               hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
+               hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+               ctx.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
+               hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+               ctx.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
             end
         else
           if pop_size<>0 then
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
+            ctx.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
       end;
 
 

@@ -77,7 +77,7 @@ begin
   opsize := def_cgsize(left.resultdef);
 
   {$IFDEF EXTDEBUG}
-  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
+  ctx.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
   {$ENDIF EXTDEBUG}
 
   { can we use a signed comparison or not? In case of equal/unequal comparison
@@ -98,7 +98,7 @@ begin
       opsize := OS_32
     else
       opsize := OS_S32;
-    ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize,
+    ctx.cg.a_load_reg_reg(ctx.CurrAsmList, def_cgsize(left.resultdef), opsize,
       left.location.register, left.location.register);
   end;
 
@@ -112,8 +112,8 @@ begin
       useconst := true
     else begin
       useconst := false;
-      tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-      ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, right.location.value, tmpreg);
+      tmpreg := ctx.cg.getintregister(ctx.CurrAsmList, OS_INT);
+      ctx.cg.a_load_const_reg(ctx.CurrAsmList, opsize, right.location.value, tmpreg);
     end
   end else
     useconst := false;
@@ -126,12 +126,12 @@ begin
   { actually do the operation }
   if (right.location.loc = LOC_CONSTANT) then begin
     if useconst then
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(op, left.location.register,
+      ctx.CurrAsmList.concat(taicpu.op_reg_const(op, left.location.register,
         longint(right.location.value)))
     else
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register, tmpreg));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register, tmpreg));
   end else
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register,
       right.location.register));
 end;
 
@@ -224,7 +224,7 @@ begin
   load_left_right(cmpop, checkoverflow, ctx);
 
   if not (cmpop) then
-    location.register := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+    location.register := ctx.cg.getintregister(ctx.CurrAsmList, OS_INT);
 
   if not (checkoverflow) then begin
     case nodetype of
@@ -250,11 +250,11 @@ begin
           if (left.location.loc = LOC_CONSTANT) then
             swapleftright;
           if (right.location.loc <> LOC_CONSTANT) then
-            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
+            ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList, cgop, OS_INT,
               left.location.register, right.location.register,
               location.register)
           else
-            ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, cgop, OS_INT,
+            ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList, cgop, OS_INT,
               right.location.value, left.location.register,
               location.register);
         end;
@@ -264,27 +264,27 @@ begin
             swapleftright;
           if left.location.loc <> LOC_CONSTANT then
             if right.location.loc <> LOC_CONSTANT then begin
-              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+              ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList, OP_SUB, OS_INT,
                 right.location.register, left.location.register,
                 location.register);
             end else begin
-              ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+              ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList, OP_SUB, OS_INT,
                 right.location.value, left.location.register,
                 location.register);
             end
           else
           begin
-            tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-            ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT,
+            tmpreg := ctx.cg.getintregister(ctx.CurrAsmList, OS_INT);
+            ctx.cg.a_load_const_reg(ctx.CurrAsmList, OS_INT,
               left.location.value, tmpreg);
-            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT,
+            ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList, OP_SUB, OS_INT,
               right.location.register, tmpreg, location.register);
           end;
         end;
       ltn, lten, gtn, gten, equaln, unequaln:
         begin
           {$ifdef extdebug}
-          current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
+          ctx.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
           {$endif extdebug}
 
           emit_compare(unsigned,ctx);
@@ -312,46 +312,46 @@ begin
       else
         internalerror(2002072601);
       end;
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, location.register,
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, location.register,
         left.location.register, right.location.register));
-      ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+      ctx.cg.g_overflowcheck(ctx.CurrAsmList, location, resultdef);
     end
     else
     begin
       case nodetype of
         addn:
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD, location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD, location.register,
               left.location.register, right.location.register));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD, location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD, location.register,
               left.location.register));
-            ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+            ctx.cg.g_overflowcheck(ctx.CurrAsmList, location, resultdef);
           end;
         subn:
           begin
             if (nf_swapped in flags) then
               swapleftright;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB, location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB, location.register,
               left.location.register, right.location.register));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD,
               left.location.register, location.register));
-            ctx.cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
+            ctx.cg.g_overflowcheck(ctx.CurrAsmList, location, resultdef);
           end;
         muln:
           begin
             { calculate the upper 64 bits of the product, = 0 if no overflow }
-            ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_R0);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU_, NR_R0,
+            ctx.cg.a_reg_alloc(ctx.CurrAsmList, NR_R0);
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU_, NR_R0,
               left.location.register, right.location.register));
-            ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_R0);
+            ctx.cg.a_reg_dealloc(ctx.CurrAsmList, NR_R0);
             { calculate the real result }
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLD, location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLD, location.register,
               left.location.register, right.location.register));
             { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
             current_asmdata.getjumplabel(hl);
-            tcgppc(ctx.cg).a_jmp_cond(current_asmdata.CurrAsmList, OC_EQ, hl);
-            ctx.cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
-            ctx.cg.a_label(current_asmdata.CurrAsmList, hl);
+            tcgppc(ctx.cg).a_jmp_cond(ctx.CurrAsmList, OC_EQ, hl);
+            ctx.cg.a_call_name(ctx.CurrAsmList, 'FPC_OVERFLOW',false);
+            ctx.cg.a_label(ctx.CurrAsmList, hl);
           end;
         else
           internalerror(2019051031);

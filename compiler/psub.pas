@@ -1760,7 +1760,7 @@ implementation
         if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
           InternalError(201201141);
         { flush code generated this far }
-        aktproccode.concatlist(current_asmdata.CurrAsmList);
+        aktproccode.concatlist(FCodeGenContext.CurrAsmList);
         { save the codegen }
         saved_hlcg:=compiler.hlcg;
         tcompiler(compiler).hlcg:=nil;
@@ -2081,7 +2081,7 @@ implementation
             FCodeGenContext:=TPassGenerateCodeContextImpl.Create(compiler,parent_tg);
             TPassGenerateCodeContextImpl(FCodeGenContext).create_hlcodegen(compiler);
 
-            setup_eh;
+            setup_eh(FCodeGenContext);
 
             if (procdef.proctypeoption<>potype_exceptfilter) then
               setup_tempgen;
@@ -2131,7 +2131,7 @@ implementation
 
             { generate code for the node tree }
             do_secondpass(code,FCodeGenContext);
-            aktproccode.concatlist(current_asmdata.CurrAsmList);
+            aktproccode.concatlist(FCodeGenContext.CurrAsmList);
 
             { The position of the loadpara_asmnode is now known }
             aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);

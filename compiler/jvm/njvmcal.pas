@@ -402,12 +402,12 @@ implementation
         if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
           exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true),AT_METADATA)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
-        thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,2);
+        ctx.CurrAsmList.concat(taicpu.op_none(a_dup));
+        thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,2);
       end;
 
 
@@ -417,9 +417,9 @@ implementation
         { in case of jvmimplicitpointertype(), the function will have allocated
           it already and we don't have to allocate it again here }
         if not jvmimplicitpointertype(realresdef) then
-          ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
+          ctx.tg.gethltemp(ctx.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
         else
-          ctx.tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,location.reference);
+          ctx.tg.gethltemp(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,location.reference);
       end;
 
 
@@ -431,19 +431,19 @@ implementation
         if is_void(resultdef) then
           exit;
         if (location.loc=LOC_REFERENCE) then
-          ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+          ctx.tg.ungetiftemp(ctx.CurrAsmList,location.reference);
         if assigned(funcretnode) then
           exit;
         if jvmimplicitpointertype(resultdef) or
            (resultdef.size in [1..4]) then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-            thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.concat(taicpu.op_none(a_pop));
+            thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
           end
         else if resultdef.size=8 then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop2));
-            thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
+            ctx.CurrAsmList.concat(taicpu.op_none(a_pop2));
+            thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,2);
           end
         else
           internalerror(2011010305);
@@ -454,7 +454,7 @@ implementation
       var
         realresdef: tdef;
       begin
-        thlcgjvm(ctx.hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
+        thlcgjvm(ctx.hlcg).g_adjust_stack_after_call(ctx.CurrAsmList,procdefinition,pushedparasize,typedef);
         { a constructor doesn't actually return a value in the jvm }
         if (tabstractprocdef(procdefinition).proctypeoption<>potype_constructor) then
           begin
@@ -464,7 +464,7 @@ implementation
                   realresdef:=tstoreddef(resultdef)
                 else
                   realresdef:=tstoreddef(typedef);
-                thlcgjvm(ctx.hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
+                thlcgjvm(ctx.hlcg).maybe_resize_stack_para_val(ctx.CurrAsmList,realresdef,false);
               end;
           end;
 
@@ -472,7 +472,7 @@ implementation
           are wrapped types following it }
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
-          thlcgjvm(ctx.hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
+          thlcgjvm(ctx.hlcg).gen_initialize_fields_code(ctx.CurrAsmList);
       end;
 
 

@@ -42,6 +42,7 @@ implementation
       aasmcpu,
       paramgr,
       ncal,
+      pass_2_context,
       compiler,nodehelper;
 
 
@@ -49,7 +50,7 @@ implementation
       begin
 {$ifndef SPARC64}
         if paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.returndef.size and $3fffff));
+          ctx.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.returndef.size and $3fffff));
 {$endif SPARC64}
       end;
 

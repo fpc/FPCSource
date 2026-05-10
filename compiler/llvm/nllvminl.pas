@@ -351,8 +351,8 @@ implementation
         { Dynamic arrays do not have their length attached but their maximum index }
         if is_dynamic_array(left.resultdef) then
           begin
-            hreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,location.register,hreg);
+            hreg:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+            ctx.hlcg.a_op_const_reg_reg(ctx.CurrAsmList,OP_ADD,resultdef,1,location.register,hreg);
             location.register:=hreg;
           end;
       end;
@@ -372,8 +372,8 @@ implementation
               internalerror(2014080806);
            { typecast the shortstring reference into a length byte reference }
            location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
-           hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
-           ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hregister);
+           hregister:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+           ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hregister);
            ctx.hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef,compiler),hregister,0,left.location.reference.temppos,left.location.reference.alignment,left.location.reference.volatility);
          end
         else
@@ -384,27 +384,27 @@ implementation
              lendef:=compiler.deftypes.u32inttype
            else
              lendef:=compiler.deftypes.ossinttype;
-           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+           ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,
              left.resultdef,cpointerdef.getreusable(lendef,compiler),true);
            current_asmdata.getjumplabel(nillab);
            current_asmdata.getjumplabel(lengthlab);
-           ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,cpointerdef.getreusable(lendef,compiler),OC_EQ,0,left.location.register,nillab);
+           ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,cpointerdef.getreusable(lendef,compiler),OC_EQ,0,left.location.register,nillab);
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
            ctx.hlcg.reference_reset_base(href,cpointerdef.getreusable(lendef,compiler),left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
-           hregister:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-           ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
+           hregister:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+           ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then
-             ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
-           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,lengthlab);
+             ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_SHR,resultdef,1,hregister);
+           ctx.hlcg.a_jmp_always(ctx.CurrAsmList,lengthlab);
 
-           ctx.hlcg.a_label(current_asmdata.CurrAsmList,nillab);
+           ctx.hlcg.a_label(ctx.CurrAsmList,nillab);
            if is_dynamic_array(left.resultdef) then
-             ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,-1,hregister)
+             ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,resultdef,-1,hregister)
            else
-             ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
+             ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,resultdef,0,hregister);
 
-           ctx.hlcg.a_label(current_asmdata.CurrAsmList,lengthlab);
+           ctx.hlcg.a_label(ctx.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
@@ -417,15 +417,15 @@ implementation
         location.loc:=expectloc;
         if expectloc=LOC_MMREGISTER then
           begin
-            ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            location.register:=ctx.hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+            ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=ctx.hlcg.getmmregister(ctx.CurrAsmList,resultdef);
           end
         else
           begin
-            ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+            ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
           end;
-        current_asmdata.CurrAsmList.concat(
+        ctx.CurrAsmList.concat(
           taillvm.op_reg_size_reg_reg(la_fmul,
             location.register,resultdef,
             left.location.register,left.location.register
@@ -438,12 +438,12 @@ implementation
       begin
         secondpass(left,ctx);
         if use_vectorfpu(left.resultdef) then
-          ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true)
+          ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true)
         else
-          ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+          ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        current_asmdata.CurrAsmList.concat(
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        ctx.CurrAsmList.concat(
           taillvm.op_reg_size_reg_size(la_fptosi,location.register,left.resultdef,left.location.register,resultdef)
         );
       end;

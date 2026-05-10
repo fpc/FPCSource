@@ -82,12 +82,12 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                  ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
                   location_reset(location,LOC_REGISTER,OS_INT);
-                  location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype);
+                  location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.s64inttype);
 
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,left.location.register,1));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,left.location.register,1));
                end;
               else
                 internalerror(2022111906);
@@ -111,7 +111,7 @@ implementation
         else
           op:=A_DIV_DU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
+        ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 
@@ -124,7 +124,7 @@ implementation
         else
           op:=A_MOD_DU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
+        ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 

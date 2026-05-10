@@ -69,8 +69,8 @@ implementation
             { load stack pointer in a different register, as many instructions
               cannot directly work with the stack pointer. The register
               allocator can merge them if possible }
-            location.register:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,location.register);
+            location.register:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+            ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,location.register);
             location.loc:=LOC_REGISTER;
           end;
     end;
@@ -113,8 +113,8 @@ implementation
             embedded targets) }
           oldoffset:=location.reference.offset;
           location.reference.offset:=0;
-          base:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-          ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,base);
+          base:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+          ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,location.reference,base);
           reference_reset_base(location.reference,base,oldoffset,location.reference.temppos,location.reference.alignment,location.reference.volatility);
         end;
       shift:=BsfDWord(l);
@@ -132,7 +132,7 @@ implementation
       else
         { the upper 32 bits are always already zero-extended -> just use 64 bit
           register }
-        location.reference.index:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,location.reference.index,OS_64);
+        location.reference.index:=ctx.cg.makeregsize(ctx.CurrAsmList,location.reference.index,OS_64);
       location.reference.shiftimm:=shift;
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;

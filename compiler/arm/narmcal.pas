@@ -62,14 +62,14 @@ implementation
             begin
               if (po_syscall_baselast in tprocdef(procdefinition).procoptions) then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+                  ctx.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.getcpuregister(ctx.CurrAsmList,NR_R12);
                   get_syscall_call_ref(tmpref,NR_R12,ctx);
 
-                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                  ctx.cg.a_call_reg(current_asmdata.CurrAsmList,NR_R12);
-                  ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
+                  ctx.cg.a_call_reg(ctx.CurrAsmList,NR_R12);
+                  ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_R12);
                   exit;
                 end;
               internalerror(2016110601);
@@ -94,10 +94,10 @@ implementation
           case retloc.size of
             OS_32,
             OS_F32:
-              location_allocate_register(ctx,current_asmdata.CurrAsmList,location,compiler.deftypes.s32inttype,false);
+              location_allocate_register(ctx,ctx.CurrAsmList,location,compiler.deftypes.s32inttype,false);
             OS_64,
             OS_F64:
-              location_allocate_register(ctx,current_asmdata.CurrAsmList,location,compiler.deftypes.s64inttype,false);
+              location_allocate_register(ctx,ctx.CurrAsmList,location,compiler.deftypes.s64inttype,false);
             else
               internalerror(2010053008);
           end
@@ -107,7 +107,7 @@ implementation
          (compiler.globals.current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
         begin
           location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment,[]);
-          ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
+          ctx.tg.gethltemp(ctx.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
         end
       else
         inherited;

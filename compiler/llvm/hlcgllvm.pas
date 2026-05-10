@@ -424,9 +424,9 @@ implementation
           varmetapara.init(compiler.target);
           symmetadatapara.init(compiler.target);
           exprmetapara.init(compiler.target);
-          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,varmetapara);
-          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,symmetadatapara);
-          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,exprmetapara);
+          paramanager.getcgtempparaloc(list,pd,1,varmetapara);
+          paramanager.getcgtempparaloc(list,pd,1,symmetadatapara);
+          paramanager.getcgtempparaloc(list,pd,1,exprmetapara);
           { the local location of the var/para }
           varmetapara.Location^.def:=cpointerdef.getreusable(def,compiler);
           varmetapara.Location^.register:=ref.base;

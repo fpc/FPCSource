@@ -144,7 +144,7 @@ implementation
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        ctx.tg.Gettemp(current_asmdata.CurrAsmList,8,8,tt_normal,ref);
+        ctx.tg.Gettemp(ctx.CurrAsmList,8,8,tt_normal,ref);
 
         signed := is_signed(left.resultdef);
 
@@ -167,7 +167,7 @@ implementation
           internalerror(200110011);
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         case left.location.loc of
           LOC_REGISTER:
             begin
@@ -178,51 +178,51 @@ implementation
             begin
               leftreg := left.location.register;
               if signed then
-                valuereg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT)
+                valuereg := ctx.cg.getintregister(ctx.CurrAsmList,OS_INT)
               else
                 valuereg := leftreg;
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              leftreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              leftreg := ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
               valuereg := leftreg;
               if signed then
                 size := OS_S32
               else
                 size := OS_32;
-              ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),
+              ctx.cg.a_load_ref_reg(ctx.CurrAsmList,def_cgsize(left.resultdef),
                 size,left.location.reference,leftreg);
             end
           else
             internalerror(200110012);
          end;
-         tempreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
-         ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,tempreg,ref);
+         tempreg := ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+         ctx.CurrAsmList.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
+         ctx.cg.a_load_reg_ref(ctx.CurrAsmList,OS_32,OS_32,tempreg,ref);
          if signed then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
+           ctx.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
              leftreg,$8000));
          inc(ref.offset,4);
-         ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,valuereg,ref);
+         ctx.cg.a_load_reg_ref(ctx.CurrAsmList,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
 
-         tmpfpureg := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
+         tmpfpureg := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+         ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
            tmpfpureg);
          tempconst.free;
 
-         location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,ref,location.register);
+         location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+         ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64,OS_F64,ref,location.register);
 
-         ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,ref);
+         ctx.tg.ungetiftemp(ctx.CurrAsmList,ref);
 
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
 
         { make sure the precision is correct }
         if (tfloatdef(resultdef).floattype = s32real) then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
+           ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
              location.register));
        end;
 

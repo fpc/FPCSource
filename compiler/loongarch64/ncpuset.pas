@@ -112,33 +112,33 @@ implementation
           jr z
         }
 
-        indexreg:= ctx.cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
+        indexreg:= ctx.cg.makeregsize(ctx.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
-        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
+        ctx.cg.a_load_reg_reg(ctx.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
+        ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
-          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
+          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
         current_asmdata.getjumplabel(table);
-        hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
         { la.pcrel x,tbl }
         reference_reset_symbol(href, table, 0, 4,[]);
         href.refaddr:=addr_pcrel;
-        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+        ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,href,hregister);
         { alsl.d y,idx,x,3 }
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_const(A_ALSL_D,hregister,indexreg,hregister,3));
+        ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg_const(A_ALSL_D,hregister,indexreg,hregister,3));
         { ld.d z,y,0 }
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
-        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+        ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
         { jr z }
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
         href.refaddr:=addr_reg;
-        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JR,href));
+        ctx.CurrAsmList.concat(taicpu.op_ref(A_JR,href));
 
         { generate jump table }
-        current_asmdata.CurrAsmList.concat(cai_align.Create(8));
-        current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
-        genitem(current_asmdata.CurrAsmList,hp);
+        ctx.CurrAsmList.concat(cai_align.Create(8));
+        ctx.CurrAsmList.concat(Tai_label.Create(table));
+        genitem(ctx.CurrAsmList,hp);
       end;
 
 

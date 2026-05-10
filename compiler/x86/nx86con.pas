@@ -70,23 +70,23 @@ implementation
            begin
              if (value_real=1.0) and not(use_vectorfpu(resultdef)) then
                begin
-                  emit_none(A_FLD1,S_NO);
+                  emit_none(ctx,A_FLD1,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(ctx.cg).inc_fpu_stack;
                end
              else if (value_real=2.0) and (cs_create_pic in compiler.globals.current_settings.moduleswitches) and not(use_vectorfpu(resultdef)) then
                begin
-                  emit_none(A_FLD1,S_NO);
-                  emit_reg_reg(A_FADD,S_NO,NR_ST,NR_ST);
+                  emit_none(ctx,A_FLD1,S_NO);
+                  emit_reg_reg(ctx,A_FADD,S_NO,NR_ST,NR_ST);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(ctx.cg).inc_fpu_stack;
                end
              else if (value_real=-1.0) and not(use_vectorfpu(resultdef)) then
                begin
-                  emit_none(A_FLD1,S_NO);
-                  emit_none(A_FCHS,S_NO);
+                  emit_none(ctx,A_FLD1,S_NO);
+                  emit_none(ctx,A_FCHS,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(ctx.cg).inc_fpu_stack;
@@ -96,27 +96,27 @@ implementation
                  if use_vectorfpu(resultdef) then
                    begin
                      location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-                     location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                     location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,def_cgsize(resultdef));
                      if UseAVX then
                        begin
                          if is_single(resultdef) then
-                           emit_reg_reg_reg(A_VXORPS,S_NO,location.register,location.register,location.register)
+                           emit_reg_reg_reg(ctx,A_VXORPS,S_NO,location.register,location.register,location.register)
                          else
-                           emit_reg_reg_reg(A_VXORPD,S_NO,location.register,location.register,location.register);
+                           emit_reg_reg_reg(ctx,A_VXORPD,S_NO,location.register,location.register,location.register);
                        end
                      else
                        begin
                          if is_single(resultdef) then
-                           emit_reg_reg(A_XORPS,S_NO,location.register,location.register)
+                           emit_reg_reg(ctx,A_XORPS,S_NO,location.register,location.register)
                          else
-                           emit_reg_reg(A_XORPD,S_NO,location.register,location.register);
+                           emit_reg_reg(ctx,A_XORPD,S_NO,location.register,location.register);
                        end
                    end
                  else
                    begin
-                      emit_none(A_FLDZ,S_NO);
+                      emit_none(ctx,A_FLDZ,S_NO);
                       if (get_real_sign(value_real) < 0) then
-                        emit_none(A_FCHS,S_NO);
+                        emit_none(ctx,A_FCHS,S_NO);
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                       location.register:=NR_ST;
                       tcgx86(ctx.cg).inc_fpu_stack;

@@ -67,7 +67,7 @@ interface
           procedure copy_back_paras(ctx:tpassgeneratecodecontext);
           procedure release_para_temps(ctx:tpassgeneratecodecontext);
           procedure reorder_parameters;
-          procedure freeparas;
+          procedure freeparas(ctx:tpassgeneratecodecontext);
           function is_parentfp_pushed:boolean;
        protected
           retloc: tcgpara;
@@ -84,9 +84,9 @@ interface
              the first invisible parameter.
           }
           procedure pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);virtual;
-          procedure extra_interrupt_code;virtual;
+          procedure extra_interrupt_code(ctx:tpassgeneratecodecontext);virtual;
           procedure extra_pre_call_code(ctx:tpassgeneratecodecontext);virtual;
-          procedure extra_call_code;virtual;
+          procedure extra_call_code(ctx:tpassgeneratecodecontext);virtual;
           procedure extra_post_call_code(ctx:tpassgeneratecodecontext);virtual;
 
           function get_syscall_libbase_paraloc: pcgparalocation;virtual;
@@ -205,7 +205,7 @@ implementation
           valuedef:=parasym.vardef
         else
           valuedef:=left.resultdef;
-        ctx.hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,valuedef,left.location.reference,tempcgpara);
+        ctx.hlcg.a_loadaddr_ref_cgpara(ctx.CurrAsmList,valuedef,left.location.reference,tempcgpara);
       end;
 
 
@@ -293,10 +293,10 @@ implementation
 
         { Move flags and jump in register to make it less complex }
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         { load the parameter's tlocation into its cgpara }
-        ctx.hlcg.gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
+        ctx.hlcg.gen_load_loc_cgpara(ctx.CurrAsmList,left.resultdef,left.location,tempcgpara)
       end;
 
 
@@ -307,7 +307,7 @@ implementation
         { allow passing of a constant to a const formaldef }
         if (parasym.varspez=vs_const) and
            not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-          ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+          ctx.hlcg.location_force_mem(ctx.CurrAsmList,left.location,left.resultdef);
         push_addr_para(ctx);
       end;
 
@@ -322,12 +322,12 @@ implementation
         if not can_skip_para_push(parasym) then
           begin
             if cs_asm_source in compiler.globals.current_settings.globalswitches then
-              current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused, loading undefined value')));
-            ctx.hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
+              ctx.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused, loading undefined value')));
+            ctx.hlcg.a_load_undefined_cgpara(ctx.CurrAsmList,left.resultdef,tempcgpara);
           end
         else
           if cs_asm_source in compiler.globals.current_settings.globalswitches then
-            current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused')));
+            ctx.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused')));
       end;
 
 
@@ -343,9 +343,9 @@ implementation
       var
         pushaddr: boolean;
       begin
-        ctx.hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
+        ctx.hlcg.maybe_change_load_node_reg(ctx.CurrAsmList,left,true);
 
-        paramanager.createtempparaloc(current_asmdata.CurrAsmList,callnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
+        paramanager.createtempparaloc(ctx.CurrAsmList,callnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
 
         { handle varargs first, because parasym is not valid }
         if (cpf_varargs_para in callparaflags) then
@@ -385,7 +385,7 @@ implementation
               begin
                 { objects or advanced records could be located in registers if they are the result of a type case, see e.g. webtbs\tw26075.pp }
                 if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                  ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                  ctx.hlcg.location_force_mem(ctx.CurrAsmList,left.location,left.resultdef);
                 push_addr_para(ctx)
               end
             else
@@ -422,13 +422,13 @@ implementation
                      if (left.location.reference.index<>NR_NO) or
                         (left.location.reference.offset<>0) then
                        internalerror(200410107);
-                     ctx.hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),left.location.reference.base,tempcgpara)
+                     ctx.hlcg.a_load_reg_cgpara(ctx.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),left.location.reference.base,tempcgpara)
                    end
                  else
                    begin
                      { Force to be in memory }
                      if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                       ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                       ctx.hlcg.location_force_mem(ctx.CurrAsmList,left.location,left.resultdef);
                      push_addr_para(ctx);
                    end;
               end
@@ -479,7 +479,7 @@ implementation
   {$WARN 4044 OFF} { Comparison might be always false ... }
 {$endif}
 
-    procedure tcgcallnode.extra_interrupt_code;
+    procedure tcgcallnode.extra_interrupt_code(ctx:tpassgeneratecodecontext);
       begin
       end;
 
@@ -489,7 +489,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.extra_call_code;
+    procedure tcgcallnode.extra_call_code(ctx:tpassgeneratecodecontext);
       begin
       end;
 
@@ -522,7 +522,7 @@ implementation
           LOC_REFERENCE:
             begin
               reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,ctempposinvalid,sizeof(pint),[]);
-              ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,reg);
+              ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,reg);
               reference_reset_base(tmpref,reg,-tprocdef(procdefinition).extnumber,ctempposinvalid,sizeof(pint),[]);
             end;
           else
@@ -559,18 +559,18 @@ implementation
         literaldef: trecorddef;
       begin
         literaldef:=compiler.blockutl.get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef,compiler),true);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef,compiler),true);
         { load the invoke pointer }
         ctx.hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,ctempposinvalid,right.resultdef.alignment,[]);
         callprocdef:=cprocvardef.getreusableprocaddr(procdefinition,pc_address_only,compiler);
-        toreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,callprocdef);
-        ctx.hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,callprocdef,'INVOKE',href,toreg);
+        toreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,callprocdef);
+        ctx.hlcg.g_load_field_reg_by_name(ctx.CurrAsmList,literaldef,callprocdef,'INVOKE',href,toreg);
      end;
 
 
     function tcgcallnode.get_call_reg(list: TAsmList;ctx:tpassgeneratecodecontext): tregister;
       begin
-        result:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition.address_type);
+        result:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,procdefinition.address_type);
       end;
 
 
@@ -592,11 +592,11 @@ implementation
            ((realresdef.size=sizeof(aint)) and
             (retloc.location^.loc=LOC_REGISTER) and
             not assigned(retloc.location^.next)) then
-          location_allocate_register(ctx,current_asmdata.CurrAsmList,location,realresdef,false)
+          location_allocate_register(ctx,ctx.CurrAsmList,location,realresdef,false)
         else
           begin
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0,[]);
-            ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
+            ctx.tg.gethltemp(ctx.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
           end;
       end;
 
@@ -607,8 +607,8 @@ implementation
           LOC_REFERENCE :
             begin
               if is_managed_type(resultdef) then
-                 ctx.hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
-               ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+                 ctx.hlcg.g_finalize(ctx.CurrAsmList,resultdef,location.reference);
+               ctx.tg.ungetiftemp(ctx.CurrAsmList,location.reference);
             end;
           else
             ;
@@ -659,7 +659,7 @@ implementation
             (mantis #13536).  }
           if (cnf_return_value_used in callnodeflags) or
              assigned(funcretnode) then
-            ctx.hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
+            ctx.hlcg.gen_load_cgpara_loc(ctx.CurrAsmList,realresdef,retloc,location,false);
 
         if ((location.loc=LOC_REGISTER) and
             not realresdef.is_intregable) or
@@ -667,7 +667,7 @@ implementation
             (not realresdef.is_fpuregable or
              ((location.loc=LOC_MMREGISTER)<>use_vectorfpu(realresdef)))) then
           begin
-            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,location,realresdef);
+            ctx.hlcg.location_force_mem(ctx.CurrAsmList,location,realresdef);
             { may have been record returned in a floating point register (-> location.size
               will be the size of the fpuregister instead of the int size of the record) }
             location.size:=def_cgsize(realresdef);
@@ -685,47 +685,47 @@ implementation
               function since this is code is only executed after the function call has returned }
             if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
-              ctx.hlcg.g_finalize(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
+              ctx.hlcg.g_finalize(ctx.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
             case location.loc of
               LOC_REGISTER :
                 begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if location.size in [OS_64,OS_S64] then
-                    ctx.cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
+                    ctx.cg64.a_load64_reg_loc(ctx.CurrAsmList,location.register64,funcretnode.location)
                   else
 {$endif}
-                    ctx.hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
-                  location_free(current_asmdata.CurrAsmList,location,ctx);
+                    ctx.hlcg.a_load_reg_loc(ctx.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
+                  location_free(ctx.CurrAsmList,location,ctx);
                 end;
               LOC_MMREGISTER :
                 begin
-                  ctx.hlcg.a_loadmm_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location,nil);
-                  location_free(current_asmdata.CurrAsmList,location,ctx);
+                  ctx.hlcg.a_loadmm_reg_loc(ctx.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location,nil);
+                  location_free(ctx.CurrAsmList,location,ctx);
                 end;
               LOC_FPUREGISTER:
                 begin
-                  ctx.hlcg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
-                  location_free(current_asmdata.CurrAsmList,location,ctx);
+                  ctx.hlcg.a_loadfpu_reg_loc(ctx.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
+                  location_free(ctx.CurrAsmList,location,ctx);
                 end;
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
                     LOC_CREGISTER,
                     LOC_REGISTER:
-                      ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
+                      ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_CFPUREGISTER,
                     LOC_FPUREGISTER:
-                      ctx.hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
+                      ctx.hlcg.a_loadfpu_ref_reg(ctx.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
-                      ctx.hlcg.g_concatcopy(current_asmdata.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
+                      ctx.hlcg.g_concatcopy(ctx.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
                     LOC_CMMREGISTER,
                     LOC_MMREGISTER:
-                      ctx.hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,resultdef,resultdef,funcretnode.location.register,location.reference,nil);
+                      ctx.hlcg.a_loadmm_reg_ref(ctx.CurrAsmList,resultdef,resultdef,funcretnode.location.register,location.reference,nil);
                     else
                       internalerror(200802121);
                   end;
-                  ctx.tg.location_freetemp(current_asmdata.CurrAsmList,location);
+                  ctx.tg.location_freetemp(ctx.CurrAsmList,location);
                 end;
               else
                 internalerror(200709085);
@@ -744,7 +744,7 @@ implementation
           begin
             do_release_unused_return_value(ctx);
             if (retloc.intsize<>0) then
-              paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);
+              paramanager.freecgpara(ctx.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
          end;
       end;
@@ -786,7 +786,7 @@ implementation
                         (ppn.parasym.vardef.typ<>objectdef)
                       )
                     )then
-                   ctx.tg.location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
+                   ctx.tg.location_freetemp(ctx.CurrAsmList,ppn.left.location);
                  { process also all nodes of an array of const }
                  hp:=ppn.left;
                  while (hp.nodetype=typeconvn) do
@@ -804,7 +804,7 @@ implementation
                            hp2:=tunarynode(tunarynode(hp2).left).left
                          else if hp2.nodetype=addrn then
                            hp2:=tunarynode(hp2).left;
-                         ctx.tg.location_freetemp(current_asmdata.CurrAsmList,hp2.location);
+                         ctx.tg.location_freetemp(ctx.CurrAsmList,hp2.location);
                          hp:=tarrayconstructornode(hp).right;
                        end;
                    end;
@@ -837,7 +837,7 @@ implementation
                  { better check for the real location of the parameter here, when stack passed parameters
                    are saved temporary in registers, checking for the tmpparaloc.loc is wrong
                  }
-                 paramanager.freecgpara(current_asmdata.CurrAsmList,ppn.tempcgpara);
+                 paramanager.freecgpara(ctx.CurrAsmList,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
                  sizeleft:=ppn.parasym.paraloc[callerside].intsize;
                  calleralignment:=ppn.parasym.paraloc[callerside].alignment;
@@ -862,8 +862,8 @@ implementation
                            if tmpparaloc^.loc<>LOC_REGISTER then
                              internalerror(200408221);
                            if getsupreg(callerparaloc^.register)<first_int_imreg then
-                             ctx.cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,
+                             ctx.cg.getcpuregister(ctx.CurrAsmList,callerparaloc^.register);
+                           ctx.cg.a_load_reg_reg(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,
                                tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_FPUREGISTER:
@@ -871,16 +871,16 @@ implementation
                            if tmpparaloc^.loc<>LOC_FPUREGISTER then
                              internalerror(200408222);
                            if getsupreg(callerparaloc^.register)<first_fpu_imreg then
-                             ctx.cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,callerparaloc^.register);
+                             ctx.cg.getcpuregister(ctx.CurrAsmList,callerparaloc^.register);
+                           ctx.cg.a_loadfpu_reg_reg(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_MMREGISTER:
                          begin
                            if tmpparaloc^.loc<>LOC_MMREGISTER then
                              internalerror(200408223);
                            if getsupreg(callerparaloc^.register)<first_mm_imreg then
-                             ctx.cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           ctx.cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,
+                             ctx.cg.getcpuregister(ctx.CurrAsmList,callerparaloc^.register);
+                           ctx.cg.a_loadmm_reg_reg(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,
                              tmpparaloc^.register,callerparaloc^.register,mms_movescalar);
                          end;
                        LOC_REFERENCE:
@@ -904,16 +904,16 @@ implementation
                                     { use concatcopy, because it can also be a float which fails when
                                       load_ref_ref is used }
                                     if (tmpparaloc^.size <> OS_NO) then
-                                      ctx.cg.g_concatcopy(current_asmdata.CurrAsmList,htempref,href,tcgsize2size[tmpparaloc^.size])
+                                      ctx.cg.g_concatcopy(ctx.CurrAsmList,htempref,href,tcgsize2size[tmpparaloc^.size])
                                     else
-                                      ctx.cg.g_concatcopy(current_asmdata.CurrAsmList,htempref,href,sizeleft)
+                                      ctx.cg.g_concatcopy(ctx.CurrAsmList,htempref,href,sizeleft)
                                   end;
                                 LOC_REGISTER:
-                                  ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
+                                  ctx.cg.a_load_reg_ref(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
                                 LOC_FPUREGISTER:
-                                  ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
+                                  ctx.cg.a_loadfpu_reg_ref(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
                                 LOC_MMREGISTER:
-                                  ctx.cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
+                                  ctx.cg.a_loadmm_reg_ref(ctx.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
                                 else
                                   internalerror(200402081);
                              end;
@@ -947,7 +947,7 @@ implementation
            even though the procvardef constructor called by getcopyas looks at
            it) }
          callprocdef:=cprocvardef.getreusableprocaddr(procdefinition,pc_address_only,compiler);
-         reg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,callprocdef);
+         reg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,callprocdef);
          { in case we have a method pointer on a big endian target in registers,
            the method address is stored in registerhi (it's the first field
            in the tmethod record) }
@@ -959,13 +959,13 @@ implementation
                srcreg:=right.location.registerhi
              else
                srcreg:=right.location.register;
-             ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,callprocdef,callprocdef,srcreg,reg)
+             ctx.hlcg.a_load_reg_reg(ctx.CurrAsmList,callprocdef,callprocdef,srcreg,reg)
            end
          else
            begin
-             ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
-             ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition,compiler),cpointerdef.getreusable(callprocdef,compiler),right.location.reference);
-             ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,callprocdef,callprocdef,right.location.reference,reg);
+             ctx.hlcg.location_force_mem(ctx.CurrAsmList,right.location,procdefinition);
+             ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,cpointerdef.getreusable(procdefinition,compiler),cpointerdef.getreusable(callprocdef,compiler),right.location.reference);
+             ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,callprocdef,callprocdef,right.location.reference,reg);
            end;
        end;
 
@@ -978,15 +978,15 @@ implementation
            load_complex_procvar_codeptr(reg,callprocdef,ctx)
          else
            begin
-             reg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
-             ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,procdefinition,procdefinition,right.location,reg);
+             reg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,procdefinition);
+             ctx.hlcg.a_load_loc_reg(ctx.CurrAsmList,procdefinition,procdefinition,right.location,reg);
              callprocdef:=procdefinition;
            end;
          callprocdef.init_paraloc_info(callerside);
        end;
 
 
-     procedure tcgcallnode.freeparas;
+     procedure tcgcallnode.freeparas(ctx:tpassgeneratecodecontext);
        var
          ppn : tcgcallparanode;
        begin
@@ -997,7 +997,7 @@ implementation
              if (ppn.left.nodetype<>nothingn) then
                begin
                  if (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
-                   paramanager.freecgpara(current_asmdata.CurrAsmList,ppn.parasym.paraloc[callerside]);
+                   paramanager.freecgpara(ctx.CurrAsmList,ppn.parasym.paraloc[callerside]);
                end;
              ppn:=tcgcallparanode(ppn.right);
            end;
@@ -1101,7 +1101,7 @@ implementation
              if not is_interface(tprocdef(procdefinition)._class) then
                begin
                  inc(current_asmdata.NextVTEntryNr);
-                 current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition).struct.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
+                 ctx.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition).struct.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
                end;
 {$endif vtentry}
 
@@ -1135,8 +1135,8 @@ implementation
                  callref:=can_call_ref(href,ctx);
                  if not callref then
                    begin
-                     pvreg:=get_call_reg(current_asmdata.CurrAsmList,ctx);
-                     ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,
+                     pvreg:=get_call_reg(ctx.CurrAsmList,ctx);
+                     ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,
                        vmt_entry.resultdef,vmt_entry.resultdef,
                        href,pvreg);
                    end;
@@ -1152,24 +1152,24 @@ implementation
                  if callref then
                    extra_call_ref_code(href,ctx);
 
-                 ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+                 ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_INTREGISTER,regs_to_save_int);
                  if ctx.cg.uses_registers(R_ADDRESSREGISTER) then
-                   ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
+                   ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
                  if ctx.cg.uses_registers(R_FPUREGISTER) then
-                   ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
+                   ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
                  if ctx.cg.uses_registers(R_MMREGISTER) then
-                   ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
+                   ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
 
                  { call method }
-                 extra_call_code;
+                 extra_call_code(ctx);
                  retloc.resetiftemp;
                  if callref then
                    retloc:=do_call_ref(href,ctx)
                  else
                    begin
-                     ctx.hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition,compiler),pvreg);
-                     retloc:=ctx.hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
-                     unget_call_reg(current_asmdata.CurrAsmList,pvreg,ctx);
+                     ctx.hlcg.g_ptrtypecast_reg(ctx.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition,compiler),pvreg);
+                     retloc:=ctx.hlcg.a_call_reg(ctx.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
+                     unget_call_reg(ctx.CurrAsmList,pvreg,ctx);
                    end;
 
                  extra_post_call_code(ctx);
@@ -1184,13 +1184,13 @@ implementation
                       pushparas(ctx);
                     end;
 
-                  ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+                  ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_INTREGISTER,regs_to_save_int);
                   if ctx.cg.uses_registers(R_ADDRESSREGISTER) then
-                    ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
+                    ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
                   if ctx.cg.uses_registers(R_FPUREGISTER) then
-                    ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
+                    ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
                   if ctx.cg.uses_registers(R_MMREGISTER) then
-                    ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
+                    ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
 
                   if procdefinition.proccalloption=pocall_syscall then
                     do_syscall(ctx)
@@ -1199,8 +1199,8 @@ implementation
                       { Calling interrupt from the same code requires some
                         extra code }
                       if (po_interrupt in procdefinition.procoptions) then
-                        extra_interrupt_code;
-                      extra_call_code;
+                        extra_interrupt_code(ctx);
+                      extra_call_code(ctx);
                       retloc.resetiftemp;
                       if name_to_call='' then
                         begin
@@ -1210,14 +1210,14 @@ implementation
                             name_to_call:=overrideprocnamedef.mangledname;
                         end;
                       if cnf_inherited in callnodeflags then
-                        retloc:=ctx.hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
+                        retloc:=ctx.hlcg.a_call_name_inherited(ctx.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
                       { under certain conditions, a static call (i.e. without PIC) can be generated }
                       else if ((procdefinition.owner=compiler.current_procinfo.procdef.owner) or
                          (procdefinition.owner.symtabletype in [localsymtable,staticsymtable])
                         ) and ((procdefinition.procoptions*[po_weakexternal,po_external])=[]) then
-                        retloc:=ctx.hlcg.a_call_name_static(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
+                        retloc:=ctx.hlcg.a_call_name_static(ctx.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
                       else
-                        retloc:=ctx.hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
+                        retloc:=ctx.hlcg.a_call_name(ctx.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code(ctx);
                     end;
                end;
@@ -1243,7 +1243,7 @@ implementation
                   pvreg:=NR_INVALID;
                   callpvdef:=nil;
                 end;
-              ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+              ctx.tg.location_freetemp(ctx.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
                 correct parameter register }
@@ -1256,31 +1256,31 @@ implementation
               if callref then
                 extra_call_ref_code(href,ctx);
 
-              ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+              ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_INTREGISTER,regs_to_save_int);
               if ctx.cg.uses_registers(R_ADDRESSREGISTER) then
-                ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
+                ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
               if ctx.cg.uses_registers(R_FPUREGISTER) then
-                ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
+                ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
               if ctx.cg.uses_registers(R_MMREGISTER) then
-                ctx.cg.alloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
+                ctx.cg.alloccpuregisters(ctx.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
 
               { Calling interrupt from the same code requires some
                 extra code }
               if (po_interrupt in procdefinition.procoptions) then
-                extra_interrupt_code;
-              extra_call_code;
+                extra_interrupt_code(ctx);
+              extra_call_code(ctx);
 
               retloc.resetiftemp;
               if callref then
                 retloc:=do_call_ref(href,ctx)
               else
-                retloc:=ctx.hlcg.a_call_reg(current_asmdata.CurrAsmList,callpvdef,pvreg,paralocs);
+                retloc:=ctx.hlcg.a_call_reg(ctx.CurrAsmList,callpvdef,pvreg,paralocs);
               extra_post_call_code(ctx);
            end;
 
          { free the resources allocated for the parameters }
          if assigned(left) then
-           freeparas;
+           freeparas(ctx);
 
          { Release registers, but not the registers that contain the
            function result }
@@ -1316,12 +1316,12 @@ implementation
            end;
 
          if ctx.cg.uses_registers(R_MMREGISTER) then
-           ctx.cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
+           ctx.cg.dealloccpuregisters(ctx.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
          if ctx.cg.uses_registers(R_FPUREGISTER) then
-           ctx.cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
+           ctx.cg.dealloccpuregisters(ctx.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
          if ctx.cg.uses_registers(R_ADDRESSREGISTER) then
-           ctx.cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
-         ctx.cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+           ctx.cg.dealloccpuregisters(ctx.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
+         ctx.cg.dealloccpuregisters(ctx.CurrAsmList,R_INTREGISTER,regs_to_save_int);
 
          { Need to remove the parameters from the stack? }
          if procdefinition.proccalloption in clearstack_pocalls then
@@ -1368,14 +1368,14 @@ implementation
              pd:=search_system_proc('fpc_safecallcheck');
              cgpara.init(compiler.target);
              { fpc_safecallcheck returns its parameter value (= function result of function we just called) }
-             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
+             paramanager.getcgtempparaloc(ctx.CurrAsmList,pd,1,cgpara);
              location_reset(tmploc,LOC_REGISTER,def_cgsize(retloc.Def));
-             tmploc.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,retloc.Def);
-             ctx.hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,retloc.Def,retloc,tmploc,true);
-             paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
-             ctx.hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,retloc.Def,tmploc,cgpara);
+             tmploc.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,retloc.Def);
+             ctx.hlcg.gen_load_cgpara_loc(ctx.CurrAsmList,retloc.Def,retloc,tmploc,true);
+             paramanager.freecgpara(ctx.CurrAsmList,cgpara);
+             ctx.hlcg.a_load_loc_cgpara(ctx.CurrAsmList,retloc.Def,tmploc,cgpara);
              retloc.resetiftemp;
-             retloc:=ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@cgpara],nil);
+             retloc:=ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,pd,[@cgpara],nil);
              cgpara.done;
            end;
 
@@ -1402,7 +1402,7 @@ implementation
 
          { check for fpu exceptions }
          if cnf_check_fpu_exceptions in callnodeflags then
-           ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+           ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
 
          { perhaps i/o check ? }
          if (cs_check_io in compiler.globals.current_settings.localswitches) and
@@ -1412,8 +1412,8 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_iocheck',[],nil).resetiftemp;
-              ctx.hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+              ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_iocheck',[],nil).resetiftemp;
+              ctx.hlcg.g_maybe_checkforexceptions(ctx.CurrAsmList);
            end;
       end;
 

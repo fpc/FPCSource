@@ -85,17 +85,17 @@ implementation
          secondpass(left,ctx);
          secondpass(right,ctx);
          location_reset(location,LOC_REGISTER,left.location.size);
-         location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+         location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
 
         if nodetype=divn then
           begin
-            thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+            thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
             if is_signed(resultdef) then
               op:=OP_IDIV
             else
               op:=OP_DIV;
-            thlcgjvm(ctx.hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,right.resultdef,right.location)
+            thlcgjvm(ctx.hlcg).a_op_loc_stack(ctx.CurrAsmList,op,right.resultdef,right.location)
           end
         else
           begin
@@ -105,42 +105,42 @@ implementation
             if (torddef(resultdef).ordtype<>u32bit) then
               begin
                 isu32int:=false;
-                thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+                thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+                thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
               end
             else
               begin
                 isu32int:=true;
                 if left.location.loc=LOC_CONSTANT then
-                  thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype,left.location.value,R_INTREGISTER)
+                  thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,compiler.deftypes.s64inttype,left.location.value,R_INTREGISTER)
                 else
                   begin
-                    thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                    thlcgjvm(ctx.hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
+                    thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+                    thlcgjvm(ctx.hlcg).resize_stack_int_val(ctx.CurrAsmList,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
                   end;
                 if right.location.loc=LOC_CONSTANT then
-                  thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype,right.location.value,R_INTREGISTER)
+                  thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,compiler.deftypes.s64inttype,right.location.value,R_INTREGISTER)
                 else
                   begin
-                    thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-                    thlcgjvm(ctx.hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
+                    thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
+                    thlcgjvm(ctx.hlcg).resize_stack_int_val(ctx.CurrAsmList,compiler.deftypes.u32inttype,compiler.deftypes.s64inttype,false);
                   end;
               end;
             if isu32int or
                (torddef(resultdef).ordtype=s64bit) then
               begin
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_lrem));
-                thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
+                ctx.CurrAsmList.concat(taicpu.op_none(a_lrem));
+                thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,2);
               end
             else
               begin
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_irem));
-                thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+                ctx.CurrAsmList.concat(taicpu.op_none(a_irem));
+                thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
               end;
             if isu32int then
-              thlcgjvm(ctx.hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,compiler.deftypes.s64inttype,compiler.deftypes.u32inttype,false);
+              thlcgjvm(ctx.hlcg).resize_stack_int_val(ctx.CurrAsmList,compiler.deftypes.s64inttype,compiler.deftypes.u32inttype,false);
           end;
-         thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+         thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
          if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
             is_signed(resultdef) then
            begin
@@ -149,15 +149,15 @@ implementation
                check by adding high(inttype) to left and and'ing with right
                -> result is -1 only in case above conditions are fulfilled)
              }
-             tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
-             ctx.hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,torddef(resultdef).high,right.location.register,tmpreg);
-             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-             ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
+             tmpreg:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+             ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,resultdef,true);
+             ctx.hlcg.a_op_const_reg_reg(ctx.CurrAsmList,OP_ADD,resultdef,torddef(resultdef).high,right.location.register,tmpreg);
+             ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
+             ctx.hlcg.a_op_reg_reg(ctx.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
              current_asmdata.getjumplabel(lab);
-             ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
-             ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
-             ctx.hlcg.a_label(current_asmdata.CurrAsmList,lab);
+             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
+             ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil);
+             ctx.hlcg.a_label(ctx.CurrAsmList,lab);
            end;
       end;
 
@@ -173,15 +173,15 @@ implementation
         secondpass(left,ctx);
         secondpass(right,ctx);
         location_reset(location,LOC_REGISTER,left.location.size);
-        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
         if nodetype=shln then
           op:=OP_SHL
         else
           op:=OP_SHR;
-        thlcgjvm(ctx.hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,resultdef,right.location);
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgjvm(ctx.hlcg).a_op_loc_stack(ctx.CurrAsmList,op,resultdef,right.location);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -195,14 +195,14 @@ implementation
       begin
         secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
         if (tfloatdef(left.resultdef).floattype=s32real) then
           opc:=a_fneg
         else
           opc:=a_dneg;
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(opc));
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        ctx.CurrAsmList.concat(taicpu.op_none(opc));
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 

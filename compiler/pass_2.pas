@@ -81,7 +81,7 @@ implementation
      var
        secondprefix : string;
 
-     procedure logsecond(ht:tnodetype; entry: boolean);
+     procedure logsecond(ht:tnodetype; entry: boolean;ctx:tpassgeneratecodecontext);
        const
          secondnames: array[tnodetype] of string[13] =
             ('<emptynode>',
@@ -175,7 +175,7 @@ implementation
             p := strpnew(secondprefix+'second '+secondnames[ht]+' (exit)');
             delete(secondprefix,length(secondprefix),1);
           end;
-        current_asmdata.CurrAsmList.concat(tai_comment.create(p));
+        ctx.CurrAsmList.concat(tai_comment.create(p));
       end;
 {$endif EXTDEBUG}
 
@@ -212,12 +212,12 @@ implementation
             if (p.location.loc<>LOC_INVALID) then
               ctx.verbose.Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
             if (cs_asm_nodes in ctx.globals.current_settings.globalswitches) then
-              logsecond(p.nodetype,true);
+              logsecond(p.nodetype,true,ctx);
 {$endif EXTDEBUG}
             p.pass_generate_code(ctx);
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in ctx.globals.current_settings.globalswitches) then
-              logsecond(p.nodetype,false);
+              logsecond(p.nodetype,false,ctx);
             if (not ctx.verbose.codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
@@ -252,7 +252,7 @@ implementation
     function do_secondpass(var p : tnode;ctx:tpassgeneratecodecontext) : boolean;
       begin
          { current_asmdata.CurrAsmList must be empty }
-         if not current_asmdata.CurrAsmList.empty then
+         if not ctx.CurrAsmList.empty then
            internalerror(200405201);
 
          { clear errors before starting }

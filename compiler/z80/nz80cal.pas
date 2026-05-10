@@ -54,16 +54,16 @@ implementation
       begin
         if pop_size>=2 then
           begin
-            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+            ctx.cg.getcpuregister(ctx.CurrAsmList,NR_A);
             while pop_size>=2 do
               begin
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_POP,NR_AF));
+                ctx.CurrAsmList.Concat(taicpu.op_reg(A_POP,NR_AF));
                 dec(pop_size,2);
               end;
-            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_A);
           end;
         if pop_size=1 then
-          current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_INC,NR_SP));
+          ctx.CurrAsmList.Concat(taicpu.op_reg(A_INC,NR_SP));
       end;
 
 

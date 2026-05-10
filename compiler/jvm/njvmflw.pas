@@ -154,12 +154,12 @@ implementation
         if assigned(left) then
           begin
             secondpass(left,ctx);
-            thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+            thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
           end
         else
-          thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_athrow));
-        thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+          thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_athrow));
+        thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
       end;
 
 
@@ -201,15 +201,15 @@ implementation
          { try block }
          { set control flow labels for the try block }
 
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,begintrylabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,begintrylabel);
          secondpass(left,ctx);
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,endtrylabel);
          tryflowcontrol:=flowcontrol;
 
          { jump over exception handling blocks }
-         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
-         ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
-         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+         ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+         ctx.hlcg.a_jmp_always(ctx.CurrAsmList,endexceptlabel);
+         ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          { set control flow labels for the except block }
          { and the on statements                        }
@@ -223,34 +223,34 @@ implementation
          if assigned(t1) then
            begin
              current_asmdata.getaddrlabel(defaultcatchlabel);
-             current_asmdata.CurrAsmList.concat(tai_jcatch.create(
+             ctx.CurrAsmList.concat(tai_jcatch.create(
                'all',begintrylabel,endtrylabel,defaultcatchlabel));
-             ctx.hlcg.a_label(current_asmdata.CurrAsmList,defaultcatchlabel);
+             ctx.hlcg.a_label(ctx.CurrAsmList,defaultcatchlabel);
              { here we don't have to reset flowcontrol           }
              { the default and on flowcontrols are handled equal }
 
              { get the exception object from the stack and store it for use by
                the exception code (in case of an anonymous "raise") }
-             current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+             ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
              prev_except_loc:=current_except_loc;
              location_reset_ref(current_except_loc,LOC_REFERENCE,OS_ADDR,4,[]);
-             ctx.tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.java_jlthrowable,current_except_loc.reference);
-             thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-             thlcgjvm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
-             current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+             ctx.tg.GetLocal(ctx.CurrAsmList,sizeof(pint),compiler.deftypes.java_jlthrowable,current_except_loc.reference);
+             thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+             thlcgjvm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
+             ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
              { and generate the exception handling code }
              secondpass(t1,ctx);
 
              { free the temp containing the exception and invalidate }
-             ctx.tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
+             ctx.tg.UngetLocal(ctx.CurrAsmList,current_except_loc.reference);
              current_except_loc:=prev_except_loc;
 
              exceptflowcontrol:=flowcontrol;
            end
          else
            exceptflowcontrol:=flowcontrol;
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,endexceptlabel);
 
          { restore all saved labels }
          begintrylabel:=oldbegintrylabel;
@@ -286,7 +286,7 @@ implementation
          flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(thisonlabel);
 
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,thisonlabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,thisonlabel);
 
          if assigned(excepTSymtable) then
            exceptvarsym:=tlocalvarsym(excepTSymtable.SymList[0])
@@ -297,29 +297,29 @@ implementation
            (will have to be adjusted if/when support for catching class
             reference types is added), begin/end of code in which the exception
             can be raised, and start of this exception handling code }
-         current_asmdata.CurrAsmList.concat(tai_jcatch.create(
+         ctx.CurrAsmList.concat(tai_jcatch.create(
            tobjectdef(exceptvarsym.vardef).jvm_full_typename(true),
            begintrylabel,endtrylabel,thisonlabel));
 
          { Retrieve exception variable }
          { 1) prepare the location where we'll store it }
          location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint),[]);
-         ctx.tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),exceptvarsym.vardef,exceptvarsym.localloc.reference);
+         ctx.tg.GetLocal(ctx.CurrAsmList,sizeof(pint),exceptvarsym.vardef,exceptvarsym.localloc.reference);
          prev_except_loc:=current_except_loc;
          current_except_loc:=exceptvarsym.localloc;
          { 2) the exception variable is at the top of the evaluation stack
            (placed there by the JVM) -> adjust stack count, then store it }
-         thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-         thlcgjvm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,exceptvarsym.vardef,current_except_loc);
+         thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+         thlcgjvm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,exceptvarsym.vardef,current_except_loc);
 
          if assigned(right) then
            secondpass(right,ctx);
 
          { clear some stuff }
-         ctx.tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+         ctx.tg.UngetLocal(ctx.CurrAsmList,exceptvarsym.localloc.reference);
          exceptvarsym.localloc.loc:=LOC_INVALID;
          current_except_loc:=prev_except_loc;
-         ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+         ctx.hlcg.a_jmp_always(ctx.CurrAsmList,endexceptlabel);
 
          flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
 
@@ -390,7 +390,7 @@ implementation
            (duplicate) finally block because otherwise the JVM's bytecode
            verification cannot statically prove that the exception reraise code
            will only execute in case an exception actually happened }
-         reasonbuf:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
+         reasonbuf:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.s32inttype);
 
          { try code }
          begintrylabel:=nil;
@@ -399,20 +399,20 @@ implementation
            begin
               current_asmdata.getaddrlabel(begintrylabel);
               current_asmdata.getaddrlabel(endtrylabel);
-              ctx.hlcg.a_label(current_asmdata.CurrAsmList,begintrylabel);
+              ctx.hlcg.a_label(ctx.CurrAsmList,begintrylabel);
               secondpass(left,ctx);
-              ctx.hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
+              ctx.hlcg.a_label(ctx.CurrAsmList,endtrylabel);
               tryflowcontrol:=flowcontrol;
               if compiler.verbose.codegenerror then
                 exit;
               { reason: no exception occurred }
-              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,0,reasonbuf);
+              ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,compiler.deftypes.s32inttype,0,reasonbuf);
            end
          else
            tryflowcontrol:=[fc_inflowcontrol];
 
          { begin of the finally code }
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,finallylabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,finallylabel);
          { finally code }
          flowcontrol:=[fc_inflowcontrol];
          { duplicate finally code for case when exception happened }
@@ -431,7 +431,7 @@ implementation
            end;
 
          { don't generate line info for internal cleanup }
-         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+         ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
          { the reasonbuf holds the reason why this (non-exception) finally code
            was executed:
@@ -440,65 +440,65 @@ implementation
              2 = exit called
              3 = break called
              4 = continue called }
-         ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
+         ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
          if fc_exit in tryflowcontrol then
            if ([fc_break,fc_continue]*tryflowcontrol)<>[] then
-             ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
+             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
            else
-             ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+             ctx.hlcg.a_jmp_always(ctx.CurrAsmList,oldCurrExitLabel);
          if fc_break in tryflowcontrol then
            if fc_continue in tryflowcontrol then
-             ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
+             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,compiler.deftypes.s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
            else
-             ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+             ctx.hlcg.a_jmp_always(ctx.CurrAsmList,oldBreakLabel);
          if fc_continue in tryflowcontrol then
-           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+           ctx.hlcg.a_jmp_always(ctx.CurrAsmList,oldContinueLabel);
          { now generate the trampolines for exit/break/continue to load the reasonbuf }
          if fc_exit in tryflowcontrol then
            begin
-              ctx.hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
-              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,2,reasonbuf);
-              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+              ctx.hlcg.a_label(ctx.CurrAsmList,exitfinallylabel);
+              ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,compiler.deftypes.s32inttype,2,reasonbuf);
+              ctx.hlcg.a_jmp_always(ctx.CurrAsmList,finallylabel);
            end;
          if fc_break in tryflowcontrol then
           begin
-              ctx.hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
-              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,3,reasonbuf);
-              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+              ctx.hlcg.a_label(ctx.CurrAsmList,breakfinallylabel);
+              ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,compiler.deftypes.s32inttype,3,reasonbuf);
+              ctx.hlcg.a_jmp_always(ctx.CurrAsmList,finallylabel);
            end;
          if fc_continue in tryflowcontrol then
            begin
-              ctx.hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
-              ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,4,reasonbuf);
-              ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+              ctx.hlcg.a_label(ctx.CurrAsmList,continuefinallylabel);
+              ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,compiler.deftypes.s32inttype,4,reasonbuf);
+              ctx.hlcg.a_jmp_always(ctx.CurrAsmList,finallylabel);
            end;
          { jump over finally-code-in-case-an-exception-happened }
-         ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
+         ctx.hlcg.a_jmp_always(ctx.CurrAsmList,endfinallylabel);
 
          { generate finally code in case an exception occurred }
          if assigned(begintrylabel) then
            begin
              current_asmdata.getaddrlabel(finallyexceptlabel);
-             ctx.hlcg.a_label(current_asmdata.CurrAsmList,finallyexceptlabel);
+             ctx.hlcg.a_label(ctx.CurrAsmList,finallyexceptlabel);
              { catch the exceptions }
-             current_asmdata.CurrAsmList.concat(tai_jcatch.create(
+             ctx.CurrAsmList.concat(tai_jcatch.create(
                'all',begintrylabel,endtrylabel,finallyexceptlabel));
              { store the generated exception object to a temp }
-             exceptreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable);
-             thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-             thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
+             exceptreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.java_jlthrowable);
+             thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+             thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
              { generate the finally code again }
              secondpass(finallycodecopy,ctx);
              finallycodecopy.free;
              { reraise the exception }
-             thlcgjvm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
-             current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_athrow));
-             thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+             thlcgjvm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,compiler.deftypes.java_jlthrowable,exceptreg);
+             ctx.CurrAsmList.Concat(taicpu.op_none(a_athrow));
+             thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
            end;
-         ctx.hlcg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
+         ctx.hlcg.a_label(ctx.CurrAsmList,endfinallylabel);
 
          { end cleanup }
-         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+         ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          compiler.current_procinfo.CurrExitLabel:=oldCurrExitLabel;
          if assigned(compiler.current_procinfo.CurrBreakLabel) then

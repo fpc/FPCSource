@@ -63,15 +63,15 @@ implementation
                else
                  Internalerror(2020042201);
              end;
-             hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+             hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
              if location.reference.base<>NR_NO then
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,hreg,maybe_const_reg,location.reference.base));
+                 ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,hreg,maybe_const_reg,location.reference.base));
                  location.reference.base:=hreg;
                end
              else if location.reference.index<>NR_NO then
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,hreg,maybe_const_reg,location.reference.index));
+                 ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,hreg,maybe_const_reg,location.reference.index));
                  location.reference.index:=hreg;
                end
              else

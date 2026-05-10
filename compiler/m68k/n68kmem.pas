@@ -73,24 +73,24 @@ implementation
         scaled:=false;
         regcgsize:=def_cgsize(regsize);
 
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: called')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: called')));
         if l<>1 then
           begin
-            //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
+            //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
             { if we have a possibility, setup a scalefactor instead of the MUL }
             if not (((CPUM68K_HAS_INDEXSCALE in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (l in [2,4])) or
                ((CPUM68K_HAS_INDEXSCALE8 in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) and (l in [2,4,8]))) then
               begin
-                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
-                hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
-                ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,hreg);
+                //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
+                hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
+                ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_IMUL,OS_ADDR,l,hreg);
                 regcgsize:=OS_ADDR;
                 maybe_const_reg:=hreg;
               end
             else
               begin
-                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: scale')));
+                //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: scale')));
                 scaled:=true;
               end;
           end;
@@ -100,9 +100,9 @@ implementation
             { prefer an address reg, if we will be a base, for indexes any register works }
             if isintregister(maybe_const_reg) then
               begin
-                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
-                hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
+                //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
+                hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end;
             location.reference.base:=maybe_const_reg;
@@ -112,17 +112,17 @@ implementation
             if location.reference.index<>NR_NO then
               begin
                 { if we already have an index register, dereference the ref to a new base, to be able to insert an index }
-                hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-                ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+                hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+                ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,location.reference,hreg);
                 reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
               end;
             if regcgsize in [OS_8,OS_16] then
               begin
                 { index registers are always sign extended on m68k, so we have to zero extend by hand,
                   if the index variable is unsigned, and its width is less than the whole register }
-                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: index zero extend')));
-                hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
+                //ctx.CurrAsmList.concat(tai_comment.create(strpnew('updref: index zero extend')));
+                hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end;
             { insert new index register }
@@ -161,27 +161,27 @@ implementation
          if (l > 8*sizeof(aint)) then
            internalerror(2006080503);
          sref.ref := location.reference;
-         hreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-         ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
-         ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
+         hreg := ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
+         ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
+         ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
          if not ispowerof2(packedbitsloadsize(l),temp) then
            internalerror(2006081201);
          alignpower:=temp;
-         offsetreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-         ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,hreg,offsetreg);
-         ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
+         offsetreg := ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
+         ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,hreg,offsetreg);
+         ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
          if (sref.ref.base = NR_NO) then
            sref.ref.base := offsetreg
          else if (sref.ref.index = NR_NO) then
            sref.ref.index := offsetreg
          else
            begin
-             ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
+             ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
              sref.ref.base := offsetreg;
            end;
-         ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,hreg);
+         ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,hreg);
          sref.bitindexreg := hreg;
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;

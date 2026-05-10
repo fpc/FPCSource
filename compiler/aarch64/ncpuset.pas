@@ -88,19 +88,19 @@ implementation
             { need we to test the first value }
             if first and (t^._low>get_min_value(left.resultdef)) then
               begin
-                ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
               end;
             if t^._low=t^._high then
               begin
                  if t^._low-last=0 then
-                   ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                   ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                  else
                    begin
                      { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                        then genlinearlist wouldn't be used }
-                     ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
+                     ctx.cg.a_op_const_reg_reg_checkoverflow(ctx.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
                        true,ovloc);
-                     ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
+                     ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                    end;
                  last:=t^._low;
                  lastrange:=false;
@@ -117,7 +117,7 @@ implementation
                         begin
                           { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                             then genlinearlist wouldn't be use }
-                          ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
+                          ctx.cg.a_op_const_reg_reg_checkoverflow(ctx.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
                             true,ovloc);
                         end;
                    end
@@ -129,19 +129,19 @@ implementation
 
                      { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                        then genlinearlist wouldn't be use }
-                     ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
+                     ctx.cg.a_op_const_reg_reg_checkoverflow(ctx.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
                        true,ovloc);
                      { no jump necessary here if the new range starts at }
                      { at the value following the previous one           }
                      if (aint(t^._low.svalue - last.svalue) <> 1) or
                         (not lastrange) then
-                       ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                       ctx.cg.a_jmp_flags(ctx.CurrAsmList,cond_lt,elselabel);
                    end;
                  { use unsigned_opcgsize here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                    then genlinearlist wouldn't be use }
-                 ctx.cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
+                 ctx.cg.a_op_const_reg_reg_checkoverflow(ctx.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
                    true,ovloc);
-                 ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
                  last:=t^._high;
                  lastrange:=true;
@@ -179,10 +179,10 @@ implementation
                 last:=0;
                 lastrange:=false;
                 first:=true;
-                ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_reg_alloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
                 genitem(hp);
-                ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+                ctx.cg.a_reg_dealloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
+                ctx.cg.a_jmp_always(ctx.CurrAsmList,elselabel);
              end;
         end;
 
@@ -237,11 +237,11 @@ implementation
         last:=min_;
         opcgsize:=def_cgsize(opsize);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+        ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
         if not(jumptable_no_range) then
           begin
              { case expr greater than max_ => goto elselabel }
-             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+             ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
         if compiler.target.info.system=system_aarch64_win64 then
@@ -249,14 +249,14 @@ implementation
         else
           { local label in order to avoid using GOT }
           current_asmdata.getlabel(tablelabel,alt_data);
-        indexreg:=ctx.cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_ADDR);
-        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
+        indexreg:=ctx.cg.makeregsize(ctx.CurrAsmList,hregister,OS_ADDR);
+        ctx.cg.a_load_reg_reg(ctx.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
         reference_reset_symbol(href,tablelabel,0,4,[]);
-        basereg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
+        basereg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+        ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,href,basereg);
         { load the slot }
-        jumpreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        jumpreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
         if compiler.target.info.system=system_aarch64_win64 then
           reference_reset_base(href,basereg,0,href.temppos,sizeof(aint),[])
         else
@@ -267,18 +267,18 @@ implementation
           begin
             { Use a 64-bit absolute table under aarch64-win64 }
             href.shiftimm:=3;
-            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
+            ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
           end
         else
           begin
             { load table slot, 32-bit sign extended }
             href.shiftimm:=2;
-            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
+            ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
             { add table address }
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
           end;
         { and finally jump }
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
+        ctx.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
         { generate jump table }
         if compiler.target.info.system=system_aarch64_win64 then
           begin

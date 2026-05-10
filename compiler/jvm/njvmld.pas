@@ -263,15 +263,15 @@ procedure tjvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
           generate_nested_access(tabstractnormalvarsym(symtableentry),ctx);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
         location.reference.arrayreftype:=art_indexconst;
-        location.reference.base:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
+        location.reference.base:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.java_jlobject);
         location.reference.indexoffset:=0;
         { load the field from the nestedfpstruct, or the parameter location.
           In both cases, the result is an array of one element containing the
           parameter value }
         if assigned(left) then
-          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,left.location,location.reference.base)
+          ctx.hlcg.a_load_loc_reg(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,left.location,location.reference.base)
         else
-          ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
+          ctx.hlcg.a_load_loc_reg(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
       end
     else if symtableentry.typ=procsym then
       { handled in tjvmcnvnode.first_proc_to_procvar }
@@ -288,8 +288,8 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
     basereg: tregister;
   begin
     { arrays are implicitly dereferenced }
-    basereg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
-    ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,basereg);
+    basereg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.java_jlobject);
+    ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,ref,basereg);
     reference_reset_base(ref,basereg,0,ctempposinvalid,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;

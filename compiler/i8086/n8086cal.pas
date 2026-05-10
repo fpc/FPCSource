@@ -36,7 +36,7 @@ interface
        ti8086callnode = class(tx86callnode)
        protected
           procedure pop_parasize(pop_size:longint;ctx:tpassgeneratecodecontext);override;
-          procedure extra_interrupt_code;override;
+          procedure extra_interrupt_code(ctx:tpassgeneratecodecontext);override;
           procedure extra_call_ref_code(var ref: treference;ctx:tpassgeneratecodecontext);override;
           function do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;override;
           function can_call_ref(var ref: treference;ctx:tpassgeneratecodecontext): boolean; override;
@@ -67,11 +67,11 @@ implementation
 *****************************************************************************}
 
 
-    procedure ti8086callnode.extra_interrupt_code;
+    procedure ti8086callnode.extra_interrupt_code(ctx:tpassgeneratecodecontext);
       begin
-        emit_none(A_PUSHF,S_W);
+        emit_none(ctx,A_PUSHF,S_W);
         if compiler.globals.current_settings.x86memorymodel in x86_near_code_models then
-          emit_reg(A_PUSH,S_W,NR_CS);
+          emit_reg(ctx,A_PUSH,S_W,NR_CS);
       end;
 
 
@@ -87,30 +87,30 @@ implementation
             { old-style code (JM)                                         }
             dec(pop_size,pushedparasize);
             if (pop_size < 0) then
-              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,S_W,-pop_size,NR_SP));
+              ctx.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,S_W,-pop_size,NR_SP));
             exit;
           end;
 
         { better than an add on all processors }
         if pop_size=2 then
           begin
-            hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_W,hreg));
+            hreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            ctx.CurrAsmList.concat(taicpu.op_reg(A_POP,S_W,hreg));
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
         else
           if pop_size<>0 then
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_W,pop_size,NR_SP));
+            ctx.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_W,pop_size,NR_SP));
       end;
 
 
     function ti8086callnode.do_call_ref(ref: treference;ctx:tpassgeneratecodecontext): tcgpara;
       begin
         if is_proc_far(procdefinition) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
+          ctx.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
         else
-          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+          ctx.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
         result:=ctx.hlcg.get_call_result_cgpara(procdefinition,typedef)
       end;
 
@@ -123,35 +123,35 @@ implementation
             if procdefinition.proccalloption=pocall_register then
               begin
                 { BX can't be used as ref base in case of the register calling convention }
-                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_SI);
+                ctx.cg.getcpuregister(ctx.CurrAsmList,NR_SI);
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_16,OS_16,ref.base,NR_SI);
                 if ref.index<>NR_NO then
-                  ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,ref.index,NR_SI);
+                  ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_ADD,OS_16,ref.index,NR_SI);
                 ref.base:=NR_NO;
                 ref.index:=NR_SI;
-                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+                ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_SI);
               end
             else
               begin
-                ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
+                ctx.cg.getcpuregister(ctx.CurrAsmList,NR_BX);
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
                 ref.base:=NR_BX;
-                ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_BX);
+                ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_BX);
               end;
           end;
         if getsupreg(ref.index)>=first_int_imreg then
           begin
-            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
-            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.index,NR_SI);
+            ctx.cg.getcpuregister(ctx.CurrAsmList,NR_SI);
+            ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_16,OS_16,ref.index,NR_SI);
             ref.index:=NR_SI;
-            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+            ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_SI);
           end;
       end;
 
 
     function ti8086callnode.can_call_ref(var ref: treference;ctx:tpassgeneratecodecontext): boolean;
       begin
-        tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
+        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,ref);
         result:=true;
       end;
 

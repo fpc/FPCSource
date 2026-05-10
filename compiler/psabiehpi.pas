@@ -102,7 +102,7 @@ unit psabiehpi;
            is valid to pass nil }
          function AddTypeFilter(p: tobjectdef): Longint;
          procedure set_eh_info; override;
-         procedure setup_eh; override;
+         procedure setup_eh(ctx:tpassgeneratecodecontext); override;
          procedure finish_eh; override;
          procedure start_eh(list : TAsmList); override;
          procedure end_eh(list : TAsmList); override;
@@ -127,7 +127,7 @@ implementation
       cgobj,cgexcept,
       parabase,paramgr,
       hlcgobj,
-      pass_2
+      pass_2,pass_2_context
 {$ifdef i386}
       ,aasmcpu
 {$endif i386}
@@ -397,7 +397,7 @@ implementation
         end;
 
 
-    procedure tpsabiehprocinfo.setup_eh;
+    procedure tpsabiehprocinfo.setup_eh(ctx:tpassgeneratecodecontext);
       var
         gcc_except_table: tai_section;
       begin
@@ -427,7 +427,7 @@ implementation
 
             if CreateExceptionTable then
               begin
-                CreateNewPSABIEHCallsite(current_asmdata.CurrAsmList);
+                CreateNewPSABIEHCallsite(ctx.CurrAsmList);
 
                 OutmostLandingPad:=TPSABIEHAction.Create(nil);
                 NoAction:=OutmostLandingPad;

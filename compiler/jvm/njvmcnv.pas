@@ -563,7 +563,7 @@ implementation
       begin
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          ctx.hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+          ctx.hlcg.g_rangecheck(ctx.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
@@ -599,7 +599,7 @@ implementation
                   because the load instruction will remain the same }
               end
             else
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,location,left.resultdef,resultdef,false);
           end
         else
           begin
@@ -608,8 +608,8 @@ implementation
                (is_widechar(left.resultdef)<>is_widechar(resultdef)) then
               begin
                 location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-                location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                ctx.hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register);
+                location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
+                ctx.hlcg.a_load_loc_reg(ctx.CurrAsmList,left.resultdef,resultdef,left.location,location.register);
               end
             else
               location_copy(location,left.location);
@@ -640,11 +640,11 @@ implementation
             4:
               case ressize of
                 4:
-                  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i2f));
+                  ctx.CurrAsmList.concat(taicpu.op_none(a_i2f));
                 8:
                   begin
-                    current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i2d));
-                    thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+                    ctx.CurrAsmList.concat(taicpu.op_none(a_i2d));
+                    thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
                   end;
                 else
                   internalerror(2011010601);
@@ -653,11 +653,11 @@ implementation
               case ressize of
                 4:
                   begin
-                    current_asmdata.CurrAsmList.concat(taicpu.op_none(a_l2f));
-                    thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+                    ctx.CurrAsmList.concat(taicpu.op_none(a_l2f));
+                    thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
                   end;
                 8:
-                  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_l2d));
+                  ctx.CurrAsmList.concat(taicpu.op_none(a_l2d));
                 else
                   internalerror(2011010602);
               end;
@@ -675,10 +675,10 @@ implementation
         ressize:=resultdef.size;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
 
         { first always convert as if it's a signed number }
-        thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
         convertsignedstackloc;
         if not is_signed(left.resultdef) then
           begin
@@ -689,18 +689,18 @@ implementation
               signeddef:=compiler.deftypes.s32inttype
             else
               signeddef:=compiler.deftypes.s64inttype;
-            ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,signeddef,OC_GTE,0,left.location,l1);
+            ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,signeddef,OC_GTE,0,left.location,l1);
             if srcsize=4 then
-              thlcgjvm(ctx.hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,4294967296.0)
+              thlcgjvm(ctx.hlcg).a_loadfpu_const_stack(ctx.CurrAsmList,resultdef,4294967296.0)
             else
-              thlcgjvm(ctx.hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,18446744073709551616.0);
+              thlcgjvm(ctx.hlcg).a_loadfpu_const_stack(ctx.CurrAsmList,resultdef,18446744073709551616.0);
             if ressize=4 then
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_fadd))
+              ctx.CurrAsmList.concat(taicpu.op_none(a_fadd))
             else
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dadd));
-            ctx.hlcg.a_label(current_asmdata.CurrAsmList,l1);
+              ctx.CurrAsmList.concat(taicpu.op_none(a_dadd));
+            ctx.hlcg.a_label(ctx.CurrAsmList,l1);
           end;
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -714,8 +714,8 @@ implementation
       var
         r: Treference;
       begin
-        ctx.tg.gethltemp(current_asmdata.currasmlist,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,r);
-        ctx.hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,0,r);
+        ctx.tg.gethltemp(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,r);
+        ctx.hlcg.a_load_const_ref(ctx.CurrAsmList,compiler.deftypes.java_jlobject,0,r);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
         location.reference:=r;
       end;
@@ -748,7 +748,7 @@ implementation
              ((left.resultdef.size<>resultdef.size) or
               not(left.resultdef.size in [4,8]))
             ) then
-           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+           ctx.hlcg.location_force_reg(ctx.CurrAsmList,location,left.resultdef,resultdef,true)
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
@@ -776,42 +776,42 @@ implementation
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+               ctx.hlcg.location_force_reg(ctx.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              exit;
           end;
 
        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-       location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+       location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
        current_asmdata.getjumplabel(hlabel2);
        case left.location.loc of
          LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
            begin
              current_asmdata.getjumplabel(hlabel1);
-             ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location,hlabel1);
+             ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location,hlabel1);
            end;
          LOC_JUMP :
            begin
              hlabel1:=left.location.falselabel;
-             ctx.hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+             ctx.hlcg.a_label(ctx.CurrAsmList,left.location.truelabel);
            end;
          else
            internalerror(10062);
        end;
 
        if not(is_cbool(resultdef)) then
-         thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,1,R_INTREGISTER)
+         thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,resultdef,1,R_INTREGISTER)
        else
-         thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,-1,R_INTREGISTER);
+         thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,resultdef,-1,R_INTREGISTER);
        { we jump over the next constant load -> they don't appear on the
          stack simultaneously }
-       thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
-       ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel2);
-       ctx.hlcg.a_label(current_asmdata.CurrAsmList,hlabel1);
-       thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,0,R_INTREGISTER);
-       ctx.hlcg.a_label(current_asmdata.CurrAsmList,hlabel2);
-       thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+       thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
+       ctx.hlcg.a_jmp_always(ctx.CurrAsmList,hlabel2);
+       ctx.hlcg.a_label(ctx.CurrAsmList,hlabel1);
+       thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,resultdef,0,R_INTREGISTER);
+       ctx.hlcg.a_label(ctx.CurrAsmList,hlabel2);
+       thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
      end;
 
 
@@ -824,24 +824,24 @@ implementation
         arrayref: treference;
       begin
         { create an array with one element of the required type }
-        thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,1,R_INTREGISTER);
+        thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,compiler.deftypes.s32inttype,1,R_INTREGISTER);
         mangledname:=jvmarrtype(left.resultdef,primitivetype);
         if primitivetype then
           opc:=a_newarray
         else
           opc:=a_anewarray;
         { doesn't change stack height: one int replaced by one reference }
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         { store the data in the newly created array }
-        basereg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject);
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,basereg);
+        basereg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.java_jlobject);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,compiler.deftypes.java_jlobject,basereg);
         reference_reset_base(arrayref,basereg,0,ctempposinvalid,4,[]);
         arrayref.arrayreftype:=art_indexconst;
         arrayref.indexoffset:=0;
-        ctx.hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
+        ctx.hlcg.a_load_loc_ref(ctx.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
         location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4,[]);
-        ctx.tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,4,tt_normal,location.reference);
-        ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,basereg,location.reference);
+        ctx.tg.gethltemp(ctx.CurrAsmList,compiler.deftypes.java_jlobject,4,tt_normal,location.reference);
+        ctx.hlcg.a_load_reg_ref(ctx.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,basereg,location.reference);
       end;
 
 
@@ -1563,8 +1563,8 @@ implementation
         end;
       result:=true;
       secondpass(node.left,ctx);
-      thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
-      ctx.tg.location_freetemp(current_asmdata.CurrAsmList,node.left.location);
+      thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,node.left.resultdef,node.left.location);
+      ctx.tg.location_freetemp(ctx.CurrAsmList,node.left.location);
       { Perform a checkcast instruction, which will raise an exception in case
         the actual type does not match/inherit from the expected type.
 
@@ -1576,10 +1576,10 @@ implementation
         checkdef:=tclassrefdef(node.right.resultdef).pointeddef
       else
         checkdef:=node.right.resultdef;
-      thlcgjvm(ctx.hlcg).gen_typecheck(current_asmdata.CurrAsmList,opcode,checkdef);
+      thlcgjvm(ctx.hlcg).gen_typecheck(ctx.CurrAsmList,opcode,checkdef);
       location_reset(node.location,LOC_REGISTER,OS_ADDR);
-      node.location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,node.resultdef);
-      thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,node.resultdef,node.location.register);
+      node.location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,node.resultdef);
+      thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,node.resultdef,node.location.register);
     end;
 
     {*****************************************************************************

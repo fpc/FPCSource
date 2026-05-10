@@ -1771,8 +1771,8 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_const(A_SUB,NR_A,a));
                 current_asmdata.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,tmpl);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,tmpl);
                 case cmp_op of
                   OC_LT:
                     a_jmp_flags(list,F_M,l);
@@ -1790,8 +1790,8 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg(A_SUB,NR_A,reg));
                 current_asmdata.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,tmpl);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,tmpl);
                 case cmp_op of
                   OC_GT:
                     a_jmp_flags(list,F_M,l);
@@ -1824,7 +1824,7 @@ unit cgcpu;
                 end;
               end;
             if cmp_op=OC_EQ then
-              a_label(current_asmdata.CurrAsmList,tmpl);
+              a_label(list,tmpl);
           end
         else if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_BE,OC_B,OC_AE,OC_A] then
           begin
@@ -1878,7 +1878,7 @@ unit cgcpu;
                     internalerror(2020042224);
                 end;
               end;
-            a_label(current_asmdata.CurrAsmList,tmpl);
+            a_label(list,tmpl);
             ungetcpuregister(list,NR_A);
           end
         else
@@ -2003,8 +2003,8 @@ unit cgcpu;
             a_jmp_flags(list,F_E,skiplabel);
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            a_label(current_asmdata.CurrAsmList,l);
+            list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+            a_label(list,l);
             a_jmp_flags(list,F_P,ongreater);
             a_label(list,skiplabel);
           end
@@ -2016,16 +2016,16 @@ unit cgcpu;
               a_jmp_flags(list,F_E,onequal);
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            a_label(current_asmdata.CurrAsmList,l);
+            list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+            a_label(list,l);
             a_jmp_flags(list,F_P,ongreater);
           end
         else if (onless<>nil) and (onequal= nil) and (ongreater= nil) then
           begin
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            a_label(current_asmdata.CurrAsmList,l);
+            list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+            a_label(list,l);
             a_jmp_flags(list,F_M,onless);
           end
         else if (onless<>nil) and (onequal= nil) and (ongreater<>nil) then
@@ -2038,8 +2038,8 @@ unit cgcpu;
                 a_jmp_flags(list,F_E,skiplabel);
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,l);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
                 a_label(list,skiplabel);
@@ -2050,8 +2050,8 @@ unit cgcpu;
             a_jmp_flags(list,F_E,onequal);
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            a_label(current_asmdata.CurrAsmList,l);
+            list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+            a_label(list,l);
             a_jmp_flags(list,F_M,onless);
           end
         else if (onless<>nil) and (onequal<>nil) and (ongreater<>nil) then
@@ -2062,8 +2062,8 @@ unit cgcpu;
               begin
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,l);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end
@@ -2072,8 +2072,8 @@ unit cgcpu;
                 a_jmp_flags(list,F_E,onequal);
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,l);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end
@@ -2088,8 +2088,8 @@ unit cgcpu;
                 a_jmp_flags(list,F_E,onequal);
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                a_label(current_asmdata.CurrAsmList,l);
+                list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                a_label(list,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end;

@@ -114,14 +114,14 @@ implementation
               Java class type into a pshortstring and then dereferencing etc
             }
             if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+              ctx.hlcg.location_force_mem(ctx.CurrAsmList,location,left.resultdef);
           end
         else
           begin
             { these are always arrays (used internally for pointers to var
               parameters stored in nestedfpstructs, and by programmers for any
               kind of pointers) }
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
             reference_reset_base(location.reference,left.location.register,0,ctempposinvalid,4,[]);
             location.reference.arrayreftype:=art_indexconst;
@@ -344,12 +344,12 @@ implementation
 
     procedure tjvmloadvmtaddrnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
           tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true),AT_METADATA)));
-        thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+        thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
         location_reset(location,LOC_REGISTER,OS_ADDR);
-        location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -435,7 +435,7 @@ implementation
           location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility);
         { don't use left.resultdef, because it may be an open or regular array,
           and then asking for the size doesn't make any sense }
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,true);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,true);
         location.reference.base:=left.location.register;
         secondpass(right,ctx);
         if (right.expectloc=LOC_JUMP)<>
@@ -447,7 +447,7 @@ implementation
         if (right.location.loc=LOC_JUMP) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
             (right.location.reference.arrayreftype<>art_none)) then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         { replace enum class instance with the corresponding integer value }
         if (right.resultdef.typ=enumdef) then
@@ -459,13 +459,13 @@ implementation
                   (psym.typ<>procsym) or
                   (tprocsym(psym).ProcdefList.count<>1) then
                  internalerror(2011062607);
-               thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-               ctx.hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,[],nil,false);
+               thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
+               ctx.hlcg.a_call_name(ctx.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,[],nil,false);
                { call replaces self parameter with longint result -> no stack
                  height change }
                location_reset(right.location,LOC_REGISTER,OS_S32);
-               right.location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
-               thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,right.location.register);
+               right.location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.s32inttype);
+               thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,compiler.deftypes.s32inttype,right.location.register);
              end;
            { always force to integer location, because enums are handled as
              object instances (since that's what they are in Java) }
@@ -477,7 +477,7 @@ implementation
                  (torddef(right.resultdef).ordtype<>s32bit)) then
           begin
             { Java array indices are always 32 bit signed integers }
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.s32inttype,true);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,compiler.deftypes.s32inttype,true);
             right.resultdef:=compiler.deftypes.s32inttype;
           end;
 
@@ -486,11 +486,11 @@ implementation
            (tarraydef(left.resultdef).lowrange<>0) and
            (right.location.loc<>LOC_CONSTANT) then
           begin
-            thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-            thlcgjvm(ctx.hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,right.resultdef,tarraydef(left.resultdef).lowrange);
+            thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,right.resultdef,right.location);
+            thlcgjvm(ctx.hlcg).a_op_const_stack(ctx.CurrAsmList,OP_SUB,right.resultdef,tarraydef(left.resultdef).lowrange);
             location_reset(right.location,LOC_REGISTER,def_cgsize(right.resultdef));
-            right.location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,right.resultdef);
-            thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,right.resultdef,right.location.register);
+            right.location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,right.resultdef);
+            thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,right.resultdef,right.location.register);
           end;
 
         { create array reference }

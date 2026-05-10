@@ -122,7 +122,7 @@ implementation
               internalerror(200506061);
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
 
             case torddef(left.resultdef).ordtype of
               u64bit:
@@ -136,35 +136,35 @@ implementation
 
                    { Get sign bit }
                    if not(left.location.loc in [LOC_REGISTER,LOC_REFERENCE]) then
-                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                     ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
                    case left.location.loc of
                      LOC_REGISTER :
                        begin
-                         ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                         emit_const_reg(A_BT,S_Q,63,left.location.register);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
+                         ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
+                         emit_const_reg(ctx,A_BT,S_Q,63,left.location.register);
+                         ctx.CurrAsmList.concat(taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
                        end;
                      LOC_REFERENCE :
                        begin
                          href:=left.location.reference;
-                         tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                         tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
                          inc(href.offset,4);
-                         ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                         emit_const_ref(A_BT,S_L,31,href);
+                         ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
+                         emit_const_ref(ctx,A_BT,S_L,31,href);
                          dec(href.offset,4);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,href,location.register));
+                         ctx.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,href,location.register));
                        end;
                      else
                        internalerror(200710181);
                    end;
 
-                   ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
-                   ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                   ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NC,l2);
+                   ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0,4,[]);
                    { simplify for PIC }
-                   tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                   tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resultdef) then
@@ -172,18 +172,18 @@ implementation
                        { double (2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
-                       tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
+                       tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
+                       ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
                    else if is_single(resultdef) then
                      begin
                        { single(2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
-                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
+                       ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
                      internalerror(200506071);
-                   ctx.cg.a_label(current_asmdata.CurrAsmList,l2);
+                   ctx.cg.a_label(ctx.CurrAsmList,l2);
                 end
               else
                 inherited;

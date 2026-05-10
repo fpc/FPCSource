@@ -126,7 +126,7 @@ begin
   { fcfid frD,frD # point integer (no round) }
   { fmadd frD,frC,frT1,frD # (2^32)*high + low }
   { # (only add can round) }
-  ctx.tg.Gettemp(current_asmdata.CurrAsmList, 8, 8, tt_normal, disp);
+  ctx.tg.Gettemp(ctx.CurrAsmList, 8, 8, tt_normal, disp);
 
   { do the signed case for everything but 64 bit unsigned integers }
   signed := (left.location.size <> OS_64);
@@ -144,11 +144,11 @@ begin
       internalerror(200110011);
 
     // allocate second temp memory
-    ctx.tg.Gettemp(current_asmdata.CurrAsmList, 8, 8, tt_normal, disp2);
+    ctx.tg.Gettemp(ctx.CurrAsmList, 8, 8, tt_normal, disp2);
   end;
 
   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+    ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
   case left.location.loc of
     // the conversion algorithm does not modify the input register, so it can
     // be used for both LOC_REGISTER and LOC_CREGISTER
@@ -159,13 +159,13 @@ begin
       end;
     LOC_REFERENCE, LOC_CREFERENCE:
       begin
-        leftreg := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+        leftreg := ctx.cg.getintregister(ctx.CurrAsmList, OS_INT);
         valuereg := leftreg;
         if signed then
           size := OS_S64
         else
           size := OS_64;
-        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef),
+        ctx.cg.a_load_ref_reg(ctx.CurrAsmList, def_cgsize(left.resultdef),
           size, left.location.reference, leftreg);
       end
   else
@@ -174,59 +174,59 @@ begin
 
   if (signed) then begin
     // std rS, disp(r1)
-    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, valuereg, disp);
+    ctx.cg.a_load_reg_ref(ctx.CurrAsmList, OS_S64, OS_S64, valuereg, disp);
     // lfd frD, disp(r1)
-    location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, location.register);
+    location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64, OS_F64, disp, location.register);
     // fcfid frD, frD
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
       location.register));
   end else begin
     { ts:todo use TOC for this constant or at least schedule better }
     // lfd frC, const
-    tmpfpuconst := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
+    tmpfpuconst := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
       tmpfpuconst);
     tempconst.free;
 
-    tmpintreg1 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_64);
+    tmpintreg1 := ctx.cg.getintregister(ctx.CurrAsmList, OS_64);
     // rldicl rT1, rS, 32, 32
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg1, valuereg, 32, 32));
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg1, valuereg, 32, 32));
     // rldicl rT2, rS, 0, 32
-    tmpintreg2 := ctx.cg.getintregister(current_asmdata.CurrAsmList, OS_64);
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg2, valuereg, 0, 32));
+    tmpintreg2 := ctx.cg.getintregister(ctx.CurrAsmList, OS_64);
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg_const_const(A_RLDICL, tmpintreg2, valuereg, 0, 32));
 
     // std rT1, disp(r1)
-    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg1, disp);
+    ctx.cg.a_load_reg_ref(ctx.CurrAsmList, OS_S64, OS_S64, tmpintreg1, disp);
     // std rT2, disp2(r1)
-    ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, tmpintreg2, disp2);
+    ctx.cg.a_load_reg_ref(ctx.CurrAsmList, OS_S64, OS_S64, tmpintreg2, disp2);
 
     // lfd frT1, disp(R1)
-    tmpfpureg := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, tmpfpureg);
+    tmpfpureg := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64, OS_F64, disp, tmpfpureg);
     // lfd frD, disp+8(R1)
-    location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp2, location.register);
+    location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+    ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64, OS_F64, disp2, location.register);
 
     // fcfid frT1, frT1
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, tmpfpureg,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, tmpfpureg,
       tmpfpureg));
     // fcfid frD, frD
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
       location.register));
     // fmadd frD,frC,frT1,frD # (2^32)*high + low }
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_FMADD, location.register, tmpfpuconst,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_FMADD, location.register, tmpfpuconst,
       tmpfpureg, location.register));
 
     // free used temps
-    ctx.tg.ungetiftemp(current_asmdata.CurrAsmList, disp2);
+    ctx.tg.ungetiftemp(ctx.CurrAsmList, disp2);
   end;
   // free reference
-  ctx.tg.ungetiftemp(current_asmdata.CurrAsmList, disp);
+  ctx.tg.ungetiftemp(ctx.CurrAsmList, disp);
 
   // make sure the precision is correct
   if (tfloatdef(resultdef).floattype = s32real) then
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
+    ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
       location.register));
 end;
 

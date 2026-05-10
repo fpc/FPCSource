@@ -646,10 +646,10 @@ implementation
            is_array_of_const(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_S32);
-            location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype);
+            location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.s32inttype);
             secondpass(left,ctx);
-            thlcgjvm(ctx.hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
-            thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+            thlcgjvm(ctx.hlcg).g_getarraylen(ctx.CurrAsmList,left.location);
+            thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
           end
         else
           internalerror(2011012004);
@@ -672,7 +672,7 @@ implementation
      procedure tjvminlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
        begin
          secondpass(left,ctx);
-         thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+         thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
        end;
 
 (*
@@ -684,10 +684,10 @@ implementation
         load_fpu_location;
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
               left.location.register));
           OS_F64:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
               left.location.register));
           else
             inherited;
@@ -699,26 +699,26 @@ implementation
        begin
          load_fpu_location(ctx);
          location_reset(location,LOC_FPUREGISTER,location.size);
-         location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+         location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
          case left.location.size of
            OS_F32:
              begin
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
-               thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_fmul));
-               thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+               ctx.CurrAsmList.concat(taicpu.op_none(a_dup));
+               thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
+               ctx.CurrAsmList.concat(taicpu.op_none(a_fmul));
+               thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
              end;
            OS_F64:
              begin
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup2));
-               thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,2);
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dmul));
-               thlcgjvm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
+               ctx.CurrAsmList.concat(taicpu.op_none(a_dup2));
+               thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,2);
+               ctx.CurrAsmList.concat(taicpu.op_none(a_dmul));
+               thlcgjvm(ctx.hlcg).decstack(ctx.CurrAsmList,2);
              end;
            else
              internalerror(2011010804);
          end;
-         thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+         thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
        end;
 
 
@@ -726,23 +726,23 @@ implementation
       begin
          load_fpu_location(ctx);
          location_reset(location,LOC_REGISTER,left.location.size);
-         location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+         location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
          case left.location.size of
            OS_F32:
              begin
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_f2l));
+               ctx.CurrAsmList.concat(taicpu.op_none(a_f2l));
                { 32 bit float -> 64 bit int: +1 stack slot }
-               thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+               thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
              end;
            OS_F64:
              begin
                { 64 bit float -> 64 bit int: same number of stack slots }
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_d2l));
+               ctx.CurrAsmList.concat(taicpu.op_none(a_d2l));
              end;
            else
              internalerror(2011010805);
          end;
-         thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+         thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -765,14 +765,14 @@ implementation
         repeat
           inc(paracount);
           secondpass(hp.left,ctx);
-          thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.location);
+          thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,hp.left.resultdef,hp.left.location);
           hp:=tcallparanode(hp.right);
         until not assigned(hp);
         { create the array }
-        thlcgjvm(ctx.hlcg).g_newarray(current_asmdata.CurrAsmList,arr.resultdef,paracount);
+        thlcgjvm(ctx.hlcg).g_newarray(ctx.CurrAsmList,arr.resultdef,paracount);
         location_reset(location,LOC_REGISTER,OS_ADDR);
-        location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,arr.resultdef,location.register);
+        location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,arr.resultdef,location.register);
       end;
 
 
@@ -794,24 +794,24 @@ implementation
         { can't directly load from stack to destination, because if target is
           a reference then its address must be placed on the stack before the
           value }
-        tmpreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,target.resultdef);
+        tmpreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,target.resultdef);
         if is_wide_or_unicode_string(target.resultdef) then
           begin
             emptystr:=#0;
-            current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,0,@emptystr));
-            thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.concat(taicpu.op_string(a_ldc,0,@emptystr));
+            thlcgjvm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
           end
         else if is_ansistring(target.resultdef) then
-          thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,0,R_ADDRESSREGISTER)
+          thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,compiler.deftypes.java_jlobject,0,R_ADDRESSREGISTER)
         else if is_dynamic_array(target.resultdef) then
           begin
-            thlcgjvm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,compiler.deftypes.s32inttype,0,R_INTREGISTER);
-            thlcgjvm(ctx.hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);
+            thlcgjvm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,compiler.deftypes.s32inttype,0,R_INTREGISTER);
+            thlcgjvm(ctx.hlcg).g_newarray(ctx.CurrAsmList,target.resultdef,1);
           end
         else
           internalerror(2011031401);
-        thlcgjvm(ctx.hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,target.resultdef,tmpreg);
-        thlcgjvm(ctx.hlcg).a_load_reg_loc(current_asmdata.CurrAsmList,target.resultdef,target.resultdef,tmpreg,target.location);
+        thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,target.resultdef,tmpreg);
+        thlcgjvm(ctx.hlcg).a_load_reg_loc(ctx.CurrAsmList,target.resultdef,target.resultdef,tmpreg,target.location);
       end;
 
 

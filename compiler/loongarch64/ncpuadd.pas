@@ -82,7 +82,7 @@ implementation
           swapleftright;
 
         location_reset(location,LOC_REGISTER,OS_INT);
-        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
 
         if signed then op:=A_SLT else op:=A_SLTU;
         if signed then opi:=A_SLTI else opi:=A_SLTUI;
@@ -91,110 +91,110 @@ implementation
           equaln:
             begin
               if not (left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
                  (not is_uimm12(right.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
                 if right.location.value = 0 then
-                  ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
+                  ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
                 else
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,right.location.register));
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,right.location.register));
+              ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
             end;
           unequaln:
             begin
               if not (left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
                  (not is_uimm12(right.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
                 if right.location.value = 0 then
-                  ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
+                  ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_INT,OS_INT,left.location.register,location.register)
                 else
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,right.location.register));
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_SLTU,location.register,NR_R0,location.register));
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,right.location.register));
+              ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_SLTU,location.register,NR_R0,location.register));
             end;
           ltn:
             begin
               if not (left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
                  (not is_simm12(right.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if right.location.loc=LOC_CONSTANT then
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,left.location.register,right.location.value))
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,left.location.register,right.location.value))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
             end;
           gtn:
             begin
               if not (right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if (left.location.loc=LOC_CONSTANT) and
                  (not is_simm12(left.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if left.location.loc=LOC_CONSTANT then
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,right.location.register,left.location.value))
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,right.location.register,left.location.value))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,right.location.register,left.location.register));
+                ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,right.location.register,left.location.register));
             end;
 
           lten:
             begin
               if not (right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
               if (left.location.loc=LOC_CONSTANT) and
                  (not is_simm12(left.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               if is_smallset then
                 begin
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_ANDN,location.register,left.location.register,right.location.register));
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_ANDN,location.register,left.location.register,right.location.register));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
                 end
               else
                 begin
                   if left.location.loc=LOC_CONSTANT then
-                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,right.location.register,left.location.value))
+                    ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,right.location.register,left.location.value))
                   else
-                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,right.location.register,left.location.register));
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
+                    ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,right.location.register,left.location.register));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
                 end;
             end;
           gten:
             begin
               if not (left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
               if (right.location.loc=LOC_CONSTANT) and
                  (not is_simm12(right.location.value)) then
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
               if is_smallset then
                 begin
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_ANDN,location.register,right.location.register,left.location.register));
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_ANDN,location.register,right.location.register,left.location.register));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTUI,location.register,location.register,1));
                 end
               else
                 begin
                    if right.location.loc=LOC_CONSTANT then
-                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,left.location.register,right.location.value))
+                    ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(opi,location.register,left.location.register,right.location.value))
                   else
-                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
+                    ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
+                  ctx.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
                 end;
             end;
         else
@@ -251,10 +251,10 @@ implementation
             { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
               say "a constant register is okay, but an ordinal constant isn't) }
             if right.location.loc=LOC_CONSTANT then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
+            location.register:=ctx.cg.getintregister(ctx.CurrAsmList,def_cgsize(resultdef));
+            ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
           end
         else
           inherited;
@@ -291,8 +291,8 @@ implementation
         if (nf_swapped in flags) then
           swapleftright;
 
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,right.location,right.resultdef,true);
 
         cmpop:=false;
         singleprec:=tfloatdef(left.resultdef).floattype=s32real;
@@ -373,19 +373,19 @@ implementation
           begin
             { TODO This should be like mips, but... }
             { location_reset(location, LOC_FLAGS, OS_NO); }
-            { location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size); }
+            { location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,location.size); }
             location_reset(location,LOC_REGISTER,OS_8);
-            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,NR_FCC0,left.location.register,right.location.register));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVCF2GR,location.register,NR_FCC0));
-            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,NR_FCC0,left.location.register,right.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVCF2GR,location.register,NR_FCC0));
+            ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
           end
         else
           begin
             location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
-            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
+            ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
           end;
       end;
 

@@ -42,7 +42,8 @@ implementation
     uses
       aasmdata,aasmcpu,
       cpubase,
-      hlcgobj,hlcgcpu;
+      hlcgobj,hlcgcpu,
+      pass_2_context;
 
     { twasmblocknode }
 
@@ -50,14 +51,14 @@ implementation
       begin
         if nf_block_with_exit in flags then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+            ctx.CurrAsmList.concat(taicpu.op_none(a_block));
           end;
 
         inherited;
 
         if nf_block_with_exit in flags then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+            ctx.CurrAsmList.concat(taicpu.op_none(a_end_block));
           end;
       end;
 

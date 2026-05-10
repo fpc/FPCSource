@@ -55,15 +55,15 @@ implementation
           inherited;
           if (location.loc=LOC_REGISTER) and ((location.register=NR_IX) or (location.register=NR_IY)) then
             begin
-              ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_H);
-              ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_L);
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_PUSH,location.register));
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_POP,NR_HL));
-              location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,NR_L,location.register);
-              ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_L);
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,NR_H,ctx.cg.GetNextReg(location.register));
-              ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_H);
+              ctx.cg.getcpuregister(ctx.CurrAsmList,NR_H);
+              ctx.cg.getcpuregister(ctx.CurrAsmList,NR_L);
+              ctx.CurrAsmList.Concat(taicpu.op_reg(A_PUSH,location.register));
+              ctx.CurrAsmList.Concat(taicpu.op_reg(A_POP,NR_HL));
+              location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_8,OS_8,NR_L,location.register);
+              ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_L);
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_8,OS_8,NR_H,ctx.cg.GetNextReg(location.register));
+              ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_H);
             end;
         end;
 

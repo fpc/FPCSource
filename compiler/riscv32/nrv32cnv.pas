@@ -127,20 +127,20 @@ implementation
 
         restype:=tfloatdef(resultdef).floattype;
 
-        location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
+        location.Register := ctx.cg.getfpuregister(ctx.CurrAsmList, tfloat2tcgsize[restype]);
         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_signed(left.resultdef),restype], location.register, left.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_signed(left.resultdef),restype], location.register, left.location.register));
           end
         else
           begin
             { Load memory in fpu register }
-            ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-            ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-            ctx.tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+            ctx.hlcg.location_force_mem(ctx.CurrAsmList, left.location, left.resultdef);
+            ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+            ctx.tg.ungetiftemp(ctx.CurrAsmList, left.location.reference);
 
             case restype of
-              s64real: ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList, OS_F32, OS_F64, location.register, location.Register);
+              s64real: ctx.cg.a_loadfpu_reg_reg(ctx.CurrAsmList, OS_F32, OS_F64, location.register, location.Register);
               else
                 ;
             end;

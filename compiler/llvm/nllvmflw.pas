@@ -126,7 +126,7 @@ implementation
             if tllvmprocinfo(compiler.current_procinfo).popexceptlabel(currexceptlabel) then
               exclude(flowcontrol,fc_catching_exceptions);
           end;
-        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
+        ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
         if assigned(currexceptlabel) then
           begin
             tllvmprocinfo(compiler.current_procinfo).pushexceptlabel(currexceptlabel);

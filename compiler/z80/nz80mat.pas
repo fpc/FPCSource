@@ -63,7 +63,7 @@ implementation
         if not handle_locjump then
           begin
             if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,false);
             case left.location.loc of
               LOC_FLAGS :
                 begin
@@ -77,33 +77,33 @@ implementation
  {$if defined(cpu32bitalu)}
                   if is_64bit(resultdef) then
                     begin
-                      hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
-                      tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                      hreg:=ctx.cg.GetIntRegister(ctx.CurrAsmList,OS_32);
+                      tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,left.location.reference);
+                      ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
                       inc(left.location.reference.offset,4);
-                      ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                      ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
                     end
                   else
  {$elseif defined(cpu16bitalu)}
                   if is_64bit(resultdef) then
                     begin
-                      hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
-                      tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                      hreg:=ctx.cg.GetIntRegister(ctx.CurrAsmList,OS_16);
+                      tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,left.location.reference);
+                      ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                       inc(left.location.reference.offset,2);
-                      ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                      ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                       inc(left.location.reference.offset,2);
-                      ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                      ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                       inc(left.location.reference.offset,2);
-                      ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                      ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                     end
                   else if is_32bit(resultdef) then
                     begin
-                      hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
-                      tcgx86(ctx.cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                      hreg:=ctx.cg.GetIntRegister(ctx.CurrAsmList,OS_16);
+                      tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,left.location.reference);
+                      ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                       inc(left.location.reference.offset,2);
-                      ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                      ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                     end
                   else
  {$endif}
@@ -121,21 +121,21 @@ implementation
                 begin
                   if tcgsize2size[def_cgsize(left.resultdef)]<>tcgsize2size[def_cgsize(resultdef)] then
                     internalerror(2020042209);
-                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                  ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,false);
                   if tcgsize2size[def_cgsize(left.resultdef)]=1 then
                     begin
-                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,left.location.register,NR_A);
-                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_OR,NR_A,NR_A));
-                      ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                      ctx.cg.getcpuregister(ctx.CurrAsmList,NR_A);
+                      ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_8,OS_8,left.location.register,NR_A);
+                      ctx.CurrAsmList.Concat(taicpu.op_reg_reg(A_OR,NR_A,NR_A));
+                      ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_A);
                     end
                   else
                     begin
-                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-                      ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,left.location.register,NR_A);
+                      ctx.cg.getcpuregister(ctx.CurrAsmList,NR_A);
+                      ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_8,OS_8,left.location.register,NR_A);
                       for i:=1 to tcgsize2size[def_cgsize(left.resultdef)]-1 do
-                        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_OR,NR_A,ctx.cg.GetOffsetReg64(left.location.register,left.location.registerhi,i)));
-                      ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                        ctx.CurrAsmList.Concat(taicpu.op_reg_reg(A_OR,NR_A,ctx.cg.GetOffsetReg64(left.location.register,left.location.registerhi,i)));
+                      ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_A);
                     end;
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;

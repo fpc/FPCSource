@@ -31,6 +31,7 @@ interface
       procinfo,
       cpupi,
       aasmdata,aasmllvm,
+      node,
       compilerbase;
 
     type
@@ -48,7 +49,7 @@ interface
         procedure pushlandingpad(pad: taillvm);
         procedure poppad;
         function currlandingpad: taillvm;
-        procedure setup_eh; override;
+        procedure setup_eh(ctx:tpassgeneratecodecontext); override;
         procedure finish_eh; override;
         procedure start_eh(list: TAsmList); override;
         procedure end_eh(list: TAsmList); override;
@@ -437,7 +438,7 @@ implementation
       end;
 
 
-    procedure tllvmprocinfo.setup_eh;
+    procedure tllvmprocinfo.setup_eh(ctx:tpassgeneratecodecontext);
       begin
         if po_assembler in procdef.procoptions then
           inherited

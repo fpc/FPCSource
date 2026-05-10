@@ -87,12 +87,12 @@ interface
             (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.init_settings.fputype])) then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
             if tfloatdef(resultdef).floattype=s32real then
               pf:=PF_F32
             else
               pf:=PF_F64;
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_realconst(A_VMOV,
+            ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_realconst(A_VMOV,
                location.register,value_real),pf));
           end
         else

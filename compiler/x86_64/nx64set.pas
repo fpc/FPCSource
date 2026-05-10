@@ -112,7 +112,7 @@ implementation
           { see https://gmplib.org/list-archives/gmp-bugs/2012-December/002836.html }
           jtitemconsttype:=aitconst_darwin_dwarf_delta32;
 
-        jtlist := current_asmdata.CurrAsmList;
+        jtlist := ctx.CurrAsmList;
         last:=min_;
         opcgsize:=def_cgsize(opsize);
 
@@ -174,7 +174,7 @@ implementation
         href.scalefactor:=1;
         ctx.cg.a_loadaddr_ref_reg(jtlist,href,jumpreg);
         { and finally jump }
-        emit_reg(A_JMP,S_NO,jumpreg);
+        emit_reg(ctx,A_JMP,S_NO,jumpreg);
         { generate jump table }
         if not(compiler.target.info.system in systems_darwin) then
           sectype:=sec_rodata

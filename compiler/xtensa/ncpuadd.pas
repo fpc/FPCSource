@@ -92,18 +92,18 @@ interface
             pass_left_right(ctx);
 
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
             { initialize the result }
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
-            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reglo:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
 
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register,right.location.register));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ophigh,location.register64.reghi,left.location.register,right.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register,right.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(ophigh,location.register64.reghi,left.location.register,right.location.register));
           end
         else
           Inherited;
@@ -132,21 +132,21 @@ interface
         case nodetype of
           equaln:
             begin
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,left.location.register,right.location.register,location.truelabel);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_EQ,left.location.register,right.location.register,location.truelabel);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
             end;
           unequaln:
             begin
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left.location.register,right.location.register,location.truelabel);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left.location.register,right.location.register,location.truelabel);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
             end;
           lten,
           gten:
             begin
-              tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
-              ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,tmpreg,right.location.register,location.truelabel);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+              tmpreg:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
+              ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_EQ,tmpreg,right.location.register,location.truelabel);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
             end;
           else
             internalerror(2020082401);
@@ -167,7 +167,7 @@ interface
 
         location_reset_jump(location,truelab,falselab);
 
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
 
         if is_signed(left.resultdef) then
           case nodetype of
@@ -193,18 +193,18 @@ interface
           end;
 
         if (right.nodetype=ordconstn) and not(nf_swapped in flags) then
-          ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.value,left.location.register,location.truelabel)
+          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,cond,right.location.value,left.location.register,location.truelabel)
         else
           begin
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_INT),true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_INT),true);
 
             if nf_swapped in flags then
-               ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel)
+               ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel)
              else
-               ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.register,left.location.register,location.truelabel);
+               ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,cond,right.location.register,left.location.register,location.truelabel);
           end;
-        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+        ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
       end;
 
 
@@ -213,19 +213,19 @@ interface
 
     procedure TCPUAddNode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,location.truelabel);
-        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,location.truelabel);
+        ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
       end;
 
 
     procedure TCPUAddNode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean;ctx:tpassgeneratecodecontext);
       begin
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
-        ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,location.falselabel);
-        ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+        ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,location.falselabel);
+        ctx.cg.a_jmp_always(ctx.CurrAsmList,location.truelabel);
       end;
 
 
@@ -249,21 +249,21 @@ interface
         left_reg:=left.location.register64;
         { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
         if right.location.loc=LOC_CONSTANT then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
         right_reg:=right.location.register64;
 
         case NodeType of
           equaln:
             begin
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.falselabel);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.falselabel);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,location.truelabel);
             end;
           unequaln:
             begin
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
-              ctx.cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.truelabel);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+              ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.truelabel);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,location.falselabel);
             end;
         else
           if nf_swapped in flags then
@@ -392,8 +392,8 @@ interface
         if (nf_swapped in flags) then
           swapleftright;
 
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,right.location,right.resultdef,true);
 
         cmpop:=false;
         inv:=false;
@@ -456,17 +456,17 @@ interface
         else
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-           location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+           location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
          end;
 
         { emit the actual operation }
         if cmpop then
           begin
-            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,location.resflags.register);
+            ctx.cg.getcpuregister(ctx.CurrAsmList,location.resflags.register);
             ai:=taicpu.op_reg_reg_reg(op,location.resflags.register,left.location.register,right.location.register);
             ai.oppostfix:=PF_S;
-            current_asmdata.CurrAsmList.concat(ai);
-            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.CurrAsmList.concat(ai);
+            ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
 
             if inv then
               location.resflags.flag:=F_Z;
@@ -475,8 +475,8 @@ interface
           begin
             ai:=taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register);
             ai.oppostfix := PF_S;
-            current_asmdata.CurrAsmList.concat(ai);
-            ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            ctx.CurrAsmList.concat(ai);
+            ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
           end;
       end;
 
@@ -503,18 +503,18 @@ interface
 
             { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
             if right.location.loc=LOC_CONSTANT then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
 
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            tmpreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register64.reglo,right.location.register64.reglo));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULUH,location.register64.reghi,left.location.register64.reglo,right.location.register64.reglo));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reglo,right.location.register64.reghi));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reghi,right.location.register64.reglo));
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+            location.register64.reglo:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            tmpreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register64.reglo,right.location.register64.reglo));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULUH,location.register64.reghi,left.location.register64.reglo,right.location.register64.reglo));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reglo,right.location.register64.reghi));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reghi,right.location.register64.reglo));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
           end
         else
           Inherited;

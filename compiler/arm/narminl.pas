@@ -110,11 +110,11 @@ implementation
          case inlinenumber of
            in_arm_yield:
              if CPUARM_HAS_MP_INSTRUCTIONS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
+               ctx.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
                { while yield is a no op operation if not supported by the cpu, assemblers do not
                  handle it, so encode it in hex if the cpu does not support it }
-               current_asmdata.CurrAsmList.concat(tai_const.Create_32bit(longint($e320f001)));
+               ctx.CurrAsmList.concat(tai_const.Create_32bit(longint($e320f001)));
            else
              inherited;
          end;
@@ -129,26 +129,26 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             begin
-              ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CFPUREGISTER then
                 begin
-                 location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                 location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
                  location.loc := LOC_FPUREGISTER;
                end;
             end;
           fpu_soft:
             begin
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               location_copy(location,left.location);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CMMREGISTER then
                 begin
-                 location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+                 location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
                  location.loc := LOC_MMREGISTER;
                end;
             end
@@ -310,13 +310,13 @@ implementation
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
+            ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_soft:
             begin
               if singleprec then
-                ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.register)
+                ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.register)
               else
-                ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.registerhi);
+                ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.registerhi);
             end
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
@@ -324,13 +324,13 @@ implementation
                 pf:=PF_F32
               else
                 pf:=PF_F64;
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else
             internalerror(2009111402);
@@ -348,20 +348,20 @@ implementation
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
+            ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
               else
                 pf:=PF_F64;
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else
             internalerror(2009111403);
@@ -379,20 +379,20 @@ implementation
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
+            ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
               else
                 pf:=PF_F64;
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end
           else
             internalerror(2009111405);
@@ -404,27 +404,27 @@ implementation
     procedure tarminlinenode.second_arctan_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ATN,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ATN,location.register,left.location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_ln_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,left.location.register),get_fpu_postfix(resultdef)));
       end;
 
     procedure tarminlinenode.second_cos_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_COS,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_COS,location.register,left.location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_sin_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,left.location.register),get_fpu_postfix(resultdef)));
       end;
     }
 
@@ -447,11 +447,11 @@ implementation
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                  r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-                  ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+                  r:=ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
+                  ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.location.reference,r);
                   reference_reset_base(ref,r,0,location.reference.temppos,left.location.reference.alignment,location.reference.volatility);
                   { since the address might be nil we can't use ldr for older cpus }
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PLD,ref));
+                  ctx.CurrAsmList.concat(taicpu.op_ref(A_PLD,ref));
                 end;
               else
                 { nothing to prefetch };
@@ -472,26 +472,26 @@ implementation
 
         secondpass(left,ctx);
         opsize:=def_cgsize(left.resultdef);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
-        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location.register:=ctx.cg.getintregister(ctx.CurrAsmList,opsize);
 
-        ctx.cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
+        ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
 
         if GenerateThumb2Code then
-          current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
+          ctx.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
-            current_asmdata.CurrAsmList.concat(setoppostfix(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI),PF_S));
+            ctx.CurrAsmList.concat(setoppostfix(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI),PF_S));
             location_reset(ovloc,LOC_VOID,opsize);
-            ctx.cg.g_overflowCheck_loc(current_asmdata.CurrAsmList,ovloc,resultdef,ovloc);
+            ctx.cg.g_overflowCheck_loc(ctx.CurrAsmList,ovloc,resultdef,ovloc);
           end
         else
-          current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
+          ctx.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
 
-        ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
       end;
 
 
@@ -561,21 +561,21 @@ implementation
              for i:=1 to 3 do
                begin
                  if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-                   ctx.hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   ctx.hlcg.location_force_mmregscalar(ctx.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
-             location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
 
-             ctx.hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+             ctx.hlcg.a_loadmm_reg_reg(ctx.CurrAsmList,paraarray[3].resultdef,resultdef,
                paraarray[3].location.register,location.register,mms_movescalar);
              if is_double(resultdef) then
                oppostfix:=PF_F64
              else
                oppostfix:=PF_F32;
-             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op[negproduct,negop3],
+             ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op[negproduct,negop3],
                location.register,paraarray[1].location.register,paraarray[2].location.register),oppostfix));
-             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
            end
          else
            internalerror(2014032301);

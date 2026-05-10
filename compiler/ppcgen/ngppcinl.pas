@@ -104,10 +104,10 @@ implementation
            in_ppc_yield:
 {$ifdef powerpc64}
              if compiler.globals.current_settings.cputype >= cpu_power7 then
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
+               ctx.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
 {$endif powerpc64}
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,NR_R27,NR_R27,NR_R27));
+               ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,NR_R27,NR_R27,NR_R27));
            else
              inherited;
          end;
@@ -168,9 +168,9 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          secondpass(left,ctx);
-         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
-         location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
        end;
 
 
@@ -182,10 +182,10 @@ implementation
         load_fpu_location(ctx);
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
               left.location.register));
           OS_F64:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
               left.location.register));
           else
             inherited;
@@ -197,7 +197,7 @@ implementation
        begin
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location(ctx);
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,
            left.location.register));
        end;
 
@@ -212,7 +212,7 @@ implementation
            op := A_FMULS
          else
            op := A_FMUL;
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
            left.location.register,left.location.register));
        end;
 
@@ -224,14 +224,14 @@ implementation
          if (compiler.globals.current_settings.cputype < cpu_PPC970) then
            internalerror(2007020901);
          secondpass(left,ctx);
-         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-         tmpreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
+         ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
+         tmpreg:=ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
            left.location.register));
          location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0,[]);
-         ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,
+         ctx.tg.gethltemp(ctx.CurrAsmList,resultdef,resultdef.size,
            tt_normal,location.reference);
-         ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
+         ctx.cg.a_loadfpu_reg_ref(ctx.CurrAsmList,OS_F64,OS_F64,tmpreg,
            location.reference);
        end;
 
@@ -264,19 +264,19 @@ implementation
            LOC_CREFERENCE,
            LOC_REFERENCE:
              begin
-               r:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+               r:=ctx.cg.getintregister(ctx.CurrAsmList,OS_ADDR);
                if (left.location.reference.offset = 0) and
                   not assigned(left.location.reference.symbol) then
                  begin
                    if (left.location.reference.index = NR_NO) then
-                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
+                     ctx.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
                    else
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
+                     ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
                  end
                else
                  begin
-                   ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-                   current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,r));
+                   ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.location.reference,r);
+                   ctx.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,r));
                  end;
              end;
            else

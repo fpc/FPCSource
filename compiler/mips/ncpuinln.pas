@@ -70,11 +70,11 @@ uses
 procedure tMIPSELinlinenode.load_fpu_location(ctx:tpassgeneratecodecontext);
 begin
   secondpass(left,ctx);
-  ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  ctx.hlcg.location_force_fpureg(ctx.CurrAsmList, left.location, left.resultdef, True);
   location_copy(location, left.location);
   if left.location.loc = LOC_CFPUREGISTER then
   begin
-    location.Register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
+    location.Register := ctx.cg.getfpuregister(ctx.CurrAsmList, location.size);
     location.loc      := LOC_FPUREGISTER;
   end;
 end;
@@ -121,9 +121,9 @@ begin
   load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_s, location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_s, location.Register, left.location.Register));
     s64real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_d, location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_d, location.Register, left.location.Register));
     else
       internalerror(2004100305);
   end;
@@ -135,9 +135,9 @@ begin
   load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MUL_s, location.Register, left.location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MUL_s, location.Register, left.location.Register, left.location.Register));
     s64real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MUL_d, location.Register, left.location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MUL_d, location.Register, left.location.Register, left.location.Register));
     else
       internalerror(200410032);
   end;
@@ -149,9 +149,9 @@ begin
   load_fpu_location(ctx);
   case tfloatdef(left.resultdef).floattype of
     s32real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRT_s, location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRT_s, location.Register, left.location.Register));
     s64real:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRT_d, location.Register, left.location.Register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRT_d, location.Register, left.location.Register));
     else
       internalerror(200410033);
   end;
@@ -176,9 +176,9 @@ begin
   
   secondpass(left,ctx);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
+  ctx.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  ctx.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  ctx.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
 
 end;
 

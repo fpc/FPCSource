@@ -101,14 +101,14 @@ implementation
          else if location.reference.base=NR_NO then
           begin
             if (location.reference.scalefactor > 1) then
-              hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList)
+              hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList)
             else
               hreg:=NR_NO;
             case location.reference.scalefactor of
              0,1 : hreg:=location.reference.index;
-             2 : ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,1,location.reference.index,hreg);
-             4 : ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,location.reference.index,hreg);
-             8 : ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,3,location.reference.index,hreg);
+             2 : ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,1,location.reference.index,hreg);
+             4 : ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,2,location.reference.index,hreg);
+             8 : ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,3,location.reference.index,hreg);
              else
                internalerror(2008091401);
             end;
@@ -116,8 +116,8 @@ implementation
           end
          else
           begin
-            hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-            ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+            hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+            ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,location.reference,hreg);
             { reference_reset_base kills the segment, so make sure we preserve it }
             saveseg:=location.reference.segment;
             reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
@@ -133,11 +133,11 @@ implementation
             end;
          else
            begin
-              hreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+              hreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
               if ispowerof2(l,l2) then
-                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,l2,maybe_const_reg,hreg)
+                ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,l2,maybe_const_reg,hreg)
               else
-                ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
+                ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
            end;
          end;
          location.reference.index:=hreg;

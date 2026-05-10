@@ -132,8 +132,8 @@ implementation
             end;
             { get address of array as pchar }
             resptrdef:=cpointerdef.getreusable(resultdef,compiler);
-            hreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
-            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
+            hreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resptrdef);
+            ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,datadef,resptrdef,location.reference,hreg);
             ctx.hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
           end;
       end;
@@ -172,13 +172,13 @@ implementation
         { pointerdef to the string data array }
         dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
         { load the address of the string data }
-        reg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
+        reg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,dataptrdef);
         reference_reset_symbol(href,lab_str,0,compiler.globals.const_align(strpointerdef.size),[]);
-        current_asmdata.CurrAsmList.concat(
+        ctx.CurrAsmList.concat(
           taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef,compiler),href,
           compiler.deftypes.s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
-        ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
+        ctx.hlcg.a_load_reg_reg(ctx.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
       end;
 
 {*****************************************************************************
@@ -196,18 +196,18 @@ implementation
       begin
          { llvm supports floating point constants directly }
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+         location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,resultdef);
          case tfloatdef(resultdef).floattype of
            s32real,s64real:
-             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,location.register,resultdef,value_real,resultdef));
+             ctx.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,location.register,resultdef,value_real,resultdef));
            { comp and currency are handled as int64 at the llvm level }
            s64comp,
            s64currency:
              { compiler.deftypes.sc80floattype instead of resultdef, see comment in thlcgllvm.a_loadfpu_ref_reg }
-             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,compiler.deftypes.s64inttype,round(value_real),compiler.deftypes.sc80floattype));
+             ctx.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,compiler.deftypes.s64inttype,round(value_real),compiler.deftypes.sc80floattype));
 {$ifdef cpuextended}
            s80real,sc80real:
-             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,location.register,resultdef,value_real,resultdef));
+             ctx.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,location.register,resultdef,value_real,resultdef));
 {$endif cpuextended}
            else
              internalerror(2013102501);

@@ -211,7 +211,6 @@ interface
         NextVTEntryNr : longint;
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
-        CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
         ResStrInits   : TLinkedList;
         constructor create(n: pshortstring;acompiler:TCompilerBase);
@@ -550,7 +549,6 @@ function current_asmdata : TAsmData; inline;
         for alt:=low(TAsmLabelType) to high(TAsmLabelType) do
           FNextLabelNr[alt]:=1;
         { AsmLists }
-        CurrAsmList:=TAsmList.create;
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
         WideInits :=TAsmList.create;
@@ -595,8 +593,6 @@ function current_asmdata : TAsmData; inline;
         WideInits := nil;
          for hal:=low(TAsmListType) to high(TAsmListType) do
            FreeAndNil(AsmLists[hal]);
-         CurrAsmList.free;
-         CurrAsmList := nil;
 {$ifdef MEMDEBUG}
          memasmlists.stop;
 {$endif}

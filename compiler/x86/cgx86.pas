@@ -1808,7 +1808,7 @@ unit cgx86;
         case loc.loc of
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
-              make_simple_ref(current_asmdata.CurrAsmList,loc.reference);
+              make_simple_ref(list,loc.reference);
               list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,src,resultreg));
             end;
           LOC_CMMREGISTER,LOC_MMREGISTER:
@@ -1948,7 +1948,7 @@ unit cgx86;
         case loc.loc of
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
-              make_simple_ref(current_asmdata.CurrAsmList,loc.reference);
+              make_simple_ref(list,loc.reference);
               if UseAVX then
                 list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,resultreg,resultreg))
               else

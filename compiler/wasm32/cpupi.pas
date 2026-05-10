@@ -28,7 +28,7 @@ interface
   uses
     sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,
     procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
-    psub,compilerbase, cclasses;
+    psub,node,compilerbase, cclasses;
 
   type
 
@@ -58,7 +58,7 @@ interface
       constructor create(aparent: tprocinfo;acompiler: TCompilerBase); override;
       destructor destroy; override;
       function calc_stackframe_size : longint;override;
-      procedure setup_eh; override;
+      procedure setup_eh(ctx:tpassgeneratecodecontext); override;
       procedure generate_exit_label(list: tasmlist); override;
       procedure postprocess_code; override;
       procedure set_first_temp_offset;override;
@@ -190,8 +190,8 @@ implementation
         { is it this catch? }
         thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        list.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).decstack(list,1);
 
         paraloc1.done;
 
@@ -201,7 +201,7 @@ implementation
 
     procedure twasmexceptionstatehandler_nativeexnrefexceptions.end_catch(list: TAsmList);
       begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+        list.concat(taicpu.op_none(a_end_if));
       end;
 
 
@@ -274,8 +274,8 @@ implementation
         { is it this catch? }
         thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        list.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).decstack(list,1);
 
         paraloc1.done;
 
@@ -285,7 +285,7 @@ implementation
 
     procedure twasmexceptionstatehandler_nativelegacyexceptions.end_catch(list: TAsmList);
       begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+        list.concat(taicpu.op_none(a_end_if));
       end;
 
 {*****************************************************************************
@@ -357,8 +357,8 @@ implementation
         { is it this catch? }
         thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        list.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).decstack(list,1);
 
         paraloc1.done;
 
@@ -368,7 +368,7 @@ implementation
 
     procedure twasmexceptionstatehandler_bfexceptions.end_catch(list: TAsmList);
       begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+        list.concat(taicpu.op_none(a_end_if));
       end;
 
 {*****************************************************************************
@@ -511,7 +511,7 @@ implementation
         Result:=Align(inherited calc_stackframe_size,16);
       end;
 
-    procedure tcpuprocinfo.setup_eh;
+    procedure tcpuprocinfo.setup_eh(ctx:tpassgeneratecodecontext);
       begin
         if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_nativeexnrefexceptions)

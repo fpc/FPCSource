@@ -67,7 +67,7 @@ unit navrmem;
          else
            begin
              location_reset(location,LOC_REGISTER,int_cgsize(resultdef.size));
-             location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+             location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
              if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                { on x86_64-win64, array of chars can be returned in registers, however,
                  when passing these arrays to other functions, the compiler wants to take
@@ -75,10 +75,10 @@ unit navrmem;
                  we have to force the data into memory, see also tw14388.pp
                }
                if nf_internal in flags then
-                 ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
+                 ctx.hlcg.location_force_mem(ctx.CurrAsmList,left.location,left.resultdef)
                else
                  internalerror(2017072801);
-             ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
+             ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
            end;
       end;
 

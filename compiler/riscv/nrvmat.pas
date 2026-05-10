@@ -53,19 +53,19 @@ implementation
       begin
         secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
         case tfloatdef(left.resultdef).floattype of
           s32real:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_S,location.register,left.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_S,location.register,left.location.register));
           s64real:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_D,location.register,left.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_D,location.register,left.location.register));
           s128real:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_Q,location.register,left.location.register));
+            ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG_Q,location.register,left.location.register));
           else
             Internalerror(2025010901);
         end;
-        ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+        ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
       end;
 
 

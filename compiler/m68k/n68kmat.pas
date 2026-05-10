@@ -84,7 +84,7 @@ implementation
             opsize:=def_cgsize(resultdef);
 
             if ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
 
             case left.location.loc of
               LOC_FLAGS :
@@ -95,16 +95,16 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE:
                 begin
-                  tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,left.location.reference,false);
+                  tcg68k(ctx.cg).fixref(ctx.CurrAsmList,left.location.reference,false);
                   if is_64bit(resultdef) then
                    begin
-                     hreg:=ctx.cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
-                     ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                     hreg:=ctx.cg.GetIntRegister(ctx.CurrAsmList,OS_32);
+                     ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
                      inc(left.location.reference.offset,4);
-                     ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                     ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
                    end
                  else
-                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,tcgsize2opsize[opsize],left.location.reference));
+                   ctx.CurrAsmList.concat(taicpu.op_ref(A_TST,tcgsize2opsize[opsize],left.location.reference));
                    location_reset(location,LOC_FLAGS,OS_NO);
                    location.resflags:=F_E;
                 end;
@@ -117,20 +117,20 @@ implementation
                 begin
                   if is_64bit(resultdef) then
                     begin
-                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo));
+                      ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                      ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo));
                     end
                   else
                     begin
-                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                      ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
                       if (not (CPUM68K_HAS_TSTAREG in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                         begin
-                          hreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                          ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg);
+                          hreg:=ctx.cg.getintregister(ctx.CurrAsmList,opsize);
+                          ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg);
                         end
                       else
                         hreg:=left.location.register;
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],hreg));
+                      ctx.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],hreg));
                     end;
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
@@ -161,8 +161,8 @@ implementation
    begin
      if CPUM68K_HAS_32BITDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
        begin
-         ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,res);
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,res));
+         ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_INT,OS_INT,num,res);
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,res));
        end
      else
        InternalError(2014062801);
@@ -177,7 +177,7 @@ implementation
     begin
       if CPUM68K_HAS_32BITDIV in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
         begin
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(
+          ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(
             remop[CPUM68K_HAS_REMSREMU in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype],signed],S_L,denum,res,num));
         end
       else
@@ -195,26 +195,26 @@ implementation
       begin
         secondpass(left,ctx);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
 
         case left.location.loc of
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
+              tcg68k(ctx.cg).fixref(ctx.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+              ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
             end;
           LOC_FPUREGISTER:
             begin
               location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregopsize,location.register));
+              ctx.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregopsize,location.register));
             end;
           LOC_CFPUREGISTER:
             begin
-               location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
+               location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+               ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
             end;
           else
             internalerror(2003060202);
@@ -249,7 +249,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u64inttype,false);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u64inttype,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -259,15 +259,15 @@ implementation
               begin
                 if nodetype = shln then
                   begin
-                    ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64hi);
+                    ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_32,0,hreg64hi);
                     if (shiftval and 31) <> 0 then
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
                   end
                 else
                   begin
-                    ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64lo);
+                    ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_32,0,hreg64lo);
                     if (shiftval and 31) <> 0 then
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
                   end;
                 location.register64.reglo:=hreg64hi;
                 location.register64.reghi:=hreg64lo;
@@ -277,33 +277,33 @@ implementation
                 begin
                   if nodetype = shln then
                     begin
-                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_LSL,S_L,1,hreg64lo));
-                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ROXL,S_L,1,hreg64hi));
+                      ctx.CurrAsmList.concat(taicpu.op_const_reg(A_LSL,S_L,1,hreg64lo));
+                      ctx.CurrAsmList.concat(taicpu.op_const_reg(A_ROXL,S_L,1,hreg64hi));
                     end
                   else
                     begin
-                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_LSR,S_L,1,hreg64hi));
-                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ROXR,S_L,1,hreg64lo));
+                      ctx.CurrAsmList.concat(taicpu.op_const_reg(A_LSR,S_L,1,hreg64hi));
+                      ctx.CurrAsmList.concat(taicpu.op_const_reg(A_ROXR,S_L,1,hreg64lo));
                     end;
                   location.register64.reghi:=hreg64hi;
                   location.register64.reglo:=hreg64lo;
                 end
               else
                 begin
-                  hregister:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  hregister:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
                   if nodetype = shln then
                     begin
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
-                      ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
+                      ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
                     end
                   else
                     begin
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
-                      ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
-                      ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
+                      ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
+                      ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
                     end;
                   location.register64.reghi:=hreg64hi;
                   location.register64.reglo:=hreg64lo;
@@ -312,7 +312,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location_copy(location,left.location);
 
             { determine operator }
@@ -324,13 +324,13 @@ implementation
             if (right.nodetype=ordconstn) then
               begin
                 if tordconstnode(right).value.svalue and 31<>0 then
-                  ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value.svalue and 31,location.register)
+                  ctx.cg.a_op_const_reg(ctx.CurrAsmList,op,OS_32,tordconstnode(right).value.svalue and 31,location.register)
               end
             else
               begin
                 { load shift count in a register if necessary }
-                ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
-                ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,location.register);
+                ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+                ctx.cg.a_op_reg_reg(ctx.CurrAsmList,op,OS_32,right.location.register,location.register);
               end;
           end;
       end;

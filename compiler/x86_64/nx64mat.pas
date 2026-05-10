@@ -77,13 +77,13 @@ implementation
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
           { location_force_reg can be also used to change the size of a register }
           (left.location.size<>opsize) then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
         location_reset(location,LOC_REGISTER,opsize);
-        location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location.register:=ctx.cg.getintregister(ctx.CurrAsmList,opsize);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
-          ctx.cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+          ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,op,location.size,
             tordconstnode(right).value.uvalue and mask,left.location.register,location.register)
         else
           begin
@@ -94,9 +94,9 @@ implementation
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                { location_force_reg can be also used to change the size of a register }
               (right.location.size<>opsize) then
-              ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
+              ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
 
-            ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
+            ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
           end;
       end;
 

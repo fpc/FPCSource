@@ -71,15 +71,15 @@ implementation
           and calculations using poison as input result in undefined behaviour }
         current_asmdata.getjumplabel(hl);
         current_asmdata.getjumplabel(hlend);
-        ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,uopdef,OC_AE,
+        ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,uopdef,OC_AE,
           right.resultdef.packedbitsize,left.location.register,hl);
-        ctx.hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.a_bit_test_reg_loc_reg(ctx.CurrAsmList,
           uopdef,right.resultdef,uopdef,
           left.location.register,right.location,location.register);
-        ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlend);
-        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
-        ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,uopdef,0,location.register);
-        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hlend);
+        ctx.hlcg.a_jmp_always(ctx.CurrAsmList,hlend);
+        ctx.hlcg.a_label(ctx.CurrAsmList,hl);
+        ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,uopdef,0,location.register);
+        ctx.hlcg.a_label(ctx.CurrAsmList,hlend);
       end;
 
 

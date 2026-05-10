@@ -55,7 +55,7 @@ implementation
     procedure tm68kcallnode.pop_parasize(pop_size: longint;ctx:tpassgeneratecodecontext);
       begin
         if (pop_size<>0) and not (po_noreturn in procdefinition.procoptions) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_SP));
+          ctx.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_SP));
       end;
 
 
@@ -77,8 +77,8 @@ implementation
                 begin
                   reference_reset_base(tmpref,NR_SP,0,ctempposinvalid,2,[]);
                   tmpref.direction:=dir_dec;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_MOVE,S_W,tprocdef(procdefinition).import_nr,tmpref));
-                  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,tprocdef(procdefinition).extnumber));
+                  ctx.CurrAsmList.concat(taicpu.op_const_ref(A_MOVE,S_W,tprocdef(procdefinition).import_nr,tmpref));
+                  ctx.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,tprocdef(procdefinition).extnumber));
                   inc(pushedparasize,2); { kludge, trap code should be a hidden para instead... }
                 end
               else
@@ -94,7 +94,7 @@ implementation
                     save it. (KB)
                     http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0290.html }
                   reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber,ctempposinvalid,4,[]);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
+                  ctx.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
                 end
               else
                 internalerror(2005010403);
@@ -105,13 +105,13 @@ implementation
                 begin
                   if po_syscall_has_importnr in tprocdef(procdefinition).procoptions then
                     begin
-                      ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_D2);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,tprocdef(procdefinition).import_nr,NR_D2));
+                      ctx.cg.getcpuregister(ctx.CurrAsmList,NR_D2);
+                      ctx.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,tprocdef(procdefinition).import_nr,NR_D2));
                     end;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,15));
-                  current_asmdata.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
+                  ctx.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,15));
+                  ctx.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
                   if po_syscall_has_importnr in tprocdef(procdefinition).procoptions then
-                    ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_D2);
+                    ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_D2);
                 end
               else
                 internalerror(2017081201);
@@ -120,7 +120,7 @@ implementation
             begin
               if po_syscall in tprocdef(procdefinition).procoptions then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
+                  ctx.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
                 end;
             end;
           else

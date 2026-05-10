@@ -65,6 +65,7 @@ interface
       cgbase,cgutils,paramgr,
       symconst,symdef,procinfo,
       cpubase,llvmbase,aasmllvm,
+      pass_2_context,
       compiler,nodehelper
       ;
 
@@ -206,8 +207,8 @@ interface
           begin
             { store the assembler code in a separate list, so we can make it
               the argument of an asmblock instruction }
-            oldasmlist:=current_asmdata.CurrAsmList;
-            current_asmdata.CurrAsmList:=tasmlist.create;
+            oldasmlist:=ctx.CurrAsmList;
+            ctx.CurrAsmList:=tasmlist.create;
             { record relation between parameters and replaced local assembler
               operands }
             fsymboldata:=tfplist.create;
@@ -217,12 +218,12 @@ interface
         if not(po_assembler in compiler.current_procinfo.procdef.procoptions) and
            not(asmnf_get_asm_position in asmnodeflags) then
           begin
-            asmai:=taillvm.asm_paras(current_asmdata.CurrAsmList,fsymboldata);
+            asmai:=taillvm.asm_paras(ctx.CurrAsmList,fsymboldata);
             fsymboldata:=nil;
             fsymbollookup.free;
             fsymbollookup:=nil;
             oldasmlist.concat(asmai);
-            current_asmdata.CurrAsmList:=oldasmlist;
+            ctx.CurrAsmList:=oldasmlist;
           end;
       end;
 
@@ -258,7 +259,7 @@ interface
           immediately assign undef to such registers }
         if tempinfo^.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_FPUREGISTER,
              LOC_CFPUREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER] then
-          current_asmdata.CurrAsmList.concat(
+          ctx.CurrAsmList.concat(
             taillvm.op_reg_size_undef(la_bitcast,tempinfo^.location.register,tempinfo^.typedef)
           );
       end;

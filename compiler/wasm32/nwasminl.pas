@@ -133,128 +133,128 @@ implementation
     procedure twasminlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_abs));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f32_abs));
           OS_F64:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_abs));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f64_abs));
           else
             internalerror(2021092902);
         end;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
     procedure twasminlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_trunc));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f32_trunc));
           OS_F64:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_trunc));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f64_trunc));
           else
             internalerror(2021092903);
         end;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
     procedure twasminlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_sqrt));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f32_sqrt));
           OS_F64:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_sqrt));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f64_sqrt));
           else
             internalerror(2021092901);
         end;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
     procedure twasminlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
             if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
             else
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
           OS_F64:
             if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
             else
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
           else
             internalerror(2021092904);
         end;
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
     procedure twasminlinenode.second_round_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
             begin
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_nearest));
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_f32_nearest));
               if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
-                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
+                ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+                ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
             end;
           OS_F64:
             begin
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_nearest));
+              ctx.CurrAsmList.Concat(taicpu.op_none(a_f64_nearest));
               if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
-                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
+                ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
               else
-                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+                ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
             end
           else
             internalerror(2021092905);
         end;
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -271,47 +271,47 @@ implementation
         else
           hightype:=wbt_i32;
         { length in dynamic arrays is at offset -sizeof(pint) }
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
         { 64-bit pointer values need a <>0 comparison to produce a 32-bit int on the stack (0 or 1) for the 'if' instruction.
           32-bit pointer values don't need it, because 'if' already expects and pops a 32-bit int and checks for <>0. }
         if is_64bit(left.resultdef) then
           begin
-            thlcgwasm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
-            thlcgwasm(ctx.hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,left.resultdef,OC_NE);
+            thlcgwasm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+            thlcgwasm(ctx.hlcg).a_cmp_stack_stack(ctx.CurrAsmList,left.resultdef,OC_NE);
           end;
         { if not nil }
-        current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[hightype])));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[hightype])));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
         { length in dynamic arrays is at offset -compiler.deftypes.ossinttype.size }
-        thlcgwasm(ctx.hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,left.resultdef,compiler.deftypes.ossinttype.size);
+        thlcgwasm(ctx.hlcg).a_op_const_stack(ctx.CurrAsmList,OP_SUB,left.resultdef,compiler.deftypes.ossinttype.size);
         { load length }
         if compiler.deftypes.ossinttype.size=8 then
-          current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i64_load,0))
+          ctx.CurrAsmList.Concat(taicpu.op_const(a_i64_load,0))
         else
-          current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_load,0));
+          ctx.CurrAsmList.Concat(taicpu.op_const(a_i32_load,0));
         { else }
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_else));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_else));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
         { high=-1 }
-        thlcgwasm(ctx.hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,-1,R_INTREGISTER);
+        thlcgwasm(ctx.hlcg).a_load_const_stack(ctx.CurrAsmList,resultdef,-1,R_INTREGISTER);
         { endif }
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_end_if));
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_end_if));
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if location.size in [OS_64,OS_S64] then
           begin
-            location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reglo := cg.getintregister(ctx.CurrAsmList,OS_32);
+            location.register64.reghi := cg.getintregister(ctx.CurrAsmList,OS_32);
           end
         else
 {$endif}
-          location.register := ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          location.register := ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -319,28 +319,28 @@ implementation
       begin
         secondpass(left,ctx);
 
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,left.resultdef,left.location.register);
 
         if is_64bit(left.resultdef) then
-          current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_popcnt))
+          ctx.CurrAsmList.Concat(taicpu.op_none(a_i64_popcnt))
         else
-          current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i32_popcnt));
+          ctx.CurrAsmList.Concat(taicpu.op_none(a_i32_popcnt));
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
     procedure twasminlinenode.second_memory_size(ctx:tpassgeneratecodecontext);
       begin
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_size));
-        thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_memory_size));
+        thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -348,14 +348,14 @@ implementation
       begin
         secondpass(left,ctx);
 
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,left.resultdef,left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_grow));
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_memory_grow));
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -364,34 +364,34 @@ implementation
         location_reset(location,LOC_VOID,OS_NO);
 
         secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
         secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
         secondpass(tcallparanode(left).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_fill));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,3);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_memory_fill));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,3);
       end;
 
 
@@ -400,41 +400,41 @@ implementation
         location_reset(location,LOC_VOID,OS_NO);
 
         secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
         secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
         secondpass(tcallparanode(left).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_copy));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,3);
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_memory_copy));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,3);
       end;
 
 
     procedure twasminlinenode.second_unreachable(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_unreachable));
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_unreachable));
       end;
 
 
@@ -442,16 +442,16 @@ implementation
       begin
         location_reset(location,LOC_VOID,OS_NO);
         if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
-          current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)))
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)))
         else
-          current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
       end;
 
 
     procedure twasminlinenode.second_atomic_fence(ctx:tpassgeneratecodecontext);
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_atomic_fence));
+        ctx.CurrAsmList.Concat(taicpu.op_none(a_atomic_fence));
       end;
 
 
@@ -459,14 +459,14 @@ implementation
       begin
         secondpass(left,ctx);
 
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,left.resultdef,left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
+        ctx.CurrAsmList.Concat(taicpu.op_const(op,0));
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
     procedure twasminlinenode.second_atomic_store(op: TAsmOp;ctx:tpassgeneratecodecontext);
@@ -474,91 +474,91 @@ implementation
         location_reset(location,LOC_VOID,OS_NO);
 
         secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
         secondpass(tcallparanode(left).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
+        ctx.CurrAsmList.Concat(taicpu.op_const(op,0));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,2);
       end;
 
 
     procedure twasminlinenode.second_atomic_rmw_x_y(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
         secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
         secondpass(tcallparanode(left).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_const(op,0));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
     procedure twasminlinenode.second_atomic_rmw_x_y_z(op: TAsmOp;ctx:tpassgeneratecodecontext);
       begin
         secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
           tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
 
         secondpass(tcallparanode(tcallparanode(left).right).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.location,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(tcallparanode(left).right).left.resultdef,
           tcallparanode(tcallparanode(left).right).left.location.register);
 
         secondpass(tcallparanode(left).left,ctx);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,
           tcallparanode(left).left.location,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,
           tcallparanode(left).left.resultdef,
           tcallparanode(left).left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,2);
+        ctx.CurrAsmList.Concat(taicpu.op_const(op,0));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,2);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -568,12 +568,12 @@ implementation
       begin
         sym:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,SymStr,AT_WASM_GLOBAL));
         sym.WasmGlobalType:=wbt_i32;
-        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_global_get,sym));
-        thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+        ctx.CurrAsmList.Concat(taicpu.op_sym(a_global_get,sym));
+        thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 
@@ -584,14 +584,14 @@ implementation
         location_reset(location,LOC_VOID,OS_NO);
         secondpass(left,ctx);
 
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        thlcgwasm(ctx.hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(ctx.hlcg).a_load_reg_stack(ctx.CurrAsmList,left.resultdef,left.location.register);
 
         pd:=tcpuprocdef(compiler.current_procinfo.procdef);
         if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
-          ttgwasm(ctx.tg).allocbasepointer(current_asmdata.CurrAsmList,pd.base_pointer_ref);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+          ttgwasm(ctx.tg).allocbasepointer(ctx.CurrAsmList,pd.base_pointer_ref);
+        ctx.CurrAsmList.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
       end;
 
 
@@ -1034,18 +1034,18 @@ implementation
         else
           begin
             { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
-            thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register);
+            thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register);
 
-            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+            thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
-            current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_const,0));
-            thlcgwasm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.Concat(taicpu.op_const(a_i32_const,0));
+            thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
 
-            current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
-            thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+            ctx.CurrAsmList.Concat( taicpu.op_none(a_else) );
+            thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
             { the length of a widestring is a 32 bit unsigned int. Since every
               character occupies 2 bytes, on a 32 bit platform you can express
@@ -1061,20 +1061,20 @@ implementation
               string pointer, not of the string data }
             ctx.hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
 
-            extra_slots:=thlcgwasm(ctx.hlcg).prepare_stack_for_ref(current_asmdata.CurrAsmList,href,false);
-            thlcgwasm(ctx.hlcg).a_load_ref_stack(current_asmdata.CurrAsmList,lendef,href,extra_slots);
+            extra_slots:=thlcgwasm(ctx.hlcg).prepare_stack_for_ref(ctx.CurrAsmList,href,false);
+            thlcgwasm(ctx.hlcg).a_load_ref_stack(ctx.CurrAsmList,lendef,href,extra_slots);
             if is_widestring(left.resultdef) then
-              thlcgwasm(ctx.hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SHR,resultdef,1);
+              thlcgwasm(ctx.hlcg).a_op_const_stack(ctx.CurrAsmList,OP_SHR,resultdef,1);
 
             { Dynamic arrays do not have their length attached but their maximum index }
             if is_dynamic_array(left.resultdef) then
-              thlcgwasm(ctx.hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_ADD,resultdef,1);
+              thlcgwasm(ctx.hlcg).a_op_const_stack(ctx.CurrAsmList,OP_ADD,resultdef,1);
 
-            current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+            ctx.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
 
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-            location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-            thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+            location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+            thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
           end;
       end;
 
@@ -1082,24 +1082,24 @@ implementation
     procedure twasminlinenode.second_sqr_real(ctx:tpassgeneratecodecontext);
       begin
         secondpass(left,ctx);
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        thlcgwasm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
 
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_mul));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f32_mul));
           OS_F64:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_mul));
+            ctx.CurrAsmList.Concat(taicpu.op_none(a_f64_mul));
           else
             internalerror(2021060102);
         end;
-        thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-        thlcgwasm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+        location.register:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+        thlcgwasm(ctx.hlcg).a_load_stack_loc(ctx.CurrAsmList,resultdef,location);
       end;
 
 begin

@@ -94,25 +94,25 @@ implementation
           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
           { load left operator in a register }
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,false);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,op1.location,op1.resultdef,resultdef,false);
           hreg64hi:=op1.location.register64.reghi;
           hreg64lo:=op1.location.register64.reglo;
 
           if (v=63) then
             begin
-              emit_const_reg(A_SAR,S_L,31,hreg64hi);
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
+              emit_const_reg(ctx,A_SAR,S_L,31,hreg64hi);
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
             end
           else if (v>31) then
             begin
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
-              emit_const_reg(A_SAR,S_L,31,hreg64hi);
-              emit_const_reg(A_SAR,S_L,v and 31,hreg64lo);
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_32,OS_32,hreg64hi,hreg64lo);
+              emit_const_reg(ctx,A_SAR,S_L,31,hreg64hi);
+              emit_const_reg(ctx,A_SAR,S_L,v and 31,hreg64lo);
             end
           else
             begin
-              emit_const_reg_reg(A_SHRD,S_L,v and 31,hreg64hi,hreg64lo);
-              emit_const_reg(A_SAR,S_L,v and 31,hreg64hi);
+              emit_const_reg_reg(ctx,A_SHRD,S_L,v and 31,hreg64hi,hreg64lo);
+              emit_const_reg(ctx,A_SAR,S_L,v and 31,hreg64hi);
             end;
           location.register64.reghi:=hreg64hi;
           location.register64.reglo:=hreg64lo;

@@ -118,37 +118,37 @@ implementation
 
         { make it a 32bit register }
         // allocate base and index registers register
-        indexreg:= ctx.cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
+        indexreg:= ctx.cg.makeregsize(ctx.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
-        ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
+        ctx.cg.a_load_reg_reg(ctx.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
         { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
+        ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
           begin
              { case expr greater than max_ => goto elselabel }
-             ctx.cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
+             ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
           end;
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
-        ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
+        ctx.cg.a_op_const_reg(ctx.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
         reference_reset_symbol(href, table, 0, 4,[]);
 
-        hregister:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
-        ctx.cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+        hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
+        ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,href,hregister);
         reference_reset_base(href,hregister,0,ctempposinvalid,4,[]);
         href.index:=indexreg;
-        indexreg:=ctx.cg.getaddressregister(current_asmdata.CurrAsmList);
+        indexreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
         { load table entry }
-        ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
+        ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
         { add table base }
-        ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
+        ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
         { jump }
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_JALR,NR_X0, indexreg));
+        ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_JALR,NR_X0, indexreg));
 
         { generate jump table }
-        current_asmdata.CurrAsmList.concat(cai_align.Create(4));
-        current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
-        genitem(current_asmdata.CurrAsmList,hp);
+        ctx.CurrAsmList.concat(cai_align.Create(4));
+        ctx.CurrAsmList.concat(Tai_label.Create(table));
+        genitem(ctx.CurrAsmList,hp);
       end;
 
 

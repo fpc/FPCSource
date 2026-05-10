@@ -118,8 +118,8 @@ implementation
       op: tasmop;
     begin
       location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-      location.register:=ctx.cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+      location.register:=ctx.cg.getmmregister(ctx.CurrAsmList,location.size);
+      ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
       if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         internalerror(2014120401);
       case left.location.size of
@@ -134,7 +134,7 @@ implementation
         else
           internalerror(2014120402);
       end;
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+      ctx.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
       { no scaling for currency, that's handled in pass_typecheck }
     end;
 
@@ -168,8 +168,8 @@ implementation
         LOC_CREGISTER,
         LOC_JUMP:
           begin
-             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
+             ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+             ctx.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
              resflags:=F_NE;
           end;
         LOC_FLAGS :
@@ -179,17 +179,17 @@ implementation
       end;
       { load flags to register }
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+      location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
       if is_cbool(resultdef) then
         begin
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_cond(A_CSETM,location.register,flags_to_cond(resflags)));
+          ctx.CurrAsmList.concat(taicpu.op_reg_cond(A_CSETM,location.register,flags_to_cond(resflags)));
             { truncate? (in case cbools are ever made unsigned) }
             if resultdef.size<4 then
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,location.size,location.register,location.register);
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_32,location.size,location.register,location.register);
         end
       else
-        ctx.cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
-      ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+        ctx.cg.g_flags2reg(ctx.CurrAsmList,location.size,resflags,location.register);
+      ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
     end;
 
 

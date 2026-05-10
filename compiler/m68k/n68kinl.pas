@@ -92,13 +92,13 @@ implementation
          end
         else
          begin
-           //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_length called!')));
+           //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_length called!')));
 
            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
-           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+           ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(zerolab);
-           hregister:=ctx.hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
-           ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,zerolab);
+           hregister:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
+           ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,zerolab);
            { the length of a widestring is a 32 bit unsigned int. Since every
              character occupies 2 bytes, on a 32 bit platform you can express
              the maximum length using 31 bits. On a 64 bit platform, it may be
@@ -112,20 +112,20 @@ implementation
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
            ctx.hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
-           ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
+           ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then
-             ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
+             ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_SHR,resultdef,1,hregister);
 
            { Dynamic arrays do not have their length attached but their maximum index }
            if is_dynamic_array(left.resultdef) then
-             ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
+             ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_ADD,resultdef,1,hregister);
            current_asmdata.getjumplabel(lengthlab);
-           ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmlist,lengthlab);
+           ctx.hlcg.a_jmp_always(ctx.CurrAsmList,lengthlab);
 
-           ctx.cg.a_label(current_asmdata.CurrAsmList,zerolab);
-           ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
+           ctx.cg.a_label(ctx.CurrAsmList,zerolab);
+           ctx.hlcg.a_load_const_reg(ctx.CurrAsmList,resultdef,0,hregister);
 
-           ctx.cg.a_label(current_asmdata.CurrAsmList,lengthlab);
+           ctx.cg.a_label(ctx.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
@@ -236,7 +236,7 @@ implementation
 
     procedure t68kinlinenode.second_abs_real(ctx:tpassgeneratecodecontext);
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_abs_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_abs_real called!')));
         second_do_operation(A_FABS,ctx);
       end;
 
@@ -247,40 +247,40 @@ implementation
         if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015022202);
 
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin
-            //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
-            location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
+            location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
             location.loc := LOC_FPUREGISTER;
-            ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+            ctx.cg.a_loadfpu_reg_reg(ctx.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
           end;
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
+        ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
       end;
 
     procedure t68kinlinenode.second_sqrt_real(ctx:tpassgeneratecodecontext);
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
         second_do_operation(A_FSQRT,ctx);
       end;
 
     procedure t68kinlinenode.second_sin_real(ctx:tpassgeneratecodecontext);
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sin_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_sin_real called!')));
         second_do_operation(A_FSIN,ctx);
       end;
 
     procedure t68kinlinenode.second_cos_real(ctx:tpassgeneratecodecontext);
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_cos_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_cos_real called!')));
         second_do_operation(A_FCOS,ctx);
       end;
 
     procedure t68kinlinenode.second_int_real(ctx:tpassgeneratecodecontext);
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_int_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_int_real called!')));
         second_do_operation(A_FINTRZ,ctx);
       end;
 
@@ -299,19 +299,19 @@ implementation
           LOC_FPUREGISTER:
             begin
               location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregopsize,location.register))
+              ctx.CurrAsmList.concat(taicpu.op_reg(op,fpuregopsize,location.register))
             end;
           LOC_CFPUREGISTER:
             begin
-              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
+              location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
+              tcg68k(ctx.cg).fixref(ctx.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+              ctx.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
             end;
           else
             internalerror(2015022205);
@@ -333,21 +333,21 @@ implementation
         case left.location.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             begin
-              hreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
+              hreg:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+              ctx.cg.a_loadfpu_reg_reg(ctx.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              hreg:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              hreg:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+              location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
-              ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,href,location.register);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
+              tcg68k(ctx.cg).fixref(ctx.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
+              ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,left.location.size,location.size,href,location.register);
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
             end;
           else
             internalerror(2017052101);
@@ -358,16 +358,16 @@ implementation
       var
         size: tcgsize;
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_round_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_round_real called!')));
         secondpass(left,ctx);
         size:=def_cgsize(resultdef);
 
-        ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
 
         location_reset(location,LOC_REGISTER,size);
-        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],left.location.register,location.register));
+        ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],left.location.register,location.register));
       end;
 
     procedure t68kinlinenode.second_trunc_real(ctx:tpassgeneratecodecontext);
@@ -375,15 +375,15 @@ implementation
         hreg: TRegister;
         size: tcgsize;
       begin
-        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_trunc_real called!')));
+        //ctx.CurrAsmList.concat(tai_comment.create(strpnew('second_trunc_real called!')));
         second_do_operation(A_FINTRZ,ctx);
         size:=def_cgsize(resultdef);
 
         hreg:=location.register;
         location_reset(location,LOC_REGISTER,size);
-        location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],hreg,location.register));
+        ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],hreg,location.register));
       end;
 
 

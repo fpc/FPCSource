@@ -1766,10 +1766,10 @@ unit cgcpu;
             begin
               //list.concat(tai_comment.create(strpnew('flags2reg: float resflags')));
               current_asmdata.getjumplabel(htrue);
-              a_load_const_reg(current_asmdata.CurrAsmList,OS_32,1,reg);
+              a_load_const_reg(list,OS_32,1,reg);
               a_jmp_flags(list, f, htrue);
-              a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,reg);
-              a_label(current_asmdata.CurrAsmList,htrue);
+              a_load_const_reg(list,OS_32,0,reg);
+              a_label(list,htrue);
               exit;
             end;
 

@@ -213,7 +213,7 @@ unit procinfo;
           { set exception handling info }
           procedure set_eh_info; virtual;
 
-          procedure setup_eh; virtual;
+          procedure setup_eh(ctx:tpassgeneratecodecontext); virtual;
           procedure finish_eh; virtual;
           { called to insert needed eh info into the entry code }
           procedure start_eh(list : TAsmList); virtual;
@@ -458,7 +458,7 @@ implementation
       end;
 
 
-    procedure tprocinfo.setup_eh;
+    procedure tprocinfo.setup_eh(ctx:tpassgeneratecodecontext);
       begin
         { no action by default }
       end;

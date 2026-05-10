@@ -90,8 +90,8 @@ implementation
       begin
         if tcpuabsolutevarsym(symtableentry).absseg then
           begin
-            location.reference.segment:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tcpuabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
+            location.reference.segment:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+            ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_16,aint(tcpuabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
           end;
         inherited;
       end;
@@ -138,33 +138,33 @@ implementation
             if pvd.typ<>procvardef then
               internalerror(2012120902);
             paraloc1.init(compiler.target);
-            paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
-            hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-            segreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+            paramanager.getcgtempparaloc(ctx.CurrAsmList,tprocvardef(pvd),1,paraloc1);
+            hregister:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,pvd);
+            segreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
             reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             segref.refaddr:=addr_seg;
-            ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+            ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,segref,segreg);
             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             href.segment:=segreg;
-            ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
-            ctx.hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
+            ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,pvd,pvd,href,hregister);
+            ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
             { don't save the allocated register else the result will be destroyed later }
             if not(vo_is_weak_external in gvs.varoptions) then
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[]);
-            ctx.cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
-            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+            ctx.cg.a_load_ref_cgpara(ctx.CurrAsmList,OS_16,href,paraloc1);
+            paramanager.freecgpara(ctx.CurrAsmList,paraloc1);
             paraloc1.done;
-            ctx.cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            ctx.cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
-            ctx.cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-            ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-            ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-            hregister:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,compiler.deftypes.voidpointertype);
-            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-            ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
-            ctx.cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+            ctx.cg.allocallcpuregisters(ctx.CurrAsmList);
+            ctx.cg.a_call_reg(ctx.CurrAsmList,hregister);
+            ctx.cg.deallocallcpuregisters(ctx.CurrAsmList);
+            ctx.cg.getcpuregister(ctx.CurrAsmList,NR_FUNCTION_RESULT_REG);
+            ctx.cg.ungetcpuregister(ctx.CurrAsmList,NR_FUNCTION_RESULT_REG);
+            hregister:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.voidpointertype);
+            ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+            ctx.cg.a_jmp_always(ctx.CurrAsmList,endrelocatelab);
+            ctx.cg.a_label(ctx.CurrAsmList,norelocatelab);
             { no relocation needed, load the address of the variable only, the
               layout of a threadvar is (4 bytes pointer):
                 0 - Threadvar index
@@ -173,8 +173,8 @@ implementation
               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
             else
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
-            ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
-            ctx.cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
+            ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
+            ctx.cg.a_label(ctx.CurrAsmList,endrelocatelab);
             ctx.hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
           end
         else
@@ -230,11 +230,11 @@ implementation
                       else
                         refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
 
-                      segreg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                      segreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
 
                       reference_reset_symbol(segref,refsym,0,0,[]);
                       segref.refaddr:=addr_seg;
-                      ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+                      ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,segref,segreg);
 
                       reference_reset_symbol(location.reference,refsym,0,location.reference.alignment,[]);
                       location.reference.segment:=segreg;

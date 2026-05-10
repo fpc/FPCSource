@@ -68,6 +68,7 @@ type
     function GetTarget: TReadOnlyCompilerTarget; inline;
     function GetTG: ttgobj;
     function GetVerbose: TVerbose; inline;
+    procedure SetCurrAsmList(AValue: TAsmList);
   public
     property Verbose: TVerbose read GetVerbose;
     property Target: TReadOnlyCompilerTarget read GetTarget;
@@ -81,7 +82,7 @@ type
     property cg64: tcg64 read GetCG64;
 {$endif cpu64bitalu}
     property tg: ttgobj read GetTG;
-    property CurrAsmList: TAsmList read GetCurrAsmList;
+    property CurrAsmList: TAsmList read GetCurrAsmList write SetCurrAsmList;
   end;
 
 implementation
@@ -175,6 +176,11 @@ end;
 function tpassgeneratecodecontexthelper.GetVerbose: TVerbose; inline;
 begin
   result:=tpassgeneratecodecontextimpl(self).verbose;
+end;
+
+procedure tpassgeneratecodecontexthelper.SetCurrAsmList(AValue: TAsmList);
+begin
+  tpassgeneratecodecontextimpl(self).CurrAsmList:=AValue;
 end;
 
 end.

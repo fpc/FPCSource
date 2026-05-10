@@ -182,8 +182,8 @@ procedure tllvmtypeconvnode.second_pointer_to_array(ctx:tpassgeneratecodecontext
   begin
     inherited;
     { insert type conversion }
-    hreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
-    ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef,compiler),location.reference,hreg);
+    hreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+    ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef,compiler),location.reference,hreg);
     reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
   end;
 
@@ -203,9 +203,9 @@ procedure tllvmtypeconvnode.second_int_to_real(ctx:tpassgeneratecodecontext);
     else
       llvmtodef:=compiler.deftypes.s80floattype;
     location_reset(location,LOC_FPUREGISTER,def_cgsize(llvmtodef));
-    location.register:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,llvmtodef);
-    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,llvmtodef));
+    location.register:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,llvmtodef);
+    ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+    ctx.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,llvmtodef));
   end;
 
 
@@ -217,7 +217,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar(ctx:tpassgeneratecodecontext)
       begin
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
-        ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+        ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,
           cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal,compiler),compiler),
           cpointerdef.getreusable(resultdef,compiler),
           location.reference);
@@ -229,12 +229,12 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecon
   var
     href: treference;
   begin
-    ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
+    ctx.tg.gethltemp(ctx.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment,href.volatility);
     location.reference:=href;
-    ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),href);
-    ctx.hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'proc',href);
-    ctx.hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'self',href);
+    ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),href);
+    ctx.hlcg.g_load_const_field_by_name(ctx.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'proc',href);
+    ctx.hlcg.g_load_const_field_by_name(ctx.CurrAsmList,trecorddef(compiler.deftypes.methodpointertype),0,'self',href);
   end;
 
 
@@ -258,7 +258,7 @@ procedure tllvmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
          { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
          if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
             ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-           ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+           ctx.hlcg.location_force_reg(ctx.CurrAsmList,location,left.resultdef,resultdef,true)
          else
            location.size:=newsize;
          exit;
@@ -272,8 +272,8 @@ procedure tllvmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
           current_asmdata.getjumplabel(falselabel);
           location_reset_jump(location,truelabel,falselabel);
 
-          ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location,location.falselabel);
-          ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+          ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location,location.falselabel);
+          ctx.hlcg.a_jmp_always(ctx.CurrAsmList,location.truelabel);
         end;
       LOC_JUMP :
         begin
@@ -322,9 +322,9 @@ procedure tllvmtypeconvnode.second_nothing(ctx:tpassgeneratecodecontext);
            { anything else with different size that ends up here is an error }
            (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
-        ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-        hreg:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
-        ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hreg);
+        ctx.hlcg.location_force_mem(ctx.CurrAsmList,left.location,left.resultdef);
+        hreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+        ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hreg);
         location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
         reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       end

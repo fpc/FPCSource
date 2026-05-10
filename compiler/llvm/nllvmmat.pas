@@ -83,16 +83,16 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       op:=la_udiv
     else
       op:=la_urem;
-    ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+    ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
     if right.location.loc<>LOC_CONSTANT then
       begin
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,resultdef,true);
         { in llvm, div-by-zero is undefined on all platforms -> need explicit
           check }
         current_asmdata.getjumplabel(hl);
-        ctx.hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
-        ctx.hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
-        ctx.hlcg.a_label(current_asmdata.CurrAsmList,hl);
+        ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
+        ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
+        ctx.hlcg.a_label(ctx.CurrAsmList,hl);
       end;
     if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
        is_signed(left.resultdef) and
@@ -101,25 +101,25 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         current_asmdata.getjumplabel(hl);
         location_reset(ovloc,LOC_REGISTER,OS_8);
-        ovloc.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
+        ovloc.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.llvmbool1type);
         if right.nodetype=ordconstn then
-          current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,ovloc.register,OC_EQ,resultdef,left.location.register,low(int64)))
+          ctx.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,ovloc.register,OC_EQ,resultdef,left.location.register,low(int64)))
         else
           begin
-            tmpovreg1:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
-            tmpovreg2:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,compiler.deftypes.llvmbool1type);
-            current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg1,OC_EQ,resultdef,left.location.register,low(int64)));
-            current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg2,OC_EQ,resultdef,right.location.register,-1));
-            ctx.hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,compiler.deftypes.llvmbool1type,tmpovreg1,tmpovreg2,ovloc.register);
+            tmpovreg1:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.llvmbool1type);
+            tmpovreg2:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.llvmbool1type);
+            ctx.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg1,OC_EQ,resultdef,left.location.register,low(int64)));
+            ctx.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg2,OC_EQ,resultdef,right.location.register,-1));
+            ctx.hlcg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_AND,compiler.deftypes.llvmbool1type,tmpovreg1,tmpovreg2,ovloc.register);
           end;
-        ctx.hlcg.g_overflowCheck_loc(current_asmdata.CurrAsmList,location,resultdef,ovloc);
+        ctx.hlcg.g_overflowCheck_loc(ctx.CurrAsmList,location,resultdef,ovloc);
       end;
     location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-    location.register:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+    location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
     if right.location.loc=LOC_CONSTANT then
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_const(op,location.register,resultdef,left.location.register,right.location.value))
+      ctx.CurrAsmList.concat(taillvm.op_reg_size_reg_const(op,location.register,resultdef,left.location.register,right.location.value))
     else
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_reg(op,location.register,resultdef,left.location.register,right.location.register))
+      ctx.CurrAsmList.concat(taillvm.op_reg_size_reg_reg(op,location.register,resultdef,left.location.register,right.location.register))
   end;
 
 {*****************************************************************************
@@ -134,26 +134,26 @@ begin
     won't turn into -0.0 if x was 0.0 (0.0 - 0.0 = 0.0, but -1.0 * 0.0 = -0.0 }
   if _size.typ<>floatdef then
     internalerror(2014012212);
-  minusonereg:=ctx.hlcg.getfpuregister(current_asmdata.CurrAsmList,_size);
+  minusonereg:=ctx.hlcg.getfpuregister(ctx.CurrAsmList,_size);
   case tfloatdef(_size).floattype of
     s32real,s64real:
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,minusonereg,_size,-1.0,_size));
+      ctx.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,minusonereg,_size,-1.0,_size));
     { comp and currency are handled as int64 at the llvm level }
     s64comp,
     s64currency:
       begin
         { compiler.deftypes.sc80floattype instead of _size, see comment in thlcgllvm.a_loadfpu_ref_reg }
         _size:=compiler.deftypes.sc80floattype;
-        current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,minusonereg,compiler.deftypes.s64inttype,-1,_size));
+        ctx.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,minusonereg,compiler.deftypes.s64inttype,-1,_size));
       end;
 {$ifdef cpuextended}
     s80real,sc80real:
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,minusonereg,_size,-1.0,_size));
+      ctx.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,minusonereg,_size,-1.0,_size));
 {$endif cpuextended}
     else
       internalerror(2016112701);
   end;
-  current_asmdata.CurrAsmList.Concat(taillvm.op_reg_size_reg_reg(la_fmul,r,_size,minusonereg,r));
+  ctx.CurrAsmList.Concat(taillvm.op_reg_size_reg_reg(la_fmul,r,_size,minusonereg,r));
 end;
 
 

@@ -117,70 +117,70 @@ implementation
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+               ctx.hlcg.location_force_reg(ctx.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              exit;
           end;
 
         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+          ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
-        onereg:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,1,onereg);
-        hreg1:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        onereg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+        ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_32,1,onereg);
+        hreg1:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
         case left.location.loc of
           LOC_CREFERENCE,
           LOC_REFERENCE :
             begin
               if left.location.size in [OS_64,OS_S64] then
                 begin
-                  ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg1);
+                  ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_32,OS_32,left.location.reference,hreg1);
                   href:=left.location.reference;
                   inc(href.offset,4);
-                  ctx.cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hreg1);
+                  ctx.cg.a_op_ref_reg(ctx.CurrAsmList,OP_OR,OS_32,href,hreg1);
                 end
               else
-                ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,hreg1);
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MOVNEZ,hreg1,onereg,hreg1));
+                ctx.cg.a_load_ref_reg(ctx.CurrAsmList,left.location.size,OS_32,left.location.reference,hreg1);
+              ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MOVNEZ,hreg1,onereg,hreg1));
             end;
           LOC_REGISTER,LOC_CREGISTER :
             begin
               if left.location.size in [OS_64,OS_S64] then
-                ctx.cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,hreg1)
+                ctx.cg.a_op_reg_reg_reg(ctx.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,hreg1)
               else
-                ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.register,hreg1);
-              current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MOVNEZ,hreg1,onereg,hreg1));
+                ctx.cg.a_load_reg_reg(ctx.CurrAsmList,left.location.size,OS_32,left.location.register,hreg1);
+              ctx.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MOVNEZ,hreg1,onereg,hreg1));
             end;
           LOC_JUMP :
             begin
               current_asmdata.getjumplabel(hlabel);
-              ctx.cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
-              ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg1);
-              ctx.cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-              ctx.cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
-              ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg1);
-              ctx.cg.a_label(current_asmdata.CurrAsmList,hlabel);
+              ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
+              ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,1,hreg1);
+              ctx.cg.a_jmp_always(ctx.CurrAsmList,hlabel);
+              ctx.cg.a_label(ctx.CurrAsmList,left.location.falselabel);
+              ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,0,hreg1);
+              ctx.cg.a_label(ctx.CurrAsmList,hlabel);
             end;
           else
             internalerror(2020031504);
         end;
         if (is_cbool(resultdef)) then
-          ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
+          ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
 
 {$ifndef cpu64bitalu}
         if (location.size in [OS_64,OS_S64]) then
           begin
             location.register64.reglo:=hreg1;
-            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
             if (is_cbool(resultdef)) then
               { reglo is either 0 or -1 -> reghi has to become the same }
-              ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+              ctx.cg.a_load_reg_reg(ctx.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
             else
               { unsigned }
-              ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+              ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_32,0,location.register64.reghi);
           end
         else
 {$endif cpu64bitalu}
@@ -216,11 +216,11 @@ implementation
         ai: taicpu;
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-        ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.s32inttype,true);
+        location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
+        ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,compiler.deftypes.s32inttype,true);
         ai:=taicpu.op_reg_reg_const(A_FLOAT,location.register,left.location.register,0);
         ai.oppostfix:=PF_S;
-        current_asmdata.CurrAsmList.concat(ai);
+        ctx.CurrAsmList.concat(ai);
       end;
 
 begin

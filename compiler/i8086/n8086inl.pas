@@ -223,8 +223,8 @@ implementation
                     location_reset(location,LOC_REGISTER,OS_16);
                     segref:=left.location.reference;
                     inc(segref.offset,2);
-                    location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                    current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(A_MOV,S_W,segref,location.register));
+                    location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+                    ctx.CurrAsmList.concat(Taicpu.op_ref_reg(A_MOV,S_W,segref,location.register));
                   end;
                else
                  internalerror(2017121301);
@@ -241,8 +241,8 @@ implementation
                  location_reset(location,LOC_REGISTER,OS_16);
                  if is_segment_reg(left.location.reference.segment) then
                    begin
-                     location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                     current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,left.location.reference.segment,location.register));
+                     location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+                     ctx.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,left.location.reference.segment,location.register));
                    end
                  else
                    location.register:=left.location.reference.segment;
@@ -250,8 +250,8 @@ implementation
              else
                begin
                  location_reset(location,LOC_REGISTER,OS_16);
-                 location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                 current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,get_default_segment_of_ref(left.location.reference),location.register));
+                 location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
+                 ctx.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,get_default_segment_of_ref(left.location.reference),location.register));
                end;
            end;
        end;
@@ -263,9 +263,9 @@ implementation
              if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
                internalerror(2014030201);
              location_reset(location,LOC_REGISTER,OS_32);
-             location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-             emit_reg_reg(A_MOV,S_W,compiler.current_procinfo.framepointer,location.register);
-             current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,ctx.cg.GetNextReg(location.register)));
+             location.register:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+             emit_reg_reg(ctx,A_MOV,S_W,compiler.current_procinfo.framepointer,location.register);
+             ctx.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,ctx.cg.GetNextReg(location.register)));
            end
          else
            inherited;
@@ -356,24 +356,24 @@ implementation
                     addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
                  else
                    begin
-                     ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,compiler.deftypes.s16inttype,addvalue<=1);
+                     ctx.hlcg.location_force_reg(ctx.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,compiler.deftypes.s16inttype,addvalue<=1);
                      hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
                      { insert multiply with addvalue if its >1 }
                      if addvalue>1 then
-                       ctx.hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,compiler.deftypes.s16inttype,addvalue.svalue,hregister);
+                       ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_IMUL,compiler.deftypes.s16inttype,addvalue.svalue,hregister);
                      addconstant:=false;
                    end;
                end;
              { write the add instruction }
              if addconstant then
                begin
-                 ctx.hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
+                 ctx.hlcg.a_op_const_loc(ctx.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    smallint(addvalue.svalue),
                    tmploc);
                end
              else
                begin
-                 ctx.hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
+                 ctx.hlcg.a_op_reg_loc(ctx.CurrAsmList,addsubop[inlinenumber],compiler.deftypes.s16inttype,
                    hregister,tmploc);
                end;
            end
@@ -391,46 +391,46 @@ implementation
          if opsize in [OS_64,OS_S64] then
            begin
             secondpass(left,ctx);
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
-            location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            ctx.cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
-            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,ctx.cg.GetNextReg(left.location.register64.reghi));
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reglo);
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reglo));
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reghi));
-            emit_reg_reg(A_SUB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reglo);
-            emit_reg_reg(A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reglo));
-            emit_reg_reg(A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
-            emit_reg_reg(A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reghi));
+            location.register64.reglo:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+            location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+            ctx.cg64.a_load64_reg_reg(ctx.CurrAsmList,left.location.register64,location.register64);
+            ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SAR,OS_16,15,ctx.cg.GetNextReg(left.location.register64.reghi));
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reglo);
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reglo));
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reghi));
+            emit_reg_reg(ctx,A_SUB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reglo);
+            emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reglo));
+            emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
+            emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reghi));
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
-                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
-                ctx.cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-                ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
+                ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
+                ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
+                ctx.cg.a_label(ctx.CurrAsmList,hl);
               end;
            end
          else if opsize in [OS_32,OS_S32] then
            begin
             secondpass(left,ctx);
-            ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
-            location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,opsize);
-            ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
-            ctx.cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,ctx.cg.GetNextReg(left.location.register));
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register),location.register);
-            ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register),ctx.cg.GetNextReg(location.register));
-            emit_reg_reg(A_SUB,S_W,ctx.cg.GetNextReg(left.location.register),location.register);
-            emit_reg_reg(A_SBB,S_W,ctx.cg.GetNextReg(left.location.register),ctx.cg.GetNextReg(location.register));
+            location.register:=ctx.cg.getintregister(ctx.CurrAsmList,opsize);
+            ctx.cg.a_load_reg_reg(ctx.CurrAsmList,opsize,opsize,left.location.register,location.register);
+            ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SAR,OS_16,15,ctx.cg.GetNextReg(left.location.register));
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register),location.register);
+            ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_XOR,OS_16,ctx.cg.GetNextReg(left.location.register),ctx.cg.GetNextReg(location.register));
+            emit_reg_reg(ctx,A_SUB,S_W,ctx.cg.GetNextReg(left.location.register),location.register);
+            emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register),ctx.cg.GetNextReg(location.register));
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
-                ctx.cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
-                ctx.cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-                ctx.cg.a_label(current_asmdata.CurrAsmList,hl);
+                ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
+                ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
+                ctx.cg.a_label(ctx.CurrAsmList,hl);
               end;
            end
          else

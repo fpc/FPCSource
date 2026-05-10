@@ -114,7 +114,7 @@ implementation
        begin
          case inlinenumber of
            in_riscv_pause:
-             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_PAUSE));
+             ctx.CurrAsmList.concat(taicpu.op_none(A_PAUSE));
            else
              inherited;
          end;
@@ -224,9 +224,9 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          secondpass(left,ctx);
-         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
          location.loc := LOC_FPUREGISTER;
-         location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+         location.register := ctx.cg.getfpuregister(ctx.CurrAsmList,def_cgsize(resultdef));
        end;
 
 
@@ -237,15 +237,15 @@ implementation
         case left.location.size of
           OS_F32:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
                 left.location.register));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
             end;
           OS_F64:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
+              ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
                 left.location.register));
-              ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
              end
           else
             inherited;
@@ -263,7 +263,7 @@ implementation
            op := A_FSGNJX_S
          else
            op := A_FSGNJX_D;
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
        end;
 
 
@@ -277,8 +277,8 @@ implementation
            op := A_FMUL_S
          else
            op := A_FMUL_D;
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
-         ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+         ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
        end;
 
 
@@ -287,18 +287,18 @@ implementation
          op: TAsmOp;
        begin
          secondpass(left,ctx);
-         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
          if (location.size in [OS_S64,OS_64]) then
            begin
-             location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-             location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reglo:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+             location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
            end
          else
-           location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+           location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
 {$else}
-         location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
 {$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
@@ -315,8 +315,8 @@ implementation
            op := A_FCVT_L_D;
 {$endif}
 
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
-         ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+         ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
        end;
 
 
@@ -325,18 +325,18 @@ implementation
          op: TAsmOp;
        begin
          secondpass(left,ctx);
-         ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef RISCV32}
          if (location.size in [OS_S64,OS_64]) then
            begin
-             location.register64.reglo:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-             location.register64.reghi:=ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reglo:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
+             location.register64.reghi:=ctx.cg.getintregister(ctx.CurrAsmList,OS_32);
            end
          else
-           location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+           location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
 {$else}
-         location.register:=ctx.cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
 {$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
@@ -353,8 +353,8 @@ implementation
            op := A_FCVT_L_D;
 {$endif}
 
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_roundingmode(op,location.register,left.location.register,RM_RTZ));
-         ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         ctx.CurrAsmList.concat(taicpu.op_reg_reg_roundingmode(op,location.register,left.location.register,RM_RTZ));
+         ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
        end;
 
 
@@ -421,15 +421,15 @@ implementation
              for i:=1 to 3 do
                begin
                  if not(paraarray[i].location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-                   ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
-             location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
 
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],
+             ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],
                location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[3].location.register));
-             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
            end
          else
            internalerror(2014032301);
@@ -456,12 +456,12 @@ implementation
              for i:=low(paraarray) to high(paraarray) do
                begin
                  if not(paraarray[i].location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-                   ctx.hlcg.location_force_fpureg(current_asmdata.CurrAsmList,paraarray[i].location,
+                   ctx.hlcg.location_force_fpureg(ctx.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,true);
                end;
 
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
-             location.register:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+             location.register:=ctx.cg.getfpuregister(ctx.CurrAsmList,location.size);
 
              case inlinenumber of
                in_min_single:
@@ -479,10 +479,10 @@ implementation
                else
                  Internalerror(2025010502);
              end;
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(opcode,
+             ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(opcode,
                location.register,paraarray[1].location.register,paraarray[2].location.register));
 
-             ctx.cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             ctx.cg.maybe_check_for_fpu_exception(ctx.CurrAsmList);
            end
          else
            internalerror(2025010501);
