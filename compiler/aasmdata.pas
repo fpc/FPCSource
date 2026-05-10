@@ -263,11 +263,9 @@ interface
 
     var
       casmdata: TAsmDataClass;
-
-
-    var
       CAsmCFI : TAsmCFIClass;
-      current_asmdata : TAsmData;
+
+    function current_asmdata : TAsmData; inline;
 
 
 implementation
@@ -286,6 +284,13 @@ implementation
       memasmlists : TMemDebug;
 {$endif MEMDEBUG}
 
+
+function current_asmdata : TAsmData; inline;
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  begin
+    result:=tasmdata(compiler.current_module.asmdata);
+  end;
 
 {*****************************************************************************
                                  TAsmCFI

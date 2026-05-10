@@ -68,7 +68,6 @@ type
     old_verbosity : longint;
 
   { only saved/restored if "full" is true }
-    old_asmdata : tasmdata;
     old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
@@ -201,7 +200,6 @@ var
       old_settings:=compiler.globals.current_settings.ToRecord;
       old_verbosity:=status.verbosity;
 
-      old_asmdata:=current_asmdata;
       old_debuginfo:=current_debuginfo;
       old_parser_file:=compiler.globals.parser_current_file;
       old_scanner:=current_scanner;
@@ -286,7 +284,6 @@ var
       compiler.verbose.RestoreLocalVerbosity(compiler.globals.current_settings.pmessage);
 
       // These can be different
-      current_asmdata:=old_asmdata;
       current_debuginfo:=old_debuginfo;
     end;
 
@@ -339,7 +336,6 @@ var
       // keep "compiler.globals.current_settings"
 
       _compiler.parser.pbase.parse_only:=false;
-      current_asmdata:=nil;
       current_debuginfo:=nil;
 
       _compiler.globals.parser_current_file:='';

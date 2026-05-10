@@ -176,7 +176,6 @@ implementation
       begin
          { Current compiled module/proc }
          compiler.set_current_module(nil);
-         current_asmdata:=nil;
          tcompiler(compiler).current_procinfo:=nil;
          tcompiler(compiler).current_structdef:=nil;
          tcompiler(compiler).current_genericdef:=nil;
@@ -312,7 +311,6 @@ implementation
            reference the data that might already be destroyed }
          compiler.set_current_module(nil);
          tcompiler(compiler).current_procinfo:=nil;
-         current_asmdata:=nil;
          tcompiler(compiler).current_structdef:=nil;
          tcompiler(compiler).current_genericdef:=nil;
          tcompiler(compiler).current_specializedef:=nil;
@@ -540,9 +538,6 @@ implementation
          compiler.set_current_module(module);
          if not (module.state in [ms_compile]) then
            internalerror(200212281);
-
-         { load current asmdata from compiler.current_module }
-         current_asmdata:=TAsmData(module.asmdata);
 
          { startup scanner and load the first file }
          sc:=tscannerfile.Create(compiler,module.mainsource);
