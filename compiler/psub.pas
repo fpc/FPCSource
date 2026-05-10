@@ -2078,7 +2078,7 @@ implementation
           end
         else
           begin
-            FCodeGenContext:=TPassGenerateCodeContextImpl.Create(parent_tg);
+            FCodeGenContext:=TPassGenerateCodeContextImpl.Create(compiler,parent_tg);
             TPassGenerateCodeContextImpl(FCodeGenContext).create_hlcodegen(compiler);
 
             setup_eh;
