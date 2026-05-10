@@ -66,7 +66,7 @@ interface
 
     { allocate registers for a tlocation; assumes that loc.loc is already
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
-    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
+    procedure gen_alloc_regloc(hlcg: thlcgobj;list:TAsmList;var loc: tlocation;def: tdef);
 
     procedure register_maybe_adjust_setbase(hlcg: thlcgobj; list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
@@ -567,14 +567,11 @@ implementation
       end;
 
 
-    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
+    procedure gen_alloc_regloc(hlcg: thlcgobj;list:TAsmList;var loc: tlocation;def: tdef);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
         cg: tcg;
       begin
-        hlcg:=compiler.hlcg;
-        cg:=compiler.cg;
+        cg:=hlcg.cg;
         case loc.loc of
           LOC_CREGISTER:
             begin
@@ -698,7 +695,7 @@ implementation
               usedef:=tparavarsym(sym).paraloc[calleeside].def
             else
               usedef:=sym.vardef;
-            gen_alloc_regloc(list,sym.initialloc,usedef);
+            gen_alloc_regloc(compiler.hlcg,list,sym.initialloc,usedef);
           end;
         if (pi_has_label in compiler.current_procinfo.flags) then
           begin
