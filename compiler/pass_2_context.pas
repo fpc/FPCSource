@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj,cgobj,tgobj,verbose,systems,globals;
+  node,hlcgobj,cgobj,tgobj,verbose,systems,globals,paramgr;
 
 type
 
@@ -38,6 +38,7 @@ type
     verbose: TVerbose;
     target: TReadOnlyCompilerTarget;
     globals: TCompilerGlobals;
+    paramanager: tparamanager;
     hlcg: thlcgobj;
     tg: ttgobj;
     has_parent_tg: Boolean;
@@ -60,6 +61,7 @@ type
 {$else cpu64bitalu}
     function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
+    function GetParaManager: tparamanager;
     function GetTarget: TReadOnlyCompilerTarget; inline;
     function GetTG: ttgobj;
     function GetVerbose: TVerbose; inline;
@@ -67,6 +69,7 @@ type
     property Verbose: TVerbose read GetVerbose;
     property Target: TReadOnlyCompilerTarget read GetTarget;
     property Globals: TCompilerGlobals read GetGlobals;
+    property paramanager: tparamanager read GetParaManager;
     property hlcg: thlcgobj read GetHlcg;
     property cg: tcg read GetCg;
 {$ifdef cpu64bitalu}
@@ -89,6 +92,7 @@ begin
   verbose:=acompiler.verbose;
   target:=acompiler.target;
   globals:=acompiler.globals;
+  paramanager:=acompiler.paramanager;
   tg:=parent_tg;
   has_parent_tg:=(tg<>nil);
 end;
@@ -135,6 +139,11 @@ begin
   result:=cg.cg64;
 end;
 {$endif cpu64bitalu}
+
+function tpassgeneratecodecontexthelper.GetParaManager: tparamanager;
+begin
+  result:=tpassgeneratecodecontextimpl(self).paramanager;
+end;
 
 function tpassgeneratecodecontexthelper.GetTarget: TReadOnlyCompilerTarget; inline;
 begin
