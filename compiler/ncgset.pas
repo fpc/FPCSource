@@ -241,7 +241,7 @@ implementation
           begin
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef, left.location,
+            register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList, opdef, left.location,
              setbase);
             ctx.hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, opdef,
               right.resultdef, resultdef, left.location.register, right.location,
@@ -489,7 +489,7 @@ implementation
 
                      { load left in register }
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,uopdef,true);
-                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,uopdef,left.location,setbase);
+                     register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,uopdef,left.location,setbase);
                      in_reg_const(uopdef, opsize, ctx);
                    end { of right.location.loc=LOC_CONSTANT }
                  { do search in a normal set which could have >32 elements
@@ -506,7 +506,7 @@ implementation
                  else
                    begin
                      ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
-                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
+                     register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,left.location,setbase);
                      pleftreg := left.location.register;
 
                      if (opsize >= OS_S8) or { = if signed }

@@ -549,7 +549,7 @@ unit nx86add;
                  { bts requires both elements to be registers }
                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                  ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
-                 register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,right.location,setbase);
+                 register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,right.location,setbase);
                  op:=A_BTS;
                  noswap:=true;
                end
@@ -671,7 +671,7 @@ unit nx86add;
             else
               begin
                 ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
-                register_maybe_adjust_setbase(current_asmdata.CurrAsmList,resultdef,right.location,setbase);
+                register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,resultdef,right.location,setbase);
                 if left.location.loc <> LOC_CONSTANT then
                   ctx.hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,
                       left.location.register,location.register)

@@ -30,7 +30,8 @@ interface
       globtype,
       cpubase,cgbase,parabase,cgutils,compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symconst,symbase,symdef,symsym,symtype
+      symconst,symbase,symdef,symsym,symtype,
+      hlcgobj
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
       ,cg64f32
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -67,7 +68,7 @@ interface
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
     procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(hlcg: thlcgobj; list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
 
     procedure alloc_proc_symbol(pd: tprocdef);
@@ -108,7 +109,7 @@ implementation
     procinfo,paramgr,
     dbgbase,
     nadd,nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj,hlcgobj,hlcgcpu,pass_2_context
+    tgobj,cgobj,hlcgcpu,pass_2_context
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -386,14 +387,10 @@ implementation
 *****************************************************************************}
 
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
+    procedure register_maybe_adjust_setbase(hlcg: thlcgobj; list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
       var
         tmpreg: tregister;
       begin
-        hlcg:=compiler.hlcg;
         if (setbase<>0) then
           begin
             { subtract the setbase }

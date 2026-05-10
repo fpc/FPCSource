@@ -109,7 +109,7 @@ implementation
           begin
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef,
+            register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList, opdef,
              left.location, setbase);
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
              right.resultdef, right.resultdef, true);

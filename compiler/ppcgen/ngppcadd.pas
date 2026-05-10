@@ -467,7 +467,7 @@ implementation
                       ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
                       tmpreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                       ctx.cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,aint((aword(1) shl (resultdef.size*8-1))),tmpreg);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,right.location,setbase);
+                      register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,right.location,setbase);
                       ctx.cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then

@@ -353,7 +353,7 @@ interface
             tmpreg:=ctx.hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
             ctx.hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,mask,tmpreg);
             ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList,resultdef,right.location,setbase);
+            register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,resultdef,right.location,setbase);
             ctx.hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
               right.location.register,tmpreg);
             if left.location.loc <> LOC_CONSTANT then

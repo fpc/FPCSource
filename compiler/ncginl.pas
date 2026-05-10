@@ -674,7 +674,7 @@ implementation
           else
             begin
               ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,elepara.location,elepara.resultdef,compiler.deftypes.u32inttype,true);
-              register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,elepara.location,tsetdef(setpara.resultdef).setbase);
+              register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,elepara.location,tsetdef(setpara.resultdef).setbase);
               ctx.hlcg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
                 compiler.deftypes.u32inttype,setpara.resultdef,elepara.location.register,setpara.location);
             end;

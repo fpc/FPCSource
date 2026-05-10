@@ -693,7 +693,7 @@ implementation
                else
                 begin
 {$ifdef i8086}
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.resultdef,left.location,setbase);
+                  register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,left.resultdef,left.location,setbase);
                   ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
@@ -726,7 +726,7 @@ implementation
                   location.resflags:=F_NE;
 {$else i8086}
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,compiler.deftypes.u32inttype,true);
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,left.location,setbase);
+                  register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,left.location,setbase);
 
                   if (tcgsize2size[right.location.size] < opdef.size) or
                     (right.location.loc = LOC_CONSTANT) or
@@ -769,7 +769,7 @@ implementation
                      (setbase<>0) then
                     begin
                       ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
+                      register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,left.location,setbase);
                     end;
 
                   ctx.cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
@@ -802,7 +802,7 @@ implementation
                      (setbase<>0) then
                     begin
                       ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
+                      register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,left.location,setbase);
                     end;
 
                   case left.location.loc of
@@ -873,7 +873,7 @@ implementation
                 begin
 {$ifdef i8086}
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
+                  register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,left.location,setbase);
 
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
@@ -972,7 +972,7 @@ implementation
                    end;
 {$else i8086}
                   ctx.hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
+                  register_maybe_adjust_setbase(ctx.hlcg,current_asmdata.CurrAsmList,opdef,left.location,setbase);
 
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
