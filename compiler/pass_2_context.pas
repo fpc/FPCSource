@@ -57,10 +57,10 @@ type
     function GetHlcg: thlcgobj; inline;
 {$ifdef cpu64bitalu}
     function GetCG128: tcg128; inline;
-    function GetTarget: TReadOnlyCompilerTarget; inline;
 {$else cpu64bitalu}
     function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
+    function GetTarget: TReadOnlyCompilerTarget; inline;
     function GetTG: ttgobj;
     function GetVerbose: TVerbose; inline;
   public
@@ -129,18 +129,17 @@ function tpassgeneratecodecontexthelper.GetCG128: tcg128; inline;
 begin
   result:=cg.cg128;
 end;
-
-function tpassgeneratecodecontexthelper.GetTarget: TReadOnlyCompilerTarget; inline;
-begin
-  result:=tpassgeneratecodecontextimpl(self).target;
-end;
-
 {$else cpu64bitalu}
 function tpassgeneratecodecontexthelper.GetCG64: tcg64; inline;
 begin
   result:=cg.cg64;
 end;
 {$endif cpu64bitalu}
+
+function tpassgeneratecodecontexthelper.GetTarget: TReadOnlyCompilerTarget; inline;
+begin
+  result:=tpassgeneratecodecontextimpl(self).target;
+end;
 
 function tpassgeneratecodecontexthelper.GetTG: ttgobj;
 begin
