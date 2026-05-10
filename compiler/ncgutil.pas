@@ -62,7 +62,7 @@ interface
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-    procedure location_allocate_register(list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
+    procedure location_allocate_register(ctx:tpassgeneratecodecontext;list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
     { allocate registers for a tlocation; assumes that loc.loc is already
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
@@ -435,17 +435,11 @@ implementation
       end;
 
 
-    procedure location_allocate_register(list: TAsmList;out l: tlocation;def: tdef;constant: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
-        cg: tcg;
+    procedure location_allocate_register(ctx:tpassgeneratecodecontext;list: TAsmList;out l: tlocation;def: tdef;constant: boolean);
       begin
-        hlcg:=compiler.hlcg;
-        cg:=compiler.cg;
         l.size:=def_cgsize(def);
         if (def.typ=floatdef) and
-           not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
+           not(cs_fp_emulation in ctx.globals.current_settings.moduleswitches) then
           begin
             if use_vectorfpu(def) then
               begin
@@ -453,7 +447,7 @@ implementation
                   location_reset(l,LOC_CMMREGISTER,l.size)
                 else
                   location_reset(l,LOC_MMREGISTER,l.size);
-                l.register:=cg.getmmregister(list,l.size);
+                l.register:=ctx.cg.getmmregister(list,l.size);
               end
             else
               begin
@@ -461,7 +455,7 @@ implementation
                   location_reset(l,LOC_CFPUREGISTER,l.size)
                 else
                   location_reset(l,LOC_FPUREGISTER,l.size);
-                l.register:=cg.getfpuregister(list,l.size);
+                l.register:=ctx.cg.getfpuregister(list,l.size);
               end;
           end
         else
@@ -473,15 +467,15 @@ implementation
 {$if defined(cpu64bitalu)}
             if l.size in [OS_128,OS_S128,OS_F128] then
               begin
-                l.register128.reglo:=cg.getintregister(list,OS_64);
-                l.register128.reghi:=cg.getintregister(list,OS_64);
+                l.register128.reglo:=ctx.cg.getintregister(list,OS_64);
+                l.register128.reghi:=ctx.cg.getintregister(list,OS_64);
               end
             else
 {$elseif not defined(cpuhighleveltarget)}
             if l.size in [OS_64,OS_S64,OS_F64] then
               begin
-                l.register64.reglo:=cg.getintregister(list,OS_32);
-                l.register64.reghi:=cg.getintregister(list,OS_32);
+                l.register64.reglo:=ctx.cg.getintregister(list,OS_32);
+                l.register64.reghi:=ctx.cg.getintregister(list,OS_32);
               end
             else
 {$endif cpu64bitalu and not cpuhighleveltarget}
@@ -491,7 +485,7 @@ implementation
                     tcgassignmentnode thlcgobj.maybe_change_load_node_reg is
                     called for the temporary node; so the workaround for now is
                     to fix the symptoms... }
-              l.register:=hlcg.getregisterfordef(list,def);
+              l.register:=ctx.hlcg.getregisterfordef(list,def);
           end;
       end;
 

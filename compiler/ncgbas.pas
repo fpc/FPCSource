@@ -519,7 +519,7 @@ interface
               end
             else if (ti_may_be_in_reg in tempflags) then
               begin
-                location_allocate_register(current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
+                location_allocate_register(ctx,current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
               end
             else
               begin

@@ -592,7 +592,7 @@ implementation
            ((realresdef.size=sizeof(aint)) and
             (retloc.location^.loc=LOC_REGISTER) and
             not assigned(retloc.location^.next)) then
-          location_allocate_register(current_asmdata.CurrAsmList,location,realresdef,false)
+          location_allocate_register(ctx,current_asmdata.CurrAsmList,location,realresdef,false)
         else
           begin
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0,[]);
