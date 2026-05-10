@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj,cgobj,tgobj,verbose;
+  node,hlcgobj,cgobj,tgobj,verbose,systems;
 
 type
 
@@ -36,6 +36,7 @@ type
   tpassgeneratecodecontextimpl = class(tpassgeneratecodecontext)
   private
     verbose: TVerbose;
+    target: TReadOnlyCompilerTarget;
     hlcg: thlcgobj;
     tg: ttgobj;
     has_parent_tg: Boolean;
@@ -54,6 +55,7 @@ type
     function GetHlcg: thlcgobj; inline;
 {$ifdef cpu64bitalu}
     function GetCG128: tcg128; inline;
+    function GetTarget: TReadOnlyCompilerTarget; inline;
 {$else cpu64bitalu}
     function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
@@ -61,6 +63,7 @@ type
     function GetVerbose: TVerbose; inline;
   public
     property Verbose: TVerbose read GetVerbose;
+    property Target: TReadOnlyCompilerTarget read GetTarget;
     property hlcg: thlcgobj read GetHlcg;
     property cg: tcg read GetCg;
 {$ifdef cpu64bitalu}
@@ -81,6 +84,7 @@ uses
 constructor tpassgeneratecodecontextimpl.create(acompiler: TCompilerBase; parent_tg: ttgobj);
 begin
   verbose:=acompiler.verbose;
+  target:=acompiler.target;
   tg:=parent_tg;
   has_parent_tg:=(tg<>nil);
 end;
@@ -116,6 +120,12 @@ function tpassgeneratecodecontexthelper.GetCG128: tcg128; inline;
 begin
   result:=cg.cg128;
 end;
+
+function tpassgeneratecodecontexthelper.GetTarget: TReadOnlyCompilerTarget; inline;
+begin
+  result:=tpassgeneratecodecontextimpl(self).target;
+end;
+
 {$else cpu64bitalu}
 function tpassgeneratecodecontexthelper.GetCG64: tcg64; inline;
 begin
