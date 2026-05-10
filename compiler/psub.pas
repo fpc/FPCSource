@@ -1505,7 +1505,7 @@ implementation
 
     function tcgprocinfo.GetTG: ttgobj; inline;
       begin
-        result:=compiler.tg;
+        result:=FCodeGenContext.tg;
       end;
 
 
