@@ -2305,7 +2305,7 @@ implementation
                       compiler.cloadnode(pd.funcretsym,pd.localst),
                       attr.constructorcall.getcopy
                     );
-          pi.generate_code;
+          pi.generate_code(nil);
           attr.constructorpd:=pd;
         end;
     end;

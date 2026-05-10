@@ -90,7 +90,7 @@ interface
         function calc_stackframe_size : longint;override;
 
         procedure printproc(pass:string);
-        procedure generate_code;
+        procedure generate_code(parent_tg: ttgobj);
         procedure generate_code_tree;
         procedure generate_exceptfilter(nestedpi: tcgprocinfo);
         procedure generate_exit_label(list: tasmlist); virtual;
@@ -1706,7 +1706,7 @@ implementation
         hpi : tcgprocinfo;
       begin
         { generate code for this procedure }
-        generate_code;
+        generate_code(nil);
         { process nested procedures }
         hpi:=tcgprocinfo(get_first_nestedproc);
         while assigned(hpi) do
@@ -1764,7 +1764,7 @@ implementation
         { save the codegen }
         saved_hlcg:=compiler.hlcg;
         tcompiler(compiler).hlcg:=nil;
-        nestedpi.generate_code;
+        nestedpi.generate_code(FCodeGenContext.tg);
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
         tcompiler(compiler).hlcg:=saved_hlcg;
@@ -1884,7 +1884,7 @@ implementation
       end;
 
 
-    procedure tcgprocinfo.generate_code;
+    procedure tcgprocinfo.generate_code(parent_tg: ttgobj);
 
        procedure check_for_threadvars_in_initfinal;
          begin
@@ -1965,7 +1965,7 @@ implementation
 
         { For regular procedures the RA and Tempgen shall not be available yet,
           but exception filters reuse Tempgen of parent }
-        if assigned(tg)<>(procdef.proctypeoption=potype_exceptfilter) then
+        if assigned(parent_tg)<>(procdef.proctypeoption=potype_exceptfilter) then
           internalerror(200309201);
 
         old_current_procinfo:=compiler.current_procinfo;
@@ -2078,7 +2078,7 @@ implementation
           end
         else
           begin
-            FCodeGenContext:=TPassGenerateCodeContextImpl.Create;
+            FCodeGenContext:=TPassGenerateCodeContextImpl.Create(parent_tg);
             TPassGenerateCodeContextImpl(FCodeGenContext).create_hlcodegen(compiler);
 
             setup_eh;

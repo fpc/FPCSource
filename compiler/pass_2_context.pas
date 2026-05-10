@@ -37,7 +37,10 @@ type
   private
     hlcg: thlcgobj;
     tg: ttgobj;
+    has_parent_tg: Boolean;
   public
+    constructor create(parent_tg: ttgobj);
+
     procedure create_hlcodegen(acompiler: TCompilerBase);
     procedure create_tempgen(acompiler: TCompilerBase);
   end;
@@ -53,6 +56,7 @@ type
 {$else cpu64bitalu}
     function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
+    function GetTG: ttgobj;
   public
     property hlcg: thlcgobj read GetHlcg;
     property cg: tcg read GetCg;
@@ -61,14 +65,22 @@ type
 {$else cpu64bitalu}
     property cg64: tcg64 read GetCG64;
 {$endif cpu64bitalu}
+    property tg: ttgobj read GetTG;
   end;
 
 implementation
 
 uses
+  verbose,
   compiler;
 
 { tpassgeneratecodecontextimpl }
+
+constructor tpassgeneratecodecontextimpl.create(parent_tg: ttgobj);
+begin
+  tg:=parent_tg;
+  has_parent_tg:=(tg<>nil);
+end;
 
 procedure tpassgeneratecodecontextimpl.create_hlcodegen(acompiler: TCompilerBase);
 begin
@@ -78,6 +90,8 @@ end;
 
 procedure tpassgeneratecodecontextimpl.create_tempgen(acompiler: TCompilerBase);
 begin
+  if has_parent_tg then
+    internalerror(2026051001);
   tcompiler(acompiler).tg:=tgobjclass.create(acompiler);
   tg:=acompiler.tg;
 end;
@@ -105,5 +119,10 @@ begin
   result:=cg.cg64;
 end;
 {$endif cpu64bitalu}
+
+function tpassgeneratecodecontexthelper.GetTG: ttgobj;
+begin
+  result:=tpassgeneratecodecontextimpl(self).tg;
+end;
 
 end.

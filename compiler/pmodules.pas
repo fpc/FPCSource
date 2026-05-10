@@ -2259,7 +2259,7 @@ type
              main_procinfo:=create_main_proc('_PkgEntryPoint',potype_pkgstub,curr.localsymtable);
              main_procinfo.procdef.aliasnames.concat('_DLLMainCRTStartup');
              main_procinfo.code:=generate_pkg_stub(main_procinfo.procdef);
-             main_procinfo.generate_code;
+             main_procinfo.generate_code(nil);
            end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -2854,7 +2854,7 @@ type
             { initialization can be implicit only }
             include(curr.moduleflags,mf_init);
             init_procinfo.code:=compiler.nodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
-            init_procinfo.generate_code;
+            init_procinfo.generate_code(nil);
             init_procinfo.resetprocdef;
             release_main_proc(curr,init_procinfo);
           end;
