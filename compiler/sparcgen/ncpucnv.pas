@@ -124,7 +124,7 @@ implementation
           ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
           { Load memory in fpu register }
           ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
-          tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+          ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           { Convert value in fpu register from integer to float }
           case tfloatdef(resultdef).floattype of
             s32real:
@@ -164,7 +164,7 @@ implementation
             ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             { Load memory in fpu register }
             ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
-            tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+            ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
 
             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));

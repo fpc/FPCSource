@@ -153,7 +153,7 @@ implementation
         // default implementation is placing the return value on LOC_REGISTER.
         // WebAssembly always returns the value on stack.
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1,[]);
-        tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
+        ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
       end;
 
 begin

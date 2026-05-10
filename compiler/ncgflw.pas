@@ -770,7 +770,7 @@ implementation
          if assigned(exceptvarsym) then
            begin
              location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(compiler.deftypes.voidpointertype), compiler.deftypes.voidpointertype.alignment, []);
-             tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, compiler.deftypes.voidpointertype.alignment, 0, exceptvarsym.vardef, exceptvarsym, exceptvarsym.localloc.reference);
+             ctx.tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, compiler.deftypes.voidpointertype.alignment, 0, exceptvarsym.vardef, exceptvarsym, exceptvarsym.localloc.reference);
              ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
            end;
          { in the case that another exception is risen
@@ -804,7 +804,7 @@ implementation
          { clear some stuff }
          if assigned(exceptvarsym) then
            begin
-             tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+             ctx.tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
              exceptvarsym.localloc.loc:=LOC_INVALID;
            end;
          compiler.exceptionstatehandler.end_catch(current_asmdata.CurrAsmList);

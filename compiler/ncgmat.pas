@@ -151,7 +151,7 @@ implementation
         { get a temporary memory reference to store the floating
           point value
         }
-        tg.gethltemp(current_asmdata.CurrAsmList,_size,_size.size,tt_normal,href);
+        ctx.tg.gethltemp(current_asmdata.CurrAsmList,_size,_size.size,tt_normal,href);
         { store the floating point value in the temporary memory area }
         case getregtype(r) of
           R_FPUREGISTER:
@@ -193,7 +193,7 @@ implementation
           else
             internalerror(2015091006);
         end;
-        tg.ungetiftemp(current_asmdata.CurrAsmList,href);
+        ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
 
 

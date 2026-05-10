@@ -229,7 +229,7 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar(ctx:tpassgeneratecodecon
   var
     href: treference;
   begin
-    tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
+    ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment,href.volatility);
     location.reference:=href;
     ctx.hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(compiler.deftypes.methodpointertype,compiler),href);

@@ -134,7 +134,7 @@ implementation
                  not(ti_addr_taken in ttemprefnode(n).tempflags) then
                 begin
                   { relocate the temp }
-                  tcgtemprefnode(n).changelocation(rr^.new^);
+                  tcgtemprefnode(n).changelocation(rr^.new^,rr^.ctx);
                   result := fen_norecurse_true;
                 end;
             end;
@@ -189,12 +189,12 @@ implementation
            { and both point to the start of a temp, and the source is a }
            { non-persistent temp (otherwise we need some kind of copy-  }
            { on-write support in case later on both are still used)     }
-           not tg.isstartoftemp(newref) or
-           not tg.isstartoftemp(n.location.reference) or
-           (tg.gettypeoftemp(newref) <> tt_normal) or
-           not (tg.gettypeoftemp(n.location.reference) in [tt_normal,tt_persistent]) or
+           not ctx.tg.isstartoftemp(newref) or
+           not ctx.tg.isstartoftemp(n.location.reference) or
+           (ctx.tg.gettypeoftemp(newref) <> tt_normal) or
+           not (ctx.tg.gettypeoftemp(n.location.reference) in [tt_normal,tt_persistent]) or
            { and both have the same size }
-           (tg.sizeoftemp(current_asmdata.CurrAsmList,newref) <> tg.sizeoftemp(current_asmdata.CurrAsmList,n.location.reference)) then
+           (ctx.tg.sizeoftemp(current_asmdata.CurrAsmList,newref) <> ctx.tg.sizeoftemp(current_asmdata.CurrAsmList,n.location.reference)) then
           exit;
 
         { find the source of the old reference (loadnode or tempnode) }
@@ -229,14 +229,14 @@ implementation
       begin
         if (location.loc<>LOC_REFERENCE) then
           internalerror(2007020812);
-        if not tg.istemp(location.reference) then
+        if not ctx.tg.istemp(location.reference) then
           internalerror(2007020813);
-        oldtemptype:=tg.gettypeoftemp(location.reference);
+        oldtemptype:=ctx.tg.gettypeoftemp(location.reference);
         if (oldtemptype = tt_persistent) then
-          tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,tt_normal);
-        tg.ungettemp(current_asmdata.CurrAsmList,location.reference);
+          ctx.tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,tt_normal);
+        ctx.tg.ungettemp(current_asmdata.CurrAsmList,location.reference);
         location.reference:=ref;
-        tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,oldtemptype);
+        ctx.tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,oldtemptype);
         tabstractnormalvarsym(symtableentry).localloc:=location;
         ctx.hlcg.recordnewsymloc(current_asmdata.CurrAsmList,symtableentry,tabstractnormalvarsym(symtableentry).vardef,location.reference,false);
       end;
@@ -610,7 +610,7 @@ implementation
                                  ctx.hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,location.registerhi);
 {$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
                                end;
-                             tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+                             ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
                         else
                           internalerror(200610311);
@@ -977,11 +977,11 @@ implementation
                             { convert an extended into a double/single, since sse   }
                             { doesn't support extended)                             }
                             r:=ctx.cg.getfpuregister(current_asmdata.CurrAsmList,right.location.size);
-                            tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
+                            ctx.tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                             ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
                             ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
                             if releaseright then
-                              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+                              ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
                             releaseright:=true;
                             location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0,[]);
                             right.location.reference:=href;
@@ -1079,7 +1079,7 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
+                          ctx.tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                           ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0,[]);
                           right.location.reference:=href;
@@ -1233,7 +1233,7 @@ implementation
          end;
 
         if releaseright then
-          tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+          ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 
@@ -1306,7 +1306,7 @@ implementation
           varvtypefield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VTYPE'))
         else
           varvtypefield:=nil;
-        { alignment is filled in by tg.gethltemp below }
+        { alignment is filled in by ctx.tg.gethltemp below }
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,0,[]);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
@@ -1316,7 +1316,7 @@ implementation
           of the proper length to avoid getting unexpected results later --
           allocating a temp of size 0 also forces it to be size 4 on regular
           targets }
-        tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
+        ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
         href:=location.reference;
         makearrayref(href,eledef,ctx);
         { Process nodes in array constructor }
@@ -1558,7 +1558,7 @@ implementation
                  advancearrayoffset(href,elesize);
                end;
               if freetemp then
-                tg.location_freetemp(current_asmdata.CurrAsmList,hp.left.location);
+                ctx.tg.location_freetemp(current_asmdata.CurrAsmList,hp.left.location);
             end;
            { load next entry }
            hp:=tarrayconstructornode(hp.right);

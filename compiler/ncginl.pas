@@ -879,7 +879,7 @@ implementation
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=ctx.cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{compiler.current_procinfo.calc_stackframe_size}tg.lasttemp,ctempposinvalid,sizeof(pint),[]);
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{compiler.current_procinfo.calc_stackframe_size}ctx.tg.lasttemp,ctempposinvalid,sizeof(pint),[]);
             ctx.cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else

@@ -107,7 +107,7 @@ implementation
          (compiler.globals.current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
         begin
           location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment,[]);
-          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
+          ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
         end
       else
         inherited;

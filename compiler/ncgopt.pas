@@ -88,12 +88,12 @@ begin
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_generate_code                                     }
   secondpass(left,ctx);
-  if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
+  if not(ctx.tg.istemp(left.location.reference) and
+         (ctx.tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
-       tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.cshortstringtype,256,tt_normal,href);
+       ctx.tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.cshortstringtype,256,tt_normal,href);
        ctx.hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(compiler.deftypes.cshortstringtype));
-       tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+       ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
        location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
        left.location.reference:=href;
@@ -114,7 +114,7 @@ begin
         hreg := ctx.cg.getintregister(current_asmdata.CurrAsmList,OS_8);
         ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
-        tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
+        ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
       end
     else hreg := right.location.register;
 
@@ -123,7 +123,7 @@ begin
   ctx.cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_INT,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
-  if tg.istemp(left.location.reference) then
+  if ctx.tg.istemp(left.location.reference) then
     checklength := curmaxlen = 255
   else
     checklength := curmaxlen >= tstringdef(left.resultdef).len;
@@ -131,7 +131,7 @@ begin
     begin
       { is it already maximal? }
       current_asmdata.getjumplabel(l);
-      if tg.istemp(left.location.reference) then
+      if ctx.tg.istemp(left.location.reference) then
         len:=255
       else
         len:=tstringdef(left.resultdef).len;

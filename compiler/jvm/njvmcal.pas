@@ -417,9 +417,9 @@ implementation
         { in case of jvmimplicitpointertype(), the function will have allocated
           it already and we don't have to allocate it again here }
         if not jvmimplicitpointertype(realresdef) then
-          tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
+          ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
         else
-          tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,location.reference);
+          ctx.tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,location.reference);
       end;
 
 
@@ -431,7 +431,7 @@ implementation
         if is_void(resultdef) then
           exit;
         if (location.loc=LOC_REFERENCE) then
-          tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+          ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
         if assigned(funcretnode) then
           exit;
         if jvmimplicitpointertype(resultdef) or

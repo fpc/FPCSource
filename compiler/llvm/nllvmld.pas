@@ -99,7 +99,7 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
-              tg.gethltemp(current_asmdata.CurrAsmList,pvdef,pvdef.size,tt_normal,href);
+              ctx.tg.gethltemp(current_asmdata.CurrAsmList,pvdef,pvdef.size,tt_normal,href);
               if compiler.target.info.endian=endian_little then
                 begin
                   procreg:=location.register;

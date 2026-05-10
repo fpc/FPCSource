@@ -589,7 +589,7 @@ implementation
 
         pd:=tcpuprocdef(compiler.current_procinfo.procdef);
         if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
-          ttgwasm(tg).allocbasepointer(current_asmdata.CurrAsmList,pd.base_pointer_ref);
+          ttgwasm(ctx.tg).allocbasepointer(current_asmdata.CurrAsmList,pd.base_pointer_ref);
         current_asmdata.CurrAsmList.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
         thlcgwasm(ctx.hlcg).decstack(current_asmdata.CurrAsmList,1);
       end;

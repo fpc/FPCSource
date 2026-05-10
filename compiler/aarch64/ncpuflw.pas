@@ -114,7 +114,7 @@ procedure taarch64onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       begin
         exceptvarsym.localloc.loc:=LOC_REFERENCE;
         exceptvarsym.localloc.size:=OS_ADDR;
-        tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.voidpointertype,exceptvarsym.localloc.reference);
+        ctx.tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.voidpointertype,exceptvarsym.localloc.reference);
         ctx.cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
       end;
     ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -125,7 +125,7 @@ procedure taarch64onnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     { deallocate exception symbol }
     if assigned(exceptvarsym) then
       begin
-        tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+        ctx.tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
         exceptvarsym.localloc.loc:=LOC_INVALID;
       end;
     ctx.cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');

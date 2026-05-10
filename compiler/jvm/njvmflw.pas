@@ -234,7 +234,7 @@ implementation
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
              prev_except_loc:=current_except_loc;
              location_reset_ref(current_except_loc,LOC_REFERENCE,OS_ADDR,4,[]);
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.java_jlthrowable,current_except_loc.reference);
+             ctx.tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),compiler.deftypes.java_jlthrowable,current_except_loc.reference);
              thlcgjvm(ctx.hlcg).incstack(current_asmdata.CurrAsmList,1);
              thlcgjvm(ctx.hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,compiler.deftypes.java_jlthrowable,current_except_loc);
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -243,7 +243,7 @@ implementation
              secondpass(t1,ctx);
 
              { free the temp containing the exception and invalidate }
-             tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
+             ctx.tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
              current_except_loc:=prev_except_loc;
 
              exceptflowcontrol:=flowcontrol;
@@ -304,7 +304,7 @@ implementation
          { Retrieve exception variable }
          { 1) prepare the location where we'll store it }
          location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint),[]);
-         tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),exceptvarsym.vardef,exceptvarsym.localloc.reference);
+         ctx.tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),exceptvarsym.vardef,exceptvarsym.localloc.reference);
          prev_except_loc:=current_except_loc;
          current_except_loc:=exceptvarsym.localloc;
          { 2) the exception variable is at the top of the evaluation stack
@@ -316,7 +316,7 @@ implementation
            secondpass(right,ctx);
 
          { clear some stuff }
-         tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+         ctx.tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
          exceptvarsym.localloc.loc:=LOC_INVALID;
          current_except_loc:=prev_except_loc;
          ctx.hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);

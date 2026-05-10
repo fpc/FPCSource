@@ -137,7 +137,7 @@ implementation
             { Load memory in fpu register }
             ctx.hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
             ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-            tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+            ctx.tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
 
             case restype of
               s64real: ctx.cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList, OS_F32, OS_F64, location.register, location.Register);

@@ -152,7 +152,7 @@ implementation
             // current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_real cardinal')));
 
             { the idea behind this code is based on the cardinal to double code in the PPC and x86 ctx.cg (KB) }
-            tg.GetTemp(current_asmdata.CurrAsmList,sizeof(double),sizeof(double),tt_normal,tempref);
+            ctx.tg.GetTemp(current_asmdata.CurrAsmList,sizeof(double),sizeof(double),tt_normal,tempref);
             ctx.hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.u32inttype,$43300000,tempref);
             inc(tempref.offset,sizeof(aint));
             ctx.hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,compiler.deftypes.u32inttype,left.location,tempref);
@@ -173,7 +173,7 @@ implementation
               { using single here for (1 shl 52) is safe, the optimizer would simplify it anyway }
               current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FSUB,S_FS,(1 shl 52),location.register));
 
-            tg.UnGetTemp(current_asmdata.CurrAsmList,tempref);
+            ctx.tg.UnGetTemp(current_asmdata.CurrAsmList,tempref);
             exit;
           end;
 

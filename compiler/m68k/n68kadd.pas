@@ -522,7 +522,7 @@ implementation
                href:=left.location.reference;
                tcg68k(ctx.cg).fixref(current_asmdata.CurrAsmList,href,false);
                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
-               tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+               ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
              end
            else
              begin
@@ -818,7 +818,7 @@ implementation
                 inc(href.offset,4);
                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
                 secondjmp64bitcmp;
-                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+                ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
               end
             else
               begin
@@ -865,7 +865,7 @@ implementation
               inc(href.offset,4);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reglo));
               secondjmp64bitcmp;
-              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+              ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
             end;
           LOC_CONSTANT:
             begin

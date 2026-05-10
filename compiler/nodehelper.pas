@@ -48,10 +48,8 @@ interface
       tnodehelper = class helper for tnode
       private
         function GetParaManager: TParaManager; inline;
-        function GetTG: ttgobj; inline;
       public
         property paramanager: TParaManager read GetParaManager;
-        property tg: ttgobj read GetTG;
       end;
 
 implementation
@@ -64,11 +62,6 @@ implementation
   function tnodehelper.GetParaManager: TParaManager; inline;
     begin
       result:=self.compiler.paramanager;
-    end;
-
-  function tnodehelper.GetTG: ttgobj;
-    begin
-      result:=self.compiler.tg;
     end;
 
 end.

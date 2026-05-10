@@ -229,7 +229,7 @@ implementation
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
            left.location.register));
          location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0,[]);
-         tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,
+         ctx.tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,
            tt_normal,location.reference);
          ctx.cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
            location.reference);

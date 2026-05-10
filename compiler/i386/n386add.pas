@@ -217,7 +217,7 @@ interface
               ctx.cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
                 left.location.register64);
             end;
-          tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+          ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
          end;
 
         { only in case of overflow operations }
@@ -372,7 +372,7 @@ interface
                 secondjmp64bitcmp;
                 ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               end;
-            tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+            ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
             exit;
           end;
 
@@ -413,7 +413,7 @@ interface
               emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.register64.reglo);
               secondjmp64bitcmp;
               ctx.cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+              ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
             end;
           LOC_CONSTANT :
             begin
@@ -463,8 +463,8 @@ interface
         ctx.cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
         ctx.cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register);
       end;
-      tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
-      tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+      ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+      ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
     end;
 
 
@@ -523,8 +523,8 @@ interface
           if is_64bit(resultdef) then
             location.register64.reghi:=reghi;
 
-          tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
-          tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+          ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+          ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
         end
       else
         begin

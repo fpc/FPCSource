@@ -386,8 +386,8 @@ implementation
               make it 64bits }
             if (torddef(left.resultdef).ordtype=u32bit) then
               begin
-                tg.GetTemp(current_asmdata.CurrAsmList,8,8,tt_normal,href);
-                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+                ctx.tg.GetTemp(current_asmdata.CurrAsmList,8,8,tt_normal,href);
+                ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 ctx.cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,leftref,href);
                 inc(href.offset,4);
                 ctx.cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);
@@ -470,7 +470,7 @@ implementation
             end;
             tcgx86(ctx.cg).inc_fpu_stack;
             location.register:=NR_ST;
-            tg.ungetiftemp(current_asmdata.CurrAsmList,leftref);
+            ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,leftref);
           end;
       end;
 

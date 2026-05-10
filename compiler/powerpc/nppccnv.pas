@@ -144,7 +144,7 @@ implementation
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        tg.Gettemp(current_asmdata.CurrAsmList,8,8,tt_normal,ref);
+        ctx.tg.Gettemp(current_asmdata.CurrAsmList,8,8,tt_normal,ref);
 
         signed := is_signed(left.resultdef);
 
@@ -215,7 +215,7 @@ implementation
          location.register := ctx.cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          ctx.cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,ref,location.register);
 
-         tg.ungetiftemp(current_asmdata.CurrAsmList,ref);
+         ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,ref);
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));

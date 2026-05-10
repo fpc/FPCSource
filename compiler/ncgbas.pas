@@ -61,7 +61,7 @@ interface
           { another temp to this one. The current location will be freed.   }
           { Can only be called in pass 2 (since earlier, the temp location  }
           { isn't known yet)                                                }
-          procedure changelocation(const ref: treference);
+          procedure changelocation(const ref: treference;ctx:tpassgeneratecodecontext);
        end;
 
        tcgtempdeletenode = class(ttempdeletenode)
@@ -513,7 +513,7 @@ interface
               not(ti_const in tempflags) then
               begin
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0,[]);
-                tg.gethltempmanaged(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
+                ctx.tg.gethltempmanaged(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
                 if not(ti_nofini in tempflags) then
                   ctx.hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end
@@ -524,7 +524,7 @@ interface
             else
               begin
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0,[]);
-                tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
+                ctx.tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
               end;
           end;
         includetempflag(ti_valid);
@@ -587,7 +587,7 @@ interface
       end;
 
 
-    procedure tcgtemprefnode.changelocation(const ref: treference);
+    procedure tcgtemprefnode.changelocation(const ref: treference;ctx:tpassgeneratecodecontext);
       begin
         { check if the temp is valid }
         if not(ti_valid in tempflags) then
@@ -595,10 +595,10 @@ interface
         if (tempinfo^.location.loc<>LOC_REFERENCE) then
           internalerror(2004020203);
         if (tempinfo^.temptype = tt_persistent) then
-          tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal);
-        tg.ungettemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
+          ctx.tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal);
+        ctx.tg.ungettemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
         tempinfo^.location.reference := ref;
-        tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tempinfo^.temptype);
+        ctx.tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tempinfo^.temptype);
         { adapt location }
         location.reference := ref;
       end;
@@ -639,7 +639,7 @@ interface
             if tempinfo^.tempinitcode.nodetype<>assignn then
               internalerror(2016081201);
             if tbinarynode(tempinfo^.tempinitcode).right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-              tg.ungetiftemp(current_asmdata.CurrAsmList,tbinarynode(tempinfo^.tempinitcode).right.location.reference);
+              ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,tbinarynode(tempinfo^.tempinitcode).right.location.reference);
           end;
 
 
@@ -647,10 +647,10 @@ interface
           LOC_REFERENCE:
             begin
               if release_to_normal then
-                tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal)
+                ctx.tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal)
               else
                 begin
-                  tg.UnGetTemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
+                  ctx.tg.UnGetTemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
                   excludetempflag(ti_valid);
                 end;
             end;

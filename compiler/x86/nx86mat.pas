@@ -1068,7 +1068,7 @@ DefaultDiv:
         end;
         location.register:=left.location.register;
 
-        tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+        ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 {$endif SUPPORT_MMX}
 

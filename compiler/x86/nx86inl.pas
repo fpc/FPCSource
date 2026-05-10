@@ -564,7 +564,7 @@ implementation
             begin
               reg:=tcgx86(ctx.cg).getmmxregister(list);
               ctx.cg.a_loadmm_loc_reg(list,OS_M64,l,reg,nil);
-              tg.location_freetemp(list,l);
+              ctx.tg.location_freetemp(list,l);
               location_reset(l,LOC_MMXREGISTER,OS_M64);
               l.register:=reg;
             end;
@@ -869,7 +869,7 @@ implementation
           begin
             load_fpu_location(left,ctx);
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
-            tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
+            ctx.tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             tcgx86(ctx.cg).dec_fpu_stack;
             emit_none(A_FWAIT,S_NO);
@@ -915,14 +915,14 @@ implementation
               begin
                 load_fpu_location(left,ctx);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
-                tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
+                ctx.tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
                 tcgx86(ctx.cg).dec_fpu_stack;
               end
             else
               begin
-                tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
-                tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
+                ctx.tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
+                ctx.tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
 {$ifdef i8086}
                 if compiler.globals.current_settings.cputype<=cpu_286 then
                   begin
@@ -940,13 +940,13 @@ implementation
                 load_fpu_location(left,ctx);
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
-                tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
+                ctx.tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTP,S_IQ,location.reference);
                 tcgx86(ctx.cg).dec_fpu_stack;
                 emit_ref(A_FLDCW,S_NO,oldcw);
                 emit_none(A_FWAIT,S_NO);
-                tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
-                tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
+                ctx.tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
+                ctx.tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
               end;
            end;
        end;
@@ -1016,7 +1016,7 @@ implementation
            begin
              load_fpu_location(left,ctx);
              if left.location.loc=LOC_REFERENCE then
-               tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+               ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
              emit_none(A_FSQRT,S_NO);
            end;
        end;

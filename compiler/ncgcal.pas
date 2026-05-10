@@ -65,7 +65,7 @@ interface
           procedure handle_return_value(ctx:tpassgeneratecodecontext);
           procedure release_unused_return_value(ctx:tpassgeneratecodecontext);
           procedure copy_back_paras(ctx:tpassgeneratecodecontext);
-          procedure release_para_temps;
+          procedure release_para_temps(ctx:tpassgeneratecodecontext);
           procedure reorder_parameters;
           procedure freeparas;
           function is_parentfp_pushed:boolean;
@@ -596,7 +596,7 @@ implementation
         else
           begin
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0,[]);
-            tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
+            ctx.tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
           end;
       end;
 
@@ -608,7 +608,7 @@ implementation
             begin
               if is_managed_type(resultdef) then
                  ctx.hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
-               tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+               ctx.tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
             end;
           else
             ;
@@ -725,7 +725,7 @@ implementation
                     else
                       internalerror(200802121);
                   end;
-                  tg.location_freetemp(current_asmdata.CurrAsmList,location);
+                  ctx.tg.location_freetemp(current_asmdata.CurrAsmList,location);
                 end;
               else
                 internalerror(200709085);
@@ -764,7 +764,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.release_para_temps;
+    procedure tcgcallnode.release_para_temps(ctx:tpassgeneratecodecontext);
       var
         hp,
         hp2 : tnode;
@@ -786,7 +786,7 @@ implementation
                         (ppn.parasym.vardef.typ<>objectdef)
                       )
                     )then
-                   tg.location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
+                   ctx.tg.location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
                  { process also all nodes of an array of const }
                  hp:=ppn.left;
                  while (hp.nodetype=typeconvn) do
@@ -804,7 +804,7 @@ implementation
                            hp2:=tunarynode(tunarynode(hp2).left).left
                          else if hp2.nodetype=addrn then
                            hp2:=tunarynode(hp2).left;
-                         tg.location_freetemp(current_asmdata.CurrAsmList,hp2.location);
+                         ctx.tg.location_freetemp(current_asmdata.CurrAsmList,hp2.location);
                          hp:=tarrayconstructornode(hp).right;
                        end;
                    end;
@@ -1243,7 +1243,7 @@ implementation
                   pvreg:=NR_INVALID;
                   callpvdef:=nil;
                 end;
-              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+              ctx.tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
                 correct parameter register }
@@ -1398,7 +1398,7 @@ implementation
          release_unused_return_value(ctx);
 
          { release temps of paras }
-         release_para_temps;
+         release_para_temps(ctx);
 
          { check for fpu exceptions }
          if cnf_check_fpu_exceptions in callnodeflags then

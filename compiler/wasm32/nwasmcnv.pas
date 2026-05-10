@@ -206,7 +206,7 @@ implementation
              begin
                 location.register:=ctx.hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                 ctx.hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
-                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+                ctx.tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
            LOC_CREGISTER:
              begin

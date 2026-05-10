@@ -714,7 +714,7 @@ implementation
       var
         r: Treference;
       begin
-        tg.gethltemp(current_asmdata.currasmlist,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,r);
+        ctx.tg.gethltemp(current_asmdata.currasmlist,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject.size,tt_normal,r);
         ctx.hlcg.a_load_const_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,0,r);
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
         location.reference:=r;
@@ -840,7 +840,7 @@ implementation
         arrayref.indexoffset:=0;
         ctx.hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
         location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4,[]);
-        tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,4,tt_normal,location.reference);
+        ctx.tg.gethltemp(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,4,tt_normal,location.reference);
         ctx.hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,basereg,location.reference);
       end;
 
@@ -1553,12 +1553,8 @@ implementation
 
   function asis_generate_code(node: tasisnode; opcode: tasmop;ctx:tpassgeneratecodecontext): boolean;
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      tg: ttgobj;
-    var
       checkdef: tdef;
     begin
-      tg:=compiler.tg;
       if (node.nodetype=asn) and
          assigned(tasnode(node).call) then
         begin
@@ -1568,7 +1564,7 @@ implementation
       result:=true;
       secondpass(node.left,ctx);
       thlcgjvm(ctx.hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
-      tg.location_freetemp(current_asmdata.CurrAsmList,node.left.location);
+      ctx.tg.location_freetemp(current_asmdata.CurrAsmList,node.left.location);
       { Perform a checkcast instruction, which will raise an exception in case
         the actual type does not match/inherit from the expected type.
 
