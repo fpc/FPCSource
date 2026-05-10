@@ -696,17 +696,17 @@ implementation
                   else
 {$endif}
                     ctx.hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
-                  location_free(current_asmdata.CurrAsmList,location);
+                  location_free(current_asmdata.CurrAsmList,location,ctx);
                 end;
               LOC_MMREGISTER :
                 begin
                   ctx.hlcg.a_loadmm_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location,nil);
-                  location_free(current_asmdata.CurrAsmList,location);
+                  location_free(current_asmdata.CurrAsmList,location,ctx);
                 end;
               LOC_FPUREGISTER:
                 begin
                   ctx.hlcg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
-                  location_free(current_asmdata.CurrAsmList,location);
+                  location_free(current_asmdata.CurrAsmList,location,ctx);
                 end;
               LOC_REFERENCE:
                 begin

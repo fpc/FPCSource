@@ -90,7 +90,7 @@ interface
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
-    procedure location_free(list: TAsmList; const location : TLocation);
+    procedure location_free(list: TAsmList; const location : TLocation;ctx:tpassgeneratecodecontext);
 
     function getprocalign : shortint;
 
@@ -108,7 +108,7 @@ implementation
     procinfo,paramgr,
     dbgbase,
     nadd,nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj,hlcgobj,hlcgcpu
+    tgobj,cgobj,hlcgobj,hlcgcpu,pass_2_context
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -128,14 +128,8 @@ implementation
   {$WARN 4044 OFF} { Comparison might be always false ... }
 {$endif}
 
-    procedure location_free(list: TAsmList; const location : TLocation);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
-        tg: ttgobj;
+    procedure location_free(list: TAsmList; const location : TLocation;ctx:tpassgeneratecodecontext);
       begin
-        cg:=compiler.cg;
-        tg:=compiler.tg;
         case location.loc of
           LOC_VOID:
             ;
@@ -148,41 +142,41 @@ implementation
                 if location.size in [OS_128,OS_S128] then
                   begin
                     if getsupreg(location.register)<first_int_imreg then
-                      cg.ungetcpuregister(list,location.register);
+                      ctx.cg.ungetcpuregister(list,location.register);
                     if getsupreg(location.registerhi)<first_int_imreg then
-                      cg.ungetcpuregister(list,location.registerhi);
+                      ctx.cg.ungetcpuregister(list,location.registerhi);
                   end
                 else
 {$elseif not defined(cpuhighleveltarget)}
                 if location.size in [OS_64,OS_S64] then
                   begin
                     if getsupreg(location.register64.reglo)<first_int_imreg then
-                      cg.ungetcpuregister(list,location.register64.reglo);
+                      ctx.cg.ungetcpuregister(list,location.register64.reglo);
                     if getsupreg(location.register64.reghi)<first_int_imreg then
-                      cg.ungetcpuregister(list,location.register64.reghi);
+                      ctx.cg.ungetcpuregister(list,location.register64.reghi);
                   end
                 else
 {$endif cpu64bitalu and not cpuhighleveltarget}
                   if getsupreg(location.register)<first_int_imreg then
-                    cg.ungetcpuregister(list,location.register);
+                    ctx.cg.ungetcpuregister(list,location.register);
             end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
             begin
               if getsupreg(location.register)<first_fpu_imreg then
-                cg.ungetcpuregister(list,location.register);
+                ctx.cg.ungetcpuregister(list,location.register);
             end;
           LOC_MMREGISTER,
           LOC_CMMREGISTER :
             begin
               if getsupreg(location.register)<first_mm_imreg then
-                cg.ungetcpuregister(list,location.register);
+                ctx.cg.ungetcpuregister(list,location.register);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              if compiler.paramanager.use_fixed_stack then
-                tg.location_freetemp(list,location);
+              if ctx.paramanager.use_fixed_stack then
+                ctx.tg.location_freetemp(list,location);
             end;
           else
             internalerror(2004110211);
