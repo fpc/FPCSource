@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj,cgobj,tgobj,verbose,systems,globals,paramgr;
+  node,hlcgobj,cgobj,tgobj,verbose,systems,globals,paramgr,aasmdata;
 
 type
 
@@ -42,8 +42,10 @@ type
     hlcg: thlcgobj;
     tg: ttgobj;
     has_parent_tg: Boolean;
+    CurrAsmList: TAsmList;
   public
     constructor create(acompiler: TCompilerBase; parent_tg: ttgobj);
+    destructor Destroy; override;
 
     procedure create_hlcodegen(acompiler: TCompilerBase);
     procedure create_tempgen(acompiler: TCompilerBase);
@@ -54,6 +56,7 @@ type
   tpassgeneratecodecontexthelper = class helper for tpassgeneratecodecontext
   private
     function GetCg: tcg; inline;
+    function GetCurrAsmList: TAsmList; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHlcg: thlcgobj; inline;
 {$ifdef cpu64bitalu}
@@ -78,23 +81,32 @@ type
     property cg64: tcg64 read GetCG64;
 {$endif cpu64bitalu}
     property tg: ttgobj read GetTG;
+    property CurrAsmList: TAsmList read GetCurrAsmList;
   end;
 
 implementation
 
 uses
+  sysutils,
   compiler;
 
 { tpassgeneratecodecontextimpl }
 
 constructor tpassgeneratecodecontextimpl.create(acompiler: TCompilerBase; parent_tg: ttgobj);
 begin
+  CurrAsmList:=TAsmList.create;
   verbose:=acompiler.verbose;
   target:=acompiler.target;
   globals:=acompiler.globals;
   paramanager:=acompiler.paramanager;
   tg:=parent_tg;
   has_parent_tg:=(tg<>nil);
+end;
+
+destructor tpassgeneratecodecontextimpl.Destroy;
+begin
+  FreeAndNil(CurrAsmList);
+  inherited Destroy;
 end;
 
 procedure tpassgeneratecodecontextimpl.create_hlcodegen(acompiler: TCompilerBase);
@@ -116,6 +128,11 @@ end;
 function tpassgeneratecodecontexthelper.GetCg: tcg; inline;
 begin
   result:=hlcg.CG;
+end;
+
+function tpassgeneratecodecontexthelper.GetCurrAsmList: TAsmList;
+begin
+  result:=tpassgeneratecodecontextimpl(self).CurrAsmList;
 end;
 
 function tpassgeneratecodecontexthelper.GetGlobals: TCompilerGlobals;
