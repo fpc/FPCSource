@@ -181,15 +181,11 @@ implementation
 
      procedure secondpass(p : tnode;ctx:tpassgeneratecodecontext);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
-      var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
          oldexecutionweight : longint;
       begin
-         cg:=compiler.cg;
          if not assigned(p) then
           internalerror(200208221);
          if not(tnf_error in p.transientflags) then
@@ -199,30 +195,30 @@ implementation
             if (tnf_do_not_execute in p.transientflags) then
               InternalError(2022112402);
 
-            oldcodegenerror:=compiler.verbose.codegenerror;
-            oldlocalswitches:=compiler.globals.current_settings.localswitches;
-            oldpos:=compiler.globals.current_filepos;
-            compiler.globals.current_filepos:=p.fileinfo;
-            compiler.globals.current_settings.localswitches:=p.localswitches;
-            compiler.verbose.codegenerror:=false;
-            oldexecutionweight:=cg.executionweight;
+            oldcodegenerror:=ctx.verbose.codegenerror;
+            oldlocalswitches:=ctx.globals.current_settings.localswitches;
+            oldpos:=ctx.globals.current_filepos;
+            ctx.globals.current_filepos:=p.fileinfo;
+            ctx.globals.current_settings.localswitches:=p.localswitches;
+            ctx.verbose.codegenerror:=false;
+            oldexecutionweight:=ctx.cg.executionweight;
             if assigned(p.optinfo) then
-              cg.executionweight:=min(p.optinfo^.executionweight,high(cg.executionweight))
+              ctx.cg.executionweight:=min(p.optinfo^.executionweight,high(ctx.cg.executionweight))
             else
-              cg.executionweight:=100;
+              ctx.cg.executionweight:=100;
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
-              compiler.verbose.Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
+              ctx.verbose.Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
             if (p.location.loc<>LOC_INVALID) then
-              compiler.verbose.Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
-            if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
+              ctx.verbose.Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
+            if (cs_asm_nodes in ctx.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
             p.pass_generate_code(ctx);
 {$ifdef EXTDEBUG}
-            if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
+            if (cs_asm_nodes in ctx.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,false);
-            if (not compiler.verbose.codegenerror) then
+            if (not ctx.verbose.codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
                  begin
@@ -233,23 +229,23 @@ implementation
 {$endif SUPPORT_MMX}
                       or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference))
                       or ((p.location.loc=loc_void) and (p.nodetype = calln)) then
-                     compiler.verbose.Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
+                     ctx.verbose.Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
                    else
-                     compiler.verbose.Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                     ctx.verbose.Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
                  end;
                if (p.location.loc=LOC_INVALID) then
-                 compiler.verbose.Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
+                 ctx.verbose.Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
 {$endif EXTDEBUG}
-            if compiler.verbose.codegenerror then
+            if ctx.verbose.codegenerror then
               include(p.transientflags,tnf_error);
-            compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
-            compiler.globals.current_settings.localswitches:=oldlocalswitches;
-            compiler.globals.current_filepos:=oldpos;
-            cg.executionweight:=oldexecutionweight;
+            ctx.verbose.codegenerror:=ctx.verbose.codegenerror or oldcodegenerror;
+            ctx.globals.current_settings.localswitches:=oldlocalswitches;
+            ctx.globals.current_filepos:=oldpos;
+            ctx.cg.executionweight:=oldexecutionweight;
           end
          else
-           compiler.verbose.codegenerror:=true;
+           ctx.verbose.codegenerror:=true;
       end;
 
 
