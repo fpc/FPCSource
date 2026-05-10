@@ -65,6 +65,7 @@ implementation
      globtype,verbose,compiler,
      globals,
      aasmdata,
+     pass_2_context,
      cgobj
 {$ifdef EXTDEBUG}
      ,cgbase
@@ -253,18 +254,16 @@ implementation
 
 
     function do_secondpass(var p : tnode;ctx:tpassgeneratecodecontext) : boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          { current_asmdata.CurrAsmList must be empty }
          if not current_asmdata.CurrAsmList.empty then
            internalerror(200405201);
 
          { clear errors before starting }
-         compiler.verbose.codegenerror:=false;
+         ctx.verbose.codegenerror:=false;
          if not(tnf_error in p.transientflags) then
            secondpass(p,ctx);
-         do_secondpass:=compiler.verbose.codegenerror;
+         do_secondpass:=ctx.verbose.codegenerror;
       end;
 
 
