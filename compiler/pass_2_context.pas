@@ -27,7 +27,7 @@ interface
 
 uses
   compilerbase,
-  node,hlcgobj,cgobj,tgobj,verbose,systems;
+  node,hlcgobj,cgobj,tgobj,verbose,systems,globals;
 
 type
 
@@ -37,6 +37,7 @@ type
   private
     verbose: TVerbose;
     target: TReadOnlyCompilerTarget;
+    globals: TCompilerGlobals;
     hlcg: thlcgobj;
     tg: ttgobj;
     has_parent_tg: Boolean;
@@ -52,6 +53,7 @@ type
   tpassgeneratecodecontexthelper = class helper for tpassgeneratecodecontext
   private
     function GetCg: tcg; inline;
+    function GetGlobals: TCompilerGlobals; inline;
     function GetHlcg: thlcgobj; inline;
 {$ifdef cpu64bitalu}
     function GetCG128: tcg128; inline;
@@ -64,6 +66,7 @@ type
   public
     property Verbose: TVerbose read GetVerbose;
     property Target: TReadOnlyCompilerTarget read GetTarget;
+    property Globals: TCompilerGlobals read GetGlobals;
     property hlcg: thlcgobj read GetHlcg;
     property cg: tcg read GetCg;
 {$ifdef cpu64bitalu}
@@ -85,6 +88,7 @@ constructor tpassgeneratecodecontextimpl.create(acompiler: TCompilerBase; parent
 begin
   verbose:=acompiler.verbose;
   target:=acompiler.target;
+  globals:=acompiler.globals;
   tg:=parent_tg;
   has_parent_tg:=(tg<>nil);
 end;
@@ -108,6 +112,11 @@ end;
 function tpassgeneratecodecontexthelper.GetCg: tcg; inline;
 begin
   result:=hlcg.CG;
+end;
+
+function tpassgeneratecodecontexthelper.GetGlobals: TCompilerGlobals;
+begin
+  result:=tpassgeneratecodecontextimpl(self).globals;
 end;
 
 function tpassgeneratecodecontexthelper.GetHlcg: thlcgobj; inline;
