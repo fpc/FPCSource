@@ -13,18 +13,17 @@ type
     Base, Limit: QWord;
   end;
 
+function Check(const A, B: TStackParam): Integer;
+    begin
+      Result := IfThen(A.Limit < B.Limit, -1,
+        IfThen(A.Limit = B.Limit, 0, 1));
+    end;
 var
   List: TList<TStackParam>;
   S: TStackParam;
   Index: SizeInt;
 begin
-  List := TList<TStackParam>.Create(TComparer<TStackParam>.Construct(
-    function (const A, B: TStackParam): Integer
-    begin
-      Result := IfThen(A.Limit < B.Limit, -1,
-        IfThen(A.Limit = B.Limit, 0, 1));
-    end)
-  );
+  List := TList<TStackParam>.Create(TComparer<TStackParam>.Construct(Check));
   try
     S.Limit := 100;
     S.Base := 200;
