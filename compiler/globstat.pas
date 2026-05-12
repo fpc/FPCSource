@@ -68,7 +68,6 @@ type
     old_verbosity : longint;
 
   { only saved/restored if "full" is true }
-    old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
     constructor create(for_module_switch: boolean;acompiler: TCompilerBase);
@@ -200,7 +199,6 @@ var
       old_settings:=compiler.globals.current_settings.ToRecord;
       old_verbosity:=status.verbosity;
 
-      old_debuginfo:=current_debuginfo;
       old_parser_file:=compiler.globals.parser_current_file;
       old_scanner:=current_scanner;
     end;
@@ -282,9 +280,6 @@ var
 
       { restore message settings which were recorded prior to unit switch }
       compiler.verbose.RestoreLocalVerbosity(compiler.globals.current_settings.pmessage);
-
-      // These can be different
-      current_debuginfo:=old_debuginfo;
     end;
 
   procedure tglobalstate.reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
@@ -336,7 +331,6 @@ var
       // keep "compiler.globals.current_settings"
 
       _compiler.parser.pbase.parse_only:=false;
-      current_debuginfo:=nil;
 
       _compiler.globals.parser_current_file:='';
       set_current_scanner(nil);

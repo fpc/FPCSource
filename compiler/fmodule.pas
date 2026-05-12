@@ -642,14 +642,13 @@ implementation
         unitimportsyms:=TFPObjectList.Create(true);
         publicasmsyms:=TFPHashObjectList.Create(true);
         externasmsyms:=TFPHashObjectList.Create(true);
-        InitDebugInfo(self,false);
+        InitDebugInfo(self);
       end;
 
 
     destructor tmodule.destroy;
       var
         i : longint;
-        current_debuginfo_reset : boolean;
       begin
         unitmap:=nil;
         if assigned(derefmap) then
@@ -690,7 +689,7 @@ implementation
             tprocinfo(procinfo).destroy_tree;
             procinfo := nil;
           end;
-        DoneDebugInfo(self,current_debuginfo_reset);
+        DoneDebugInfo(self);
         used_units.free;
         used_units := nil;
         dependent_units.free;
@@ -844,7 +843,7 @@ implementation
             asmdata.free;
             asmdata:=nil;
           end;
-        DoneDebugInfo(self,current_debuginfo_reset);
+        DoneDebugInfo(self);
         globalsymtable.free;
         globalsymtable:=nil;
         localsymtable.free;
@@ -906,7 +905,7 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=casmdata.create(modulename,compiler);
-        InitDebugInfo(self,current_debuginfo_reset);
+        InitDebugInfo(self);
         _exports.free;
         _exports:=tlinkedlist.create;
         dllscannerinputlist.free;

@@ -1047,7 +1047,6 @@ begin
   Fillchar(globals.current_filepos,sizeof(globals.current_filepos),0);
   if assigned(current_module) then
     begin
-      current_debuginfo:=tdebuginfo(current_module.debuginfo);
       { restore scanner and file positions }
       set_current_scanner(tscannerfile(current_module.scanner));
       if assigned(current_scanner) then
@@ -1065,7 +1064,6 @@ begin
   else
     begin
       set_current_scanner(nil);
-      current_debuginfo:=nil;
     end;
 end;
 

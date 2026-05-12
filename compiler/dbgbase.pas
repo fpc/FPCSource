@@ -101,10 +101,11 @@ interface
 
     var
       CDebugInfo : array[tdbg] of TDebugInfoClass;
-      current_debuginfo : tdebuginfo;
 
-    procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
-    procedure DoneDebugInfo(hp:tmodule; out current_debuginfo_reset : boolean);
+    function current_debuginfo: tdebuginfo; inline;
+
+    procedure InitDebugInfo(hp:tmodule);
+    procedure DoneDebugInfo(hp:tmodule);
     procedure RegisterDebugInfo(const r:tdbginfo;c:TDebugInfoClass);
 
 
@@ -645,7 +646,15 @@ implementation
                            Init / Done
 ****************************************************************************}
 
-    procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
+    function current_debuginfo: tdebuginfo; inline;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      begin
+        result:=tdebuginfo(compiler.current_module.debuginfo);
+      end;
+
+
+    procedure InitDebugInfo(hp:tmodule);
       var
         compiler: TCompilerBase;
       begin
@@ -663,26 +672,13 @@ implementation
           DWARFv2/3/4/5/... }
         hp.DebugInfo:=CDebugInfo[dbg_llvm].Create(compiler);
 {$endif}
-        if restore_current_debuginfo then
-          begin
-            if current_debuginfo=nil then
-              current_debuginfo:=tdebuginfo(hp.DebugInfo)
-            else
-              internalerror(2012032101);
-          end;
       end;
 
 
-    procedure DoneDebugInfo(hp:tmodule; out current_debuginfo_reset : boolean);
+    procedure DoneDebugInfo(hp:tmodule);
       begin
-        current_debuginfo_reset:=false;
         if assigned(hp.DebugInfo) then
           begin
-            if hp.DebugInfo=current_debuginfo then
-              begin
-                current_debuginfo:=nil;
-                current_debuginfo_reset:=true;
-              end;
             hp.DebugInfo.Free;
             hp.DebugInfo:=nil;
           end;
