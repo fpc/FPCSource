@@ -188,7 +188,7 @@ implementation
       begin
         inherited;
         direction:=1;
-        alloclist:=TAsmList.create;
+        alloclist:=TAsmList.create(current_asmdata);
       end;
 
 

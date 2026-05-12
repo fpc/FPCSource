@@ -2025,7 +2025,7 @@ implementation
           list.insert(seh_proc);
         { the directive creates another section }
         inc(list.section_count);
-        templist:=TAsmList.Create;
+        templist:=TAsmList.Create(list.AsmData);
 
         if not suppress_endprologue then
           begin

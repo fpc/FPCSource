@@ -1117,7 +1117,7 @@ implementation
         removeref : boolean;
         multiplier : byte;
       begin
-        curdata:=TAsmList.create;
+        curdata:=TAsmList.create(list.AsmData);
         lastinspos:=-1;
         curinspos:=0;
         extradataoffset:=0;
@@ -1867,7 +1867,7 @@ implementation
       var
         prolog: TAsmList;
       begin
-        prolog:=TAsmList.create;
+        prolog:=TAsmList.create(current_asmdata);
         new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
         prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
         prolog.concat(Tai_const.Create_32bit(0));

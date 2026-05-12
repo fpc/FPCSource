@@ -35,7 +35,7 @@ unit llvmcfi;
 
     type
       tllvmcfi = class(TAsmCFI)
-        constructor create(acompiler: TCompilerBase); override;
+        constructor create(AAsmData: TAsmData; acompiler: TCompilerBase); override;
         destructor destroy; override;
         procedure generate_code(list: TAsmList); override;
         procedure start_frame(list:TAsmList);override;
@@ -61,10 +61,10 @@ unit llvmcfi;
     var
       nativecficlass: TAsmCFIClass;
 
-    constructor tllvmcfi.create(acompiler: TCompilerBase);
+    constructor tllvmcfi.create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
-        fnativecfi:=nativecficlass.create(acompiler);
+        fnativecfi:=nativecficlass.create(AAsmData,acompiler);
       end;
 
 

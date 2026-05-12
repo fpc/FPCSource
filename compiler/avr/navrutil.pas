@@ -67,8 +67,8 @@ implementation
       entry : pinitfinalentry;
       i : longint;
     begin
-      initList:=TAsmList.create;
-      finalList:=TAsmList.create;
+      initList:=TAsmList.create(current_asmdata);
+      finalList:=TAsmList.create(current_asmdata);
 
       if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
         op:=A_CALL
@@ -88,7 +88,7 @@ implementation
       finalList.Concat(taicpu.op_none(A_RET));
 
       begin
-        header:=TAsmList.create;
+        header:=TAsmList.create(current_asmdata);
         new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
@@ -99,7 +99,7 @@ implementation
       end;
 
       begin
-        header:=TAsmList.create;
+        header:=TAsmList.create(current_asmdata);
         new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 

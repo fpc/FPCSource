@@ -96,7 +96,7 @@ implementation
         unwindflags:=unwindflags or 1;
       inc(scopecount);
       if scopes=nil then
-        scopes:=TAsmList.Create;
+        scopes:=TAsmList.Create(current_asmdata);
 
       if implicit then
         scopes.concat(tai_const.create_32bit(SCOPE_IMPLICIT))
@@ -112,7 +112,7 @@ implementation
       unwindflags:=unwindflags or 3;
       inc(scopecount);
       if scopes=nil then
-        scopes:=TAsmList.Create;
+        scopes:=TAsmList.Create(current_asmdata);
 
       if Assigned(filter) then
         scopes.concat(tai_const.create_rva_sym(filter))

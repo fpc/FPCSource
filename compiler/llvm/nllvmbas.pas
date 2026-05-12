@@ -208,7 +208,7 @@ interface
             { store the assembler code in a separate list, so we can make it
               the argument of an asmblock instruction }
             oldasmlist:=ctx.CurrAsmList;
-            ctx.CurrAsmList:=tasmlist.create;
+            ctx.CurrAsmList:=tasmlist.create(oldasmlist.AsmData);
             { record relation between parameters and replaced local assembler
               operands }
             fsymboldata:=tfplist.create;

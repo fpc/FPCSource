@@ -361,7 +361,7 @@ implementation
         setlength(spill_temps[R_INTREGISTER],intrg.maxreg);
         setlength(spill_temps[R_FPUREGISTER],fprg.maxreg);
         { List to insert temp allocations into }
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(list.AsmData);
         { allocate/replace all registers }
         p:=headertai;
         while assigned(p) do

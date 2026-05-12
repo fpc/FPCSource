@@ -2673,7 +2673,7 @@ Implementation
     begin
       result:=true;
 
-      list:=TAsmList.create;
+      list:=TAsmList.create(asml.AsmData);
       p:=BlockStart;
       while p<>BlockEnd Do
         begin

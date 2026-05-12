@@ -1337,7 +1337,7 @@ implementation
                           compiler.globals.current_filepos.column:=1;
                         end;
                       { create wrapper code }
-                      tmplist:=tasmlist.create;
+                      tmplist:=tasmlist.create(list.AsmData);
                       new_section(tmplist,sec_code,tmps,compiler.target.info.alignment.procalign);
                       tmplist.Concat(tai_function_name.create(tmps));
                       hlcg.init_register_allocators;

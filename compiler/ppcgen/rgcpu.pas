@@ -68,7 +68,7 @@ unit rgcpu;
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             if (spilltemp.index<>NR_NO) then
               internalerror(200704201);
@@ -122,7 +122,7 @@ unit rgcpu;
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             if (spilltemp.index<>NR_NO) then
               internalerror(2007042002);

@@ -159,7 +159,7 @@ uses
     Constructor Tresourcestrings.Create(ACompiler: TCompilerBase);
       begin
         Compiler:=ACompiler;
-        List:=TAsmList.Create;
+        List:=TAsmList.Create(current_asmdata);
       end;
 
 

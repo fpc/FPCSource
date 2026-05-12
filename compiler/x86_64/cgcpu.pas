@@ -312,7 +312,7 @@ unit cgcpu;
           list.insert(seh_proc);
         { the directive creates another section }
         inc(list.section_count);
-        templist:=TAsmList.Create;
+        templist:=TAsmList.Create(list.AsmData);
 
         { We need to record positive offsets from RSP; if registers are saved
           at negative offsets from RBP we need to account for it. }

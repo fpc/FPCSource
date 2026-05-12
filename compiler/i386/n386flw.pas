@@ -621,7 +621,7 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     if assigned(right) then
       begin
         { emit filter table to a temporary asmlist }
-        hlist:=TAsmList.Create;
+        hlist:=TAsmList.Create(ctx.CurrAsmList.AsmData);
         new_section(hlist,sec_rodata,filterlabel.name,4);
         ctx.cg.a_label(hlist,filterlabel);
         onnodecount:=tai_const.create_32bit(0);

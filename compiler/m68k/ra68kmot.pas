@@ -1680,7 +1680,7 @@ var
             SetupTables;
             _asmsorted := TRUE;
           end;
-        curlist:=TAsmList.Create;
+        curlist:=TAsmList.Create(current_asmdata);
         gettoken;
         while actasmtoken<>AS_END do
           begin

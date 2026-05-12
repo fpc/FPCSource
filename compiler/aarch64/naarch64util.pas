@@ -119,8 +119,8 @@ begin
         exit;
     end;
 
-    InitList := TAsmList.Create;
-    FinalList := TAsmList.Create;
+    InitList := TAsmList.Create(current_asmdata);
+    FinalList := TAsmList.Create(current_asmdata);
 
     GenEntry(finalList);
     GenEntry(initList);
@@ -137,7 +137,7 @@ begin
     GenExit(finalList);
     GenExit(initList);
 
-    Header := TAsmList.Create;
+    Header := TAsmList.Create(current_asmdata);
     New_Section(Header, Sec_Code, 'FPC_INIT_FUNC_TABLE', 1);
     Header.Concat(TAI_Symbol.CreateName_Global('FPC_INIT_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 
@@ -146,7 +146,7 @@ begin
 
     current_asmdata.AsmLists[al_procedures].concatList(initList);
 
-    Header := TAsmList.Create;
+    Header := TAsmList.Create(current_asmdata);
     New_Section(Header, Sec_Code, 'FPC_FINALIZE_FUNC_TABLE', 1);
     Header.Concat(TAI_Symbol.CreateName_Global('FPC_FINALIZE_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 

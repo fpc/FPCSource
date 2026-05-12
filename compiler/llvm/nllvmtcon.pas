@@ -191,7 +191,7 @@ implementation
       decl: taillvmdecl;
     begin
       finalize_asmlist_prepare(options,alignment);
-      newasmlist:=tasmlist.create;
+      newasmlist:=tasmlist.create(fasmlist.AsmData);
       if assigned(foverriding_def) then
         def:=foverriding_def;
       { llvm declaration with as initialisation data all the elements from the

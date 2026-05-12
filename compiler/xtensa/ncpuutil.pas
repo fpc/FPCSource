@@ -61,8 +61,8 @@ implementation
       entry : pinitfinalentry;
       i : longint;
     begin
-      initList:=TAsmList.create;
-      finalList:=TAsmList.create;
+      initList:=TAsmList.create(current_asmdata);
+      finalList:=TAsmList.create(current_asmdata);
 
       initList.Concat(tai_align.Create(compiler.target.info.alignment.procalign));
       finalList.Concat(tai_align.Create(compiler.target.info.alignment.procalign));
@@ -110,7 +110,7 @@ implementation
       initList.Concat(taicpu.op_none(retop));
       finalList.Concat(taicpu.op_none(retop));
 
-      header:=TAsmList.create;
+      header:=TAsmList.create(current_asmdata);
       new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
       header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
@@ -119,7 +119,7 @@ implementation
 
       current_asmdata.AsmLists[al_procedures].concatList(initList);
 
-      header:=TAsmList.create;
+      header:=TAsmList.create(current_asmdata);
       new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
       header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 

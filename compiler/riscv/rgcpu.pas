@@ -64,7 +64,7 @@ unit rgcpu;
         cg:=compiler.cg;
         if not is_imm12(spilltemp.offset) then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=tempreg
@@ -102,7 +102,7 @@ unit rgcpu;
         cg:=compiler.cg;
         if not is_imm12(spilltemp.offset) then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=getregisterinline(helplist,[R_SUBWHOLE])

@@ -1341,7 +1341,7 @@ begin
       exit;
     end;
 
-  helplist:=TAsmList.Create;
+  helplist:=TAsmList.Create(list.AsmData);
 
   reference_reset(href,0,[]);
   href.base:=NR_STACK_POINTER_REG;

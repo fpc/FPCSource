@@ -100,8 +100,8 @@ implementation
           inherited insert_init_final_table(main,entries);
           exit;
         end;
-      initList:=TAsmList.create;
-      finalList:=TAsmList.create;
+      initList:=TAsmList.create(current_asmdata);
+      finalList:=TAsmList.create(current_asmdata);
 
       genentry(initList);
       genentry(finalList);
@@ -119,7 +119,7 @@ implementation
       genexit(finalList);
 
       begin
-        header:=TAsmList.create;
+        header:=TAsmList.create(current_asmdata);
         new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
@@ -130,7 +130,7 @@ implementation
       end;
 
       begin
-        header:=TAsmList.create;
+        header:=TAsmList.create(current_asmdata);
         new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 

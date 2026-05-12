@@ -48,7 +48,7 @@ interface
       procedure insertmoduleinfo; override;
       procedure referencesections(list: TAsmList); override;
 
-      constructor create(acompiler: TCompilerBase);override;
+      constructor create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
     end;
 
 implementation
@@ -458,7 +458,7 @@ implementation
     end;
 
 
-  constructor TDebugInfoStabx.create(acompiler: TCompilerBase);
+  constructor TDebugInfoStabx.create(AAsmData: TAsmData; acompiler: TCompilerBase);
     begin
       inherited;
       dbgtype:=dbg_stabx;

@@ -99,7 +99,7 @@ implementation
 
         if abs(spilltemp.offset)>1020 then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               begin

@@ -1226,7 +1226,7 @@ uses
           internalerror(2023100301);
         if_instr:=a_if_instr;
 
-        then_asmlist:=TAsmList.Create;
+        then_asmlist:=TAsmList.Create(srclist.AsmData);
 
         ThenDone:=False;
         ElsePresent:=False;
@@ -1255,7 +1255,7 @@ uses
 
         if ElsePresent then
           begin
-            else_asmlist:=TAsmList.Create;
+            else_asmlist:=TAsmList.Create(srclist.AsmData);
             ElseDone:=False;
             repeat
               p:=tai(srclist.First);
@@ -1289,12 +1289,12 @@ uses
           p.if_instr:=taicpu(if_instr.getcopy);
         if assigned(then_asmlist) then
           begin
-            p.then_asmlist:=TAsmList.Create;
+            p.then_asmlist:=TAsmList.Create(then_asmlist.AsmData);
             p.then_asmlist.concatListcopy(then_asmlist);
           end;
         if assigned(else_asmlist) then
           begin
-            p.else_asmlist:=TAsmList.Create;
+            p.else_asmlist:=TAsmList.Create(else_asmlist.AsmData);
             p.else_asmlist.concatListcopy(else_asmlist);
           end;
         getcopy:=p;
@@ -1433,7 +1433,7 @@ uses
           internalerror(2023100304);
         block_instr:=a_block_instr;
 
-        inner_asmlist:=TAsmList.Create;
+        inner_asmlist:=TAsmList.Create(srclist.AsmData);
 
         Done:=False;
         repeat
@@ -1466,7 +1466,7 @@ uses
           p.block_instr:=taicpu(block_instr.getcopy);
         if assigned(inner_asmlist) then
           begin
-            p.inner_asmlist:=TAsmList.Create;
+            p.inner_asmlist:=TAsmList.Create(inner_asmlist.AsmData);
             p.inner_asmlist.concatListcopy(inner_asmlist);
           end;
         getcopy:=p;
@@ -1502,7 +1502,7 @@ uses
           internalerror(2023100306);
         loop_instr:=a_loop_instr;
 
-        inner_asmlist:=TAsmList.Create;
+        inner_asmlist:=TAsmList.Create(srclist.AsmData);
 
         Done:=False;
         repeat
@@ -1535,7 +1535,7 @@ uses
           p.loop_instr:=taicpu(loop_instr.getcopy);
         if assigned(inner_asmlist) then
           begin
-            p.inner_asmlist:=TAsmList.Create;
+            p.inner_asmlist:=TAsmList.Create(inner_asmlist.AsmData);
             p.inner_asmlist.concatListcopy(inner_asmlist);
           end;
         getcopy:=p;
@@ -1574,7 +1574,7 @@ uses
         tmp_asmlist: TAsmList;
       begin
         result:=nil;
-        tmp_asmlist:=TAsmList.Create;
+        tmp_asmlist:=TAsmList.Create(srclist.AsmData);
 
         Done:=False;
         repeat
@@ -1618,7 +1618,7 @@ uses
         p:=tai_wasmstruc_legacy_try(inherited getcopy);
         if assigned(try_asmlist) then
           begin
-            p.try_asmlist:=TAsmList.Create;
+            p.try_asmlist:=TAsmList.Create(try_asmlist.AsmData);
             p.try_asmlist.concatListcopy(try_asmlist);
           end;
         getcopy:=p;
@@ -1646,7 +1646,7 @@ uses
             SetLength(catch_list,Length(catch_list)+1);
             new_catch_index:=High(catch_list);
             catch_list[new_catch_index].catch_instr:=taicpu(p);
-            al:=TAsmList.Create;
+            al:=TAsmList.Create(srclist.AsmData);
             catch_list[new_catch_index].asmlist:=al;
             Done:=False;
             repeat
@@ -1663,7 +1663,7 @@ uses
             Done: Boolean;
             pp: tai;
           begin
-            catch_all_asmlist:=TAsmList.Create;
+            catch_all_asmlist:=TAsmList.Create(srclist.AsmData);
             Done:=False;
             repeat
               pp:=tai(srclist.First);
@@ -1734,7 +1734,7 @@ uses
           begin
             if assigned(catch_list[i].asmlist) then
               begin
-                p.catch_list[i].asmlist:=TAsmList.Create;
+                p.catch_list[i].asmlist:=TAsmList.Create(catch_list[i].asmlist.AsmData);
                 p.catch_list[i].asmlist.concatListcopy(catch_list[i].asmlist);
               end;
             if assigned(catch_list[i].catch_instr) then
@@ -1742,7 +1742,7 @@ uses
           end;
         if assigned(catch_all_asmlist) then
           begin
-            p.catch_all_asmlist:=TAsmList.Create;
+            p.catch_all_asmlist:=TAsmList.Create(catch_all_asmlist.AsmData);
             p.catch_all_asmlist.concatListcopy(catch_all_asmlist);
           end;
         getcopy:=p;
@@ -1794,7 +1794,7 @@ uses
           internalerror(2023100304);
         try_table_instr:=a_try_table_instr;
 
-        inner_asmlist:=TAsmList.Create;
+        inner_asmlist:=TAsmList.Create(srclist.AsmData);
 
         Done:=False;
         repeat
@@ -1827,7 +1827,7 @@ uses
           p.try_table_instr:=taicpu(try_table_instr.getcopy);
         if assigned(inner_asmlist) then
           begin
-            p.inner_asmlist:=TAsmList.Create;
+            p.inner_asmlist:=TAsmList.Create(inner_asmlist.AsmData);
             p.inner_asmlist.concatListcopy(inner_asmlist);
           end;
         getcopy:=p;
@@ -2026,7 +2026,7 @@ uses
         if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and is_atomic_op(op) then
           internalerror(2024070701);
         if op=a_try_table then
-          try_table_catch_clauses:=TAsmList.Create;
+          try_table_catch_clauses:=TAsmList.Create(current_asmdata);
       end;
 
 
@@ -3991,7 +3991,7 @@ uses
       var
         tmplist: TAsmList;
       begin
-        tmplist:=TAsmList.Create;
+        tmplist:=TAsmList.Create(asmlist.AsmData);
         wasm_convert_to_structured_asmlist_internal(asmlist,tmplist);
         asmlist.Free;
         asmlist:=tmplist;
@@ -4002,7 +4002,7 @@ uses
         p: tai;
         tmplist: TAsmList;
       begin
-        tmplist:=TAsmList.Create;
+        tmplist:=TAsmList.Create(srclist.AsmData);
         while not srclist.Empty do
           begin
             p:=tai(srclist.First);
@@ -4023,7 +4023,7 @@ uses
       var
         tmplist: TAsmList;
       begin
-        tmplist:=TAsmList.Create;
+        tmplist:=TAsmList.Create(asmlist.AsmData);
         wasm_convert_to_flat_asmlist_internal(asmlist,tmplist);
         asmlist.Free;
         asmlist:=tmplist;

@@ -163,7 +163,7 @@ interface
         procedure collectglobalsyms;
         procedure updatelocalvardbginfo(hp: taillvm; pd: tprocdef; functionscope: tai_llvmspecialisedmetadatanode);
       public
-        constructor Create(acompiler: TCompilerBase);override;
+        constructor Create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
@@ -442,7 +442,7 @@ implementation
         result:=llvm_getmetadatareftypedconst(def_meta_node(def));
       end;
 
-    constructor TDebugInfoLLVM.Create(acompiler: TCompilerBase);
+    constructor TDebugInfoLLVM.Create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
 

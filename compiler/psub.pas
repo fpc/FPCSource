@@ -2009,7 +2009,7 @@ implementation
               end;
           end;
 
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;

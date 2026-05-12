@@ -79,7 +79,7 @@ unit rgcpu;
       begin
         if (spilltemp.base=NR_IX) and ((spilltemp.offset<-128) or (spilltemp.offset>127)) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             helplist.concat(taicpu.op_reg(A_PUSH,NR_BC));
             helplist.concat(taicpu.op_reg(A_PUSH,NR_IX));
@@ -105,7 +105,7 @@ unit rgcpu;
       begin
         if (spilltemp.base=NR_IX) and ((spilltemp.offset<-128) or (spilltemp.offset>127)) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             helplist.concat(taicpu.op_reg(A_PUSH,NR_BC));
             helplist.concat(taicpu.op_reg(A_PUSH,NR_IX));

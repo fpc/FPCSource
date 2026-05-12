@@ -437,7 +437,7 @@ unit agcpugas;
                         instrcount:=0;
                         handlerflags:=0;
                         handlername:='';
-                        sehlist:=tasmlist.create;
+                        sehlist:=tasmlist.create(list.AsmData);
                         inprologue:=true;
                       end;
                     ash_endproc:
@@ -471,7 +471,7 @@ unit agcpugas;
                                     anyway }
                             xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
 
-                            tmplist:=tasmlist.create;
+                            tmplist:=tasmlist.create(list.AsmData);
                             new_section(tmplist,sec_pdata,lastsec.name^,0);
                             tmplist.concat(tai_const.Create_rva_sym(lastsym.sym));
                             tmplist.concat(tai_const.Create_rva_sym(xdatasym));

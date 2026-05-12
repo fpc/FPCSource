@@ -1063,7 +1063,7 @@ implementation
         ppufile.getset(tppuset1(asmnodeflags));
         if not(asmnf_get_asm_position in asmnodeflags) then
           begin
-            p_asm:=TAsmList.create;
+            p_asm:=TAsmList.create(current_asmdata);
             repeat
               hp:=ppuloadai(ppufile);
               if hp=nil then
@@ -1142,7 +1142,7 @@ implementation
         n.asmnodeflags:=asmnodeflags;
         if assigned(p_asm) then
           begin
-            n.p_asm:=TAsmList.create;
+            n.p_asm:=TAsmList.create(p_asm.AsmData);
             n.p_asm.concatlistcopy(p_asm);
           end
         else

@@ -104,7 +104,7 @@ unit rgcpu;
         cg:=compiler.cg;
         if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
             ofs:=spilltemp.offset;
 
             helplist.concat(tai_regalloc.alloc(NR_R26,nil));
@@ -153,7 +153,7 @@ unit rgcpu;
       begin
         if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
             ofs:=spilltemp.offset;
 
             helplist.concat(tai_regalloc.alloc(NR_R26,nil));

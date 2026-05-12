@@ -2502,7 +2502,7 @@ unit rgobj;
         { after each round of spilling, more registers could be used due to allocations for spilling }
         alloc_spillinfo(maxreg);
         { Allocate temps and insert in front of the list }
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(list.AsmData);
         { Safe: this procedure is only called if there are spilled nodes. }
         with spillednodes do
           { the node with the highest interferences is the last one }

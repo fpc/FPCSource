@@ -145,9 +145,14 @@ interface
       );
 
     type
+      TAsmData = class;
+
       TAsmList = class(tlinkedlist)
+      private
+         FAsmData: TAsmData;
+      public
          section_count : longint;
-         constructor create;
+         constructor create(AAsmData: TAsmData);
          function  getlasttaifilepos : pfileposinfo;
          { inserts another List at the begin and make this List empty }
          procedure insertList(p : TLinkedList); override;
@@ -165,6 +170,7 @@ interface
          procedure concatListcopy(p : TLinkedList); override;
          { removes all items from the list, the items are not freed }
          procedure RemoveAll; override;
+         property AsmData: TAsmData read FAsmData;
       end;
 
       TAsmCFI=class
@@ -173,7 +179,7 @@ interface
       protected
         property Compiler: TCompilerBase read FCompiler;
       public
-        constructor create(acompiler: TCompilerBase);virtual;
+        constructor create(AAsmData: TAsmData; acompiler: TCompilerBase);virtual;
         destructor destroy;override;
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
@@ -295,7 +301,7 @@ function current_asmdata : TAsmData; inline;
                                  TAsmCFI
 *****************************************************************************}
 
-    constructor TAsmCFI.create(acompiler: TCompilerBase);
+    constructor TAsmCFI.create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
       end;
@@ -380,9 +386,10 @@ function current_asmdata : TAsmData; inline;
                                  TAsmList
 *****************************************************************************}
 
-    constructor TAsmList.create;
+    constructor TAsmList.create(AAsmData: TAsmData);
       begin
         inherited create;
+        FAsmData:=AAsmData;
       end;
 
 
@@ -550,11 +557,11 @@ function current_asmdata : TAsmData; inline;
           FNextLabelNr[alt]:=1;
         { AsmLists }
         for hal:=low(TAsmListType) to high(TAsmListType) do
-          AsmLists[hal]:=TAsmList.create;
-        WideInits :=TAsmList.create;
-        ResStrInits:=TAsmList.create;
+          AsmLists[hal]:=TAsmList.create(self);
+        WideInits :=TAsmList.create(self);
+        ResStrInits:=TAsmList.create(self);
         { CFI }
-        FAsmCFI:=CAsmCFI.Create(compiler);
+        FAsmCFI:=CAsmCFI.Create(self,compiler);
       end;
 
 

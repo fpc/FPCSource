@@ -442,7 +442,7 @@ implementation
          ImportLabels  : TFPList;
       begin
         if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create;
+          current_asmdata.asmlists[al_imports]:=TAsmList.create(current_asmdata);
 
         if (compiler.target._asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
@@ -640,7 +640,7 @@ implementation
     procedure TExportLibWin.preparelib(const s:string);
       begin
          if current_asmdata.asmlists[al_exports]=nil then
-           current_asmdata.asmlists[al_exports]:=TAsmList.create;
+           current_asmdata.asmlists[al_exports]:=TAsmList.create(current_asmdata);
          if EList_indexed=nil then
            EList_indexed:=tFPList.Create;
          if EList_nonindexed=nil then
@@ -845,16 +845,16 @@ implementation
            current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+compiler.target.info.sharedlibext+#0));
 
          {  export address table }
-         address_table:=TAsmList.create;
+         address_table:=TAsmList.create(current_asmdata);
          address_table.concat(Tai_align.Create_op(4,0));
          address_table.concat(Tai_label.Create(export_address_table));
-         name_table_pointers:=TAsmList.create;
+         name_table_pointers:=TAsmList.create(current_asmdata);
          name_table_pointers.concat(Tai_align.Create_op(4,0));
          name_table_pointers.concat(Tai_label.Create(export_name_table_pointers));
-         ordinal_table:=TAsmList.create;
+         ordinal_table:=TAsmList.create(current_asmdata);
          ordinal_table.concat(Tai_align.Create_op(4,0));
          ordinal_table.concat(Tai_label.Create(export_ordinal_table));
-         name_table:=TAsmList.Create;
+         name_table:=TAsmList.Create(current_asmdata);
          name_table.concat(Tai_align.Create_op(4,0));
          { write each address }
          hp:=texported_item(compiler.current_module._exports.first);

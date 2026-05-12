@@ -95,7 +95,7 @@ uses
 
 constructor tpassgeneratecodecontextimpl.create(acompiler: TCompilerBase; parent_tg: ttgobj);
 begin
-  CurrAsmList:=TAsmList.create;
+  CurrAsmList:=TAsmList.create(current_asmdata);
   verbose:=acompiler.verbose;
   target:=acompiler.target;
   globals:=acompiler.globals;

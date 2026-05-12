@@ -329,7 +329,7 @@ unit cgppc;
           exit;
 
         if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create;
+          current_asmdata.asmlists[al_imports]:=TAsmList.create(current_asmdata);
 
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           stubalign:=32

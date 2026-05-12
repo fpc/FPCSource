@@ -91,7 +91,7 @@ interface
         property Compiler: TCompilerBase read FCompiler;
         property ParaManager: TParaManager read GetParaManager;
       public
-        constructor Create(ACompiler: TCompilerBase);virtual;
+        constructor Create(AAsmData: TAsmData; ACompiler: TCompilerBase);virtual;
         procedure inserttypeinfo;virtual;
         procedure insertmoduleinfo;virtual;
         procedure insertlineinfo(list:TAsmList);virtual;
@@ -119,7 +119,7 @@ implementation
       cgbase;
 
 
-    constructor TDebugInfo.Create(ACompiler: TCompilerBase);
+    constructor TDebugInfo.Create(AAsmData: TAsmData; ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
       end;
@@ -665,12 +665,12 @@ implementation
             exit;
           end;
 {$ifndef llvm}
-        hp.DebugInfo:=CDebugInfo[compiler.target.dbg.id].Create(compiler);
+        hp.DebugInfo:=CDebugInfo[compiler.target.dbg.id].Create(TAsmData(hp.AsmData),compiler);
 {$else}
         { we can't override the assignment of compiler.target.dbg with the LLVM class,
           because we still need to know whether to tell LLVM to generate
           DWARFv2/3/4/5/... }
-        hp.DebugInfo:=CDebugInfo[dbg_llvm].Create(compiler);
+        hp.DebugInfo:=CDebugInfo[dbg_llvm].Create(TAsmData(hp.AsmData),compiler);
 {$endif}
       end;
 

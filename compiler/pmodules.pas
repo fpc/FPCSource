@@ -159,7 +159,7 @@ implementation
               if assigned(current_asmdata.asmlists[al_imports]) then
                current_asmdata.asmlists[al_imports].clear
               else
-               current_asmdata.asmlists[al_imports]:=TAsmList.Create;
+               current_asmdata.asmlists[al_imports]:=TAsmList.Create(current_asmdata);
               compiler.importlib.generatelib;
             end;
            { Readd the not processed files }
@@ -234,7 +234,7 @@ implementation
            ) then
           begin
             current_asmdata.asmlists[al_dwarf_frame].Free;
-            current_asmdata.asmlists[al_dwarf_frame] := TAsmList.create;
+            current_asmdata.asmlists[al_dwarf_frame] := TAsmList.create(current_asmdata);
             current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf_frame]);
           end;
       end;

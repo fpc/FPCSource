@@ -486,7 +486,7 @@ procedure tx64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
     if assigned(right) then
       begin
         { emit filter table to a temporary asmlist }
-        hlist:=TAsmList.Create;
+        hlist:=TAsmList.Create(current_asmdata);
         current_asmdata.getaddrlabel(filterlabel);
         new_section(hlist,sec_rodata_norel,filterlabel.name,4);
         ctx.cg.a_label(hlist,filterlabel);

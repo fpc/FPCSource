@@ -357,7 +357,7 @@ implementation
         if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
           internalerror(2022111937);
 
-        hlist:=TAsmList.create;
+        hlist:=TAsmList.create(list.AsmData);
         tosize:=tcgsize2unsigned[tosize];
         if stptr_ops[tosize]<>A_NONE then
           begin
@@ -409,7 +409,7 @@ implementation
         if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
           internalerror(2022111939);
 
-        hlist:=TAsmList.create;
+        hlist:=TAsmList.create(list.AsmData);
         have_done:=false;
         usizef:=tcgsize2unsigned[fromsize];
         usizet:=tcgsize2unsigned[tosize];

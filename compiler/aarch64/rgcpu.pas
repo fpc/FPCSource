@@ -90,7 +90,7 @@ implementation
         { offset out of range for regular load/store? }
         if simple_ref_type(op,reg_cgsize(tempreg),PF_None,spilltemp)<>sr_simple then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
 
             if (getregtype(tempreg)=R_INTREGISTER) then
               hreg:=getregisterinline(helplist,[R_SUBWHOLE])

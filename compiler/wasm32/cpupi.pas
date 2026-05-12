@@ -446,7 +446,7 @@ implementation
         if (ai.typ=ait_wasm_structured_instruction) and (taicpu_wasm_structured_instruction(ai).wstyp=aitws_if) then
           begin
             result.typ:=amfrtNewList;
-            result.newlist:=TAsmList.Create;
+            result.newlist:=TAsmList.Create(current_asmdata);
             tai_wasmstruc_if(ai).ConvertToBrIf(result.newlist,@AllocWasmLocal);
           end;
       end;
@@ -457,7 +457,7 @@ implementation
         if (ai.typ=ait_wasm_structured_instruction) and (taicpu_wasm_structured_instruction(ai).wstyp=aitws_loop) then
           begin
             result.typ:=amfrtNewList;
-            result.newlist:=TAsmList.Create;
+            result.newlist:=TAsmList.Create(current_asmdata);
             tai_wasmstruc_loop(ai).ConvertToBr(result.newlist);
           end;
       end;
@@ -824,7 +824,7 @@ implementation
           catchinstr: taicpu;
         begin
           blocks:=TFPHashObjectList.Create;
-          curr_block:=TAsmList.Create;
+          curr_block:=TAsmList.Create(asmlist.AsmData);
           blocks.Add('.start',curr_block);
           repeat
             hp:=tai(asmlist.First);
@@ -835,7 +835,7 @@ implementation
                   begin
                     if (tai_label(hp).labsym.is_used) then
                       begin
-                        curr_block:=TAsmList.Create;
+                        curr_block:=TAsmList.Create(asmlist.AsmData);
                         blocks.Add(tai_label(hp).labsym.Name,curr_block);
                       end;
                   end
@@ -865,7 +865,7 @@ implementation
               asmlist.Concat(taicpu.op_const(a_br_if,block_nr));
             end;
           asmlist.Concat(taicpu.op_none(a_unreachable));
-          tmplist:=TAsmList.Create;
+          tmplist:=TAsmList.Create(asmlist.AsmData);
           for block_nr:=0 to blocks.Count-1 do
             begin
               asmlist.Concat(taicpu.op_none(a_end_block));
@@ -982,9 +982,9 @@ implementation
         var
           hp, hpnext, hpprev: tai;
         begin
-          entry_code:=TAsmList.Create;
-          proc_body:=TAsmList.Create;
-          exit_code:=TAsmList.Create;
+          entry_code:=TAsmList.Create(asmlist.AsmData);
+          proc_body:=TAsmList.Create(asmlist.AsmData);
+          exit_code:=TAsmList.Create(asmlist.AsmData);
           repeat
             hp:=tai(asmlist.First);
             if assigned(hp) then
@@ -1090,7 +1090,7 @@ implementation
             local: tai_local;
             l : TWasmLocal;
           begin
-            result:=TAsmList.create;
+            result:=TAsmList.create(current_asmdata);
             local:=tai_local.create([]);
             result.Concat(local);
             l:=ttgwasm(tg).localvars.first;

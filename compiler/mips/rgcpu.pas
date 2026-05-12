@@ -75,7 +75,7 @@ implementation
         cg:=compiler.cg;
         if abs(spilltemp.offset)>32767 then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=tempreg
@@ -109,7 +109,7 @@ implementation
         cg:=compiler.cg;
         if abs(spilltemp.offset)>32767 then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=getregisterinline(helplist,[R_SUBWHOLE])

@@ -379,7 +379,7 @@ implementation
         SetLength(spill_temps[R_FUNCREFREGISTER],frrg.maxreg);
         SetLength(spill_temps[R_EXTERNREFREGISTER],errg.maxreg);
         { List to insert temp allocations into }
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(list.AsmData);
         {  }
         wasmfuncreftype:=cprocvardef.create(normal_function_level,true,_compiler);
         include(wasmfuncreftype.procoptions,po_wasm_funcref);

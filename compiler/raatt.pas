@@ -1135,7 +1135,7 @@ unit raatt;
           SetupTables;
           _asmsorted:=TRUE;
         end;
-       curlist:=TAsmList.Create;
+       curlist:=TAsmList.Create(current_asmdata);
 
        { we might need to know which parameters are passed in registers }
        if not compiler.parser.pbase.parse_generic then

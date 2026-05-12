@@ -484,7 +484,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         inherited;
         fsym:=sym;
         ftcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
-        fdatalist:=tasmlist.create;
+        fdatalist:=tasmlist.create(current_asmdata);
         curoffset:=0;
       end;
 

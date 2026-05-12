@@ -400,7 +400,7 @@ implementation
       entry : pinitfinalentry;
 
     begin
-      unitinits:=TAsmList.Create;
+      unitinits:=TAsmList.Create(current_asmdata);
       for I:=0 to entries.Count-1 do
         begin
           entry:=pinitfinalentry(entries[i]);

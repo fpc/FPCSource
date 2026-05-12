@@ -1188,7 +1188,7 @@ implementation
                 tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 compiler.symtablestack.top.insertsym(tcsym);
-                templist:=tasmlist.create;
+                templist:=tasmlist.create(current_asmdata);
                 parser.ptconst.read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
                   used, and will be re-parsed during specialisations (and the

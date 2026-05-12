@@ -256,8 +256,8 @@ implementation
         framepointer:=NR_FRAME_POINTER_REG;
         maxpushedparasize:=0;
         { asmlists }
-        aktproccode:=TAsmList.Create;
-        aktlocaldata:=TAsmList.Create;
+        aktproccode:=TAsmList.Create(current_asmdata);
+        aktlocaldata:=TAsmList.Create(current_asmdata);
         reference_reset(save_regs_ref,sizeof(aint),[]);
         { labels }
         current_asmdata.getjumplabel(CurrExitLabel);

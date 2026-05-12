@@ -131,7 +131,7 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
         procedure referencesections(list:TAsmList);override;
 
-        constructor Create(acompiler: TCompilerBase);override;
+        constructor Create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
       end;
 
 
@@ -1379,7 +1379,7 @@ implementation
         Obj,Info,
         mangledname: ansistring;
       begin
-        result:=TAsmList.create;
+        result:=TAsmList.create(current_asmdata);
         { "The stab representing a procedure is located immediately
           following the code of the procedure. This stab is in turn
           directly followed by a group of other stabs describing
@@ -1420,7 +1420,7 @@ implementation
         ss, mangledname: ansistring;
         stabsendlabel: tasmlabel;
       begin
-        result:=TAsmList.create;
+        result:=TAsmList.create(current_asmdata);
 
         { end of procedure }
         current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
@@ -1690,8 +1690,8 @@ implementation
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
         deftowritelist:=TFPObjectlist.create(false);
-        stabsvarlist:=TAsmList.create;
-        stabstypelist:=TAsmList.create;
+        stabsvarlist:=TAsmList.create(current_asmdata);
+        stabstypelist:=TAsmList.create(current_asmdata);
 
         vardatatype:=try_search_system_type('TVARDATA');
         if assigned(vardatatype) then
@@ -1906,7 +1906,7 @@ implementation
           end;
       end;
 
-    constructor TDebugInfoStabs.Create(acompiler: TCompilerBase);
+    constructor TDebugInfoStabs.Create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         dbgtype:=dbg_stabs;

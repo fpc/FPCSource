@@ -96,7 +96,7 @@ interface
         procedure update_asmlist_alias_types(list: tasmlist);
 
       public
-        constructor Create(acompiler: TCompilerBase);override;
+        constructor Create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure inserttypeinfo;override;
       end;
@@ -232,7 +232,7 @@ implementation
       end;
 
 
-    constructor TLLVMTypeInfo.Create(acompiler: TCompilerBase);
+    constructor TLLVMTypeInfo.Create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         asmsymtypes:=THashSet.Create(current_asmdata.AsmSymbolDict.Count,true,false);

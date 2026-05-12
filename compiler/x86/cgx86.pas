@@ -861,7 +861,7 @@ unit cgx86;
           exit;
 
         if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create;
+          current_asmdata.asmlists[al_imports]:=TAsmList.create(current_asmdata);
 
         new_section(current_asmdata.asmlists[al_imports],sec_stub,'',0);
         result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
@@ -3059,7 +3059,7 @@ unit cgx86;
         copy_avx512,
         copy_avx:
           begin
-            hlist:=TAsmList.create;
+            hlist:=TAsmList.create(list.AsmData);
             if cm=copy_avx512 then
               while len>=64 do
                 begin

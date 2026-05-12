@@ -211,7 +211,7 @@ interface
         procedure finish_entry;
         procedure finish_lineinfo;
       public
-        constructor Create(ACompiler: TCompilerBase);override;
+        constructor Create(AAsmData: TAsmData; ACompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
@@ -750,7 +750,7 @@ implementation
         result:=get_def_dwarf_labs(def)^.ref_lab;
       end;
 
-    constructor TDebugInfoDwarf.Create(ACompiler: TCompilerBase);
+    constructor TDebugInfoDwarf.Create(AAsmData: TAsmData; ACompiler: TCompilerBase);
       begin
         inherited;
         { 64bit headers are only supported for dwarf3 and up, so default off }
@@ -761,7 +761,7 @@ implementation
         dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
         TDirIndexItem.Create(dirlist,'.', 0);
-        asmline := TAsmList.create;
+        asmline := TAsmList.create(AAsmData);
         loclist := tdynamicarray.Create(4096);
 
         AbbrevSearchTree:=AllocateNewAiSearchItem;
@@ -1070,7 +1070,7 @@ implementation
         templist: TAsmList;
       begin
         dreg:=dwarf_reg(NR_BP);
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(list.AsmData);
         if dreg<=31 then
           begin
             templist.concat(tai_const.create_8bit(ord(DW_OP_reg0)+dreg));
@@ -1096,7 +1096,7 @@ implementation
           if (base=NR_LOCAL_STACK_POINTER_REG) and
              (index=NR_NO) then
             begin
-              templist:=TAsmList.create;
+              templist:=TAsmList.create(list.AsmData);
               templist.concat(tai_const.create_8bit(ord(DW_OP_WASM_location)));
               templist.concat(tai_const.create_8bit(0)); { wasm local }
               templist.concat(tai_const.create_uleb128bit(offset));
@@ -1132,7 +1132,7 @@ implementation
         templist: TAsmList;
       begin
         dreg:=dwarf_reg(segment_register);
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
         if dreg<=31 then
           begin
             templist.concat(tai_const.create_8bit(ord(DW_OP_reg0)+dreg));
@@ -2375,7 +2375,7 @@ implementation
         if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
           exit;
 
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
 
         case sym.localloc.loc of
           LOC_REGISTER,
@@ -2982,7 +2982,7 @@ implementation
         offset: pint;
         flags: tdwarfvarsymflags;
       begin
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
         case tabsolutevarsym(sym).abstyp of
           toaddr :
             begin
@@ -3094,7 +3094,7 @@ implementation
           end;
 
         { insert .Ldebug_abbrev0 label }
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
         new_section(templist,sec_debug_abbrev,'',0);
         templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_abbrevsection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { add any extra stuff which needs to be in the abbrev section, but before    }
@@ -3104,7 +3104,7 @@ implementation
         templist.free;
 
         { insert .Ldebug_line0 label }
-        templist:=TAsmList.create;
+        templist:=TAsmList.create(current_asmdata);
         new_section(templist,sec_debug_line,'',0);
         templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_linesection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { add any extra stuff which needs to be in the line section, but before  }

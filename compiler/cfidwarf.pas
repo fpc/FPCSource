@@ -71,7 +71,7 @@ interface
         );
       public
         datatype : TDataType;
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
       end;
 
       TDwarfAsmCFILowLevel=class(TDwarfAsmCFI)
@@ -87,7 +87,7 @@ interface
         data_alignment_factor : shortint;
         property DwarfList:TlinkedList read FDwarfList;
       public
-        constructor create(acompiler: TCompilerBase);override;
+        constructor create(AAsmData: TAsmData; acompiler: TCompilerBase);override;
         destructor destroy;override;
         procedure generate_code(list:TAsmList);override;
 
@@ -235,7 +235,7 @@ implementation
                                  TDwarfAsmCFI
 ****************************************************************************}
 
-    constructor TDwarfAsmCFI.create(acompiler: TCompilerBase);
+    constructor TDwarfAsmCFI.create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         if tf_use_psabieh in compiler.target.info.flags then
@@ -252,7 +252,7 @@ implementation
                              TDwarfAsmCFILowLevel
 ****************************************************************************}
 
-    constructor TDwarfAsmCFILowLevel.create(acompiler: TCompilerBase);
+    constructor TDwarfAsmCFILowLevel.create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
         inherited;
         FFrameStartLabel:=nil;
@@ -264,7 +264,7 @@ implementation
 {$else defined(avr)}
         data_alignment_factor:=-4;
 {$endif defined(avr)}
-        FDwarfList:=TAsmList.Create;
+        FDwarfList:=TAsmList.Create(AAsmData);
       end;
 
 

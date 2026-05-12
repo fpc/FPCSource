@@ -380,7 +380,7 @@ implementation
       InsertInitFiniList(compiler.current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
-      with TLLVMTypeInfo.Create(compiler) do
+      with TLLVMTypeInfo.Create(current_asmdata,compiler) do
         begin
           inserttypeinfo;
           free;

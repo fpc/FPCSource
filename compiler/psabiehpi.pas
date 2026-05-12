@@ -172,7 +172,7 @@ implementation
     constructor TPSABIEHAction.Create(pad: TAsmLabel);
       begin
         landingpad:=pad;
-        actionlist:=TAsmList.create;
+        actionlist:=TAsmList.create(current_asmdata);
         current_asmdata.getlabel(actiontablelabel,alt_data);
         actionlist.concat(tai_label.create(actiontablelabel));
         first:=true;
@@ -405,9 +405,9 @@ implementation
           begin
             CreateExceptionTable:=foreachnode(code,@find_exception_handling,nil);
 
-            gcc_except_table_data:=TAsmList.Create;
-            callsite_table_data:=TAsmList.Create;
-            action_table_data:=TAsmList.Create;
+            gcc_except_table_data:=TAsmList.Create(ctx.CurrAsmList.AsmData);
+            callsite_table_data:=TAsmList.Create(ctx.CurrAsmList.AsmData);
+            action_table_data:=TAsmList.Create(ctx.CurrAsmList.AsmData);
             actionstack:=TFPList.Create;
             landingpadstack:=TFPList.Create;
             typefilterlist:=TFPList.Create;

@@ -185,7 +185,7 @@ unit rgcpu;
         a: aint;
     begin
       cg:=compiler.cg;
-      helplist:=TAsmList.create;
+      helplist:=TAsmList.create(list.AsmData);
 
       { load consts entry }
       if getregtype(tempreg)=R_INTREGISTER then
@@ -477,7 +477,7 @@ unit rgcpu;
 
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);
@@ -538,7 +538,7 @@ unit rgcpu;
 
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
-            helplist:=TAsmList.create;
+            helplist:=TAsmList.create(list.AsmData);
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);

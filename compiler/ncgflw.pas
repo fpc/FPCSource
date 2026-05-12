@@ -990,7 +990,7 @@ implementation
          compiler.exceptionstatehandler.end_try_block(ctx.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,finallyexceptionstate.finallycodelabel);
          if assigned(third) then
            begin
-             tmplist:=TAsmList.create;
+             tmplist:=TAsmList.create(current_asmdata);
              { emit the except label already (to a temporary list) to ensure that any calls in the
                finally block refer to the outer exception frame rather than to the exception frame
                that emits this same finally code in case an exception does happen }

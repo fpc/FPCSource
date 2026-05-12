@@ -996,7 +996,7 @@ implementation
        prelist: tasmlist;
      begin
        finalize_asmlist_prepare(options, alignment);
-       prelist:=tasmlist.create;
+       prelist:=tasmlist.create(fasmlist.AsmData);
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
 
@@ -1274,7 +1274,7 @@ implementation
      begin
        inherited create;
        FCompiler:=ACompiler;
-       fasmlist:=tasmlist.create;
+       fasmlist:=tasmlist.create(current_asmdata);
        foptions:=options;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);

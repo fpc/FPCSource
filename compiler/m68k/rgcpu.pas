@@ -68,7 +68,7 @@ unit rgcpu;
         cg:=compiler.cg;
         if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=tempreg
@@ -103,7 +103,7 @@ unit rgcpu;
         cg:=compiler.cg;
         if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
-            helplist:=tasmlist.create;
+            helplist:=tasmlist.create(list.AsmData);
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=getregisterinline(helplist,[R_SUBWHOLE])

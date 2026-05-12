@@ -1250,7 +1250,7 @@ implementation
       begin
         parser.pbase.consume(_INLINE);
         parser.pbase.consume(_LKLAMMER);
-        hl:=TAsmList.create;
+        hl:=TAsmList.create(current_asmdata);
         asmstat:=compiler.casmnode(hl);
         asmstat.fileinfo:=compiler.globals.current_filepos;
         tokenbuf:=tdynamicarray.Create(16);
