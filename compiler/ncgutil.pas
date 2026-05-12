@@ -1340,6 +1340,7 @@ implementation
     procedure gen_load_frame_for_exceptfilter(list : TAsmList);
       var
         para: tparavarsym;
+        framesrc: tregister;
       begin
         para:=tparavarsym(current_procinfo.procdef.paras[0]);
         if not (vo_is_parentfp in para.varoptions) then
@@ -1347,8 +1348,10 @@ implementation
         if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
           (para.paraloc[calleeside].location^.next<>nil) then
           InternalError(201201143);
-        cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,para.paraloc[calleeside].location^.register,
-          NR_FRAME_POINTER_REG);
+        framesrc:=para.paraloc[calleeside].location^.register;
+        cg.a_reg_alloc(list,framesrc);
+        cg.a_reg_dealloc(list,framesrc);
+        cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,framesrc,NR_FRAME_POINTER_REG);
       end;
 
 end.
