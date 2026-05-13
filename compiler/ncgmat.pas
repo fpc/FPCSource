@@ -217,7 +217,7 @@ implementation
               longint($80000000),location.register64.reghi,tr);
             ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
             ctx.cg.a_reg_alloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
             ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_32,OC_NE,0,tr,hl);
             ctx.cg.a_reg_dealloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
@@ -307,7 +307,7 @@ implementation
 
         if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,location.register,hl);
             ctx.hlcg.a_reg_dealloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
             ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
@@ -420,7 +420,7 @@ implementation
                     "Cardinal($ffffffff) div 16" overflows! (JM) }
                   If is_signed(left.resultdef) Then
                     Begin
-                      current_asmdata.getjumplabel(hl);
+                      ctx.CurrAsmList.AsmData.getjumplabel(hl);
                       ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_GT,0,hreg1,hl);
                       if power=1 then
                         ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_ADD,OS_INT,1,hreg1)
@@ -454,7 +454,7 @@ implementation
                   }
                   if (right.nodetype <> ordconstn) then
                     begin
-                      current_asmdata.getjumplabel(hl);
+                      ctx.CurrAsmList.AsmData.getjumplabel(hl);
                       ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                       paraloc1.init(compiler.target);
                       pd:=search_system_proc('fpc_handleerror');
