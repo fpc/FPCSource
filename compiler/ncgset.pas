@@ -386,8 +386,8 @@ implementation
          if genjumps then
            begin
              { location is always LOC_JUMP }
-             current_asmdata.getjumplabel(l);
-             current_asmdata.getjumplabel(l2);
+             ctx.CurrAsmList.AsmData.getjumplabel(l);
+             ctx.CurrAsmList.AsmData.getjumplabel(l2);
              location_reset_jump(location,l,l2);
 
              { If register is used, use only lower 8 bits }
@@ -528,8 +528,8 @@ implementation
                          ctx.hlcg.a_load_const_reg(ctx.CurrAsmList, uopdef, 0, location.register);
                          ctx.CurrAsmList.concat(taicpu.op_none(a_else));
 {$else WASM}
-                         current_asmdata.getjumplabel(l);
-                         current_asmdata.getjumplabel(l2);
+                         ctx.CurrAsmList.AsmData.getjumplabel(l);
+                         ctx.CurrAsmList.AsmData.getjumplabel(l2);
                          needslabel := True;
 
                          ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList, opdef, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
@@ -590,7 +590,7 @@ implementation
         if not (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             Result := False;
-            current_asmdata.getjumplabel(_Label);
+            ctx.CurrAsmList.AsmData.getjumplabel(_Label);
             Exit;
           end;
 
@@ -642,7 +642,7 @@ implementation
 
         { Create unique label }
         Result := False;
-        current_asmdata.getjumplabel(_Label);
+        ctx.CurrAsmList.AsmData.getjumplabel(_Label);
       end;
 
 
@@ -813,7 +813,7 @@ implementation
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low.svalue))),hregister2,l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, OC_EQ, aint(lo(int64(t^._low.svalue))),hregister, blocklabel(t^.blockid));
                      ctx.cg.a_label(ctx.CurrAsmList,l1);
@@ -822,7 +822,7 @@ implementation
 {$elseif defined(cpu16bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, OC_NE, aint(hi(hi(int64(t^._low.svalue)))),ctx.cg.GetNextReg(hregister2),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, OC_NE, aint(lo(hi(int64(t^._low.svalue)))),hregister2,l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, OC_NE, aint(hi(lo(int64(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),l1);
@@ -831,7 +831,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, OC_NE, aint(hi(int32(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, OC_EQ, aint(lo(int32(t^._low.svalue))),hregister, blocklabel(t^.blockid));
                      ctx.cg.a_label(ctx.CurrAsmList,l1);
@@ -840,7 +840,7 @@ implementation
 {$elseif defined(cpu8bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(lo(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(hi(lo(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(hregister2),l1);
@@ -853,7 +853,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(lo(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(hi(lo(int32(t^._low.svalue)))),ctx.cg.GetNextReg(hregister),l1);
@@ -862,7 +862,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S16,OS_16] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_NE, aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8, OC_EQ, aint(lo(int16(t^._low.svalue))),hregister, blocklabel(t^.blockid));
                      ctx.cg.a_label(ctx.CurrAsmList,l1);
@@ -888,7 +888,7 @@ implementation
 {$if defined(cpu32bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
-                          current_asmdata.getjumplabel(l1);
+                          ctx.CurrAsmList.AsmData.getjumplabel(l1);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low.svalue))),
                                hregister2, elselabel);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low.svalue))),
@@ -901,7 +901,7 @@ implementation
 {$elseif defined(cpu16bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
-                          current_asmdata.getjumplabel(l1);
+                          ctx.CurrAsmList.AsmData.getjumplabel(l1);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._low.svalue)))),
                                ctx.cg.GetNextReg(hregister2), elselabel);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._low.svalue)))),
@@ -920,7 +920,7 @@ implementation
                        end
                      else if def_cgsize(opsize) in [OS_32,OS_S32] then
                        begin
-                          current_asmdata.getjumplabel(l1);
+                          ctx.CurrAsmList.AsmData.getjumplabel(l1);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._low.svalue))),
                                ctx.cg.GetNextReg(hregister), elselabel);
                           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._low.svalue))),
@@ -933,7 +933,7 @@ implementation
 {$elseif defined(cpu8bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
-                         current_asmdata.getjumplabel(l1);
+                         ctx.CurrAsmList.AsmData.getjumplabel(l1);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),elselabel);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._low.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
                          { the comparison of the low words must be always unsigned! }
@@ -954,7 +954,7 @@ implementation
                        end
                      else if def_cgsize(opsize) in [OS_32,OS_S32] then
                        begin
-                         current_asmdata.getjumplabel(l1);
+                         ctx.CurrAsmList.AsmData.getjumplabel(l1);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),elselabel);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_8,jmp_gt,aint(hi(hi(int32(t^._low.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
                          { the comparison of the low words must be always unsigned! }
@@ -967,7 +967,7 @@ implementation
                        end
                      else if def_cgsize(opsize) in [OS_16,OS_S16] then
                        begin
-                         current_asmdata.getjumplabel(l1);
+                         ctx.CurrAsmList.AsmData.getjumplabel(l1);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),elselabel);
                          ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._low.svalue))),ctx.cg.GetNextReg(hregister),l1);
                          { the comparison of the low dword must be always unsigned! }
@@ -986,7 +986,7 @@ implementation
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high.svalue))), hregister2,
                            blocklabel(t^.blockid));
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._high.svalue))), hregister2,
@@ -998,7 +998,7 @@ implementation
 {$elseif defined(cpu16bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_lt, aint(hi(hi(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister2),
                            blocklabel(t^.blockid));
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_gt, aint(hi(hi(int64(t^._high.svalue)))), ctx.cg.GetNextReg(hregister2),
@@ -1016,7 +1016,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
-                     current_asmdata.getjumplabel(l1);
+                     ctx.CurrAsmList.AsmData.getjumplabel(l1);
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_lt, aint(hi(int32(t^._high.svalue))), ctx.cg.GetNextReg(hregister),
                            blocklabel(t^.blockid));
                      ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._high.svalue))), ctx.cg.GetNextReg(hregister),
@@ -1028,7 +1028,7 @@ implementation
 {$elseif defined(cpu8bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
-                    current_asmdata.getjumplabel(l1);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),blocklabel(t^.blockid));
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2))),l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,OC_B,aint(lo(hi(hi(int64(t^._high.svalue))))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister2)),blocklabel(t^.blockid));
@@ -1048,7 +1048,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S32,OS_32] then
                   begin
-                    current_asmdata.getjumplabel(l1);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),blocklabel(t^.blockid));
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_gt,aint(hi(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister))),l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,OC_B,aint(lo(hi(int32(t^._high.svalue)))),ctx.cg.GetNextReg(ctx.cg.GetNextReg(hregister)),blocklabel(t^.blockid));
@@ -1060,7 +1060,7 @@ implementation
                   end
                 else if def_cgsize(opsize) in [OS_S16,OS_16] then
                   begin
-                    current_asmdata.getjumplabel(l1);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._high.svalue))),ctx.cg.GetNextReg(hregister),blocklabel(t^.blockid));
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._high.svalue))),ctx.cg.GetNextReg(hregister),l1);
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_8,OC_BE,aint(lo(int16(t^._high.svalue))),hregister,blocklabel(t^.blockid));
@@ -1154,7 +1154,7 @@ implementation
           with labelarray[nextarrayentry] do
             begin
               caselabel:=entry;
-              current_asmdata.getjumplabel(asmlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(asmlabel);
             end;
           inc(nextarrayentry);
           if assigned(entry^.greater) then
@@ -1187,7 +1187,7 @@ implementation
         addarrayentry(root);
         rebuild(0,high(labelarray),root);
         for i:=0 to high(labelarray) do
-          current_asmdata.getjumplabel(labelarray[i].caselabel^.labellabel);
+          ctx.CurrAsmList.AsmData.getjumplabel(labelarray[i].caselabel^.labellabel);
         genjmptreeentry(root,root^._high+10,ctx);
       end;
 
@@ -1209,7 +1209,7 @@ implementation
          include(flowcontrol,fc_inflowcontrol);
          { Allocate labels }
 
-         current_asmdata.getjumplabel(endlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(endlabel);
 
          { Do some optimisation to deal with empty else blocks }
          ShortcutElse := GetBranchLabel(elseblock, elselabel, ctx);
