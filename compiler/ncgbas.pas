@@ -275,7 +275,7 @@ interface
              (p is tasmlabel) then
            begin
              if not assigned(p.altsymbol) then
-               current_asmdata.GenerateAltSymbol(p);
+               ctx.CurrAsmList.AsmData.GenerateAltSymbol(p);
              p:=p.altsymbol;
              p.increfs;
            end;
@@ -364,7 +364,7 @@ interface
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             current_asmdata.ResetAltSymbols;
+             ctx.CurrAsmList.AsmData.ResetAltSymbols;
            end
          else
            begin
@@ -457,7 +457,7 @@ interface
         if nf_block_with_exit in flags then
           begin
             oldexitlabel:=compiler.current_procinfo.CurrExitLabel;
-            current_asmdata.getjumplabel(compiler.current_procinfo.CurrExitLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(compiler.current_procinfo.CurrExitLabel);
             oldflowcontrol:=flowcontrol;
             { the nested block will not span an exit statement of the parent }
             exclude(flowcontrol,fc_exit);
