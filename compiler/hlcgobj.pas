@@ -2243,7 +2243,7 @@ implementation
           tmpreg := getintregister(list,compiler.deftypes.aluuinttype);
 
           { ensure we don't load anything past the end of the array }
-          current_asmdata.getjumplabel(hl);
+          list.AsmData.getjumplabel(hl);
           a_cmp_const_reg_label(list,compiler.deftypes.aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
           { the bits in extra_value_reg (if any) start at the most significant bit =>         }
@@ -2269,7 +2269,7 @@ implementation
           a_op_reg_reg(list,OP_SHR,compiler.deftypes.aluuinttype,sref.bitindexreg,valuereg);
 
           { ensure we don't load anything past the end of the array }
-          current_asmdata.getjumplabel(hl);
+          list.AsmData.getjumplabel(hl);
           a_cmp_const_reg_label(list,compiler.deftypes.aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
           { Y-x = -(Y-x) }
@@ -2572,7 +2572,7 @@ implementation
               a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
 
               { make sure we do not read/write past the end of the array }
-              current_asmdata.getjumplabel(hl);
+              list.AsmData.getjumplabel(hl);
               a_cmp_const_reg_label(list,compiler.deftypes.aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
               a_load_ref_reg(list,loadsize,compiler.deftypes.aluuinttype,tmpref,extra_value_reg);
@@ -3648,7 +3648,7 @@ implementation
          (cs_check_range in compiler.globals.current_settings.localswitches) then
        begin
          pd:=search_system_proc('fpc_handleerror');
-         current_asmdata.getjumplabel(oklabel);
+         list.AsmData.getjumplabel(oklabel);
          a_cmp_const_reg_label(list,selftype,OC_NE,0,reg,oklabel);
          cgpara1.init(compiler.target);
          paramanager.getcgtempparaloc(list,pd,1,cgpara1);
@@ -4162,7 +4162,7 @@ implementation
       hreg:=getintregister(list,maxdef);
       a_load_loc_reg(list,fromdef,maxdef,l,hreg);
       a_op_const_reg(list,OP_SUB,maxdef,tcgint(int64(lto)),hreg);
-      current_asmdata.getjumplabel(neglabel);
+      list.AsmData.getjumplabel(neglabel);
       {
       if from_signed then
         a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
@@ -4293,12 +4293,12 @@ implementation
       new_section(list,sec_code,wrappername,compiler.target.info.alignment.procalign);
       if global then
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
+          sym:=list.AsmData.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create_global(sym,0));
         end
       else
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_PRIVATE_EXTERN,AT_FUNCTION,procdef);
+          sym:=list.AsmData.DefineAsmSymbol(wrappername,AB_PRIVATE_EXTERN,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create(sym,0));
         end;
       a_jmp_external_name(list,externalname);
@@ -4474,7 +4474,7 @@ implementation
               a_load_const_reg(list,dst_size,-1,hregister)
             else
               a_load_const_reg(list,dst_size,1,hregister);
-            current_asmdata.getjumplabel(hl);
+            list.AsmData.getjumplabel(hl);
             a_jmp_always(list,hl);
             a_label(list,l.falselabel);
             a_load_const_reg(list,dst_size,0,hregister);
@@ -4575,7 +4575,7 @@ implementation
               a_load_const_ref(list,size,-1,r)
             else
               a_load_const_ref(list,size,1,r);
-            current_asmdata.getjumplabel(hl);
+            list.AsmData.getjumplabel(hl);
             a_jmp_always(list,hl);
             a_label(list,l.falselabel);
             a_load_const_ref(list,size,0,r);
@@ -4697,8 +4697,8 @@ implementation
     begin
        if p.location.loc<>LOC_JUMP then
          begin
-           current_asmdata.getjumplabel(truelabel);
-           current_asmdata.getjumplabel(falselabel);
+           list.AsmData.getjumplabel(truelabel);
+           list.AsmData.getjumplabel(falselabel);
          end
        else
          begin
@@ -5262,7 +5262,7 @@ implementation
              begin
                { initialize fpu regvar by loading from memory }
                reference_reset_symbol(href,
-                 current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname,AT_DATA), 0,
+                 TAsmList(arg).AsmData.RefAsmSymbol(tstaticvarsym(p).mangledname,AT_DATA), 0,
                  compiler.globals.var_align(tstaticvarsym(p).vardef.alignment),[]);
                a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).vardef,
                  tstaticvarsym(p).vardef, href, tstaticvarsym(p).initialloc.register);
