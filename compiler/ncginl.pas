@@ -288,7 +288,7 @@ implementation
          begin
            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-           current_asmdata.getjumplabel(lengthlab);
+           ctx.CurrAsmList.AsmData.getjumplabel(lengthlab);
            ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,lengthlab);
            { the length of a widestring is a 32 bit unsigned int. Since every
              character occupies 2 bytes, on a 32 bit platform you can express
@@ -336,9 +336,9 @@ implementation
           Internalerror(2019122801);
         { length in dynamic arrays is at offset -sizeof(pint) }
         ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        current_asmdata.getjumplabel(loadlab);
-        current_asmdata.getjumplabel(nillab);
-        current_asmdata.getjumplabel(donelab);
+        ctx.CurrAsmList.AsmData.getjumplabel(loadlab);
+        ctx.CurrAsmList.AsmData.getjumplabel(nillab);
+        ctx.CurrAsmList.AsmData.getjumplabel(donelab);
         ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,nillab);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
