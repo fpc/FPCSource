@@ -130,7 +130,7 @@ begin
   if checklength then
     begin
       { is it already maximal? }
-      current_asmdata.getjumplabel(l);
+      ctx.CurrAsmList.AsmData.getjumplabel(l);
       if ctx.tg.istemp(left.location.reference) then
         len:=255
       else
