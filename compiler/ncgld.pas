@@ -714,7 +714,7 @@ implementation
              if assigned(tlabelsym(symtableentry).asmblocklabel) then
                location.reference.symbol:=tlabelsym(symtableentry).asmblocklabel
              else
-               location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
+               location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel(ctx);
            else internalerror(200510032);
         end;
       end;

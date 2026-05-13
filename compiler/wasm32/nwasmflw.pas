@@ -1137,7 +1137,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
         compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
 
         { the 'break' block }
@@ -1146,7 +1146,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
 
@@ -1156,7 +1156,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
           end;
 
@@ -1322,7 +1322,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
         compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
 
         { the 'break' block }
@@ -1331,7 +1331,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
 
@@ -1341,7 +1341,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
           end;
 
@@ -1524,7 +1524,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
         compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
 
         { the 'break' block }
@@ -1533,7 +1533,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
 
@@ -1543,7 +1543,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
           end;
 
@@ -1725,7 +1725,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+        exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
         compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
 
         { the 'break' block }
@@ -1734,7 +1734,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
 
@@ -1744,7 +1744,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
           end;
 

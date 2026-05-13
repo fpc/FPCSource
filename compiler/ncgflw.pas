@@ -74,7 +74,7 @@ interface
        protected
           asmlabel : tasmlabel;
        public
-          function getasmlabel : tasmlabel; virtual;
+          function getasmlabel(ctx:tpassgeneratecodecontext) : tasmlabel; virtual;
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
 
@@ -98,7 +98,7 @@ interface
        tcgtryfinallynode = class(ttryfinallynode)
         protected
           procedure emit_jump_out_of_try_finally_frame(list: TasmList; const reason: byte; const finallycodelabel: tasmlabel; var excepttemps: tcgexceptionstatehandler.texceptiontemps; framelabel: tasmlabel;ctx:tpassgeneratecodecontext);
-          function get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate): tasmlabel;
+          function get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate;ctx:tpassgeneratecodecontext): tasmlabel;
         public
           procedure handle_safecall_exception(ctx:tpassgeneratecodecontext);
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
@@ -167,9 +167,9 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         current_asmdata.getjumplabel(lloop);
-         current_asmdata.getjumplabel(lcont);
-         current_asmdata.getjumplabel(lbreak);
+         ctx.CurrAsmList.AsmData.getjumplabel(lloop);
+         ctx.CurrAsmList.AsmData.getjumplabel(lcont);
+         ctx.CurrAsmList.AsmData.getjumplabel(lbreak);
          { arrange continue and breaklabels: }
          oldflowcontrol:=flowcontrol;
          oldclabel:=compiler.current_procinfo.CurrContinueLabel;
@@ -292,7 +292,7 @@ implementation
            begin
               if assigned(right) then
                 begin
-                   current_asmdata.getjumplabel(hl);
+                   ctx.CurrAsmList.AsmData.getjumplabel(hl);
                    { do go back to if line !! }
 (*
                    if not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) then
@@ -476,7 +476,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          include(flowcontrol,fc_gotolabel);
-         ctx.hlcg.a_jmp_always_pascal_goto(ctx.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
+         ctx.hlcg.a_jmp_always_pascal_goto(ctx.CurrAsmList,tcglabelnode(labelnode).getasmlabel(ctx));
          if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
            ctx.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
        end;
@@ -486,16 +486,16 @@ implementation
                              SecondLabel
 *****************************************************************************}
 
-    function tcglabelnode.getasmlabel : tasmlabel;
+    function tcglabelnode.getasmlabel(ctx:tpassgeneratecodecontext) : tasmlabel;
       begin
         if not(assigned(asmlabel)) then
           { labsym is not set in inlined procedures, but since assembler }
           { routines can't be inlined, that shouldn't matter             }
           if assigned(labsym) and
              labsym.nonlocal then
-            current_asmdata.getglobaljumplabel(asmlabel)
+            ctx.CurrAsmList.AsmData.getglobaljumplabel(asmlabel)
           else
-            current_asmdata.getjumplabel(asmlabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(asmlabel);
         result:=asmlabel
       end;
 
@@ -505,7 +505,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
          if not (nf_internal in flags) then
            include(flowcontrol,fc_gotolabel);
-         ctx.hlcg.a_label_pascal_goto_target(ctx.CurrAsmList,getasmlabel);
+         ctx.hlcg.a_label_pascal_goto_target(ctx.CurrAsmList,getasmlabel(ctx));
 
          { Write also extra label if this label was referenced from
            assembler block }
@@ -581,18 +581,18 @@ implementation
            end;
 
          { get new labels for the control flow statements }
-         current_asmdata.getjumplabel(exittrylabel);
-         current_asmdata.getjumplabel(exitexceptlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(exittrylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(exitexceptlabel);
          if assigned(compiler.current_procinfo.CurrBreakLabel) then
            begin
-              current_asmdata.getjumplabel(breaktrylabel);
-              current_asmdata.getjumplabel(continuetrylabel);
-              current_asmdata.getjumplabel(breakexceptlabel);
-              current_asmdata.getjumplabel(continueexceptlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(breaktrylabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(continuetrylabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(breakexceptlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(continueexceptlabel);
            end;
 
-         current_asmdata.getjumplabel(endexceptlabel);
-         current_asmdata.getjumplabel(lastonlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(endexceptlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(lastonlabel);
 
          compiler.exceptionstatehandler.get_exception_temps(ctx.CurrAsmList,excepttemps);
          compiler.exceptionstatehandler.new_exception(ctx.CurrAsmList,excepttemps,tek_except,trystate);
@@ -757,7 +757,7 @@ implementation
          breakonlabel:=nil;
          exitonlabel:=nil;
 
-         current_asmdata.getjumplabel(nextonlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(nextonlabel);
 
          compiler.exceptionstatehandler.begin_catch(ctx.CurrAsmList,excepttype,nextonlabel,exceptlocdef,exceptlocreg);
 
@@ -784,14 +784,14 @@ implementation
          if assigned(right) then
            begin
               oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-              current_asmdata.getjumplabel(exitonlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(exitonlabel);
               compiler.current_procinfo.CurrExitLabel:=exitonlabel;
               if assigned(compiler.current_procinfo.CurrBreakLabel) then
                begin
                  oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
                  oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-                 current_asmdata.getjumplabel(breakonlabel);
-                 current_asmdata.getjumplabel(continueonlabel);
+                 ctx.CurrAsmList.AsmData.getjumplabel(breakonlabel);
+                 ctx.CurrAsmList.AsmData.getjumplabel(continueonlabel);
                  compiler.current_procinfo.CurrContinueLabel:=continueonlabel;
                  compiler.current_procinfo.CurrBreakLabel:=breakonlabel;
                end;
@@ -868,9 +868,9 @@ implementation
       end;
 
 
-    function tcgtryfinallynode.get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate): tasmlabel;
+    function tcgtryfinallynode.get_jump_out_of_try_finally_frame_label(const finallyexceptionstate: tcgexceptionstatehandler.texceptionstate;ctx:tpassgeneratecodecontext): tasmlabel;
       begin
-        current_asmdata.getjumplabel(result);
+        ctx.CurrAsmList.AsmData.getjumplabel(result);
       end;
 
 
@@ -955,7 +955,7 @@ implementation
          else
            exceptframekind:=tek_implicitfinally;
 
-         current_asmdata.getjumplabel(endfinallylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(endfinallylabel);
 
          { call setjmp, and jump to finally label on non-zero result }
          compiler.exceptionstatehandler.get_exception_temps(ctx.CurrAsmList,excepttemps);
@@ -964,14 +964,14 @@ implementation
          { the finally block must catch break, continue and exit }
          { statements                                            }
          oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-         exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+         exitfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
          compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
          if assigned(compiler.current_procinfo.CurrBreakLabel) then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
-            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate);
+            breakfinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
+            continuefinallylabel:=get_jump_out_of_try_finally_frame_label(finallyexceptionstate,ctx);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
@@ -990,14 +990,14 @@ implementation
          compiler.exceptionstatehandler.end_try_block(ctx.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,finallyexceptionstate.finallycodelabel);
          if assigned(third) then
            begin
-             tmplist:=TAsmList.create(current_asmdata);
+             tmplist:=TAsmList.create(ctx.CurrAsmList.AsmData);
              { emit the except label already (to a temporary list) to ensure that any calls in the
                finally block refer to the outer exception frame rather than to the exception frame
                that emits this same finally code in case an exception does happen }
              compiler.exceptionstatehandler.emit_except_label(tmplist,exceptframekind,finallyexceptionstate,excepttemps);
 
              flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
-             current_asmdata.getjumplabel(finallyNoExceptionLabel);
+             ctx.CurrAsmList.AsmData.getjumplabel(finallyNoExceptionLabel);
              ctx.hlcg.a_label(ctx.CurrAsmList,finallyNoExceptionLabel);
              if not implicitframe then
                ctx.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));

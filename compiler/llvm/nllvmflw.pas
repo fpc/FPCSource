@@ -35,7 +35,7 @@ interface
 
     type
       tllvmlabelnode = class(tcglabelnode)
-        function getasmlabel: tasmlabel; override;
+        function getasmlabel(ctx:tpassgeneratecodecontext): tasmlabel; override;
       end;
 
     tllvmtryexceptnode = class(tcgtryexceptnode)
@@ -66,7 +66,7 @@ implementation
                              SecondLabel
 *****************************************************************************}
 
-    function tllvmlabelnode.getasmlabel: tasmlabel;
+    function tllvmlabelnode.getasmlabel(ctx:tpassgeneratecodecontext): tasmlabel;
       begin
         { don't allocate global labels even if the label is accessed from
           another routine: we always have to refer to such labels using the

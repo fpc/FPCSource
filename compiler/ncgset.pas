@@ -75,7 +75,7 @@ interface
           { has the implementation jumptable support }
           min_label : tconstexprint;
 
-          function GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
+          function GetBranchLabel(Block: TNode; out _Label: TAsmLabel; ctx:tpassgeneratecodecontext): Boolean;
 
           function  blocklabel(id:longint):tasmlabel;
           procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);virtual;
@@ -573,7 +573,7 @@ implementation
 
 
     { Analyse the nodes following the else label - if empty, change to end label }
-    function tcgcasenode.GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
+    function tcgcasenode.GetBranchLabel(Block: TNode; out _Label: TAsmLabel; ctx:tpassgeneratecodecontext): Boolean;
       var
         LabelSym: TLabelSym;
       begin
@@ -608,7 +608,7 @@ implementation
                   if not Assigned(LabelSym) then
                     InternalError(2018121131);
 
-                  _Label := TCGLabelNode(TCGGotoNode(Block).labelnode).getasmlabel;
+                  _Label := TCGLabelNode(TCGGotoNode(Block).labelnode).getasmlabel(ctx);
                   if Assigned(_Label) then
                     { Keep tabs on the fact that an actual 'goto' was used }
                     Include(flowcontrol,fc_gotolabel)
@@ -1212,11 +1212,11 @@ implementation
          current_asmdata.getjumplabel(endlabel);
 
          { Do some optimisation to deal with empty else blocks }
-         ShortcutElse := GetBranchLabel(elseblock, elselabel);
+         ShortcutElse := GetBranchLabel(elseblock, elselabel, ctx);
 
          for i:=0 to blocks.count-1 do
            with pcaseblock(blocks[i])^ do
-             shortcut := GetBranchLabel(statement, blocklabel);
+             shortcut := GetBranchLabel(statement, blocklabel, ctx);
 
          with_sign:=is_signed(left.resultdef);
          if with_sign then
