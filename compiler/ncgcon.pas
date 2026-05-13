@@ -52,8 +52,8 @@ interface
 
        tcgsetconstnode = class(tsetconstnode)
          protected
-          function emitvarsetconst: tasmsymbol; virtual;
-          procedure handlevarsetconst;
+          function emitvarsetconst(ctx:tpassgeneratecodecontext): tasmsymbol; virtual;
+          procedure handlevarsetconst(ctx:tpassgeneratecodecontext);
          public
           procedure pass_generate_code(ctx:tpassgeneratecodecontext);override;
        end;
@@ -128,43 +128,43 @@ implementation
 {$ifdef ARM}
             key.swapped:=hiloswapped;
 {$endif ARM}
-            entry := current_asmdata.ConstPools[sp_floats].FindOrAdd(@key, sizeof(key));
+            entry := ctx.CurrAsmList.AsmData.ConstPools[sp_floats].FindOrAdd(@key, sizeof(key));
 
             lab_real := TAsmLabel(entry^.Data);  // is it needed anymore?
 
              { :-(, we must generate a new entry }
              if not(assigned(lab_real)) then
                begin
-                  current_asmdata.getdatalabel(lastlabel);
+                  ctx.CurrAsmList.AsmData.getdatalabel(lastlabel);
                   entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
-                  maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,compiler.globals.const_align(resultdef.alignment));
-                  current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                  maybe_new_object_file(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts]);
+                  new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,compiler.globals.const_align(resultdef.alignment));
+                  ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     aitrealconst_s32bit :
                       begin
-                        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s32real(ts32real(value_real)));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s32real(ts32real(value_real)));
                       end;
 
                     aitrealconst_s64bit :
                       begin
 {$ifdef ARM}
                         if hiloswapped then
-                          current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
+                          ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
                         else
 {$endif ARM}
-                          current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(ts64real(value_real)));
+                          ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(ts64real(value_real)));
                      end;
 
                     aitrealconst_s80bit :
                       begin
-                        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
                       end;
 {$ifdef cpufloat128}
                     aitrealconst_s128bit :
                       begin
-                        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s128real(value_real));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s128real(value_real));
                       end;
 {$endif cpufloat128}
 
@@ -173,14 +173,14 @@ implementation
                       if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
                         compiler.verbose.Message(parser_e_range_check_error)
                       else
-                        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64compreal(round(value_real)));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s64compreal(round(value_real)));
 {$ifndef cpufloat128}
                     else
                       internalerror(10120);
 {$endif not cpufloat128}
                   end;
                   if (tf_needs_symbol_size in compiler.target.info.flags) then
-                    current_asmdata.asmlists[al_typedconsts].concat(Tai_symbol_end.Create(lastlabel));
+                    ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_symbol_end.Create(lastlabel));
                end;
           end;
         location.reference.symbol:=lab_real;
@@ -269,7 +269,7 @@ implementation
          { const already used ? }
          if not assigned(lab_str) then
            begin
-              pool := current_asmdata.ConstPools[PoolMap[cst_type]];
+              pool := ctx.CurrAsmList.AsmData.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
                 entry := pool.FindOrAdd(pointer(valuews.data),len*compiler.deftypes.cwidechartype.size)
@@ -292,7 +292,7 @@ implementation
                              InternalError(2008032301)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=datatcb.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
+                               lastlabel:=datatcb.emit_ansistring_const(ctx.CurrAsmList.AsmData.AsmLists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
                                if lastlabel.ofs<>datatcb.get_string_symofs(st_ansistring,false,compiler.target) then
@@ -309,7 +309,7 @@ implementation
                              InternalError(2008032302)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=datatcb.emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                               lastlabel:=datatcb.emit_unicodestring_const(ctx.CurrAsmList.AsmData.AsmLists[al_typedconsts],
                                                valuews,
                                                tstringdef(resultdef).encoding,
                                                winlikewidestring);
@@ -324,7 +324,7 @@ implementation
                         end;
                       cst_shortstring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel.lab);
+                          ctx.CurrAsmList.AsmData.getdatalabel(lastlabel.lab);
 
                           { truncate strings larger than 255 chars }
                           if len>255 then
@@ -339,13 +339,13 @@ implementation
                           t:=Tai_string.Create_Data(asconstpchar,l,true);
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
-                          current_asmdata.asmlists[al_typedconsts].concatList(
+                          ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,compiler.globals.const_align(sizeof(pint)))
                           );
                         end;
                       cst_conststring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel.lab);
+                          ctx.CurrAsmList.AsmData.getdatalabel(lastlabel.lab);
 
                           { the data includes the terminating #0 because this
                             string can be used for pchar assignments (but it's
@@ -356,7 +356,7 @@ implementation
                           t:=Tai_string.Create_Data(asconstpchar,len,true);
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
-                          current_asmdata.asmlists[al_typedconsts].concatList(
+                          ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,compiler.globals.const_align(sizeof(pint)))
                           );
                         end;
@@ -398,7 +398,7 @@ implementation
                            TCGSETCONSTNODE
 *****************************************************************************}
 
-    function tcgsetconstnode.emitvarsetconst: tasmsymbol;
+    function tcgsetconstnode.emitvarsetconst(ctx:tpassgeneratecodecontext): tasmsymbol;
       type
         setbytes=array[0..31] of byte;
         Psetbytes=^setbytes;
@@ -407,7 +407,7 @@ implementation
         i: longint;
         tcb: ttai_typedconstbuilder;
       begin
-        current_asmdata.getdatalabel(lab);
+        ctx.CurrAsmList.AsmData.getdatalabel(lab);
         result:=lab;
         lab_set:=lab;
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
@@ -419,14 +419,14 @@ implementation
           for i:=0 to resultdef.size-1 do
             tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),compiler.deftypes.u8inttype);
         tcb.maybe_end_aggregate(resultdef);
-        current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
+        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
           result,resultdef,sec_rodata_norel,result.name,compiler.globals.const_align(8)));
         tcb.free;
         tcb := nil;
       end;
 
 
-    procedure tcgsetconstnode.handlevarsetconst;
+    procedure tcgsetconstnode.handlevarsetconst(ctx:tpassgeneratecodecontext);
       var
          entry       : PHashSetItem;
       begin
@@ -434,11 +434,11 @@ implementation
         { const already used ? }
         if not assigned(lab_set) then
           begin
-            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, resultdef.size);
+            entry := ctx.CurrAsmList.AsmData.ConstPools[sp_varsets].FindOrAdd(value_set, resultdef.size);
 
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
-               entry^.Data:=emitvarsetconst;
+               entry^.Data:=emitvarsetconst(ctx);
              lab_set := TAsmSymbol(entry^.Data);
           end;
         location.reference.symbol:=lab_set;
@@ -476,7 +476,7 @@ implementation
         if is_smallset(resultdef) then
           smallsetconst
         else
-          handlevarsetconst;
+          handlevarsetconst(ctx);
       end;
 
 
@@ -506,16 +506,16 @@ implementation
         { const already used ? }
         if not assigned(lab_set) then
           begin
-            entry:=current_asmdata.ConstPools[sp_guids].FindOrAdd(@value,sizeof(value));
+            entry:=ctx.CurrAsmList.AsmData.ConstPools[sp_guids].FindOrAdd(@value,sizeof(value));
             lab_set:=TAsmLabel(entry^.Data);  // is it needed anymore?
 
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
                begin
-                 current_asmdata.getdatalabel(lastlabel);
+                 ctx.CurrAsmList.AsmData.getdatalabel(lastlabel);
                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                  datatcb.emit_guid_const(value);
-                 current_asmdata.asmlists[al_typedconsts].concatList(
+                 ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concatList(
                    datatcb.get_final_asmlist(lastlabel,compiler.deftypes.rec_tguid,sec_rodata_norel,lastlabel.name,compiler.globals.const_align(16)));
                  datatcb.free;
                  datatcb := nil;

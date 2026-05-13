@@ -73,7 +73,7 @@ interface
           function docompare(p: tnode): boolean; override;
           function dogetcopy: tnode; override;
          protected
-          function emitvarsetconst: tasmsymbol; override;
+          function emitvarsetconst(ctx:tpassgeneratecodecontext): tasmsymbol; override;
           { in case the set has only a single run of consecutive elements,
             this function will return its starting index and length }
           function find_single_elements_run(from: longint; out start, len: longint): boolean;
@@ -410,7 +410,7 @@ implementation
           sct_constsymbol:
             begin
               { all sets are varsets for the JVM target, no setbase differences }
-              handlevarsetconst;
+              handlevarsetconst(ctx);
             end;
           else
             { must be handled in pass_1 or otherwise transformed }
@@ -440,7 +440,7 @@ implementation
       end;
 
 
-    function tjvmsetconstnode.emitvarsetconst: tasmsymbol;
+    function tjvmsetconstnode.emitvarsetconst(ctx:tpassgeneratecodecontext): tasmsymbol;
       var
         csym: tconstsym;
         ssym: tstaticvarsym;
