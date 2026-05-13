@@ -1100,8 +1100,8 @@ implementation
 {$ifdef vtentry}
              if not is_interface(tprocdef(procdefinition)._class) then
                begin
-                 inc(current_asmdata.NextVTEntryNr);
-                 ctx.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition).struct.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
+                 inc(ctx.CurrAsmList.AsmData.NextVTEntryNr);
+                 ctx.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(ctx.CurrAsmList.AsmData.NextVTEntryNr)+'_'+tprocdef(procdefinition).struct.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
                end;
 {$endif vtentry}
 
