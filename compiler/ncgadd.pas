@@ -397,7 +397,7 @@ interface
                    secondpass(left,ctx);
                    ctx.hlcg.maketojumpbool(ctx.CurrAsmList,left);
                    ctx.hlcg.a_label(ctx.CurrAsmList,left.location.truelabel);
-                   current_asmdata.getjumplabel(truelabel);
+                   ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
                    location_reset_jump(location,truelabel,left.location.falselabel);
                 end;
               orn :
@@ -405,7 +405,7 @@ interface
                    secondpass(left,ctx);
                    ctx.hlcg.maketojumpbool(ctx.CurrAsmList,left);
                    ctx.hlcg.a_label(ctx.CurrAsmList,left.location.falselabel);
-                   current_asmdata.getjumplabel(falselabel);
+                   ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
                    location_reset_jump(location,left.location.truelabel,falselabel);
                 end;
               else
