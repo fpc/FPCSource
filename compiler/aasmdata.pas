@@ -421,6 +421,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.insertList(p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051301);
         inherited insertList(p);
         inc(section_count,TAsmList(p).section_count);
         TAsmList(p).section_count:=0;
@@ -429,6 +431,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.insertListBefore(Item : TLinkedListItem; p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051302);
         inherited insertListBefore(Item,p);
         inc(section_count,TAsmList(p).section_count);
         TAsmList(p).section_count:=0;
@@ -437,6 +441,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.insertListAfter(Item : TLinkedListItem; p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051303);
         inherited insertListAfter(Item,p);
         inc(section_count,TAsmList(p).section_count);
         TAsmList(p).section_count:=0;
@@ -445,6 +451,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.concatList(p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051304);
         inherited concatList(p);
         inc(section_count,TAsmList(p).section_count);
         TAsmList(p).section_count:=0;
@@ -453,6 +461,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.insertListcopy(p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051305);
         inherited insertListcopy(p);
         inc(section_count,TAsmList(p).section_count);
      end;
@@ -460,6 +470,8 @@ function current_asmdata : TAsmData; inline;
 
     procedure TAsmList.concatListcopy(p : TLinkedList);
       begin
+        if TAsmList(p).AsmData<>AsmData then
+          internalerror(2026051306);
         inherited concatListcopy(p);
         inc(section_count,TAsmList(p).section_count);
       end;
