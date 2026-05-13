@@ -271,7 +271,7 @@ interface
           LOC_JUMP :
             begin
               hregister:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
-              current_asmdata.getjumplabel(hlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
               ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
               ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,1,hregister);
               ctx.cg.a_jmp_always(ctx.CurrAsmList,hlabel);
@@ -327,7 +327,7 @@ interface
                 begin
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2,[]);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
+                  hr.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
                   compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
                   ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
@@ -709,14 +709,14 @@ interface
          hr : treference;
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         current_asmdata.getjumplabel(l1);
+         ctx.CurrAsmList.AsmData.getjumplabel(l1);
          location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,resultdef);
          ctx.hlcg.a_load_loc_reg(ctx.CurrAsmList,left.resultdef,resultdef,
            left.location,location.register);
          ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2,[]);
-         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
+         hr.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
          compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
          ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr,location.register);
          ctx.hlcg.a_label(ctx.CurrAsmList,l1);
@@ -766,7 +766,7 @@ interface
                  case ImplIntf.IType of
                    etStandard:
                      begin
-                       current_asmdata.getjumplabel(l1);
+                       ctx.CurrAsmList.AsmData.getjumplabel(l1);
                        ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_EQ,0,location.register,l1);
                        ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_ADD,resultdef,ImplIntf.ioffset,location.register);
                        break;
