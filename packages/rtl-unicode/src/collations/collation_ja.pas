@@ -51,14 +51,14 @@ const
   UPDATED_FIELDS = [ TCollationField.VariableLowLimit, TCollationField.VariableHighLimit ];
   COLLATION_NAME = 'ja';
   BASE_COLLATION = '';
-  VARIABLE_LOW_LIMIT = 264;
-  VARIABLE_HIGH_LIMIT = 704;
+  VARIABLE_LOW_LIMIT = 521;
+  VARIABLE_HIGH_LIMIT = 971;
   VARIABLE_WEIGHT = 0;
   BACKWARDS_0 = False;
   BACKWARDS_1 = False;
   BACKWARDS_2 = False;
   BACKWARDS_3 = False;
-  PROP_COUNT  = 122932;
+  PROP_COUNT  = 123910;
   NO_STRING_NORMALIZATION = False;
   COMPARISON_STRENGTH = 3;
 
@@ -85,9 +85,9 @@ const
 const
   UCAO_TABLE_1 : array[0..1023] of Word = (
     0,1,2,3,4,5,6,7,8,9,8,8,8,8,8,8,
-    8,8,8,8,8,8,8,8,8,8,10,11,8,8,8,8,
-    8,8,8,8,8,8,8,8,8,8,8,8,12,8,8,8,
-    8,8,8,8,13,8,8,8,14,8,15,16,8,8,8,8,
+    8,8,8,8,8,8,8,8,10,8,11,12,8,8,8,8,
+    8,8,8,8,8,8,8,8,8,8,8,8,13,8,8,8,
+    8,8,8,8,14,8,8,8,15,16,17,18,8,8,8,8,
     8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
     8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
     8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
