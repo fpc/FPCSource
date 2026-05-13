@@ -286,9 +286,9 @@ implementation
            begin
              if gvs.localloc.loc=LOC_INVALID then
                if not(vo_is_weak_external in gvs.varoptions) then
-                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
+                 reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
                else
-                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_TLS),0,location.reference.alignment,[])
+                 reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_TLS),0,location.reference.alignment,[])
              else
                location:=gvs.localloc;
            end
@@ -303,8 +303,8 @@ implementation
 
              tv_rec:=get_threadvar_record(resultdef,tv_index_field,tv_non_mt_data_field);
              fieldptrdef:=cpointerdef.getreusable(resultdef,compiler);
-             current_asmdata.getjumplabel(norelocatelab);
-             current_asmdata.getjumplabel(endrelocatelab);
+             ctx.CurrAsmList.AsmData.getjumplabel(norelocatelab);
+             ctx.CurrAsmList.AsmData.getjumplabel(endrelocatelab);
              { make sure hregister can't allocate the register necessary for the parameter }
              pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
              if pvd.typ<>procvardef then
@@ -324,9 +324,9 @@ implementation
                          (cs_imported_data in localswitches) and
                          not issystemunit;
              if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
+               reference_reset_symbol(tvref,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
              else
-               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
+               reference_reset_symbol(tvref,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
              { Enable size optimization with -Os or PIC code is generated and PIC uses GOT }
              size_opt:={$if defined(RISCV)}
                          true
@@ -346,7 +346,7 @@ implementation
              paraloc1.init(compiler.target);
              paramanager.getcgtempparaloc(ctx.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,pvd);
-             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment,[]);
+             reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment,[]);
              if not issystemunit then
                compiler.current_module.add_extern_asmsym('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA);
              ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,pvd,pvd,href,hregister);
@@ -440,7 +440,7 @@ implementation
                    toaddr :
                      generate_absaddr_access(tabsolutevarsym(symtableentry),ctx);
                    toasm :
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname,AT_DATA);
+                     location.reference.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname,AT_DATA);
                    else
                      internalerror(200310283);
                  end;
@@ -455,7 +455,7 @@ implementation
                                  (cs_imported_data in localswitches) and
                                  (symtableentry.owner.moduleid<>compiler.current_module.moduleid);
                      name:=make_mangledname('RESSTR',symtableentry.owner,symtableentry.name);
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
+                     location.reference.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol(name,AT_DATA,indirect);
                      if symtableentry.owner.moduleid<>compiler.current_module.moduleid then
                        compiler.current_module.addimportedsym(symtableentry);
                      vd:=search_system_type('TRESOURCESTRINGRECORD').typedef;
@@ -477,9 +477,9 @@ implementation
                  begin
                    hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
                    if not(vo_is_weak_external in gvs.varoptions) then
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA)
+                     location.reference.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA)
                    else
-                     location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA);
+                     location.reference.symbol:=ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA);
                    ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                    reference_reset_base(location.reference,hregister,0,ctempposinvalid,location.reference.alignment,[]);
                  end
@@ -493,9 +493,9 @@ implementation
                      begin
                        { static data is currently always volatile }
                        if not(vo_is_weak_external in gvs.varoptions) then
-                         reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
+                         reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
                        else
-                         reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
+                         reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
                      end
                    else
                       location:=gvs.localloc;
@@ -627,8 +627,8 @@ implementation
             {$ifdef vtentry}
                          if not is_interface(procdef.struct) then
                            begin
-                             inc(current_asmdata.NextVTEntryNr);
-                             ctx.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
+                             inc(ctx.CurrAsmList.AsmData.NextVTEntryNr);
+                             ctx.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(ctx.CurrAsmList.AsmData.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0,voidpointerdef));
                            end;
             {$endif vtentry}
                          if (left.resultdef.typ=objectdef) and
@@ -678,7 +678,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
+                         reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
                          { targets with 32 bit method pointers got already a register assigned }
 {$if not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
                          location.register:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler));
@@ -705,9 +705,9 @@ implementation
                       { def_cgsize does not work for tprocdef, so we use pd.address_type }
                       location.size:=def_cgsize(pd.address_type);
                       if not(po_weakexternal in pd.procoptions) then
-                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)
+                        location.reference.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)
                       else
-                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname,AT_FUNCTION);
+                        location.reference.symbol:=ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(procdef.mangledname,AT_FUNCTION);
                    end;
               end;
            labelsym :
@@ -1115,7 +1115,7 @@ implementation
                 end;
               LOC_JUMP :
                 begin
-                  current_asmdata.getjumplabel(hlabel);
+                  ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
                   ctx.hlcg.a_label(ctx.CurrAsmList,right.location.truelabel);
                   if is_pasbool(left.resultdef) then
                     begin
