@@ -989,7 +989,7 @@ unit cg64f32;
                  hreg:=cg.getintregister(list,OS_32);
                  a_load64high_ref_reg(list,l.reference,hreg);
                end;
-             current_asmdata.getjumplabel(poslabel);
+             list.AsmData.getjumplabel(poslabel);
 
              cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
 
@@ -999,7 +999,7 @@ unit cg64f32;
              { It can also be $ffffffff, but only for negative numbers }
              if from_signed and to_signed then
                begin
-                 current_asmdata.getjumplabel(neglabel);
+                 list.AsmData.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end
              else
@@ -1033,7 +1033,7 @@ unit cg64f32;
 
              if from_signed and to_signed then
                begin
-                 current_asmdata.getjumplabel(endlabel);
+                 list.AsmData.getjumplabel(endlabel);
                  cg.a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
@@ -1048,7 +1048,7 @@ unit cg64f32;
                      a_load64low_ref_reg(list,l.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
-                 current_asmdata.getjumplabel(neglabel);
+                 list.AsmData.getjumplabel(neglabel);
                  cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
                  cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
@@ -1102,7 +1102,7 @@ unit cg64f32;
                    else
                      cg.a_load_ref_reg(list,l.size,OS_32,l.reference,hreg);
                  end;
-               current_asmdata.getjumplabel(poslabel);
+               list.AsmData.getjumplabel(poslabel);
                cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
                cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
