@@ -61,7 +61,13 @@ variables:
 .creating_full_installation: &creating_full_installation
   stage: build
   script:
-    - make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+    - |
+      MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
+      if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
+          make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
+      else
+          make zipinstall -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+      fi
   artifacts:
     when: on_success
     expire_in: 1 week
@@ -71,6 +77,13 @@ variables:
 .run_tests: &run_tests
   stage: test
   script:
+    - |
+      MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
+      if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
+          make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
+      else
+          make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
+      fi
     # extract installer from previous stage
     - tar -xzf fpc-*$ARCH*.tar.gz
     - FPC_SRC=$(pwd)
