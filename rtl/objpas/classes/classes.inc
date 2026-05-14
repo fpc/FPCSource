@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
@@ -228,6 +229,7 @@ begin
   inherited Create;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     InterlockedIncrement(ThreadQueueLockCounter);
+    FThreadQueueLockCounted := true; { Guard against exception in descendant’s Create. }
 {$endif}
   if FExternalThread then
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -252,7 +254,7 @@ begin
   RemoveQueuedEvents(Self);
   DoneSynchronizeEvent;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  if InterlockedDecrement(ThreadQueueLockCounter)=0 then
+  if FThreadQueueLockCounted and (InterlockedDecrement(ThreadQueueLockCounter)=0) then
     DoneCriticalSection(ThreadQueueLock);
 {$endif}
   { set CurrentThreadVar to Nil? }
@@ -388,6 +390,13 @@ procedure TThread.DoneSynchronizeEvent;
     FSynchronizeEntry := Nil;
   end;
 
+
+
+class function TThread.CurrentIsMain : Boolean;
+
+begin
+  Result:=TThread.Current.ThreadID=MainThreadID;
+end;
 
 class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
   var
@@ -726,12 +735,33 @@ end;
 
 
 {$ifndef HAS_TTHREAD_GETSYSTEMTIMES}
-class procedure TThread.GetSystemTimes(out aSystemTimes: TSystemTimes);
+class function TThread.GetSystemTimes(out aSystemTimes: TSystemTimes) : Boolean;
 begin
   { by default we just return a zeroed out record }
   FillChar(aSystemTimes, SizeOf(aSystemTimes), 0);
+  Result:=False;
 end;
 {$endif}
+
+class function TThread.GetCPUUsage(var Previous: TSystemTimes): Integer;
+
+var
+  Act : TSystemTimes;
+  Load,Idle: QWord;
+  
+begin
+  Result:=0;
+  if not GetSystemTimes(Act) then 
+    exit;
+  Load:=(Act.UserTime-Previous.UserTime) +
+        (Act.KernelTime-Previous.KernelTime) +
+        (Act.NiceTime-Previous.NiceTime);
+  Idle:=Act.IdleTime-Previous.IdleTime;
+  Previous:=Act;
+  if (Load<>0) and (Load>Idle) then
+    Result:=100*Trunc(1-(Idle/Load));
+end;
+
 
 
 class function TThread.GetTickCount: LongWord;
@@ -1302,21 +1332,27 @@ end;
 
 { all targets should at least include the sysres.inc dummy in the system unit to compile this }
 function CreateComponentfromRes(const res : string;Inst : THandle;var Component : TComponent) : Boolean;
+
   var
     ResStream : TResourceStream;
+    ResID : TFPResourceHandle;
+    
   begin
-    result:=true;
 
     if Inst=0 then
       Inst:=HInstance;
-
+    ResId:=System.FindResource(Inst, Res, RT_RCDATA);
+    result:=ResID<>0;
     try
-      ResStream:=TResourceStream.Create(Inst,res,RT_RCDATA);
-      try
-        Component:=ResStream.ReadComponent(Component);
-      finally
-        ResStream.Free;
-      end;
+      if Result then
+        begin
+        ResStream:=TResourceStream.Create(Inst,Res,RT_RCDATA);
+        try
+          Component:=ResStream.ReadComponent(Component);
+        finally
+          ResStream.Free;
+        end;
+        end;
     except
       on EResNotFound do
         result:=false;
@@ -1353,7 +1389,6 @@ function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boo
 Var
   I : Integer;
 begin
-  I:=0;
   if not Assigned(InitHandlerList) then begin
     Result := True;
     Exit;
@@ -2524,6 +2559,9 @@ begin
   GlobalLists.Free;
   ComponentPages.Free;
   FreeAndNil(NeedResolving);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  GlobalNameSpace.EndWrite;
+{$endif}
   { GlobalNameSpace is an interface so this is enough }
   GlobalNameSpace:=nil;
 

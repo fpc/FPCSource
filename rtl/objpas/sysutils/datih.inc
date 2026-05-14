@@ -99,9 +99,13 @@ type
 
 {$IFNDEF HAS_SYSTEMTIME}
    TSystemTime = record
-      Year, Month, Day, DayOfWeek: word;
-      Hour, Minute, Second, MilliSecond: word;
-   end ;
+     case integer of
+       0: (Year, Month, Day, DayOfWeek: word;
+           Hour, Minute, Second, MilliSecond: word);
+       // Win32 compatibility
+       1: (wYear, wMonth, wDay, wDayOfWeek: word;
+           wHour, wMinute, wSecond, wMilliseconds: word);
+   end;
 {$ENDIF}
 
    TTimeStamp = record
@@ -141,18 +145,18 @@ function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): 
 function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 function StrToDate(const S: ShortString): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToDate(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToDate(const S: AnsiString; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDate(const S: ShortString; separator : AnsiChar): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDate(const S: AnsiString; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: string; FormatSettings : TFormatSettings): TDateTime;
 function StrToTime(const S: Shortstring): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTime(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTime(const S: AnsiString; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToTime(const S: ShortString; separator : AnsiChar): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToTime(const S: AnsiString; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime;
-function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToDate(const S: AnsiString; const useformat : string; separator : char = #0): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
-function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
+function StrToDate(const S: ShortString; const useformat : string; separator : AnsiChar = #0): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDate(const S: AnsiString; const useformat : string; separator : AnsiChar = #0): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToTime(const S: PAnsiChar; Len : integer; separator : AnsiChar = #0): TDateTime;
+function StrToDate(const S: PAnsiChar; Len : integer; const useformat : string; separator : AnsiChar = #0): TDateTime;
 function StrToDateTime(const S: AnsiString): TDateTime;
 function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
 function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
@@ -166,16 +170,16 @@ Function FileDateToDateTime (Filedate : Int64) :TDateTime;
 Function FileDateToUniversal (Filedate : Int64) :TDateTime;
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
-function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
-function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : AnsiChar): Boolean;
+function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : AnsiChar): Boolean;
 function TryStrToTime(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToTime(const S: AnsiString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
-function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
-function TryStrToTime(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : AnsiChar): Boolean;
+function TryStrToTime(const S: AnsiString; out Value: TDateTime; separator : AnsiChar): Boolean;
 function TryStrToDate(const S: ShortString; out Value: TDateTime;
-                        const useformat : string; separator : char = #0): Boolean;
+                        const useformat : string; separator : AnsiChar = #0): Boolean;
 function TryStrToDate(const S: AnsiString; out Value: TDateTime;
-                        const useformat : string; separator : char = #0): Boolean;
+                        const useformat : string; separator : AnsiChar = #0): Boolean;
 function TryStrToDateTime(const S: ShortString; out Value: TDateTime): Boolean;
 function TryStrToDateTime(const S: AnsiString; out Value: TDateTime): Boolean;
 
@@ -184,15 +188,15 @@ function TryStrToTime(const S: string; out Value: TDateTime; const FormatSetting
 function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 function StrToDateDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToDateDef(const S: ShortString; const Defvalue : TDateTime; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDateDef(const S: ShortString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTimeDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTimeDef(const S: ShortString; const Defvalue : TDateTime; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToTimeDef(const S: ShortString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDateTimeDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;               {$ifdef SYSUTILSINLINE}inline;{$endif}
 
 function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime): TDateTime;               {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime; const FormatSettings: TFormatSettings): TDateTime;               {$ifdef SYSUTILSINLINE}inline;{$endif}
 
@@ -206,6 +210,7 @@ procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline
 
 function GetLocalTimeOffset: Integer;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out IsDST : Boolean): Boolean;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean = False): Integer;
 
 { UTC <-> Local time }

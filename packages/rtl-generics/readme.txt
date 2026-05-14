@@ -1,6 +1,6 @@
 
 This directory contains the rtl-generics units. These units are created 
-outside the FPC source tree by Macie Izak, see:
+outside the FPC source tree by Maciej Izak, see:
 
 https://github.com/maciej-izak/generics.collections
 

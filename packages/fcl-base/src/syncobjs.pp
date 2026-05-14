@@ -167,6 +167,7 @@ destructor TCriticalSection.Destroy;
 
 begin
   DoneCriticalSection(CriticalSection);
+  Inherited;
 end;
 
 { THandleObject }
@@ -273,7 +274,8 @@ end;
 
 destructor THandleObject.Destroy;
 begin
-  BasicEventDestroy(Handle);
+  if (Handle<>Nil) then
+    BasicEventDestroy(Handle);
 end;
 
 constructor TEventObject.Create(EventAttributes : PSecurityAttributes;

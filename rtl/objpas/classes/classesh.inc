@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Pascal Run Time Library (rtl)
     Copyright (c) 1999-2008 by Michael Van Canneyt, Florian Klaempfl,
@@ -46,6 +47,7 @@ const
 
 { values for TShortCut }
 
+  scCommand = $1000;
   scShift = $2000;
   scCtrl = $4000;
   scAlt = $8000;
@@ -85,6 +87,7 @@ const
 
 Const
   FilerSignature : Array[1..4] of char = 'TPF0';
+  FilerSignature1 : Array[1..4] of char = 'TPF1';
 
 type
 { Text alignment types }
@@ -102,7 +105,8 @@ type
     ssLeft, ssRight, ssMiddle, ssDouble,
     // Extra additions
     ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,
-    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2);
+    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2,
+    ssTouch, ssPen, ssHorizontal);
 
 {$packset 1}
   TShiftState = set of TShiftStateEnum;
@@ -148,6 +152,9 @@ type
 
 
 Const
+  // Delphi compatibility
+  ssCommand = ssMeta;
+  
   SGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
   SGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
 
@@ -245,6 +252,7 @@ Type
     function Extract(Item: Pointer): Pointer;
     function First: Pointer;
     function GetEnumerator: TFPListEnumerator;
+    function Contains(Item: Pointer): boolean;
     function IndexOf(Item: Pointer): Integer;
     function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -330,7 +338,8 @@ Type
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
     function GetEnumerator: TListEnumerator;
-    function IndexOf(Item: Pointer): Integer;
+    function Contains(Item: Pointer): boolean;
+    function IndexOf(Item: Pointer): Integer; 
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
@@ -364,59 +373,57 @@ Type
 
 {TBits Class}
 
-const
-   BITSHIFT = 5;
-   MASK = 31; {for longs that are 32-bit in size}
-   // to further increase, signed integer limits have to be researched.
-{$ifdef cpu16}
-   MaxBitFlags = $7FE0;
-{$else cpu16}
-   MaxBitFlags = $7FFFFFE0;
-{$endif cpu16}
-   MaxBitRec = MaxBitFlags Div (SizeOf(cardinal)*8);
 type
-   TBitArray = array[0..MaxBitRec - 1] of cardinal;
+   TBitsBase = PtrInt;
+   PBitsBase = ^TBitsBase;
+   TBitsBaseUnsigned = PtrUint;
 
+const
+   MaxBitFlags = High(SizeInt) - (bitsizeof(TBitsBase) - 1);
+
+type
    TBits = class(TObject)
    private
-      { Private declarations }
-      FBits : ^TBitArray;
-      FSize : longint;  { total longints currently allocated }
-      FBSize: longint;  {total bits currently allocated}
-      findIndex : longint;
-      findState : boolean;
+      FBits : PBitsBase;
+      FSize : SizeInt;  { total TBitsBases currently allocated }
+      FBSize: SizeInt;  {total bits currently allocated}
+      findIndex : SizeInt;
+      findXorMask : int8; { 0 (all zeros) or -1 (all ones), sign-extended to TBitsBase on read.
+                            0 is for searching ones, -1 is for searching zeros. }
+
+      function ScanFor1(start : SizeInt; xorMask : TBitsBase) : SizeInt;
+      function ScanFor1Rev(start : SizeInt; xorMask : TBitsBase) : SizeInt;
 
       { functions and properties to match TBits class }
-      procedure SetBit(bit : longint; value : Boolean);
-      procedure SetSize(value : longint);
+      procedure SetBit(bit : SizeInt; value : Boolean);
+      procedure SetSize(value : SizeInt);
    Protected
-      procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
+      procedure CheckBitIndex (Bit : SizeInt;CurrentSize : Boolean);
    public
-      { Public declarations }
       constructor Create(TheSize : longint = 0); virtual;
       destructor Destroy; override;
-      function  GetFSize : longint;
-      procedure SetOn(Bit : longint);
-      procedure Clear(Bit : longint);
+      function  GetFSize : SizeInt;
+      procedure SetOn(Bit : SizeInt);
+      procedure Clear(Bit : SizeInt);
       procedure Clearall;
       procedure CopyBits(BitSet : TBits);
       procedure AndBits(BitSet : TBits);
       procedure OrBits(BitSet : TBits);
       procedure XorBits(BitSet : TBits);
       procedure NotBits(BitSet : TBits);
-      function  Get(Bit : longint) : boolean;
-      procedure Grow(NBit : longint);
+      function  Get(Bit : SizeInt) : boolean;
+      procedure Grow(NBit : SizeInt);
       function  Equals(Obj : TObject): Boolean; override; overload;
       function  Equals(BitSet : TBits) : Boolean; overload;
-      procedure SetIndex(Index : longint);
-      function  FindFirstBit(State : boolean) : longint;
-      function  FindNextBit : longint;
-      function  FindPrevBit : longint;
+      procedure SetIndex(Index : SizeInt);
+      function  FindFirstBit(State : boolean) : SizeInt;
+      function  FindNextBit : SizeInt;
+      function  FindPrevBit : SizeInt;
 
       { functions and properties to match TBits class }
-      function OpenBit: longint;
-      property Bits[Bit: longint]: Boolean read get write SetBit; default;
-      property Size: longint read FBSize write setSize;
+      function OpenBit: SizeInt;
+      property Bits[Bit: SizeInt]: Boolean read get write SetBit; default;
+      property Size: SizeInt read FBSize write setSize;
    end;
 
 { TPersistent abstract class }
@@ -729,12 +736,15 @@ type
     function GetEnumerator: TStringsEnumerator;
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
+    function Contains(const S: string): Boolean;
+    function ContainsObject(const AObject: TObject): Boolean; inline;
     function IndexOf(const S: string): Integer; virtual;
     function IndexOf(const S: string; aStart : Integer): Integer; virtual;
+    function ContainsName(const Name: string): Boolean; virtual;
     function IndexOfName(const Name: string): Integer; virtual;
     function IndexOfObject(AObject: TObject): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
-    procedure InsertObject(Index: Integer; const S: string; AObject: TObject);
+    procedure InsertObject(Index: Integer; const S: string; AObject: TObject); virtual;
     function LastIndexOf(const S: string; aStart : Integer): Integer; virtual;
     function LastIndexOf(const S: string): Integer;
     procedure LoadFromFile(const FileName: string); overload; virtual;
@@ -757,8 +767,10 @@ type
     procedure SaveToStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
     procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     function Shift : String;
-    Procedure Slice(fromIndex: integer; aList : TStrings);
-    Function Slice(fromIndex: integer) : TStrings;
+    Procedure Slice(fromIndex: integer; aList : TStrings); overload;
+    Procedure Slice(fromIndex, toIndex: integer; aList : TStrings); overload;
+    Function Slice(fromIndex: integer) : TStrings; overload;
+    Function Slice(fromIndex, toIndex: integer) : TStrings; overload;
     procedure SetText(TheText: PChar); virtual;
     property AlwaysQuote: Boolean read FAlwaysQuote write FAlwaysQuote;
     property Capacity: Integer read GetCapacity write SetCapacity;
@@ -846,11 +858,13 @@ type
     procedure InsertItem(Index: Integer; const S: string); virtual;
     procedure InsertItem(Index: Integer; const S: string; O: TObject); virtual;
     Function DoCompareText(const s1,s2 : string) : PtrInt; override;
+    function DoAddObject(const S: string; AObject: TObject) : Integer; inline;
   public
     Constructor Create;
     Constructor Create(anOwnsObjects : Boolean);
     destructor Destroy; override;
     function Add(const S: string): Integer; override;
+    function AddObject(const S: string; AObject: TObject): Integer; override;
     procedure Clear; override;
     procedure Delete(Index: Integer); override;
     procedure Exchange(Index1, Index2: Integer); override;
@@ -1030,6 +1044,7 @@ type
     constructor Create(const AFileName: string; Mode: Word);
     constructor Create(const AFileName: string; Mode: Word; Rights: Cardinal);
     destructor Destroy; override;
+    Function Flush : Boolean;
     property FileName : String Read FFilename;
   end;
 
@@ -1183,7 +1198,7 @@ type
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
     vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64,
-    vaUTF8String, vaUString, vaQWord);
+    vaUTF8String, vaUString, vaQWord, vaDouble);
 
   TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;
@@ -1241,6 +1256,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended; virtual; abstract;
     function ReadSingle: Single; virtual; abstract;
+    function ReadDouble: Double; virtual; abstract;
     function ReadDate: TDateTime; virtual; abstract;
 {$endif}
     function ReadCurrency: Currency; virtual; abstract;
@@ -1293,6 +1309,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended; override;
     function ReadSingle: Single; override;
+    function ReadDouble: Double; override;
     function ReadDate: TDateTime; override;
 {$endif}
     function ReadCurrency: Currency; override;
@@ -1360,7 +1377,7 @@ type
     FCanHandleExcepts: Boolean;
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
-    function FindComponentClass(const AClassName: string): TComponentClass;
+    function FindComponentClass(const AName, AClassName: string): TComponentClass;
     procedure Lock;
     procedure Unlock;
   protected
@@ -1388,6 +1405,7 @@ type
     function EndOfList: Boolean;
     procedure EndReferences;
     procedure FixupReferences;
+    procedure SkipValue;
     function NextValue: TValueType;
     //Please don't use read, better use ReadBinary whenever possible
     //uuups, ReadBinary is protected ..
@@ -1404,6 +1422,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended;
     function ReadSingle: Single;
+    function ReadDouble: Double;
     function ReadDate: TDateTime;
 {$endif}
     function ReadCurrency: Currency;
@@ -1482,12 +1501,21 @@ type
   { TBinaryObjectWriter }
 
   TBinaryObjectWriter = class(TAbstractObjectWriter)
+  public
+    type
+      TBOWVersion = (
+        bowVersion0,
+        bowVersion1
+        );
+    const
+      UnitnameSeparator = '/';
   protected
     FStream: TStream;
     FBuffer: Pointer;
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
+    FVersion: TBOWVersion;
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1523,11 +1551,13 @@ type
     procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
-    procedure WriteStr(const Value: String);
+    procedure WriteStr(const Value: String); // write shortstring
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
     procedure WriteVariant(const VarValue: Variant);override;
+
+    property Version: TBOWVersion read FVersion write FVersion;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
@@ -1593,12 +1623,12 @@ type
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint); overload;
     procedure WriteInteger(Value: Int64); overload;
-    procedure WriteSet(Value: LongInt; SetType: Pointer);
+    procedure WriteSet(Value: Longint; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
     Procedure WriteSignature;
     procedure WriteRootComponent(ARoot: TComponent);
-    procedure WriteString(const Value: string);
+    procedure WriteString(const Value: String);
     procedure WriteWideString(const Value: WideString);
     procedure WriteUnicodeString(const Value: UnicodeString);
     procedure WriteVariant(const VarValue: Variant);
@@ -1731,7 +1761,7 @@ type
     FReturnValue: Integer;
     FOnTerminate: TNotifyEvent;
     FFatalException: TObject;
-    FExternalThread: Boolean;
+    FExternalThread, FThreadQueueLockCounted: Boolean;
     FSynchronizeEntry: PThreadQueueEntry;
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
@@ -1806,7 +1836,8 @@ type
     class procedure Yield; static;
     { use HAS_TTHREAD_GETSYSTEMTIMES to implement a platform specific variant
       which does not return a zeroed record }
-    class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
+    class function GetSystemTimes(out aSystemTimes: TSystemTimes) : boolean; static;
+    class function GetCPUUsage(var Previous: TSystemTimes): Integer;
     class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
     class function GetTickCount64: QWord; static;
     // Object based
@@ -1821,7 +1852,9 @@ type
     procedure Suspend; deprecated;
     procedure Terminate;
     function WaitFor: Integer;
+    class function CurrentIsMain : Boolean; static; inline;
     class property CurrentThread: TThread read GetCurrentThread;
+    class property Current: TThread read GetCurrentThread;
     class property ProcessorCount: LongWord read FProcessorCount;
     class property IsSingleProcessor: Boolean read GetIsSingleProcessor;
     property FreeOnTerminate: Boolean read FFreeOnTerminate write FFreeOnTerminate;
@@ -2044,6 +2077,7 @@ type
     property ActionComponent: TComponent read FActionComponent write SetActionComponent;
     property OnExecute: TNotifyEvent read FOnExecute write SetOnExecute;
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
+    Property Clients[Idx : Integer] : TObject Read GetClient;
   end;
   TActionEvent = procedure(Action: TBasicAction; var Handled: Boolean) of object;
 
@@ -2091,7 +2125,14 @@ type
     property Current: IUnknown read GetCurrent;
   end;
 
-  TInterfaceList = class(TInterfacedObject,IInterfaceList)
+  IInterfaceListEx = interface(IInterfaceList)
+    ['{FDB39D70-65B9-4995-9436-6084ACA05DB3}']
+    function GetEnumerator: TInterfaceListEnumerator;
+  end;
+
+  { TInterfaceList }
+
+  TInterfaceList = class(TInterfacedObject,IInterfaceList,IInterfaceListEx)
   private
     FList : TThreadList;
   protected

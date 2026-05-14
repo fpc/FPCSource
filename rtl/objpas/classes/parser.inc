@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2007 by the Free Pascal development team
@@ -126,6 +127,8 @@ begin
 end;
 
 procedure TParser.SkipBOM;
+const
+  sbom : string[3] = #$EF#$BB#$BF;
 var
   i : integer;
   bom : string[3];
@@ -141,7 +144,7 @@ begin
     CheckLoadBuffer;
     inc(i);
   end;
-  if (bom<>(#$EF+#$BB+#$BF)) then
+  if (bom<>sBom) then
     fPos:=backup;
 end;
 

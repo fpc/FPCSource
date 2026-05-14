@@ -130,7 +130,7 @@ begin
 end;
 {$ENDIF}
 
-  { Read pchar handling functions implementation }
+  { Read PAnsiChar handling functions implementation }
   {$i syspch.inc}
 
   { generic internationalisation code }
@@ -299,7 +299,7 @@ end;
        ErrCode:=Code;
     end;
 
-  
+
 constructor EInOutArgumentException.Create(const aMsg, aPath: string); overload;
 
 begin
@@ -525,6 +525,12 @@ end;
 
 {$pop} //{$S-} for Error handling functions
 
+procedure RangeIndexError(aIndex, aMaxIndex: SizeInt; aListObj: TObject);
+
+begin
+  raise ERangeError.Create(ListIndexErrorMsg(aIndex,aMaxIndex,aListObj));
+end;
+
 Procedure InitExceptions;
 {
   Must install uncaught exception handler (ExceptProc)
@@ -593,7 +599,7 @@ begin
 end;
 
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                               Buffer: PChar; Size: Integer): Integer;
+                               Buffer: PAnsiChar; Size: Integer): Integer;
 
 Var
   S : AnsiString;
@@ -644,6 +650,29 @@ begin
   Raise OutOfMemory;
 end;
 
+function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
+
+begin
+  if aMaxIndex<0 then
+    Result:=Format(SListIndexErrorEmptyReason,[aListObjName])
+  else
+    Result:=Format(SListIndexErrorRangeReason,[aListObjName]);
+  Result:=Format(SListIndexError, [aIndex])+Result;
+end;
+
+function ListIndexErrorMsg(AIndex, AMaxIndex: SizeInt; AListObj: TObject): string; overload;
+
+Var
+  aName : string;
+
+begin
+  if Assigned(aListObj) then
+   Result:=aListObj.ClassName
+ else
+   Result:='<Nil>';
+  Result:=ListIndexErrorMsg(aIndex, aMaxIndex, aName);
+end;
+
 procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
 
 var
@@ -653,7 +682,7 @@ begin
   if Assigned(aObj) then
     aClassName:=aObj.ClassName
   else
-    aClassName:='<nil>';  
+    aClassName:='<nil>';
   Raise EListError.CreateFmt(SErrListIndexExt,[aIndex,aClassName,aMax])
 end;
 
@@ -864,7 +893,6 @@ end;
 
 
 // generic ifthen..
-{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 begin
   if val then
@@ -878,7 +906,7 @@ begin
   Result := target;
   target := newvalue;
 end;
-{$ENDIF}
+
 
 Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
 

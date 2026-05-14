@@ -3712,6 +3712,8 @@ BEGIN
          Else Ni := Oi;                               { Focus old item }
        Ct := 0;                                       { Clear count value }
        Repeat
+         if Event.Buttons=0 then
+           break;
          If (Ni <> Oi) Then Begin                     { Item is different }
            MoveFocus(Ni);                             { Move the focus }
            Oi := Focused;                             { Hold as focused item }

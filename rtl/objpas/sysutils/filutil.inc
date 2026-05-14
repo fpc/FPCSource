@@ -866,6 +866,8 @@ begin
   if FileSeek(aHandle,0,fsFromBeginning)<0 then
     Raise EInOutError.Create(SSeekFailed);
   SetLength(Result,aLen);
+  if aLen=0 then
+    Exit;
   aOffset:=0;
   Repeat
     aBuf:=@Result[aOffset];

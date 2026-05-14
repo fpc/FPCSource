@@ -1,0 +1,61 @@
+0a1
+> {$IFNDEF FPC_DOTTEDUNITS}
+1a3
+> {$ENDIF FPC_DOTTEDUNITS}
+67c69
+< {$I regexpr_compilers.inc}
+---
+> 
+72d73
+< {$IFDEF FPC}
+75c76
+< {$ENDIF}
+---
+> {$DEFINE COMPAT}
+77c78
+< {$DEFINE UnicodeRE} // Use WideChar for characters and UnicodeString/WideString for strings
+---
+> { off $DEFINE UnicodeRE} // Use WideChar for characters and UnicodeString/WideString for strings
+79,89c80,83
+< { off $DEFINE UseWordChars} // Use WordChars property, otherwise fixed list 'a'..'z','A'..'Z','0'..'9','_' 
+< { off $DEFINE UseSpaceChars} // Use SpaceChars property, otherwise fixed list
+< { off $DEFINE UseLineSep} // Use LineSeparators property, otherwise fixed line-break chars
+< {$IFDEF UNICODE}
+<   {$IFNDEF UnicodeRE}
+<   {$MESSAGE ERROR 'You cannot undefine UnicodeRE for Unicode Delphi versions'}
+<   {$ENDIF}
+< {$ENDIF}
+< {$IFDEF FPC}
+<   {$DEFINE FastUnicodeData} // Use arrays for UpperCase/LowerCase/IsWordChar, they take 320K more memory
+< {$ENDIF}
+---
+> {$DEFINE UseWordChars} // Use WordChars property, otherwise fixed list 'a'..'z','A'..'Z','0'..'9','_'
+> {$DEFINE UseSpaceChars} // Use SpaceChars property, otherwise fixed list
+> {$DEFINE UseLineSep} // Use LineSeparators property, otherwise fixed line-break chars
+> { off $DEFINE FastUnicodeData} // Use arrays for UpperCase/LowerCase/IsWordChar, they take 320K more memory
+116d109
+< 
+121a115,127
+> 
+> {$IFDEF FPC_DOTTEDUNITS}
+> uses
+>   System.SysUtils, // Exception
+>   {$IFDEF D2009}
+>     {$IFDEF D_XE2}
+>     System.System.Character,
+>     {$ELSE}
+>     System.Character,
+>     {$ENDIF}
+>   {$ENDIF}
+>   System.Classes; // TStrings in Split method
+> {$ELSE FPC_DOTTEDUNITS}
+131a138
+> {$ENDIF FPC_DOTTEDUNITS}
+2922d2928
+< 
+3110d3115
+< 
+6535d6539
+< 
+6543a6548
+> 

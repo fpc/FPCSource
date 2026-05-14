@@ -21,7 +21,7 @@ unit SAX_XML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM;
+uses SysUtils, Classes, SAX, DOM, XmlReader;
 
 type
 
@@ -51,7 +51,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Parse(AInput: TSAXInputSource); override; overload;
+    procedure Parse(AInput: TXMLInputSource); override; overload;
 
     property EndOfStream: Boolean read FEndOfStream;
     property ScannerContext: TXMLScannerContext read FScannerContext;
@@ -134,7 +134,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSAXXMLReader.Parse(AInput: TSAXInputSource);
+procedure TSAXXMLReader.Parse(AInput: TXMLInputSource);
 const
   MaxBufferSize = 1024;
 var

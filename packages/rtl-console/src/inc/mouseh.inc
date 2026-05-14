@@ -35,6 +35,8 @@ const
   MouseMiddleButton = $04;                         { Middle mouse button }
   MouseButton4      = $08;
   MouseButton5      = $10;
+  MouseXButton1     = $20;
+  MouseXButton2     = $40;
 
   MouseEventBufSize = 16;                { Size of event queue }
 

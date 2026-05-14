@@ -1,15 +1,16 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="cldrparser"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -17,48 +18,45 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="de.xml search"/>
+        <CommandLineParams Value="-t:N"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-t:N"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="7">
       <Unit0>
         <Filename Value="cldrparser.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cldrparser"/>
       </Unit0>
       <Unit1>
         <Filename Value="cldrhelper.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cldrhelper"/>
       </Unit1>
       <Unit2>
         <Filename Value="..\helper.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="helper"/>
       </Unit2>
       <Unit3>
         <Filename Value="cldrtest.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cldrtest"/>
       </Unit3>
       <Unit4>
         <Filename Value="cldrxml.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cldrxml"/>
       </Unit4>
       <Unit5>
         <Filename Value="..\tests\weight_derivation.inc"/>
@@ -67,7 +65,6 @@
       <Unit6>
         <Filename Value="unicodeset.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="unicodeset"/>
       </Unit6>
     </Units>
   </ProjectOptions>
@@ -78,16 +75,10 @@
       <Filename Value="cldrparser"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);..\src"/>
-      <OtherUnitFiles Value="..\src;..\rbtree\src;..\trie"/>
+      <IncludeFiles Value="$(ProjOutDir);data"/>
+      <OtherUnitFiles Value="data"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

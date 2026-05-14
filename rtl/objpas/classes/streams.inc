@@ -550,6 +550,7 @@ end;
 constructor TFileStream.Create(const AFileName: string; Mode: Word);
 
 begin
+  // 438 = 666 octal which is rw rw rw 
   Create(AFileName,Mode,438);
 end;
 
@@ -587,6 +588,11 @@ destructor TFileStream.Destroy;
 
 begin
   FileClose(FHandle);
+end;
+
+function TFileStream.Flush : Boolean;
+begin
+  Result:=FileFlush(Handle);
 end;
 
 {****************************************************************************}

@@ -71,7 +71,8 @@ var
   ucaBook : TUCA_DataBook;
   ucaPropBook : PUCA_PropBook;
   propList : TPropListLineRecArray;
-  whiteSpaceCodePoints : TCodePointRecArray;
+  whiteSpaceCodePoints : TCodePointRecArray; 
+  unifiedIdeographCodePoints : TCodePointRecArray;
   props : TPropRecArray;
   numericTable : TNumericValueArray;
   decomposition : TDecompositionArray;
@@ -155,6 +156,8 @@ begin
     writeln('  White_Space Length = ',Length(whiteSpaceCodePoints));
     for i := Low(whiteSpaceCodePoints) to High(whiteSpaceCodePoints) do
       WriteLn('      ',DumpCodePoint(whiteSpaceCodePoints[i]):12,' , IsWhiteSpace = ',IsWhiteSpace(whiteSpaceCodePoints[i].CodePoint,whiteSpaceCodePoints));
+    unifiedIdeographCodePoints := FindCodePointsByProperty('Unified_Ideograph',propList); 
+    writeln('  Unified_Ideograph Length = ',Length(unifiedIdeographCodePoints));
 
     WriteLn('Load file UnicodeData.txt ...', DateTimeToStr(Now));
     stream.LoadFromFile(dataPath + 'UnicodeData.txt');
@@ -162,7 +165,10 @@ begin
     WriteLn('Parse file ...', DateTimeToStr(Now));
     data := nil;
     props := nil;
-    Parse_UnicodeData(stream,props,numericTable,data,decomposition,hangulSyllables,whiteSpaceCodePoints);
+    Parse_UnicodeData(
+      stream,props,numericTable,data,decomposition,hangulSyllables,
+      whiteSpaceCodePoints,unifiedIdeographCodePoints
+    );
     WriteLn('Decomposition building ...');
     MakeDecomposition(decomposition,decompositionBook);
 
@@ -299,13 +305,14 @@ begin
     binStreamNE.Clear();
     binStreamOE.Clear();
     WriteLn('Source generation ...', DateTimeToStr(Now));
+    GenerateNumericTable(stream,numericTable,False);
     WriteLn('BMP Tables sources ...', DateTimeToStr(Now));
       Generate3lvlBmpTables(stream,lvl3table1,lvl3table2,lvl3table3);
     WriteLn('Properties Table sources ...', DateTimeToStr(Now));
-      tmpStream.Clear();
+      {tmpStream.Clear();
       GenerateNumericTable(tmpStream,numericTable,True);
       tmpStream.SaveToFile(outputPath + 'unicodenumtable.pas');
-      tmpStream.Clear();
+      tmpStream.Clear();}
       GeneratePropTable(binStreamNE,props,ENDIAN_NATIVE);
       GeneratePropTable(binStreamOE,props,ENDIAN_NON_NATIVE);
 //-------------------------------------------

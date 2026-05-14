@@ -217,10 +217,10 @@ type
    ENoDynLibsSupport = class(Exception);
 
    EProgrammerNotFound = class(Exception);
-   
+
    EMonitor = class(Exception);
    EMonitorLockException = class(EMonitor);
-   ENoMonitorSupportException = class(EMonitor);   
+   ENoMonitorSupportException = class(EMonitor);
 
    EObjectDisposed = class(Exception);
 
@@ -257,11 +257,14 @@ type
    function ExceptFrameCount: Longint;
    function ExceptFrames: PCodePointer;
    function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                                  Buffer: PChar; Size: Integer): Integer;
+                                  Buffer: PAnsiChar; Size: Integer): Integer;
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
    procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; aListObj: TObject): string; overload;
+   procedure RangeIndexError(aIndex, aMaxIndex: SizeInt; aListObj: TObject);
 
 Type
    TBeepHandler = Procedure;
@@ -285,10 +288,8 @@ type
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
-{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 generic function Exchange<T>(var target:T; const newvalue:T) :T; inline;
-{$ENDIF}
 
 Var
    OnShowException : Procedure (Msg : ShortString);
@@ -308,7 +309,7 @@ Type
    TTextRec=TextRec;
 
 
-  { Read pchar handling functions declaration }
+  { Read PAnsiChar handling functions declaration }
   {$i syspchh.inc}
 
   { MCBS functions }
@@ -412,6 +413,7 @@ Type
                  pfNativeNT, pfMSDos, pfWII, pfAROS, pfDragonFly, pfWin16,
                  pfFreeRTOS, pfZXSpectrum, pfMSXDOS, pfAmstradCPC,
                  pfSinclairQL, pfWasi, pfOther);
+    TDelphiPlatform = TPlatform.pfWindows..TPlatform.pfLinux;
   public const
     AllArchitectures = [Low(TArchitecture) .. High(TArchitecture)];
     AllPlatforms = [Low(TPlatform) .. High(TPlatform)];
@@ -453,11 +455,12 @@ Type
 
   TArchitectures = set of TOSVersion.TArchitecture;
   TPlatforms = set of TOSVersion.TPlatform;
+  TDelphiPlatforms = set of TOSVersion.TDelphiPlatform;
 
   Function GetCompiledArchitecture : TOSVersion.TArchitecture;
   Function GetCompiledPlatform : TOSVersion.TPlatform;
 
 {$IFNDEF HAS_INVALIDHANDLE}
-const 
+const
   INVALID_HANDLE_VALUE = DWORD(-1);
 {$ENDIF}

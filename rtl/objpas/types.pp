@@ -36,7 +36,9 @@ const
 Const
   Epsilon: Single = 1E-40;
   Epsilon2: Single = 1E-30;
-
+  
+  CurveKappa = 0.5522847498; 
+  CurveKappaInv = 1 - CurveKappa;
 
 type
   TEndian =  Objpas.TEndian;
@@ -143,7 +145,8 @@ type
           procedure Offset(const apt :TPointF);
           procedure Offset(const apt :TPoint);
           procedure Offset(dx,dy : Single);
-          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean;
+          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean; overload;
+          function EqualsTo(const apt: TPointF): Boolean; overload;
 
           function  Scale (afactor:Single)  : TPointF;
           function  Ceiling : TPoint;
@@ -275,6 +278,7 @@ type
     procedure Inflate(DL, DT, DR, DB: Single);
     procedure Inflate(DX, DY: Single);
     procedure Intersect(R: TRectF);
+    procedure Normalize;
     procedure NormalizeRect;
     procedure Offset (const dx,dy : Single); inline;
     procedure Offset (DP: TPointF); inline;
@@ -490,6 +494,8 @@ function RectCenter(var R: TRect; const Bounds: TRect): TRect;
 function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
 function RectHeight(const Rect: TRect): Integer; inline; 
 function RectHeight(const Rect: TRectF): Single; inline; 
+function RectWidth(const Rect: TRect): Integer; inline; 
+function RectWidth(const Rect: TRectF): Single; inline; 
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function UnionRect(var Rect : TRectF; const R1,R2 : TRectF) : Boolean;
 function UnionRect(const R1,R2 : TRect) : TRect;
@@ -523,6 +529,13 @@ type
     generic class function InTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T; static;
   end;
 {$endif}
+
+Const
+  cPI: Single = 3.141592654;
+  cPIdiv180: Single = 0.017453292;
+  cPIdiv2: Single = 1.570796326;
+  cPIdiv4: Single = 0.785398163;
+
 
 implementation
 
@@ -803,6 +816,8 @@ begin
   Result:=Rect.Height
 end;
 
+
+
 function RectCenter(var R: TRect; const Bounds: TRect): TRect;
 
 var
@@ -855,19 +870,26 @@ function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
 var
   lRect: TRect;
 begin
-  lRect:=R1;
-  if R2.Left<R1.Left then
-    lRect.Left:=R2.Left;
-  if R2.Top<R1.Top then
-    lRect.Top:=R2.Top;
-  if R2.Right>R1.Right then
-    lRect.Right:=R2.Right;
-  if R2.Bottom>R1.Bottom then
-    lRect.Bottom:=R2.Bottom;
+  if IsRectEmpty(R1) then
+    lRect:=R2
+  else if IsRectEmpty(R2) then
+    lRect:=R1
+  else
+    begin
+      lRect:=R1;
+      if R2.Left<R1.Left then
+        lRect.Left:=R2.Left;
+      if R2.Top<R1.Top then
+        lRect.Top:=R2.Top;
+      if R2.Right>R1.Right then
+        lRect.Right:=R2.Right;
+      if R2.Bottom>R1.Bottom then
+        lRect.Bottom:=R2.Bottom;
+    end;
 
   Result:=not IsRectEmpty(lRect);
   if Result then
-    Rect := lRect
+    Rect:=lRect
   else
     FillChar(Rect,SizeOf(Rect),0);
 end;
@@ -1042,6 +1064,12 @@ procedure TPointF.Offset(dx,dy : Single);
 begin
   x:=x+dx;
   y:=y+dy;
+end;
+
+function TPointF.EqualsTo(const apt: TPointF): Boolean;
+
+begin
+  Result:=EqualsTo(apt,0);
 end;
 
 function TPointF.EqualsTo(const apt: TPointF; const aEpsilon: Single): Boolean;
@@ -1497,19 +1525,37 @@ begin
 end;
 
 function TRectF.FitInto(const Dest: TRectF; out Ratio: Single): TRectF;
+var
+  dw, dh, w, h : Single;
 begin
-  if (Dest.Width<=0) or (Dest.Height<=0) then
+  dw := Dest.Width;
+  dh := Dest.Height;
+  if (dw <= 0) or (dh <= 0) then
   begin
-    Ratio:=1.0;
+    Ratio := 1.0;
     exit(Self);
   end;
-  Ratio:=Max(Self.Width / Dest.Width, Self.Height / Dest.Height);
-  if Ratio=0 then
+
+  w := Self.Width;
+  h := Self.Height;
+
+  if w * dh > h * dw  then
+    Ratio := w / dw
+  else
+    Ratio := h / dh;
+
+  if Ratio = 0 then
     exit(Self);
-  Result.Width:=Self.Width / Ratio;
-  Result.Height:=Self.Height / Ratio;
-  Result.Left:=Self.Left + (Self.Width - Result.Width) / 2;
-  Result.Top:=Self.Top + (Self.Height - Result.Height) / 2;
+
+  w := w / Ratio;
+  h := h / Ratio;
+
+  // Center the result within the Dest rectangle
+  Result.Left := (Dest.Left + Dest.Right - w) * 0.5;
+  Result.Right := Result.Left + w;
+
+  Result.Top := (Dest.Top + Dest.Bottom - h) * 0.5;
+  Result.Bottom := Result.Top + h;
 end;
 
 function TRectF.FitInto(const Dest: TRectF): TRectF;
@@ -1654,6 +1700,24 @@ end;
 function TRectF.IsEmpty: Boolean;
 begin
   Result := (CompareValue(Right,Left)<=0) or (CompareValue(Bottom,Top)<=0);
+end;
+
+procedure TRectF.Normalize;
+var
+  x: Single;
+begin
+  if Top>Bottom then
+  begin
+    x := Top;
+    Top := Bottom;
+    Bottom := x;
+  end;
+  if Left>Right then
+  begin
+    x := Left;
+    Left := Right;
+    Right := x;
+  end
 end;
 
 procedure TRectF.NormalizeRect;

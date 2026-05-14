@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -437,7 +438,8 @@ end;
 Procedure TComponent.ValidateContainer(AComponent: TComponent);
 
 begin
-  AComponent.ValidateInsert(Self);
+  if Assigned(aComponent) then
+    AComponent.ValidateInsert(Self);
 end;
 
 
@@ -603,6 +605,8 @@ Procedure TComponent.InsertComponent(AComponent: TComponent);
 begin
   AComponent.ValidateContainer(Self);
   ValidateRename(AComponent,'',AComponent.FName);
+  If AComponent.FOwner<>Nil then
+    AComponent.FOwner.Remove(AComponent);
   Insert(AComponent);
   AComponent.SetReference(True);
   If csDesigning in FComponentState then

@@ -177,14 +177,20 @@ type
 
   { TPropRec }
 
-  TPropRec = packed record
+  TPropRec = packed record 
+  private
+    const FLAG_WHITE_SPACE       = 0;
+    const FLAG_HANGUL_SYLLABLE   = 1;
+    const FLAG_UNIFIED_IDEOGRAPH = 2;
   private
     function GetCategory : TUnicodeCategory;inline;
     procedure SetCategory(AValue : TUnicodeCategory);
     function GetWhiteSpace : Boolean;inline;
-    procedure SetWhiteSpace(AValue : Boolean);
+    procedure SetWhiteSpace(AValue : Boolean);  
     function GetHangulSyllable : Boolean;inline;
     procedure SetHangulSyllable(AValue : Boolean);
+    function GetUnifiedIdeograph : Boolean;inline;
+    procedure SetUnifiedIdeograph(AValue : Boolean);
   public
     CategoryData    : Byte;
 
@@ -198,6 +204,7 @@ type
     property Category : TUnicodeCategory read GetCategory write SetCategory;
     property WhiteSpace : Boolean read GetWhiteSpace write SetWhiteSpace;
     property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable;
+    property UnifiedIdeograph : Boolean read GetUnifiedIdeograph write SetUnifiedIdeograph;
   end;
   TPropRecArray = array of TPropRec;
 
@@ -523,13 +530,14 @@ const
   );
 
   procedure Parse_UnicodeData(
-          ADataAStream   : TMemoryStream;
-    var   APropList      : TPropRecArray;
-    var   ANumericTable  : TNumericValueArray;
-    var   ADataLineList  : TDataLineRecArray;
-    var   ADecomposition : TDecompositionArray;
-    const AHangulList    : TCodePointRecArray;
-    const AWhiteSpaces   : TCodePointRecArray
+          ADataAStream       : TMemoryStream;
+    var   APropList          : TPropRecArray;
+    var   ANumericTable      : TNumericValueArray;
+    var   ADataLineList      : TDataLineRecArray;
+    var   ADecomposition     : TDecompositionArray;
+    const AHangulList        : TCodePointRecArray;
+    const AWhiteSpaces       : TCodePointRecArray;
+    const AUnifiedIdeographs : TCodePointRecArray
   );
   procedure MakeDecomposition(
     const ARawData : TDecompositionArray;
@@ -586,6 +594,10 @@ const
   function IsWhiteSpace(
     const ACodePoint   : TUnicodeCodePoint;
     const AWhiteSpaces : TCodePointRecArray
+  ) : Boolean;inline;
+  function IsIncluded(
+    const ACodePoint : TUnicodeCodePoint;
+    const AList      : TCodePointRecArray
   ) : Boolean;
 
   function GetPropID(
@@ -1092,6 +1104,32 @@ begin
     Result := StrToInt('$' + s);
 end;
 
+function IsIncluded(
+  const ACodePoint : TUnicodeCodePoint;
+  const AList      : TCodePointRecArray
+) : Boolean;
+var
+  i : Integer;
+  p : ^TCodePointRec;
+begin       
+  Result := False;
+  p := @AList[Low(AList)];
+  for i := Low(AList) to High(AList) do begin
+    if (p^.LineType = 0) then begin
+      if (p^.CodePoint = ACodePoint) then begin
+        Result := True;
+        break;
+      end;
+    end else begin
+      if (ACodePoint >= p^.StartCodePoint) and (ACodePoint <= p^.EndCodePoint) then begin
+        Result := True;
+        break;
+      end;
+    end;
+    Inc(p);
+  end;
+end;
+
 {function IsWhiteSpace(const ACodePoint : TUnicodeCodePoint) : Boolean;
 begin
   case ACodePoint of
@@ -1115,22 +1153,8 @@ function IsWhiteSpace(
   const ACodePoint   : TUnicodeCodePoint;
   const AWhiteSpaces : TCodePointRecArray
 ) : Boolean;
-var
-  i : Integer;
-  p : ^TCodePointRec;
 begin
-  p := @AWhiteSpaces[Low(AWhiteSpaces)];
-  for i := Low(AWhiteSpaces) to High(AWhiteSpaces) do begin
-    if (p^.LineType = 0) then begin
-      if (p^.CodePoint = ACodePoint) then
-        exit(True);
-    end else begin
-      if (ACodePoint >= p^.StartCodePoint) and (ACodePoint <= p^.EndCodePoint) then
-        exit(True);
-    end;
-    Inc(p);
-  end;
-  Result := False;
+  Result := IsIncluded(ACodePoint,AWhiteSpaces);
 end;
 
 function NormalizeBlockName(const AName : string) : string;
@@ -1561,7 +1585,8 @@ begin
          (AProp.NumericIndex = p^.NumericIndex) and
          (AProp.SimpleUpperCase = p^.SimpleUpperCase) and
          (AProp.SimpleLowerCase = p^.SimpleLowerCase) and
-         (AProp.WhiteSpace = p^.WhiteSpace) and
+         (AProp.WhiteSpace = p^.WhiteSpace) and            
+         (AProp.UnifiedIdeograph = p^.UnifiedIdeograph) and
          //
          (AProp.DecompositionID =  p^.DecompositionID) and
          (*   ( (AProp.DecompositionID = -1 ) and (p^.DecompositionID = -1) ) or
@@ -1620,13 +1645,14 @@ begin
 end;
 
 procedure Parse_UnicodeData(
-        ADataAStream   : TMemoryStream;
-  var   APropList      : TPropRecArray;
-  var   ANumericTable  : TNumericValueArray;
-  var   ADataLineList  : TDataLineRecArray;
-  var   ADecomposition : TDecompositionArray;
-  const AHangulList    : TCodePointRecArray;
-  const AWhiteSpaces   : TCodePointRecArray
+        ADataAStream       : TMemoryStream;
+  var   APropList          : TPropRecArray;
+  var   ANumericTable      : TNumericValueArray;
+  var   ADataLineList      : TDataLineRecArray;
+  var   ADecomposition     : TDecompositionArray;
+  const AHangulList        : TCodePointRecArray;
+  const AWhiteSpaces       : TCodePointRecArray;
+  const AUnifiedIdeographs : TCodePointRecArray
 );
 const
   LINE_LENGTH        = 1024;
@@ -1785,6 +1811,7 @@ var
     NextToken();//Simple_Title_Case_Mapping
     locProp.WhiteSpace := IsWhiteSpace(locCP,AWhiteSpaces);
     locProp.HangulSyllable := IsHangulSyllable(locCP,AHangulList);
+    locProp.UnifiedIdeograph := IsIncluded(locCP,AUnifiedIdeographs);
     k := IndexOf(locProp,APropList,actualPropLen);
     if (k = -1) then begin
       k := actualPropLen;
@@ -2158,16 +2185,16 @@ function UInt24ToStr(const AValue : UInt24; const AEndian : TEndianKind): string
 begin
   if (AEndian = ekBig) then
     Result := Format(
-                '(byte2 : $%s; byte1 : $%s; byte0 : $%s;)',
-                [ IntToHex(AValue.byte2,2), IntToHex(AValue.byte1,2),
-                  IntToHex(AValue.byte0,2)
+                '(c:$%s;b:$%s;a:$%s;)',
+                [ IntToHex(AValue.byte2,1), IntToHex(AValue.byte1,1),
+                  IntToHex(AValue.byte0,1)
                 ]
               )
   else
     Result := Format(
-                '(byte0 : $%s; byte1 : $%s; byte2 : $%s;)',
-                [ IntToHex(AValue.byte0,2), IntToHex(AValue.byte1,2),
-                  IntToHex(AValue.byte2,2)
+                '(a:$%s;b:$%s;c:$%s;)',
+                [ IntToHex(AValue.byte0,1), IntToHex(AValue.byte1,1),
+                  IntToHex(AValue.byte2,1)
                 ]
               );
 end;
@@ -2194,26 +2221,27 @@ begin
   AddLine('');
   AddLine('const');
   AddLine('  UC_PROP_REC_COUNT = ' + IntToStr(Length(APropList)) + ';');
-  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');
+  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');   
+  locLine := '';
   p := @APropList[0];
-  for i := Low(APropList) to High(APropList) - 1 do begin
-    locLine := '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
-               ' CCC : ' + IntToStr(p^.CCC) + ';' +
-               ' NumericIndex : ' + IntToStr(p^.NumericIndex) + ';' +
-               ' SimpleUpperCase : ' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
-               ' SimpleLowerCase : ' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
-               ' DecompositionID : ' + IntToStr(p^.DecompositionID) + '),';
-    AddLine(locLine);
+  for i := Low(APropList) to High(APropList) do begin //locLine := '    (CD:' + IntToStr(p^.CategoryData) + ';' +
+    locLine := locLine + '(C:' + IntToStr(p^.CategoryData) + ';' +
+                          'C3:' + IntToStr(p^.CCC) + ';' +
+                          'N:' + IntToStr(p^.NumericIndex) + ';' +
+                          'UC:' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
+                          'LC:' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
+                          'D:' + IntToStr(p^.DecompositionID) + ')';
+    if (i < High(APropList)) then
+      locLine := locLine + ',';
+    if (((i+1) mod 2) = 0) then begin
+      locLine := '    ' + locLine;
+      AddLine(locLine);
+      locLine := '';
+    end;
     Inc(p);
   end;
-  locLine := //'    (Category : TUnicodeCategory.' + GetEnumName(pti,Ord(p^.Category)) + ';' +
-             '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
-             ' CCC : ' + IntToStr(p^.CCC) + ';' +
-             ' NumericIndex : ' + IntToStr(p^.NumericIndex) + ';' +
-             ' SimpleUpperCase : ' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
-             ' SimpleLowerCase : ' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
-             ' DecompositionID : ' + IntToStr(p^.DecompositionID) + ')';
-  AddLine(locLine);
+  if (locLine <> '') then
+    AddLine( '    ' + locLine);
   AddLine('  );' + sLineBreak);
 end;
 
@@ -2293,8 +2321,8 @@ begin
   AddLine('  UC_DEC_BOOK_DATA_LENGTH = ' + IntToStr(Length(ABook.CodePoints)) + ';');
   AddLine('type');
   AddLine('  TDecompositionIndexRec = packed record');
-  AddLine('    StartPosition : Word;');
-  AddLine('    Length        : Byte;');
+  AddLine('    S : Word; //StartPosition');
+  AddLine('    L : Byte; //Length');
   AddLine('  end;');
   AddLine('  TDecompositionBookRec = packed record');
   AddLine('    Index      : array[0..(UC_DEC_BOOK_INDEX_LENGTH-1)] of TDecompositionIndexRec;');
@@ -2307,18 +2335,18 @@ begin
   k := 0;
   locLine := '      ';
   for i := Low(ABook.Index) to High(ABook.Index) - 1 do begin
-    locLine := locLine + '(StartPosition : ' + IntToStr(p^.StartPosition) + ';' +
-               ' Length : ' + IntToStr(p^.Length)  + '), ';
+    locLine := locLine + '(S:' + IntToStr(p^.StartPosition) + ';' +
+               'L:' + IntToStr(p^.Length)  + '),';
     k := k + 1;
-    if (k >= 2) then begin
+    if (k >= 9) then begin
       AddLine(locLine);
       locLine := '      ';
       k := 0;
     end;
     Inc(p);
   end;
-  locLine := locLine + '(StartPosition : ' + IntToStr(p^.StartPosition) + ';' +
-             ' Length : ' + IntToStr(p^.Length)  + ')';
+  locLine := locLine + '(S:' + IntToStr(p^.StartPosition) + ';' +
+             'L:' + IntToStr(p^.Length)  + ')';
   AddLine(locLine);
   AddLine('    ); // Index END');
 
@@ -3375,13 +3403,19 @@ begin
     for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
-        if (i = c) and (j = 255) then
+      if (((j+1) mod 7) = 0) then begin
+        if (i = c) and (j = High(TucaBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
+    end;  
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANativeEndianStream,locLine);
     end;
   end;
   AddLine(ANativeEndianStream,'  );' + sLineBreak);
@@ -3394,13 +3428,19 @@ begin
     for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
-        if (i = c) and (j = 255) then
+      if (((j+1) mod 7) = 0) then begin
+        if (i = c) and (j = High(TucaBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANonNativeEndianStream,locLine);
         locLine := '';
       end;
+    end; 
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANonNativeEndianStream,locLine);
     end;
   end;
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
@@ -3525,13 +3565,19 @@ begin
     for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
+      if (((j+1) mod 7) = 0) then begin
         if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
+    end;
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANativeEndianStream,locLine);
     end;
   end;
   AddLine(ANativeEndianStream,'  );' + sLineBreak);
@@ -3543,13 +3589,19 @@ begin
     for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
+      if (((j+1) mod 7) = 0) then begin
         if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANonNativeEndianStream,locLine);
         locLine := '';
       end;
+    end;
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANonNativeEndianStream,locLine);
     end;
   end;
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
@@ -3752,7 +3804,7 @@ begin
   locLine := '';
   for i := Low(AFirstTable) to High(AFirstTable) - 1 do begin
     locLine := locLine + IntToStr(AFirstTable[i]) + ',';
-    if (((i+1) mod 16) = 0) then begin
+    if (((i+1) mod 20) = 0) then begin
       locLine := '    ' + locLine;
       AddLine(locLine);
       locLine := '';
@@ -3807,7 +3859,7 @@ begin
   locLine := '';
   for i := Low(AFirstTable) to High(AFirstTable) - 1 do begin
     locLine := locLine + IntToStr(AFirstTable[i]) + ',';
-    if (((i+1) mod 16) = 0) then begin
+    if (((i+1) mod 20) = 0) then begin
       locLine := '    ' + locLine;
       AddLine(locLine);
       locLine := '';
@@ -3978,6 +4030,11 @@ begin
   Result := TUnicodeCategory((CategoryData and Byte($F8)) shr 3);
 end;
 
+function TPropRec.GetUnifiedIdeograph : Boolean;
+begin
+  Result := IsBitON(CategoryData,FLAG_UNIFIED_IDEOGRAPH);
+end;
+
 procedure TPropRec.SetCategory(AValue: TUnicodeCategory);
 var
   b : Byte;
@@ -3990,22 +4047,27 @@ end;
 
 function TPropRec.GetWhiteSpace: Boolean;
 begin
-  Result := IsBitON(CategoryData,0);
+  Result := IsBitON(CategoryData,FLAG_WHITE_SPACE);
+end;
+
+procedure TPropRec.SetUnifiedIdeograph(AValue : Boolean);
+begin
+  SetBit(CategoryData,FLAG_UNIFIED_IDEOGRAPH,AValue);
 end;
 
 procedure TPropRec.SetWhiteSpace(AValue: Boolean);
 begin
-  SetBit(CategoryData,0,AValue);
+  SetBit(CategoryData,FLAG_WHITE_SPACE,AValue);
 end;
 
 function TPropRec.GetHangulSyllable: Boolean;
 begin
-  Result := IsBitON(CategoryData,1);
+  Result := IsBitON(CategoryData,FLAG_HANGUL_SYLLABLE);
 end;
 
 procedure TPropRec.SetHangulSyllable(AValue: Boolean);
 begin
-   SetBit(CategoryData,1,AValue);
+   SetBit(CategoryData,FLAG_HANGUL_SYLLABLE,AValue);
 end;
 
 { TUCA_PropItemRec }

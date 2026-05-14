@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -15,30 +16,30 @@
 }
 
 { shared with strings unit }
-function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';overload;
-function strcopy(dest,source : pchar) : pchar;overload;
-function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar;overload;
-function strecopy(dest,source : pchar) : pchar;
-function strend(p : pchar) : pchar;
-function strcat(dest,source : pchar) : pchar;
-function strcomp(str1,str2 : pchar) : SizeInt;
-function strlcomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
-function stricomp(str1,str2 : pchar) : SizeInt;
-function strmove(dest,source : pchar;l : SizeInt) : pchar; overload;
-function strlcat(dest,source : pchar;l : SizeInt) : pchar;
-function strscan(p : pchar;c : char) : pchar; overload;
-function strrscan(p : pchar;c : char) : pchar;
-function strlower(p : pchar) : pchar;
-function strupper(p : pchar) : pchar;
-function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
-function strpos(str1,str2 : pchar) : pchar;
-function strnew(p : pchar) : pchar; overload;
+function StrLen(p:PAnsiChar):sizeint;external name 'FPC_PCHAR_LENGTH';overload;
+function StrCopy(dest,source : PAnsiChar) : PAnsiChar;overload;
+function StrLCopy(dest,source : PAnsiChar;maxlen : SizeInt) : PAnsiChar;overload;
+function StrECopy(dest,source : PAnsiChar) : PAnsiChar;
+function StrEnd(p : PAnsiChar) : PAnsiChar;
+function StrCat(dest,source : PAnsiChar) : PAnsiChar;
+function StrComp(str1,str2 : PAnsiChar) : SizeInt;
+function StrLComp(str1,str2 : PAnsiChar;l : SizeInt) : SizeInt;
+function StrIComp(str1,str2 : PAnsiChar) : SizeInt;
+function StrMove(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar; overload;
+function StrLCat(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar;
+function StrScan(p : PAnsiChar;c : AnsiChar) : PAnsiChar; overload;
+function StrRScan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;
+function StrLower(p : PAnsiChar) : PAnsiChar;
+function StrUpper(p : PAnsiChar) : PAnsiChar;
+function StrLIComp(str1,str2 : PAnsiChar;l : SizeInt) : SizeInt;
+function StrPos(str1,str2 : PAnsiChar) : PAnsiChar;
+function StrNew(p : PAnsiChar) : PAnsiChar; overload;
 
 { Different from strings unit - ansistrings or different behaviour }
-function StrPas(Str: PChar): string;overload;
-function StrPCopy(Dest: PChar; Const Source: string): PChar;overload;
-function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
-function StrAlloc(Size: cardinal): PChar;
-function StrBufSize(Str: PChar): Cardinal;
-procedure StrDispose(Str: PChar);
+function StrPas(Str: PAnsiChar): string;overload;
+function StrPCopy(Dest: PAnsiChar; Const Source: RawByteString): PAnsiChar;overload;
+function StrPLCopy(Dest: PAnsiChar; Const Source: RawByteString; MaxLen: SizeUInt): PAnsiChar;overload;
+function StrAlloc(Size: cardinal): PAnsiChar;
+procedure StrDispose(Str: PAnsiChar);
+function StrBufSize(Str: PAnsiChar): Cardinal;
 

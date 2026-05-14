@@ -449,7 +449,8 @@ Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
 
 begin
   FileOpen:=FileOpenNoLocking(FileName, Mode);
-  FileOpen:=DoFileLocking(FileOpen, Mode);
+  if (Mode and fmShareNoLocking)=0 then
+    FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
 function FileFlush(Handle: THandle): Boolean;
@@ -491,7 +492,7 @@ begin
     (which we can by definition) }
   fd:=FileOpenNoLocking(FileName,ShareMode);
   { the file exists, check whether our locking request is compatible }
-  if fd>=0 then
+  if (fd>=0) and ((ShareMode and fmShareNoLocking)=0) then
     begin
       Result:=DoFileLocking(fd,ShareMode);
       FileClose(fd);
@@ -501,7 +502,8 @@ begin
     end;
   { now create the file }
   Result:=FileCreate(FileName,Rights);
-  Result:=DoFileLocking(Result,ShareMode);
+  if (ShareMode and fmShareNoLocking)=0 then
+    Result:=DoFileLocking(Result,ShareMode);
 end;
 
 
@@ -1862,7 +1864,8 @@ begin
  Result := -Tzseconds div 60; 
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out IsDST : Boolean): Boolean;
 
 var
   Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
@@ -1872,9 +1875,9 @@ begin
   DecodeDate(DateTime, Year, Month, Day);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second);
-
   {$if declared(GetLocalTimezone)}
   GetLocalTimeOffset:=GetLocalTimezone(UnixTime,InputIsUTC,lTZInfo);
+  isDST:=lTZInfo.daylight;
   if GetLocalTimeOffset then
     Offset:=-lTZInfo.seconds div 60;
   {$else}

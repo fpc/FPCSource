@@ -374,6 +374,8 @@ type
     class function SelectShortStringComparer(ATypeData: PTypeData; ASize: SizeInt): Pointer; static;
     class function SelectBinaryComparer(ATypeData: PTypeData; ASize: SizeInt): Pointer; static;
     class function SelectDynArrayComparer(ATypeData: PTypeData; ASize: SizeInt): Pointer; static;
+
+    class function TypeNeedsBinaryMethods<T>: Boolean; static;
   private const
     UseBinaryMethods: set of TTypeKind = [tkUnknown, tkSet, tkFile, tkArray, tkRecord, tkObject];
 
@@ -635,8 +637,10 @@ type
 
 
     FEqualityComparerInstances: array[TTypeKind] of TInstance;
+    TablesInitialized : Boolean;
   private
     class constructor Create;
+    class procedure InitTables;
   public
     class function LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
   end;
@@ -754,8 +758,10 @@ type
 
     // all instances
     FExtendedEqualityComparerInstances: array[TTypeKind] of TInstance;
+    TablesInitialized : Boolean;
   private
     class constructor Create;
+    class procedure InitTables;
   public
     class function LookupExtendedEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
   end;
@@ -871,8 +877,8 @@ type
     FHashFactory: THashFactoryClass;
   public
     constructor Create(AHashFactoryClass: THashFactoryClass);
-    function Equals(const ALeft, ARight: T): Boolean;
-    function GetHashCode(const AValue: T): UInt32;
+    function Equals(const ALeft, ARight: T): Boolean; reintroduce;
+    function GetHashCode(const AValue: T): UInt32; reintroduce;
   end;
 
   TBinaryExtendedEqualityComparer<T> = class(TBinaryEqualityComparer<T>, IExtendedEqualityComparer<T>)
@@ -1072,7 +1078,7 @@ implementation
 
 class function TComparer<T>.Default: IComparer<T>;
 begin
-  if GetTypeKind(T) in TComparerService.UseBinaryMethods then begin
+  if TComparerService.TypeNeedsBinaryMethods<T> then begin
     Result := TBinaryComparer<T>.Create
   end else
     Result := _LookupVtableInfo(giComparer, TypeInfo(T), SizeOf(T));
@@ -1388,9 +1394,55 @@ begin
   Result := CompareStr(ALeft, ARight);
 end;
 
+// Used with permission from Arnaud Bouchez, see issue #40034
+function ByteCompareRawByteString(const A, B: RawByteString): integer;
+var
+  p1, p2: PByteArray;
+  l1, l2: PtrInt; // FPC will use very efficiently the CPU registers
+begin
+  // we can't use StrComp() since a RawByteString may contain #0
+  p1 := pointer(A);
+  p2 := pointer(B);
+  if p1 <> p2 then
+    if p1 <> nil then
+      if p2 <> nil then
+      begin
+        result := p1[0] - p2[0]; // compare first char for quicksort
+        if result <> 0 then
+          exit;
+        l1 := Length(A);
+        l2 := Length(B);
+        result := l1;
+        if l1 > l2 then
+          l1 := l2;
+        dec(result, l2);
+        p1 := @p1[l1];
+        p2 := @p2[l1];
+        dec(l1); // we already compared the first char
+        if l1 = 0 then
+          exit;
+        l1 := -l1;
+        repeat
+          if p1[l1] <> p2[l1] then
+            break;
+          inc(l1);
+          if l1 = 0 then
+            exit;
+        until false;
+        result := p1[l1] - p2[l1];
+      end
+      else
+        result := 1  // p2=''
+    else
+      result := -1   // p1=''
+  else
+    result := 0;     // p1=p2
+end;
+
+
 class function TCompare.AnsiString(const ALeft, ARight: AnsiString): Integer;
 begin
-  Result := AnsiCompareStr(ALeft, ARight);
+  Result := ByteCompareRawByteString(ALeft, ARight);
 end;
 
 class function TCompare.WideString(const ALeft, ARight: WideString): Integer;
@@ -2176,6 +2228,12 @@ begin
   Result := CreateInterface(@Comparer_DynArray_VMT, ATypeData.elSize);
 end;
 
+class function TComparerService.TypeNeedsBinaryMethods<T>: Boolean;
+begin
+  Result := (GetTypeKind(T) in TComparerService.UseBinaryMethods) or
+            ((GetTypeKind(T) = tkEnumeration) and not Assigned(TypeInfo(T)));
+end;
+
 class function TComparerService.LookupComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer;
 var
   LInstance: PInstance;
@@ -2291,6 +2349,8 @@ begin
     Exit(SelectBinaryEqualityComparer(Nil, ASize))
   else
   begin
+    If not TablesInitialized  then
+      InitTables;
     LInstance := @FEqualityComparerInstances[ATypeInfo.Kind];
     Result := LInstance.Instance;
     if LInstance.Selector then
@@ -2304,6 +2364,16 @@ end;
 
 class constructor THashService<T>.Create;
 begin
+  if not TablesInitialized then
+    InitTables
+end;
+
+class Procedure THashService<T>.InitTables;
+
+begin
+  if TablesInitialized then
+    exit;
+  TablesInitialized:=true;
   FEqualityComparer_Int8_VMT          := EqualityComparer_Int8_VMT         ;
   FEqualityComparer_Int16_VMT         := EqualityComparer_Int16_VMT        ;
   FEqualityComparer_Int32_VMT         := EqualityComparer_Int32_VMT        ;
@@ -2495,6 +2565,8 @@ begin
     Exit(SelectBinaryEqualityComparer(Nil, ASize))
   else
   begin
+    if not TablesInitialized then
+      InitTables;
     LInstance := @FExtendedEqualityComparerInstances[ATypeInfo.Kind];
     Result := LInstance.Instance;
     if LInstance.Selector then
@@ -2508,6 +2580,16 @@ end;
 
 class constructor TExtendedHashService<T>.Create;
 begin
+  // The InitTables can have been called before from the class constructors of other classes.
+  if not TablesInitialized then
+    InitTables
+end;
+
+class procedure TExtendedHashService<T>.InitTables;
+
+begin
+  if TablesInitialized then exit;
+  TablesInitialized:=True;
   FExtendedEqualityComparer_Int8_VMT          := ExtendedEqualityComparer_Int8_VMT         ;
   FExtendedEqualityComparer_Int16_VMT         := ExtendedEqualityComparer_Int16_VMT        ;
   FExtendedEqualityComparer_Int32_VMT         := ExtendedEqualityComparer_Int32_VMT        ;
@@ -2627,7 +2709,7 @@ end;
 
 class function TEqualityComparer<T>.Default: IEqualityComparer<T>;
 begin
-  if GetTypeKind(T) in TComparerService.UseBinaryMethods then
+  if TComparerService.TypeNeedsBinaryMethods<T> then
     Result := TBinaryEqualityComparer<T>.Create(Nil)
   else
     Result := _LookupVtableInfo(giEqualityComparer, TypeInfo(T), SizeOf(T));
@@ -2635,7 +2717,7 @@ end;
 
 class function TEqualityComparer<T>.Default(AHashFactoryClass: THashFactoryClass): IEqualityComparer<T>;
 begin
-  if GetTypeKind(T) in TComparerService.UseBinaryMethods then
+  if TComparerService.TypeNeedsBinaryMethods<T> then
     Result := TBinaryEqualityComparer<T>.Create(AHashFactoryClass)
   else if AHashFactoryClass.InheritsFrom(TExtendedHashFactory) then
     Result := _LookupVtableInfoEx(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), AHashFactoryClass)
@@ -2779,7 +2861,7 @@ end;
 
 class function TExtendedEqualityComparer<T>.Default: IExtendedEqualityComparer<T>;
 begin
-  if GetTypeKind(T) in TComparerService.UseBinaryMethods then
+  if TComparerService.TypeNeedsBinaryMethods<T> then
     Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
   else
     Result := _LookupVtableInfo(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T));
@@ -2789,7 +2871,7 @@ class function TExtendedEqualityComparer<T>.Default(
   AExtenedHashFactoryClass: TExtendedHashFactoryClass
   ): IExtendedEqualityComparer<T>;
 begin
-  if GetTypeKind(T) in TComparerService.UseBinaryMethods then
+  if TComparerService.TypeNeedsBinaryMethods<T> then
     Result := TBinaryExtendedEqualityComparer<T>.Create(Nil)
   else
     Result := _LookupVtableInfoEx(giExtendedEqualityComparer, TypeInfo(T), SizeOf(T), AExtenedHashFactoryClass);
@@ -3280,7 +3362,7 @@ end;
 
 class constructor TOrdinalComparer<T, THashFactory>.Create;
 begin
-  if THashFactory.InheritsFrom(TExtendedHashService) then
+  if THashFactory.InheritsFrom(TExtendedHashFactory) then
   begin
     FExtendedEqualityComparer := TExtendedEqualityComparer<T>.Default(TExtendedHashFactoryClass(THashFactory));
     FEqualityComparer := IEqualityComparer<T>(FExtendedEqualityComparer);
@@ -3382,7 +3464,7 @@ end;
 function _LookupVtableInfoEx(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
   AFactory: THashFactoryClass): Pointer;
 begin
-  if ATypeInfo^.Kind in TComparerService.UseBinaryMethods then begin
+  if not Assigned(ATypeInfo) or (ATypeInfo^.Kind in TComparerService.UseBinaryMethods) then begin
     System.Error(reInvalidCast);
     Exit(Nil);
   end;
@@ -3394,7 +3476,6 @@ begin
       begin
         if AFactory = nil then
           AFactory := TDefaultHashFactory;
-
         Exit(
           AFactory.GetHashService.LookupEqualityComparer(ATypeInfo, ASize));
       end;

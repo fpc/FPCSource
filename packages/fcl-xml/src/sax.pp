@@ -23,7 +23,7 @@ unit SAX;
 
 interface
 
-uses SysUtils, Classes, xmlutils;
+uses SysUtils, Classes, xmlutils,XmlReader;
 
 resourcestring
   SSAXAttributeIndexError = 'Invalid attribute index %d';
@@ -50,25 +50,6 @@ type
 
   ESAXParseException = class(ESAXError);
   ESAXNotRecognizedException = class(ESAXError);
-
-
-{ TSAXInputSource: A single input source for an XML entity }
-
-  TSAXInputSource = class
-  private
-    FStream: TStream;
-    FEncoding: String;
-    FPublicID, FSystemID: SAXString;
-  public
-    constructor Create; overload;
-    constructor Create(AStream: TStream); overload;
-    constructor Create(const ASystemID: SAXString); overload;
-    property Stream: TStream read FStream write FStream;
-    property Encoding: String read FEncoding write FEncoding;
-    property PublicID: SAXString read FPublicID write FPublicID;
-    property SystemID: SAXString read FSystemID write FSystemID;
-  end;
-
 
 { TSAXAttributes: List of XML attributes }
 
@@ -140,7 +121,7 @@ type
   TStartPrefixMappingEvent = procedure(Sender: TObject; const Prefix, URI: SAXString) of object;
   TNotationDeclEvent = procedure(Sender: TObject; const Name, PublicID, SystemID: SAXString) of object;
   TUnparsedEntityDeclEvent = procedure(Sender: TObject; const Name, PublicID, SystemID, NotationName: SAXString) of object;
-  TResolveEntityEvent = function(Sender: TObject; const PublicID, SystemID: SAXString): TSAXInputSource of object;
+  TResolveEntityEvent = function(Sender: TObject; const PublicID, SystemID: SAXString): TXMLInputSource of object;
   TErrorEvent = procedure(Sender: TObject; AException: ESAXParseException) of object;
   TFatalErrorEvent = procedure(Sender: TObject; AException: ESAXParseException) of object;
   TWarningEvent = procedure(Sender: TObject; AException: ESAXParseException) of object;
@@ -195,14 +176,14 @@ type
 
     // Resolving entities
     function DoResolveEntity(const PublicID,
-      SystemID: SAXString): TSAXInputSource; virtual;
+      SystemID: SAXString): TXMLInputSource; virtual;
 
     // SAX error handlers
     procedure DoError(AException: ESAXParseException); virtual;
     procedure DoFatalError(AException: ESAXParseException); virtual;
     procedure DoWarning(AException: ESAXParseException); virtual;
   public
-    procedure Parse(AInput: TSAXInputSource); virtual; abstract; overload;
+    procedure Parse(AInput: TXMLInputSource); virtual; abstract; overload;
     procedure Parse(const SystemID: SAXString); virtual; overload;
     procedure ParseStream(AStream: TStream);
     procedure Abort;
@@ -258,7 +239,7 @@ type
     procedure DoStartPrefixMapping(const Prefix, URI: SAXString); override;
     procedure DoNotationDecl(const Name, PublicID, SystemID: SAXString); override;
     procedure DoUnparsedEntityDecl(const Name, PublicID, SystemID, NotationName: SAXString); override;
-    function DoResolveEntity(const PublicID, SystemID: SAXString): TSAXInputSource; override;
+    function DoResolveEntity(const PublicID, SystemID: SAXString): TXMLInputSource; override;
     procedure DoError(AException: ESAXParseException); override;
     procedure DoFatalError(AException: ESAXParseException); override;
     procedure DoWarning(AException: ESAXParseException); override;
@@ -277,27 +258,6 @@ constructor ESAXAttributeIndexError.Create(Index: Integer);
 begin
   inherited CreateFmt(SSAXAttributeIndexError, [Index]);
 end;
-
-
-{ TSAXInputSource }
-
-constructor TSAXInputSource.Create;
-begin
-  inherited Create;
-end;
-
-constructor TSAXInputSource.Create(AStream: TStream);
-begin
-  inherited Create;
-  FStream := AStream;
-end;
-
-constructor TSAXInputSource.Create(const ASystemID: SAXString);
-begin
-  inherited Create;
-  FSystemID := ASystemID;
-end;
-
 
 { TSAXAttributes }
 
@@ -448,22 +408,16 @@ var
 begin
   for i := 0 to FData.Count - 1 do
     Dispose(PSAXAttributeData(FData[i]));
+  FData.Clear;
 end;
 
 procedure TSAXAttributes.SetAttributes(Atts: TSAXAttributes);
 var
   i: Integer;
 begin
-  FData.Count := Atts.Length;
-  for i := 0 to FData.Count - 1 do
-    with Data[i]^ do
-    begin
-      URI := Atts.URIs[i];
-      LocalName := Atts.LocalNames[i];
-      QName := Atts.QNames[i];
-      AttrType := Atts.Types[i];
-      Value := Atts.Values[i];
-    end;
+  Clear;
+  for i := 0 to Atts.Length - 1 do
+    AddAttribute(Atts.URIs[i], Atts.LocalNames[i], Atts.QNames[i], Atts.Types[i], Atts.Values[i]);
 end;
 
 procedure TSAXAttributes.AddAttribute(const AURI, ALocalName, AQName: SAXString;
@@ -562,11 +516,11 @@ end;
 
 procedure TSAXReader.Parse(const SystemID: SAXString);
 var
-  Input: TSAXInputSource;
+  Input: TXMLInputSource;
 begin
-  Input := TSAXInputSource.Create(SystemID);
   try
-    Input.Stream := TFileStream.Create(SystemID, fmOpenRead);
+    Input := TXMLInputSource.Create(TFileStream.Create(SystemID, fmOpenRead));
+    Input.SystemID:=SystemID;
     try
       Parse(Input);
     finally
@@ -579,9 +533,9 @@ end;
 
 procedure TSAXReader.ParseStream(AStream: TStream);
 var
-  Input: TSAXInputSource;
+  Input: TXMLInputSource;
 begin
-  Input := TSAXInputSource.Create(AStream);
+  Input := TXMLInputSource.Create(AStream);
   try
     Parse(Input);
   finally
@@ -595,7 +549,7 @@ begin
 end;
 
 function TSAXReader.DoResolveEntity(const PublicID,
-  SystemID: SAXString): TSAXInputSource;
+  SystemID: SAXString): TXMLInputSource;
 begin
   if Assigned(OnResolveEntity) then
     Result := OnResolveEntity(Self, PublicID, SystemID)
@@ -737,7 +691,7 @@ end;
 { TSAXFilter }
 
 function TSAXFilter.DoResolveEntity(const PublicID,
-  SystemID: SAXString): TSAXInputSource;
+  SystemID: SAXString): TXMLInputSource;
 begin
   if Assigned(OnResolveEntity) then
     Result := OnResolveEntity(Self, PublicID, SystemID)

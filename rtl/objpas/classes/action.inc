@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -44,6 +45,8 @@ end;
 
 function TBasicActionLink.Execute(AComponent: TComponent): Boolean;
 begin
+  if not Assigned(FAction) then 
+    exit;
   FAction.ActionComponent := AComponent;
   try
     Result := FAction.Execute;

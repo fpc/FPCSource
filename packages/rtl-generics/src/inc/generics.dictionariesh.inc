@@ -116,7 +116,7 @@ type
     FIndex: SizeInt;
   protected
     function DoGetCurrent: T; override;
-    function GetCurrent: T; virtual; abstract;
+    function GetCurrent: T; virtual;
   public
     constructor Create(ADictionary: TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>);
   end;

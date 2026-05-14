@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -121,7 +122,10 @@ end;
 procedure TBinaryObjectWriter.WriteSignature;
 
 begin
-  Write(FilerSignature, SizeOf(FilerSignature));
+  if Version=bowVersion1 then
+    Write(FilerSignature1, SizeOf(FilerSignature1))
+  else
+    Write(FilerSignature, SizeOf(FilerSignature));
 end;
 
 procedure TBinaryObjectWriter.BeginComponent(Component: TComponent;
@@ -139,7 +143,10 @@ begin
       WriteInteger(ChildPos);
   end;
 
-  WriteStr(Component.ClassName);
+  if Version=bowVersion0 then
+    WriteStr(Component.ClassName)
+  else
+    WriteString(Component.UnitName+UnitnameSeparator+Component.ClassName);
   WriteStr(Component.Name);
 end;
 
@@ -208,17 +215,12 @@ end;
 
 procedure TBinaryObjectWriter.WriteIdent(const Ident: string);
 begin
-  { Check if Ident is a special identifier before trying to just write
-    Ident directly }
-  if UpperCase(Ident) = 'NIL' then
-    WriteValue(vaNil)
-  else if UpperCase(Ident) = 'FALSE' then
-    WriteValue(vaFalse)
-  else if UpperCase(Ident) = 'TRUE' then
-    WriteValue(vaTrue)
-  else if UpperCase(Ident) = 'NULL' then
-    WriteValue(vaNull) else
-  begin
+  Case UpperCase(Ident) of
+    'NIL'   : WriteValue(vaNil);
+    'FALSE' : WriteValue(vaFalse);
+    'TRUE'  : WriteValue(vaTrue);
+    'NULL'  : WriteValue(vaNull);
+  else
     WriteValue(vaIdent);
     WriteStr(Ident);
   end;
@@ -374,7 +376,7 @@ begin
   end;
 end;
 
-procedure TBinaryObjectWriter.WriteVariant(const VarValue: variant);
+procedure TBinaryObjectWriter.WriteVariant(const VarValue: Variant);
 begin
   { The variant manager will handle varbyref and vararray transparently for us
   }
@@ -434,7 +436,7 @@ begin
   FBufPos := 0;
 end;
 
-procedure TBinaryObjectWriter.Write(const Buffer; Count: LongInt);
+procedure TBinaryObjectWriter.Write(const Buffer; Count: Longint);
 var
   CopyNow: LongInt;
   SourceBuf: PChar;
@@ -535,8 +537,8 @@ begin
   FAncestors.AddObject(Component.Name,TPosComponent.Create(FAncestors.Count,Component));
 end;
 
-procedure TWriter.DefineProperty(const Name: String;
-  ReadData: TReaderProc; AWriteData: TWriterProc; HasData: Boolean);
+procedure TWriter.DefineProperty(const Name: string; ReadData: TReaderProc;
+  AWriteData: TWriterProc; HasData: Boolean);
 begin
   if HasData and Assigned(AWriteData) then
   begin
@@ -547,8 +549,8 @@ begin
   end;
 end;
 
-procedure TWriter.DefineBinaryProperty(const Name: String;
-  ReadData, AWriteData: TStreamProc; HasData: Boolean);
+procedure TWriter.DefineBinaryProperty(const Name: string; ReadData,
+  AWriteData: TStreamProc; HasData: Boolean);
 begin
   if HasData and Assigned(AWriteData) then
   begin
@@ -807,7 +809,7 @@ begin
   Driver.WriteIdent(Ident);
 end;
 
-procedure TWriter.WriteInteger(Value: LongInt);
+procedure TWriter.WriteInteger(Value: Longint);
 begin
   Driver.WriteInteger(Value);
 end;
@@ -817,7 +819,7 @@ begin
   Driver.WriteInteger(Value);
 end;
 
-procedure TWriter.WriteSet(Value: LongInt; SetType: Pointer); 
+procedure TWriter.WriteSet(Value: Longint; SetType: Pointer);
 
 begin
   Driver.WriteSet(Value,SetType);
@@ -892,8 +894,9 @@ begin
     if PropType^.Kind<>tkClass then
       exit;
     ObjValue := TObject(GetObjectProp(Instance, PropInfo));
-    if not ObjValue.InheritsFrom(TComponent) or
-       not (csSubComponent in TComponent(ObjValue).ComponentStyle) then
+    if not (assigned(ObjValue) and
+            ObjValue.InheritsFrom(TComponent) and
+            (csSubComponent in TComponent(ObjValue).ComponentStyle)) then
       exit;
   end;
 
@@ -1073,7 +1076,7 @@ begin
             if (AncestorObj<> ObjValue) and
              (TComponent(AncestorObj).Owner = FRootAncestor) and
              (TComponent(ObjValue).Owner = Root) and
-             (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
+             (SameText(TComponent(AncestorObj).Name,TComponent(ObjValue).Name)) then
             begin
               // different components, but with the same name
               // treat it like an override
@@ -1212,7 +1215,7 @@ begin
               if (AncestorObj<> Component) and
                (TComponent(AncestorObj).Owner = FRootAncestor) and
                (Component.Owner = Root) and
-               (UpperCase(TComponent(AncestorObj).Name) = UpperCase(Component.Name)) then
+               (SameText(TComponent(AncestorObj).Name,Component.Name)) then
               begin
                 // different components, but with the same name
                 // treat it like an override

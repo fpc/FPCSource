@@ -247,13 +247,13 @@ VAR P, P1, P2: PChar;
 BEGIN
   while (HistoryUsed+Length(Str)+3>HistorySize) do
    begin
-       P:=PChar(HistoryBlock);
+       P:=PAnsiChar(HistoryBlock)+1;
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
            if Pointer(P)+Length(PShortString(P+2)^)+6+Length(Str) >
               Pointer(HistoryBlock)+HistorySize then
              begin
-               Dec(HistoryUsed,Length(PShortString(P+2)^)+3);
+               HistoryUsed:=P-HistoryBlock;
                FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
                break;
              end;

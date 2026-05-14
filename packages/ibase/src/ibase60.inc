@@ -1646,6 +1646,15 @@ type
      SQL_INT64 = 580;
   { Historical alias for pre V6 applications  }
      SQL_DATE = SQL_TIMESTAMP;
+     // Moved here from ibconnection  
+     SQL_BOOLEAN_INTERBASE = 590;
+     SQL_INT128 = 32752;
+     SQL_DEC16 = 32760;
+     SQL_DEC34 = 32762;
+     SQL_BOOLEAN_FIREBIRD = 32764;
+     SQL_NULL = 32767;
+     INVALID_DATA = -1;
+       
   {                }
   { Blob Subtypes  }
   {                }
@@ -2777,8 +2786,10 @@ begin
   else
     begin
     // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
-    // Required before unloading library; has no effect on non-embedded client
-    if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+    // Only call fb_shutdown for embedded Firebird; calling it for a
+    // client connection shuts down the networking subsystem, causing
+    // subsequent reconnect attempts to fail with "connection shutdown".
+    if UseEmbeddedFirebird and (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
       begin
       //todo: log error; still try to unload library below as the timeout may have been insufficient
       end;

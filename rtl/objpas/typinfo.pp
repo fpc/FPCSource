@@ -303,6 +303,7 @@ unit TypInfo;
         Name: ShortString;
       end;
 
+      PProcedureSignature = ^TProcedureSignature;
       TProcedureSignature =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -1020,29 +1021,21 @@ begin
    end;
 end;
 
-
 function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
 var
   PS: PShortString;
-  PT: PTypeData;
-  Count: SizeInt;
 begin
-  PT:=GetTypeData(enum1);
   if enum1^.Kind=tkBool then
     Result:=2
   else
     begin
-      Count:=0;
-      Result:=0;
-
-      PS:=@PT^.NameList;
+      PS:=@GetTypeData(enum1)^.NameList;
+      Result:=-1;
       While (PByte(PS)^<>0) do
         begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-          Inc(Count);
+          Inc(Result);
         end;
-      { the last string is the unit name }
-      Result := Count - 1;
     end;
 end;
 
@@ -3368,7 +3361,7 @@ Var
 Function IndexOfEnumeratedAliases(aTypeInfo : PTypeInfo) : integer;
 
 begin
-  Result:=Length(EnumeratedAliases)-1;
+  Result:=High(EnumeratedAliases);
   while (Result>=0) and (EnumeratedAliases[Result].TypeInfo<>aTypeInfo) do
     Dec(Result);
 end;
@@ -3411,7 +3404,7 @@ begin
   A:=EnumeratedAliases[i];
   A.Aliases:=Nil;
   A.TypeInfo:=Nil;
-  L:=Length(EnumeratedAliases)-1;
+  L:=High(EnumeratedAliases);
   EnumeratedAliases[i]:=EnumeratedAliases[L];
   EnumeratedAliases[L]:=A;
   SetLength(EnumeratedAliases,L);
@@ -3477,7 +3470,7 @@ begin
   Aliases:=GetEnumeratedAliases(aTypeInfo);
   if (Aliases=Nil) then
     Exit;
-  I:=Length(Aliases^)-1;
+  I:=High(Aliases^);
   While (Result=-1) and (I>=0) do
     begin
     if SameText(Aliases^[I].Alias, aName) then

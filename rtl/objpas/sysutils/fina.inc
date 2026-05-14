@@ -18,7 +18,7 @@
 function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean;
   
 begin
@@ -30,39 +30,45 @@ begin
     I := Length(FileName)+1
   else
     begin
-	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-  	if (SOF) and not FirstDotAtFileNameStartIsExtension then
-	  I:=Length(FileName)+1;
-	end;  
+    SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+    if (SOF) and not FirstDotAtFileNameStartIsExtension then
+      I:=Length(FileName)+1;
+    end;
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
+
+function ChangeFilePath(const aFileName,aPath: PathStr): PathStr;
+begin
+  Result:=IncludeTrailingPathDelimiter(aPath)+ExtractFileName(aFileName);
+end;
+
 
 function ExtractFilePath(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
+  Result:='';
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (i > 0) and not CharInSet(FileName[i],EndSep) do
     Dec(i);
   If I>0 then
-    Result := Copy(FileName, 1, i)
-  else
-    Result:='';
+    Result := Copy(FileName, 1, i);
 end;
 
 function ExtractFileDir(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (I > 0) and not CharInSet(FileName[I],EndSep) do
     Dec(I);
-  if (I > 1) and CharInSet(FileName[I],AllowDirectorySeparators) and
-     not CharInSet(FileName[I - 1],EndSep) then
+  if (I > 1) 
+     and CharInSet(FileName[I],AllowDirectorySeparators) 
+     and not CharInSet(FileName[I - 1],EndSep) then
     Dec(I);
   Result := Copy(FileName, 1, I);
 end;
@@ -101,7 +107,7 @@ end;
 function ExtractFileName(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -113,7 +119,7 @@ end;
 function ExtractFileExt(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean; // Dot at Start of filename ?
   
 begin
@@ -124,12 +130,10 @@ begin
     Dec(I);
   if (I > 0) and (FileName[I] = ExtensionSeparator) then
     begin
-	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-	if (Not SOF) or FirstDotAtFileNameStartIsExtension then
-	  Result := Copy(FileName, I, MaxInt);
-	end  
-  else
-    Result := '';
+    SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+    if (Not SOF) or FirstDotAtFileNameStartIsExtension then
+      Result:=Copy(FileName, I, MaxInt);
+    end;
 end;
 
 {$ifndef HASEXTRACTSHORTPATHNAME}
@@ -318,7 +322,7 @@ Var Source, Dest   : PathStr;
 Const OneLevelBack = '..'+DirectorySeparator;
 
 begin
-  If Uppercase(ExtractFileDrive(BaseName))<>Uppercase(ExtractFileDrive(DestName)) Then
+  If not SameText(ExtractFileDrive(BaseName),ExtractFileDrive(DestName)) Then
     begin
     Result:=DestName;
     exit;
@@ -410,7 +414,7 @@ begin
       or (DirName[i] = DriveSeparator)
     {$endif}
       ) and
-       { avoid error in case last char=pathdelim }
+       { avoid error in case last AnsiChar=pathdelim }
        (length(dirname)>i) then
       begin
         DirName[i]:=#0;
@@ -490,13 +494,9 @@ end;
 
 function ExcludeLeadingPathDelimiter(Const Path: PathStr): PathStr;
 
-Var
-  L : Integer;
-
 begin
   Result:=Path;
-  L:=Length(Result);
-  If (L>0) and CharInSet(Result[1],AllowDirectorySeparators) then
+  If (Length(Result)>0) and CharInSet(Result[1],AllowDirectorySeparators) then
     Delete(Result,1,1);
 end;
 

@@ -380,7 +380,7 @@ end;
     if S does not represent a valid date value
     an EConvertError will be raised   }
 
-function IntStrToDate(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; const useformat : string; const defs:TFormatSettings; separator : char = #0): TDateTime;
+function IntStrToDate(Out ErrorMsg : AnsiString; const S: PAnsiChar; Len : integer; const useformat : string; const defs:TFormatSettings; separator : AnsiChar = #0): TDateTime;
 
 const SInvalidDateFormat = '"%s" is not a valid date format';
 
@@ -536,7 +536,7 @@ begin
     errormsg:='Invalid date';
 end;
 
-function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
+function StrToDate(const S: PAnsiChar; Len : integer; const useformat : string; separator : AnsiChar = #0): TDateTime;
 
 Var
   MSg : AnsiString;
@@ -551,23 +551,23 @@ function StrToDate(const S: string; FormatSettings: TFormatSettings): TDateTime;
 var
   Msg: AnsiString;
 begin
-  Result:=IntStrToDate(Msg,PChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings);
+  Result:=IntStrToDate(Msg,PAnsiChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings);
   if Msg<>'' then
     raise EConvertError.Create(Msg);
 end;
 
-function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;
+function StrToDate(const S: ShortString; const useformat : string; separator : AnsiChar = #0): TDateTime;
 begin
   // S[1] always exists for shortstring. Length 0 will trigger an error.
   result := StrToDate(@S[1],Length(s),UseFormat,separator);
 end;
 
-function StrToDate(const S: AnsiString; const useformat : string; separator : char = #0): TDateTime;
+function StrToDate(const S: AnsiString; const useformat : string; separator : AnsiChar = #0): TDateTime;
 begin
-  result := StrToDate(PChar(S),Length(s),UseFormat,separator);
+  result := StrToDate(PAnsiChar(S),Length(s),UseFormat,separator);
 end;
 
-function StrToDate(const S: ShortString; separator : char): TDateTime;
+function StrToDate(const S: ShortString; separator : AnsiChar): TDateTime;
 begin
   // S[1] always exists for shortstring. Length 0 will trigger an error.
   result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
@@ -579,14 +579,14 @@ begin
   result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
-function StrToDate(const S: AnsiString; separator : char): TDateTime;
+function StrToDate(const S: AnsiString; separator : AnsiChar): TDateTime;
 begin
-    result := StrToDate(Pchar(S),Length(s),DefaultFormatSettings.ShortDateFormat,separator)
+    result := StrToDate(PAnsiChar(S),Length(s),DefaultFormatSettings.ShortDateFormat,separator)
 end;
 
 function StrToDate(const S: AnsiString): TDateTime;
 begin
-  result := StrToDate(Pchar(S),Length(s),DefaultFormatSettings.ShortDateFormat,#0);
+  result := StrToDate(PAnsiChar(S),Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 {   StrToTime converts the string S to a TDateTime value
@@ -594,7 +594,7 @@ end;
     EConvertError will be raised   }
 
 
-function IntStrToTime(Out ErrorMsg : AnsiString; const S: PChar; Len : integer;const defs:TFormatSettings; separator : char = #0): TDateTime;
+function IntStrToTime(Out ErrorMsg : AnsiString; const S: PAnsiChar; Len : integer;const defs:TFormatSettings; separator : AnsiChar = #0): TDateTime;
 const
   AMPM_None = 0;
   AMPM_AM = 1;
@@ -609,7 +609,7 @@ var
    AmPm: integer;
    TimeValues: TTimeValues;
 
-    function StrPas(Src : PChar; len: integer = 0) : ShortString;
+    function StrPas(Src : PAnsiChar; len: integer = 0) : ShortString;
     begin
         //this is unsafe for len > 255, it will trash memory (I tested this)
         //reducing it is safe, since whenever we use this a string > 255 is invalid anyway
@@ -627,7 +627,7 @@ var
       Value: Word;
       DigitPending, MSecPending: Boolean;
       AmPmStr: ShortString;
-      CurChar: Char;
+      CurChar: AnsiChar;
    begin
      Result := False;
      AmPm := AMPM_None; //No Am or PM in string found yet
@@ -699,7 +699,7 @@ var
        end
        else
        begin//AM/PM?
-         //None of the above, so this char _must_ be the start of AM/PM string
+         //None of the above, so this AnsiChar _must_ be the start of AM/PM string
          //If we already have found AM/PM or we expect a digit then then timestring must be wrong at this point
          //writeln('AM/PM?');
          if (AmPm <> AMPM_None) or DigitPending then Exit;
@@ -758,7 +758,7 @@ begin
     ErrorMsg:=Format(SErrInvalidTimeFormat,[StrPas(S, Len)]);
 end ;
 
-function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
+function StrToTime(const S: PAnsiChar; Len : integer; separator : AnsiChar = #0): TDateTime;
 
 Var
   Msg : AnsiString;
@@ -773,20 +773,20 @@ function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime
 Var
   Msg : AnsiString;
 begin
-  Result:=IntStrToTime(Msg, PChar(S), length(S), FormatSettings, #0);
+  Result:=IntStrToTime(Msg, PAnsiChar(S), length(S), FormatSettings, #0);
   If (Msg<>'') then
     Raise EConvertError.Create(Msg);
 end;
 
-function StrToTime(const s: ShortString; separator : char): TDateTime;
+function StrToTime(const s: ShortString; separator : AnsiChar): TDateTime;
 begin
   // S[1] always exists for shortstring. Length 0 will trigger an error.
   result := StrToTime(@s[1], length(s), separator);
 end;
 
-function StrToTime(const s: AnsiString; separator : char): TDateTime;
+function StrToTime(const s: AnsiString; separator : AnsiChar): TDateTime;
 begin
-   result := StrToTime(PChar(S), length(s), separator);
+   result := StrToTime(PAnsiChar(S), length(s), separator);
 end;
 
 function StrToTime(const s: ShortString): TDateTime;
@@ -797,7 +797,7 @@ end;
 
 function StrToTime(const s: AnsiString): TDateTime;
 begin
-   result:= StrToTime(PChar(s), length(s), #0);
+   result:= StrToTime(PAnsiChar(s), length(s), #0);
 end;
 
 {   StrToDateTime converts the string S to a TDateTime value
@@ -934,8 +934,8 @@ procedure DateTimeToString(out Result: string; const FormatStr: string; const Da
   const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
 var
   ResultLen: integer;
-  ResultBuffer: array[0..255] of char;
-  ResultCurrent: pchar;
+  ResultBuffer: array[0..255] of AnsiChar;
+  ResultCurrent: PAnsiChar;
 {$if defined(win32) or defined(win64)}
   isEnable_E_Format : Boolean;
   isEnable_G_Format : Boolean;
@@ -973,7 +973,7 @@ var
   end;
 {$endif win32 or win64}
 
-  procedure StoreStr(Str: PChar; Len: Integer);
+  procedure StoreStr(Str: PAnsiChar; Len: Integer);
   begin
     if ResultLen + Len < SizeOf(ResultBuffer) then
     begin
@@ -989,7 +989,7 @@ var
    Len := Length(Str);
    if ResultLen + Len < SizeOf(ResultBuffer) then
      begin
-       StrMove(ResultCurrent, pchar(Str), Len);
+       StrMove(ResultCurrent, PAnsiChar(Str), Len);
        ResultCurrent := ResultCurrent + Len;
        ResultLen := ResultLen + Len;
      end;
@@ -1008,7 +1008,7 @@ var
       else
         Break;
     end;
-    StoreStr(pchar(@S[1]), Length(S));
+    StoreStr(PAnsiChar(@S[1]), Length(S));
   end ;
 
 var
@@ -1024,12 +1024,12 @@ var
 
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
-    Token, lastformattoken, prevlasttoken: char;
-    FormatCurrent: pchar;
-    FormatEnd: pchar;
+    Token, lastformattoken, prevlasttoken: AnsiChar;
+    FormatCurrent: PAnsiChar;
+    FormatEnd: PAnsiChar;
     Count: integer;
     Clock12: boolean;
-    P: pchar;
+    P: PAnsiChar;
     tmp: integer;
     isInterval: Boolean;
 
@@ -1037,7 +1037,7 @@ var
     if Nesting > 1 then  // 0 is original string, 1 is included FormatString
       Exit;
 
-    FormatCurrent := PChar(FormatStr);
+    FormatCurrent := PAnsiChar(FormatStr);
     FormatEnd := FormatCurrent + Length(FormatStr);
     Clock12 := false;
     isInterval := false;
@@ -1260,6 +1260,7 @@ begin
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
+  FillChar(ResultBuffer,SizeOf(ResultBuffer),0);
   ResultCurrent := @ResultBuffer[0];
   if FormatStr <> '' then
     StoreFormat(FormatStr, 0, False)
@@ -1355,7 +1356,7 @@ begin
 end;
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime;
-                    const useformat : string; separator : char = #0): Boolean;
+                    const useformat : string; separator : AnsiChar = #0): Boolean;
 
 Var
   Msg : Ansistring;
@@ -1367,7 +1368,7 @@ begin
 end;
 
 function TryStrToDate(const S: AnsiString; out Value: TDateTime;
-                    const useformat : string; separator : char = #0): Boolean;
+                    const useformat : string; separator : AnsiChar = #0): Boolean;
 
 Var
   Msg : Ansistring;
@@ -1376,12 +1377,12 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-    Value:=IntStrToDate(Msg,PChar(S),Length(S),useformat,DefaultFormatSettings,Separator);
+    Value:=IntStrToDate(Msg,PAnsiChar(S),Length(S),useformat,DefaultFormatSettings,Separator);
     Result:=(Msg='');
     end;
 end;
 
-function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : AnsiChar): Boolean;
 begin
   Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,Separator);
 end;
@@ -1392,7 +1393,7 @@ begin
   Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
-function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : AnsiChar): Boolean;
 
 begin
   Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,Separator);
@@ -1406,12 +1407,12 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToDate(Msg,PChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings,#0);
+      Value:=IntStrToDate(Msg,PAnsiChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings,#0);
       Result:=(Msg='');
     end;
 end;
 
-function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : AnsiChar): Boolean;
 
 Var
   Msg : AnsiString;
@@ -1426,14 +1427,14 @@ begin
   Result := TryStrToTime(S,Value,#0);
 end;
 
-function TryStrToTime(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
+function TryStrToTime(const S: AnsiString; out Value: TDateTime; separator : AnsiChar): Boolean;
 Var
   Msg : AnsiString;
 begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToTime(Msg,PChar(S),Length(S),DefaultFormatSettings,Separator);
+      Value:=IntStrToTime(Msg,PAnsiChar(S),Length(S),DefaultFormatSettings,Separator);
       Result:=(Msg='');
     end;
 end;
@@ -1449,7 +1450,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToTime(Msg,PChar(S),Length(S),FormatSettings,#0);
+      Value:=IntStrToTime(Msg,PAnsiChar(S),Length(S),FormatSettings,#0);
       Result:=(Msg='');
     end;
 end;
@@ -1512,13 +1513,13 @@ begin
     result:=defvalue;
 end;
 
-function StrToDateDef(const S: ShortString; const Defvalue : TDateTime; separator : char): TDateTime;
+function StrToDateDef(const S: ShortString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime;
 begin
   if not TryStrToDate(s,Result, separator) Then
     result:=defvalue;
 end;
 
-function StrToTimeDef(const S: ShortString; const Defvalue : TDateTime; separator : char): TDateTime;
+function StrToTimeDef(const S: ShortString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime;
 begin
   if not TryStrToTime(s,Result, separator) Then
     result:=defvalue;
@@ -1540,13 +1541,13 @@ begin
     result:=defvalue;
 end;
 
-function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime; separator : char): TDateTime;
+function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime;
 begin
   if not TryStrToDate(s,Result, separator) Then
     result:=defvalue;
 end;
 
-function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime; separator : char): TDateTime;
+function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime; separator : AnsiChar): TDateTime;
 begin
   if not TryStrToTime(s,Result, separator) Then
     result:=defvalue;
@@ -1573,7 +1574,7 @@ begin
   Result:=0;
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out isDST : Boolean): Boolean;
 begin
   Result:=False;
 end;
@@ -1584,9 +1585,21 @@ begin
 end;
 {$ENDIF}
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+var
+  dst : Boolean;
+
 begin
-  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result) then
+  Result:=GetLocalTimeOffset(DateTime,InputIsUTC,Offset,dst);
+end;
+
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
+var
+  dst : Boolean;
+begin
+  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result,dst) then
     Result:=GetLocalTimeOffset();
 end;
 

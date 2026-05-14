@@ -195,6 +195,8 @@ Const
   fmShareDenyWrite = $0020;
   fmShareDenyRead  = $0030;
   fmShareDenyNone  = $0040;
+  // internal to FPC
+  fmShareNoLocking = $0080;
 
   { File seek origins }
   fsFromBeginning = 0;

@@ -33,6 +33,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
 
   var
      e : TMouseEvent;
+     MouseWheel : Longint;
 
   begin
     EnterCriticalSection(ChangeMouseEvents);
@@ -47,6 +48,20 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
     if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
       e.buttons:=e.buttons or MouseRightButton;
 
+    MouseWheel:=ir.Event.MouseEvent.dwButtonState and $FFFF0000;
+    if MouseWheel <> 0 then
+    begin
+      { Because Windows report "wrong" x,y for mouse scroll
+        buttons, we use x,y from previous event. "Wrong"
+        here is that x,y add imagined character count from
+        console window top and left margins. }
+      e.x:=LasthandlerMouseEvent.x;
+      e.y:=LasthandlerMouseEvent.y;
+      if (MouseWheel<0) then
+        e.buttons:=e.buttons or MouseButton5;
+      if (MouseWheel>0) then
+        e.buttons:=e.buttons or MouseButton4;
+    end;
     if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
       e.Action:=MouseActionMove;
     if (LastHandlerMouseEvent.Buttons<>e.Buttons) then
@@ -87,6 +102,22 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
                end;
 
              PutMouseEvent(e);
+             if (e.buttons and (MouseButton4 or MouseButton5))<>0 then
+             begin
+               {fake mouse Up for Scroll Up and Scroll Down}
+               e.buttons := e.buttons and not (MouseButton4 or MouseButton5);
+               e.Action := MouseActionUp;
+               LastHandlermouseEvent:=e;
+               { do not put actual event (fake it just for LastHandlermouseEvent)
+               while PendingMouseEvents>=MouseEventBufSize do
+               begin
+                 LeaveCriticalSection(ChangeMouseEvents);
+                 sleep(0);
+                 EnterCriticalSection(ChangeMouseEvents);
+               end;
+               PutMouseEvent(e);
+               }
+             end;
            end;
          // this should be done in PutMouseEvent, now it is PM
          // inc(PendingMouseEvents);

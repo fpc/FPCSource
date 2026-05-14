@@ -1300,6 +1300,9 @@ begin
   pointer(sqlite3_sleep) := GetProcedureAddress(LibHandle,'sqlite3_sleep');
   pointer(sqlite3_get_autocommit) := GetProcedureAddress(LibHandle,'sqlite3_get_autocommit');
   pointer(sqlite3_db_handle) := GetProcedureAddress(LibHandle,'sqlite3_db_handle');
+  pointer(sqlite3_db_filename) := GetProcedureAddress(LibHandle,'sqlite3_db_filename');
+  pointer(sqlite3_db_readonly) := GetProcedureAddress(LibHandle,'sqlite3_db_readonly');
+  pointer(sqlite3_next_stmt) := GetProcedureAddress(LibHandle,'sqlite3_next_stmt');
   pointer(sqlite3_commit_hook) := GetProcedureAddress(LibHandle,'sqlite3_commit_hook');
   pointer(sqlite3_rollback_hook) := GetProcedureAddress(LibHandle,'sqlite3_rollback_hook');
   pointer(sqlite3_update_hook) := GetProcedureAddress(LibHandle,'sqlite3_update_hook');

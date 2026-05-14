@@ -27,7 +27,7 @@ Const
 
 Type
   TCharAttr=packed record
-    ch   : char;
+    ch   : AnsiChar;
     attr : byte;
   end;
   TConsoleBuf=Array[0..ConsoleMaxX*ConsoleMaxY-1] of TCharAttr;
@@ -47,20 +47,20 @@ Var
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
 {$ifdef debugcrt}
   DebugFile : Text;
-{$endif}   
+{$endif}
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
 *****************************************************************************}
 
 {$ifdef debugcrt}
-Procedure Debug(Msg : string);
+Procedure Debug(Msg : shortstring);
 
 begin
   Writeln(DebugFile,Msg);
 end;
 {$endif}
 
-Function Str(l:longint):string;
+Function Str(l:longint):shortstring;
 {
   Return a String of the longint
 }
@@ -102,7 +102,7 @@ end;
                       Optimal AnsiString Conversion Routines
 *****************************************************************************}
 
-Function XY2Ansi(x,y,ox,oy:longint):String;
+Function XY2Ansi(x,y,ox,oy:longint):shortstring;
 {
   Returns a string with the escape sequences to go to X,Y on the screen
 }
@@ -166,7 +166,7 @@ End;
 
 const
   AnsiTbl : string[8]='04261537';
-Function Attr2Ansi(Attr,OAttr:longint):string;
+Function Attr2Ansi(Attr,OAttr:longint):shortstring;
 {
   Convert Attr to an Ansi String, the Optimal code is calculate
   with use of the old OAttr
@@ -175,7 +175,7 @@ var
   hstr : string[16];
   OFg,OBg,Fg,Bg : longint;
 
-  procedure AddSep(ch:char);
+  procedure AddSep(ch:AnsiChar);
   begin
     if length(hstr)>0 then
      hstr:=hstr+';';
@@ -226,7 +226,7 @@ end;
 
 
 
-Function Ansi2Attr(Const HStr:String;oattr:longint):longint;
+Function Ansi2Attr(Const HStr:shortstring;oattr:longint):longint;
 {
   Convert an Escape sequence to an attribute value, uses Oattr as the last
   color written
@@ -276,11 +276,11 @@ const
   InSize=256;
   OutSize=1024;
 var
-  InBuf  : array[0..InSize-1] of char;
+  InBuf  : array[0..InSize-1] of AnsiChar;
   InCnt,
   InHead,
   InTail : longint;
-  OutBuf : array[0..OutSize-1] of char;
+  OutBuf : array[0..OutSize-1] of AnsiChar;
   OutCnt : longint;
 
 
@@ -305,8 +305,8 @@ begin
 end;
 
 
-{Send Char to Remote}
-Procedure ttySendChar(c:char);
+{Send AnsiChar to Remote}
+Procedure ttySendChar(c:AnsiChar);
 Begin
   if OutCnt<OutSize then
    begin
@@ -321,7 +321,7 @@ End;
 
 
 {Send String to Remote}
-procedure ttySendStr(const hstr:string);
+procedure ttySendStr(const hstr:shortstring);
 var
   i : longint;
 begin
@@ -333,8 +333,8 @@ end;
 
 
 
-{Get Char from Remote}
-function ttyRecvChar:char;
+{Get AnsiChar from Remote}
+function ttyRecvChar:AnsiChar;
 var
   Readed,i : longint;
 begin
@@ -375,7 +375,7 @@ end;
 procedure ttyGotoXY(x,y:longint);
 {
   Goto XY on the Screen, if a value is 0 the goto the current
-  postion of that value and always recalc the ansicode for it
+  position of that value and always recalc the ansicode for it
 }
 begin
   if x=0 then
@@ -417,7 +417,7 @@ end;
 
 
 
-procedure ttyWrite(const s:string);
+procedure ttyWrite(const s:shortstring);
 {
   Write a string to the output, memory copy and Current X&Y are also updated
 }
@@ -455,7 +455,7 @@ begin
 end;
 
 
-procedure LineWrite(const temp:String);
+procedure LineWrite(const temp:shortstring);
 {
   Write a Line to the screen, doesn't write on 80,25 under Dos
   the Current CurrX is set to WindMax. NO MEMORY UPDATE!
@@ -489,7 +489,7 @@ procedure DoScrollLine(y1,y2,xl,xh:longint);
   Move Line y1 to y2, use only columns Xl-Xh, Memory is updated also
 }
 var
-  Temp    : string;
+  Temp    : shortstring;
   idx,
   OldAttr,
   x,attr  : longint;
@@ -674,7 +674,7 @@ Begin
    end
   else
    begin
-   { Tweak WindMaxx and WindMaxy so no scrolling happends }
+   { Tweak WindMaxx and WindMaxy so no scrolling happens }
      len:=WindMaxX-CurrX+1;
      IsLastLine:=false;
      if CurrY=WindMaxY then
@@ -774,15 +774,20 @@ End;
 {*************************************************************************
                             KeyBoard
 *************************************************************************}
+{$i keyscan.inc}
+
+const
+  kbAltCenter = kbCtrlCenter;  {there is no true DOS scancode for Alt+Center (Numpad "5") reusing Ctrl+Center}
 
 Const
   KeyBufferSize = 20;
 var
-  KeyBuffer : Array[0..KeyBufferSize-1] of Char;
+  KeyBuffer : Array[0..KeyBufferSize-1] of AnsiChar;
   KeyPut,
   KeySend   : longint;
+  isKitty : boolean;
 
-Procedure PushKey(Ch:char);
+Procedure PushKey(Ch:AnsiChar);
 Var
   Tmp : Longint;
 Begin
@@ -798,7 +803,7 @@ End;
 
 
 
-Function PopKey:char;
+Function PopKey:AnsiChar;
 Begin
   If KeyPut<>KeySend Then
    Begin
@@ -823,13 +828,16 @@ end;
 
 const
   AltKeyStr  : string[38]='qwertyuiopasdfghjklzxcvbnm1234567890-=';
+  AltKeyStr2 : string[38]='QWERTYUIOPASDFGHJKLZXCVBNM1234567890-=';
   AltCodeStr : string[38]=#016#017#018#019#020#021#022#023#024#025#030#031#032#033#034#035#036#037#038+
                           #044#045#046#047#048#049#050#120#121#122#123#124#125#126#127#128#129#130#131;
-Function FAltKey(ch:char):byte;
+Function FAltKey(ch:AnsiChar):byte;
 var
   Idx : longint;
 Begin
   Idx:=Pos(ch,AltKeyStr);
+  if Idx=0 then
+    Idx:=Pos(ch,AltKeyStr2);
   if Idx>0 then
    FAltKey:=byte(AltCodeStr[Idx])
   else
@@ -858,12 +866,162 @@ Begin
   Keypressed := (KeySend<>KeyPut) or sysKeyPressed;
 End;
 
-Function ReadKey:char;
+Function GetScanCodeValue(kMod:byte;ch : AnsiChar):byte;
+const MaxIdx=20;
+      ScanCodeValue : array [0..MaxIdx-1,0..3] of byte = (
+         {A} (kbUp,kbUp,kbCtrlUp,kbAltUp),
+         {B} (kbDown,kbDown,kbCtrlDown,kbAltDown),
+         {C} (kbRight,kbRight,kbCtrlRight,kbAltRight),
+         {D} (kbLeft,kbLeft,kbCtrlLeft,kbAltLeft),
+         {E} (kbCenter,kbCenter,kbCtrlCenter,kbAltCenter),
+         {F} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),
+         {G} (kbHome,kbHome,kbCtrlHome,kbAltHome),  {place holder }
+         {H} (kbHome,kbHome,kbCtrlHome,kbAltHome),
+         {I} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {J} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {K} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {L} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {M} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {N} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {O} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),   {place holder }
+         {P} (kbF1,kbShiftF1,kbCtrlF1,kbAltF1),
+         {Q} (kbF2,kbShiftF2,kbCtrlF2,kbAltF2),
+         {R} (kbF3,kbShiftF3,kbCtrlF3,kbAltF3),
+         {S} (kbF4,kbShiftF4,kbCtrlF4,kbAltF4),
+             (kbNoKey,kbNoKey,kbNoKey,kbNoKey)   {place holder }
+      );
+var idx,iMod : longword;
+begin
+  GetScanCodeValue:=0;
+  idx:=ord(ch)-ord('A');
+  iMod:=0;
+  kMod:=kMod-1;
+  if (kMod and 2)<>0 then
+    iMod:=3
+  else if (kMod and 4)<>0 then
+    iMod:=2
+  else if (kMod and 1)<>0 then
+    iMod:=1;
+  //writeln('kMod ',kMod,'  ch ',ch,'   iMod ',iMod,'   idx ',idx);
+  if idx<MaxIdx then
+    GetScanCodeValue:=ScanCodeValue[idx,iMod];
+end;
+
+const MaxNumScanCodeIdx=35;
+      NumScanCodeValue : array [0..MaxNumScanCodeIdx-1,0..3] of byte = (
+          {00} (kbEsc,kbEsc,kbEsc,kbEsc),   { place holder }
+          {01} (kbHome,kbHome,kbCtrlHome,kbAltHome),
+          {02} (kbIns,kbShiftIns,kbCtrlIns,kbAltIns),
+          {03} (kbDel,kbShiftDel,kbCtrlDel,kbAltDel),
+          {04} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),
+          {05} (kbPgUp,kbPgUp,kbCtrlPgUp,kbAltPgUp),
+          {06} (kbPgDn,kbPgDn,kbCtrlPgDn,kbAltPgDn),
+          {07} (kbHome,kbHome,kbCtrlHome,kbAltHome),
+          {08} (kbEnd,kbEnd,kbCtrlEnd,kbAltEnd),
+          {09} (kbAltEsc,kbAltEsc,kbAltEsc,kbAltEsc), { place holder }
+          {10} (kbHome,kbHome,kbCtrlHome,kbAltHome),  { place holder }
+          {11} (kbF1,kbShiftF1,kbCtrlF1,kbAltF1),
+          {12} (kbF2,kbShiftF2,kbCtrlF2,kbAltF2),
+          {13} (kbF3,kbShiftF3,kbCtrlF3,kbAltF3),
+          {14} (kbF4,kbShiftF4,kbCtrlF4,kbAltF4),
+          {15} (kbF5,kbShiftF5,kbCtrlF5,kbAltF5),
+          {16} (kbF6,kbShiftF2,kbCtrlF6,kbAltF6),  { place holder }
+          {17} (kbF6,kbShiftF6,kbCtrlF6,kbAltF6),
+          {18} (kbF7,kbShiftF7,kbCtrlF7,kbAltF7),
+          {19} (kbF8,kbShiftF8,kbCtrlF8,kbAltF8),
+          {20} (kbF9,kbShiftF9,kbCtrlF9,kbAltF9),
+          {21} (kbF10,kbShiftF10,kbCtrlF10,kbAltF10),
+          {22} (kbF2,kbShiftF2,kbCtrlF2,kbAltF2),  { place holder }
+          {23} (kbF11,kbShiftF11,kbCtrlF11,kbAltF11),
+          {24} (kbF12,kbShiftF12,kbCtrlF12,kbAltF12),
+          {25} (kbShiftF1,kbShiftF1,kbCtrlF1,kbAltF1),
+          {26} (kbShiftF2,kbShiftF2,kbCtrlF2,kbAltF2),
+          {27} (kbShiftF3,kbShiftF3,kbCtrlF3,kbAltF3),  { place holder }
+          {28} (kbShiftF3,kbShiftF3,kbCtrlF3,kbAltF3),
+          {29} (kbShiftF4,kbShiftF4,kbCtrlF4,kbAltF4),
+          {30} (kbShiftF5,kbShiftF5,kbCtrlF5,kbAltF5),  { place holder }
+          {31} (kbShiftF5,kbShiftF5,kbCtrlF5,kbAltF5),
+          {32} (kbShiftF6,kbShiftF6,kbCtrlF6,kbAltF6),
+          {33} (kbShiftF7,kbShiftF7,kbCtrlF7,kbAltF7),
+          {34} (kbShiftF8,kbShiftF8,kbCtrlF8,kbAltF8)
+          {
+          (kb,kbShift,kbCtrl,kbAlt),
+          (kb,kbShift,kbCtrl,kbAlt),
+          (kb,kbShift,kbCtrl,kbAlt),
+          }
+      );
+
+procedure AdjustmentForRxvtTerminal;
+var term:string;
+begin
+  term:=fpgetenv('COLORTERM');
+  if lowercase(copy(term,1,4))='rxvt' then
+  begin
+    NumScanCodeValue[25,0]:=kbShiftF3;
+    NumScanCodeValue[26,0]:=kbShiftF4;
+    NumScanCodeValue[28,0]:=kbShiftF5;
+    NumScanCodeValue[29,0]:=kbShiftF6;
+    NumScanCodeValue[31,0]:=kbShiftF7;
+    NumScanCodeValue[32,0]:=kbShiftF8;
+    NumScanCodeValue[33,0]:=kbShiftF9;
+    NumScanCodeValue[34,0]:=kbShiftF10;
+  end;
+end;
+
+Function GetScanCodeValue(kMod:byte; num1,num2 : ShortInt):byte;
+var idx,iMod : longword;
+begin
+  GetScanCodeValue:=0;
+  idx:=199;
+  if (num1=-1) then
+  begin
+    idx:=num2;
+  end else
+  begin
+    idx:=num1;
+  end;
+  iMod:=0;
+  kMod:=kMod-1;
+  if (kMod and 2)<>0 then
+    iMod:=3
+  else if (kMod and 4)<>0 then
+    iMod:=2
+  else if (kMod and 1)<>0 then
+    iMod:=1;
+  if idx<MaxNumScanCodeIdx then
+    GetScanCodeValue:=NumScanCodeValue[idx,iMod];
+end;
+
+
+Function ReadKey:AnsiChar;
 Var
-  ch       : char;
+  ch       : AnsiChar;
   OldState,
   State    : longint;
   FDS      : TFDSet;
+  num1,num2,kMod : shortint;
+  OPrefix : boolean;
+  ScanCode:byte;
+  SavedEscapeStr : ShortString;
+
+  procedure ProcessNum(aCh : AnsiChar);
+  var num : shortInt;
+  begin
+    num:=ord(aCh)-ord('0');
+    if num2=-1 then
+      num2:=0;
+    num2:=num2*10+num;
+    if (num1<>-1) or OPrefix then
+      kMod:=num2;
+  end;
+
+  procedure PushBackSavedStr;
+  var i : longword;
+  begin
+    for i:=1 to length(SavedEscapeStr) do
+      PushKey(SavedEscapeStr[i]);
+  end;
+
 Begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -881,10 +1039,15 @@ Begin
     end;
 
   ch:=ttyRecvChar;
+  SavedEscapeStr:=ch;
 {Esc Found ?}
   CASE ch OF
   #27: begin
      State:=1;
+     num1:=-1;
+     num2:=-1;
+     kMod:=1;
+     OPrefix:=false;
      Delay(10);
      { This has to be sysKeyPressed and not "keyPressed", since after }
      { one iteration keyPressed will always be true because of the    }
@@ -892,169 +1055,218 @@ Begin
      while (State<>0) and (sysKeyPressed) do
       begin
         ch:=ttyRecvChar;
+        SavedEscapeStr:=SavedEscapeStr+ch;
         OldState:=State;
         State:=0;
         case OldState of
         1 : begin {Esc}
               case ch of
           'a'..'z',
+          'A'..'N',
+          'P'..'Z',
           '0'..'9',
            '-','=' : PushExt(FAltKey(ch));
                #10 : PushKey(#10);
-               '[' : State:=2;
+                #9 : PushExt(kbShiftTab);  {#27#9}
+              #127 : PushExt(kbAltBack);  {#27#127}
+               #27 : State:=4;
+               '[' : State:=5;
 {$IFDEF Unix}
-              'O': State:=7;
+               'O' : if not (sysKeyPressed) then
+                       PushExt(kbAltO)  {#27'[O'}
+                     else
+                       begin
+                         OPrefix:=true;
+                         State:=6;
+                       end;
 {$ENDIF}
                else
-                begin
-                  PushKey(ch);
-                  PushKey(#27);
-                end;
+                 PushBackSavedStr;
                end;
             end;
-        2 : begin {Esc[}
+        2 : begin
               case ch of
-               '[' : State:=3;
-               'A' : PushExt(72);
-               'B' : PushExt(80);
-               'C' : PushExt(77);
-               'D' : PushExt(75);
-               {$IFDEF FREEBSD}
-               {'E' - Center key, not handled in DOS TP7}
-               'F' : PushExt(79); {End}
-               'G': PushExt(81); {PageDown}
-               {$ELSE}
-               'G' : PushKey('5'); {Center key, Linux}
-               {$ENDIF}
-               'H' : PushExt(71);
-               {$IFDEF FREEBSD}
-               'I' : PushExt(73); {PageUp}
-               {$ENDIF}
-               'K' : PushExt(79);
-               {$IFDEF FREEBSD}
-               'L' : PushExt(82);   {Insert - Deekoo}
-               'M' : PushExt(59);   {F1-F10 - Deekoo}
-               'N' : PushExt(60);   {F2}
-               'O' : PushExt(61);   {F3}
-               'P' : PushExt(62);   {F4}
-               'Q' : PushExt(63);   {F5}
-               'R' : PushExt(64);   {F6}
-               'S' : PushExt(65);   {F7}
-               'T' : PushExt(66);   {F8}
-               'U' : PushExt(67);   {F9}
-               'V' : PushExt(68);   {F10}
-               {Not sure if TP/BP handles F11 and F12 like this normally;
-                   In pcemu, a TP7 executable handles 'em this way, though.}
-               'W' : PushExt(133);   {F11}
-               'X' : PushExt(134);   {F12}
-               'Y' : PushExt(84);   {Shift-F1}
-               'Z' : PushExt(85);   {Shift-F2}
-               'a' : PushExt(86);   {Shift-F3}
-               'b' : PushExt(87);   {Shift-F4}
-               'c' : PushExt(88);   {Shift-F5}
-               'd' : PushExt(89);   {Shift-F6}
-               'e' : PushExt(90);   {Shift-F7}
-               'f' : PushExt(91);   {Shift-F8}
-               'g' : PushExt(92);   {Shift-F9}
-               'h' : PushExt(93);   {Shift-F10}
-               'i' : PushExt(135);   {Shift-F11}
-               'j' : PushExt(136);   {Shift-F12}
-               'k' : PushExt(94);        {Ctrl-F1}
-               'l' : PushExt(95);
-               'm' : PushExt(96);
-               'n' : PushExt(97);
-               'o' : PushExt(98);
-               'p' : PushExt(99);
-               'q' : PushExt(100);
-               'r' : PushExt(101);
-               's' : PushExt(102);
-               't' : PushExt(103);   {Ctrl-F10}
-               'u' : PushExt(137);   {Ctrl-F11}
-               'v' : PushExt(138);   {Ctrl-F12}
-               {$ENDIF}
-               '1' : State:=4;
-               '2' : State:=5;
-               '3' : State:=6;
-               '4' : PushExt(79);
-               '5' : PushExt(73);
-               '6' : PushExt(81);
+               ';':  begin num1:=num2; num2:=-1; State:=2; end;
+               '0'..'9':  begin ProcessNum(ch); State:=2; end;
+               '^' : begin kMod:=(kMod-1) or 4+1; PushExt(GetScanCodeValue(kMod,num1,num2)); end; {ctrl}
+               '~' : begin  { none }
+                       ScanCode:=GetScanCodeValue(kMod,num1,num2);
+                       if ScanCode <> 1 then
+                         if ScanCode <> 0 then
+                           PushExt(ScanCode)
+                         else
+                           PushBackSavedStr
+                       else
+                         PushKey(#27);
+                     end;
+               '@' : begin kMod:=(kMod-1) or (4 or 1)+1; PushExt(GetScanCodeValue(kMod,num1,num2)); end; {ctrl-shift}
+               '$' : begin kMod:=(kMod-1) or 1+1; PushExt(GetScanCodeValue(kMod,num1,num2)); end; {Shift}
+               'A'..'H',
+               'P'..'S': PushExt(GetScanCodeValue(kMod,ch));
               else
-               begin
-                 PushKey(ch);
-                 PushKey('[');
-                 PushKey(#27);
-               end;
+                PushBackSavedStr;
               end;
-              if ch in ['4'..'6'] then
-               State:=255;
             end;
-        3 : begin {Esc[[}
+        4 : begin {Esc}
               case ch of
-               'A' : PushExt(59);
-               'B' : PushExt(60);
-               'C' : PushExt(61);
-               'D' : PushExt(62);
-               'E' : PushExt(63);
+               'O':  begin State:=7; kMod:=(kMod-1) or 2+1; end;
+               '[':  begin State:=8; kMod:=(kMod-1) or 2+1; end;
+              else
+                PushBackSavedStr;
               end;
             end;
-        4 : begin {Esc[1}
+        5 : begin {Esc[}
               case ch of
-               '~' : PushExt(71);
-               '5' : State := 8;
-               '7' : PushExt(64);
-               '8' : PushExt(65);
-               '9' : PushExt(66);
+               '0'..'8':  begin ProcessNum(ch); State:=2; end;
+               'A':  PushExt(kbUp);  {#27'[A'}
+               'B':  PushExt(kbDown);  {#27'[B'}
+               'C':  PushExt(kbRight);  {#27'[C'}
+               'D':  PushExt(kbLeft);  {#27'[D'}
+               'E':  PushExt(kbCenter);  {#27'[E'}
+               'F':  PushExt(kbEnd);  {#27'[F'}
+{$ifdef FREEBSD}
+               'G':  PushExt(kbPgDn);  {#27'[G'}
+{$else FREEBSD}
+               'G':  PushExt(kbCenter);  {#27'[G'}
+{$endif  FREEBSD}
+               'H':  PushExt(kbHome);  {#27'[H'}
+               'I':  PushExt(kbPgUp);  {#27'[I'}
+               'M':  PushExt(kbF1);  {#27'[M'}
+               'N':  PushExt(kbF2);  {#27'[N'}
+               'O':  if not (sysKeyPressed) then
+                       PushExt(kbF3)  {#27'[O'}
+                     else
+                       State:=14;
+               'P':  if not isKitty then PushExt(kbF4) else PushExt(kbF1);  {#27'[P'}
+               'Q':  if not isKitty then PushExt(kbF5) else PushExt(kbF2);  {#27'[Q'}
+               'R':  PushExt(kbF6);  {#27'[R'}
+               'S':  if not isKitty then PushExt(kbF7) else PushExt(kbF4);  {#27'[S'}
+               'T':  PushExt(kbF8);  {#27'[T'}
+               'U':  PushExt(kbF9);  {#27'[U'}
+               'V':  PushExt(kbF10);  {#27'[V'}
+               'W':  PushExt(kbF11);  {#27'[W'}
+               'X':  PushExt(kbF12);  {#27'[X'}
+               'Z':  PushExt(kbShiftTab);  {#27'[Z'}
+               '[':  State:=15;
+               'a':  PushExt(kbUp);  {#27'[a'}
+               'b':  PushExt(kbDown);  {#27'[b'}
+               'c':  PushExt(kbRight);  {#27'[c'}
+               'd':  PushExt(kbLeft);  {#27'[d'}
+              else
+                PushBackSavedStr;
               end;
-              if not (Ch in ['~', '5']) then
-               State:=255;
             end;
-        5 : begin {Esc[2}
+        6 : begin {EscO}
               case ch of
-               '~' : PushExt(82);
-               '0' : pushExt(67);
-               '1' : PushExt(68);
-               '3' : PushExt(133); {F11}
-                {Esc[23~ is also shift-F1,shift-F11}
-               '4' : PushExt(134); {F12}
-                {Esc[24~ is also shift-F2,shift-F12}
-               '5' : PushExt(86); {Shift-F3}
-               '6' : PushExt(87); {Shift-F4}
-               '8' : PushExt(88); {Shift-F5}
-               '9' : PushExt(89); {Shift-F6}
+               '2'..'3',
+               '5':  begin ProcessNum(ch); State:=2; end;
+               'A':  PushExt(kbAltUp);  {#27'OA'}
+               'B':  PushExt(kbAltDown);  {#27'OB'}
+               'C':  PushExt(kbAltRight);  {#27'OC'}
+               'D':  PushExt(kbLeft);  {#27'OD'}
+               'F':  PushExt(kbEnd);  {#27'OF'}
+               'H':  PushExt(kbHome);  {#27'OH'}
+               'P':  PushExt(kbF1);  {#27'OP'}
+               'Q':  PushExt(kbF2);  {#27'OQ'}
+               'R':  PushExt(kbF3);  {#27'OR'}
+               'S':  PushExt(kbF4);  {#27'OS'}
+               'T':  PushExt(kbF5);  {#27'OT'}
+               'U':  PushExt(kbF6);  {#27'OU'}
+               'V':  PushExt(kbF7);  {#27'OV'}
+               'W':  PushExt(kbF8);  {#27'OW'}
+               'X':  PushExt(kbF9);  {#27'OX'}
+               'Y':  PushExt(kbF10);  {#27'OY'}
+               'Z':  PushExt(kbF11);  {#27'OZ'}
+               '[':  PushExt(kbF12);  {#27'O['}
+               'a':  PushExt(kbCtrlUp);  {#27'Oa'}
+               'b':  PushExt(kbCtrlDown);  {#27'Ob'}
+               'c':  PushExt(kbCtrlRight);  {#27'Oc'}
+               'd':  PushExt(kbCtrlLeft);  {#27'Od'}
+               'l':  PushExt(kbF8);  {#27'Ol'}
+               'n':  PushExt(kbShiftDel);  {#27'On'}
+               'p':  PushExt(kbShiftIns);  {#27'Op'}
+               't':  PushExt(kbF5);  {#27'Ot'}
+               'u':  PushExt(kbF6);  {#27'Ou'}
+               'v':  PushExt(kbF7);  {#27'Ov'}
+               'w':  PushExt(kbF9);  {#27'Ow'}
+               'x':  PushExt(kbF10);  {#27'Ox'}
+               'y':  PushExt(kbF11);  {#27'Oy'}
+               'z':  PushExt(kbF12);  {#27'Oz'}
+              else
+                PushBackSavedStr;
               end;
-              if (Ch<>'~') then
-               State:=255;
             end;
-        6 : begin {Esc[3}
+        7 : begin {O}
               case ch of
-               '~' : PushExt(83); {Del}
-               '1' : PushExt(90); {Shift-F7}
-               '2' : PushExt(91); {Shift-F8}
-               '3' : PushExt(92); {Shift-F9}
-               '4' : PushExt(93); {Shift-F10}
+               'A':  PushExt(kbAltUp);  {#27#27'OA'}
+               'B':  PushExt(kbAltDown);  {#27#27'OB'}
+               'C':  PushExt(kbAltRight);  {#27#27'OC'}
+               'D':  PushExt(kbAltLeft);  {#27#27'OD'}
+               'P':  PushExt(kbAltF1);  {#27#27'OP'}
+               'Q':  PushExt(kbAltF2);  {#27#27'OQ'}
+               'R':  PushExt(kbAltF3);  {#27#27'OR'}
+               'S':  PushExt(kbAltF4);  {#27#27'OS'}
+               'T':  PushExt(kbAltF5);  {#27#27'OT'}
+               'l':  PushExt(kbAltF8);  {#27#27'Ol'}
+               't':  PushExt(kbAltF5);  {#27#27'Ot'}
+               'u':  PushExt(kbAltF6);  {#27#27'Ou'}
+               'v':  PushExt(kbAltF7);  {#27#27'Ov'}
+               'w':  PushExt(kbAltF9);  {#27#27'Ow'}
+               'x':  PushExt(kbAltF10);  {#27#27'Ox'}
+               'y':  PushExt(kbAltF11);  {#27#27'Oy'}
+               'z':  PushExt(kbAltF12);  {#27#27'Oz'}
+              else
+                PushBackSavedStr;
               end;
-              if (Ch<>'~') then
-               State:=255;
             end;
-{$ifdef Unix}
-        7 : begin {Esc[O}
+        8 : begin {[}
               case ch of
-               'A' : PushExt(72);
-               'B' : PushExt(80);
-               'C' : PushExt(77);
-               'D' : PushExt(75);
-               'P' : PushExt(59);
-               'Q' : PushExt(60); 
-               'R' : PushExt(61);
-               'S' : PushExt(62);
+               '1'..'8':  begin ProcessNum(ch); State:=2; end;
+               'A':  PushExt(kbAltUp);  {#27#27'[A'}
+               'B':  PushExt(kbAltDown);  {#27#27'[B'}
+               'C':  PushExt(kbAltRight);  {#27#27'[C'}
+               'D':  PushExt(kbAltLeft);  {#27#27'[D'}
+               '[':  State:=10;
+               'a':  PushExt(kbAltUp);  {#27#27'[a'}
+               'b':  PushExt(kbAltDown);  {#27#27'[b'}
+               'c':  PushExt(kbAltRight);  {#27#27'[c'}
+               'd':  PushExt(kbAltLeft);  {#27#27'[d'}
+              else
+                PushBackSavedStr;
               end;
-          end;
-{$endif}
-        8 : begin {Esc[15}
-            case ch of
-              '~' : PushExt(63);
             end;
-          end;
+        10 : begin {[}
+              case ch of
+               'A':  PushExt(kbAltF1);  {#27#27'[[A'}
+               'B':  PushExt(kbAltF2);  {#27#27'[[B'}
+               'C':  PushExt(kbAltF3);  {#27#27'[[C'}
+               'D':  PushExt(kbAltF4);  {#27#27'[[D'}
+               'E':  PushExt(kbAltF5);  {#27#27'[[E'}
+              else
+                PushBackSavedStr;
+              end;
+            end;
+        14 : begin {[O}
+              case ch of
+               'a':  PushExt(kbCtrlUp);  {#27'[Oa'}
+               'b':  PushExt(kbCtrlDown);  {#27'[Ob'}
+               'c':  PushExt(kbCtrlRight);  {#27'[Oc'}
+               'd':  PushExt(kbCtrlLeft);  {#27'[Od'}
+              else
+                PushBackSavedStr;
+              end;
+            end;
+        15 : begin {[[}
+              case ch of
+               'A':  PushExt(kbF1);  {#27'[[A'}
+               'B':  PushExt(kbF2);  {#27'[[B'}
+               'C':  PushExt(kbF3);  {#27'[[C'}
+               'D':  PushExt(kbF4);  {#27'[[D'}
+               'E':  PushExt(kbF5);  {#27'[[E'}
+              else
+                PushBackSavedStr;
+              end;
+            end;
       255 : ;
         end;
         if State<>0 then
@@ -1106,8 +1318,8 @@ end;
 
 var
   Lastansi  : boolean;
-  AnsiCode  : string;
-Procedure DoWrite(const s:String);
+  AnsiCode  : shortstring;
+Procedure DoWrite(const s:shortstring);
 {
   Write string to screen, parse most common AnsiCodes
 }
@@ -1118,7 +1330,7 @@ var
   i,j,
   SendBytes : longint;
 
-  function AnsiPara(var hstr:string):byte;
+  function AnsiPara(var hstr:shortstring):byte;
   var
     k,j  : longint;
     code : word;
@@ -1252,7 +1464,7 @@ Procedure CrtWrite(Var F: TextRec);
   Top level write function for CRT
 }
 Var
-  Temp : String;
+  Temp : shortstring;
   idx,i : Longint;
   oldflush : boolean;
 Begin
@@ -1279,7 +1491,7 @@ Procedure CrtRead(Var F: TextRec);
   Read from CRT associated file.
 }
 var
-  c : char;
+  c : AnsiChar;
   i : longint;
 Begin
   if isATTY(F.Handle)=1 then
@@ -1412,13 +1624,13 @@ End;
  {$endif}
 {$endif}
 
-// ioctl might fail e.g. in putty. A redirect check is not enough, 
+// ioctl might fail e.g. in putty. A redirect check is not enough,
 // needs check for physical console too.
 
 Procedure Sound(Hz: Word);
 begin
 {$ifdef havekiocsound}
-  if (not OutputRedir) and (hz>0) then 
+  if (not OutputRedir) and (hz>0) then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
 {$endif}
 end;
@@ -1530,7 +1742,7 @@ var
   fds    : tfdSet;
   i,j,
   readed : longint;
-  buf    : array[0..255] of char;
+  buf    : array[0..255] of AnsiChar;
   s      : string[16];
 begin
   x:=0;
@@ -1594,7 +1806,7 @@ Initialization
 {$ifdef debugcrt}
   Assign(DebugFile,'debug.txt');
   ReWrite(DebugFile);
-{$endif}  
+{$endif}
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -1637,11 +1849,13 @@ Initialization
    {Reset Attribute (TextAttr=7 at startup)}
       ttySendStr(#27'[m');
     end;
+  AdjustmentForRxvtTerminal;
+  isKitty:=lowercase(copy(fpgetenv('TERM'),1,11))='xterm-kitty';
 
 Finalization
 {$ifdef debugcrt}
   Close(DebugFile);
-{$endif}  
+{$endif}
   ttyFlushOutput;
   if not OutputRedir then
     SetRawMode(False);

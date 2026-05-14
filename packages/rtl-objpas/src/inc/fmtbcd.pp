@@ -58,11 +58,11 @@
 { the next defines must be defined by hand,
   unless someone shows me a way how to to it with macros }
 
-{$define BCDgr4}   { define this if MCDMaxDigits is greater 4,   else undefine! }
-{$define BCDgr9}   { define this if MCDMaxDigits is greater 9,   else undefine! }
-{$define BCDgr18}  { define this if MCDMaxDigits is greater 18,  else undefine! }
-{ $define BCDgr64}  { define this if MCDMaxDigits is greater 64,  else undefine! }
-{ $define BCDgr180} { define this if MCDMaxDigits is greater 180, else undefine! }
+{$define BCDgr4}   { define this if BCDMaxDigits is greater 4,   else undefine! }
+{$define BCDgr9}   { define this if BCDMaxDigits is greater 9,   else undefine! }
+{$define BCDgr18}  { define this if BCDMaxDigits is greater 18,  else undefine! }
+{ $define BCDgr64}  { define this if BCDMaxDigits is greater 64,  else undefine! }
+{ $define BCDgr180} { define this if BCDMaxDigits is greater 180, else undefine! }
 
 {$ifdef BCDgr4}
  {$hint BCD Digits > 4}
@@ -340,6 +340,10 @@ INTERFACE
 
   function IntegerToBCD ( const aValue : myInttype ) : tBCD;
 
+  function Int128ToBCD ( const aValue : Int128Rec ) : tBCD;
+
+  function DPDec64ToBCD ( const aValue : QWord ) : tBCD;
+
   function VarToBCD ( const aValue : Variant ) : tBCD;
 
 { From DB.pas }
@@ -360,6 +364,10 @@ INTERFACE
 
   function BCDToInteger ( const BCD : tBCD;
                                 Truncate : Boolean = False ) : myInttype;
+
+  function BCDToInt128 ( const BCD : tBCD ) : Int128Rec;
+
+  function BCDToDPDec64 ( const BCD : tBCD ) : QWord;
 
 { From DB.pas }
   function BCDToCurr ( const BCD : tBCD;
@@ -1648,6 +1656,148 @@ IMPLEMENTATION
        _endSELECT;
      end;
 
+  function Int128ToBCD ( const aValue : Int128Rec ) : tBCD;
+
+    procedure DivMod(var Dividend: Int128Rec; const Divisor: DWord; out Remainder: DWord);
+    var v64: QWord; i: integer;
+    begin
+      Remainder:=0;
+      // little endian
+      for i:=3 downto 0 do begin
+        v64 := (QWord(Remainder) shl 32) or Dividend.DWords[i];
+        Dividend.DWords[i] := v64 div Divisor;
+        Remainder := v64 mod Divisor;
+      end;
+    end;
+
+  var
+    bh : tBCD_helper;
+    v128: Int128Rec;
+    digit: DWord;
+    p : {$ifopt r+} low ( bh.Singles ) - 1..0 {$else} Integer {$endif};
+    exitloop : Boolean;
+
+  begin
+    if aValue.Hi = 0 then
+      Result := IntegerToBCD(aValue.Lo)
+    else begin
+      v128 := aValue;
+      bh := null_.bh;
+      with bh do begin
+        Neg := v128.Hi and (1 shl 63) <> 0;
+        if Neg then begin
+          v128.Lo := not v128.Lo + 1;
+          v128.Hi := not v128.Hi + Ord(v128.Lo=0);
+        end;
+        LDig := 0;
+        p := 0;
+        repeat
+          DivMod(v128, 10, digit);
+          Singles[p] := digit;
+          exitloop := (v128.Hi = 0) and (v128.Lo = 0);
+          Dec(p);
+          if p < low(Singles) then begin
+            exitloop := True;
+            raise eBCDOverflowException.Create('in Int128ToBCD');
+          end;
+        until exitloop;
+        FDig := p + 1;
+      end;
+      pack_BCD ( bh, Result );
+    end;
+  end;
+
+
+  { Convert IEEE 754 Densely packed decimal64 format to BCD struct }
+
+  function DPDec64ToBCD ( const aValue : QWord ) : tBCD;
+
+  var
+    bh : tBCD_helper;
+    combination, exponent, leading_digit: DWord;
+    significand: QWord;
+    p : Integer;
+    declet,a,b: Word;
+    c0,c1,c2,d0,d1,d2: Byte;
+
+  begin
+    bh := null_.bh;
+    // Decimal64 supports values that can have 16 digit precision
+    // Sign: 1 bit, Combination: 13 bits, Significand continuation: 50 bits
+    // (−1)^Sign * 10^Exponent−398 * Significand
+    // (Binary encoding or Decimal encoding)
+    combination := aValue shr 50;
+    bh.Neg := combination and (1 shl 13) <> 0;
+    combination := combination and not (1 shl 13);
+    significand := (aValue and QWord($3FFFFFFFFFFFF)); // 50 bits
+    // Combination field not starting with "11"
+    if combination shr 11 <> %11 then begin
+      // The last 50 bits are the significand continuation field, consisting of five 10-bit declets. Each declet encodes three decimal digits using the DPD encoding.
+      // (5 declets * 3 digits + extra 1 digit = 16 digits)
+      exponent := ((combination shr 3) and $300) or (combination and $FF);
+      leading_digit := (combination shr 8) and 7;
+    end
+    else begin
+      exponent := ((combination shr 1) and $300) or (combination and $FF);
+      leading_digit := 8 or ((combination shr 8) and 1);
+    end;
+
+    p := -Integer(exponent)+398;
+    if p > 0 then begin
+      bh.Plac:=p;
+      bh.LDig:=p;
+    end;
+
+    // decode 5 declets
+    while significand<>0 do begin
+      declet := significand and $3FF; // 10 bits
+      a := (declet shr 1) and %110111;
+      b := a and %111;
+      c0 := (declet and 1);
+      c1 := (declet shr 4) and %111;
+      c2 := (declet shr 7) and %111;
+      // 1st digit
+      if b<=4 then                       // 1-2
+        d0:=declet and %1111
+      else if b<=5 then                  // 3
+        d0:=(c1 and %110) or c0
+      else if b mod a < 7 then           // 4-5
+        d0:=(c2 and %110) or c0
+      else                               // 6-8
+        d0:=%1000 or c0;
+      // 2nd digit
+      if (b and %101) xor %101 <> 0 then // 1,2,4
+        d1:=c1
+      else if a xor %010111 = 0 then     // 6
+        d1:=(c2 and %110) or (c1 and 1)
+      else                               // 5,7-8
+        d1:=%1000 or (c1 and 1);
+      // 3rd digit
+      if (b<=5) or (a=%100111) then      // 1-3, 7
+        d2:=c2
+      else
+        d2:=%1000 or (c2 and 1);
+
+      if (p < Low(bh.Singles)+2) or (p > High(bh.Singles)) then raise eBCDOverflowException.Create('in DPDec64ToBCD');
+
+      bh.Singles[p]:=d0;
+      Dec(p);
+      bh.Singles[p]:=d1;
+      Dec(p);
+      bh.Singles[p]:=d2;
+      Dec(p);
+
+      significand := significand shr 10;
+    end;
+    if leading_digit <> 0 then begin
+      bh.Singles[p]:=leading_digit;
+      Dec(p);
+    end;
+    bh.FDig := p+1;
+    pack_BCD ( bh, Result );
+  end;
+
+
   function CurrToBCD ( const Curr : currency;
                          var BCD : tBCD;
                              Precision : Integer = 32;
@@ -1839,6 +1989,102 @@ IMPLEMENTATION
             else BCDToInteger := -res;
          end;
      end;
+
+  function BCDToInt128 ( const BCD : tBCD ) : Int128Rec;
+
+    procedure MulAdd(var v128: Int128Rec; Mul, Add: DWord);
+    var v64: QWord; i: integer;
+    begin
+      // little endian
+      for i:=0 to 3 do begin
+        v64 := QWord(v128.DWords[i])*Mul + Add;
+        v128.DWords[i] := v64 and $FFFFFFFF;
+        Add := v64 shr 32;
+      end;
+    end;
+
+  var
+    bh : tBCD_helper;
+    i : {$ifopt r+} low ( bh.FDig )..0 {$else} Integer {$endif};
+
+  begin
+    unpack_BCD ( BCD, bh );
+    Result.Lo := 0;
+    Result.Hi := 0;
+    with bh do begin
+      for i := FDig to 0 do
+        MulAdd(Result, 10, Singles[i]);
+      if Plac > 0 then
+        if Singles[1] > 4 then MulAdd(Result, 1, 1);
+      if Neg then begin
+        Result.Lo := not Result.Lo + 1;
+        Result.Hi := not Result.Hi + Ord(Result.Lo=0);
+      end;
+    end;
+  end;
+
+  { Convert BCD struct to IEEE 754 Densely packed decimal64 format }
+
+  function BCDToDPDec64 ( const BCD : tBCD ) : QWord;
+
+  var
+    bh : tBCD_helper;
+    i: integer;
+    combination, exponent, leading_digit: DWord;
+    declet: Word;
+    d0,d1,d2: Word;
+
+  begin
+    unpack_BCD ( BCD, bh );
+    // encode exactly 16 digits
+    if bh.Prec < 16 then begin
+      Dec(bh.FDig, 16-bh.Prec);
+      bh.Prec := 16;
+    end
+    else if (bh.Prec > 16) and (bh.Prec-bh.Plac <= 16) then begin
+      // truncate decimal places
+      bh.Plac := 16-(bh.Prec-bh.Plac);
+    end;
+    // exponent
+    if bh.FDig < -15 then
+      exponent := 398 - bh.FDig - 15
+    else
+      exponent := 398 - bh.Plac;
+    // sign bit
+    if bh.Neg then Result := 1 shl 13 else Result := 0;
+    // leading 1 digit
+    leading_digit := bh.Singles[bh.FDig];
+    if leading_digit < 8 then
+      combination := ((exponent shl 3) and %1100000000000) or (leading_digit shl 8)
+    else
+      combination := ((exponent shl 1) and %0011000000000) or ((leading_digit and %1) shl 8) or (%1100000000000);
+    Result := Result or combination or (exponent and %11111111);
+    // next 15 digits
+    i := bh.FDig;
+    while i < bh.FDig+15 do begin
+      Result := Result shl 10;
+
+      Inc(i);
+      d2:=bh.Singles[i];
+      Inc(i);
+      d1:=bh.Singles[i];
+      Inc(i);
+      d0:=bh.Singles[i];
+
+      case ((d2 and 8) shr 1) or ((d1 and 8) shr 2) or ((d0 and 8) shr 3) of
+        %000: declet := (d2 shl 7) or (d1 shl 4) or d0;
+        %001: declet := (d2 shl 7) or (d1 shl 4) or %1000;
+        %010: declet := (d2 shl 7) or ((d0 and %110) shl 4) or ((d0 and 1) shl 4) or %1010;
+        %011: declet := (d2 shl 7) or (d1 shl 4) or %1001110;
+        %100: declet := ((d0 and %110) shl 7) or ((d2 and 1) shl 7) or (d1 shl 4) or %1100;
+        %101: declet := ((d1 and %110) shl 7) or ((d2 and 1) shl 7) or ((d1 and 1) shl 4) or %0101110;
+        %110: declet := ((d0 and %110) shl 7) or ((d2 and 1) shl 7) or ((d1 and 1) shl 4) or %1110;
+        %111: declet := ((d2 and 1) shl 7) or ((d1 and 1) shl 4) or %1101110;
+      end;
+      declet := declet or (d0 and 1);
+      Result := Result or declet;
+    end;
+  end;
 
 { From DB.pas }
   function BCDToCurr ( const BCD : tBCD;

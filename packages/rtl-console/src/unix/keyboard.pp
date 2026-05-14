@@ -494,11 +494,12 @@ const
     Action : 0;
   );
 
-  procedure GenFakeReleaseEvent(MouseEvent : TMouseEvent);
+  procedure GenFakeReleaseEvent(var MouseEvent : TMouseEvent);
   begin
     MouseEvent.action := MouseActionUp;
     MouseEvent.buttons := 0;
-    PutMouseEvent(MouseEvent);
+    { fake event is to decive LastMouseEvent
+    PutMouseEvent(MouseEvent); do not make real event }
   end;
 
   procedure GenMouseEvent;
@@ -522,17 +523,17 @@ const
                 interpret button 2 as button 5}
     case buttonval and 67 of
       0 : {left button press}
-        MouseEvent.buttons:=1;
+        MouseEvent.buttons:=MouseLeftButton;
       1 : {middle button pressed }
-        MouseEvent.buttons:=2;
+        MouseEvent.buttons:=MouseMiddleButton;
       2 : { right button pressed }
-        MouseEvent.buttons:=4;
+        MouseEvent.buttons:=MouseRightButton;
       3 : { no button pressed }
         MouseEvent.buttons:=0;
       64: { button 4 pressed }
-          MouseEvent.buttons:=8;
+          MouseEvent.buttons:=MouseButton4;
       65: { button 5 pressed }
-          MouseEvent.buttons:=16;
+          MouseEvent.buttons:=MouseButton5;
     end;
      if inhead=intail then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -566,7 +567,7 @@ const
        end;
 *)
      PutMouseEvent(MouseEvent);
-     if (MouseEvent.buttons and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+     if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
        GenFakeReleaseEvent(MouseEvent);
 {$ifdef DebugMouse}
      if MouseEvent.Action=MouseActionDown then
@@ -651,6 +652,24 @@ const
       exit;
     if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
       exit;
+    case buttonval and (67 or 128) of
+      0 : {left button press}
+        ButtonMask:=MouseLeftButton;
+      1 : {middle button pressed }
+        ButtonMask:=MouseMiddleButton;
+      2 : { right button pressed }
+        ButtonMask:=MouseRightButton;
+      3 : { no button pressed }
+        ButtonMask:=0;
+      64: { button 4 pressed }
+        ButtonMask:=MouseButton4;
+      65: { button 5 pressed }
+        ButtonMask:=MouseButton5;
+      128: { button browse back }
+        ButtonMask:=MouseXButton1;
+      129: { button browse forward }
+        ButtonMask:=MouseXButton2;
+    end;
     MouseEvent.X:=X-1;
     MouseEvent.Y:=Y-1;
     if (buttonval and 32)<>0 then
@@ -660,20 +679,6 @@ const
     end
     else
     begin
-      case buttonval and 67 of
-        0 : {left button press}
-          ButtonMask:=1;
-        1 : {middle button pressed }
-          ButtonMask:=2;
-        2 : { right button pressed }
-          ButtonMask:=4;
-        3 : { no button pressed }
-          ButtonMask:=0;
-        64: { button 4 pressed }
-          ButtonMask:=8;
-        65: { button 5 pressed }
-          ButtonMask:=16;
-      end;
       if ch='M' then
       begin
         MouseEvent.Action:=MouseActionDown;
@@ -686,11 +691,11 @@ const
       end;
     end;
     PutMouseEvent(MouseEvent);
-    if (ButtonMask and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+    if (ButtonMask and (MouseButton4 or MouseButton5)) <> 0 then
     begin
-      MouseEvent.Action:=MouseActionUp;
+      MouseEvent.Action:=MouseActionUp; {to trick LastMouseEvent pretend that we have MouseActionUp event }
       MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
-      PutMouseEvent(MouseEvent);
+      {PutMouseEvent(MouseEvent); do not put actual event }
     end;
     LastMouseEvent:=MouseEvent;
   end;
@@ -1503,6 +1508,12 @@ begin
 {$endif logging}
 end;
 
+var LastShiftState:byte;
+
+function GetLastShiftState:byte;
+begin
+  GetLastShiftState:=LastShiftState;
+end;
 
 function SysGetKeyEvent: TKeyEvent;
 
@@ -1637,6 +1648,7 @@ begin {main}
           SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
         else
           SysGetKeyEvent:=0;
+        LastShiftState:=Sstate;
         exit;
       end
     else if MyChar=#27 then
@@ -1729,6 +1741,7 @@ begin {main}
     SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
   else
     SysGetKeyEvent:=0;
+  LastShiftState:=Sstate;
 end;
 
 
@@ -1736,6 +1749,7 @@ function SysPollKeyEvent: TKeyEvent;
 var
   KeyEvent : TKeyEvent;
 begin
+  LastShiftState:=0;
   if keypressed then
     begin
       KeyEvent:=SysGetKeyEvent;
@@ -1754,7 +1768,7 @@ begin
     SysGetShiftState:=ShiftState
   else
 {$endif}
-    SysGetShiftState:=0;
+    SysGetShiftState:=GetLastShiftState;
 end;
 
 

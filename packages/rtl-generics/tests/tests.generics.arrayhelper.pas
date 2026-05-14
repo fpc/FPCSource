@@ -29,7 +29,7 @@ interface
 
 uses
   fpcunit, testregistry, testutils,
-  Classes, SysUtils, Generics.Collections;
+  Classes, SysUtils, Generics.Defaults, Generics.Collections;
 
 type
 
@@ -44,6 +44,13 @@ type
   published
     procedure Test_BinarySearch_Integers;
     procedure Test_BinarySearch_EmptyArray;
+    procedure Test_IndexOf;
+    procedure Test_FirstIndexOf;
+    procedure Test_LastIndexOf;
+    procedure Test_Min;
+    procedure Test_Max;
+    procedure Test_Contains;
+    procedure Test_Reverse;
   end;
 
 implementation
@@ -91,6 +98,88 @@ var
 begin
   CheckBinarySearch(nil, 1, False, LSearchResult);
   CheckSearchResult(LSearchResult, 1, -1, -1, LSearchResult.CompareResult=0);
+end;
+
+procedure TTestArrayHelper.Test_IndexOf;
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  AssertEquals('Correct find result for 9', 4, TArrayHelper<Integer>.IndexOf(A,9,TComparer<Integer>.Default));
+  AssertEquals('Correctfind result for 33', -1, TArrayHelper<Integer>.IndexOf(A,33,TComparer<Integer>.Default));
+  AssertEquals('Correct find result for 9 using default comparer', 4, TArrayHelper<Integer>.IndexOf(A,9));
+end;
+
+procedure TTestArrayHelper.Test_FirstIndexOf;
+
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,9,20);
+  AssertEquals('Correct find result for 9', 4, TArrayHelper<Integer>.FirstIndexOf(A,9,TComparer<Integer>.Default));
+  AssertEquals('Correct find result for 9 using default comparer', 4, TArrayHelper<Integer>.FirstIndexOf(A,9));
+end;
+
+procedure TTestArrayHelper.Test_LastIndexOf;
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,9,20);
+  AssertEquals('Correct find result for 9', 7, TArrayHelper<Integer>.LastIndexOf(A,9,TComparer<Integer>.Default));
+  AssertEquals('Correct find result for 9 using default comparer', 7, TArrayHelper<Integer>.LastIndexOf(A,9));
+end;
+
+procedure TTestArrayHelper.Test_Min;
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  AssertEquals('Correct min', 1, TArrayHelper<Integer>.Min(A,TComparer<Integer>.Default,-1));
+  AssertEquals('Correct min using default comparer', 1, TArrayHelper<Integer>.Min(A,-1));
+  a:=[];
+  AssertEquals('No min', -1, TArrayHelper<Integer>.Min(A,TComparer<Integer>.Default,-1));
+  AssertEquals('No min using default comparer', -1, TArrayHelper<Integer>.Min(A,-1));
+end;
+
+procedure TTestArrayHelper.Test_Max;
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  AssertEquals('Correct max', 20, TArrayHelper<Integer>.Max(A,TComparer<Integer>.Default,-1));
+  AssertEquals('Correct max using default comparer', 20, TArrayHelper<Integer>.Max(A,-1));
+  a:=[];
+  AssertEquals('No max ', -1, TArrayHelper<Integer>.Max(A,TComparer<Integer>.Default,-1));
+  AssertEquals('No max using default comparer', -1, TArrayHelper<Integer>.Max(A,-1));
+end;
+
+procedure TTestArrayHelper.Test_Contains;
+var
+  a: TArray<Integer>;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  AssertTrue('Have 15', TArrayHelper<Integer>.Contains(A,15,TComparer<Integer>.Default));
+  AssertFalse('Does not have 15',TArrayHelper<Integer>.Contains(A,14,TComparer<Integer>.Default));
+  a:=[];
+  AssertFalse('Empty does not have 15', TArrayHelper<Integer>.Contains(A,15,TComparer<Integer>.Default));
+end;
+
+procedure TTestArrayHelper.Test_Reverse;
+var
+  b,a: TArray<Integer>;
+  len,I : integer;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  len:=Length(a);
+  TArrayHelper<Integer>.Reverse(a,b);
+  for I:=0 to Length(a)-1 do
+    AssertEquals('At index i',a[len-i-1],b[i]);
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  b:=a;
+  len:=Length(a);
+  TArrayHelper<Integer>.Reverse(a,a);
+  for I:=0 to Length(b)-1 do
+    AssertEquals('At index i',a[len-i-1],b[i]);
 end;
 
 begin

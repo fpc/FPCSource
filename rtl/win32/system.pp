@@ -116,6 +116,16 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
+  if Ole32Dll <> 0 then
+    begin
+      WinFreeLibrary(Ole32Dll); { Careful, FreeLibrary should not be called from DllMain. }
+      Ole32Dll := 0;
+    end;
+  if OleAut32Dll <> 0 then
+    begin
+      WinFreeLibrary(OleAut32Dll);
+      OleAut32Dll := 0;
+    end;
 {$ifndef FPC_USE_WIN32_SEH}
   if not IsLibrary then
     remove_exception_handlers;
@@ -632,6 +642,5 @@ begin
   InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
-  ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

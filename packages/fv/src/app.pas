@@ -262,6 +262,7 @@ TYPE
       PROCEDURE GetTileRect (Var R: TRect); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       procedure WriteShellMsg; virtual;
+      procedure ResizeApplication(x, y : sw_integer); Virtual;
    END;
    PApplication = ^TApplication;                      { Application ptr }
 
@@ -366,6 +367,17 @@ resourcestring  sVideoFailed='Video initialization failed.';
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
 {***************************************************************************}
+{$ifdef OS_WINDOWS}
+Const
+   fvConsoleMode =(ENABLE_MOUSE_INPUT or
+                   ENABLE_WINDOW_INPUT or
+                   ENABLE_EXTENDED_FLAGS)
+           and not (ENABLE_PROCESSED_INPUT or
+                    ENABLE_LINE_INPUT or
+                    ENABLE_ECHO_INPUT or
+                    ENABLE_INSERT_MODE or
+                    ENABLE_QUICK_EDIT_MODE);
+{$endif OS_WINDOWS}
 
 {***************************************************************************}
 {                      PRIVATE INITIALIZED VARIABLES                        }
@@ -961,6 +973,12 @@ BEGIN
                  directly on Amiga-like systems. The FV itself cannot
                  handle the System Events anyway. (KB) }
                Drivers.GetSystemEvent(Event);         { Load system event }
+               if Event.What <> evNothing then
+                   { System events handle right away.
+                     Needed to respond correctly to cmResizeApp.
+                     If you need Event before hand then call GetSystemEvent(Event) instead. }
+                   HandleEvent (Event);
+
                If (Event.What = evNothing) Then
 {$ENDIF}
                  Idle;     { Idle if no event }
@@ -1023,6 +1041,9 @@ BEGIN
    { init mouse and cursor }
    Video.SetCursorType(crHidden);
    Mouse.SetMouseXY(1,1);
+   {$ifdef OS_WINDOWS}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+   {$endif OS_WINDOWS}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1038,6 +1059,9 @@ BEGIN
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
 {   DoneResource;}
+   {$ifdef OS_WINDOWS}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+   {$endif OS_WINDOWS}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1065,11 +1089,15 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TApplication.DosShell;
 
+var PrevHeight,PrevWidth : Sw_Word;
 {$ifdef unix}
 var s:string;
 {$endif}
 
 BEGIN                                                 { Compatability only }
+  {$ifdef OS_WINDOWS}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+  {$endif OS_WINDOWS}
   DoneSysError;
   DoneEvents;
   drivers.donevideo;
@@ -1087,13 +1115,23 @@ BEGIN                                                 { Compatability only }
   SwapVectors;
 {$endif}
 {  InitDosMem;}
+  PrevHeight:=ScreenHeight;
+  PrevWidth:=ScreenWidth;
   drivers.initkeyboard;
   drivers.initvideo;
   Video.SetCursorType(crHidden);
   InitScreen;
   InitEvents;
   InitSysError;
-  Redraw;
+  {$ifdef OS_WINDOWS}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+  {$endif OS_WINDOWS}
+  if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
+    { acknowledge new screen dimensions }
+    { prevents to draw out of boundaries of new video buffer }
+    ResizeApplication(ScreenWidth,ScreenHeight)
+  else
+    Redraw;
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1116,6 +1154,7 @@ BEGIN
        cmTile: Tile;                                  { Tile request }
        cmCascade: Cascade;                            { Cascade request }
        cmDosShell: DosShell;                          { DOS shell request }
+       cmResizeApp: ResizeApplication(Event.Id, Event.InfoWord); { Resize App }
        Else Exit;                                     { Unhandled exit }
      End;
      ClearEvent(Event);                               { Clear the event }
@@ -1128,6 +1167,23 @@ begin
   writeln(sTypeExitOnReturn);
 end;
 
+procedure TApplication.ResizeApplication(x, y : sw_integer);
+var
+  OldR : TRect;
+  Mode : TVideoMode;
+begin
+  GetBounds(OldR);
+  { adapt to new size }
+  if (OldR.B.Y-OldR.A.Y<>y) or
+     (OldR.B.X-OldR.A.X<>x) then
+    begin
+      Mode.color:=ScreenMode.Color;
+      Mode.col:=x;
+      Mode.row:=y;
+      SetScreenVideoMode(Mode);
+      Redraw;
+    end;
+end;
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }

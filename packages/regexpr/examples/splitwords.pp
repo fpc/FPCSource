@@ -1,6 +1,10 @@
 {$mode objfpc}
 {$H+}
-uses cwstring, sysutils, classes, uregexpr;
+uses
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  SysUtils, Classes, uregexpr;
 
 Var
   Split : TStringList;

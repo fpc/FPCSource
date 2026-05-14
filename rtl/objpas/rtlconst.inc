@@ -16,35 +16,41 @@ unit RtlConsts;
 
 interface
 
+Const
+  SEmpty : string = 'Empty';  
+
+
 ResourceString
 
 { ---------------------------------------------------------------------
     Various error messages.
   ---------------------------------------------------------------------}
 
-  HNoContext                    = 'No context-sensitive Help installed.';
-  HNoSystem                     = 'No Help Manager installed.';
-  HNoTableOfContents            = 'No Table of Contents found.';
+  HNoContext                    = 'No context-sensitive Help installed';
+  HNoSystem                     = 'No Help Manager installed';
+  HNoTableOfContents            = 'No Table of Contents found';
   HNothingFound                 = 'No help found for "%s"';
-  HNoTopics                     = 'No topic-based Help installed.';
+  HNoTopics                     = 'No topic-based Help installed';
   SAbortButton                  = 'Abort';
   SAllButton                    = '&All';
   SAllFilter                    = 'All files';
-  SAncestorNotFound             = 'Ancestor class for "%s" not found.';
-  SAssignError                  = 'Cannot assign a %s to a %s.';
+  SAncestorNotFound             = 'Ancestor class for "%s" not found';
+  SArgumentInvalid              = 'Invalid argument';
+  SArgumentNil                  = 'Argument must not be nil';
+  SAssignError                  = 'Cannot assign a %s to a %s';
   SAsyncSocketError             = 'Asynchronous socket error: %d';
   SBG                           = 'BG';
   SBitmapEmpty                  = 'Bitmap is empty';
-  SBitsIndexError               = 'Bits index out of range.';
+  SBitsIndexError               = 'Bits index out of range';
   SBoldFont                     = 'Bold';
   SBoldItalicFont               = 'Bold Italic';
-  SBucketListLocked             = 'List is locked during an active ForEach.';
+  SBucketListLocked             = 'List is locked during an active ForEach';
   SCancelButton                 = 'Cancel';
   SCannotCreateDir              = 'Cannot create directory';
   SCannotCreateName             = 'Cannot use standard name for and unknown component';
   SCannotCreateSocket           = 'Unable to create new socket';
   SCannotDragForm               = 'Forms cannot be dragged';
-  SCannotFocus                  = 'A disbled or invisible Window cannot get focus';
+  SCannotFocus                  = 'A disabled or invisible Window cannot get focus';
   SCannotListenOnOpen           = 'Listening on an open socket is not allowed';
   SCannotOpenAVI                = 'AVI can not be opened';
   SCannotShowModal              = 'A visible Window can not be made modal';
@@ -91,7 +97,7 @@ ResourceString
   SConvTooManyConvTypes         = 'Cannot register more than %d conversion types';
   SConvEmptyDescription         = 'A description cannot be empty or consist of only spaces';
   SCustomColors                 = 'Custom colors';
-  SDateEncodeError              = 'Invalid argument for date encode.';
+  SDateEncodeError              = 'Invalid argument for date encode';
   SDdeConvErr                   = 'DDE error - conversion was not performed ($0%x)';
   SDdeErr                       = 'An error was returned by DDE ($0%x)';
   SDdeMemErr                    = 'An error occurred - not enough memory for DDE ($0%x)';
@@ -115,7 +121,7 @@ ResourceString
   SEmptyStreamIllegalWriter     = 'Illegal Nil stream for TWriter constructor';
   SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SErrInvalidBitIndex           = 'Invalid bit index : %d';
-  SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available.';
+  SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available';
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
   SErrNotObserver               = '"%s" is not an observer';
@@ -160,11 +166,12 @@ ResourceString
   SInvalidDateWeek              = '(%d, %d, %d) is not a valid DateWeek triplet';
   SInvalidDayOfWeekInMonth      = '(%d, %d, %d, %d) is not a valid DayOfWeekInMonth quad';
   SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
-  SInvalidFileName              = '"%s" is not a valid file name.';
+  SInvalidFileName              = '"%s" is not a valid file name';
   SInvalidIcon                  = 'Invalid Icon';
   SInvalidImage                 = 'Invalid stream format';
   SInvalidImageList             = 'Invalid ImageList';
   SInvalidImageSize             = 'Invalid image size';
+  SInvalidKnownFilename         = 'Invalid filename - %s';
   SInvalidMask                  = '"%s" is not a valid mask at (%d)';
   SInvalidMemoSize              = 'Text larger than memo capacity';
   SInvalidMetafile              = 'Invalid Metafile';
@@ -186,14 +193,14 @@ ResourceString
   SItalicFont                   = 'Italic';
   SItemNotFound                 = 'Item not found ($0%x)';
   SLineTooLong                  = 'Line too long';
-  SListCapacityError            = 'List capacity (%d) exceeded.';
-  SListCountError               = 'List count (%d) out of bounds.';
+  SListCapacityError            = 'List capacity (%d) exceeded';
+  SListCountError               = 'List count (%d) out of bounds';
   SListIndexError               = 'List index (%d) out of bounds';
   SListItemSizeError            = 'Incompatible item size in source list';
   SMapKeyError                  = 'Map key (address $%x) does not exist';
   SMaskEditErr                  = 'Invalid mask input value.  Use escape key to abandon changes';
   SMaskErr                      = 'Invalid mask input value';
-  SMDIChildNotVisible           = 'A MDI-Child Window can not be hidden.';
+  SMDIChildNotVisible           = 'A MDI-Child Window can not be hidden';
   SMemoryStreamError            = 'Out of memory while expanding memory stream';
   SMenuIndexError               = 'Menu Index out of range';
   SMenuNotFound                 = 'Menu entry not found in menu';
@@ -206,6 +213,7 @@ ResourceString
   SNoCanvasHandle               = 'Canvas handle does not allow drawing';
   SNoComSupport                 = '"%s" has not been registered as a COM class';
   SNoDefaultPrinter             = 'No default printer was selected';
+  SNoFieldOfClassIn             = 'No field of class "%s" in "%s"';
   SNoMDIForm                    = 'No MDI form is available, none is active';
   SNoTimers                     = 'No timers available';
   SNotOpenErr                   = 'No MCI-device opened';
@@ -306,12 +314,12 @@ ResourceString
   SInvalidHighSurrogate         = 'Invalid high surrogate at index %d. High surrogate must be followed by a low surrogate pair';
   SInvalidUnicodeCodePointSequence = 'Invalid unicode code point sequence';
   SClassCantBeConstructed       = 'Class %s can not be constructed';
-  SErrStatusCallBackRequired    = 'Thread status report handler cannot be empty.';
-  SErrFindNeedsSortedList       = 'Cannot use find on unsorted list';
-  SParamIsNegative              = 'Parameter "%s" cannot be negative.';
-  SErrCannotWriteToProperty     = 'Cannot write to property "%s".';
-  SErrCannotReadProperty        = 'Cannot read property "%s".';
-  SErrNoNameValuePairAt         = 'No name=value pair at position %d.';
+  SErrStatusCallBackRequired    = 'Thread status report handler cannot be empty';
+  SErrFindNeedsSortedList       = 'Cannot use method "Find" on unsorted list';
+  SParamIsNegative              = 'Parameter "%s" cannot be negative';
+  SErrCannotWriteToProperty     = 'Cannot write to property "%s"';
+  SErrCannotReadProperty        = 'Cannot read property "%s"';
+  SErrNoNameValuePairAt         = 'No name=value pair at position %d';
   SErrCannotConvertNullToType   = 'Cannot convert Null to type %s';
   
 { ---------------------------------------------------------------------

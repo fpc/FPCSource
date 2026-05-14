@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2020 by Tomas Hajny,
@@ -5,6 +6,16 @@
 
     Support routines for calculation of local timezone and DST time
     offset based on information provided in the environment variable TZ.
+
+    There are various ways for specifying the timezone details using the
+    TZ variable. The more information is provided, the better results.
+    As an example, the following setting provides full information
+    including details for DST on/off switching date and time:
+    TZ=CET-1CEST,3,-1,0,7200,10,-1,0,10800,3600
+    (CET timezone is 1 hour in advance from UTC, there is DST called CEST,
+    DST starts on the last Sunday of March at 2am and finishes on the last
+    Sunday of October at 3am, the DST difference is 1 hour).
+    However, this is by no means the only supported syntax.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -903,12 +914,13 @@ end;
 {$ENDIF HAS_DUAL_TZHANDLING}
 
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: boolean; out Offset: integer): boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: boolean; out Offset: integer; out isDST : Boolean): boolean;
 var
   SystemTime: TSystemTime;
 begin
   DateTimeToSystemTime (DateTime, SystemTime);
-  if InDST (SystemTime, InputIsUTC) then
+  isDST:=InDST (SystemTime, InputIsUTC);
+  if isDST then
    Offset := DSTOffsetMin
   else
    Offset := TZOffsetMin;

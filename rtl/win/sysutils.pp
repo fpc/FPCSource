@@ -494,7 +494,7 @@ begin
                 @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
                 PBuffer^.PrintNameLength div SizeOf(WCHAR));
               if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
-                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
+                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(ExcludeTrailingPathDelimiter(FileName)) + SymLinkRec.TargetName);
             end;
           end;
 
@@ -527,7 +527,7 @@ end;
 
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 begin
-  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True) = slrOk;
+  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, False) = slrOk;
 end;
 
 
@@ -629,7 +629,10 @@ begin
     end;
 end;
 
-function GetFinalPathNameByHandle(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD; external 'kernel32' name 'GetFinalPathNameByHandleA';
+type
+  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD;
+var
+  GetFinalPathNameByHandle:TGetFinalPathNameByHandle=nil;
 
 Const
   VOLUME_NAME_NT = $2;
@@ -647,7 +650,7 @@ begin
   FillChar(Buf,MAX_PATH+1,0);
   if Not FileExists(aLink,False) then 
     exit;
-  if not CheckWin32Version(6, 0) then 
+  if not CheckWin32Version(6, 0) or not(assigned(GetFinalPathNameByHandle)) then 
     exit;
   Attrs:=GetFileAttributes(PChar(aLink));
   if (Attrs=INVALID_FILE_ATTRIBUTES) or ((Attrs and faSymLink)=0) then
@@ -997,7 +1000,7 @@ type
 var
   GetTimeZoneInformationForYear:TGetTimeZoneInformationForYear=nil;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; Out IsDST : boolean): Boolean;
 var
   Year: Integer;
 const
@@ -1058,12 +1061,16 @@ begin
       DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
       DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
     end;
-    if (DSTStart<=DateTime) and (DateTime<DSTEnd) then
+    IsDST:=(DSTStart<=DateTime) and (DateTime<DSTEnd);
+    if isDst then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else
       Offset := TZInfo.Bias+TZInfo.StandardBias;
   end else // no DST
+    begin
     Offset := TZInfo.Bias;
+    IsDST := False;
+    end;
   Result := True;
 end;
 
@@ -1700,6 +1707,8 @@ begin
   // GetTimeZoneInformationForYear is supported only on Vista and newer
   if (kernel32dll<>0) and (Win32MajorVersion>=6) then
     GetTimeZoneInformationForYear:=TGetTimeZoneInformationForYear(GetProcAddress(kernel32dll,'GetTimeZoneInformationForYear'));
+  if (kernel32dll<>0) then
+    GetFinalPathNameByHandle:=TGetFinalPathNameByHandle(GetProcAddress(kernel32dll,'GetFinalPathNameByHandleA'));
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;

@@ -1,17 +1,29 @@
-{%mainunit syshelpers.pp}
+{%MainUnit sysutils.pp}
 
 Type
-  generic TArray<T> = array of T;
   TStringArray = Array of string;
-  TCharArray = Array of char;
+  TAnsiStringArray = Array of Ansistring;
+  TUnicodeStringArray = Array of UnicodeString;
+  TWideStringArray = Array of WideString;
+  TShortStringArray = Array of ShortString;
+  TAnsiCharArray = Array of AnsiChar;
+  TWideCharArray = Array of WideChar;
+  TCharArray = Array of AnsiChar;
+
   TEndian = ObjPas.TEndian;
   TByteBitIndex = 0..7;
   TShortIntBitIndex = 0..7;
   TWordBitIndex = 0..15;
   TSmallIntBitIndex = 0..15;
   TCardinalBitIndex = 0..31;
+{$if sizeof(Integer)=2}
+  TIntegerBitIndex = 0..15;
+{$elseif sizeof(Integer)=4}
   TIntegerBitIndex = 0..31;
-  TLongIntBitIndex = TIntegerBitIndex;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+  TLongIntBitIndex = 0..31;
   TQwordBitIndex = 0..63;
   TInt64BitIndex = 0..63;
 {$IFDEF cpu16}
@@ -55,124 +67,124 @@ Type
   TStringSplitOptions = (None, ExcludeEmpty, ExcludeLastEmpty);
 {$SCOPEDENUMS OFF}
 
-  { TStringHelper }
+  { TAnsiStringHelper }
 
-  TStringHelper = Type Helper for AnsiString
+  TAnsiStringHelper = Type Helper for AnsiString
   Private
-    Function GetChar(AIndex : SizeInt) : Char;
+    Function GetChar(AIndex : SizeInt) : AnsiChar;
     Function GetLength : SizeInt;
   public
     const Empty = '';
     // Methods
-    Class Function Compare(const A: string; const B: string): Integer; overload; static; //inline;
-    Class Function Compare(const A: string; const B: string; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
-    Class Function Compare(const A: string; const B: string; Options: TCompareOptions): Integer; overload; static; // inline;
-    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
-    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
-    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
-    Class Function CompareOrdinal(const A: string; const B: string): Integer; overload; static;
-    Class Function CompareOrdinal(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
-    Class Function CompareText(const A: string; const B: string): Integer; static; inline;
-    Class Function Copy(const Str: string): string; inline; static;
-    Class Function Create(AChar: Char; ACount: SizeInt): string; overload; inline; static;
-    Class Function Create(const AValue: array of Char): string; overload; static;
-    Class Function Create(const AValue: array of Char; StartIndex: SizeInt; ALen: SizeInt): string; overload; static;
-    Class Function EndsText(const ASubText, AText: string): Boolean; static;
-    Class Function Equals(const a: string; const b: string): Boolean; overload; static;
-    Class Function Format(const AFormat: string; const args: array of const): string; overload; static;
-    Class Function IsNullOrEmpty(const AValue: string): Boolean; static;
-    Class Function IsNullOrWhiteSpace(const AValue: string): Boolean; static;
-    Class Function Join(const Separator: string; const Values: array of const): string; overload; static;
-    Class Function Join(const Separator: string; const Values: array of string): string; overload; static;
-    Class Function Join(const Separator: string; const Values: array of string; StartIndex: SizeInt; ACount: SizeInt): string; overload; static;
-    Class Function LowerCase(const S: string): string; overload; static; inline;
-    Class Function Parse(const AValue: Boolean): string; overload; static; inline;
-    Class Function Parse(const AValue: Extended): string; overload; static;inline;
-    Class Function Parse(const AValue: Int64): string; overload; static; inline;
-    Class Function Parse(const AValue: Integer): string; overload; static; inline;
-    Class Function ToBoolean(const S: string): Boolean; overload; static; inline;
-    Class Function ToDouble(const S: string): Double; overload; static; inline;
-    Class Function ToExtended(const S: string): Extended; overload; static; inline;
-    Class Function ToInt64(const S: string): Int64; overload; static; inline;
-    Class Function ToInteger(const S: string): Integer; overload; static; inline;
-    Class Function ToSingle(const S: string): Single; overload; static; inline;
-    Class Function UpperCase(const S: string): string; overload; static; inline;
-    Function CompareTo(const B: string): Integer;
-    Function Contains(const AValue: string): Boolean;
-    procedure CopyTo(SourceIndex: SizeInt; var destination: array of Char; DestinationIndex: SizeInt; ACount: SizeInt);
-    Function CountChar(const C: Char): SizeInt;
-    Function DeQuotedString: string; overload;
-    Function DeQuotedString(const AQuoteChar: Char): string; overload;
-    Function EndsWith(const AValue: string): Boolean; overload; inline;
-    Function EndsWith(const AValue: string; IgnoreCase: Boolean): Boolean; overload;
-    Function Equals(const AValue: string): Boolean; overload;
-    Function Format(const args: array of const): string; overload;
+    Class Function Compare(const A: AnsiString; const B: AnsiString): Integer; overload; static; //inline;
+    Class Function Compare(const A: AnsiString; const B: AnsiString; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: AnsiString; const B: AnsiString; Options: TCompareOptions): Integer; overload; static; // inline;
+    Class Function Compare(const A: AnsiString; IndexA: SizeInt; const B: AnsiString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
+    Class Function Compare(const A: AnsiString; IndexA: SizeInt; const B: AnsiString; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: AnsiString; IndexA: SizeInt; const B: AnsiString; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
+    Class Function CompareOrdinal(const A: AnsiString; const B: AnsiString): Integer; overload; static;
+    Class Function CompareOrdinal(const A: AnsiString; IndexA: SizeInt; const B: AnsiString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
+    Class Function CompareText(const A: AnsiString; const B: AnsiString): Integer; static; inline;
+    Class Function Copy(const Str: AnsiString): AnsiString; inline; static;
+    Class Function Create(AChar: AnsiChar; ACount: SizeInt): AnsiString; overload; inline; static;
+    Class Function Create(const AValue: array of AnsiChar): AnsiString; overload; static;
+    Class Function Create(const AValue: array of AnsiChar; StartIndex: SizeInt; ALen: SizeInt): AnsiString; overload; static;
+    Class Function EndsText(const ASubText, AText: AnsiString): Boolean; static;
+    Class Function Equals(const a: AnsiString; const b: AnsiString): Boolean; overload; static;
+    Class Function Format(const AFormat: AnsiString; const args: array of const): AnsiString; overload; static;
+    Class Function IsNullOrEmpty(const AValue: AnsiString): Boolean; static;
+    Class Function IsNullOrWhiteSpace(const AValue: AnsiString): Boolean; static;
+    Class Function Join(const Separator: AnsiString; const Values: array of const): AnsiString; overload; static;
+    Class Function Join(const Separator: AnsiString; const Values: array of AnsiString): AnsiString; overload; static;
+    Class Function Join(const Separator: AnsiString; const Values: array of AnsiString; StartIndex: SizeInt; ACount: SizeInt): AnsiString; overload; static;
+    Class Function LowerCase(const S: AnsiString): AnsiString; overload; static; inline;
+    Class Function Parse(const AValue: Boolean): AnsiString; overload; static; inline;
+    Class Function Parse(const AValue: Extended): AnsiString; overload; static;inline;
+    Class Function Parse(const AValue: Int64): AnsiString; overload; static; inline;
+    Class Function Parse(const AValue: Integer): AnsiString; overload; static; inline;
+    Class Function ToBoolean(const S: AnsiString): Boolean; overload; static; inline;
+    Class Function ToDouble(const S: AnsiString): Double; overload; static; inline;
+    Class Function ToExtended(const S: AnsiString): Extended; overload; static; inline;
+    Class Function ToInt64(const S: AnsiString): Int64; overload; static; inline;
+    Class Function ToInteger(const S: AnsiString): Integer; overload; static; inline;
+    Class Function ToSingle(const S: AnsiString): Single; overload; static; inline;
+    Class Function UpperCase(const S: AnsiString): AnsiString; overload; static; inline;
+    Function CompareTo(const B: AnsiString): Integer;
+    Function Contains(const AValue: AnsiString; IgnoreCase: Boolean = False): Boolean;
+    procedure CopyTo(SourceIndex: SizeInt; var destination: array of AnsiChar; DestinationIndex: SizeInt; ACount: SizeInt);
+    Function CountChar(const C: AnsiChar): SizeInt;
+    Function DeQuotedString: AnsiString; overload;
+    Function DeQuotedString(const AQuoteChar: AnsiChar): AnsiString; overload;
+    Function EndsWith(const AValue: AnsiString): Boolean; overload; inline;
+    Function EndsWith(const AValue: AnsiString; IgnoreCase: Boolean): Boolean; overload;
+    Function Equals(const AValue: AnsiString; IgnoreCase: Boolean = False): Boolean; overload;
+    Function Format(const args: array of const): AnsiString; overload;
     Function GetHashCode: Integer;
-    Function IndexOf(AValue: Char): SizeInt; overload; inline;
-    Function IndexOf(const AValue: string): SizeInt; overload; inline;
-    Function IndexOf(AValue: Char; StartIndex: SizeInt): SizeInt; overload;
-    Function IndexOf(const AValue: string; StartIndex: SizeInt): SizeInt; overload;
-    Function IndexOf(AValue: Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function IndexOf(const AValue: string; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function IndexOfUnQuoted(const AValue: string; StartQuote, EndQuote: Char; StartIndex: SizeInt = 0): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of Char): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of Char; StartIndex: SizeInt): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of String): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char): SizeInt; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: SizeInt): SizeInt; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    function IndexOfAnyUnquoted(const AnyOf: array of string; StartQuote, EndQuote: Char; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
-    Function Insert(StartIndex: SizeInt; const AValue: string): string;
-    Function IsDelimiter(const Delimiters: string; Index: SizeInt): Boolean;
+    Function IndexOf(AValue: AnsiChar): SizeInt; overload; inline;
+    Function IndexOf(const AValue: AnsiString): SizeInt; overload; inline;
+    Function IndexOf(AValue: AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: AnsiString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(AValue: AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: AnsiString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfUnQuoted(const AValue: AnsiString; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt = 0): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiChar): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiString): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of AnsiString; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    function IndexOfAnyUnquoted(const AnyOf: array of AnsiString; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
+    Function Insert(StartIndex: SizeInt; const AValue: AnsiString): AnsiString;
+    Function IsDelimiter(const Delimiters: AnsiString; Index: SizeInt): Boolean;
     Function IsEmpty: Boolean;
-    Function LastDelimiter(const Delims: string): SizeInt;
-    Function LastIndexOf(AValue: Char): SizeInt; overload;
-    Function LastIndexOf(const AValue: string): SizeInt; overload;
-    Function LastIndexOf(AValue: Char; AStartIndex: SizeInt): SizeInt; overload;
-    Function LastIndexOf(const AValue: string; AStartIndex: SizeInt): SizeInt; overload;
-    Function LastIndexOf(AValue: Char; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function LastIndexOf(const AValue: string; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char): SizeInt; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: SizeInt): SizeInt; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
-    Function PadLeft(ATotalWidth: SizeInt): string; overload; inline;
-    Function PadLeft(ATotalWidth: SizeInt; PaddingChar: Char): string; overload; inline;
-    Function PadRight(ATotalWidth: SizeInt): string; overload; inline;
-    Function PadRight(ATotalWidth: SizeInt; PaddingChar: Char): string; overload; inline;
-    Function QuotedString: string; overload;
-    Function QuotedString(const AQuoteChar: Char): string; overload;
-    Function Remove(StartIndex: SizeInt): string; overload; inline;
-    Function Remove(StartIndex: SizeInt; ACount: SizeInt): string; overload; inline;
-    Function Replace(OldChar: Char; NewChar: Char): string; overload;
-    Function Replace(OldChar: Char; NewChar: Char; ReplaceFlags: TReplaceFlags): string; overload;
-    Function Replace(const OldValue: string; const NewValue: string): string; overload;
-    Function Replace(const OldValue: string; const NewValue: string; ReplaceFlags: TReplaceFlags): string; overload;
-    Function Split(const Separators: array of Char): TStringArray; overload;
-    Function Split(const Separators: array of Char; ACount: SizeInt): TStringArray; overload;
-    Function Split(const Separators: array of Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string): TStringArray; overload;
-    Function Split(const Separators: array of string; ACount: SizeInt): TStringArray; overload;
-    Function Split(const Separators: array of string; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuote: Char): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuote: Char): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
-    Function StartsWith(const AValue: string): Boolean; overload; inline;
-    Function StartsWith(const AValue: string; IgnoreCase: Boolean): Boolean; overload;
-    Function Substring(AStartIndex: SizeInt): string; overload;
-    Function Substring(AStartIndex: SizeInt; ALen: SizeInt): string; overload;
+    Function LastDelimiter(const Delims: AnsiString): SizeInt;
+    Function LastIndexOf(AValue: AnsiChar): SizeInt; overload;
+    Function LastIndexOf(const AValue: AnsiString): SizeInt; overload;
+    Function LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: AnsiString; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: AnsiString; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of AnsiChar): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of AnsiChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of AnsiChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function PadLeft(ATotalWidth: SizeInt): AnsiString; overload; inline;
+    Function PadLeft(ATotalWidth: SizeInt; PaddingChar: AnsiChar): AnsiString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt): AnsiString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt; PaddingChar: AnsiChar): AnsiString; overload; inline;
+    Function QuotedString: AnsiString; overload;
+    Function QuotedString(const AQuoteChar: AnsiChar): AnsiString; overload;
+    Function Remove(StartIndex: SizeInt): AnsiString; overload; inline;
+    Function Remove(StartIndex: SizeInt; ACount: SizeInt): AnsiString; overload; inline;
+    Function Replace(OldChar: AnsiChar; NewChar: AnsiChar): AnsiString; overload;
+    Function Replace(OldChar: AnsiChar; NewChar: AnsiChar; ReplaceFlags: TReplaceFlags): AnsiString; overload;
+    Function Replace(const OldValue: AnsiString; const NewValue: AnsiString): AnsiString; overload;
+    Function Replace(const OldValue: AnsiString; const NewValue: AnsiString; ReplaceFlags: TReplaceFlags): AnsiString; overload;
+    Function Split(const Separators: array of AnsiChar): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; ACount: SizeInt): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; ACount: SizeInt): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; ACount: SizeInt; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; AQuote: AnsiChar): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; AQuote: AnsiChar): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; AQuoteStart, AQuoteEnd: AnsiChar): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; AQuoteStart, AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt): TAnsiStringArray; overload;
+    Function Split(const Separators: array of AnsiString; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TAnsiStringArray; overload;
+    Function StartsWith(const AValue: AnsiString): Boolean; overload; inline;
+    Function StartsWith(const AValue: AnsiString; IgnoreCase: Boolean): Boolean; overload;
+    Function Substring(AStartIndex: SizeInt): AnsiString; overload;
+    Function Substring(AStartIndex: SizeInt; ALen: SizeInt): AnsiString; overload;
     Function ToBoolean: Boolean; overload; inline;
     Function ToInteger: Integer; overload; inline;
     Function ToInt64: Int64; overload; inline;
@@ -181,21 +193,449 @@ Type
     Function ToExtended: Extended; overload; inline;
     Function ToCharArray: TCharArray; overload;
     Function ToCharArray(AStartIndex: SizeInt; ALen: SizeInt): TCharArray; overload;
-    Function ToLower: string; overload; inline;
-    Function ToLowerInvariant: string;
-    Function ToUpper: string; overload; inline;
-    Function ToUpperInvariant: string; inline;
-    Function Trim: string; overload;
-    Function TrimLeft: string; overload;
-    Function TrimRight: string; overload;
-    Function Trim(const ATrimChars: array of Char): string; overload;
-    Function TrimLeft(const ATrimChars: array of Char): string; overload;
-    Function TrimRight(const ATrimChars: array of Char): string; overload;
-    Function TrimEnd(const ATrimChars: array of Char): string; deprecated 'Use TrimRight';
-    Function TrimStart(const ATrimChars: array of Char): string; deprecated 'Use TrimLeft';
-    property Chars[AIndex: SizeInt]: Char read GetChar;
+    Function ToLower: AnsiString; overload; inline;
+    Function ToLowerInvariant: AnsiString;
+    Function ToUpper: AnsiString; overload; inline;
+    Function ToUpperInvariant: AnsiString; inline;
+    Function Trim: AnsiString; overload;
+    Function TrimLeft: AnsiString; overload;
+    Function TrimRight: AnsiString; overload;
+    Function Trim(const ATrimChars: array of AnsiChar): AnsiString; overload;
+    Function TrimLeft(const ATrimChars: array of AnsiChar): AnsiString; overload;
+    Function TrimRight(const ATrimChars: array of AnsiChar): AnsiString; overload;
+    Function TrimEnd(const ATrimChars: array of AnsiChar): AnsiString; deprecated 'Use TrimRight';
+    Function TrimStart(const ATrimChars: array of AnsiChar): AnsiString; deprecated 'Use TrimLeft';
+    property Chars[AIndex: SizeInt]: AnsiChar read GetChar;
     property Length: SizeInt read GetLength;
   end;
+
+
+  { TWideStringHelper }
+
+  TWideStringHelper = Type Helper for WideString
+  Private
+    Function GetChar(AIndex : SizeInt) : WideChar;
+    Function GetLength : SizeInt;
+  public
+    const Empty = '';
+    // Methods
+    Class Function Compare(const A: WideString; const B: WideString): Integer; overload; static; //inline;
+    Class Function Compare(const A: WideString; const B: WideString; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: WideString; const B: WideString; Options: TCompareOptions): Integer; overload; static; // inline;
+    Class Function Compare(const A: WideString; IndexA: SizeInt; const B: WideString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
+    Class Function Compare(const A: WideString; IndexA: SizeInt; const B: WideString; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: WideString; IndexA: SizeInt; const B: WideString; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
+    Class Function CompareOrdinal(const A: WideString; const B: WideString): Integer; overload; static;
+    Class Function CompareOrdinal(const A: WideString; IndexA: SizeInt; const B: WideString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
+    Class Function CompareText(const A: WideString; const B: WideString): Integer; static; inline;
+    Class Function Copy(const Str: WideString): WideString; inline; static;
+    Class Function Create(AChar: WideChar; ACount: SizeInt): WideString; overload; inline; static;
+    Class Function Create(const AValue: array of WideChar): WideString; overload; static;
+    Class Function Create(const AValue: array of WideChar; StartIndex: SizeInt; ALen: SizeInt): WideString; overload; static;
+    Class Function EndsText(const ASubText, AText: WideString): Boolean; static;
+    Class Function Equals(const a: WideString; const b: WideString): Boolean; overload; static;
+    Class Function Format(const AFormat: WideString; const args: array of const): WideString; overload; static;
+    Class Function IsNullOrEmpty(const AValue: WideString): Boolean; static;
+    Class Function IsNullOrWhiteSpace(const AValue: WideString): Boolean; static;
+    Class Function Join(const Separator: WideString; const Values: array of const): WideString; overload; static;
+    Class Function Join(const Separator: WideString; const Values: array of WideString): WideString; overload; static;
+    Class Function Join(const Separator: WideString; const Values: array of WideString; StartIndex: SizeInt; ACount: SizeInt): WideString; overload; static;
+    Class Function LowerCase(const S: WideString): WideString; overload; static; inline;
+    Class Function Parse(const AValue: Boolean): WideString; overload; static; inline;
+    Class Function Parse(const AValue: Extended): WideString; overload; static;inline;
+    Class Function Parse(const AValue: Int64): WideString; overload; static; inline;
+    Class Function Parse(const AValue: Integer): WideString; overload; static; inline;
+    Class Function ToBoolean(const S: WideString): Boolean; overload; static; inline;
+    Class Function ToDouble(const S: WideString): Double; overload; static; inline;
+    Class Function ToExtended(const S: WideString): Extended; overload; static; inline;
+    Class Function ToInt64(const S: WideString): Int64; overload; static; inline;
+    Class Function ToInteger(const S: WideString): Integer; overload; static; inline;
+    Class Function ToSingle(const S: WideString): Single; overload; static; inline;
+    Class Function UpperCase(const S: WideString): WideString; overload; static; inline;
+    Function CompareTo(const B: WideString): Integer;
+    Function Contains(const AValue: WideString; IgnoreCase: Boolean = False): Boolean;
+    procedure CopyTo(SourceIndex: SizeInt; var destination: array of WideChar; DestinationIndex: SizeInt; ACount: SizeInt);
+    Function CountChar(const C: WideChar): SizeInt;
+    Function DeQuotedString: WideString; overload;
+    Function DeQuotedString(const AQuoteChar: WideChar): WideString; overload;
+    Function EndsWith(const AValue: WideString): Boolean; overload; inline;
+    Function EndsWith(const AValue: WideString; IgnoreCase: Boolean): Boolean; overload;
+    Function Equals(const AValue: WideString; IgnoreCase: Boolean = False): Boolean; overload;
+    Function Format(const args: array of const): WideString; overload;
+    Function GetHashCode: Integer;
+    Function IndexOf(AValue: WideChar): SizeInt; overload; inline;
+    Function IndexOf(const AValue: WideString): SizeInt; overload; inline;
+    Function IndexOf(AValue: WideChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: WideString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(AValue: WideChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: WideString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfUnQuoted(const AValue: WideString; StartQuote, EndQuote: WideChar; StartIndex: SizeInt = 0): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideChar): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideString): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of WideString; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of WideChar; StartQuote, EndQuote: WideChar): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of WideChar; StartQuote, EndQuote: WideChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of WideChar; StartQuote, EndQuote: WideChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    function IndexOfAnyUnquoted(const AnyOf: array of WideString; StartQuote, EndQuote: WideChar; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
+    Function Insert(StartIndex: SizeInt; const AValue: WideString): WideString;
+    Function IsDelimiter(const Delimiters: WideString; Index: SizeInt): Boolean;
+    Function IsEmpty: Boolean;
+    Function LastDelimiter(const Delims: WideString): SizeInt;
+    Function LastIndexOf(AValue: WideChar): SizeInt; overload;
+    Function LastIndexOf(const AValue: WideString): SizeInt; overload;
+    Function LastIndexOf(AValue: WideChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: WideString; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(AValue: WideChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: WideString; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of WideChar): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of WideChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of WideChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function PadLeft(ATotalWidth: SizeInt): WideString; overload; inline;
+    Function PadLeft(ATotalWidth: SizeInt; PaddingChar: WideChar): WideString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt): WideString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt; PaddingChar: WideChar): WideString; overload; inline;
+    Function QuotedString: WideString; overload;
+    Function QuotedString(const AQuoteChar: WideChar): WideString; overload;
+    Function Remove(StartIndex: SizeInt): WideString; overload; inline;
+    Function Remove(StartIndex: SizeInt; ACount: SizeInt): WideString; overload; inline;
+    Function Replace(OldChar: WideChar; NewChar: WideChar): WideString; overload;
+    Function Replace(OldChar: WideChar; NewChar: WideChar; ReplaceFlags: TReplaceFlags): WideString; overload;
+    Function Replace(const OldValue: WideString; const NewValue: WideString): WideString; overload;
+    Function Replace(const OldValue: WideString; const NewValue: WideString; ReplaceFlags: TReplaceFlags): WideString; overload;
+    Function Split(const Separators: array of WideChar): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; ACount: SizeInt): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; ACount: SizeInt; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; ACount: SizeInt): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; ACount: SizeInt; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; AQuote: WideChar): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; AQuoteStart, AQuoteEnd: WideChar): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; AQuoteStart, AQuoteEnd: WideChar; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; AQuoteStart, AQuoteEnd: WideChar; ACount: SizeInt): TWideStringArray; overload;
+    Function Split(const Separators: array of WideChar; AQuoteStart, AQuoteEnd: WideChar; ACount: SizeInt; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; AQuote: WideChar): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; AQuoteStart, AQuoteEnd: WideChar): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; AQuoteStart, AQuoteEnd: WideChar; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; AQuoteStart, AQuoteEnd: WideChar; ACount: SizeInt): TWideStringArray; overload;
+    Function Split(const Separators: array of WideString; AQuoteStart, AQuoteEnd: WideChar; ACount: SizeInt; Options: TStringSplitOptions): TWideStringArray; overload;
+    Function StartsWith(const AValue: WideString): Boolean; overload; inline;
+    Function StartsWith(const AValue: WideString; IgnoreCase: Boolean): Boolean; overload;
+    Function Substring(AStartIndex: SizeInt): WideString; overload;
+    Function Substring(AStartIndex: SizeInt; ALen: SizeInt): WideString; overload;
+    Function ToBoolean: Boolean; overload; inline;
+    Function ToInteger: Integer; overload; inline;
+    Function ToInt64: Int64; overload; inline;
+    Function ToSingle: Single; overload; inline;
+    Function ToDouble: Double; overload; inline;
+    Function ToExtended: Extended; overload; inline;
+    Function ToCharArray: TCharArray; overload;
+    Function ToCharArray(AStartIndex: SizeInt; ALen: SizeInt): TCharArray; overload;
+    Function ToLower: WideString; overload; inline;
+    Function ToLowerInvariant: WideString;
+    Function ToUpper: WideString; overload; inline;
+    Function ToUpperInvariant: WideString; inline;
+    Function Trim: WideString; overload;
+    Function TrimLeft: WideString; overload;
+    Function TrimRight: WideString; overload;
+    Function Trim(const ATrimChars: array of WideChar): WideString; overload;
+    Function TrimLeft(const ATrimChars: array of WideChar): WideString; overload;
+    Function TrimRight(const ATrimChars: array of WideChar): WideString; overload;
+    Function TrimEnd(const ATrimChars: array of WideChar): WideString; deprecated 'Use TrimRight';
+    Function TrimStart(const ATrimChars: array of WideChar): WideString; deprecated 'Use TrimLeft';
+    property Chars[AIndex: SizeInt]: WideChar read GetChar;
+    property Length: SizeInt read GetLength;
+  end;
+
+  { TUnicodeStringHelper }
+
+  TUnicodeStringHelper = Type Helper for UnicodeString
+  Private
+    Function GetChar(AIndex : SizeInt) : UnicodeChar;
+    Function GetLength : SizeInt;
+  public
+    const Empty = '';
+    // Methods
+    Class Function Compare(const A: UnicodeString; const B: UnicodeString): Integer; overload; static; //inline;
+    Class Function Compare(const A: UnicodeString; const B: UnicodeString; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: UnicodeString; const B: UnicodeString; Options: TCompareOptions): Integer; overload; static; // inline;
+    Class Function Compare(const A: UnicodeString; IndexA: SizeInt; const B: UnicodeString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
+    Class Function Compare(const A: UnicodeString; IndexA: SizeInt; const B: UnicodeString; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: UnicodeString; IndexA: SizeInt; const B: UnicodeString; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
+    Class Function CompareOrdinal(const A: UnicodeString; const B: UnicodeString): Integer; overload; static;
+    Class Function CompareOrdinal(const A: UnicodeString; IndexA: SizeInt; const B: UnicodeString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
+    Class Function CompareText(const A: UnicodeString; const B: UnicodeString): Integer; static; inline;
+    Class Function Copy(const Str: UnicodeString): UnicodeString; inline; static;
+    Class Function Create(AChar: UnicodeChar; ACount: SizeInt): UnicodeString; overload; inline; static;
+    Class Function Create(const AValue: array of UnicodeChar): UnicodeString; overload; static;
+    Class Function Create(const AValue: array of UnicodeChar; StartIndex: SizeInt; ALen: SizeInt): UnicodeString; overload; static;
+    Class Function EndsText(const ASubText, AText: UnicodeString): Boolean; static;
+    Class Function Equals(const a: UnicodeString; const b: UnicodeString): Boolean; overload; static;
+    Class Function Format(const AFormat: UnicodeString; const args: array of const): UnicodeString; overload; static;
+    Class Function IsNullOrEmpty(const AValue: UnicodeString): Boolean; static;
+    Class Function IsNullOrWhiteSpace(const AValue: UnicodeString): Boolean; static;
+    Class Function Join(const Separator: UnicodeString; const Values: array of const): UnicodeString; overload; static;
+    Class Function Join(const Separator: UnicodeString; const Values: array of UnicodeString): UnicodeString; overload; static;
+    Class Function Join(const Separator: UnicodeString; const Values: array of UnicodeString; StartIndex: SizeInt; ACount: SizeInt): UnicodeString; overload; static;
+    Class Function LowerCase(const S: UnicodeString): UnicodeString; overload; static; inline;
+    Class Function Parse(const AValue: Boolean): UnicodeString; overload; static; inline;
+    Class Function Parse(const AValue: Extended): UnicodeString; overload; static;inline;
+    Class Function Parse(const AValue: Int64): UnicodeString; overload; static; inline;
+    Class Function Parse(const AValue: Integer): UnicodeString; overload; static; inline;
+    Class Function ToBoolean(const S: UnicodeString): Boolean; overload; static; inline;
+    Class Function ToDouble(const S: UnicodeString): Double; overload; static; inline;
+    Class Function ToExtended(const S: UnicodeString): Extended; overload; static; inline;
+    Class Function ToInt64(const S: UnicodeString): Int64; overload; static; inline;
+    Class Function ToInteger(const S: UnicodeString): Integer; overload; static; inline;
+    Class Function ToSingle(const S: UnicodeString): Single; overload; static; inline;
+    Class Function UpperCase(const S: UnicodeString): UnicodeString; overload; static; inline;
+    Function CompareTo(const B: UnicodeString): Integer;
+    Function Contains(const AValue: UnicodeString; IgnoreCase: Boolean = False): Boolean;
+    procedure CopyTo(SourceIndex: SizeInt; var destination: array of UnicodeChar; DestinationIndex: SizeInt; ACount: SizeInt);
+    Function CountChar(const C: UnicodeChar): SizeInt;
+    Function DeQuotedString: UnicodeString; overload;
+    Function DeQuotedString(const AQuoteChar: UnicodeChar): UnicodeString; overload;
+    Function EndsWith(const AValue: UnicodeString): Boolean; overload; inline;
+    Function EndsWith(const AValue: UnicodeString; IgnoreCase: Boolean): Boolean; overload;
+    Function Equals(const AValue: UnicodeString; IgnoreCase: Boolean = False): Boolean; overload;
+    Function Format(const args: array of const): UnicodeString; overload;
+    Function GetHashCode: Integer;
+    Function IndexOf(AValue: UnicodeChar): SizeInt; overload; inline;
+    Function IndexOf(const AValue: UnicodeString): SizeInt; overload; inline;
+    Function IndexOf(AValue: UnicodeChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: UnicodeString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(AValue: UnicodeChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: UnicodeString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfUnQuoted(const AValue: UnicodeString; StartQuote, EndQuote: UnicodeChar; StartIndex: SizeInt = 0): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeChar): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeString): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeString; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of UnicodeString; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of UnicodeChar; StartQuote, EndQuote: UnicodeChar): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of UnicodeChar; StartQuote, EndQuote: UnicodeChar; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of UnicodeChar; StartQuote, EndQuote: UnicodeChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    function IndexOfAnyUnquoted(const AnyOf: array of UnicodeString; StartQuote, EndQuote: UnicodeChar; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
+    Function Insert(StartIndex: SizeInt; const AValue: UnicodeString): UnicodeString;
+    Function IsDelimiter(const Delimiters: UnicodeString; Index: SizeInt): Boolean;
+    Function IsEmpty: Boolean;
+    Function LastDelimiter(const Delims: UnicodeString): SizeInt;
+    Function LastIndexOf(AValue: UnicodeChar): SizeInt; overload;
+    Function LastIndexOf(const AValue: UnicodeString): SizeInt; overload;
+    Function LastIndexOf(AValue: UnicodeChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: UnicodeString; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(AValue: UnicodeChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: UnicodeString; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of UnicodeChar): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of UnicodeChar; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of UnicodeChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function PadLeft(ATotalWidth: SizeInt): UnicodeString; overload; inline;
+    Function PadLeft(ATotalWidth: SizeInt; PaddingChar: UnicodeChar): UnicodeString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt): UnicodeString; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt; PaddingChar: UnicodeChar): UnicodeString; overload; inline;
+    Function QuotedString: UnicodeString; overload;
+    Function QuotedString(const AQuoteChar: UnicodeChar): UnicodeString; overload;
+    Function Remove(StartIndex: SizeInt): UnicodeString; overload; inline;
+    Function Remove(StartIndex: SizeInt; ACount: SizeInt): UnicodeString; overload; inline;
+    Function Replace(OldChar: UnicodeChar; NewChar: UnicodeChar): UnicodeString; overload;
+    Function Replace(OldChar: UnicodeChar; NewChar: UnicodeChar; ReplaceFlags: TReplaceFlags): UnicodeString; overload;
+    Function Replace(const OldValue: UnicodeString; const NewValue: UnicodeString): UnicodeString; overload;
+    Function Replace(const OldValue: UnicodeString; const NewValue: UnicodeString; ReplaceFlags: TReplaceFlags): UnicodeString; overload;
+    Function Split(const Separators: array of UnicodeChar): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; ACount: SizeInt): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; ACount: SizeInt; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; ACount: SizeInt): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; ACount: SizeInt; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; AQuote: UnicodeChar): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; AQuoteStart, AQuoteEnd: UnicodeChar): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; AQuoteStart, AQuoteEnd: UnicodeChar; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; AQuoteStart, AQuoteEnd: UnicodeChar; ACount: SizeInt): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeChar; AQuoteStart, AQuoteEnd: UnicodeChar; ACount: SizeInt; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; AQuote: UnicodeChar): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; AQuoteStart, AQuoteEnd: UnicodeChar): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; AQuoteStart, AQuoteEnd: UnicodeChar; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; AQuoteStart, AQuoteEnd: UnicodeChar; ACount: SizeInt): TUnicodeStringArray; overload;
+    Function Split(const Separators: array of UnicodeString; AQuoteStart, AQuoteEnd: UnicodeChar; ACount: SizeInt; Options: TStringSplitOptions): TUnicodeStringArray; overload;
+    Function StartsWith(const AValue: UnicodeString): Boolean; overload; inline;
+    Function StartsWith(const AValue: UnicodeString; IgnoreCase: Boolean): Boolean; overload;
+    Function Substring(AStartIndex: SizeInt): UnicodeString; overload;
+    Function Substring(AStartIndex: SizeInt; ALen: SizeInt): UnicodeString; overload;
+    Function ToBoolean: Boolean; overload; inline;
+    Function ToInteger: Integer; overload; inline;
+    Function ToInt64: Int64; overload; inline;
+    Function ToSingle: Single; overload; inline;
+    Function ToDouble: Double; overload; inline;
+    Function ToExtended: Extended; overload; inline;
+    Function ToCharArray: TCharArray; overload;
+    Function ToCharArray(AStartIndex: SizeInt; ALen: SizeInt): TCharArray; overload;
+    Function ToLower: UnicodeString; overload; inline;
+    Function ToLowerInvariant: UnicodeString;
+    Function ToUpper: UnicodeString; overload; inline;
+    Function ToUpperInvariant: UnicodeString; inline;
+    Function Trim: UnicodeString; overload;
+    Function TrimLeft: UnicodeString; overload;
+    Function TrimRight: UnicodeString; overload;
+    Function Trim(const ATrimChars: array of UnicodeChar): UnicodeString; overload;
+    Function TrimLeft(const ATrimChars: array of UnicodeChar): UnicodeString; overload;
+    Function TrimRight(const ATrimChars: array of UnicodeChar): UnicodeString; overload;
+    Function TrimEnd(const ATrimChars: array of UnicodeChar): UnicodeString; deprecated 'Use TrimRight';
+    Function TrimStart(const ATrimChars: array of UnicodeChar): UnicodeString; deprecated 'Use TrimLeft';
+    property Chars[AIndex: SizeInt]: UnicodeChar read GetChar;
+    property Length: SizeInt read GetLength;
+  end;
+
+    { TShortStringHelper }
+
+    TShortStringHelper = Type Helper for ShortString
+    Private
+      Function GetChar(AIndex : SizeInt) : AnsiChar;
+      Function GetLength : SizeInt;
+    public
+      const Empty = '';
+      // Methods
+      Class Function Compare(const A: ShortString; const B: ShortString): Integer; overload; static; //inline;
+      Class Function Compare(const A: ShortString; const B: ShortString; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
+      Class Function Compare(const A: ShortString; const B: ShortString; Options: TCompareOptions): Integer; overload; static; // inline;
+      Class Function Compare(const A: ShortString; IndexA: SizeInt; const B: ShortString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
+      Class Function Compare(const A: ShortString; IndexA: SizeInt; const B: ShortString; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
+      Class Function Compare(const A: ShortString; IndexA: SizeInt; const B: ShortString; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
+      Class Function CompareOrdinal(const A: ShortString; const B: ShortString): Integer; overload; static;
+      Class Function CompareOrdinal(const A: ShortString; IndexA: SizeInt; const B: ShortString; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
+      Class Function CompareText(const A: ShortString; const B: ShortString): Integer; static; inline;
+      Class Function Copy(const Str: ShortString): ShortString; inline; static;
+      Class Function Create(AChar: AnsiChar; ACount: SizeInt): ShortString; overload; inline; static;
+      Class Function Create(const AValue: array of AnsiChar): ShortString; overload; static;
+      Class Function Create(const AValue: array of AnsiChar; StartIndex: SizeInt; ALen: SizeInt): ShortString; overload; static;
+      Class Function EndsText(const ASubText, AText: ShortString): Boolean; static;
+      Class Function Equals(const a: ShortString; const b: ShortString): Boolean; overload; static;
+      Class Function Format(const AFormat: ShortString; const args: array of const): ShortString; overload; static;
+      Class Function IsNullOrEmpty(const AValue: ShortString): Boolean; static;
+      Class Function IsNullOrWhiteSpace(const AValue: ShortString): Boolean; static;
+      Class Function Join(const Separator: ShortString; const Values: array of const): ShortString; overload; static;
+      Class Function Join(const Separator: ShortString; const Values: array of ShortString): ShortString; overload; static;
+      Class Function Join(const Separator: ShortString; const Values: array of ShortString; StartIndex: SizeInt; ACount: SizeInt): ShortString; overload; static;
+      Class Function LowerCase(const S: ShortString): ShortString; overload; static; inline;
+      Class Function Parse(const AValue: Boolean): ShortString; overload; static; inline;
+      Class Function Parse(const AValue: Extended): ShortString; overload; static;inline;
+      Class Function Parse(const AValue: Int64): ShortString; overload; static; inline;
+      Class Function Parse(const AValue: Integer): ShortString; overload; static; inline;
+      Class Function ToBoolean(const S: ShortString): Boolean; overload; static; inline;
+      Class Function ToDouble(const S: ShortString): Double; overload; static; inline;
+      Class Function ToExtended(const S: ShortString): Extended; overload; static; inline;
+      Class Function ToInt64(const S: ShortString): Int64; overload; static; inline;
+      Class Function ToInteger(const S: ShortString): Integer; overload; static; inline;
+      Class Function ToSingle(const S: ShortString): Single; overload; static; inline;
+      Class Function UpperCase(const S: ShortString): ShortString; overload; static; inline;
+      Function CompareTo(const B: ShortString): Integer;
+      Function Contains(const AValue: ShortString; IgnoreCase: Boolean = False): Boolean;
+      procedure CopyTo(SourceIndex: SizeInt; var destination: array of AnsiChar; DestinationIndex: SizeInt; ACount: SizeInt);
+      Function CountChar(const C: AnsiChar): SizeInt;
+      Function DeQuotedString: ShortString; overload;
+      Function DeQuotedString(const AQuoteChar: AnsiChar): ShortString; overload;
+      Function EndsWith(const AValue: ShortString): Boolean; overload; inline;
+      Function EndsWith(const AValue: ShortString; IgnoreCase: Boolean): Boolean; overload;
+      Function Equals(const AValue: ShortString; IgnoreCase: Boolean = False): Boolean; overload;
+      Function Format(const args: array of const): ShortString; overload;
+      Function GetHashCode: Integer;
+      Function IndexOf(AValue: AnsiChar): SizeInt; overload; inline;
+      Function IndexOf(const AValue: ShortString): SizeInt; overload; inline;
+      Function IndexOf(AValue: AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+      Function IndexOf(const AValue: ShortString; StartIndex: SizeInt): SizeInt; overload;
+      Function IndexOf(AValue: AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function IndexOf(const AValue: ShortString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function IndexOfUnQuoted(const AValue: ShortString; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt = 0): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of AnsiChar): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of ShortString): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of ShortString; StartIndex: SizeInt): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of ShortString; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function IndexOfAny(const AnyOf: array of ShortString; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
+      Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar): SizeInt; overload;
+      Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt): SizeInt; overload;
+      Function IndexOfAnyUnquoted(const AnyOf: array of AnsiChar; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      function IndexOfAnyUnquoted(const AnyOf: array of ShortString; StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
+      Function Insert(StartIndex: SizeInt; const AValue: ShortString): ShortString;
+      Function IsDelimiter(const Delimiters: ShortString; Index: SizeInt): Boolean;
+      Function IsEmpty: Boolean;
+      Function LastDelimiter(const Delims: ShortString): SizeInt;
+      Function LastIndexOf(AValue: AnsiChar): SizeInt; overload;
+      Function LastIndexOf(const AValue: ShortString): SizeInt; overload;
+      Function LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt): SizeInt; overload;
+      Function LastIndexOf(const AValue: ShortString; AStartIndex: SizeInt): SizeInt; overload;
+      Function LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function LastIndexOf(const AValue: ShortString; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function LastIndexOfAny(const AnyOf: array of AnsiChar): SizeInt; overload;
+      Function LastIndexOfAny(const AnyOf: array of AnsiChar; AStartIndex: SizeInt): SizeInt; overload;
+      Function LastIndexOfAny(const AnyOf: array of AnsiChar; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+      Function PadLeft(ATotalWidth: SizeInt): ShortString; overload; inline;
+      Function PadLeft(ATotalWidth: SizeInt; PaddingChar: AnsiChar): ShortString; overload; inline;
+      Function PadRight(ATotalWidth: SizeInt): ShortString; overload; inline;
+      Function PadRight(ATotalWidth: SizeInt; PaddingChar: AnsiChar): ShortString; overload; inline;
+      Function QuotedString: ShortString; overload;
+      Function QuotedString(const AQuoteChar: AnsiChar): ShortString; overload;
+      Function Remove(StartIndex: SizeInt): ShortString; overload; inline;
+      Function Remove(StartIndex: SizeInt; ACount: SizeInt): ShortString; overload; inline;
+      Function Replace(OldChar: AnsiChar; NewChar: AnsiChar): ShortString; overload;
+      Function Replace(OldChar: AnsiChar; NewChar: AnsiChar; ReplaceFlags: TReplaceFlags): ShortString; overload;
+      Function Replace(const OldValue: ShortString; const NewValue: ShortString): ShortString; overload;
+      Function Replace(const OldValue: ShortString; const NewValue: ShortString; ReplaceFlags: TReplaceFlags): ShortString; overload;
+      Function Split(const Separators: array of AnsiChar): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; ACount: SizeInt): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; ACount: SizeInt): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; ACount: SizeInt; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; AQuote: AnsiChar): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt): TShortStringArray; overload;
+      Function Split(const Separators: array of AnsiChar; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; AQuote: AnsiChar): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; AQuoteStart, AQuoteEnd: AnsiChar): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; AQuoteStart, AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt): TShortStringArray; overload;
+      Function Split(const Separators: array of ShortString; AQuoteStart, AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TShortStringArray; overload;
+      Function StartsWith(const AValue: ShortString): Boolean; overload; inline;
+      Function StartsWith(const AValue: ShortString; IgnoreCase: Boolean): Boolean; overload;
+      Function Substring(AStartIndex: SizeInt): ShortString; overload;
+      Function Substring(AStartIndex: SizeInt; ALen: SizeInt): ShortString; overload;
+      Function ToBoolean: Boolean; overload; inline;
+      Function ToInteger: Integer; overload; inline;
+      Function ToInt64: Int64; overload; inline;
+      Function ToSingle: Single; overload; inline;
+      Function ToDouble: Double; overload; inline;
+      Function ToExtended: Extended; overload; inline;
+      Function ToCharArray: TCharArray; overload;
+      Function ToCharArray(AStartIndex: SizeInt; ALen: SizeInt): TCharArray; overload;
+      Function ToLower: ShortString; overload; inline;
+      Function ToLowerInvariant: ShortString;
+      Function ToUpper: ShortString; overload; inline;
+      Function ToUpperInvariant: ShortString; inline;
+      Function Trim: ShortString; overload;
+      Function TrimLeft: ShortString; overload;
+      Function TrimRight: ShortString; overload;
+      Function Trim(const ATrimChars: array of AnsiChar): ShortString; overload;
+      Function TrimLeft(const ATrimChars: array of AnsiChar): ShortString; overload;
+      Function TrimRight(const ATrimChars: array of AnsiChar): ShortString; overload;
+      Function TrimEnd(const ATrimChars: array of AnsiChar): ShortString; deprecated 'Use TrimRight';
+      Function TrimStart(const ATrimChars: array of AnsiChar): ShortString; deprecated 'Use TrimLeft';
+      property Chars[AIndex: SizeInt]: AnsiChar read GetChar;
+      property Length: SizeInt read GetLength;
+    end;
+
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
   TSingleHelper = Type Helper for Single
@@ -251,7 +691,7 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;
     property Words[AIndex: Cardinal]: Word read GetW write SetW;
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
@@ -312,8 +752,8 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;  // 0..7
-    property Words[AIndex: Cardinal]: Word read GetW write SetW; // 0..3
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;  // 0..7
+    property Words [AIndex: Cardinal]: Word read GetW write SetW; // 0..3
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
     property Frac: QWord read GetF write SetF;
@@ -373,25 +813,45 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;
-    property Words[AIndex: Cardinal]: Word read GetW write SetW;
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;
+    property Words [AIndex: Cardinal]: Word read GetW write SetW;
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
     property Frac: QWord read GetF write SetF;
   end;
 {$ENDIF FPC_HAS_TYPE_EXTENDED}
 
+  nibble           = 0..15;
+  TNibbleBitIndex  = 0..3;
+
+  // TByteBitIndex is already defined
+  TByteNibbleIndex = 0..1;
+
+  TByteOverlay = bitpacked record case integer of     // for fast extraction of bits
+    0: (AsBit:    bitpacked array[TByteBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TByteNibbleIndex] of nibble);
+    2: (AsByte:   byte);
+  end;
+  
   TByteHelper = Type Helper for Byte
-  public
-    const
-      MaxValue = 255;
-      MinValue = 0;
+  const
+    MaxValue  = High(byte);
+    MinValue  = Low(byte);
+    MaxBit    = High(TByteBitIndex);
+    MinBit    = Low(TByteBitIndex);
+    MaxNibble = High(TByteNibbleIndex);
+    MinNibble = Low(TByteNibbleIndex);
   public
     Class Function Parse(const AString: string): Byte; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Byte): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Byte): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TByteBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TByteBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TByteNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TByteNibbleIndex; const aNewValue: nibble); inline;
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -404,18 +864,38 @@ Type
     Function ClearBit(const Index: TByteBitIndex) : Byte; inline;
     Function ToggleBit(const Index: TByteBitIndex) : Byte; inline;
     Function TestBit(const Index:TByteBitIndex):Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TByteBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TByteNibbleIndex]: nibble read GetNibble write PutNibble;
   end;
 
+  // TShortIntBitIndex is already defined
+
+  TShortIntNibbleIndex = TByteNibbleIndex;
+
+  TShortIntOverlay = TByteOverlay;
+
   TShortIntHelper = Type Helper for ShortInt
-  public
-    const
-      MaxValue = 127;
-      MinValue = -128;
+  const
+    MaxValue  = High(shortint);
+    MinValue  = Low(shortint);
+    MaxBit    = High(TShortIntBitIndex);
+    MinBit    = Low(TShortIntBitIndex);
+    MaxNibble = High(TShortIntNibbleIndex);
+    MinNibble = Low(TShortIntNibbleIndex);
   public
     Class Function Parse(const AString: string): ShortInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: ShortInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: ShortInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TShortIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TShortIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TShortIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TShortIntNibbleIndex; const aNewValue: nibble); inline;
   public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
@@ -429,18 +909,99 @@ Type
     Function ClearBit(const Index: TShortIntBitIndex): Shortint; inline;
     Function ToggleBit(const Index: TShortIntBitIndex): Shortint; inline;
     Function TestBit(const Index:TShortIntBitIndex):Boolean;
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TShortIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TShortIntNibbleIndex]: nibble read GetNibble write PutNibble;
   end;
 
-  TSmallIntHelper = Type Helper for SmallInt
+  // TWordBitIndex is already defined
+  TWordByteIndex   = 0..1;
+  TWordNibbleIndex = 0..3;
+
+  TWordOverlay = bitpacked record case integer of     // for fast extraction of bytes and bits
+    0: (AsBit:    bitpacked array[TWordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TWordNibbleIndex] of nibble);
+    2: (AsByte:             array[TWordByteIndex]   of byte);
+    3: (AsWord:             word);
+    // recursive overlay:
+    4: (AsByteOverlay:      array[TWordByteIndex]   of TByteOverlay);
+  end;
+  
+  TWordHelper = Type Helper for Word
+  const
+    MaxValue  = High(word);
+    MinValue  = Low(word);
+    MaxBit    = High(TWordBitIndex);
+    MinBit    = Low(TWordBitIndex);
+    MaxNibble = High(TWordNibbleIndex);
+    MinNibble = Low(TWordNibbleIndex);
+    MaxByte   = High(TWordByteIndex);
+    MinByte   = Low(TWordByteIndex);
   public
-    const
-      MaxValue = 32767;
-      MinValue = -32768;
+    Class Function Parse(const AString: string): Word; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Word): string; overload; inline; static;
+    Class Function TryParse(const AString: string; out AValue: Word): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TWordBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TWordBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TWordNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TWordNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TWordByteIndex): byte;
+    procedure PutByte(const aIndex: TWordByteIndex; const aNewValue: byte);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TWordBitIndex) : Word; inline;
+    Function ClearBit(const Index: TWordBitIndex) : Word; inline;
+    Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
+    Function TestBit(const Index:TWordBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TWordBitIndex]: boolean   read GetBit  write PutBit;
+    property  Nibbles [aIndex: TWordNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes [aIndex: TWordByteIndex]: byte     read GetByte write PutByte;
+  end;
+
+  // TSmallIntBitIndex is already defined
+  TSmallIntByteIndex   = TWordByteIndex;
+  TSmallIntNibbleIndex = TWordNibbleIndex;
+
+  TSmallIntOverlay = TWordOverlay;
+  
+  TSmallIntHelper = Type Helper for SmallInt
+  const
+    MaxValue  = High(SmallInt);
+    MinValue  = Low(SmallInt);
+    MaxBit    = High(TSmallIntBitIndex);
+    MinBit    = Low(TSmallIntBitIndex);
+    MaxNibble = High(TSmallIntNibbleIndex);
+    MinNibble = Low(TSmallIntNibbleIndex);
+    MaxByte   = High(TSmallIntByteIndex);
+    MinByte   = Low(TSmallIntByteIndex);
   public
     Class Function Parse(const AString: string): SmallInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: SmallInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: SmallInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TSmallIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TSmallIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TSmallIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TSmallIntNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TSmallIntByteIndex): byte;
+    procedure PutByte(const aIndex: TSmallIntByteIndex; const aNewValue: byte);
   public
     Function ToString: string; overload; inline;
     Function ToBoolean: Boolean; inline;
@@ -454,44 +1015,65 @@ Type
     Function ClearBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function ToggleBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function TestBit(const Index:TSmallIntBitIndex):Boolean;    
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TSmallIntBitIndex]: boolean   read GetBit  write PutBit;
+    property  Nibbles [aIndex: TSmallIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes [aIndex: TSmallIntByteIndex]: byte     read GetByte write PutByte;
+  end;
+  
+  TDwordBitIndex    = TCardinalBitIndex;
+  TDwordNibbleIndex = 0..7;
+  TDwordByteIndex   = 0..3;
+  TDwordWordIndex   = 0..1;
+
+  TDwordOverlay = bitpacked record case integer of     // for fast extraction of words, bytes and bits
+    0: (AsBit:    bitpacked array[TDwordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TDwordNibbleIndex] of nibble);
+    2: (AsByte:             array[TDwordByteIndex]   of byte);
+    3: (AsWord:             array[TDwordWordIndex]   of word);
+    4: (AsDword:            dword);
+    // recursive overlays:
+    5: (AsByteOverlay:      array[TDwordByteIndex]   of TByteOverlay);
+    6: (AsWordOverlay:      array[TDwordWordIndex]   of TWordOverlay);
   end;
 
-  TWordHelper = Type Helper for Word
-  public
-    const
-      MaxValue = 65535;
-      MinValue = 0;
-  Public
-    Class Function Parse(const AString: string): Word; inline; static;
-    Class Function Size: Integer; inline; static;
-    Class Function ToString(const AValue: Word): string; overload; inline; static;
-    Class Function TryParse(const AString: string; out AValue: Word): Boolean; inline; static;
-  Public
-    Function ToBoolean: Boolean; inline;
-    Function ToDouble: Double; inline;
-    Function ToExtended: Extended; inline;
-    Function ToBinString:string; inline;
-    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
-    Function ToHexString: string; overload; inline;
-    Function ToSingle: Single; inline;
-    Function ToString: string; overload; inline;
-    Function SetBit(const Index: TWordBitIndex) : Word; inline;
-    Function ClearBit(const Index: TWordBitIndex) : Word; inline;
-    Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
-    Function TestBit(const Index:TWordBitIndex):Boolean; inline;    
-  end;
+  // TCardinalBitIndex is already defined
+  TCardinalNibbleIndex = TDwordNibbleIndex;
+  TCardinalByteIndex   = TDwordByteIndex;
+  TCardinalWordIndex   = TDwordWordIndex;
 
+  TCardinalOverlay = TDwordOverlay;
+  
   TCardinalHelper = Type Helper for Cardinal { for LongWord Type too }
+  const
+    MaxValue  = High(Cardinal);
+    MinValue  = Low(Cardinal);
+    MaxBit    = High(TCardinalBitIndex);
+    MinBit    = Low(TCardinalBitIndex);
+    MaxNibble = High(TCardinalNibbleIndex);
+    MinNibble = Low(TCardinalNibbleIndex);
+    MaxByte   = High(TCardinalByteIndex);
+    MinByte   = Low(TCardinalByteIndex);
+    MaxWord   = High(TCardinalWordIndex);
+    MinWord   = Low(TCardinalWordIndex);
   public
-    const
-      MaxValue = 4294967295;
-      MinValue = 0;
-  Public
     Class Function Parse(const AString: string): Cardinal; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Cardinal): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Cardinal): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TCardinalBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TCardinalBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TCardinalNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TCardinalNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TCardinalByteIndex): byte;
+    procedure PutByte(const aIndex: TCardinalByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TCardinalWordIndex): word;
+    procedure PutWord(const aIndex: TCardinalWordIndex; const aNewValue: word);
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -504,19 +1086,63 @@ Type
     Function ClearBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function ToggleBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function TestBit(const Index:TCardinalBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TCardinalBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TCardinalNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TCardinalByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TCardinalWordIndex]: word     read GetWord   write PutWord;
   end;
 
-  TIntegerHelper = Type Helper for Integer { for LongInt Type too }
+  // TIntegerBitIndex is already defined
+{$if sizeof(Integer)=2}
+  TIntegerNibbleIndex = TWordNibbleIndex;
+  TIntegerByteIndex   = TWordByteIndex;
+
+  TIntegerOverlay = TWordOverlay;
+{$elseif sizeof(Integer)=4}
+  TIntegerNibbleIndex = TDwordNibbleIndex;
+  TIntegerByteIndex   = TDwordByteIndex;
+  TIntegerWordIndex   = TDwordWordIndex;
+
+  TIntegerOverlay = TDwordOverlay;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+
+  TIntegerHelper = Type Helper for Integer
+  const
+    MaxValue  = High(integer);
+    MinValue  = Low(integer);
+    MaxBit    = High(TIntegerBitIndex);
+    MinBit    = Low(TIntegerBitIndex);
+    MaxNibble = High(TIntegerNibbleIndex);
+    MinNibble = Low(TIntegerNibbleIndex);
+    MaxByte   = High(TIntegerByteIndex);
+    MinByte   = Low(TIntegerByteIndex);
+{$if sizeof(Integer)>=4}
+    MaxWord   = High(TIntegerWordIndex);
+    MinWord   = Low(TIntegerWordIndex);
+{$endif}
   public
-    const
-      MaxValue = 2147483647;
-      MinValue = -2147483648;
-  Public
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Integer): string; overload; inline; static;
     Class Function Parse(const AString: string): Integer; inline; static;
     Class Function TryParse(const AString: string; out AValue: Integer): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TIntegerBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TIntegerBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TIntegerNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TIntegerNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TIntegerByteIndex): byte;
+    procedure PutByte(const aIndex: TIntegerByteIndex; const aNewValue: byte);
+{$if sizeof(Integer)>=4}
+    function  GetWord(const aIndex: TIntegerWordIndex): word;
+    procedure PutWord(const aIndex: TIntegerWordIndex; const aNewValue: word);
+{$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -529,19 +1155,186 @@ Type
     Function ClearBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function ToggleBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function TestBit(const Index:TIntegerBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TIntegerBitIndex]: boolean    read GetBit    write PutBit;
+    property  Nibbles[aIndex: TIntegerNibbleIndex]: nibble  read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TIntegerByteIndex]:  byte     read GetByte   write PutByte;
+{$if sizeof(Integer)>=4}
+    property  Words  [aIndex: TIntegerWordIndex]:  word     read GetWord   write PutWord;
+{$endif}
   end;
 
-  TInt64Helper = Type Helper for Int64
+  // TLongIntBitIndex is already defined
+  TLongIntNibbleIndex = TDwordNibbleIndex;
+  TLongIntByteIndex   = TDwordByteIndex;
+  TLongIntWordIndex   = TDwordWordIndex;
+
+  TLongIntOverlay = TDwordOverlay;
+
+  TLongIntHelper = Type Helper for LongInt
+  const
+    MaxValue  = High(LongInt);
+    MinValue  = Low(LongInt);
+    MaxBit    = High(TLongIntBitIndex);
+    MinBit    = Low(TLongIntBitIndex);
+    MaxNibble = High(TLongIntNibbleIndex);
+    MinNibble = Low(TLongIntNibbleIndex);
+    MaxByte   = High(TLongIntByteIndex);
+    MinByte   = Low(TLongIntByteIndex);
+    MaxWord   = High(TLongIntWordIndex);
+    MinWord   = Low(TLongIntWordIndex);
   public
-    const
-      MaxValue = 9223372036854775807;
-      MinValue = -9223372036854775808;
-  Public
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: LongInt): string; overload; inline; static;
+    Class Function Parse(const AString: string): LongInt; inline; static;
+    Class Function TryParse(const AString: string; out AValue: LongInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TLongIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TLongIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TLongIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TLongIntNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TLongIntByteIndex): byte;
+    procedure PutByte(const aIndex: TLongIntByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TLongIntWordIndex): word;
+    procedure PutWord(const aIndex: TLongIntWordIndex; const aNewValue: word);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ClearBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ToggleBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function TestBit(const Index:TLongIntBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TLongIntBitIndex]: boolean    read GetBit    write PutBit;
+    property  Nibbles[aIndex: TLongIntNibbleIndex]: nibble  read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TLongIntByteIndex]:  byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TLongIntWordIndex]:  word     read GetWord   write PutWord;
+  end;
+
+  // TQwordBitIndex is already defined
+  TQwordNibbleIndex = 0..15;
+  TQwordByteIndex   = 0..7;
+  TQwordWordIndex   = 0..3;
+  TQwordDwordIndex  = 0..1;
+
+  TQwordOverlay = bitpacked record case integer of     // for fast extraction of longwords, words, bytes and bits
+    0: (AsBit:    bitpacked array[TQwordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TQwordNibbleIndex] of nibble);
+    2: (AsByte:             array[TQwordByteIndex]   of byte);
+    3: (AsWord:             array[TQwordWordIndex]   of word);
+    4: (AsDword:            array[TQwordDwordIndex]  of dword);
+    5: (AsQword:            qword);
+    // recursive overlays:
+    6: (AsByteOverlay:      array[TQwordByteIndex]   of TByteOverlay);
+    7: (AsWordOverlay:      array[TQwordWordIndex]   of TWordOverlay);
+    8: (AsDwordOverlay:     array[TQwordDwordIndex]  of TDwordOverlay);
+  end;
+
+  TQWordHelper = Type Helper for QWord
+  const
+    MaxValue  = High(qword);
+    MinValue  = Low(qword);
+    MaxBit    = High(TQwordBitIndex);
+    MinBit    = Low(TQwordBitIndex);
+    MaxNibble = High(TQwordNibbleIndex);
+    MinNibble = Low(TQwordNibbleIndex);
+    MaxByte   = High(TQwordByteIndex);
+    MinByte   = Low(TQwordByteIndex);
+    MaxWord   = High(TQwordWordIndex);
+    MinWord   = Low(TQwordWordIndex);
+    MaxDword  = High(TQwordDwordIndex);
+    MinDword  = Low(TQwordDwordIndex);
+  public
+    Class Function Parse(const AString: string): Qword; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Qword): string; overload; inline; static;
+    Class Function TryParse(const AString: string; out AValue: Qword): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TQwordBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TQwordBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TQwordNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TQwordNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TQwordByteIndex): byte;
+    procedure PutByte(const aIndex: TQwordByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TQwordWordIndex): word;
+    procedure PutWord(const aIndex: TQwordWordIndex; const aNewValue: word);
+    function  GetDword(const aIndex: TQwordDwordIndex): dword;
+    procedure PutDword(const aIndex: TQwordDwordIndex; const aNewValue: dword);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TQwordBitIndex): Qword; inline;
+    Function ClearBit(const Index: TQwordBitIndex): Qword; inline;
+    Function ToggleBit(const Index: TQwordBitIndex): Qword; inline;
+    Function TestBit(const Index:TQwordBitIndex): Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TQwordBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TQwordNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TQwordByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TQwordWordIndex]: word     read GetWord   write PutWord;
+    property  DWords [aIndex: TQwordDwordIndex]: dword   read GetDWord  write PutDWord;
+  end;
+
+  // TInt64BitIndex is already defined
+  TInt64NibbleIndex = TQwordNibbleIndex;
+  TInt64ByteIndex   = TQwordByteIndex;
+  TInt64WordIndex   = TQwordWordIndex;
+  TInt64DwordIndex  = TQwordDwordIndex;
+
+  TInt64Overlay = TQwordOverlay;
+
+  TInt64Helper = Type Helper for Int64
+  const
+    MaxValue  = High(int64);
+    MinValue  = Low(int64);
+    MaxBit    = High(TInt64BitIndex);
+    MinBit    = Low(TInt64BitIndex);
+    MaxNibble = High(TInt64NibbleIndex);
+    MinNibble = Low(TInt64NibbleIndex);
+    MaxByte   = High(TInt64ByteIndex);
+    MinByte   = Low(TInt64ByteIndex);
+    MaxWord   = High(TInt64WordIndex);
+    MinWord   = Low(TInt64WordIndex);
+    MaxDword  = High(TInt64DwordIndex);
+    MinDword  = Low(TInt64DwordIndex);
+  public
     Class Function Parse(const AString: string): Int64; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Int64): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Int64): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TInt64BitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TInt64BitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TInt64NibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TInt64NibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TInt64ByteIndex): byte;
+    procedure PutByte(const aIndex: TInt64ByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TInt64WordIndex): word;
+    procedure PutWord(const aIndex: TInt64WordIndex; const aNewValue: word);
+    function  GetDword(const aIndex: TInt64DwordIndex): dword;
+    procedure PutDword(const aIndex: TInt64DwordIndex; const aNewValue: dword);
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -553,45 +1346,79 @@ Type
     Function SetBit(const Index: TInt64BitIndex) : Int64; inline;
     Function ClearBit(const Index: TInt64BitIndex) : Int64; inline;
     Function ToggleBit(const Index: TInt64BitIndex) : Int64; inline;
-    Function TestBit(const Index:TInt64BitIndex):Boolean; inline; 
+    Function TestBit(const Index: TInt64BitIndex): Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TInt64BitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TInt64NibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TInt64ByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TInt64WordIndex]: word     read GetWord   write PutWord;
+    property  DWords [aIndex: TInt64DwordIndex]: dword   read GetDWord  write PutDWord;
   end;
 
-  TQWordHelper = Type Helper for QWord
-  public
-    const
-      MaxValue = 18446744073709551615;
-      MinValue = 0;
-  Public
-    Class Function Parse(const AString: string): QWord; inline; static;
-    Class Function Size: Integer; inline; static;
-    Class Function ToString(const AValue: QWord): string; overload; inline; static;
-    Class Function TryParse(const AString: string; out AValue: QWord): Boolean; inline; static;
-  Public
-    Function ToBoolean: Boolean; inline;
-    Function ToDouble: Double; inline;
-    Function ToExtended: Extended; inline;
-    Function ToBinString:string; inline;
-    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
-    Function ToHexString: string; overload; inline;
-    Function ToSingle: Single; inline;
-    Function ToString: string; overload; inline;
-    Function SetBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function ClearBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function ToggleBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function TestBit(const Index:TQwordBitIndex):Boolean; inline; 
-  end;
+  // TNativeIntBitIndex is already defined
+  {$if sizeof(NativeInt)=2}
+    TNativeIntNibbleIndex = TSmallIntNibbleIndex;
+    TNativeIntByteIndex   = TSmallIntByteIndex;
+    TNativeIntOverlay     = TSmallIntOverlay;
+  {$elseif sizeof(NativeInt)=4}
+    TNativeIntNibbleIndex = TLongIntNibbleIndex;
+    TNativeIntByteIndex   = TLongIntByteIndex;
+    TNativeIntWordIndex   = TLongIntWordIndex;
+    TNativeIntOverlay     = TLongIntOverlay;
+  {$elseif sizeof(NativeInt)=8}
+    TNativeIntNibbleIndex = TInt64NibbleIndex;
+    TNativeIntByteIndex   = TInt64ByteIndex;
+    TNativeIntWordIndex   = TInt64WordIndex;
+    TNativeIntDwordIndex  = TInt64DWordIndex;
+    TNativeIntOverlay     = TInt64Overlay;
+  {$else}
+    {$fatal Unsupported NativeInt type size}
+  {$endif}
 
   TNativeIntHelper = Type Helper for NativeInt
+  const
+    MaxValue  = High(NativeInt);
+    MinValue  = Low(NativeInt);
+    MaxBit    = High(TNativeIntBitIndex);
+    MinBit    = Low(TNativeIntBitIndex);
+    MaxNibble = High(TNativeIntNibbleIndex);
+    MinNibble = Low(TNativeIntNibbleIndex);
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
+    MaxByte   = High(TNativeIntByteIndex);
+    MinByte   = Low(TNativeIntByteIndex);
+    {$if sizeof(NativeInt)>=4}
+    MaxWord   = High(TNativeIntWordIndex);
+    MinWord   = Low(TNativeIntWordIndex);
+    {$endif}
+    {$ifdef sizeof(NativeInt)>=8}
+    MaxDword  = High(TNativeIntDwordIndex);
+    MinDword  = Low(TNativeIntDwordIndex);
+    {$endif}
   public
-    const
-      MaxValue = High(NativeInt);
-      MinValue = Low(NativeInt);
-  Public
     Class Function Parse(const AString: string): NativeInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: NativeInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: NativeInt): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TNativeIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TNativeIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TNativeIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TNativeIntNibbleIndex; const aNewValue: nibble); inline;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
+    function  GetByte(const aIndex: TNativeIntByteIndex): byte;
+    procedure PutByte(const aIndex: TNativeIntByteIndex; const aNewValue: byte);
+    {$if sizeof(NativeInt)>=4}
+    function  GetWord(const aIndex: TNativeIntWordIndex): word;
+    procedure PutWord(const aIndex: TNativeIntWordIndex; const aNewValue: word);
+    {$endif}
+    {$if sizeof(NativeInt)>=8}
+    function  GetDword(const aIndex: TNativeIntDwordIndex): dword;
+    procedure PutDword(const aIndex: TNativeIntDwordIndex; const aNewValue: dword);
+    {$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -604,19 +1431,83 @@ Type
     Function ClearBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function ToggleBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function TestBit(const Index:TNativeIntBitIndex):Boolean; inline; 
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TNativeIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TNativeIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
+    property  Bytes [aIndex: TNativeIntByteIndex]: byte     read GetByte   write PutByte;
+    {$if sizeof(NativeInt)>=4}
+    property  Words [aIndex: TNativeIntWordIndex]: word     read GetWord   write PutWord;
+    {$endif}
+    {$if sizeof(NativeInt)>=8}
+    property  DWords [aIndex: TNativeIntDwordIndex]: dword   read GetDWord  write PutDWord;
+    {$endif}
   end;
 
+  // TNativeUIntBitIndex is already defined
+  {$if sizeof(NativeUInt)=2}
+    TNativeUIntNibbleIndex = TWordNibbleIndex;
+    TNativeUIntByteIndex   = TWordByteIndex;
+    TNativeUIntOverlay     = TWordOverlay;
+  {$elseif sizeof(NativeUInt)=4}
+    TNativeUIntNibbleIndex = TDwordNibbleIndex;
+    TNativeUIntByteIndex   = TDwordByteIndex;
+    TNativeUIntWordIndex   = TDwordWordIndex;
+    TNativeUIntOverlay     = TDwordOverlay;
+  {$elseif sizeof(NativeUInt)=8}
+    TNativeUIntNibbleIndex = TQwordNibbleIndex;
+    TNativeUIntByteIndex   = TQwordByteIndex;
+    TNativeUIntWordIndex   = TQwordWordIndex;
+    TNativeUIntDwordIndex  = TQwordDWordIndex;
+    TNativeUIntOverlay     = TQwordOverlay;
+  {$else}
+    {$fatal Unsupported NativeUInt type size}
+  {$endif}
+
   TNativeUIntHelper = Type Helper for NativeUInt
+  const
+    MaxValue  = High(NativeUInt);
+    MinValue  = 0;
+    MaxBit    = High(TNativeUIntBitIndex);
+    MinBit    = Low(TNativeUIntBitIndex);
+    MaxNibble = High(TNativeUIntNibbleIndex);
+    MinNibble = Low(TNativeUIntNibbleIndex);
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
+    MaxByte   = High(TNativeUIntByteIndex);
+    MinByte   = Low(TNativeUIntByteIndex);
+    {$if sizeof(NativeUInt)>=4}
+    MaxWord   = High(TNativeUIntWordIndex);
+    MinWord   = Low(TNativeUIntWordIndex);
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    MaxDword  = High(TNativeUIntDwordIndex);
+    MinDword  = Low(TNativeUIntDwordIndex);
+    {$endif}
   public
-    const
-      MaxValue = High(NativeUInt);
-      MinValue = 0;
-  Public
     Class Function Parse(const AString: string): NativeUInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: NativeUInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: NativeUInt): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TNativeUIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TNativeUIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TNativeUIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TNativeUIntNibbleIndex; const aNewValue: nibble); inline;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
+    function  GetByte(const aIndex: TNativeUIntByteIndex): byte;
+    procedure PutByte(const aIndex: TNativeUIntByteIndex; const aNewValue: byte);
+    {$if sizeof(NativeUInt)>=4}
+    function  GetWord(const aIndex: TNativeUIntWordIndex): word;
+    procedure PutWord(const aIndex: TNativeUIntWordIndex; const aNewValue: word);
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    function  GetDword(const aIndex: TNativeUIntDwordIndex): dword;
+    procedure PutDword(const aIndex: TNativeUIntDwordIndex; const aNewValue: dword);
+    {$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -629,6 +1520,20 @@ Type
     Function ClearBit(const Index: TNativeUIntBitIndex): NativeUint; inline;
     Function ToggleBit(const Index: TNativeUIntBitIndex) : NativeUint; inline;
     Function TestBit(const Index:TNativeUIntBitIndex) :Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: int8; inline;
+    function  LowestSetBitPos: int8; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TNativeUIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TNativeUIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
+    property  Bytes [aIndex: TNativeUIntByteIndex]: byte     read GetByte   write PutByte;
+    {$if sizeof(NativeUInt)>=4}
+    property  Words [aIndex: TNativeUIntWordIndex]: word     read GetWord   write PutWord;
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    property  DWords [aIndex: TNativeUIntDwordIndex]: dword   read GetDWord  write PutDWord;
+    {$endif}
   end;
 
   {$SCOPEDENUMS ON}

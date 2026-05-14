@@ -92,27 +92,6 @@ type
   procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; ADoc : TDOMDocument);overload;
   procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; AFileName : string);overload;
 
-  procedure ParseCollationDocumentXML(
-    ADoc       : TDOMDocument;
-    ACollation : TCldrCollation;
-    AMode      : TCldrParserMode
-  );overload;
-  procedure ParseCollationDocumentXML(
-    ADoc       : TDOMDocument;
-    ACollation : TCldrCollationItem;
-    AType      : string
-  );overload;
-  procedure ParseCollationDocumentXML(
-    const AFileName  : string;
-          ACollation : TCldrCollation;
-          AMode      : TCldrParserMode
-  );overload;
-  procedure ParseCollationDocumentXML(
-    const AFileName  : string;
-          ACollation : TCldrCollationItem;
-          AType      : string
-  );overload;
-
   //-----------------------------------------------------
   procedure ParseCollationDocument2(
     ADoc       : TDOMDocument;
@@ -568,63 +547,6 @@ begin
   Result := c;
 end;
 
-procedure ParseCollationItemXML(
-  ACollationNode : TDOMElement;
-  AItem          : TCldrCollationItem;
-  AMode          : TCldrParserMode
-);
-var
-  n : TDOMNode;
-  rulesElement : TDOMElement;
-  i, c, nextPos : Integer;
-  statementList : TReorderSequenceArray;
-  sal : Integer;//statement actual length
-  statement : PReorderSequence;
-  s : DOMString;
-begin
-  AItem.TypeName := ACollationNode.GetAttribute(s_TYPE);
-  AItem.Base := EvaluateXPathStr('base',ACollationNode);
-  AItem.Backwards := (EvaluateXPathStr('settings/@backwards',ACollationNode) = 'on');
-  if AItem.Backwards then
-    AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWards];
-  AItem.Rules := nil;
-  if (AMode = TCldrParserMode.FullParsing) then begin
-    SetLength(statementList,15);
-    sal := 0;
-    statement := @statementList[0];
-    s := EvaluateXPathStr('suppress_contractions',ACollationNode);
-    if (s <> '') then begin
-      if (ParseDeletion(s,statement) > 0) then begin
-        Inc(sal);
-        Inc(statement);
-      end else begin
-        statement^.Clear();
-      end;
-    end;
-    n := ACollationNode.FindNode(s_RULES);
-    if (n <> nil) then begin
-      rulesElement := n as TDOMElement;
-      c := rulesElement.ChildNodes.Count;
-      nextPos := 0;
-      i := 0;
-      while (i < c) do begin
-        statement^.Clear();
-        if not ParseStatementXML(rulesElement,i,statement,nextPos) then
-          Break;
-        i := nextPos;
-        Inc(statement);
-        Inc(sal);
-        if (sal >= Length(statementList)) then begin
-          SetLength(statementList,(sal*2));
-          statement := @statementList[(sal-1)];
-        end;
-      end;
-    end;
-    SetLength(statementList,sal);
-    AItem.Rules := statementList;
-  end;
-end;
-
 function NextPart(
   const ABuffer    : string;
   const AStartPos  : Integer;
@@ -847,7 +769,13 @@ const
   //SuppressContractions has a special handling see Process_SuppressContractions
     HandleSetting_EMPTY_PROC
   //Optimize
-  );
+  );  
+procedure HandleSetting(AItem : TCldrCollationItem; ASetting : PSettingRec);
+begin  
+  if not ASetting^.Understood then
+    SETTING_HANDLERS[ASetting^.OptionValue](AItem,ASetting);
+end;
+
 procedure HandleSettings(AItem : TCldrCollationItem);
 var
   i, c : Integer;
@@ -858,7 +786,7 @@ begin
     exit;
   p := @AItem.Settings[0];
   for i := 0 to c-1 do begin
-    SETTING_HANDLERS[p^.OptionValue](AItem,p);
+    HandleSetting(AItem,p);
     Inc(p);
   end;
 end;
@@ -889,18 +817,25 @@ procedure ParseCollationItem2(
   AMode          : TCldrParserMode
 );
 var
-  statementList : TReorderSequenceArray;
+  statementList : TCldrCollationRuleArray;
   sal : Integer;//statement actual length
-  statement : PReorderSequence;
 
-  procedure AddStatementToArray();
-  begin
-    Inc(statement);
+  procedure AddStatementToArray(AStatement : PReorderSequence);
+  begin     
+    statementList[sal].Kind := TCldrCollationRuleKind.ReorderSequence;
+    statementList[sal].Reorder.Assign(AStatement);
     Inc(sal);
-    if (sal >= Length(statementList)) then begin
+    if (sal >= Length(statementList)) then
       SetLength(statementList,(sal*2));
-      statement := @statementList[(sal-1)];
-    end;
+  end;   
+
+  procedure AddImportToArray(AImport : TCldrImport);
+  begin
+    statementList[sal].Kind := TCldrCollationRuleKind.Import;
+    statementList[sal].Import := AImport;
+    Inc(sal);
+    if (sal >= Length(statementList)) then
+      SetLength(statementList,(sal*2));
   end;
 
 var
@@ -922,7 +857,6 @@ begin
   if (AMode = TCldrParserMode.FullParsing) then begin
     SetLength(statementList,15);
     sal := 0;
-    statement := @statementList[0];
     n := ACollationNode.FindNode(s_CR);
     if (n <> nil) then begin
       n := (n as TDOMElement).FirstChild;
@@ -937,20 +871,20 @@ begin
       Clear(parsedStatement);
       settingArray := AItem.Settings;
       while (i < c) do begin
-        statement^.Clear();
         if not ParseStatement(buffer,i,c,@parsedStatement,nextPos,lineCount) then
           Break;
         if (parsedStatement.Kind = TStatementKind.Sequence) then begin
-          statement^.Assign(@parsedStatement.ReorderSequence);
-          AddStatementToArray();
+          AddStatementToArray(@parsedStatement.ReorderSequence);
         end else if (parsedStatement.Kind = TStatementKind.Setting) then begin
           if (parsedStatement.Setting.OptionValue = TSettingOption.SuppressContractions) then begin
-            if Process_SuppressContractions(@parsedStatement.Setting,statement) then
-              AddStatementToArray()
-            else
-              statement^.Clear();
+            if Process_SuppressContractions(@parsedStatement.Setting,@parsedStatement.ReorderSequence) then
+              AddStatementToArray(@parsedStatement.ReorderSequence);
           end;
           AddItem(settingArray,@parsedStatement.Setting);
+          if (parsedStatement.Setting.OptionValue = TSettingOption.Import) then begin
+            HandleSetting(AItem,@settingArray[Length(settingArray)-1]);
+            AddImportToArray(AItem.Imports[AItem.Imports.Count-1]);
+          end;
         end;
         i := nextPos;
       end;
@@ -961,67 +895,6 @@ begin
     SetLength(statementList,sal);
     AItem.Rules := statementList;
   end;
-end;
-
-procedure ParseCollationDocumentXML(
-  ADoc       : TDOMDocument;
-  ACollation : TCldrCollation;
-  AMode      : TCldrParserMode
-);
-var
-  n : TDOMNode;
-  collationsElement : TDOMElement;
-  i, c : Integer;
-  item : TCldrCollationItem;
-  nl : TDOMNodeList;
-begin
-  n := ADoc.DocumentElement.FindNode(s_COLLATIONS);
-  if (n = nil) then
-    raise Exception.Create(sCollationsNodeNotFound);
-  collationsElement := n as TDOMElement;
-  ACollation.Clear();
-  ACollation.Mode := AMode;
-  ACollation.Language := EvaluateXPathStr('identity/language/@type',ADoc.DocumentElement);
-  ACollation.Version := EvaluateXPathStr('identity/version/@number',ADoc.DocumentElement);
-  ACollation.DefaultType := EvaluateXPathStr('collations/default/@type',ADoc.DocumentElement);
-  if collationsElement.HasChildNodes() then begin
-    nl := collationsElement.ChildNodes;
-    c := nl.Count;
-    item := nil;
-    try
-      for i := 0 to c - 1 do begin
-        n := nl[i];
-        if (n.NodeName = s_COLLATION) then begin
-          item := TCldrCollationItem.Create();
-          ParseCollationItemXML((n as TDOMElement),item,AMode);
-          ACollation.Add(item);
-          item := nil;
-        end
-      end;
-    except
-      FreeAndNil(item);
-      raise;
-    end;
-  end;
-end;
-
-procedure ParseCollationDocumentXML(
-  ADoc       : TDOMDocument;
-  ACollation : TCldrCollationItem;
-  AType      : string
-);
-var
-  xv : TXPathVariable;
-begin
-  xv := EvaluateXPathExpression(Format('collations/collation[@type=%s]',[QuotedStr(AType)]),ADoc.DocumentElement);
-  try
-    if (xv.AsNodeSet.Count = 0) then
-      raise Exception.CreateFmt(sCollationTypeNotFound,[AType]);
-    ACollation.Clear();
-    ParseCollationItemXML((TDOMNode(xv.AsNodeSet[0]) as TDOMElement),ACollation,TCldrParserMode.FullParsing);
-  finally
-    xv.Free();
-  end
 end;
 
 procedure ParseCollationDocument2(
@@ -1124,39 +997,6 @@ begin
     Result := ReadXMLFile(FileStream);
   finally
     FileStream.Free;
-  end;
-end;
-
-procedure ParseCollationDocumentXML(
-  const AFileName  : string;
-        ACollation : TCldrCollation;
-        AMode      : TCldrParserMode
-);
-var
-  doc : TXMLDocument;
-begin
-  doc := ReadXMLFile(AFileName);
-  try
-    ParseCollationDocumentXML(doc,ACollation,AMode);
-    ACollation.LocalID := ExtractFileName(ChangeFileExt(AFileName,''));
-  finally
-    doc.Free();
-  end;
-end;
-
-procedure ParseCollationDocumentXML(
-  const AFileName  : string;
-        ACollation : TCldrCollationItem;
-        AType      : string
-);
-var
-  doc : TXMLDocument;
-begin
-  doc := ReadXMLFile(AFileName);
-  try
-    ParseCollationDocumentXML(doc,ACollation,AType);
-  finally
-    doc.Free();
   end;
 end;
 

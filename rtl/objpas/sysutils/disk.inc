@@ -110,7 +110,7 @@ begin
   Result:=False;
   ADrv:=ExtractFileDrive(Dir);
   if (ADrv<>'') and
-     (not DirectoryExists(ADrv))
+     (not DirectoryExists(ADrv+DirectorySeparator))
      {$IFNDEF FORCEDIR_NO_UNC_SUPPORT} and (not IsUncDrive(ADrv)){$ENDIF} then
     Exit;
   if Dir='' then

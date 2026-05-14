@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -44,7 +45,7 @@ end;
 
 Function QuoteString (Const S : String; Const Quote : String) : String;
 Var
-  I,J : Integer;
+  I,J : SizeInt;
 begin
   J:=0;
   Result:=S;
@@ -255,7 +256,7 @@ end;
 
 procedure TStrings.GetNameValue(Index : Integer; Out AName,AValue : String);
 
-Var L : longint;
+Var L : SizeInt;
 
 begin
   aName:='';
@@ -284,7 +285,7 @@ end;
 
 function TStrings.ExtractName(const s:String):String;
 var
-  L: Longint;
+  L: SizeInt;
 begin
   CheckSpecialChars;
   L:=Pos(FNameValueSeparator,S);
@@ -417,34 +418,75 @@ end;
 Procedure TStrings.Reverse(aList : TStrings);
 
 Var
-  I : Integer;
+  I,J : Integer;
 
 begin
-  for I:=Count-1 downto 0 do
-    aList.Add(Strings[i]);
+  if aList=self then
+    begin
+    I:=0; 
+    J:=Count-1;
+    beginUpdate;
+    try
+      while I<J do 
+        begin
+        Exchange(I, J);
+        Inc(I);
+        Dec(J);
+        end;
+    finally
+      EndUpdate;
+    end;
+    end
+  else 
+    begin
+    aList.BeginUpdate;
+    try
+      aList.Clear;
+      if aList.Capacity<Self.Count then
+        aList.Capacity:=Self.Count;
+      for I:=Count-1 downto 0 do
+        aList.AddObject(Strings[i],Objects[i]);
+    finally
+      aList.EndUpdate;
+    end;      
+    end;  
 end;
 
 
-Procedure TStrings.Slice(fromIndex: integer; aList : TStrings);
+Procedure TStrings.Slice(fromIndex, toIndex: integer; aList : TStrings);
 
 var
   i: integer;
 
 begin
-  for i:=fromIndex to Count-1 do
+  for i:=fromIndex to toIndex do
     aList.Add(Self[i]);
 end;
 
-Function TStrings.Slice(fromIndex: integer) :  TStrings;
+
+Procedure TStrings.Slice(fromIndex: integer; aList : TStrings);
+
+begin
+  Slice(fromIndex,Count-1,aList);
+end;
+
+Function TStrings.Slice(fromIndex, toIndex: integer) :  TStrings;
 
 begin
   Result:=TStringsClass(Self.ClassType).Create;
   try
-    Slice(FromIndex,Result);
+    Slice(FromIndex, toIndex,Result);
   except
     FreeAndNil(Result);
     Raise;
   end;
+end;
+
+
+Function TStrings.Slice(fromIndex: integer) :  TStrings;
+
+begin
+  Result := Slice(fromIndex,Count-1);
 end;
 
 function TStrings.GetName(Index: Integer): string;
@@ -479,7 +521,7 @@ end;
 Function TStrings.GetValue(const Name: string): string;
 
 Var
-  L : longint;
+  L : Longint;
   N : String;
 
 begin
@@ -700,9 +742,17 @@ begin
   CheckSpecialChars;
   L:=IndexOfName(Name);
   if L=-1 then
-   Add (Name+FNameValueSeparator+Value)
+    begin
+    if Value<>'' then
+      Add (Name+FNameValueSeparator+Value)
+    end
   else
-   Strings[L]:=Name+FNameValueSeparator+value;
+    begin
+    if Value='' then
+      Delete(L)
+    else
+      Strings[L]:=Name+FNameValueSeparator+value;
+    end;
 end;
 
 
@@ -1060,8 +1110,13 @@ end;
 Function TStrings.AddObject(const S: string; AObject: TObject): Integer;
 
 begin
-  Result:=Add(S);
-  Objects[result]:=AObject;
+  BeginUpdate;
+  try
+    Result:=Add(S);
+    Objects[result]:=AObject;
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TStrings.AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer;
@@ -1267,6 +1322,18 @@ Function TStrings.DoCompareText(const s1,s2 : string) : PtrInt;
   end;
 
 
+Function TStrings.Contains(const S: string): Boolean;
+
+begin
+  Result:=Indexof(S)<>-1;
+end;
+
+Function TStrings.ContainsObject(const AObject: TObject): Boolean;
+
+begin
+  Result:=IndexOfObject(AObject)<>-1;
+end;
+
 Function TStrings.IndexOf(const S: string): Integer;
 begin
   Result:=0;
@@ -1287,10 +1354,16 @@ begin
   if Result=Count then Result:=-1;
 end;
 
+Function TStrings.ContainsName(const Name: string): Boolean;
+
+begin
+  Result:=IndexOfName(Name)<>-1;
+end;
+
 
 Function TStrings.IndexOfName(const Name: string): Integer;
 Var
-  len : longint;
+  len : SizeInt;
   S : String;
 begin
   CheckSpecialChars;
@@ -1319,8 +1392,13 @@ Procedure TStrings.InsertObject(Index: Integer; const S: string;
   AObject: TObject);
 
 begin
-  Insert (Index,S);
-  Objects[Index]:=AObject;
+  BeginUpdate;
+  try
+    Insert (Index,S);
+    Objects[Index]:=AObject;
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TStrings.LastIndexOf(const S: string): Integer;
@@ -1476,6 +1554,8 @@ Var
   Obj : TObject;
   Str : String;
 begin
+  if (CurIndex=NewIndex) then 
+    Exit;
   BeginUpdate;
   Try
     Obj:=Objects[CurIndex];
@@ -1485,7 +1565,7 @@ begin
     InsertObject(NewIndex,Str,Obj);
   finally
     EndUpdate;
-    end;
+  end;
 end;
 
 function TStrings.Pop: string;
@@ -1948,20 +2028,37 @@ begin
   Inherited destroy;
 end;
 
-
-
-function TStringList.Add(const S: string): Integer;
+function TStringList.DoAddObject(const S: string; AObject: TObject): Integer;
 
 begin
   If (SortStyle<>sslAuto) then
     Result:=FCount
   else
     If Find (S,Result) then
-      Case DUplicates of
+      Case Duplicates of
         DupIgnore : Exit;
         DupError : Error(SDuplicateString,0)
       end;
-   InsertItem (Result,S);
+   BeginUpdate;
+   try
+     InsertItem (Result,S);  
+     if (aObject<>Nil) then 
+      Objects[Result]:=AObject;
+   finally
+     EndUpdate;
+   end;
+end;
+
+function TStringList.Add(const S: string): Integer;
+
+begin
+  Result:=DoAddObject(S, nil);
+end;
+
+function TStringList.AddObject(const S: string; AObject: TObject): Integer;
+
+begin
+  Result:=DoAddObject(S,aObject);
 end;
 
 procedure TStringList.Clear;

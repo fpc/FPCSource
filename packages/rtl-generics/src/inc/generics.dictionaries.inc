@@ -171,6 +171,12 @@ begin
   Result := GetCurrent;
 end;
 
+function TCustomDictionaryEnumerator<T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetCurrent: T;
+
+begin
+  Result:=Default(T);
+end;
+
 { TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS> }
 
 function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetPtrEnumerator: TEnumerator<PT>;
@@ -358,8 +364,11 @@ procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASiz
 begin
   if ASize = $40000000 then
     FItemsThreshold := $40000001
-  else
+  else begin
     FItemsThreshold := Pred(Round(ASize * FMaxLoadFactor));
+    if FItemsThreshold < 0 then
+      FItemsThreshold := 0;
+  end;
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddItem(var AItem: TItem; const AKey: TKey;
@@ -607,9 +616,12 @@ begin
 end;
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetMutableValue(const AKey: TKey; out APValue: PValue): Boolean;
+var
+  LPValue: PValue;
 begin
-  APValue := GetMutableValue(AKey);
-  Result := APValue <>Nil;
+  LPValue := GetMutableValue(AKey);
+  APValue := LPValue;
+  Result := LPValue <> Nil;
 end;
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
@@ -781,7 +793,6 @@ end;
 function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
   const AKey: TKey; out AHash: UInt32): SizeInt;
 var
-  LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
   i, m: SizeInt;
   LHash: UInt32;
@@ -792,28 +803,30 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
-    LItem := _TItem(AItems[Result]);
+    with AItems[Result] do
+    begin
+      // Empty position
+      if (Hash and UInt32.GetSignMask) = 0 then
+        Exit(not Result); // insert!
 
-    // Empty position
-    if (LItem.Hash and UInt32.GetSignMask) = 0 then
-      Exit(not Result); // insert!
-
-    // Same position?
-    if LItem.Hash = AHash then
-      if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
-        Exit;
+      // Same position?
+      if Hash = LHash then
+        if FEqualityComparer.Equals(AKey, Pair.Key) then
+          Exit;
+    end;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -886,12 +899,13 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
     LItem := _TItem(AItems[Result]);
@@ -900,13 +914,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -925,12 +939,13 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
     LItem := _TItem(AItems[Result]);
@@ -940,13 +955,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -976,14 +991,15 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if Length(AItems) = 0 then
     Exit(-1);
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, LHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position
@@ -991,7 +1007,7 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
   end;
@@ -1010,14 +1026,15 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if Length(AItems) = 0 then
     Exit(-1);
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, LHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position or tombstone
@@ -1025,7 +1042,7 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
   end;
@@ -1077,7 +1094,11 @@ constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACapacity: Siz
   const AComparer: IExtendedEqualityComparer<TKey>);
 begin
   FMaxLoadFactor := TProbeSequence.DEFAULT_LOAD_FACTOR;
-  FEqualityComparer := AComparer;
+  // Delphi creates one if you pass nil...
+  if aComparer=Nil then
+    FEqualityComparer := TExtendedEqualityComparer<TKey>.Default(THashFactory)
+  else
+    FEqualityComparer := AComparer;
   SetCapacity(ACapacity);
 end;
 

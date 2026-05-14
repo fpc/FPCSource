@@ -31,7 +31,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils, XmlReader;
 
 type
 
@@ -69,7 +69,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Parse(AInput: TSAXInputSource); override; overload;
+    procedure Parse(AInput: TXmlInputSource); override; overload;
 
     property EndOfStream: Boolean read FEndOfStream;
     property ScannerContext: THTMLScannerContext read FScannerContext;
@@ -108,6 +108,7 @@ type
     constructor Create(AReader: THTMLReader; ADocument: TDOMDocument);
     constructor CreateFragment(AReader: THTMLReader; AFragmentRoot: TDOMNode);
     destructor Destroy; override;
+    Property Document : TDOMDocument Read FDocument;
   end;
 
 
@@ -154,7 +155,7 @@ begin
   end;
 end;
 
-procedure THTMLReader.Parse(AInput: TSAXInputSource);
+procedure THTMLReader.Parse(AInput: TXmlInputSource);
 const
   MaxBufferSize = 1024;
 var
@@ -283,6 +284,13 @@ begin
                   EnterNewScannerContext(scUnknown);
               end;
             '<':    // either an unclosed tag or unescaped '<' in text; attempt recovery
+              if FCurStringValueDelimiter <> #0 then
+              begin
+                // Inside quoted attribute value - treat '<' as literal character
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
+              end
+              else
               begin
                 // TODO: this check is hardly complete, probably must also check if
                 // tag name is followed by legal attributes.
@@ -775,6 +783,7 @@ begin
     Converter := THTMLToDOMConverter.Create(Reader, ADoc);
     try
       Reader.ParseStream(f);
+      Converter.Document.RebuildIDList;
     finally
       Converter.Free;
     end;
@@ -805,6 +814,10 @@ begin
     Converter := THTMLToDOMConverter.CreateFragment(Reader, AParentNode);
     try
       Reader.ParseStream(f);
+      if aParentNode is TDOMElement then
+        Converter.Document.RebuildIDsOfElement(aParentNode as TDOMElement)
+      else
+        Converter.Document.RebuildIDList;
     finally
       Converter.Free;
     end;

@@ -178,11 +178,6 @@ implementation
 uses
   StrUtils, FmtBCD;
 
-const
-  SQL_BOOLEAN_INTERBASE = 590;
-  SQL_BOOLEAN_FIREBIRD = 32764;
-  SQL_NULL = 32767;
-  INVALID_DATA = -1;
 
 procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS);
 
@@ -489,8 +484,10 @@ begin
   ReleaseIBase60;
 {$ELSE}
   // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
-  // Required before unloading library; has no effect on non-embedded client
-  if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+  // Only call fb_shutdown for embedded Firebird; calling it for a
+  // client connection shuts down the networking subsystem, causing
+  // subsequent reconnect attempts to fail with "connection shutdown".
+  if UseEmbeddedFirebird and (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
   begin
     //todo: log error; still try to unload library below as the timeout may have been insufficient
   end;
@@ -787,6 +784,9 @@ begin
         TrType := ftFloat;
     SQL_BOOLEAN_INTERBASE, SQL_BOOLEAN_FIREBIRD :
         TrType := ftBoolean;
+    SQL_INT128,
+    SQL_DEC16, SQL_DEC34:
+        TrType := ftFmtBCD;
     else
         TrType := ftUnknown;
   end;
@@ -1184,6 +1184,7 @@ var
   li       : LargeInt;
   CurrBuff : pchar;
   w        : word;
+  i128     : Int128Rec;
 
 begin
   {$push}
@@ -1267,6 +1268,13 @@ begin
           SetDateTime(VSQLVar^.SQLData, AParam.AsDateTime, VSQLVar^.SQLType);
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParam.AsBoolean);
+        SQL_INT128:
+          begin
+            i128 := BCDToInt128(AParam.AsFMTBCD);
+            Move(i128, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_DEC16:
+          PQWord(VSQLVar^.SQLData)^ := BCDToDPDec64(AParam.AsFMTBCD);
       else
         if (VSQLVar^.sqltype <> SQL_NULL) then
           DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
@@ -1278,12 +1286,14 @@ end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 
+type
+  PInt128Rec = ^Int128Rec;
 var
   VSQLVar    : PXSQLVAR;
   VarcharLen : word;
-  CurrBuff     : pchar;
-  c            : currency;
-  AFmtBcd      : tBCD;
+  CurrBuff   : PAnsiChar;
+  c          : currency;
+  AFmtBcd    : tBCD;
 
   function BcdDivPower10(Dividend: largeint; e: integer): TBCD;
   var d: double;
@@ -1308,7 +1318,7 @@ begin
     // if VSQLVar^.AliasName <> FieldDef.Name then
     // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
     if assigned(VSQLVar^.SQLInd) and (VSQLVar^.SQLInd^ = -1) then
-      result := false
+      Result := False
     else
       begin
 
@@ -1324,7 +1334,7 @@ begin
           VarCharLen := FieldDef.Size;
           end;
 
-      Result := true;
+      Result := True;
       case FieldDef.DataType of
         ftBCD :
           begin
@@ -1342,15 +1352,23 @@ begin
           end;
         ftFMTBcd :
           begin
-            case VSQLVar^.SQLLen of
-              2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
-              4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -VSQLVar^.SQLScale);
-              8 : if Dialect < 3 then
-                    AFmtBcd := PDouble(CurrBuff)^
-                  else
-                    AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -VSQLVar^.SQLScale);
+            case (VSQLVar^.sqltype and not 1) of
+              SQL_DEC16:
+                AFmtBcd := DPDec64ToBcd(PQWord(CurrBuff)^);
+              SQL_DEC34:
+                Result := False; // Not implemented yet
               else
-                Result := False; // Just to be sure, in principle this will never happen
+                case VSQLVar^.SQLLen of
+                  2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
+                  4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -VSQLVar^.SQLScale);
+                  8 : if Dialect < 3 then
+                        AFmtBcd := PDouble(CurrBuff)^
+                      else
+                        AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -VSQLVar^.SQLScale);
+                  16: AFmtBcd := Int128ToBcd(PInt128Rec(CurrBuff)^);
+                  else
+                    Result := False; // Just to be sure, in principle this will never happen
+                end; {case}
             end; {case}
             Move(AFmtBcd, buffer^ , sizeof(AFmtBcd));
           end;
@@ -1393,8 +1411,8 @@ begin
           end
         else
           begin
-            result := false;
-            databaseerrorfmt(SUnsupportedFieldType, [Fieldtypenames[FieldDef.DataType], Self]);
+            Result := False;
+            DatabaseErrorFmt(SUnsupportedFieldType, [Fieldtypenames[FieldDef.DataType], Self]);
           end
       end;  { case }
       end; { if/else }
@@ -1592,7 +1610,7 @@ begin
                         'WHERE '+
                           '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
                         'ORDER BY '+
-                          'r.rdb$field_name';
+                          'r.rdb$field_position';
     stSequences  : s := 'SELECT ' +
                           'rdb$generator_id         as recno,' +
                           '''' + DatabaseName + ''' as sequence_catalog,' +

@@ -545,14 +545,9 @@ begin
    end;
 end;
 
-{ ProcessID cached to avoid repeated calls to GetCurrentProcess. }
-
-var
-  ProcessID: SizeUInt;
-
 function GetProcessID: SizeUInt;
   begin
-    GetProcessID := ProcessID;
+    GetProcessID := GetCurrentProcessID;
   end;
 
 
@@ -678,7 +673,7 @@ type
 
   PWStrInitTablesTable = ^TWStrInitTablesTable;
   TWStrInitTablesTable = packed record
-    count  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
+    count  : sizeint;
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 

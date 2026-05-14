@@ -45,19 +45,19 @@ begin
   Result:=Pos(Substr,S); // No MBCS yet.
 end;
 
-Function AnsiStrPos(Str, SubStr: PChar): PChar;
+Function AnsiStrPos(Str, SubStr: PAnsiChar): PAnsiChar;
 
 begin
   Result:=StrPos(Str,Substr);
 end;
 
-Function AnsiStrRScan(Str: PChar; Chr: Char): PChar;
+Function AnsiStrRScan(Str: PAnsiChar; Chr: AnsiChar): PAnsiChar;
 
 begin
   Result:=StrRScan(Str,Chr);
 end;
 
-Function AnsiStrScan(Str: PChar; Chr: Char): PChar;
+Function AnsiStrScan(Str: PAnsiChar; Chr: AnsiChar): PAnsiChar;
 
 begin
   Result:=StrScan(Str,Chr);
@@ -65,10 +65,11 @@ end;
 
 Function HashName(Name: PAnsiChar): LongWord;
 Var
-  thehash,g,I : LongWord;
+  thehash,g : LongWord;
+  I : SizeInt;
 begin
   thehash:=0;
-  For I:=1 to Length(Name) do { 0 terminated }
+  For I:=0 to StrLen(Name)-1 do { 0 terminated }
     begin
       thehash:=thehash shl 4;
       inc(theHash,Ord(UpCase(Name[i])));

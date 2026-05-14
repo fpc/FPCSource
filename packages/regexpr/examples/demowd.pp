@@ -7,7 +7,11 @@
 }
 {$mode objfpc}
 {$h+}
-uses cwstring,uregexpr;
+uses
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  uregexpr;
 
 Function ReplaceRegExpr(ARegExpr, AInputStr, AReplaceStr : Unicodestring) : string;
 

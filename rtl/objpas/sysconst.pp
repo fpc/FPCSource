@@ -91,13 +91,13 @@ const
   SNoDynLibsSupport      = 'Dynamic libraries not supported. Recompile program with dynamic library driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
   SSigQuit               = 'SIGQUIT signal received.';
-  SObjectCheckError      = 'Object reference is Nil';
+  SObjectCheckError      = 'Object reference is Nil or VMT is damaged';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
-  SStackOverflow         = 'Stack overflow';
+  SStackOverflow         = 'Stack overflow or stack misalignment';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
   SThreadError           = 'Thread error';
@@ -148,6 +148,8 @@ const
   SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
   SAMPMError                    = 'Hour >= 13 not allowed in AM/PM mode.';
   SErrListIndexExt              = 'List index out of bounds (%d): %s object range is 0..%d';
+  SListIndexErrorEmptyReason = '%s is empty';
+  SListIndexErrorRangeReason = '%s object range is 0..%d';
 
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';
@@ -245,7 +247,7 @@ begin
      230 : Result:=SSafecallException;
      231 : Result:=SExceptionStack;
      232 : Result:=SNoThreadSupport;
-     233 : Result:=SMissingWStringManager;
+     234 : Result:=SMissingWStringManager;
      235 : Result:=SNoDynLibsSupport;
 
      255 : Result:=SFallbackError;

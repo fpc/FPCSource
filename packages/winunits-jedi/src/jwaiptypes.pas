@@ -67,9 +67,11 @@ uses
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
+{$PACKRECORDS C}
+
 type
   // #include <time.h>  // TODO
-  time_t = Longint;
+  time_t = PtrInt;
   {$EXTERNALSYM time_t}
 
 // Definitions and structures used by getnetworkparams and getadaptersinfo apis

@@ -12,12 +12,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit objpas;
 {$Mode ObjFpc}
 {$I-}
 {$ifndef Unix}
   {$S-}
 {$endif}
-unit objpas;
 
 interface
 
@@ -37,7 +37,11 @@ interface
 {$endif CPU16}
 
        { Ansistring are the default }
+{$IF SIZEOF(Char)=2}
+       PString = PWideString;
+{$ELSE}
        PString = PAnsiString;
+{$ENDIF}
 
        { array types }
 {$ifdef CPU16}
@@ -337,7 +341,10 @@ begin
    For I:=1 to Length(S) do { 0 terminated }
      begin
      thehash:=thehash shl 4;
+{$push}
+{$R-}{$Q-}
      inc(theHash,Ord(S[i]));
+{$pop}
      g:=thehash and LongWord($f shl 28);
      if g<>0 then
        begin

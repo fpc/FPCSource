@@ -191,7 +191,7 @@ type
     TIDSortedSymbolCollection = object(TSymbolCollection)
       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       procedure Insert(Item: Pointer); virtual;
-      function  SearchSymbolByID(AID: longint): PSymbol;
+      function  SearchSymbolByID(AID: PtrInt): PSymbol;
     end;
 
     TObjectSymbolCollection = object(TSortedCollection)
@@ -583,7 +583,7 @@ begin
   TSortedCollection.Insert(Item);
 end;
 
-function TIDSortedSymbolCollection.SearchSymbolByID(AID: longint): PSymbol;
+function TIDSortedSymbolCollection.SearchSymbolByID(AID: PtrInt): PSymbol;
 var S: TSymbol;
     Index: sw_integer;
     P: PSymbol;
@@ -1680,7 +1680,8 @@ end;
                   recorddef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
-                      ProcessSymTable(Symbol,Symbol^.Items,trecorddef(typedef).symtable);
+                      if (trecorddef(typedef).symtable<>Table) then
+                        ProcessSymTable(Symbol,Symbol^.Items,trecorddef(typedef).symtable);
                     end;
                   pointerdef :
                     begin
@@ -1762,6 +1763,14 @@ var
   pif: tinputfile;
 begin
   DisposeBrowserCol;
+
+  if (cs_browser in current_settings.moduleswitches) then
+    if not assigned(current_module.arraydefs) then
+      { Need this to get variable size in memory (MemInfo.Size).
+        Units always fall in this branch, because
+        their "arraydefs" is destroyed as soon they are compiled. }
+      current_module.arraydefs:=THashSet.Create(64,true,false);
+
   if (cs_browser in current_settings.moduleswitches) then
     NewBrowserCol;
   hp:=tmodule(loaded_units.first);
