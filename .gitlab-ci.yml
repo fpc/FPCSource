@@ -88,7 +88,21 @@ variables:
     - tar -xzf fpc-*$ARCH*.tar.gz
     - FPC_SRC=$(pwd)
     # - FPC_SRC=$(pwd)/lib/fpc/3.3.1/units/*/
-    - FPC_COMPILER=$(find $FPC_SRC/compiler/ -name ppc*)
+    - |
+      case "$ARCH" in
+          x86_64)
+              COMPILER_EXE_NAME="ppcx64"
+              ;;
+          aarch64)
+              COMPILER_EXE_NAME="ppca64"
+              ;;
+          *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+      esac
+    - FPC_COMPILER=$(find $FPC_SRC/compiler/ -name $COMPILER_EXE_NAME)
+    - echo $FPC_COMPILER && ls -l $FPC_COMPILER
     # - FPC_COMPILER=$(find $FPC_SRC/lib/fpc/ -name ppc*)
     # - FPC_COMPILER=$(find $(pwd)/lib/fpc/ -name ppc*)
     # run tests
