@@ -121,7 +121,7 @@ implementation
                            otherunit;
                  vmtname:=tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname;
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(vmtname,AT_DATA,indirect),0,
+                   ctx.CurrAsmList.AsmData.RefAsmSymbol(vmtname,AT_DATA,indirect),0,
                    resultdef.alignment,[]);
                  ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,resultdef,resultdef,href,location.register);
                  if otherunit then
@@ -129,7 +129,7 @@ implementation
                end
              else
                begin
-                 pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
+                 pool:=ctx.CurrAsmList.AsmData.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
                  if (compiler.target.info.system in systems_objc_nfabi) then
                    begin
@@ -555,7 +555,7 @@ implementation
                classes can be changed without breaking programs compiled against
                earlier versions)
              }
-             asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
+             asmsym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(vs.mangledname,AT_DATA);
              reference_reset_symbol(tmpref,asmsym,0,compiler.deftypes.voidpointertype.alignment,[]);
              ctx.hlcg.g_ptrtypecast_ref(ctx.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),location.reference);
              location.reference.index:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.ptruinttype);
