@@ -1074,7 +1074,7 @@ implementation
                 begin
                   cg.a_label(list,l.truelabel);
                   cg.a_load_const_reg(list,OS_INT,1,hregister);
-                  current_asmdata.getjumplabel(hl);
+                  list.AsmData.getjumplabel(hl);
                   cg.a_jmp_always(list,hl);
                   cg.a_label(list,l.falselabel);
                   cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -1174,7 +1174,7 @@ implementation
 {$endif}
                 cg.a_label(list,l.truelabel);
                 cg.a_load_const_reg(list,tmpsize,1,hregister);
-                current_asmdata.getjumplabel(hl);
+                list.AsmData.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
                 cg.a_label(list,l.falselabel);
                 cg.a_load_const_reg(list,tmpsize,0,hregister);
