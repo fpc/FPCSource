@@ -232,7 +232,7 @@ unit nx86add;
          begin
            if overflowcheck then
             begin
-              current_asmdata.getjumplabel(hl4);
+              ctx.CurrAsmList.AsmData.getjumplabel(hl4);
               if unsigned then
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_AE,hl4)
               else
