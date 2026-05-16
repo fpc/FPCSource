@@ -824,13 +824,13 @@ implementation
         hlcg:=compiler.hlcg;
         tg:=compiler.tg;
         { generate call frame marker for dwarf call frame info }
-        current_asmdata.asmcfi.start_frame(list);
+        list.AsmData.asmcfi.start_frame(list);
 
         { labels etc. for exception frames are inserted here }
         compiler.current_procinfo.start_eh(list);
 
         if compiler.current_procinfo.procdef.proctypeoption=potype_proginit then
-          current_asmdata.asmcfi.outmost_frame(list);
+          list.AsmData.asmcfi.outmost_frame(list);
 
         { All temps are know, write offsets used for information }
         if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
@@ -902,7 +902,7 @@ implementation
           paramanager.freecgpara(list,compiler.current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
-        current_asmdata.asmcfi.end_frame(list);
+        list.AsmData.asmcfi.end_frame(list);
       end;
 
 
