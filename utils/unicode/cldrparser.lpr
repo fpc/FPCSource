@@ -55,7 +55,7 @@ const
     ' ' + sLineBreak +
     '  The program expects some files to be present in the <dataDir> folder : ' + sLineBreak +
     '     - UCA_Rules_SHORT.txt ' + sLineBreak +
-    '     - allkeys.txt this is the file allkeys_CLDR.txt renamed to allkeys.txt' + sLineBreak + 
+    '     - allkeys.txt this is the file allkeys_CLDR.txt renamed to allkeys.txt' + sLineBreak +
     '     - PropList.txt ' + sLineBreak +
     '  These files are in the core.zip file of the CLDR release files, except the PropList.txt which' + sLineBreak +
     '  is from the UCA. The CLDR''version used should be synchronized the' + sLineBreak +
@@ -122,7 +122,7 @@ begin
 end;
 
 procedure Main;
-var  
+var
   propList : TPropListLineRecArray;
   unifiedIdeographCodePoints : TCodePointRecArray;
   orderedChars : TOrderedCharacters;
