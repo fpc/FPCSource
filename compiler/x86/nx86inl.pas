@@ -802,7 +802,7 @@ implementation
              case tfloatdef(resultdef).floattype of
                s32real:
                  begin
-                   sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
+                   sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
                    compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList, href);
@@ -814,7 +814,7 @@ implementation
                  end;
                s64real:
                  begin
-                   sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
+                   sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
                    compiler.current_module.add_extern_asmsym(sym);
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList, href);
@@ -1113,7 +1113,7 @@ implementation
             ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_SUB,opsize,left.location.register,location.register);
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
-                current_asmdata.getjumplabel(hl);
+                ctx.CurrAsmList.AsmData.getjumplabel(hl);
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
                 ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
                 ctx.cg.a_label(ctx.CurrAsmList,hl);
@@ -1135,7 +1135,7 @@ implementation
             emit_reg(ctx,A_NEG,tcgsize2opsize[opsize],hregister);
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
-                current_asmdata.getjumplabel(hl);
+                ctx.CurrAsmList.AsmData.getjumplabel(hl);
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
                 ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
                 ctx.cg.a_label(ctx.CurrAsmList,hl);
@@ -1556,7 +1556,7 @@ implementation
           Internalerror(2019122809);
         { length in dynamic arrays is at offset -sizeof(pint) }
         ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        current_asmdata.getjumplabel(donelab);
+        ctx.CurrAsmList.AsmData.getjumplabel(donelab);
         { by subtracting 1 here, we get the -1 into the register we need if the dyn. array is nil and the carry
           flag is set in this case, so we can jump depending on it
 
