@@ -68,9 +68,9 @@ implementation
                 pd:=search_system_proc('fpc_tls_add');
                 paramanager.getcgtempparaloc(ctx.CurrAsmList,pd,1,paraloc1);
                 if not(vo_is_weak_external in gvs.varoptions) then
-                  reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
+                  reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
                 else
-                  reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
+                  reference_reset_symbol(href,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
                 ctx.cg.a_loadaddr_ref_cgpara(ctx.CurrAsmList,href,paraloc1);
                 paramanager.freecgpara(ctx.CurrAsmList,paraloc1);
                 paraloc1.done;
