@@ -200,11 +200,11 @@ unit cgcpu;
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
                 push_one_reg(hreg);
                 if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
+                  list.AsmData.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
                   begin
-                    current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
-                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+sizeof(pint)+localsize);
+                    list.AsmData.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                    list.AsmData.asmcfi.cfa_def_cfa_offset(list,regsize+sizeof(pint)+localsize);
                   end;
               end;
         end;
@@ -238,8 +238,8 @@ unit cgcpu;
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(NR_FRAME_POINTER_REG);
                 { Return address and FP are both on stack }
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
-                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                list.AsmData.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
                 if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
                 else
@@ -252,7 +252,7 @@ unit cgcpu;
                       maxpushedparasize is already aligned at least on x86_64. }
                     localsize:=compiler.current_procinfo.maxpushedparasize;
                   end;
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+                list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
                 {
                   TODO: current framepointer handling is not compatible with Win64 at all:
                   Win64 expects FP to point to the top or into the middle of local area.
@@ -281,7 +281,7 @@ unit cgcpu;
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                  list.AsmData.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 compiler.current_procinfo.final_localsize:=localsize;
                 if (compiler.target.info.system=system_x86_64_win64) then
                   begin
@@ -421,7 +421,7 @@ unit cgcpu;
 
                     if (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                       list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
-                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
+                    list.AsmData.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
                   end
                 else if (compiler.target.info.system=system_x86_64_win64) then
                   begin
