@@ -6861,7 +6861,8 @@ unit aoptx86;
                 UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                 if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
                   begin
-                    taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                    taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+                    AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
                     DebugMsg(SPeepholeOptimization + 'LeaMov2Lea done',p);
                     RemoveInstruction(hp1);
                     result:=true;
