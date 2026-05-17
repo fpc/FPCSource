@@ -15357,7 +15357,10 @@ unit aoptx86;
                             AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
                           end
                         else
-                          taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+                          begin
+                            taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+                            TrackAndCorrectRefMove(taicpu(p).oper[0]^.ref^,p,hp1,True);
+                          end;
                         RemoveCurrentP(p);
                         if AndTest then
                           RemoveInstruction(hp2);
