@@ -806,9 +806,6 @@ implementation
 
 Uses typinfo;
 
-const
-  HexDigits = '01234567890ABCDEF';
-
 {$IFNDEF Pas2js}
 const
   HexDigits: array[0..15] of char = '0123456789ABCDEF';
