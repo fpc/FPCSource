@@ -177,7 +177,7 @@ implementation
               begin
                 location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                 location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
-                current_asmdata.getjumplabel(hlabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
                 ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
                 if not(is_cbool(resultdef)) then
                   ctx.cg.a_load_const_reg(ctx.CurrAsmList,location.size,1,location.register)
@@ -412,8 +412,8 @@ implementation
                      if it is 1 then we add 2**64 as float.
                      Since 2**64 can be represented exactly, use a single-precision
                      constant to save space. }
-                   current_asmdata.getdatalabel(l1);
-                   current_asmdata.getjumplabel(l2);
+                   ctx.CurrAsmList.AsmData.getdatalabel(l1);
+                   ctx.CurrAsmList.AsmData.getjumplabel(l2);
                    if not(signtested) then
                      begin
                        if use_bt then
@@ -451,11 +451,11 @@ implementation
                    else
                      ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_E,l2);
                    ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(sizeof(pint)));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                   new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(sizeof(pint)));
+                   ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
                    { It's actually the bit representation of 2^64 as a Single [Kit] }
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
+                   ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                    reference_reset_symbol(href,l1,0,4,[]);
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
                    ctx.CurrAsmList.concat(Taicpu.Op_ref(A_FADD,S_FS,href));
