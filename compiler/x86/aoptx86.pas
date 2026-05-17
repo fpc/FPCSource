@@ -7512,6 +7512,7 @@ unit aoptx86;
                     taicpu(hp1).loadconst(0, 0);
                   end;
                 taicpu(hp1).loadref(1, taicpu(p).oper[0]^.ref^);
+                TrackAndCorrectRefMove(taicpu(p).oper[0]^.ref^,p,hp1,True);
                 DebugMsg(SPeepholeOptimization + 'MOV/CMP -> CMP (memory check)', p);
 
                 RemoveCurrentP(p);
