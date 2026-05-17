@@ -15226,7 +15226,7 @@ unit aoptx86;
 
               test    $x,(oper)
 
-              if the second op accesses only the bits stored in reg1
+              if the second op accesses only the bits stored in (oper)
             }
             if ((taicpu(p).oper[0]^.typ=top_reg) or
               ((taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr<>addr_full))) and
@@ -15273,6 +15273,10 @@ unit aoptx86;
                       begin
                         DebugMsg(SPeepholeOptimization + 'MovxAndTest2Test done',p);
                         taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
+                        if taicpu(p).oper[0]^.typ=top_reg then
+                          AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,UsedRegs)
+                        else
+                          TrackAndCorrectRefMove(taicpu(p).oper[0]^.ref^,p,hp1,True);
                         taicpu(hp1).opcode := A_TEST;
                         taicpu(hp1).opsize := NewSize;
                         RemoveInstruction(hp2);
