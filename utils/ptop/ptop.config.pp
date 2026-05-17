@@ -31,11 +31,22 @@ implementation
 uses
   {$ifdef FPC_DOTTEDUNITS}
   system.typinfo,
+  system.sysutils,
   {$else}
   typinfo,
+  sysutils,
   {$endif}
   ptop.strutils
   ;
+
+resourcestring
+  E_UNKNOWN_KEYWORD = 'Unknown keyword: %s';
+  E_UNKNOWN_OPTION  = 'Unknown option: %s';
+  E_NO_TARGET       = 'No Pascal keyword specified';
+  E_UNKNOWN_INDENT  = 'Unknown indent: %s';
+  E_NO_VALUE        = 'No setting for this keyword';
+  S_PROCESSED_CFG   = 'Processed config file: read %d lines';
+
 
 Procedure CreateOptionsTable(Out Option : OptionTable);
 
@@ -249,7 +260,7 @@ Var
         If not found then
           LogWithLocation(i + 1,
             length(L.Names[i]) + 1 + length(L.Values[L.Names[i]]),
-            'Unknown option on line: '+Opt,
+            Format(E_UNKNOWN_OPTION, [L.Values[L.Names[i]]]),
             L.Strings[i])
         else
           For TS:=Low(TTokenScope) to High(TTokenScope) do
@@ -283,7 +294,7 @@ Var
         Found:=GetEnumValue(EntryTableTypInfo,opt)<>-1;
         If not found then
           begin
-        //   Verbose (Format(E_UNKNOWN_INDENT, [aType, i, Opt]));
+          Verbose (Format(E_UNKNOWN_INDENT, [aType]));
           exit;
           end;
         Include(Result,Theindent);
@@ -347,20 +358,20 @@ begin
       { Strip comments }
       If pos('#', Name) <> 0 then
         Name := Copy(Name, 1, Pos('#', Name) - 1);
-      
+
       If pos('#', Value) <> 0 then
         Value := Copy(Value, 1, Pos('#', Value) - 1);
-      
+
       If (Length(Name) = 0) and (Length(Value) = 0) then
         continue
       Else if Length(Name) = 0 then
       begin
-        LogWithLocation(I + 1, 1, 'No keyword specified', L.Strings[i]);
+        LogWithLocation(I + 1, 1, E_NO_TARGET, L.Strings[i]);
         continue;
       end
       Else if Length(Value) = 0 then
       begin
-        LogWithLocation(I + 1, Length(Name) + 1, 'No value specified for ' + Name + '. Skipping.', L.Strings[i]);
+        LogWithLocation(I + 1, Length(Name) + 1, E_NO_VALUE, L.Strings[i]);
         continue;
       end;
 
@@ -370,8 +381,11 @@ begin
       Found := GetEnumValue(EntryTableTypInfo, Name) <> -1;
 
       If not found then
-        continue
-        // Verbose (Format(E_UNKNOWN_KEYWORD, [I,Name]))
+        LogWithLocation (
+          I + 1, Length(Name) + 1,
+          Format(E_UNKNOWN_KEYWORD, [Name]),
+          L.Strings[I]
+        )
       else
         Case LT of
           ltIndent: SetIndent(TheKey, Value);
@@ -383,7 +397,7 @@ begin
     L.Free;
   end;
 
-//   Verbose (Format(S_PROCESSED_CFG, [I]));
+  Verbose (S_PROCESSED_CFG);
   Result:=true;
 end;
 

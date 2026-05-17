@@ -14,31 +14,30 @@ uses
   ;
 
 const Blank = ' ';
+var BeVerbose: boolean = false;
 
-procedure Strip(var S: string);
-function trimMiddle(a:ansistring; lnght: integer; size: integer):string;
+Procedure Strip(var S: string);
+Function trimMiddle(a:ansistring; lnght: integer; size: integer):string;
 Procedure ClassID(Value: Token;
                   lngth: INTEGER;
                   VAR idtype: keysymbol;
                   VAR IsKeyWord: BOOLEAN);
-function ReadChar (S : TStream) : Char;
-function EoSLn (S : TStream) : Char;
-function ReadString (S: TStream): String;
+Function ReadChar (S : TStream) : Char;
+Function EoSLn (S : TStream) : Char;
+Function ReadString (S: TStream): String;
 Procedure WriteString (S : TStream; ST : String);
 Procedure WriteAnsiString (S : TStream; ST : AnsiString);
 Procedure WriteCR (S: TStream);
 Procedure WriteLnString (S : TStream; ST : String);
-procedure LogWithLocation(lineno, from, to_: uint32; message: string; actualLine: string);
-procedure LogWithLocation(lineno, pos: uint32; message: string; actualLine: string);
+Procedure Verbose(message: string);
+Procedure LogWithLocation(lineno, pos: uint32; message: string; actualLine: string);
 
 implementation
 
 uses
   {$ifdef FPC_DOTTEDUNITS}
-  system.console.crt,
   system.sysutils
   {$else}
-  crt,
   sysutils
   {$endif}
   ;
@@ -172,8 +171,6 @@ begin
   WriteCR(S);
 end;
 
-
-
 Function trimMiddle ( a:ansistring; lnght: integer; size: integer):string;
 var
     half:Integer;
@@ -187,29 +184,24 @@ begin
       trimMiddle := a;
 end;
 
-const lineHeader = '%d    | ';
-procedure LogWithLocation(lineno, from, to_: uint32; message: string; actualLine: string);
-var ln: string;
+Procedure Verbose(message: string); inline;
 begin
-  writeln(Format('Configuration file, starting from %dth to %dth character:', [from, to_]));
-  ln := Format(lineHeader, [lineno]);
-  writeln(ln + actualLine);
-  TextColor(Red);
-  write(StringOfChar(' ', Length(ln) + from) + StringOfChar('^', to_ - from) + ' ');
-  writeln(message);
-  TextColor(White);
+  if BeVerbose then writeln(message);
 end;
 
 procedure LogWithLocation(lineno, pos: uint32; message: string; actualLine: string);
-var ln: string;
+const
+  lineHeader = '    | ';
+var
+  ln: string;
 begin
-  writeln(Format('Configuration file, in the %dth character:', [pos]));
-  ln := Format(lineHeader, [lineno]);
+  ln := IntToStr(lineno) + ':' + IntToStr(pos) + lineHeader;
+
+  writeln('In your configuration file:');
   writeln(ln + actualLine);
-  TextColor(Red);
-  write(StringOfChar(' ', Length(ln) + pos) + '^' );
+
+  write(StringOfChar(' ', Length(ln) + pos - 1) + '^ ');
   writeln(message);
-  TextColor(White);
 end;
 
 end.

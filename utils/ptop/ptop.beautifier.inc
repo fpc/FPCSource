@@ -73,13 +73,11 @@ type
     stack   : symbolstack;
     top,startpos,currlinepos,currmargin : Integer;
     option : OptionTable;
-    FVerbose :  Boolean;
     FirstWordStackPos,
     FirstWordPos,
     FLineSize,
     FIndent : Integer;
     ins,outs,cfgs : TStream;
-    Procedure Verbose (Const Msg : String);
     Procedure GetChar;
     Procedure StoreNextChar(Var lngth: INTEGER;
                             var Value: Token);
@@ -113,7 +111,6 @@ type
   Public
     Constructor Create;
     Function PrettyPrint : Boolean;
-    Property BeVerbose : Boolean Read FVerbose Write FVerbose;
     Property LineSize : Integer Read FLineSize Write FLineSize;
     Property Indent : Integer Read FIndent Write FIndent;    { How many characters to indent ? }
     Property Source : TStream Read Ins Write Ins;

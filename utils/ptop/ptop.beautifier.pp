@@ -15,23 +15,12 @@ uses
   ;
 
 resourcestring
-  E_UNKNOWN_KEYWORD = 'Unknown config keyword on line %d : %s';
-  E_CONFIG_FILE     = 'Error reading config file on line %d';
-  E_UNKNOWN_INDENT  = 'Unknown indent %s on line %d: %s';
-  S_PROCESSED_CFG   = 'Processed config file: read %d lines';
   S_PRETTY_PRINTED  = 'Read %d lines of input, %d lines written.';
 
 VAR
   sets   : tableptr;
   dblch  : dblcharset;
   logger : TEventLog;
-
-Procedure TPrettyPrinter.Verbose (Const Msg : String);
-
-begin
-  If (FVerbose) then
-    logger.Log(Msg);
-end;
 
 { Read the next character and classify it }
 Procedure TPrettyPrinter.GetChar;
