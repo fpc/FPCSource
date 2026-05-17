@@ -15141,6 +15141,7 @@ unit aoptx86;
                 else
 {$endif x86_64}
                   taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+                AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
                 RemoveInstruction(hp1);
                 Result := True;
                 Exit;
