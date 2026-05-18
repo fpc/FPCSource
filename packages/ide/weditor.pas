@@ -2532,6 +2532,13 @@ var
         else
           CC:=ccNumber; { real number scientific notation exponent sign is part of the number itself }
       end
+    else if (C = '_') and ((LastCC=ccHexNumber) or (LastCC=ccNumber)) then
+      begin
+        if (X>1) and (LineText[X-1]='.') then
+          CC:=ccAlpha
+        else
+          CC:=LastCC;  { allow number to have "_" as visual separation marker }
+      end
     else if C in {$ifdef USE_UNTYPEDSET}['A'..'Z','a'..'z','_']{$else}AlphaChars{$endif} then CC:=ccAlpha else
       CC:=ccSymbol;
     GetCharClass:=CC;
