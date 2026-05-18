@@ -14,7 +14,7 @@ begin
   Result:=TMutexKind(M.Kind);
 end;
 
-procedure InitMutex(var M : TWasmMutex; aKind : TMutexKind = mkNormal; aOwner : TThreadID = Nil);
+procedure InitMutex(var M : TWasmMutex; aKind : TMutexKind = mkRecursive; aOwner : TThreadID = Nil);
 
 begin
   FillChar(M,SizeOf(TWasmMutex),0);
@@ -47,17 +47,14 @@ Var
 begin
   // We already have the lock ?
   Res:=(fpc_wasm32_i32_atomic_load(@M.Locked)=1) and (TThreadID(fpc_wasm32_i32_atomic_load(@M.Owner))=GetSelfThread);
-  if Not Res then
+  if not Res then
     Res:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@M.Locked,0,1)=0
-  else
-    begin
-// TryLockMutex is called in a loop. Be VERY careful when adding this log.
-//    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : we ('+IntToStr(PtrUint(GetSelfThread))+') own the lock.');{$ENDIF}
-    end;
+  else  
+    Res:=MutexKind(M)=mkRecursive; // OK if recursive. If not recursive, then fail.
   if Res then
     begin
-    if (MutexKind(M)=mkRecursive) or (M.Count=0) then
-      InterLockedIncrement(M.Count);
+    // Always increase. 
+    InterLockedIncrement(M.Count);
 //    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : setting owner to '+IntToStr(PtrUint(GetSelfThread))+'.');{$ENDIF}
     fpc_wasm32_i32_atomic_store(@M.Owner,LongWord(GetSelfThread));
     end;
@@ -174,7 +171,7 @@ begin
   else
     begin
     res:=lmrOK;
-    if (MutexKind(M)=mkRecursive) or (M.Count=1) then
+//    if (MutexKind(M)=mkRecursive) or (M.Count=1) then
       InterLockedDecrement(M.Count);
     if (M.Count=0) then
       begin
