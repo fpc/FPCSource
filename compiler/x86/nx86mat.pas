@@ -187,16 +187,16 @@ interface
               begin
                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
-                current_asmdata.getdatalabel(l1);
-                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(16));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                ctx.CurrAsmList.AsmData.getdatalabel(l1);
+                new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(16));
+                ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                 case def_cgsize(resultdef) of
                   OS_F32:
-                    current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
+                    ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
                   OS_F64:
                     begin
-                      current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(0));
-                      current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(-(1 shl 31)));
+                      ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_const.create_32bit(0));
+                      ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_const.create_32bit(-(1 shl 31)));
                     end
                   else
                     internalerror(2004110215);
