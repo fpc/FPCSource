@@ -4112,8 +4112,12 @@ unit aoptx86;
                                 not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
                                 begin
                                   Taicpu(hp1).opcode:=A_ADD;
-                                  Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
+                                  { Just transfer the ref pointer for speed }
+                                  taicpu(hp1).oper[0]^.ref:=Taicpu(p).oper[0]^.ref;
+                                  TrackAndCorrectRefMove(taicpu(p).oper[0]^.ref^,p,hp1,False);
                                   DebugMsg(SPeepholeOptimization + 'MovLea2Add done',hp1);
+                                  { Set the original ref pointer to nil so it doesn't get freed }
+                                  taicpu(p).oper[0]^.ref:=nil;
                                   RemoveCurrentp(p);
                                   result:=true;
                                   exit;
