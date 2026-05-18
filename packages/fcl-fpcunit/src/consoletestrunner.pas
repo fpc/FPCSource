@@ -401,7 +401,7 @@ begin
   Result:=GetEnvironmentVariable(CDefaultsFileNameEnvVar);
   if Result='' then
     Result:=CDefaultsFileNameConst;
-  Result:=ExpandFileName(Result,Location);
+  Result:=ExpandFileName(Result);
 end;
 
 procedure TTestRunner.ReadDefaults;
