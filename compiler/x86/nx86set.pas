@@ -154,7 +154,7 @@ implementation
               end;
           end;
 
-        current_asmdata.getdatalabel(table);
+        ctx.CurrAsmList.AsmData.getdatalabel(table);
         { make it a 32bit register }
         indexreg:=ctx.cg.makeregsize(ctx.CurrAsmList,hregister,OS_INT);
         ctx.cg.a_load_reg_reg(ctx.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
@@ -182,7 +182,7 @@ implementation
           emit_ref(ctx,A_JMP,S_NO,href);
         { generate jump table }
         if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
-          jtlist:=current_asmdata.asmlists[al_const]
+          jtlist:=ctx.CurrAsmList.AsmData.asmlists[al_const]
         else
           jtlist:=compiler.current_procinfo.aktlocaldata;
         new_section(jtlist,sec_rodata,compiler.current_procinfo.procdef.mangledname,sizeof(aint));
@@ -596,7 +596,7 @@ implementation
             else
               location.resflags:=F_E;
 
-            current_asmdata.getjumplabel(l);
+            ctx.CurrAsmList.AsmData.getjumplabel(l);
 
             { how much have we already subtracted from the x in the  }
             { "x in [y..z]" expression                               }
@@ -761,8 +761,8 @@ implementation
                 begin
 {$ifdef i8086}
                   location.resflags:=F_NE;
-                  current_asmdata.getjumplabel(l);
-                  current_asmdata.getjumplabel(l2);
+                  ctx.CurrAsmList.AsmData.getjumplabel(l);
+                  ctx.CurrAsmList.AsmData.getjumplabel(l2);
 
                   { load constants to a register }
                   if (left.location.loc=LOC_CONSTANT) or
@@ -794,8 +794,8 @@ implementation
                   ctx.cg.a_label(ctx.CurrAsmList,l2);
 {$else i8086}
                   location.resflags:=F_C;
-                  current_asmdata.getjumplabel(l);
-                  current_asmdata.getjumplabel(l2);
+                  ctx.CurrAsmList.AsmData.getjumplabel(l);
+                  ctx.CurrAsmList.AsmData.getjumplabel(l2);
 
                   { load constants to a register }
                   if (left.location.loc=LOC_CONSTANT) or
@@ -909,8 +909,8 @@ implementation
 
                     { we have to check if the value is < 0 or > setmax }
 
-                    current_asmdata.getjumplabel(l);
-                    current_asmdata.getjumplabel(l2);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l2);
 
                     { BE will be false for negative values }
                     ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
@@ -991,8 +991,8 @@ implementation
                     begin
                       { we have to check if the value is < 0 or > setmax }
 
-                      current_asmdata.getjumplabel(l);
-                      current_asmdata.getjumplabel(l2);
+                      ctx.CurrAsmList.AsmData.getjumplabel(l);
+                      ctx.CurrAsmList.AsmData.getjumplabel(l2);
 
                       { BE will be false for negative values }
                       ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
