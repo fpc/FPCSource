@@ -2280,7 +2280,7 @@ var
   CurrentCommentDepth : sw_integer;
   NestedComments,LookForNestedComments : boolean;
   CommentStartX,CommentStartY : sw_integer;
-  FirstCC,LastCC: TCharClass;
+  FirstCC,LastCC,PrevNumCC: TCharClass;
   InAsm,InComment,InSingleLineComment,InDirective,InString,InStringMultiLine: boolean;
   WhiteSpaceLine,OnlyStringSuffix,StringSuffixEnded : boolean;
   X,ClassStart: Sw_integer;
@@ -2501,7 +2501,10 @@ var
     else if (LastCC=ccHexNumber) and (C in {$ifdef USE_UNTYPEDSET}['0'..'9','A'..'F','a'..'f']{$else}HexNumberChars{$endif}) then
       CC:=ccHexNumber
     else if C in {$ifdef USE_UNTYPEDSET}['0'..'9']{$else}NumberChars{$endif} then
-      CC:=ccNumber
+      begin
+        PrevNumCC:=ccNumber;
+        CC:=ccNumber;
+      end
     else if (LastCC=ccNumber) and (C in {$ifdef USE_UNTYPEDSET}['E','e','.']{$else}RealNumberChars{$endif}) then
       begin
         if (C='.') then
@@ -2520,6 +2523,14 @@ var
             else
               cc:=ccAlpha
           end;
+        PrevNumCC:=cc;
+      end
+    else if (C in ['-','+']) and ((LastCC=ccNumber)and (PrevNumCC=ccRealNumber)) then
+      begin
+        if (X>1) and (LineText[X-1]='.') then
+          CC:=ccSymbol
+        else
+          CC:=ccNumber; { real number scientific notation exponent sign is part of the number itself }
       end
     else if C in {$ifdef USE_UNTYPEDSET}['A'..'Z','a'..'z','_']{$else}AlphaChars{$endif} then CC:=ccAlpha else
       CC:=ccSymbol;
