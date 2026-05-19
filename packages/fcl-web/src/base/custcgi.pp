@@ -432,7 +432,7 @@ begin
         else
           begin
           RetryCount:=0; // We got data, so let's reset this.
-          AbortRead:=Not DoContentRead(PByte(@S[BytesRead+1]),A);
+          AbortRead:=Not DoContentRead(PByte(@S[BytesRead-A+1]),A);
           end;
       until (BytesRead>=Cl) or (AbortRead);
       // In fact the request is incomplete, but this is not the place to throw an error for that
