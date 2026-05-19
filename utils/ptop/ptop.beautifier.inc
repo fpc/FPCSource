@@ -59,9 +59,9 @@ type
   TPrettyPrinter = Class(TObject)
   Private
     FTokenScope: TTokenScope;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     GobbleLevel : Integer;
-{$endif debug}
+{$endif DEBUG_PTOP}
     PreviousSymbol : keysymbol;
     RecordLevel : Integer;
     ClassSeen,ObjectSeen : Boolean;
@@ -107,7 +107,7 @@ type
     Procedure PPSymbol;
     Procedure Gobble(terminators: keysymset);
     Procedure RShift(currmsym: keysymbol);
-    Procedure RShiftIndent{$ifdef debug}(currmsym: keysymbol){$endif debug};
+    Procedure RShiftIndent{$ifdef DEBUG_PTOP}(currmsym: keysymbol){$endif debug};
   Public
     Constructor Create;
     Function PrettyPrint : Boolean;

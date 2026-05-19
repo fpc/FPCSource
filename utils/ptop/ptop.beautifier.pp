@@ -326,9 +326,9 @@ Procedure TPrettyPrinter.LShiftOn(dindsym: keysymset);
     indentsymbol: keysymbol;
     prevmargin: INTEGER;
   BEGIN
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Write('LShiftOn ',EntryNames[currsym^.name],' : ',FirstWordPos,'/',CurrMargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
     IF top > 0 THEN BEGIN
       REPEAT
         PopStack(indentsymbol, prevmargin);
@@ -337,9 +337,9 @@ Procedure TPrettyPrinter.LShiftOn(dindsym: keysymset);
       IF NOT (indentsymbol IN dindsym) THEN
         PushStack(indentsymbol, prevmargin);
     END;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln('-> ',CurrMargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
   END; { of LShiftOn }
 
 
@@ -349,55 +349,55 @@ Procedure TprettyPrinter.LShift;
     indentsymbol: keysymbol;
     prevmargin: INTEGER;
   BEGIN
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Write('LShift ',EntryNames[currsym^.name],' : ',FirstWordPos,'/',CurrMargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
     IF top > 0 THEN BEGIN
       PopStack(indentsymbol, prevmargin);
       currmargin := prevmargin;
 (* maybe PopStack(indentsymbol,currmargin); *)
     END;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln('-> ',CurrMargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
   END; { of LShift }
 
 Procedure TprettyPrinter.RShift(currmsym: keysymbol);
   { Move right, stacking margin positions }
   BEGIN
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Write('RShift ',EntryNames[currmsym],' : ',FirstWordPos,'/',Currmargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
     IF top < MAXSTACKSIZE THEN PushStack(currmsym, currmargin);
     IF startpos > currmargin THEN currmargin := startpos;
     Inc(currmargin,INDENT);
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln(' -> ',Currmargin)
-{$endif debug}
+{$endif DEBUG_PTOP}
   END; { of RShift }
 
-Procedure TprettyPrinter.RShiftIndent{$ifdef debug}(currmsym: keysymbol){$endif debug};
+Procedure TprettyPrinter.RShiftIndent{$ifdef DEBUG_PTOP}(currmsym: keysymbol){$endif debug};
   { Move right, stacking margin positions }
   BEGIN
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Write('RShiftIndent ',EntryNames[currmsym],' : ',FirstWordPos,'/',Currmargin);
-{$endif debug}
+{$endif DEBUG_PTOP}
     If (FirstWordStackPos>=0) then
       Top:=FirstWordStackPos
     else
       Top:=0;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     If (Top>0) then
       Write(' Stackpos ',Top,' Item: ',EntryNames[Stack[Top].IndentSymbol],' Pos: ',Stack[Top].Prevmargin)
     else
       Write(' no item on stack');
-{$endif debug}
+{$endif DEBUG_PTOP}
     IF top < MAXSTACKSIZE THEN PushStack(othersym, FirstWordPos);
 //    IF top < MAXSTACKSIZE THEN PushStack(currmsym, currmargin);
     CurrMargin:=FirstWordPos+Indent;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln(' -> ',Currmargin)
-{$endif debug}
+{$endif DEBUG_PTOP}
   END; { of RShift }
 
 
@@ -448,13 +448,13 @@ Procedure TPrettyPrinter.PrintSymbol;
       begin
       FirstWordPos:=startpos;
       FirstWordStackPos:=Top;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
       write('First word : ',currlinepos,': ',currsym^.value);
       If (FirstWordStackPos>0) then
         writeln(' [Stack: ',FirstWordStackPos,' Item: "',EntryNames[Stack[FirstWordStackPos].IndentSymbol],'" Pos: ',Stack[FirstWordStackPos].Prevmargin,']')
       else
         Writeln(' No stack')
-{$endif debug}
+{$endif DEBUG_PTOP}
       end;
   END; { of PrintSymbol }
 
@@ -489,10 +489,10 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
   { Print symbols which follow a formatting symbol but which do not
     affect layout }
   BEGIN
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Inc(GobbleLevel);
     Writeln('Gobble start ',GobbleLevel,' : ',EntryNames[currsym^.name]);
-{$endif debug}
+{$endif DEBUG_PTOP}
     IF top < MAXSTACKSIZE THEN PushStack(currsym^.name, currmargin);
     currmargin := currlinepos;
     WHILE NOT ((nextsym^.name IN terminators)
@@ -501,10 +501,10 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
       PPSymbol;
     END;
     LShift;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln('Gobble end ',gobblelevel,' : ',EntryNames[nextsym^.name],' ',nextsym^.name in terminators );
     Dec(GobbleLevel);
-{$endif debug}
+{$endif DEBUG_PTOP}
   END; { of Gobble }
 
 Function TPrettyPrinter.PrettyPrint : Boolean;
@@ -535,11 +535,11 @@ Begin
   GetSymbol;
   WHILE nextsym^.name <> endoffile DO BEGIN
     GetSymbol;
-{$ifdef debug}
+{$ifdef DEBUG_PTOP}
     Writeln('line in-'+IntToStr(inlines)+' out-'+IntToStr(outlines)+
             ' symbol "'+EntryNames[currsym^.name]+'" = "'+
             trimMiddle(currsym^.value,length(currsym^.value),MAXSHOWSIZE)+'"');
-{$endif debug}
+{$endif DEBUG_PTOP}
     sets := option[FTokenScope,currsym^.name];
     IF (CrPending AND NOT (crsupp IN sets^.selected))
     OR (crbefore IN sets^.selected) THEN BEGIN
@@ -560,7 +560,7 @@ Begin
     IF inbytab IN sets^.selected THEN
       RShift(currsym^.name)
     else IF inbyindent IN sets^.selected THEN
-      RShiftIndent{$ifdef debug}(currsym^.name){$endif debug};
+      RShiftIndent{$ifdef DEBUG_PTOP}(currsym^.name){$endif debug};
     IF gobsym IN sets^.selected THEN Gobble(sets^.terminators);
     IF crafter IN sets^.selected THEN CrPending := TRUE
   END;
