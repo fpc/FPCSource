@@ -283,7 +283,10 @@ Var
   Hn : String;
 
 begin
-  HN:=StrPas(p^.Handler);
+  if p^.Handler=Nil then
+    HN:=''
+  else
+    HN:=StrPas(p^.Handler);
   Result:=CompareText(HN,FHandlerName)=0;
   If Assigned(FBeforeRequest) then
     FBeforeRequest(Self,HN,Result);
@@ -555,10 +558,13 @@ begin
       Count:=0;
       Repeat
         Bytes:=ap_get_client_block(FRequest,P,MinS(10*1024,Left));
+        // ap_get_client_block returns -1 on error
+        if Bytes<=0 then
+          break;
         Dec(Left,Bytes);
         Inc(P,Bytes);
         Inc(Count,Bytes);
-      Until (Count>=Len) or (Bytes=0);
+      Until (Count>=Len);
       SetLength(S,Count);
       end;
     end;
