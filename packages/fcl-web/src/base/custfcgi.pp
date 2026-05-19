@@ -351,6 +351,7 @@ procedure TFCGIRequest.GetNameValuePairsFromContentRecord(const ARecord: PFCGI_C
 
 var
   i : integer;
+  RecordLength : Integer;
 
   function GetVarLength : Integer;
   begin
@@ -358,10 +359,14 @@ var
       Result:=ARecord^.ContentData[i]
     else
       begin
-//      Result:=BEtoN(PLongint(@(ARecord^.ContentData[i]))^);
-      Result:=Int64(((ARecord^.ContentData[i] and $7f) shl 24)) + (ARecord^.ContentData[i+1] shl 16)
+      if (I+3>=RecordLength) then
+        Result:=0
+      else
+        begin
+        Result:=Int64(((ARecord^.ContentData[i] and $7f) shl 24)) + (ARecord^.ContentData[i+1] shl 16)
                    + (ARecord^.ContentData[i+2] shl 8) + (ARecord^.ContentData[i+3]);
-      inc(i,3);
+        inc(i,3);
+        end;
       end;
     inc(i);
   end;
@@ -371,7 +376,7 @@ var
     if (ALength<0) then
       ALength:=0;
     SetLength(Result,ALength);
-    if (ALength>0) then
+    if (ALength>0) and ((i+aLength)<=RecordLength) then
       move(ARecord^.ContentData[i],Result[0],ALength);
     inc(i,ALength);
   end;
@@ -389,7 +394,6 @@ var
 
 var
   NameLength, ValueLength : Integer;
-  RecordLength : Integer;
   Name,Tmp : String;
   Value : TBytes;
   h : THeader;
@@ -402,6 +406,8 @@ begin
     begin
     NameLength:=GetVarLength;
     ValueLength:=GetVarLength;
+    if (NameLength + ValueLength + i > RecordLength) then
+      break;
     Name:=MakeString(GetBytes(NameLength));
     Value:=GetBytes(ValueLength);
     if Not DoMapCgiToHTTP(Name,H,V) then
