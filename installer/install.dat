@@ -453,8 +453,6 @@ package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatib
 package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
 
 
-
-
 #
 # OS/2 packages 3rd part
 #
@@ -476,13 +474,14 @@ package=utils-unicodeos2.zip[ucdos2.zip],Transformation of Unicode consortium da
 package=utplylibos2.zip[utpllos2.zip],Units for sources created with the compiler generator
 # OS/2-3 8
 package=units-fcl-hashos2.zip[ufclhos2.zip],Hash and cryptography algorithm classes
-package=units-webidlos2.zip[uwidlos2.zip],WEB IDL parser and converter to Object Pascal classes
 # OS/2-3 9
 package=utils-fpdocos2.zip[fpdcos2.zip],Free Pascal documentation generation utility
 # OS/2-3 10
 package=utils-fppkgos2.zip[fpkgos2.zip],Free Pascal package repository utility
 # OS/2-3 11
 package=utils-fpcreslipoos2.zip[fprlos2.zip],Free Pascal External Resource Thinner
+# OS/2-3 12
+package=units-webidlos2.zip[uwidlos2.zip],WEB IDL parser and converter to Object Pascal classes
 # OS/2-3 13
 package=utils-ihxutilos2.zip[ihxuos2.zip],A tool to convert Intel HEX Format files different formats used on various Z80 systems
 
@@ -645,7 +644,6 @@ package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium 
 package=utplylibemx.zip[utpllemx.zip],Units for sources created with the compiler generator
 # EMX-3 8
 package=units-fcl-hashemx.zip[ufclhemx.zip],Hash and cryptography algorithm classes
-package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
 # EMX-3 9
 package=utils-fppkgemx.zip[fpkgemx.zip],Free Pascal package repository utility
 # EMX-3 10
@@ -660,6 +658,8 @@ package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatib
 package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
 # EMX-3 15
 package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+# EMX-3 16
+package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
 
 #
 # Common packages
@@ -721,6 +721,8 @@ package=units-fppkg-source.zip[ufppksrc.zip],Units for FPPkg packaging support
 # Source 19
 # Source 20
 package=units-webidl.source.zip[uwidlsrc.zip],WEB IDL parser and converter to Object Pascal classes
+
+
 #
 # Source packages 2nd part
 #
