@@ -957,7 +957,7 @@ begin
   ARequestID:=BEtoN(AFCGI_Record^.requestID);
   if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
     begin
-    if ARequestID>FRequestsAvail then
+    if ARequestID>=FRequestsAvail then
       begin
       inc(FRequestsAvail,10);
       SetLength(FRequestsArray,FRequestsAvail);
@@ -973,11 +973,8 @@ begin
     ATempRequest.FLog:=@Log;
     FRequestsArray[ARequestID].Request := ATempRequest;
     end;
-  if (ARequestID>FRequestsAvail) then
-    begin
-    // TODO : ARequestID can be invalid. What to do ?
-    // in each case not try to access the array with requests.
-    end
+  if (ARequestID>=FRequestsAvail) then
+    Raise ERangeError.CreateFmt('Request ID out of range [0..%d[',[ARequestID])
   else if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
     begin
     ARequest:=FRequestsArray[ARequestID].Request;
