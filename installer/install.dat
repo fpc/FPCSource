@@ -127,6 +127,8 @@ package=units-rtl-genericsdos.zip[urtlgdos.zip],RTL-generic collection library
 package=units-webidldos.zip[uwidldos.zip],WEB IDL parser and converter to Object Pascal classes
 # Dos-2 27
 package=units-tplylibdos.zip[utplldos.zip],Units for sources created with the compiler generator
+# Dos-2 29
+package=units-fcl-hashdos.zip[ufclhdos.zip],Hash and cryptography algorithm classes
 
 #
 # Go32v2 utils packages 3rd part
@@ -465,7 +467,7 @@ package=utils-pas2jsos2.zip[p2jsos2.zip],Convert Pascal sources to Javascript
 # OS/2-3 3
 package=utils-webidlos2.zip[widlos2.zip],Web IDL parser and converter to Object Pascal classes
 # OS/2-3 4
-package=utils-json2pasos2.zip[js2pos2.zip],Create Object Pascal classes from JSON files
+package=utils-json2pasos2.zip[jsnpos2.zip],Create Object Pascal classes from JSON files
 # OS/2-3 5
 package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
 # OS/2-2 6
@@ -473,6 +475,7 @@ package=utils-unicodeos2.zip[ucdos2.zip],Transformation of Unicode consortium da
 # OS/2-3 7
 package=utplylibos2.zip[utpllos2.zip],Units for sources created with the compiler generator
 # OS/2-3 8
+package=units-fcl-hashos2.zip[ufclhos2.zip],Hash and cryptography algorithm classes
 package=units-webidlos2.zip[uwidlos2.zip],WEB IDL parser and converter to Object Pascal classes
 # OS/2-3 9
 package=utils-fpdocos2.zip[fpdcos2.zip],Free Pascal documentation generation utility
@@ -641,6 +644,7 @@ package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium 
 # EMX-3 7
 package=utplylibemx.zip[utpllemx.zip],Units for sources created with the compiler generator
 # EMX-3 8
+package=units-fcl-hashemx.zip[ufclhemx.zip],Hash and cryptography algorithm classes
 package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
 # EMX-3 9
 package=utils-fppkgemx.zip[fpkgemx.zip],Free Pascal package repository utility
@@ -850,6 +854,7 @@ package=units-rtl-objpas-source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. 
 package=units-rtl-unicode-source.zip[urtlusrc.zip],RTL-miscellaneous Unicode support units
 # Source-3 30
 package=units-rtl-generics-source.zip[urtlgsrc.zip],RTL-generic collection library
+package=units-fcl-hash-source.zip[ufclhsrc.zip],Hash and cryptography algorithm classes
 
 #
 # Utils source packages
