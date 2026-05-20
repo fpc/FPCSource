@@ -231,7 +231,7 @@ implementation
         sym : tsym;
         st : tsymtable;
         hp : pnode;
-        extraoffset : tcgint;
+        newoffset : tcgint;
       begin
          sym:=nil;
          { assume natural alignment, except for packed records }
@@ -242,21 +242,21 @@ implementation
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
 
          { can we fold an add/sub node into the offset of the deref node? }
-         extraoffset:=0;
+         newoffset:=0;
          hp:=actualtargetnode(@left);
          if (hp^.nodetype=subn) and is_constintnode(taddnode(hp^).right) then
            begin
-             extraoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
+             newoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
              replacenode(hp^,taddnode(hp^).left);
            end
          else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).right) then
            begin
-             extraoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
+             newoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
              replacenode(hp^,taddnode(hp^).left);
            end
          else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).left) then
            begin
-             extraoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
+             newoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
              replacenode(hp^,taddnode(hp^).right);
            end;
 
@@ -288,12 +288,19 @@ implementation
               end;
             LOC_CONSTANT:
               begin
-                location.reference.offset:=left.location.value;
+                inc(newoffset,left.location.value);
               end;
             else
               internalerror(200507031);
          end;
-         location.reference.offset:=location.reference.offset+extraoffset;
+{$ifopt R+}
+{$if sizeof(tcgint)>sizeof(asizeint)}
+         if (newoffset>high(asizeuint)) or (newoffset<low(asizeint)) then
+           message(parser_e_range_check_error)
+         else
+{$endif}
+{$endif}
+           location.reference.offset:=asizeint(newoffset);
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
@@ -742,10 +749,19 @@ implementation
 
 
      procedure tcgvecnode.update_reference_offset(var ref: treference; index, mulsize: ASizeInt);
+       var
+         newoffset : tcgint;
        begin
-         inc(ref.offset,index*mulsize);
+         newoffset:=ref.offset+index*mulsize;
+{$ifopt R+}
+{$if sizeof(tcgint)>sizeof(asizeint)}
+         if (newoffset>high(asizeuint)) or (newoffset<low(asizeint)) then
+           message(parser_e_range_check_error)
+	 else
+{$endif}
+{$endif}
+          ref.offset:=asizeint(newoffset);
        end;
-
 
      procedure tcgvecnode.second_wideansistring;
        begin
