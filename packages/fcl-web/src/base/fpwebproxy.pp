@@ -25,10 +25,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Http.Base, FpWeb.Http.Defs, FpWeb.Http.Protocol, FpWeb.Http.Client;
+  System.Classes, System.SysUtils, FpWeb.Http.Base, FpWeb.Http.Defs, FpWeb.Http.Protocol, FpWeb.Http.Client, XML.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, fphttp, httpdefs, httpprotocol, fphttpclient;
+  Classes, SysUtils, fphttp, httpdefs, httpprotocol, fphttpclient, htmlelements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -323,7 +323,7 @@ begin
   if (L=Nil) or (Not L.Enabled) then
     begin
     AResponse.Code:=404;
-    AResponse.CodeText:='Location not found : '+P;
+    AResponse.CodeText:='Location not found : '+EscapeHTML(P);
     AResponse.SendContent;
     end
   else if L.Redirect then
