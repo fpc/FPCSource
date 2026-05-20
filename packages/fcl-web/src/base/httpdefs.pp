@@ -176,16 +176,21 @@ type
     FDomain: string;
     FExpires: TDateTime;
     FSecure: Boolean;
+    procedure SetDomain(AValue: string);
+    procedure SetName(AValue: string);
+    procedure SetPath(AValue: string);
+    procedure SetValue(AValue: string);
   protected
+    class procedure CheckValue(const aProperty, aValue: String);
     Function GetAsString: string;
   public
     constructor Create(ACollection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
     procedure Expire;
-    property Name: string read FName write FName;
-    property Value: string read FValue write FValue;
-    property Domain: string read FDomain write FDomain;
-    property Path: string read FPath write FPath;
+    property Name: string read FName write SetName;
+    property Value: string read FValue write SetValue;
+    property Domain: string read FDomain write SetDomain;
+    property Path: string read FPath write SetPath;
     property Expires: TDateTime read FExpires write FExpires;
     property MaxAge : Integer Read FMaxAge Write FMaxAge;
     property Secure: Boolean read FSecure write FSecure;
@@ -3244,6 +3249,43 @@ end;
 { ---------------------------------------------------------------------
   TCookie
   ---------------------------------------------------------------------}
+
+procedure TCookie.SetDomain(AValue: string);
+begin
+  if FDomain=AValue then Exit;
+  CheckValue('Domain',aValue);
+  FDomain:=AValue;
+end;
+
+procedure TCookie.SetName(AValue: string);
+begin
+  if FName=AValue then Exit;
+  CheckValue('Name',aValue);
+  FName:=AValue;
+end;
+
+procedure TCookie.SetPath(AValue: string);
+begin
+  if FPath=AValue then Exit;
+  CheckValue('Path',aValue);
+  FPath:=AValue;
+end;
+
+procedure TCookie.SetValue(AValue: string);
+begin
+  if FValue=AValue then Exit;
+  FValue:=AValue;
+end;
+
+class procedure TCookie.CheckValue(const aProperty,aValue: String);
+
+var
+  i : Integer;
+begin
+  for I:=1 to Length(aValue) do
+    if aValue[i] in [#10,#13,';'] then
+      Raise EHTTP.CreateFmt('Invalid character in cookie %s at pos %d: %s',[aProperty,i,aValue[i]]);
+end;
 
 function TCookie.GetAsString: string;
 
