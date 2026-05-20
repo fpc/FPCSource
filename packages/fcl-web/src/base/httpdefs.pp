@@ -350,6 +350,7 @@ type
     FQueryFields: TStrings;
     FCustomHeaders : TStringList;
     FContentDirty : Boolean;
+    class function CleanHeader(AValue: string): string;
     function GetCustomHeaders: TStringList;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
@@ -1853,10 +1854,27 @@ begin
   Result:=FFields[AHeader];
 end;
 
+class function THTTPHeader.CleanHeader(AValue : string) : string;
+// Clean up header value: no CR/LF or NULL.
+
+var
+  P : PChar;
+  I : Integer;
+begin
+  Result:=aValue;
+  P:=PChar(Result);
+  For I:=1 to Length(Result) do
+    begin
+    if P^ in [#0,#10,#13] then
+      P^:=' ';
+    inc(P);
+    end;
+end;
+
 procedure THTTPHeader.SetHeader(AHeader: THeader; const AValue: String);
 begin
 //  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
-  FFields[AHeader]:=AValue;
+  FFields[AHeader]:=CleanHeader(AValue);
 end;
 
 
@@ -1907,11 +1925,14 @@ begin
 end;
 
 procedure THTTPHeader.SetCustomHeader(const Name, Value: String);
+var
+  lValue : String;
 begin
+  lValue:=CleanHeader(Value);
   if GetCustomHeader(Name) = '' then
-    CustomHeaders.Add(Name + '=' + Value)
+    CustomHeaders.Add(Name + '=' + lValue)
   else
-    CustomHeaders.Values[Name] := Value;
+    CustomHeaders.Values[Name] := lValue;
 end;
 
 function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand: Boolean
