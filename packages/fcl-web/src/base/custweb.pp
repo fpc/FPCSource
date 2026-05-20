@@ -204,6 +204,16 @@ resourcestring
   SError = 'Error: ';
   SNotify = 'Notify: ';
 
+function SimpleHTMLEncode(const aValue : string) : string;
+
+begin
+  Result:=StringReplace(aValue,'&','&amp;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'<','&lt;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'<','&gt;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'"','&quot;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'''','&apos;',[rfReplaceAll]);
+end;
+
 procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
 var
   FrameNumber: Integer;
@@ -218,15 +228,15 @@ begin
     Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
     Add(SAppEncounteredError+'<br>');
     Add('<ul>');
-    Add('<li>'+SError+' <b>'+E.Message+'</b>');
+    Add('<li>'+SError+' <b>'+SimpleHTMLEncode(E.Message)+'</b>');
     Add('<li> Stack trace:<br>');
-    Add(BackTraceStrFunc(ExceptAddr)+'<br>');
+    Add(SimpleHTMLEncode(BackTraceStrFunc(ExceptAddr))+'<br>');
     FrameCount:=ExceptFrameCount;
     Frames:=ExceptFrames;
     for FrameNumber := 0 to FrameCount-1 do
-      Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+      Add(SimpleHTMLEncode(BackTraceStrFunc(Frames[FrameNumber]))+'<br>');
     Add('</ul><hr>');
-    TheEmail:=Email;
+    TheEmail:=SimpleHTMLEncode(Email);
     If (TheEmail<>'') then
       Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
     Add('</body></html>');
