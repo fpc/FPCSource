@@ -875,9 +875,17 @@ begin
 end;
 
 function TFPCustomHTTPClient.AllowHeader(var AHeader: String): Boolean;
-
+var
+  Len,I : Integer;
 begin
   Result:=(AHeader<>'') and (Pos(':',AHeader)<>0);
+  I:=1;
+  Len:=Length(aHeader);
+  While Result and (I<=Len) do
+    begin
+    Result:=not (aHeader[I] in [#10,#13,#0]);
+    Inc(i);
+    end;
 end;
 
 function TFPCustomHTTPClient.HasConnectionClose: Boolean;
