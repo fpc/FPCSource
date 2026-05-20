@@ -115,9 +115,10 @@ begin
           begin
             RemainingTime:=EndTime-GetClockTime;
             if RemainingTime<0 then
-              Res:=lmrTimeOut;;
+              Res:=lmrTimeOut;
           end;
-        if Res<>lmrNone then
+        // No lock yet, wait for signal.  
+        if Res=lmrNone then
           Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,RemainingTime) of
             0, 1:
               if M.Destroying then
