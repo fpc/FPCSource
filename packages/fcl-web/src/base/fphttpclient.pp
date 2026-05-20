@@ -250,6 +250,8 @@ Type
     Function ExtractSocket : TSocketStream;
     // Return the buffer and empty the local buffer.
     function ExtractBuffer : AnsiString;
+    // Only quote CR/LF/" characters
+    function SimpleQuote(const aValue : string) : string;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
@@ -792,6 +794,13 @@ function TFPCustomHTTPClient.ExtractBuffer: AnsiString;
 begin
   Result:=FBuffer;
   FBuffer:='';
+end;
+
+function TFPCustomHTTPClient.SimpleQuote(const aValue: string): string;
+begin
+  Result:=StringReplace(aValue,#10,'%0A',[rfReplaceAll]);
+  Result:=StringReplace(Result,#13,'%0D',[rfReplaceAll]);
+  Result:=StringReplace(Result,'"','%22',[rfReplaceAll]);
 end;
 
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
@@ -2678,7 +2687,7 @@ begin
         WriteStringToStream(S);
         end;
     S:='--'+Sep+CRLF;
-    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
+    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[SimpleQuote(AFieldName),SimpleQuote(ExtractFileName(AFileName))]);
     s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
     WriteStringToStream(S);
     AStream.Seek(0, soFromBeginning);
