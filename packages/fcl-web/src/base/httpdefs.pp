@@ -3067,7 +3067,7 @@ end;
 
 procedure TResponse.SendRedirect(const TargetURL: String);
 begin
-  Location := TargetURL;
+  Location := CleanHeader(TargetURL);
   if FHttpVersion = '1.1' then
     begin
     Code := 307;// HTTP/1.1 307 HTTP_TEMPORARY_REDIRECT -> 'Temporary Redirect'
