@@ -330,6 +330,7 @@ Type
     FKeepConnectionIdleTimeout: Integer;
     FKeepConnectionTimeout: Integer;
     FLogMoments: THTTPLogMoments;
+    FMaxBodySize: SizeInt;
     FMaxHeaderCount: Integer;
     FMaxLineLength: Integer;
     FOnAcceptIdle: TNotifyEvent;
@@ -481,6 +482,8 @@ Type
     Property MaxLineLength : Integer Read FMaxLineLength Write FMaxLineLength default DefaultMaxHeaderLineLength;
     // Max header count.
     Property MaxHeaderCount : Integer Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
+    // Max body size
+    Property MaxBodySize : SizeInt Read FMaxBodySize Write FMaxBodySize default MaxInt;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -1140,12 +1143,21 @@ procedure TFPHTTPConnection.ReadRequestContent(
   ARequest: TFPHTTPConnectionRequest);
 
 Var
-  P,L,R : integer;
+  P,R : integer;
+  L : SizeInt;
   S : TBytes;
+  Err : EHTTP;
 
 begin
   S:=[];
   L:=ARequest.ContentLength;
+  if (Server.MaxBodySize>0) and (L>Server.MaxBodySize) then
+    begin
+    Err:=EHTTP.Create('Payload size exceeds maximum size');
+    Err.StatusCode:=413;
+    Err.StatusText:='PAYLOAD TOO LARGE';
+    Raise Err;
+    end;
   If (L>0) then
     begin
     SetLength(S,L);
@@ -1812,6 +1824,7 @@ begin
   FKeepConnectionIdleTimeout:=DefaultKeepConnectionIdleTimeout;
   MaxLineLength:=DefaultMaxHeaderLineLength;
   MaxHeaderCount:=DefaultMaxHeaderCount;
+  FMaxBodySize:=MaxInt;
 end;
 
 

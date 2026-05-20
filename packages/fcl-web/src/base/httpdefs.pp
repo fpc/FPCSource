@@ -362,8 +362,8 @@ type
     procedure SetContentBytes(AValue: TBytes);
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
-    Function GetContentLength : Integer;
-    Procedure SetContentLength(Value : Integer);
+    Function GetContentLength : Int64;
+    Procedure SetContentLength(Value : Int64);
     Function GetFieldOrigin(AIndex : Integer; Out H : THeader; Out V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
@@ -420,7 +420,7 @@ type
     property Connection: String Index Ord(hhConnection) Read GetHeaderValue Write SetHeaderValue;
     property ContentEncoding: String Index Ord(hhContentEncoding) Read GetHeaderValue Write SetHeaderValue;
     property ContentLanguage: String Index Ord(hhContentLanguage) Read GetHeaderValue Write SetHeaderValue;
-    property ContentLength: Integer Read GetContentLength Write SetContentLength; // Index 9
+    property ContentLength: Int64 Read GetContentLength Write SetContentLength; // Index 9
     property ContentType: String Index Ord(hhContentType) Read GetHeaderValue Write SetHeaderValue;
     property Date: String Index Ord(hhDate) Read GetHeaderValue Write SetHeaderValue;
     property Expires: String Index Ord(hhExpires) Read GetHeaderValue Write SetHeaderValue;
@@ -1389,12 +1389,12 @@ begin
   Inc(Result,Ord(FVariables[hvCookie]<>''));
 end;
 
-function THTTPHeader.GetContentLength: Integer;
+function THTTPHeader.GetContentLength: Int64;
 begin
-  Result:=StrToIntDef(GetHeader(hhContentLength),0);
+  Result:=StrToInt64Def(GetHeader(hhContentLength),0);
 end;
 
-procedure THTTPHeader.SetContentLength(Value: Integer);
+procedure THTTPHeader.SetContentLength(Value: Int64);
 begin
   SetHeader(hhContentLength,IntToStr(Value));
 end;
