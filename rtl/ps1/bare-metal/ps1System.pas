@@ -1465,7 +1465,7 @@ begin
 
 	if ((IRQ_STAT and (1 shl irq))) <> 0 then begin
 		
-		IRQ_STAT:= not (1 shl irq);
+		IRQ_STAT:= word(not (1 shl irq));
 
 		result:= true;
 
@@ -1634,8 +1634,8 @@ begin
   while timeout > 0 do begin
 
     if (IRQ_STAT and (1 shl IRQ_SIO0)) <> 0 then begin
-      { Clear IRQ flag }
-      IRQ_STAT := not (1 shl IRQ_SIO0);
+      { Clear IRQ_SIO0 flag }
+      IRQ_STAT := word(not (1 shl IRQ_SIO0));
 
       { Acknowledge on SIO side }
       SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_ACKNOWLEDGE);
@@ -1659,7 +1659,7 @@ var
 begin
 
   { Reset IRQ flag and assert DTR + ACK to start a packet }
-  IRQ_STAT:= not (1 shl IRQ_SIO0);
+  IRQ_STAT:= word(not (1 shl IRQ_SIO0));
   SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_DTR or SIO_CTRL_ACKNOWLEDGE);
 
   delayMicroseconds(DTR_DELAY);
