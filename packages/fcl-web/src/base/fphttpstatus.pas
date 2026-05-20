@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, FpWeb.Http.Server, FpWeb.Http.Protocol, FpWeb.Http.Defs;
+  System.SysUtils, FpWeb.Http.Server, FpWeb.Http.Protocol, FpWeb.Http.Defs, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, fphttpserver, httpprotocol, HTTPDefs;
+  SysUtils, fphttpserver, httpprotocol, HTTPDefs, HtmlElements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 (* construct and return the default error message for a given
@@ -186,18 +186,18 @@ begin
 
   if ARequest.Connection.Server.AdminMail <> '' then
     Result := prefix + '<address>' +
-      ARequest.Connection.Server.ServerBanner +
+      EscapeHTML(ARequest.Connection.Server.ServerBanner) +
       ' Server at <a href="' +
       'mailto:' +
-      HTTPEncode(ARequest.Connection.Server.AdminMail) +
+      EscapeHTML(ARequest.Connection.Server.AdminMail) +
       '">' +
-      HTTPEncode(name) +
+      EscapeHTML(name) +
       '</a> Port ' + IntToStr(ARequest.ServerPort) +
       '</address>'
   else
-    Result := prefix + '<address>' + ARequest.Connection.Server.ServerBanner +
+    Result := prefix + '<address>' + EscapeHTML(ARequest.Connection.Server.ServerBanner) +
       ' Server at ' +
-      ARequest.Connection.Server.AdminMail +
+      EscapeHTML(ARequest.Connection.Server.AdminMail) +
       ' Port ' + IntToStr(ARequest.ServerPort) +
       '</address>';
 end;
