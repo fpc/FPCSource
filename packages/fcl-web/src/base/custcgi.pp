@@ -30,6 +30,9 @@ uses
   CustWeb, Classes,SysUtils, httpdefs, cgiprotocol, httpprotocol;
 {$ENDIF FPC_DOTTEDUNITS}
 
+var
+  MaxCGIContentLength : SizeInt = MaxInt;
+
 Type
   { TCGIRequest }
   TCGIHandler = Class;
@@ -397,6 +400,10 @@ begin
 end;
 
 procedure TCGIRequest.ReadContent;
+
+const
+  delta = 1024;
+
 var
   I : TIOStream;
   Cl : Integer;
@@ -405,9 +412,30 @@ var
   BytesRead, a: longint;
   AbortRead : Boolean;
   S : String;
+  ssize : sizeint;
+
+  procedure maybegrow;
+  var
+    len : sizeint;
+    Err : EHTTP;
+  begin
+    len:=length(S);
+    if ssize=len then
+      begin
+      if (len+Delta>MaxCGIContentLength) then
+        begin
+        Err:=EHTTP.Create('Payload size exceeds maximum size');
+        Err.StatusCode:=413;
+        Err.StatusText:='PAYLOAD TOO LARGE';
+        Raise Err;
+        end;
+      SetLength(S,ssize+Delta);
+      end;
+  end;
 
 begin
   S:='';
+  ssize:=0;
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
@@ -442,8 +470,14 @@ begin
     else
       begin
       B:=0;
+      BytesRead:=0;
       While (I.Read(B,1)>0) do
-        S:=S + chr(B);
+        begin
+        MaybeGrow;
+        inc(ssize);
+        S[ssize]:=chr(B);
+        end;
+      SetLength(S,SSize);
       end;
     InitContent(S);
   Finally
