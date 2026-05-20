@@ -89,10 +89,26 @@ end;
 
 Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMutexResult;
 
+const
+  // Cap each wait32 call so parked threads periodically re-check the
+  // lock even if notify is missed or delayed. 
+  // This is Important on WASM running in the browser where
+  // each thread is a Web Worker and a parked thread freezes its own JS
+  // event loop entirely. A lock holder that needs a JS-mediated
+  // round-trip through a parked worker would otherwise hang forever;
+  // the wake/retry interval guarantees progress. 1ms keeps the recheck
+  // cadence well inside real-time audio/video budgets (audio buffers
+  // 10-20ms, 60fps frames 16.7ms) — a longer slice would risk visible
+  // AV glitches. Per-cycle cost is one cheap TryLockMutex (a CAS) so
+  // 1000Hz polling per parked thread is fine.
+  WatchdogWaitNS = 1000000; // 1 ms
+
+
 Var
   Res : TLockMutexResult;
   EndTime: TOSTime;
   RemainingTime: Int64;
+  WaitSlice: Int64;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
@@ -111,23 +127,24 @@ begin
       Res:=lmrOk
     else
       begin
+        // No lock, determine remaining wait time.
         if aTimeOutNS>=0 then
           begin
             RemainingTime:=EndTime-GetClockTime;
             if RemainingTime<0 then
               Res:=lmrTimeOut;
           end;
-        // No lock yet, wait for signal.  
-        if Res=lmrNone then
-          Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,RemainingTime) of
-            0, 1:
+        // No timeout yet, wait for signal for a max duration of WatchdogWaitNS.
+        begin
+          if (RemainingTime<0) or (RemainingTime>WatchdogWaitNS) then
+            WaitSlice:=WatchdogWaitNS
+          else
+            WaitSlice:=RemainingTime;
+          Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,WaitSlice) of
+            0, 1, 2:
               if M.Destroying then
                 Res:=lmrError;
-            2:
-              if M.Destroying then
-                Res:=lmrError
-              else
-                Res:=lmrTimeOut;
+          end;
         end;
       end;
   Until Res<>lmrNone;
