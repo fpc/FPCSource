@@ -33,6 +33,8 @@ uses
 
 Const
   ReadBufLen = 4096;
+  DefaultMaxHeaderLineLength = 8*ReadBufLen;
+  DefaultMaxHeaderCount = 256;
   DefaultKeepConnectionIdleTimeout = 50; // Ms
 
 Type
@@ -328,6 +330,8 @@ Type
     FKeepConnectionIdleTimeout: Integer;
     FKeepConnectionTimeout: Integer;
     FLogMoments: THTTPLogMoments;
+    FMaxHeaderCount: Integer;
+    FMaxLineLength: Integer;
     FOnAcceptIdle: TNotifyEvent;
     FOnKeepConnectionIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
@@ -473,6 +477,10 @@ Type
     Property OnKeepConnectionIdle : TNotifyEvent Read FOnKeepConnectionIdle Write FOnKeepConnectionIdle;
     // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
     Property AcceptIdleTimeout : Cardinal Read FAcceptIdleTimeout Write SetAcceptIdleTimeout;
+    // Max line length (for headers)
+    Property MaxLineLength : Integer Read FMaxLineLength Write FMaxLineLength default DefaultMaxHeaderLineLength;
+    // Max header count.
+    Property MaxHeaderCount : Integer Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -515,6 +523,8 @@ Type
     Property OnUnexpectedError;
     Property LogMoments;
     Property OnLog;
+    Property MaxLineLength;
+    Property MaxHeaderCount;
   end;
 
   EHTTPServer = Class(EHTTP);
@@ -964,7 +974,7 @@ function TFPHTTPConnection.ReadString : String;
 Var
   CheckLF,Done : Boolean;
   P,L : integer;
-
+  Err : EHTTP;
 begin
   Result:='';
   Done:=False;
@@ -1004,6 +1014,13 @@ begin
         Delete(FBuffer,1,P+1);
         Done:=True;
         end;
+      end;
+    if (Server.MaxLineLength>0) and (Length(Result)>Server.MaxLineLength) then
+      begin
+      Err:=EHTTP.Create('Line too long');
+      Err.StatusCode:=400;
+      Err.StatusText:='BAD REQUEST';
+      Raise Err;
       end;
   until Done;
 end;
@@ -1161,6 +1178,9 @@ function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
 
 Var
   StartLine,S : String;
+  Err : EHTTP;
+  Count : integer;
+
 begin
   Result:=Nil;
   StartLine:=ReadString;
@@ -1171,10 +1191,19 @@ begin
     Server.InitRequest(Result);
     Result.FConnection:=Self;
     ParseStartLine(Result,StartLine);
+    Count:=0;
     Repeat
       S:=ReadString;
       if (S<>'') then
         InterPretHeader(Result,S);
+      inc(Count);
+      if (Server.MaxHeaderCount>0) and (Count>Server.MaxHeaderCount) then
+        begin
+        Err:=EHTTP.Create('Too many headers');
+        Err.StatusCode:=400;
+        Err.StatusText:='BAD REQUEST';
+        Raise Err;
+        end;
     Until (S='');
     Result.RemoteAddress := SocketAddrToString(FSocket.RemoteAddress);
     Result.ServerPort := FServer.Port;
@@ -1781,6 +1810,8 @@ begin
   FCertificateData:=CreateCertificateData;
   FKeepConnections:=False;
   FKeepConnectionIdleTimeout:=DefaultKeepConnectionIdleTimeout;
+  MaxLineLength:=DefaultMaxHeaderLineLength;
+  MaxHeaderCount:=DefaultMaxHeaderCount;
 end;
 
 
