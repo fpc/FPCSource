@@ -186,12 +186,14 @@ uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  Xml.HtmlElements,
   FpWeb.Route;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  htmlelements,
   httproute;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -207,11 +209,7 @@ resourcestring
 function SimpleHTMLEncode(const aValue : string) : string;
 
 begin
-  Result:=StringReplace(aValue,'&','&amp;',[rfReplaceAll]);
-  Result:=StringReplace(Result,'<','&lt;',[rfReplaceAll]);
-  Result:=StringReplace(Result,'<','&gt;',[rfReplaceAll]);
-  Result:=StringReplace(Result,'"','&quot;',[rfReplaceAll]);
-  Result:=StringReplace(Result,'''','&apos;',[rfReplaceAll]);
+  Result:=EscapeHTML(aValue);
 end;
 
 procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
