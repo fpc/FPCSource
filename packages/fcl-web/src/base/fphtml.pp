@@ -640,8 +640,16 @@ begin
 end;
 
 procedure TJavaScriptStack.Redirect(const AUrl: string);
+
+  function EscapeQuotes(s : string) : string;
+  begin
+    Result:=StringReplace(s,'"','\"',[rfReplaceAll]);
+    Result:=StringReplace(s,#10,'\n',[rfReplaceAll]);
+    Result:=StringReplace(s,#13,'\r',[rfReplaceAll]);
+  end;
+
 begin
-  AddScriptLine('window.location = "'+AUrl+'";');
+  AddScriptLine('window.location = "'+EscapeQuotes(AUrl)+'";');
 end;
 
 function TJavaScriptStack.ScriptIsEmpty: Boolean;
