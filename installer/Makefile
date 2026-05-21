@@ -4047,6 +4047,7 @@ override COMPILER+=-dFVISION
 endif
 installer.pas: install.pas
 	$(COPY) install.pas installer.pas
+	$(COPY) install.dat installer.dat
 install$(EXEEXT) : install.pas scroll.pas
 installer$(EXEEXT) : installer.pas scroll.pas
 writeidx$(EXEEXT) : writeidx.pas insthelp.pas
