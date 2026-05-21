@@ -669,6 +669,8 @@ type
     // Can be overridden to provide custom behaviour.
     procedure SetSessionCookie(const AValue: String); virtual;
     procedure SetSessionCookiePath(const AValue: String); virtual;
+    // Check if the session ID is a valid ID: It must have the proper form, but does not need to exist.
+    function IsValidSessionID(const S: String): Boolean; virtual;
     // When called, generates a new GUID. Override to retrieve GUID from cookie/URL/...
     Function GetSessionID : String; virtual;
     // These must be overridden to actually store/retrieve variables.
@@ -684,6 +686,8 @@ type
     Procedure UpdateResponse(AResponse : TResponse); virtual; Abstract;
     // Remove variable from list of variables.
     Procedure RemoveVariable(const VariableName : String); virtual; abstract;
+    // Regenerate session ID (to rotate session, for example after login
+    procedure RegenerateSessionID(aResponse : TResponse); virtual;
     // Terminate session
     Procedure Terminate; virtual; abstract;
     // checks if session variable exists
@@ -3546,6 +3550,17 @@ begin
   FSessionCookiePath:=AValue;
 end;
 
+function TCustomSession.IsValidSessionID(const S: String): Boolean;
+var
+  C: Char;
+begin
+  Result := (Length(S) = 34);
+  if Result then
+    for C in S do
+      if not (C in ['0'..'9','a'..'f','A'..'F','-']) then
+        Exit(False);
+end;
+
 function TCustomSession.GetSessionID: String;
 
 Var
@@ -3567,6 +3582,14 @@ end;
 procedure TCustomSession.InitResponse(AResponse: TResponse);
 begin
   // do nothing
+end;
+
+procedure TCustomSession.RegenerateSessionID(aResponse: TResponse);
+var
+  S : String;
+begin
+  S:=GetSessionID;
+  UpdateResponse(aResponse);
 end;
 
 procedure TCustomSession.InitSession(ARequest: TRequest; OnNewSession,

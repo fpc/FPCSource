@@ -53,6 +53,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
+    procedure RegenerateSessionID(aResponse : TResponse); override;
     function SessionVariableExists(const VarName: String): Boolean; override;
     Procedure UpdateResponse(AResponse : TResponse); override;
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
@@ -235,7 +236,7 @@ end;
 
 { TIniWebSession }
 
-Function TIniWebSession.GetSessionDir : String;
+function TIniWebSession.GetSessionDir: String;
 
 begin
   Result:=SessionDir;
@@ -248,7 +249,7 @@ begin
   Result:=SID;
 end;
 
-Procedure TIniWebSession.UpdateIniFile;
+procedure TIniWebSession.UpdateIniFile;
 
 
 Var
@@ -282,7 +283,7 @@ begin
   Until OK;
 end;
 
-function TIniWebSession.CreateIniFile(Const AFN: String): TMemIniFile;
+function TIniWebSession.CreateIniFile(const AFN: String): TMemIniFile;
 
 Var
   ACount : Integer;
@@ -321,7 +322,7 @@ begin
 end;
 
 
-Procedure TIniWebSession.CheckSession;
+procedure TIniWebSession.CheckSession;
 
 begin
   If Not Assigned(FInifile) then
@@ -366,6 +367,28 @@ begin
   RemoveFromSessionState(ssExpired);
 end;
 
+procedure TIniWebSession.RegenerateSessionID(aResponse: TResponse);
+var
+  FN : String;
+  SF : TIniSessionFactory;
+
+begin
+  SF:=SessionFactory as TIniSessionFactory;
+  // Get new session ID
+  SID:='';
+  SID:=GetSessionID;
+  FN:=FIniFile.FileName;
+  if FileExists(FN) then
+    DeleteFile(FN);
+  if assigned(FIniFile) then
+    begin
+    FN:=ExtractFilePath(FIniFile.FileName)+SF.SessionFilePrefix+SID;
+    FIniFile.Rename(FN,False);
+    UpdateIniFile;
+    end;
+  InitResponse(aResponse);
+end;
+
 function TIniWebSession.SessionVariableExists(const VarName: String): Boolean;
 begin
   CheckSession;
@@ -399,23 +422,26 @@ begin
   S:=ARequest.CookieFields.Values[SessionCookie];
   // have session cookie ?
   If (S<>'') then
-    begin
-    FN:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+S;
-{$ifdef cgidebug}SendDebug('Existing session. Reading ini file:'+FN);{$endif}
-    FIniFile:=CreateIniFile(FN);
-    if SF.SessionExpired(FIniFile) then
-      begin
-      AddToSessionState(ssExpired);
-      // Expire session.
-      If Assigned(OnExpired) then
-        OnExpired(Self);
-      SF.DeleteSessionFile(FIniFIle.FileName);
-      FreeAndNil(FInifile);
-      S:='';
-      end
+    if not IsValidSessionID(S) then
+      S:=''
     else
-      SID:=S;
-    end;
+      begin
+      FN:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+S;
+  {$ifdef cgidebug}SendDebug('Existing session. Reading ini file:'+FN);{$endif}
+      FIniFile:=CreateIniFile(FN);
+      if SF.SessionExpired(FIniFile) then
+        begin
+        AddToSessionState(ssExpired);
+        // Expire session.
+        If Assigned(OnExpired) then
+          OnExpired(Self);
+        SF.DeleteSessionFile(FIniFIle.FileName);
+        FreeAndNil(FInifile);
+        S:='';
+        end
+      else
+        SID:=S;
+      end;
   If (S='') then
     begin
     AddToSessionState(ssNew);
