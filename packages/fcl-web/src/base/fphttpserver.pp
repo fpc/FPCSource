@@ -23,11 +23,11 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Sslbase, System.Net.Sslsockets, System.Net.Ssockets, System.Net.Resolve, FpWeb.Http.Defs, FpWeb.Http.Protocol,
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Sslbase, System.Net.Sslsockets, System.Net.FPSockets, System.Net.Ssockets, System.Net.Resolve, FpWeb.Http.Defs, FpWeb.Http.Protocol,
   Fcl.ThreadPool;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpdefs, httpprotocol,
+  Classes, SysUtils, sockets, sslbase, sslsockets, fpsockets, ssockets,  resolve, httpdefs, httpprotocol,
   fpthreadpool;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -35,6 +35,7 @@ Const
   ReadBufLen = 4096;
   DefaultMaxHeaderLineLength = 8*ReadBufLen;
   DefaultMaxHeaderCount = 256;
+  DefaultMaxLiveConnectionCount = 128;
   DefaultKeepConnectionIdleTimeout = 50; // Ms
 
 Type
@@ -333,6 +334,7 @@ Type
     FMaxBodySize: SizeInt;
     FMaxHeaderCount: Integer;
     FMaxLineLength: Integer;
+    FMaxLiveConnectionCount: Integer;
     FOnAcceptIdle: TNotifyEvent;
     FOnKeepConnectionIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
@@ -344,6 +346,7 @@ Type
     FAddress: string;
     FPort: Word;
     FQueueSize: Word;
+    FSend503OnMaxConnections: Boolean;
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
@@ -353,6 +356,7 @@ Type
     FConnectionHandler : TFPHTTPServerConnectionHandler;
     FUpdateHandlers : TUpgradeHandlerList;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
+    procedure DoOnAllowConnect(Sender: TObject; ASocket: TFPSocket; var Allow: Boolean);
     function GetActive: Boolean;
     function GetConnectionCount: Integer;
     function GetHasUpdateHandlers: Boolean;
@@ -393,7 +397,7 @@ Type
     Procedure InitRequest({%H-}ARequest : TFPHTTPConnectionRequest); virtual;
     Procedure InitResponse({%H-}AResponse : TFPHTTPConnectionResponse); virtual;
     // Called on accept errors
-    procedure DoAcceptError(Sender: TObject; {%H-}ASocket: Longint; {%H-}E: Exception;  var ErrorAction: TAcceptErrorAction); virtual;
+    procedure DoAcceptError(Sender: TObject; {%H-}ASocket: TFPSocket; {%H-}E: Exception;  var ErrorAction: TAcceptErrorAction); virtual;
     // Called when accept is idle. Will check for new requests.
     procedure DoAcceptIdle(Sender: TObject); virtual;
     // Called when KeepConnection is idle.
@@ -484,6 +488,10 @@ Type
     Property MaxHeaderCount : Integer Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
     // Max body size
     Property MaxBodySize : SizeInt Read FMaxBodySize Write FMaxBodySize default DefaultMaxBodySize;
+    // Max number of simultaneous connections
+    Property MaxLiveConnectionCount : Integer Read FMaxLiveConnectionCount Write FMaxLiveConnectionCount Default DefaultMaxLiveConnectionCount;
+    // If true, when max connections is reached, send a 503. If false, connection is simply closed.
+    property Send503OnMaxConnections : Boolean Read FSend503OnMaxConnections Write FSend503OnMaxConnections Default True;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -555,6 +563,7 @@ resourcestring
   SRequestStart = 'Start handling request %s';
   SErrLogMissingProtocol = 'Missing HTTP protocol version in first line "%s" for request';
   SWarnEmptyRequest = 'Empty request detected.';
+  SerrRequestHeaderTooLong = 'Request Header exceeds maximum size (%d)';
 
 { TFPHTTPConnectionRequest }
 
@@ -1020,9 +1029,9 @@ begin
       end;
     if (Server.MaxLineLength>0) and (Length(Result)>Server.MaxLineLength) then
       begin
-      Err:=EHTTP.Create('Line too long');
-      Err.StatusCode:=400;
-      Err.StatusText:='BAD REQUEST';
+      Err:=EHTTP.CreateFmt(SerrRequestHeaderTooLong, [Server.MaxLineLength]);
+      Err.StatusCode:=431 ;
+      Err.StatusText:='REQUEST HEADER FIELDS TOO LARGE';
       Raise Err;
       end;
   until Done;
@@ -1241,11 +1250,11 @@ begin
 end;
 
 destructor TFPHTTPConnection.Destroy;
+
 begin
   If Assigned(FServer) and FServer.CanLog(hlmDisConnect) then
     FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID,HostAddrToStr(FSocket.RemoteAddress.sin_addr)]);
   FreeAndNil(FSocket);
-
   Inherited;
 end;
 
@@ -1452,7 +1461,7 @@ begin
     end
 end;
 
-procedure TFPCustomHttpServer.DoAcceptError(Sender: TObject; ASocket: Longint;
+procedure TFPCustomHttpServer.DoAcceptError(Sender: TObject; ASocket: TFPSocket;
   E: Exception; var ErrorAction: TAcceptErrorAction);
 begin
   If Not Active then
@@ -1485,6 +1494,30 @@ end;
 procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
 begin
   AHandler:=GetSocketHandler(UseSSL);
+end;
+
+procedure TFPCustomHttpServer.DoOnAllowConnect(Sender: TObject; ASocket: TFPSocket; var Allow: Boolean);
+const
+  CRLF = #13#10;
+
+  Error503 =
+  'HTTP/1.1 503 Service Unavailable'+CRLF+
+  'Content-Type: text/plain'+CRLF+
+  'Retry-After: 30'+CRLF+
+  'Connection: close'+CRLF+CRLF+
+  'Server is temporarily overloaded. Please try again shortly.';
+
+
+begin
+  if (MaxLiveConnectionCount>0) and (GetConnectionCount>=MaxLiveConnectionCount) then
+    begin
+    if Send503OnMaxConnections then
+      fpSend(aSocket.FD,@Error503[1],Length(Error503),0);
+    // This will close the connection
+    allow:=False;
+    end
+  else
+    Allow:=True;
 end;
 
 procedure TFPCustomHttpServer.DoAcceptIdle(Sender: TObject);
@@ -1770,6 +1803,7 @@ begin
   LogMomentEventTypes:=aDefaults;
 end;
 
+
 procedure TFPCustomHttpServer.CreateServerSocket;
 
 begin
@@ -1779,9 +1813,9 @@ begin
     FServer:=TInetServer.Create(FAddress,FPort);
   FServer.OnCreateClientSocketHandler:=@DoCreateClientHandler;
   FServer.MaxConnections:=-1;
-  FServer.OnConnectQuery:=OnAllowConnect;
+  FServer.OnConnectSocketQuery:=@DoOnAllowConnect;
   FServer.OnConnect:=@DOConnect;
-  FServer.OnAcceptError:=@DoAcceptError;
+  FServer.OnAcceptSocketError:=@DoAcceptError;
   FServer.OnIdle:=@DoAcceptIdle;
   FServer.AcceptIdleTimeOut:=AcceptIdleTimeout;
 end;
@@ -1819,6 +1853,8 @@ begin
   MaxLineLength:=DefaultMaxHeaderLineLength;
   MaxHeaderCount:=DefaultMaxHeaderCount;
   FMaxBodySize:=DefaultMaxBodySize;
+  FMaxLiveConnectionCount:=DefaultMaxLiveConnectionCount;
+  FSend503OnMaxConnections:=True;
 end;
 
 
