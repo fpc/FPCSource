@@ -417,18 +417,12 @@ var
   procedure maybegrow;
   var
     len : sizeint;
-    Err : EHTTP;
   begin
     len:=length(S);
     if ssize=len then
       begin
       if (len+Delta>MaxCGIContentLength) then
-        begin
-        Err:=EHTTP.Create('Payload size exceeds maximum size');
-        Err.StatusCode:=413;
-        Err.StatusText:='PAYLOAD TOO LARGE';
-        Raise Err;
-        end;
+        PayloadTooLarge('Payload size exceeds maximum size');
       SetLength(S,ssize+Delta);
       end;
   end;
@@ -479,7 +473,7 @@ begin
         end;
       SetLength(S,SSize);
       end;
-    InitContent(S);
+    SetContentFromString(S);
   Finally
     I.Free;
   end;

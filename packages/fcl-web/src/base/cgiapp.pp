@@ -618,7 +618,7 @@ Procedure TCgiApplication.ProcessMultiPart(M : TMemoryStream; Const Boundary : S
 Var
   L : TList;
   B : String;
-  I,Index : Integer;
+  I : Integer;
   S,FF,key, Value : String;
   FI : TFormItem;
   F : TStream;

@@ -483,7 +483,7 @@ Type
     // Max header count.
     Property MaxHeaderCount : Integer Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
     // Max body size
-    Property MaxBodySize : SizeInt Read FMaxBodySize Write FMaxBodySize default MaxInt;
+    Property MaxBodySize : SizeInt Read FMaxBodySize Write FMaxBodySize default DefaultMaxBodySize;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -1146,18 +1146,12 @@ Var
   P,R : integer;
   L : SizeInt;
   S : TBytes;
-  Err : EHTTP;
 
 begin
   S:=[];
   L:=ARequest.ContentLength;
   if (Server.MaxBodySize>0) and (L>Server.MaxBodySize) then
-    begin
-    Err:=EHTTP.Create('Payload size exceeds maximum size');
-    Err.StatusCode:=413;
-    Err.StatusText:='PAYLOAD TOO LARGE';
-    Raise Err;
-    end;
+    PayloadTooLarge('Payload size exceeds maximum size');
   If (L>0) then
     begin
     SetLength(S,L);
@@ -1824,7 +1818,7 @@ begin
   FKeepConnectionIdleTimeout:=DefaultKeepConnectionIdleTimeout;
   MaxLineLength:=DefaultMaxHeaderLineLength;
   MaxHeaderCount:=DefaultMaxHeaderCount;
-  FMaxBodySize:=MaxInt;
+  FMaxBodySize:=DefaultMaxBodySize;
 end;
 
 
