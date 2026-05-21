@@ -641,11 +641,11 @@ end;
 
 procedure TJavaScriptStack.Redirect(const AUrl: string);
 
-  function EscapeQuotes(s : string) : string;
+  function EscapeQuotes(const s : string) : string;
   begin
     Result:=StringReplace(s,'"','\"',[rfReplaceAll]);
-    Result:=StringReplace(s,#10,'\n',[rfReplaceAll]);
-    Result:=StringReplace(s,#13,'\r',[rfReplaceAll]);
+    Result:=StringReplace(Result,#10,'\n',[rfReplaceAll]);
+    Result:=StringReplace(Result,#13,'\r',[rfReplaceAll]);
   end;
 
 begin
