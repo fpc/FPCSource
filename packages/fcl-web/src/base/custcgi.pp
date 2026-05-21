@@ -30,6 +30,9 @@ uses
   CustWeb, Classes,SysUtils, httpdefs, cgiprotocol, httpprotocol;
 {$ENDIF FPC_DOTTEDUNITS}
 
+var
+  MaxCGIContentLength : SizeInt = MaxInt;
+
 Type
   { TCGIRequest }
   TCGIHandler = Class;
@@ -397,6 +400,10 @@ begin
 end;
 
 procedure TCGIRequest.ReadContent;
+
+const
+  delta = 1024;
+
 var
   I : TIOStream;
   Cl : Integer;
@@ -405,9 +412,24 @@ var
   BytesRead, a: longint;
   AbortRead : Boolean;
   S : String;
+  ssize : sizeint;
+
+  procedure maybegrow;
+  var
+    len : sizeint;
+  begin
+    len:=length(S);
+    if ssize=len then
+      begin
+      if (len+Delta>MaxCGIContentLength) then
+        PayloadTooLarge('Payload size exceeds maximum size');
+      SetLength(S,ssize+Delta);
+      end;
+  end;
 
 begin
   S:='';
+  ssize:=0;
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
@@ -432,7 +454,7 @@ begin
         else
           begin
           RetryCount:=0; // We got data, so let's reset this.
-          AbortRead:=Not DoContentRead(PByte(@S[BytesRead+1]),A);
+          AbortRead:=Not DoContentRead(PByte(@S[BytesRead-A+1]),A);
           end;
       until (BytesRead>=Cl) or (AbortRead);
       // In fact the request is incomplete, but this is not the place to throw an error for that
@@ -442,10 +464,16 @@ begin
     else
       begin
       B:=0;
+      BytesRead:=0;
       While (I.Read(B,1)>0) do
-        S:=S + chr(B);
+        begin
+        MaybeGrow;
+        inc(ssize);
+        S[ssize]:=chr(B);
+        end;
+      SetLength(S,SSize);
       end;
-    InitContent(S);
+    SetContentFromString(S);
   Finally
     I.Free;
   end;

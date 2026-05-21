@@ -40,6 +40,9 @@ uses typinfo, Classes, Sysutils, httpprotocol, uriparser;
 
 const
   DefaultTimeOut = 15;
+  DefaultMaxBodySize = MaxInt;
+  DefaultMaxUploadFiles = 256;
+  DefaultMaxUploadFileSize = MaxInt;
   SFPWebSession  = 'FPWebSession'; // Cookie name for session.
 
 
@@ -176,16 +179,21 @@ type
     FDomain: string;
     FExpires: TDateTime;
     FSecure: Boolean;
+    procedure SetDomain(AValue: string);
+    procedure SetName(AValue: string);
+    procedure SetPath(AValue: string);
+    procedure SetValue(AValue: string);
   protected
+    class procedure CheckValue(const aProperty, aValue: String);
     Function GetAsString: string;
   public
     constructor Create(ACollection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
     procedure Expire;
-    property Name: string read FName write FName;
-    property Value: string read FValue write FValue;
-    property Domain: string read FDomain write FDomain;
-    property Path: string read FPath write FPath;
+    property Name: string read FName write SetName;
+    property Value: string read FValue write SetValue;
+    property Domain: string read FDomain write SetDomain;
+    property Path: string read FPath write SetPath;
     property Expires: TDateTime read FExpires write FExpires;
     property MaxAge : Integer Read FMaxAge Write FMaxAge;
     property Secure: Boolean read FSecure write FSecure;
@@ -251,6 +259,9 @@ type
   Protected
     Function GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
     Procedure DeleteTempUploadedFiles; virtual;
+  public
+    class var MaxUploadFiles : Word;
+    class var MaxUploadFileSize : Word;
   public
     Function First : TUploadedFile;
     Function Last : TUploadedFile;
@@ -350,14 +361,15 @@ type
     FQueryFields: TStrings;
     FCustomHeaders : TStringList;
     FContentDirty : Boolean;
+    class function CleanHeader(AValue: string): string;
     function GetCustomHeaders: TStringList;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetContentBytes(AValue: TBytes);
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
-    Function GetContentLength : Integer;
-    Procedure SetContentLength(Value : Integer);
+    Function GetContentLength : Int64;
+    Procedure SetContentLength(Value : Int64);
     Function GetFieldOrigin(AIndex : Integer; Out H : THeader; Out V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
@@ -414,7 +426,7 @@ type
     property Connection: String Index Ord(hhConnection) Read GetHeaderValue Write SetHeaderValue;
     property ContentEncoding: String Index Ord(hhContentEncoding) Read GetHeaderValue Write SetHeaderValue;
     property ContentLanguage: String Index Ord(hhContentLanguage) Read GetHeaderValue Write SetHeaderValue;
-    property ContentLength: Integer Read GetContentLength Write SetContentLength; // Index 9
+    property ContentLength: Int64 Read GetContentLength Write SetContentLength; // Index 9
     property ContentType: String Index Ord(hhContentType) Read GetHeaderValue Write SetHeaderValue;
     property Date: String Index Ord(hhDate) Read GetHeaderValue Write SetHeaderValue;
     property Expires: String Index Ord(hhExpires) Read GetHeaderValue Write SetHeaderValue;
@@ -519,18 +531,19 @@ type
     Procedure InitGetVars; virtual;
     Procedure InitContent(const AContent : String); deprecated 'use contentbytes';
 
-    procedure ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    procedure ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: SizeInt); virtual;
     function DerriveStreamingContentType(): TStreamingContentType;
-    procedure ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
-    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    procedure ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: SizeInt); virtual;
+    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: SizeInt); virtual;
     // ProcessStreamingSetContent collects all data and stores it into Content
-    procedure ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
-    procedure HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
+    procedure ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: SizeInt); virtual;
+    procedure HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: SizeInt);
     Property ContentRead : Boolean Read FContentRead Write FContentRead;
   Public
     Type
       TConnectionIDAllocator = Procedure(out aID : String) of object;
     class var IDAllocator : TConnectionIDAllocator;
+    class var MaxBodySize : SizeInt;
   public
     Class Var DefaultRequestUploadDir : String;
     constructor Create; override;
@@ -758,6 +771,8 @@ type
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
+// Raise an exception with HTTP code 413
+Procedure PayloadTooLarge(const aMessage : string);
 
 Var
   // Default classes used when instantiating the collections.
@@ -844,6 +859,16 @@ Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 begin
   Result:={$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.IncludeHTTPPathDelimiter(AStr);
+end;
+
+Procedure PayloadTooLarge(const aMessage : string);
+var
+  Err : EHTTP;
+begin
+  Err:=EHTTP.Create(aMessage);
+  Err.StatusCode:=413;
+  Err.StatusText:='PAYLOAD TOO LARGE';
+  Raise Err;
 end;
 
 { -------------------------------------------------------------------
@@ -1383,12 +1408,12 @@ begin
   Inc(Result,Ord(FVariables[hvCookie]<>''));
 end;
 
-function THTTPHeader.GetContentLength: Integer;
+function THTTPHeader.GetContentLength: Int64;
 begin
-  Result:=StrToIntDef(GetHeader(hhContentLength),0);
+  Result:=StrToInt64Def(GetHeader(hhContentLength),0);
 end;
 
-procedure THTTPHeader.SetContentLength(Value: Integer);
+procedure THTTPHeader.SetContentLength(Value: Int64);
 begin
   SetHeader(hhContentLength,IntToStr(Value));
 end;
@@ -1853,10 +1878,27 @@ begin
   Result:=FFields[AHeader];
 end;
 
+class function THTTPHeader.CleanHeader(AValue : string) : string;
+// Clean up header value: no CR/LF or NULL.
+
+var
+  P : PChar;
+  I : Integer;
+begin
+  Result:=aValue;
+  P:=PChar(Result);
+  For I:=1 to Length(Result) do
+    begin
+    if P^ in [#0,#10,#13] then
+      P^:=' ';
+    inc(P);
+    end;
+end;
+
 procedure THTTPHeader.SetHeader(AHeader: THeader; const AValue: String);
 begin
 //  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
-  FFields[AHeader]:=AValue;
+  FFields[AHeader]:=CleanHeader(AValue);
 end;
 
 
@@ -1907,11 +1949,14 @@ begin
 end;
 
 procedure THTTPHeader.SetCustomHeader(const Name, Value: String);
+var
+  lValue : String;
 begin
+  lValue:=CleanHeader(Value);
   if GetCustomHeader(Name) = '' then
-    CustomHeaders.Add(Name + '=' + Value)
+    CustomHeaders.Add(Name + '=' + lValue)
   else
-    CustomHeaders.Values[Name] := Value;
+    CustomHeaders.Values[Name] := lValue;
 end;
 
 function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand: Boolean
@@ -1994,6 +2039,7 @@ begin
   Result:=TMimeItem(Items[Aindex]);
 end;
 
+
 procedure TMimeItems.CreateUploadFiles(Files: TUploadedFiles; Vars : TStrings);
 
 Var
@@ -2004,10 +2050,14 @@ Var
 begin
   For I:=Count-1 downto 0 do
     begin
+    if (Files.Count>=TUploadedFiles.MaxUploadFiles) then
+      PayloadTooLarge('Too many files uploaded');
     P:=GetP(i);
     If (P.Name='') then
       P.Name:='DummyFileItem'+IntToStr(i);
-      //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
+    if (TUploadedFiles.MaxUploadFileSize>0) and (P.DataSize>TUploadedFiles.MaxUploadFileSize) then
+      PayLoadTooLarge('File size exceeds maximum file size');
+    //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
 {$ifdef CGIDEBUG}
     With P Do
       begin
@@ -2684,8 +2734,13 @@ begin
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
 end;
 
-procedure TRequest.ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: Integer);
+procedure TRequest.ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: SizeInt);
+var
+  Err : EHTTP;
 begin
+  // The check has normally been performed before we get here, but this is a catch-all mechanism.
+  if (MaxBodySize>0) and (Size>MaxBodySize) then
+    PayloadTooLarge('Payload size exceeds maximum size');
   if state = cssStart then
     FStreamingContentType := DerriveStreamingContentType;
   case FStreamingContentType of
@@ -2710,7 +2765,7 @@ begin
     Result := sctUnknown
 end;
 
-procedure TRequest.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
+procedure TRequest.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: SizeInt);
 Var
   ST: TStrings;
   S: RawByteString;
@@ -2752,7 +2807,7 @@ begin
     end;
 end;
 
-procedure TRequest.ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: Integer);
+procedure TRequest.ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: SizeInt);
 begin
   // This implementation simply collects the contents, and then parses this
   // content.
@@ -2767,7 +2822,7 @@ begin
     end;
 end;
 
-procedure TRequest.HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
+procedure TRequest.HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: SizeInt);
 var
   S: TStream;
 begin
@@ -2786,7 +2841,7 @@ begin
     end;
 end;
 
-procedure TRequest.ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer);
+procedure TRequest.ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: SizeInt);
 var
   CL: LongInt;
 begin
@@ -3046,7 +3101,7 @@ end;
 
 procedure TResponse.SendRedirect(const TargetURL: String);
 begin
-  Location := TargetURL;
+  Location := CleanHeader(TargetURL);
   if FHttpVersion = '1.1' then
     begin
     Code := 307;// HTTP/1.1 307 HTTP_TEMPORARY_REDIRECT -> 'Temporary Redirect'
@@ -3223,6 +3278,43 @@ end;
 { ---------------------------------------------------------------------
   TCookie
   ---------------------------------------------------------------------}
+
+procedure TCookie.SetDomain(AValue: string);
+begin
+  if FDomain=AValue then Exit;
+  CheckValue('Domain',aValue);
+  FDomain:=AValue;
+end;
+
+procedure TCookie.SetName(AValue: string);
+begin
+  if FName=AValue then Exit;
+  CheckValue('Name',aValue);
+  FName:=AValue;
+end;
+
+procedure TCookie.SetPath(AValue: string);
+begin
+  if FPath=AValue then Exit;
+  CheckValue('Path',aValue);
+  FPath:=AValue;
+end;
+
+procedure TCookie.SetValue(AValue: string);
+begin
+  if FValue=AValue then Exit;
+  FValue:=AValue;
+end;
+
+class procedure TCookie.CheckValue(const aProperty,aValue: String);
+
+var
+  i : Integer;
+begin
+  for I:=1 to Length(aValue) do
+    if aValue[i] in [#10,#13,';'] then
+      Raise EHTTP.CreateFmt('Invalid character in cookie %s at pos %d: %s',[aProperty,i,aValue[i]]);
+end;
 
 function TCookie.GetAsString: string;
 
@@ -3485,4 +3577,7 @@ end;
 
 initialization
   MimeItemClass:=THTTPStreamingMimeItem;
+  TRequest.MaxBodySize:=DefaultMaxBodySize;
+  TUploadedFiles.MaxUploadFiles:=DefaultMaxUploadFiles;
+  TUploadedFiles.MaxUploadFileSize:=DefaultMaxUploadFileSize;
 end.

@@ -6861,7 +6861,8 @@ unit aoptx86;
                 UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                 if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
                   begin
-                    taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                    taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+                    AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
                     DebugMsg(SPeepholeOptimization + 'LeaMov2Lea done',p);
                     RemoveInstruction(hp1);
                     result:=true;
@@ -6920,9 +6921,16 @@ unit aoptx86;
                           begin
                             DebugMsg(SPeepholeOptimization + 'LeaOp2Op done',p);
                             if taicpu(p).oper[0]^.ref^.base<>NR_NO then
-                              taicpu(hp1).oper[ref]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                              begin
+                                taicpu(hp1).oper[ref]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                                AllocRegBetween(taicpu(p).oper[0]^.ref^.base,p,hp1,UsedRegs);
+                              end;
                             if taicpu(p).oper[0]^.ref^.index<>NR_NO then
-                              taicpu(hp1).oper[ref]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
+                              begin
+                                taicpu(hp1).oper[ref]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
+                                if taicpu(p).oper[0]^.ref^.index<>taicpu(p).oper[0]^.ref^.base then
+                                  AllocRegBetween(taicpu(p).oper[0]^.ref^.index,p,hp1,UsedRegs);
+                              end;
                             if taicpu(p).oper[0]^.ref^.symbol<>nil then
                               taicpu(hp1).oper[ref]^.ref^.symbol:=taicpu(p).oper[0]^.ref^.symbol;
                             if taicpu(p).oper[0]^.ref^.relsymbol<>nil then

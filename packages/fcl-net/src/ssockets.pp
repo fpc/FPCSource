@@ -256,8 +256,8 @@ type
     Property OnConnect : TConnectEvent Read FOnConnect Write FOnConnect;
     Property OnDisconnect : TDisconnectEvent Read FOnDisconnect Write FOnDisconnect;
     Property OnConnectionDropped : TConnectionDroppedEvent Read FOnConnectionDropped Write FOnConnectionDropped;
-    Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery; deprecated 'Use OnTryToConnect instead';
-    Property OnAcceptError : TOnAcceptError Read FOnAcceptError Write FOnAcceptError; deprecated 'Use OnFPAcceptError instead';
+    Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery; deprecated 'Use OnConnectSocketQuery instead';
+    Property OnAcceptError : TOnAcceptError Read FOnAcceptError Write FOnAcceptError; deprecated 'Use OnAcceptSocketError instead';
     Property OnConnectSocketQuery : TFPConnectQuery Read FOnConnectSocketQuery Write FOnConnectSocketQuery;
     Property OnAcceptSocketError : TFPOnAcceptError Read FOnAcceptSocketError Write FOnAcceptSocketError;
     Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;

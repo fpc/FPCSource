@@ -178,6 +178,7 @@ interface
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
         change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
+        bytesizeofppureal : byte; { size of real constants embedded inside PPU }
         unitmap       : tunitmaparray; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
         derefmap      : tderefmaparray; { mapping of all units needed for deref }

@@ -155,6 +155,13 @@ uses System.TypInfo, System.StrUtils;
 uses typinfo, strutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
+function EscapeQuotes(const s : string) : string;
+begin
+  Result:=StringReplace(s,'"','\"',[rfReplaceAll]);
+  Result:=StringReplace(Result,#10,'\n',[rfReplaceAll]);
+  Result:=StringReplace(Result,#13,'\r',[rfReplaceAll]);
+end;
+
 var RegisteredScriptList : TStrings;
 
 function RegisterScript(const AScript: string) : integer;
@@ -530,9 +537,9 @@ begin
     end;
 
   if HasCancel then
-    result := 'if (confirm('''+AText+''')==true) {'+OnOk+'} else {'+OnCancel+'}'
+    result := 'if (confirm("'+EscapeQuotes(aText)+'")==true) {'+OnOk+'} else {'+OnCancel+'}'
   else
-    result := 'alert('''+AText+''');'+OnOk;
+    result := 'alert("'+EscapeQuotes(AText)+'");'+OnOk;
 end;
 
 constructor TStandardWebController.Create(AOwner: TComponent);

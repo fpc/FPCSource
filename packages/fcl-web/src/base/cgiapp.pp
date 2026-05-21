@@ -27,13 +27,13 @@ uses
   {$ifdef Unix}
   UnixApi.CWString,
   {$endif}
-  Fcl.CustApp,System.Classes, System.SysUtils, FpWeb.Http.Defs;
+  Fcl.CustApp,System.Classes, System.SysUtils, FpWeb.Http.Defs, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef unix}
   cwstring,
   {$endif}
-  CustApp,Classes, SysUtils, httpdefs;
+  CustApp,Classes, SysUtils, httpdefs, htmlelements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
@@ -393,22 +393,22 @@ begin
     end;
   If (ContentType='text/html') then
     begin
-    AddResponseLN('<html><head><title>'+Title+': '+SCGIError+'</title></head>');
+    AddResponseLN('<html><head><title>'+EscapeHTML(Title+': '+SCGIError)+'</title></head>');
     AddResponseLN('<body>');
-    AddResponseLN('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
-    AddResponseLN(SAppEncounteredError+'<br>');
+    AddResponseLN('<center><hr><h1>'+EscapeHTML(Title)+': ERROR</h1><hr></center><br><br>');
+    AddResponseLN(EscapeHTML(SAppEncounteredError)+'<br>');
     AddResponseLN('<ul>');
-    AddResponseLN('<li>'+SError+' <b>'+E.Message+'</b>');
+    AddResponseLN('<li>'+EscapeHTML(SError)+' <b>'+EscapeHTML(E.Message)+'</b>');
     AddResponseLn('<li> Stack trace:<br>');
-    AddResponseLn(BackTraceStrFunc(ExceptAddr)+'<br>');
+    AddResponseLn(EscapeHTML(BackTraceStrFunc(ExceptAddr))+'<br>');
     FrameCount:=ExceptFrameCount;
     Frames:=ExceptFrames;
     for FrameNumber := 0 to FrameCount-1 do
-      AddResponseLn(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+      AddResponseLn(EscapeHTML(BackTraceStrFunc(Frames[FrameNumber]))+'<br>');
     AddResponseLn('</ul><hr>');
-    TheEmail:=Email;
+    TheEmail:=EscapeHTML(Email);
     If (TheEmail<>'') then
-      AddResponseLN('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
+      AddResponseLN('<h5><p><i>'+EscapeHTML(SNotify+Administrator)+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
     AddResponseLN('</body></html>');
     end;
 end;
@@ -618,7 +618,7 @@ Procedure TCgiApplication.ProcessMultiPart(M : TMemoryStream; Const Boundary : S
 Var
   L : TList;
   B : String;
-  I,Index : Integer;
+  I : Integer;
   S,FF,key, Value : String;
   FI : TFormItem;
   F : TStream;

@@ -319,6 +319,7 @@ type
     function getaword:{$ifdef generic_cpu}qword{$else}aword{$ifdef USEINLINE}; inline{$endif}{$endif};
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
+    function  getrealbytesize:byte;
     function  getboolean:boolean; {$ifdef USEINLINE}inline;{$endif}
     function  getstring:string;
     function  getpshortstring:pshortstring;
@@ -1469,6 +1470,23 @@ begin
       d:=getrealsize(sizeof(d));
       getreal:=d;
     end;
+end;
+
+function tentryfile.getrealbytesize:byte;
+begin
+  if target_info.system=system_x86_64_win64 then
+    getrealbytesize:=sizeof(double)
+{$ifndef FPC_HAS_TYPE_EXTENDED}
+{$ifdef FPC_SOFT_FPUX80}
+  else
+    if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
+      getrealbytesize:=sizeof(floatx80_byte_array)
+{$endif def FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
+  else
+    { this relies on the fact that
+      entryreal=bestreal and ppureal=bestreal }
+    getrealbytesize:=sizeof(entryreal);
 end;
 
 

@@ -21,10 +21,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs;
+  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, httpprotocol, httpdefs;
+  Classes, SysUtils, httpprotocol, httpdefs, HTMLElements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
@@ -36,7 +36,7 @@ procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boole
   Procedure AddNV(Const N,V : String);
 
   begin
-    Dump.Add('<TR><TD>'+N+'</TD><TD>'+V+'</TD></TR>');
+    Dump.Add('<TR><TD>'+EscapeHTML(N)+'</TD><TD>'+EscapeHTML(V)+'</TD></TR>');
   end;
 
 Var
@@ -79,17 +79,17 @@ begin
     Add('<pre>');
     For H in THeader do
       if (hdRequest in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
-        Add(HTTPHeaderNames[H]+': '+GetHeader(H));
+        Add(EscapeHTML(HTTPHeaderNames[H])+': '+EscapeHTML(GetHeader(H)));
      For Va in HeaderBasedVariables do
        begin
         V:=GetHTTPVariable(Va);
         if V<>'' then
-          Add(THTTPHeader.GetVariableHeaderName(Va)+': '+V);
+          Add(EscapeHTML(THTTPHeader.GetVariableHeaderName(Va))+': '+EscapeHTML(V));
        end;
      For I:=0 to CustomHeaders.Count-1 do
        begin
        CustomHeaders.GetNameValue(I,N,V);
-         Add(N+': '+V);
+         Add(EscapeHTML(N)+': '+EscapeHTML(V));
        end;
     Add('</PRE>');
     // Additional headers
@@ -156,9 +156,9 @@ begin
       For I:=0 to Files.Count-1 do
         With Files[i] do
           begin
-          Add('<TR><TD>'+FieldName+'</TD><TD>'+FileName+'</TD>');
-          Add('<TD>'+IntToStr(Size)+'</TD><TD>'+LocalFileName+'</TD>');
-          Add('<TD>'+Disposition+'</TD><TD>'+ContentType+'</TD><TD>'+Description+'</TD></TR>');
+          Add('<TR><TD>'+EscapeHTML(FieldName)+'</TD><TD>'+EscapeHTML(FileName)+'</TD>');
+          Add('<TD>'+IntToStr(Size)+'</TD><TD>'+EscapeHTML(LocalFileName)+'</TD>');
+          Add('<TD>'+EscapeHTML(Disposition)+'</TD><TD>'+EscapeHTML(ContentType)+'</TD><TD>'+EscapeHTML(Description)+'</TD></TR>');
           end;
       Add('</TABLE><P>');
       end;

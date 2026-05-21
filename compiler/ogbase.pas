@@ -3905,6 +3905,9 @@ implementation
             begin
               objsec:=TObjSection(ObjSectionWorkList.Last);
               if not assigned(objsec.exesection) then
+{$ifdef i8086}
+                if current_settings.x86memorymodel <> mm_tiny then
+{$endif}
                 internalerror(202102001);
               if assigned(exemap) then
                 exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjRelocations.Count)+' references');

@@ -14,7 +14,7 @@ begin
   Result:=TMutexKind(M.Kind);
 end;
 
-procedure InitMutex(var M : TWasmMutex; aKind : TMutexKind = mkNormal; aOwner : TThreadID = Nil);
+procedure InitMutex(var M : TWasmMutex; aKind : TMutexKind = mkRecursive; aOwner : TThreadID = Nil);
 
 begin
   FillChar(M,SizeOf(TWasmMutex),0);
@@ -47,17 +47,14 @@ Var
 begin
   // We already have the lock ?
   Res:=(fpc_wasm32_i32_atomic_load(@M.Locked)=1) and (TThreadID(fpc_wasm32_i32_atomic_load(@M.Owner))=GetSelfThread);
-  if Not Res then
+  if not Res then
     Res:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@M.Locked,0,1)=0
-  else
-    begin
-// TryLockMutex is called in a loop. Be VERY careful when adding this log.
-//    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : we ('+IntToStr(PtrUint(GetSelfThread))+') own the lock.');{$ENDIF}
-    end;
+  else  
+    Res:=MutexKind(M)=mkRecursive; // OK if recursive. If not recursive, then fail.
   if Res then
     begin
-    if (MutexKind(M)=mkRecursive) or (M.Count=0) then
-      InterLockedIncrement(M.Count);
+    // Always increase. 
+    InterLockedIncrement(M.Count);
 //    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : setting owner to '+IntToStr(PtrUint(GetSelfThread))+'.');{$ENDIF}
     fpc_wasm32_i32_atomic_store(@M.Owner,LongWord(GetSelfThread));
     end;
@@ -92,10 +89,26 @@ end;
 
 Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMutexResult;
 
+const
+  // Cap each wait32 call so parked threads periodically re-check the
+  // lock even if notify is missed or delayed. 
+  // This is Important on WASM running in the browser where
+  // each thread is a Web Worker and a parked thread freezes its own JS
+  // event loop entirely. A lock holder that needs a JS-mediated
+  // round-trip through a parked worker would otherwise hang forever;
+  // the wake/retry interval guarantees progress. 1ms keeps the recheck
+  // cadence well inside real-time audio/video budgets (audio buffers
+  // 10-20ms, 60fps frames 16.7ms) — a longer slice would risk visible
+  // AV glitches. Per-cycle cost is one cheap TryLockMutex (a CAS) so
+  // 1000Hz polling per parked thread is fine.
+  WatchdogWaitNS = 1000000; // 1 ms
+
+
 Var
   Res : TLockMutexResult;
   EndTime: TOSTime;
   RemainingTime: Int64;
+  WaitSlice: Int64;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
@@ -114,22 +127,24 @@ begin
       Res:=lmrOk
     else
       begin
+        // No lock, determine remaining wait time.
         if aTimeOutNS>=0 then
           begin
             RemainingTime:=EndTime-GetClockTime;
             if RemainingTime<0 then
-              Res:=lmrTimeOut;;
+              Res:=lmrTimeOut;
           end;
-        if Res<>lmrNone then
-          Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,RemainingTime) of
-            0, 1:
+        // No timeout yet, wait for signal for a max duration of WatchdogWaitNS.
+        begin
+          if (RemainingTime<0) or (RemainingTime>WatchdogWaitNS) then
+            WaitSlice:=WatchdogWaitNS
+          else
+            WaitSlice:=RemainingTime;
+          Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,WaitSlice) of
+            0, 1, 2:
               if M.Destroying then
                 Res:=lmrError;
-            2:
-              if M.Destroying then
-                Res:=lmrError
-              else
-                Res:=lmrTimeOut;
+          end;
         end;
       end;
   Until Res<>lmrNone;
@@ -174,7 +189,7 @@ begin
   else
     begin
     res:=lmrOK;
-    if (MutexKind(M)=mkRecursive) or (M.Count=1) then
+//    if (MutexKind(M)=mkRecursive) or (M.Count=1) then
       InterLockedDecrement(M.Count);
     if (M.Count=0) then
       begin

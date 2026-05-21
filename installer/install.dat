@@ -113,6 +113,10 @@ package=units-rtl-extrados.zip[urtledos.zip],RTL-additional units not needed for
 package=units-rtl-objpasdos.zip[urtlodos.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
 # Dos-2 10
 package=units-rtl-unicodedos.zip[urtludos.zip],RTL-miscellaneous Unicode support units
+# Dos-2 14
+package=utils-fppkgdos.zip[fpkgdos.zip],Free Pascal package repository utility
+# Dos-2 18
+package=utils-pas2jnidos.zip[p2jndos.zip],Generate JNI bridge for Pascal code
 # Dos-2 19
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
 # Dos-2 21
@@ -123,6 +127,8 @@ package=units-rtl-genericsdos.zip[urtlgdos.zip],RTL-generic collection library
 package=units-webidldos.zip[uwidldos.zip],WEB IDL parser and converter to Object Pascal classes
 # Dos-2 27
 package=units-tplylibdos.zip[utplldos.zip],Units for sources created with the compiler generator
+# Dos-2 29
+package=units-fcl-hashdos.zip[ufclhdos.zip],Hash and cryptography algorithm classes
 
 #
 # Go32v2 utils packages 3rd part
@@ -362,11 +368,11 @@ package=uopensslos2.zip[uosslos2.zip],OpenSSL interface units
 # OS/2 23
 package=utils-fpcmkcfgos2.zip[fcmkos2.zip],Creation of Free Pascal configuration files
 # OS/2 24
-package=utils-fpdocos2.zip[fpdocos2.zip],Free Pascal documentation generation utility
+package=utils-fpdocos2.zip[fpdcos2.zip],Free Pascal documentation generation utility
 # OS/2 25
 package=utils-fpmcos2.zip[fpmcos2.zip],Free Pascal Message Compiler
 # OS/2 26
-package=utils-fppkgos2.zip[fppkgos2.zip],Free Pascal package repository utility
+package=utils-fppkgos2.zip[fpkgos2.zip],Free Pascal package repository utility
 # OS/2 27
 package=utils-fprcpos2.zip[fprcos2.zip],Free Pascal Resource Compiler Preprocessor
 # OS/2 28
@@ -442,11 +448,9 @@ package=urtl-unicodeos2.zip[urtluos2.zip],RTL-miscellaneous Unicode support unit
 # OS/2-2 29
 package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
 # OS/2-2 30
-package=utils-lexyaccos2.zip[tplyos2.zip],A compiler generator for Turbo Pascal and compatibles
+package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
 # OS/2-2 31
 package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
-
-
 
 
 #
@@ -461,7 +465,7 @@ package=utils-pas2jsos2.zip[p2jsos2.zip],Convert Pascal sources to Javascript
 # OS/2-3 3
 package=utils-webidlos2.zip[widlos2.zip],Web IDL parser and converter to Object Pascal classes
 # OS/2-3 4
-package=utils-json2pasos2.zip[js2pos2.zip],Create Object Pascal classes from JSON files
+package=utils-json2pasos2.zip[jsnpos2.zip],Create Object Pascal classes from JSON files
 # OS/2-3 5
 package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
 # OS/2-2 6
@@ -469,17 +473,17 @@ package=utils-unicodeos2.zip[ucdos2.zip],Transformation of Unicode consortium da
 # OS/2-3 7
 package=utplylibos2.zip[utpllos2.zip],Units for sources created with the compiler generator
 # OS/2-3 8
-package=units-webidlos2.zip[uwidlos2.zip],WEB IDL parser and converter to Object Pascal classes
+package=units-fcl-hashos2.zip[ufclhos2.zip],Hash and cryptography algorithm classes
 # OS/2-3 9
 package=utils-fpdocos2.zip[fpdcos2.zip],Free Pascal documentation generation utility
 # OS/2-3 10
 package=utils-fppkgos2.zip[fpkgos2.zip],Free Pascal package repository utility
 # OS/2-3 11
 package=utils-fpcreslipoos2.zip[fprlos2.zip],Free Pascal External Resource Thinner
+# OS/2-3 12
+package=units-webidlos2.zip[uwidlos2.zip],WEB IDL parser and converter to Object Pascal classes
 # OS/2-3 13
 package=utils-ihxutilos2.zip[ihxuos2.zip],A tool to convert Intel HEX Format files different formats used on various Z80 systems
-# OS/2-3 14
-package=utils-json2pasos2.zip[jsnpos2.zip],A utility to create Object Pascal classes files from sample JSON files
 
 #
 # EMX packages
@@ -537,11 +541,11 @@ package=uopensslemx.zip[uosslemx.zip],OpenSSL interface units
 # EMX 22
 package=utils-fpcmkcfgemx.zip[fcmkemx.zip],Creation of Free Pascal configuration files
 # EMX 23
-package=utils-fpdocemx.zip[fpdocemx.zip],Free Pascal documentation generation utility
+package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
 # EMX 24
 package=utils-fpmcemx.zip[fpmcemx.zip],Free Pascal Message Compiler
 # EMX 25
-package=utils-fppkgemx.zip[fppkgemx.zip],Free Pascal package repository utility
+package=utils-fppkgemx.zip[fpkgemx.zip],Free Pascal package repository utility
 # EMX 26
 package=utils-fprcpemx.zip[fprcemx.zip],Free Pascal Resource Compiler Preprocessor
 # EMX 27
@@ -635,11 +639,11 @@ package=utils-json2pasemx.zip[js2pemx.zip],Create Object Pascal classes from JSO
 # EMX-3 5
 package=ufcl-pdfemx.zip[ufcpdemx.zip],PDF generating and TTF file info library
 # EMX-3 6
-package=utils-unicodeemx.zip[ucdemx.zip],Transformation of Unicode consortium data for FPC
+package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 # EMX-3 7
 package=utplylibemx.zip[utpllemx.zip],Units for sources created with the compiler generator
 # EMX-3 8
-package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
+package=units-fcl-hashemx.zip[ufclhemx.zip],Hash and cryptography algorithm classes
 # EMX-3 9
 package=utils-fppkgemx.zip[fpkgemx.zip],Free Pascal package repository utility
 # EMX-3 10
@@ -649,11 +653,13 @@ package=utils-ihxutilemx.zip[ihxuemx.zip],A tool to convert Intel HEX Format fil
 # EMX-3 12
 package=utils-json2pasemx.zip[jsnpemx.zip],A utility to create Object Pascal classes fil|es from sample JSON files
 # EMX-3 13
-package=utils-lexyaccemx.zip[tplyemx.zip],A compiler generator for Turbo Pascal and compatibles
+package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
 # EMX-3 14
 package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
 # EMX-3 15
 package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+# EMX-3 16
+package=utils-fpdocemx.zip[fpdcemx.zip],Free Pascal documentation generation utility
 
 #
 # Common packages
@@ -683,103 +689,104 @@ package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
 package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
-package=units-ide-3.3.1.source.zip[uidesrc.zip],IDE sources
+package=units-ide-source.zip[uidesrc.zip],IDE sources
 # Source 5
-package=utils-3.3.1.source.zip[utilssrc.zip],~U~tils sources
+package=utils-source.zip[utilssrc.zip],~U~tils sources
 # Source 6
 package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
-package=doc-3.3.1.source.zip[docsrc.zip],~D~ocumentation sources (LaTeX)
+package=doc-source.zip[docsrc.zip],~D~ocumentation sources (LaTeX)
 # Source 8
-package=units-cdrom-3.3.1.source.zip[ucdrsrc.zip],CD-ROM interface sources
+package=units-cdrom-source.zip[ucdrsrc.zip],CD-ROM interface sources
 # Source 9
-package=units-unzip-3.3.1.source.zip[uzipsrc.zip],Unzip units sources
+package=units-unzip-source.zip[uzipsrc.zip],Unzip units sources
 # Source 10
-package=units-regexpr-3.3.1.source.zip[uregsrc.zip],Regular expression units sources
+package=units-regexpr-source.zip[uregsrc.zip],Regular expression units sources
 # Source 11
-package=units-paszlib-3.3.1.source.zip[upzlsrc.zip],PasZLib units sources
+package=units-paszlib-source.zip[upzlsrc.zip],PasZLib units sources
 # Source 12
-package=units-rexx-3.3.1.source.zip[urexxsrc.zip],REXX SAA interface units sources
+package=units-rexx-source.zip[urexxsrc.zip],REXX SAA interface units sources
 # Source 13
-package=units-zlib-3.3.1.source.zip[uzlibsrc.zip],ZLib interface units sources
+package=units-zlib-source.zip[uzlibsrc.zip],ZLib interface units sources
 # Source 14
-package=units-gdbint-3.3.1.source.zip[ugdbsrc.zip],GDB interface units sources
+package=units-gdbint-source.zip[ugdbsrc.zip],GDB interface units sources
 # Source 15
-package=units-postgres-3.3.1.source.zip[upgrsrc.zip],PostGreSQL interface sources
+package=units-postgres-source.zip[upgrsrc.zip],PostGreSQL interface sources
 # Source 16
-package=units-graph-3.3.1.source.zip[ugrphsrc.zip],Unit Graph sources
+package=units-graph-source.zip[ugrphsrc.zip],Unit Graph sources
 # Source 17
-package=units-hermes-3.3.1.source.zip[uhermsrc.zip],Port of Hermes graphics library
+package=units-hermes-source.zip[uhermsrc.zip],Port of Hermes graphics library
 # Source 18
-package=units-fppkg-3.3.1.source.zip[ufppksrc.zip],Units for FPPkg packaging support
+package=units-fppkg-source.zip[ufppksrc.zip],Units for FPPkg packaging support
 # Source 19
-package=units-fpc-all.source.zip[ufpcasrc.zip],uninitialized function result in function TPa|ckage.GetDescription:AnsiString(0);
 # Source 20
 package=units-webidl.source.zip[uwidlsrc.zip],WEB IDL parser and converter to Object Pascal classes
+
+
 #
 # Source packages 2nd part
 #
 pack=So~u~rces 2
 filecheck=*.source.zip[*src.zip]
 # Source-2 1
-package=units-opengl-3.3.1.source.zip[uoglsrc.zip],OpenGL interface units sources
+package=units-opengl-source.zip[uoglsrc.zip],OpenGL interface units sources
 # Source-2 2
-package=units-gtk1-3.3.1.source.zip[ugtk1src.zip],GTK1 interface units sources
+package=units-gtk1-source.zip[ugtk1src.zip],GTK1 interface units sources
 # Source-2 3
-package=units-odbc-3.3.1.source.zip[uodbcsrc.zip],ODBC interface units sources
+package=units-odbc-source.zip[uodbcsrc.zip],ODBC interface units sources
 # Source-2 4
-package=units-ibase-3.3.1.source.zip[uibassrc.zip],Interbase interface units sources
+package=units-ibase-source.zip[uibassrc.zip],Interbase interface units sources
 # Source-2 5
-package=units-mysql-3.3.1.source.zip[umysqsrc.zip],MySQL interface units sources
+package=units-mysql-source.zip[umysqsrc.zip],MySQL interface units sources
 # Source-2 6
-package=utils-lexyacc-3.3.1.source.zip[tplysrc.zip],A compiler generator for Turbo Pascal and compatibles
+package=utils-lexyacc-source.zip[tplysrc.zip],A compiler generator for Turbo Pascal and compatibles
 # Source-2 7
-package=utils-unicode-3.3.1.source.zip[ucdsrc.zip],Transformation of Unicode consortium data for FPC
+package=utils-unicode-source.zip[ucdsrc.zip],Transformation of Unicode consortium data for FPC
 # Source-2 8
-package=units-os2units-3.3.1.source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
+package=units-os2units-source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
 # Source-2 9
-package=units-sdl-3.3.1.source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
+package=units-sdl-source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
 # Source-2 10
-package=units-pasjpeg-3.3.1.source.zip[upjpsrc.zip],PasJPEG units sources
+package=units-pasjpeg-source.zip[upjpsrc.zip],PasJPEG units sources
 # Source-2 11
-package=units-fv-3.3.1.source.zip[ufvsrc.zip],Free ~V~ision (FV) sources
+package=units-fv-source.zip[ufvsrc.zip],Free ~V~ision (FV) sources
 # Source-2 12
-package=units-libpng-3.3.1.source.zip[ulpngsrc.zip],LibPNG interface units sources
+package=units-libpng-source.zip[ulpngsrc.zip],LibPNG interface units sources
 # Source-2 13
-package=units-imlib-3.3.1.source.zip[uimlbsrc.zip],ImLib interface units sources
+package=units-imlib-source.zip[uimlbsrc.zip],ImLib interface units sources
 # Source-2 14
-package=units-fpgtk-3.3.1.source.zip[ufpgtsrc.zip],Lightweight OOP wrapper over GTK1 sources
+package=units-fpgtk-source.zip[ufpgtsrc.zip],Lightweight OOP wrapper over GTK1 sources
 # Source-2 15
-package=units-sqlite-3.3.1.source.zip[usqltsrc.zip],SQLite interface units sources
+package=units-sqlite-source.zip[usqltsrc.zip],SQLite interface units sources
 # Source-2 16
-package=units-fpmkunit-3.3.1.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
+package=units-fpmkunit-source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 # Source-2 17
-package=units-fcl-json-3.3.1.source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
+package=units-fcl-json-source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
 # Source-2 18
-package=units-fcl-async-3.3.1.source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
+package=units-fcl-async-source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
 # Source-2 19
-package=units-fcl-process-3.3.1.source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
+package=units-fcl-process-source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
 # Source-2 20
-package=units-chm-3.3.1.source.zip[uchmsrc.zip],Support for .chm files handling
+package=units-chm-source.zip[uchmsrc.zip],Support for .chm files handling
 # Source-2 21
-package=units-libgd-3.3.1.source.zip[ulgdsrc.zip],GD library interface unit
+package=units-libgd-source.zip[ulgdsrc.zip],GD library interface unit
 # Source-2 22
-package=units-symbolic-3.3.1.source.zip[usymbsrc.zip],Symbolic (unit for parsing and evaluating expressions)
+package=units-symbolic-source.zip[usymbsrc.zip],Symbolic (unit for parsing and evaluating expressions)
 # Source-2 23
-package=units-fcl-res-3.3.1.source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
+package=units-fcl-res-source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
 # Source-2 24
-package=units-bzip2-3.3.1.source.zip[ubz2src.zip],Units for bzip2 decompression
+package=units-bzip2-source.zip[ubz2src.zip],Units for bzip2 decompression
 # Source-2 25
-package=units-fcl-js-3.3.1.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
+package=units-fcl-js-source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
 # Source-2 26
-package=units-ptc-3.3.1.source.zip[uptcsrc.zip],Free portable framebuffer library
+package=units-ptc-source.zip[uptcsrc.zip],Free portable framebuffer library
 # Source-2 27
-package=units-x11-3.3.1.source.zip[ux11src.zip],X Window (X11) interface units
+package=units-x11-source.zip[ux11src.zip],X Window (X11) interface units
 # Source-2 28
 # Source-2 29
-package=units-fcl-pdf-3.3.1.source.zip[ufcpdsrc.zip],PDF generating and TTF file info library
+package=units-fcl-pdf-source.zip[ufcpdsrc.zip],PDF generating and TTF file info library
 # Source-2 30
-package=units-dblib-3.3.1.source.zip,Headers for the MS SQL Server RDBMS
+package=units-dblib-source.zip,Headers for the MS SQL Server RDBMS
 # Source-2 31
 package=units-tplylib.source.zip[utpllsrc.zip],Units for sources created with the compiler generator
 
@@ -790,65 +797,67 @@ package=units-tplylib.source.zip[utpllsrc.zip],Units for sources created with th
 pack=Sou~r~ces 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
-package=units-winunits-base-3.3.1.source.zip[uwibsrc.zip],Extended Windows API interface units
+package=units-winunits-base-source.zip[uwibsrc.zip],Extended Windows API interface units
 # Source-3 2
-package=units-tcl-3.3.1.source.zip[utclsrc.zip],TCL interface units sources
+package=units-tcl-source.zip[utclsrc.zip],TCL interface units sources
 # Source-3 3
-package=units-oracle-3.3.1.source.zip[uorasrc.zip],Oracle interface units sources
+package=units-oracle-source.zip[uorasrc.zip],Oracle interface units sources
 # Source-3 4
-package=units-hash-3.3.1.source.zip[uhashsrc.zip],Hash calculation units sources
+package=units-hash-source.zip[uhashsrc.zip],Hash calculation units sources
 # Source-3 5
-package=units-fftw-3.3.1.source.zip[ufftwsrc.zip],FFTW interface unit sources
+package=units-fftw-source.zip[ufftwsrc.zip],FFTW interface unit sources
 # Source-3 6
-package=units-fcl-base-3.3.1.source.zip[ufclbsrc.zip],Free component library (FCL)-base part
+package=units-fcl-base-source.zip[ufclbsrc.zip],Free component library (FCL)-base part
 # Source-3 7
-package=units-fcl-db-3.3.1.source.zip[ufcldsrc.zip],Free component library (FCL)-datasets
+package=units-fcl-db-source.zip[ufcldsrc.zip],Free component library (FCL)-datasets
 # Source-3 8
-package=units-fcl-fpcunit-3.3.1.source.zip[ufclusrc.zip],Free component library (FCL)-FPCUnit
+package=units-fcl-fpcunit-source.zip[ufclusrc.zip],Free component library (FCL)-FPCUnit
 # Source-3 9
-package=units-fcl-image-3.3.1.source.zip[ufclisrc.zip],Free component library (FCL)-images
+package=units-fcl-image-source.zip[ufclisrc.zip],Free component library (FCL)-images
 # Source-3 10
-package=units-fcl-net-3.3.1.source.zip[ufclnsrc.zip],Free component library (FCL)-network
+package=units-fcl-net-source.zip[ufclnsrc.zip],Free component library (FCL)-network
 # Source-3 11
-package=units-fcl-passrc-3.3.1.source.zip[ufclssrc.zip],Free component library (FCL)-Pascal source processing
+package=units-fcl-passrc-source.zip[ufclssrc.zip],Free component library (FCL)-Pascal source processing
 # Source-3 12
-package=units-fcl-registry-3.3.1.source.zip[ufclrsrc.zip],Free component library (FCL)-registry
+package=units-fcl-registry-source.zip[ufclrsrc.zip],Free component library (FCL)-registry
 # Source-3 13
-package=units-fcl-xml-3.3.1.source.zip[ufclxsrc.zip],Free component library (FCL)-XML files
+package=units-fcl-xml-source.zip[ufclxsrc.zip],Free component library (FCL)-XML files
 # Source-3 14
-package=units-fcl-web-3.3.1.source.zip[ufclwsrc.zip],Free component library (FCL)-Web
+package=units-fcl-web-source.zip[ufclwsrc.zip],Free component library (FCL)-Web
 # Source-3 15
-package=units-httpd13-3.3.1.source.zip[uhd13src.zip],HTTPD 1.3 interface units sources
+package=units-httpd13-source.zip[uhd13src.zip],HTTPD 1.3 interface units sources
 # Source-3 16
-package=units-httpd20-3.3.1.source.zip[uhd20src.zip],HTTPD 2.0 interface units sources
+package=units-httpd20-source.zip[uhd20src.zip],HTTPD 2.0 interface units sources
 # Source-3 17
-package=units-httpd22-3.3.1.source.zip[uhd22src.zip],HTTPD 2.2 interface units sources
+package=units-httpd22-source.zip[uhd22src.zip],HTTPD 2.2 interface units sources
 # Source-3 18
-package=units-httpd24-3.3.1.source.zip[uhd24src.zip],HTTPD 2.4 interface units sources
+package=units-httpd24-source.zip[uhd24src.zip],HTTPD 2.4 interface units sources
 # Source-3 19
-package=units-oggvorbis-3.3.1.source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
+package=units-oggvorbis-source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
 # Source-3 20
-package=units-openal-3.3.1.source.zip[uoalsrc.zip],OpenAL interface units sources
+package=units-openal-source.zip[uoalsrc.zip],OpenAL interface units sources
 # Source-3 21
-package=units-openssl-3.3.1.source.zip[uosslsrc.zip],OpenSSL interface units sources
+package=units-openssl-source.zip[uosslsrc.zip],OpenSSL interface units sources
 # Source-3 22
-package=units-fcl-sound-3.3.1.source.zip[ufsndsrc.zip],Free Component Library (FCL)-sound files sources
+package=units-fcl-sound-source.zip[ufsndsrc.zip],Free Component Library (FCL)-sound files sources
 # Source-3 23
-package=units-fcl-sdo-3.3.1.source.zip[ufcsdsrc.zip],Free Component Library (FCL)-Service Data Objects
+package=units-fcl-sdo-source.zip[ufcsdsrc.zip],Free Component Library (FCL)-Service Data Objects
 # Source-3 24
-package=units-fcl-stl-3.3.1.source.zip[ufcstsrc.zip],Free Component Library (FCL)-generic container library
+package=units-fcl-stl-source.zip[ufcstsrc.zip],Free Component Library (FCL)-generic container library
 # Source-3 25
-package=units-libtar-3.3.1.source.zip[ultarsrc.zip],Unit for .tar file handling
+package=units-libtar-source.zip[ultarsrc.zip],Unit for .tar file handling
 # Source-3 26
-package=units-rtl-console-3.3.1.source.zip[urtlcsrc.zip],RTL-console abstraction (keyboard, video & mouse)
+package=units-rtl-console-source.zip[urtlcsrc.zip],RTL-console abstraction (keyboard, video & mouse)
 # Source-3 27
-package=units-rtl-extra-3.3.1.source.zip[urtlesrc.zip],RTL-additional units not needed for bootstrapping
+package=units-rtl-extra-source.zip[urtlesrc.zip],RTL-additional units not needed for bootstrapping
 # Source-3 28
-package=units-rtl-objpas-3.3.1.source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
+package=units-rtl-objpas-source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. Delphi compatibility)
 # Source-3 29
-package=units-rtl-unicode-3.3.1.source.zip[urtlusrc.zip],RTL-miscellaneous Unicode support units
+package=units-rtl-unicode-source.zip[urtlusrc.zip],RTL-miscellaneous Unicode support units
 # Source-3 30
-package=units-rtl-generics-3.3.1.source.zip[urtlgsrc.zip],RTL-generic collection library
+package=units-rtl-generics-source.zip[urtlgsrc.zip],RTL-generic collection library
+# Source-3 31
+package=units-fcl-hash-source.zip[ufclhsrc.zip],Hash and cryptography algorithm classes
 
 #
 # Utils source packages
@@ -856,45 +865,45 @@ package=units-rtl-generics-3.3.1.source.zip[urtlgsrc.zip],RTL-generic collection
 pack=~U~tils sources
 filecheck=*.source.zip[*src.zip]
 # Source 1
-package=utils-dxegen-3.3.1.source.zip[dxegsrc.zip],Generation of D~X~E modules loadable at runtime
+package=utils-dxegen-source.zip[dxegsrc.zip],Generation of D~X~E modules loadable at runtime
 # Source 2
-package=utils-fpcmkcfg-3.3.1.source.zip[fpcksrc.zip],Creation of Free Pascal configuration files
+package=utils-fpcmkcfg-source.zip[fpcksrc.zip],Creation of Free Pascal configuration files
 # Source 3
-package=utils-fpcm-3.3.1.source.zip[fpcmsrc.zip],Generate Makefiles out of Makefile.fpc files
+package=utils-fpcm-source.zip[fpcmsrc.zip],Generate Makefiles out of Makefile.fpc files
 # Source 4
-package=utils-fpdoc-3.3.1.source.zip[fpdcsrc.zip],Free Pascal documentation generation utility
+package=utils-fpdoc-source.zip[fpdcsrc.zip],Free Pascal documentation generation utility
 # Source 5
-package=utils-fpmc-3.3.1.source.zip[fpmcsrc.zip],Free Pascal Message Compiler
+package=utils-fpmc-source.zip[fpmcsrc.zip],Free Pascal Message Compiler
 # Source 6
-package=utils-fppkg-3.3.1.source.zip[fpkgsrc.zip],Free Pascal package repository utility
+package=utils-fppkg-source.zip[fpkgsrc.zip],Free Pascal package repository utility
 # Source 7
-package=utils-fprcp-3.3.1.source.zip[fprcsrc.zip],Free Pascal Resource Compiler Preprocessor
+package=utils-fprcp-source.zip[fprcsrc.zip],Free Pascal Resource Compiler Preprocessor
 # Source 8
-package=utils-fpcres-3.3.1.source.zip[fprssrc.zip],Free Pascal Resource Converter
+package=utils-fpcres-source.zip[fprssrc.zip],Free Pascal Resource Converter
 # Source 9
-package=utils-fpcreslipo-3.3.1.source.zip[fprlsrc.zip],Free Pascal External Resource Thinner
+package=utils-fpcreslipo-source.zip[fprlsrc.zip],Free Pascal External Resource Thinner
 # Source 10
-package=utils-h2pas-3.3.1.source.zip[h2pasrc.zip],Create Pascal interface units from C headers
+package=utils-h2pas-source.zip[h2pasrc.zip],Create Pascal interface units from C headers
 # Source 11
-package=utils-json2pas-3.3.1.source.zip[jsnpsrc.zip],A utility to create Object Pascal classes files from sample JSON files
+package=utils-json2pas-source.zip[jsnpsrc.zip],A utility to create Object Pascal classes files from sample JSON files
 # Source 12
-package=utils-importtl-3.3.1.source.zip[imptsrc.zip],
+package=utils-importtl-source.zip[imptsrc.zip],
 # Source 13
-package=utils-instantfpc-3.3.1.source.zip[ifpcsrc.zip],Instantaneous Free Pascal source executer
+package=utils-instantfpc-source.zip[ifpcsrc.zip],Instantaneous Free Pascal source executer
 # Source 14
-package=utils-pas2js-3.3.1.source.zip[p2jssrc.zip],Pascal to JavaScript converter
+package=utils-pas2js-source.zip[p2jssrc.zip],Pascal to JavaScript converter
 # Source 15
-package=utils-pas2fpm-3.3.1.source.zip[p2fmsrc.zip],Generate fpmake.pp for Pascal source
+package=utils-pas2fpm-source.zip[p2fmsrc.zip],Generate fpmake.pp for Pascal source
 # Source 16
-package=utils-pas2jni-3.3.1.source.zip[p2jnsrc.zip],Generate JNI bridge for Pascal code
+package=utils-pas2jni-source.zip[p2jnsrc.zip],Generate JNI bridge for Pascal code
 # Source 17
-package=utils-pas2ut-3.3.1.source.zip[p2utsrc.zip],Pascal source to FPC Unit test generator
+package=utils-pas2ut-source.zip[p2utsrc.zip],Pascal source to FPC Unit test generator
 # Source 18
-package=utils-rmwait-3.3.1.source.zip[rmwsrc.zip],Remove (delete) file(s) with optional retries
+package=utils-rmwait-source.zip[rmwsrc.zip],Remove (delete) file(s) with optional retries
 # Source 19
-package=utils-fpcmkcfg-3.3.1.source.zip[fcmksrc.zip],A utility to create the Free Pascal configuration files
+package=utils-fpcmkcfg-source.zip[fcmksrc.zip],A utility to create the Free Pascal configuration files
 # Source 20
-package=utils-ihxutil-3.3.1.source.zip[ihxusrc.zip],A tool to convert Intel HEX Format files different formats used on various Z80 systems
+package=utils-ihxutil-source.zip[ihxusrc.zip],A tool to convert Intel HEX Format files different formats used on various Z80 systems
 
 
 defaultcfg=

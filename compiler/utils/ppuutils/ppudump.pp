@@ -799,14 +799,6 @@ begin
     Cpu2Str:=Unknown('cpu',w);
 end;
 
-Function CpuRealByteSize:byte;
-begin
-  if cpu in [cpu_i386,cpu_x86_64,cpu_i8086] then
-    CpuRealByteSize:=10
-  else
-    CpuRealByteSize:=8;
-end;
-
 {Avoid dependency on cpuinfo because the cpu directory isn't
  searched during utils building.}
 {$ifdef GENERIC_CPU}
@@ -3740,6 +3732,7 @@ var
   realvalue : ppureal;
   doublevalue : double;
   singlevalue : single;
+  extvalue : extended;
   aset : set of 0..31;
   realstr : shortstring;
   extended : TSplit80bitReal;
@@ -4117,8 +4110,17 @@ begin
              writeln([space,'        Index : ',getlongint]);
              if ppo_default_is_single in propoptions then
                begin
-                 singlevalue:=getrealsize(CpuRealByteSize);
-                 writeln([space,'      Default (single): ',singlevalue]);
+                 if (CurUnit.ByteSizeOfPpuReal=10) and (sizeof(extvalue)<10) then
+                   begin
+                     getdata(extended,10);
+                     ss:=Real80bitToStr(extended,extvalue);
+                     writeln([space,'      Default (single): ',ss]);
+                   end
+                 else
+                   begin
+                     singlevalue:=getrealsize(CurUnit.ByteSizeOfPpuReal);
+                     writeln([space,'      Default (single): ',singlevalue]);
+                   end
                end
              else if ppo_default_is_set in propoptions then
                begin
@@ -5181,7 +5183,9 @@ begin
   if b<>ibextraheader then
     exit;
   CurUnit.LongVersion:=cardinal(ppufile.getlongint);
+  CurUnit.ByteSizeOfPpuReal:=ppufile.getbyte;
   Writeln(['LongVersion: ',CurUnit.LongVersion]);
+  Writeln(['Byte size of PPU real: ',CurUnit.ByteSizeOfPpuReal]);
   ppufile.getset(tppuset4(CurUnit.ModuleFlags));
   result:=ppufile.EndOfEntry and (CurUnit.LongVersion=CurrentPPULongVersion);
   if mf_symansistr in CurUnit.ModuleFlags then

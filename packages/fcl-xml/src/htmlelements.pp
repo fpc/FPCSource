@@ -187,7 +187,7 @@ begin
         if a in booleanAttributes then
           StringToStream (aStream, ' %s', [HTMLAttributeTag[a]])
         else
-          StringToStream (aStream, ' %s="%s"', [HTMLAttributeTag[a], s]);
+          StringToStream (aStream, ' %s="%s"', [HTMLAttributeTag[a], EscapeString(s)]);
       end;
 end;
 
@@ -342,7 +342,7 @@ end;
 
 procedure THTML_text.WriteToStream(const aStream: TStream);
 begin
-  StringToStream (aStream, NodeValue+#13#10);
+  StringToStream (aStream, EscapeString(NodeValue)+#13#10);
 end;
 
 { THTMLDocument }

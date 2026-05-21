@@ -655,9 +655,6 @@ ifdef LLVM
 ifeq ($(findstring $(PPC_TARGET),x86_64 aarch64 arm),)
 $(error The $(PPC_TARGET) architecture is not (yet) supported by the FPC/LLVM code generator)
 endif
-ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux openbsd),)
-$(error The $(OS_TARGET) target OS is not (yet) supported by the FPC/LLVM code generator)
-endif
 override LOCALOPT+=-dllvm -Fullvm
 endif
 ifeq ($(PPC_TARGET),i386)
@@ -5582,7 +5579,7 @@ endif
 full_targets:
 	$(MAKE) $(FULL_TARGETS)
 htmldocs:
-	mkdir html$(PATHSEP)$(PPC_TARGET)
+	mkdir -p html$(PATHSEP)$(PPC_TARGET)
 	$(PASDOC) -p -h -E html$(PATHSEP)$(PPC_TARGET) -D fpc -D gdb -D $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 .PHONY: quickinstall exeinstall install installsymlink fullinstall fullinstallsymlink
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg

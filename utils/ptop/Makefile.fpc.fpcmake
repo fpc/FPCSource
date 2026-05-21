@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for FPDoc
+#
+
+[package]
+name=ptop
+version=3.3.1
+
+[install]
+fpcpackage=y
+
+[require]
+packages=fcl-base
+
+[target]
+programs=ptop
+
+[compiler]
+options=
+
+[default]
+fpcdir=../../
+
+[clean]
+units=ptopu
+
+[rules]
+.NOTPARALLEL:
+fpdoc$(EXEEXT): ptop.pp ptopu.pp

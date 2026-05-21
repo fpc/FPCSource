@@ -186,12 +186,14 @@ uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  Xml.HtmlElements,
   FpWeb.Route;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  htmlelements,
   httproute;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -203,6 +205,12 @@ resourcestring
   SAppEncounteredError = 'The application encountered the following error:';
   SError = 'Error: ';
   SNotify = 'Notify: ';
+
+function SimpleHTMLEncode(const aValue : string) : string;
+
+begin
+  Result:=EscapeHTML(aValue);
+end;
 
 procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
 var
@@ -218,15 +226,15 @@ begin
     Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
     Add(SAppEncounteredError+'<br>');
     Add('<ul>');
-    Add('<li>'+SError+' <b>'+E.Message+'</b>');
+    Add('<li>'+SError+' <b>'+SimpleHTMLEncode(E.Message)+'</b>');
     Add('<li> Stack trace:<br>');
-    Add(BackTraceStrFunc(ExceptAddr)+'<br>');
+    Add(SimpleHTMLEncode(BackTraceStrFunc(ExceptAddr))+'<br>');
     FrameCount:=ExceptFrameCount;
     Frames:=ExceptFrames;
     for FrameNumber := 0 to FrameCount-1 do
-      Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+      Add(SimpleHTMLEncode(BackTraceStrFunc(Frames[FrameNumber]))+'<br>');
     Add('</ul><hr>');
-    TheEmail:=Email;
+    TheEmail:=SimpleHTMLEncode(Email);
     If (TheEmail<>'') then
       Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
     Add('</body></html>');
