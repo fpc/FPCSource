@@ -174,6 +174,7 @@ resourcestring
   SErrNoModuleRecord = 'No module record location set.';
   SErrNoModuleName = 'No module name set';
   SErrTooManyRequests = 'Too many simultaneous requests.';
+  SErrContentLengthTooBig = 'Content length exceeds maximum body size';
 
 const
   HPRIO : Array[THandlerPriority] of Integer
@@ -457,6 +458,8 @@ begin
   If (ap_should_client_block(FRequest)=1) then
     begin
     Len:=ContentLength;
+    if (MaxBodySize>0) and (Len>MaxBodySize) then
+      PayloadTooLarge(SErrContentLengthTooBig);
     If (Len>0) then
       begin
       SetLength(S,Len);
