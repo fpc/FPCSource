@@ -207,6 +207,7 @@ ResourceString
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
   SErrNoRequest     = 'Internal error: No request available when writing data';
+  SErrHeadersTooLong = 'Internal error: total header length exceeds 64Kb';
 
 Implementation
 
@@ -280,7 +281,8 @@ begin
 end;
 
 function TFCGIRequest.ProcessFCGIRecord(AFCGIRecord: PFCGI_Header): boolean;
-var cl,rcl : Integer;
+var
+  rcl : Integer;
   State: TContentStreamingState;
 begin
   Result := False;
@@ -373,6 +375,7 @@ var
 
   function GetBytes(ALength : integer) : TBytes;
   begin
+    Result:=[];
     if (ALength<0) then
       ALength:=0;
     SetLength(Result,ALength);
@@ -500,7 +503,7 @@ var
   pl : byte;
   str : AnsiString;
   ARespRecord : PFCGI_ContentRecord;
-  I : Integer;
+  I,len : Integer;
 
 begin
   For I:=Headers.Count-1 downto 0 do
@@ -516,7 +519,10 @@ begin
   {$ELSE}
   str := Headers.Text+sLineBreak;
   {$ENDIF}
-  cl := length(str);
+  Len:=length(str);
+  if len>High(Word) then
+    Raise EHTTP.Create(SErrHeadersTooLong);
+  cl := len and $FFFF;
   if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
     pl:=0
   else
@@ -682,9 +688,11 @@ begin
 {$endif}
     begin
     i:=fpshutdown(FHandle,SHUT_RDWR);
-//      Log(etError,Format('Shutting down socket: %d ',[i]));
+    if I<>0 then
+      Log(etError,Format('Shutting down socket: %d ',[i]));
     i:=CloseSocket(FHandle);
-//      Log(etError,Format('Closing socket %d',[i]));
+    if I<>0 then
+      Log(etError,Format('Closing socket %d',[i]));
     end;
   FHandle := THandle(-1);
 end;
