@@ -397,6 +397,17 @@ Var
     end;
   end;
 
+  procedure MarkIdle(aModule : TCustomHTTPModule);
+  begin
+    FCriticalSection.Enter;
+    try
+      FWorkingWebModules.Remove(aModule);
+      FIdleWebModules.Add(aModule);
+    finally
+      FCriticalSection.Leave;
+    end;
+  end;
+
 begin
   try
     MC:=Nil;
@@ -417,14 +428,10 @@ begin
       MC:=MI.ModuleClass;
     end;
     GetAWebModule;
-    M.HandleRequest(ARequest,AResponse);
-
-    FCriticalSection.Enter;
     try
-      FWorkingWebModules.Remove(M);
-      FIdleWebModules.Add(M);
+      M.HandleRequest(ARequest,AResponse);
     finally
-      FCriticalSection.Leave;
+      MarkIdle(M);
     end;
   except
     On E : Exception do
