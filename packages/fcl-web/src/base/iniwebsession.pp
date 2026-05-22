@@ -21,10 +21,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Http.Base, System.IniFiles, FpWeb.Http.Defs;
+  {$ifdef unix} UnixApi.Base,{$endif} System.Classes, System.SysUtils, FpWeb.Http.Base, System.IniFiles, FpWeb.Http.Defs;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, fphttp, inifiles, httpdefs;
+  {$ifdef unix} baseunix, {$endif} Classes, SysUtils, fphttp, inifiles, httpdefs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -70,6 +70,7 @@ Type
     FCached: Boolean;
     FOldFileNameScheme: Boolean;
     FSessionDir: String;
+    FUseGlobalDir: Boolean;
     procedure SetCached(const AValue: Boolean);
     procedure SetSessionDir(const AValue: String);
   protected
@@ -88,6 +89,8 @@ Type
     Property Cached : Boolean Read FCached Write SetCached;
     // If True, the '{' and '}' will not be stripped from the session filename.
     Property OldFileNameScheme : Boolean Read FOldFileNameScheme Write FOldFileNameScheme;
+    // Use a Global temp dir as fallback if no sessiondir is set
+    Property UseGlobalDir : Boolean Read FUseGlobalDir Write FUseGlobalDir;
   end;
 
 Var
@@ -169,10 +172,13 @@ Var
 begin
   If (FSessionDir='') then
     begin
-    TD:=IncludeTrailingPathDelimiter(GetTempDir(True));
+    TD:=IncludeTrailingPathDelimiter(GetTempDir(UseGlobalDir));
     FSessionDir:=TD+'fpwebsessions'+PathDelim;
     if Not ForceDirectories(FSessionDir) then
-      FSessionDir:=TD; // Assuming temp dir is writeable as fallback
+      Raise EHTTP.CreateFmt('Coould not create session directory "%s"',[FSessionDir]);
+    {$ifdef unix}
+    fpChmod(FSessionDir,&700);
+    {$endif}
     end;
 end;
 
@@ -228,7 +234,7 @@ begin
   FreeAndNil(ASession);
 end;
 
-Function TIniSessionFactory.SessionFilePrefix : String;
+function TIniSessionFactory.SessionFilePrefix: String;
 
 begin
   Result:='';
