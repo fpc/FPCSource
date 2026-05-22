@@ -733,8 +733,7 @@ type
   HTTPError = EHTTP;
   { CORS Support }
 
-  TCORSOption = (coAllowCredentials,   // Set Access-Control-Allow-Credentials header
-                 coEmptyDomainToOrigin // If allowedOrigins is empty, try to determine origin from request and echo that
+  TCORSOption = (coAllowCredentials   // Set Access-Control-Allow-Credentials header
                  );
   TCORSOptions = Set of TCORSOption;
 
@@ -1063,7 +1062,8 @@ end;
 
 constructor TCORSSupport.Create;
 begin
-  FOptions:=[coAllowCredentials,coEmptyDomainToOrigin];
+  // Do not allow credentials by default. It is a security leak.
+  FOptions:=[];
   AllowedHeaders:=DefaultAllowedHeaders;
   AllowedOrigins:=DefaultAllowedOrigins;
   AllowedMethods:=DefaultAllowedMethods;
@@ -1096,23 +1096,6 @@ Var
 
 begin
   Result:=FAllowedOrigins;
-  if Result='' then
-    begin
-    // Sent with CORS request
-    Result:=aRequest.GetCustomHeader('Origin');
-    if (Result='') and (coEmptyDomainToOrigin in Options) then
-      begin
-      // Fallback
-      URL:=aRequest.Referer;
-      if (URL<>'') then
-        begin
-        uri:=ParseURI(URL,'http',0);
-        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
-        if (URI.Port<>0) then
-          Result:=Result+':'+IntToStr(URI.Port);
-        end;
-      end;
-    end;
   if Result='' then
     Result:='*';
 end;
