@@ -356,7 +356,7 @@ Var
 begin
   PWD:=ARequest.QueryFields.Values['password'];
   if PWD='' then
-    ARequest.ContentFields.Values['password'];
+    PWD:=ARequest.ContentFields.Values['password'];
   if PWD=FPassword then
     begin
     AResponse.Content:='OK';
