@@ -635,7 +635,7 @@ begin
     aAuth:=ExtractWord(2,aAuth,[' '])
   else
     aAuth:=aRequest.QueryFields.Values['APIKey'];
-  Result:=(aAuth=APIPassword);
+  Result:=SecureCompare(aAuth,APIPassword);
 end;
 
 

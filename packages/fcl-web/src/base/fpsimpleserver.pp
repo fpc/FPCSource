@@ -357,7 +357,7 @@ begin
   PWD:=ARequest.QueryFields.Values['password'];
   if PWD='' then
     PWD:=ARequest.ContentFields.Values['password'];
-  if PWD=FPassword then
+  if SecureCompare(PWD,FPassword) then
     begin
     AResponse.Content:='OK';
     AResponse.SendContent;
