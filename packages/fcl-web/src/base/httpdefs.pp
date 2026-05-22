@@ -2050,6 +2050,8 @@ begin
       P.Name:='DummyFileItem'+IntToStr(i);
     if (TUploadedFiles.MaxUploadFileSize>0) and (P.DataSize>TUploadedFiles.MaxUploadFileSize) then
       PayLoadTooLarge('File size exceeds maximum file size');
+    // Only use filename part, avoids sending malicious filenames.
+    P.FileName:=ExtractFileName(SetDirSeparators(P.FileName));
     //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
 {$ifdef CGIDEBUG}
     With P Do
