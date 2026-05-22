@@ -315,6 +315,8 @@ const
   DW_LNCT_timestamp = 3;
   DW_LNCT_size = 4;
 
+  DW_UT_compile = 1;
+
 type
   { state record for the line info state machine }
   TMachineState = record
@@ -378,12 +380,31 @@ type
     debug_abbrev_offset : QWord;
     address_size : Byte;
   end;
+  PDebugInfoProgramHeader64 = ^TDebugInfoProgramHeader64;
+
+  TDebugInfoProgramHeader64_v5 = packed record // DWARF 5
+    magic : DWord;
+    unit_length : QWord;
+    version : Word;
+    unit_type: byte;
+    address_size : Byte;
+    debug_abbrev_offset : QWord;
+  end;
 
   TDebugInfoProgramHeader32= packed record
     unit_length : DWord;
     version : Word;
     debug_abbrev_offset : DWord;
     address_size : Byte;
+  end;
+  PDebugInfoProgramHeader32 = ^TDebugInfoProgramHeader32;
+
+  TDebugInfoProgramHeader32_v5= packed record // Dwarf 5
+    unit_length : DWord;
+    version : Word;
+    unit_type: byte;
+    address_size : Byte;
+    debug_abbrev_offset : DWord;
   end;
 
   TDebugArangesHeader64 = packed record
@@ -1393,8 +1414,10 @@ function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOff
   var func : ShortString; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
-  header64 : TDebugInfoProgramHeader64;
-  header32 : TDebugInfoProgramHeader32;
+  header64_v5 : TDebugInfoProgramHeader64_v5;
+  header32_v5 : TDebugInfoProgramHeader32_v5;
+  header64 : TDebugInfoProgramHeader64 absolute header64_v5;
+  header32 : TDebugInfoProgramHeader32 absolute header32_v5;
   isdwarf64 : boolean;
   abbrev,
   high_pc,
@@ -1480,6 +1503,7 @@ var
   i : PtrInt;
   prev_base,prev_size,prev_pos : TFilePos;
   curAbbrev : ^TAbbrevRec;
+  o: DWord;
 
 begin
   found := false;
@@ -1500,6 +1524,18 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+
+    if header32.version >= 5 then begin
+      if header32_v5.unit_type <> DW_UT_compile then
+        exit;
+
+      er.ReadNext((PByte(@header32_v5)+SizeOf(header32))^, SizeOf(header32_v5)-SizeOf(header32));
+      i := header32_v5.address_size;
+      o := header32_v5.debug_abbrev_offset;
+      header32.address_size := i;
+      header32.debug_abbrev_offset := o;
+    end;
+
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -1509,6 +1545,17 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+
+    if header64.version >= 5 then begin
+      if header64_v5.unit_type <> DW_UT_compile then
+        exit;
+
+      er.ReadNext((PByte(@header64_v5)+SizeOf(header64))^, SizeOf(header64_v5)-SizeOf(header64));
+      i := header64_v5.address_size;
+      o := header64_v5.debug_abbrev_offset;
+      header64.address_size := i;
+      header64.debug_abbrev_offset := o;
+    end;
     isdwarf64:=true;
   end;
 
