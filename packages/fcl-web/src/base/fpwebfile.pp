@@ -23,9 +23,9 @@ unit fpwebfile;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes, FpWeb.Http.Defs, FpWeb.Http.Base, FpWeb.Route;
+uses System.SysUtils, System.Classes, FpWeb.Http.Defs, FpWeb.Http.Base, FpWeb.Route, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils, Classes, httpdefs, fphttp, httproute;
+uses SysUtils, Classes, httpdefs, fphttp, httproute, types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -87,6 +87,7 @@ Type
     FCors: TCORSSupport;
     procedure SetCors(AValue: TCORSSupport);
   Protected
+    function IsLocationAllowed(const aPath: String): boolean; virtual;
     procedure CreateLocation(ARequest: TRequest; AResponse: TResponse); virtual;
     procedure DeleteLocation(ARequest: TRequest; AResponse: TResponse); virtual;
     procedure GetLocations(ARequest: TRequest; AResponse: TResponse); virtual;
@@ -96,6 +97,9 @@ Type
     class procedure HandleFileLocationAPIModuleRequest(ARequest: TRequest; AResponse: TResponse); static;
   Public
     Class var LocationAPIModuleClass : TFPWebFileLocationAPIModuleClass;
+    class var AllowedBaseDirs : TStringDynArray;
+    // Excluded has priority over allowed.
+    class var ExcludedBaseDirs : TStringDynArray;
   Public
     Constructor CreateNew(aOwner : TComponent; CreateMode: Integer); override;
     Destructor Destroy; override;
@@ -559,6 +563,43 @@ begin
   aJSON.Add('path',path);
 end;
 
+function TFPWebFileLocationAPIModule.IsLocationAllowed(const aPath : String) : boolean;
+
+
+  Function IsBelow(const aParent,aChild : String) : boolean;
+  var
+    lParent : string;
+  begin
+    lParent:=IncludeTrailingPathDelimiter(aParent);
+    {$IFDEF UNIX}
+    Result:=StrUtils.StartsStr(lParent,aChild);
+    {$ELSE}
+    Result:=StrUtils.StartsText(lParent,aChild);
+    {$ENDIF}
+  end;
+
+var
+  lPath,S : String;
+
+begin
+  Result:=(Length(AllowedBaseDirs)=0) and (Length(ExcludedBaseDirs)=0);
+  lPath:=IncludeTrailingPathDelimiter(aPath);
+  if Result then
+    exit;
+  for S in ExcludedBaseDirs do
+    begin
+    Result:=Not IsBelow(S,lPath);
+    if Not Result then
+      Exit;
+    end;
+  for S in AllowedBaseDirs do
+    begin
+    Result:=IsBelow(S,lPath);
+    if Result then
+      Exit;
+    end;
+end;
+
 procedure TFPWebFileLocationAPIModule.CreateLocation(ARequest: TRequest; AResponse: TResponse);
 
 Var
@@ -570,11 +611,16 @@ begin
   try
     ALoc.FromJSON(aJSON);
     ALoc.Verify;
-    RegisterFileLocation(aLoc.Location,Aloc.Path);
-    aJSON.Clear;
-    aLoc.ToJSON(aJSON);
-    aResponse.ContentAsJSON:=aJSON;
-    aResponse.SetStatus(201,True);
+    if not isLocationAllowed(Aloc.Path) then
+      aResponse.SetStatus(400,True)
+    else
+      begin
+      RegisterFileLocation(aLoc.Location,Aloc.Path);
+      aJSON.Clear;
+      aLoc.ToJSON(aJSON);
+      aResponse.ContentAsJSON:=aJSON;
+      aResponse.SetStatus(201,True);
+      end;
   finally
     aJSON.Free;
   end;
@@ -598,20 +644,25 @@ begin
     if aLoc.Location='' then // Only path in payload
       aLoc.Location:=aOldLoc;
     ALoc.Verify;
-    Idx:=IndexOfFileLocation(aOldLoc);
-    if Idx=-1 then
-      aResponse.SetStatus(404,True)
-    else  if not SameText(aOldLoc,aLoc.Location) then
-      begin
-      UnRegisterFileLocation(aOldLoc);
-      RegisterFileLocation(aLoc.Location,Aloc.Path);
-      end
+    if not isLocationAllowed(Aloc.Path) then
+      aResponse.SetStatus(400,True)
     else
-      SetFileLocationPath(aLoc.Location,aLoc.Path);
-    aJSON.Clear;
-    aLoc.ToJSON(aJSON);
-    aResponse.ContentAsJSON:=aJSON;
-    aResponse.SendContent;
+      begin
+      Idx:=IndexOfFileLocation(aOldLoc);
+      if Idx=-1 then
+        aResponse.SetStatus(404,True)
+      else  if not SameText(aOldLoc,aLoc.Location) then
+        begin
+        UnRegisterFileLocation(aOldLoc);
+        RegisterFileLocation(aLoc.Location,Aloc.Path);
+        end
+      else
+        SetFileLocationPath(aLoc.Location,aLoc.Path);
+      aJSON.Clear;
+      aLoc.ToJSON(aJSON);
+      aResponse.ContentAsJSON:=aJSON;
+      aResponse.SendContent;
+      end;
   finally
     aJSON.Free;
   end;
