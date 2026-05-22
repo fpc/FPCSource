@@ -76,6 +76,10 @@ function ContainsStr(const AText, ASubText: string): Boolean; inline;
 function MatchStr(const AText: Ansistring; const AValues: array of Ansistring): Boolean; inline;
 function IndexStr(const AText: Ansistring; const AValues: array of Ansistring): Integer; inline;
 
+// Constant-time string compare.
+function SecureCompare(const A, B: RawByteString): Boolean;
+function SecureCompare(const A, B: UnicodeString): Boolean;
+
 { ---------------------------------------------------------------------
     Miscellaneous
   ---------------------------------------------------------------------}
@@ -3537,5 +3541,34 @@ begin
   SetLength(Result,Len);
 end;
 
+function SecureCompare(const A, B: RawByteString): Boolean;
+
+var
+  I, Diff, LenA, LenB, N: SizeInt;
+
+begin
+  LenA := Length(A);
+  LenB := Length(B);
+  Diff := LenA xor LenB;
+  if LenA < LenB then N := LenA else N := LenB;
+  for I := 1 to N do
+    Diff := Diff or (Ord(A[I]) xor Ord(B[I]));
+  Result := Diff = 0;
+end;
+
+function SecureCompare(const A, B: UnicodeString): Boolean;
+
+var
+  I, Diff, LenA, LenB, N: SizeInt;
+
+begin
+  LenA := Length(A);
+  LenB := Length(B);
+  Diff := LenA xor LenB;
+  if LenA < LenB then N := LenA else N := LenB;
+  for I := 1 to N do
+    Diff := Diff or (Ord(A[I]) xor Ord(B[I]));
+  Result := Diff = 0;
+end;
 
 end.
