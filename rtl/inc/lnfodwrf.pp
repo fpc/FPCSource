@@ -308,6 +308,25 @@ const
   DW_FORM_sec_offset = $17;
   DW_FORM_exprloc = $18;
   DW_FORM_flag_present = $19;
+  DW_FORM_strx           = $1A;
+  DW_FORM_addrx          = $1B;
+  DW_FORM_ref_sup4       = $1C;
+  DW_FORM_strp_sup       = $1D;
+  DW_FORM_data16         = $1E;
+  DW_FORM_line_strp      = $1F;
+  DW_FORM_ref_sig8       = $20;
+  DW_FORM_implicit_const = $21;
+  DW_FORM_loclistx       = $22;
+  DW_FORM_rnglistx       = $23;
+  DW_FORM_ref_sup8       = $24;
+  DW_FORM_strx1          = $25;
+  DW_FORM_strx2          = $26;
+  DW_FORM_strx3          = $27;
+  DW_FORM_strx4          = $28;
+  DW_FORM_addrx1         = $29;
+  DW_FORM_addrx2         = $2A;
+  DW_FORM_addrx3         = $2B;
+  DW_FORM_addrx4         = $2C;
 
   DW_LNCT_invalid = 0;
   DW_LNCT_path = 1;
@@ -1476,6 +1495,8 @@ procedure SkipAttr(var er: TEReader; form : QWord);
             else
               nskip := header64.address_size;
           end;
+      DW_FORM_line_strp,
+      DW_FORM_strp_sup,
       DW_FORM_strp,
       DW_FORM_sec_offset:
         if isdwarf64 then
@@ -1490,6 +1511,23 @@ procedure SkipAttr(var er: TEReader; form : QWord);
       DW_FORM_indirect:
         SkipAttr(er, er.ReadULEB128);
       DW_FORM_flag_present: {none};
+      DW_FORM_ref_sig8 : nskip := 8;
+      DW_FORM_ref_sup4: nskip := 4;
+      DW_FORM_ref_sup8: nskip := 8;
+      DW_FORM_data16:   nskip := 16;
+      //DW_FORM_implicit_const: ; // no inc => the value is in the attrib-spec (after the form)
+      DW_FORM_loclistx,
+      DW_FORM_rnglistx: er.ReadULEB128;
+      DW_FORM_strx:     er.ReadULEB128;
+      DW_FORM_strx1:    nskip := 1;
+      DW_FORM_strx2:    nskip := 2;
+      DW_FORM_strx3:    nskip := 3;
+      DW_FORM_strx4:    nskip := 4;
+      DW_FORM_addrx:    er.ReadULEB128;
+      DW_FORM_addrx1:   nskip := 1;
+      DW_FORM_addrx2:   nskip := 2;
+      DW_FORM_addrx3:   nskip := 3;
+      DW_FORM_addrx4:   nskip := 4;
       else
         begin
           writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
