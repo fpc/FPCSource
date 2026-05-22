@@ -2875,7 +2875,7 @@ implementation
     function tcallnode.handle_compilerproc: tnode;
       var
         para: TCallParaNode;
-        minlennode, maxlennode, outnode, valnode: TNode;
+        minlennode, maxlennode, outnode, valnode, constnode: TNode;
         minstrlen: Int64;
         StringLiteral, name: string;
         ValOutput: TConstExprInt;
@@ -2972,9 +2972,14 @@ implementation
                                             Exit;
                                         end;
 
+                                      if Length(StringLiteral) = 1 then
+                                        constnode := cordconstnode.create(Ord(StringLiteral[1]), cchartype, False)
+                                      else
+                                        constnode := cstringconstnode.createstr(StringLiteral);
+
                                       result := cassignmentnode.create(
                                         outnode.getcopy,
-                                        cstringconstnode.createstr(StringLiteral)
+                                        constnode
                                       );
                                     end;
                                 end;
