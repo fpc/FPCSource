@@ -498,6 +498,7 @@ begin
   FCors:=TCORSSupport.Create;
   FCors.Enabled:=True;
   FCors.Options:=[coAllowCredentials];
+  FCors.AllowedOrigins:='localhost';
 end;
 
 destructor TFPWebFileLocationAPIModule.Destroy;
