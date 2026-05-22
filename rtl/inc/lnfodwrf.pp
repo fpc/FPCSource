@@ -309,6 +309,12 @@ const
   DW_FORM_exprloc = $18;
   DW_FORM_flag_present = $19;
 
+  DW_LNCT_invalid = 0;
+  DW_LNCT_path = 1;
+  DW_LNCT_directory_index = 2;
+  DW_LNCT_timestamp = 3;
+  DW_LNCT_size = 4;
+
 type
   { state record for the line info state machine }
   TMachineState = record
@@ -338,6 +344,7 @@ type
     line_range : Byte;
     opcode_base : Byte;
   end;
+  PLineNumberProgramHeader64 = ^TLineNumberProgramHeader64;
 
 { DWARF line number program header preceding the line number program, 32 bit version }
   TLineNumberProgramHeader32 = packed record
@@ -349,6 +356,19 @@ type
     line_base : ShortInt;
     line_range : Byte;
     opcode_base : Byte;
+  end;
+  PLineNumberProgramHeader32 = ^TLineNumberProgramHeader32;
+
+  TLineNumberProgramHeaderDirFormat = packed record
+    cnt: byte;
+    f1, f2: byte; // ULeb, known to fit into a byte
+    dir_cnt: byte;
+  end;
+
+  TLineNumberProgramHeaderFileFormat = packed record
+    cnt: byte;
+    f1, f2, f3, f4, f5, f6, f7, f8: byte; // ULeb, known to fit into a byte
+    file_cnt: byte;
   end;
 
   TDebugInfoProgramHeader64 = packed record
@@ -859,6 +879,8 @@ var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TLineNumberProgramHeader64;
   header32 : TLineNumberProgramHeader32;
+  header_dir : TLineNumberProgramHeaderDirFormat;
+  header_file : TLineNumberProgramHeaderFileFormat;
 
   adjusted_opcode : Int64;
 
@@ -906,9 +928,28 @@ begin
   er.SetRange(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
+  header_length := 0;
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+
+    if header32.version >= 4 then begin
+      i := 1;
+      if header32.version >= 5 then begin
+        i := 3;
+        // Remove: U-BYTE address size, U-BYTE segment size
+        move((PByte(@header32.length)+2)^,
+          header32.length,
+          SizeOf(header32)-2-PtrUint(@PLineNumberProgramHeader32(nil)^.length));
+        header_length := 2;
+      end;
+      // Remove: U-BYTE maximum_operations_per_instruction => currently value is always 1
+      move((PByte(@header32.default_is_stmt)+1)^,
+        header32.default_is_stmt,
+        SizeOf(header32)-1-PtrUint(@PLineNumberProgramHeader32(nil)^.default_is_stmt));
+      er.ReadNext((PByte(@header32)+SizeOf(header32)-i)^, i);
+    end;
+
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -919,12 +960,32 @@ begin
     header64.line_range := header32.line_range;
     header64.opcode_base := header32.opcode_base;
     header_length :=
+      header_length +
       sizeof(header32.length) + sizeof(header32.version) +
       sizeof(header32.unit_length);
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+
+    if header64.version >= 4 then begin
+      i := 1;
+      if header64.version >= 5 then begin
+        i := 3;
+        // Remove: U-BYTE address size, U-BYTE segment size
+        move((PByte(@header64.length)+2)^,
+          header64.length,
+          SizeOf(header64)-2-PtrUint(@PLineNumberProgramHeader64(nil)^.length));
+        header_length := 2;
+      end;
+      // Remove: U-BYTE maximum_operations_per_instruction => currently value is always 1
+      move((PByte(@header64.default_is_stmt)+1)^,
+        header64.default_is_stmt,
+        SizeOf(header64)-1-PtrUint(@PLineNumberProgramHeader64(nil)^.default_is_stmt));
+      er.ReadNext((PByte(@header64)+SizeOf(header64)-i)^, i);
+    end;
+
     header_length :=
+      header_length +
       sizeof(header64.magic) + sizeof(header64.version) +
       sizeof(header64.length) + sizeof(header64.unit_length);
   end;
@@ -938,12 +999,59 @@ begin
     DEBUG_WRITELN('Opcode[', i, '] - ', numoptable[i], ' parameters');
   end;
 
+
   DEBUG_WRITELN('Reading directories...');
-  include_directories := er.Pos();
-  SkipDirectories(er);
+  if header64.version >= 5 then begin
+    // directory formats
+    er.ReadNext(header_dir, SizeOf(header_dir));
+    // check its the known format
+    if (header_dir.cnt <> 1) or
+       (header_dir.f1 <> DW_LNCT_path) or
+       (header_dir.f2 <> DW_FORM_string) or
+       (header_dir.dir_cnt < 1)
+    then
+      exit; // Can not read this line info
+
+    er.ReadString(nil);
+    include_directories := er.Pos();
+    for i := 1 to header_dir.dir_cnt-1 do
+      er.ReadString(nil);
+  end
+  else begin
+    include_directories := er.Pos();
+    SkipDirectories(er);
+  end;
+
   DEBUG_WRITELN('Reading filenames...');
-  file_names := er.Pos();
-  SkipFilenames(er);
+  if header64.version >= 5 then begin
+    // filename formats
+    er.ReadNext(header_file, SizeOf(header_file));
+    // check its the known format
+    if (header_file.cnt <> 4) or
+       (header_file.f1 <> DW_LNCT_path) or
+       (header_file.f2 <> DW_FORM_string) or
+       (header_file.f3 <> DW_LNCT_directory_index) or
+       (header_file.f4 <> DW_FORM_udata) or
+       (header_file.f5 <> DW_LNCT_timestamp) or
+       (header_file.f6 <> DW_FORM_udata) or
+       (header_file.f7 <> DW_LNCT_size) or
+       (header_file.f8 <> DW_FORM_udata) or
+       (header_file.file_cnt < 1)
+    then
+      exit; // Can not read this line info
+
+    er.ReadString(nil);
+    er.SkipLEB128s(3);
+    file_names := er.Pos();
+    for i := 1 to header_file.file_cnt-1 do begin
+      er.ReadString(nil);
+      er.SkipLEB128s(3);
+    end;
+  end
+  else begin
+    file_names := er.Pos();
+    SkipFilenames(er);
+  end;
 
   er.Seek(header_length);
 
