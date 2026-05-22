@@ -159,7 +159,7 @@ implementation
         if not(target_info.system in systems_darwin) and
            (
             (tf_needs_dwarf_cfi in target_info.flags) or
-            (target_dbg.id in [dbg_dwarf2, dbg_dwarf3])
+            (target_dbg.id in [dbg_dwarf2, dbg_dwarf3, dbg_dwarf4, dbg_dwarf5])
            ) then
           begin
             current_asmdata.asmlists[al_dwarf_frame].Free;
