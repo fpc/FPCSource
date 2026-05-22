@@ -487,6 +487,9 @@ begin
     C.Path:=SessionCookiePath;
     end;
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitResponse');{$endif}
+  C.HttpOnly:=True;
+  C.SameSite:=SameSitePolicy;
+  C.Secure:=SecureSession;
   AddToSessionState(ssResponseInitialized);
 end;
 

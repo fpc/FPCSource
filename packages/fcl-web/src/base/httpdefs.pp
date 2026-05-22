@@ -658,6 +658,8 @@ type
   TCustomSession = Class(TComponent)
   Private
     FOnSessionStateChange: TNotifyEvent;
+    FSameSitePolicy: TSameSite;
+    FSecureSession: Boolean;
     FSessionCookie: String;
     FSessionCookiePath: String;
     FStates: TSessionStates;
@@ -706,6 +708,10 @@ type
     Property SessionState : TSessionStates Read FStates;
     // Called when state changes
     Property OnSessionStateChange : TNotifyEvent Read FOnSessionStateChange Write FOnSessionStateChange;
+    // Secure session ? If set, then the cookie will be marked 'secure', only usable in https.
+    Property SecureSession : Boolean Read FSecureSession Write FSecureSession default false;
+    // Same Site Policy: TSameSite
+    Property SameSitePolicy : TSameSite Read FSameSitePolicy Write FSameSitePolicy default ssLax;
   end;
 
   TRequestEvent = Procedure (Sender: TObject; ARequest : TRequest) of object;
@@ -3577,6 +3583,7 @@ begin
   FTimeOut:=DefaultTimeOut;
   inherited Create(AOwner);
   FStates:=[];
+  SameSitePolicy:=ssLax;
 end;
 
 procedure TCustomSession.InitResponse(AResponse: TResponse);

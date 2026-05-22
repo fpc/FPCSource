@@ -170,6 +170,8 @@ Type
 
   TSessionFactory = Class(TComponent)
   private
+    FSameSitePolicy: TSameSite;
+    FSecureSession: Boolean;
     FSessionCookie: String;
     FSessionCookiePath: String;
     FTimeOut: Integer;
@@ -182,6 +184,7 @@ Type
     Procedure DoCleanupSessions; virtual; abstract;
     Property DoneCount : Integer Read FDoneCount;
   Public
+    constructor Create(aOwner : TComponent); override;
     Function CreateSession(ARequest : TRequest) : TCustomSession;
     Procedure DoneSession(Var ASession : TCustomSession);
     Procedure CleanupSessions;
@@ -196,6 +199,10 @@ Type
     property SessionCookie : String Read FSessionCookie Write FSessionCookie;
     // Default session cookie path
     Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
+    // Secure session ? If set, then the cookie will be marked 'secure', only usable in https.
+    Property SecureSession : Boolean Read FSecureSession Write FSecureSession default false;
+    // Same Site Policy: TSameSite
+    Property SameSitePolicy : TSameSite Read FSameSitePolicy Write FSameSitePolicy default ssLax;
   end;
   TSessionFactoryClass = Class of TSessionFactory;
 
@@ -360,6 +367,13 @@ end;
 
 { TSessionFactory }
 
+constructor TSessionFactory.Create(aOwner: TComponent);
+begin
+  inherited Create(aOwner);
+  FSameSitePolicy:=ssLax;
+  FSecureSession:=False;
+end;
+
 function TSessionFactory.CreateSession(ARequest: TRequest): TCustomSession;
 begin
   Result:=DoCreateSession(ARequest);
@@ -369,6 +383,8 @@ begin
       Result.TimeoutMinutes:=FTimeOut;
     Result.SessionCookie:=Self.SessionCookie;
     Result.SessionCookiePath:=Self.SessionCookiePath;
+    Result.SameSitePolicy:=Self.SameSitePolicy;
+    Result.SecureSession:=Self.SecureSession;
     end;
 end;
 
