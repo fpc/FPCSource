@@ -91,7 +91,8 @@ Type
     procedure DeleteLocation(ARequest: TRequest; AResponse: TResponse); virtual;
     procedure GetLocations(ARequest: TRequest; AResponse: TResponse); virtual;
     procedure UpdateLocation(ARequest: TRequest; AResponse: TResponse); virtual;
-    Function IsRequestAuthenticated(aRequest : TRequest): Boolean; virtual;
+    Function IsRequestAuthenticated(aRequest : TRequest): Boolean; virtual; deprecated 'Use overload with isRead';
+    Function IsRequestAuthenticated(aRequest : TRequest; aIsRead : Boolean): Boolean; virtual;
     class procedure HandleFileLocationAPIModuleRequest(ARequest: TRequest; AResponse: TResponse); static;
   Public
     Class var LocationAPIModuleClass : TFPWebFileLocationAPIModuleClass;
@@ -557,7 +558,7 @@ begin
   aJSON.Add('path',path);
 end;
 
-Procedure TFPWebFileLocationAPIModule.CreateLocation(ARequest: TRequest; AResponse: TResponse);
+procedure TFPWebFileLocationAPIModule.CreateLocation(ARequest: TRequest; AResponse: TResponse);
 
 Var
   aJSON : TJSONObject;
@@ -578,7 +579,7 @@ begin
   end;
 end;
 
-Procedure TFPWebFileLocationAPIModule.UpdateLocation(ARequest: TRequest; AResponse: TResponse);
+procedure TFPWebFileLocationAPIModule.UpdateLocation(ARequest: TRequest; AResponse: TResponse);
 
 Var
   aJSON : TJSONObject;
@@ -617,12 +618,18 @@ end;
 
 function TFPWebFileLocationAPIModule.IsRequestAuthenticated(aRequest: TRequest): Boolean;
 
+begin
+  IsRequestAuthenticated(aRequest,True); // Old behaviour
+end;
+
+function TFPWebFileLocationAPIModule.IsRequestAuthenticated(aRequest: TRequest; aIsRead: Boolean): Boolean;
 Var
   aAuth : String;
 
 begin
-  Result:=(APIPassword='');
-  if Result then exit;
+  Result:=(APIPassword='') and aIsRead;
+  if Result then
+    exit;
   aAuth:=aRequest.Authorization;
   if (aAuth<>'') and SameText(ExtractWord(1,aAuth,[' ']),'Bearer') then
     aAuth:=ExtractWord(2,aAuth,[' '])
@@ -631,7 +638,8 @@ begin
   Result:=(aAuth=APIPassword);
 end;
 
-Procedure TFPWebFileLocationAPIModule.DeleteLocation(ARequest: TRequest; AResponse: TResponse);
+
+procedure TFPWebFileLocationAPIModule.DeleteLocation(ARequest: TRequest; AResponse: TResponse);
 
 Var
   aOldLoc : String;
@@ -654,7 +662,7 @@ begin
     end;
 end;
 
-Procedure TFPWebFileLocationAPIModule.GetLocations(ARequest: TRequest; AResponse: TResponse);
+procedure TFPWebFileLocationAPIModule.GetLocations(ARequest: TRequest; AResponse: TResponse);
 
 Var
   Res,Loc : TJSONObject;
@@ -695,8 +703,12 @@ begin
 end;
 
 procedure TFPWebFileLocationAPIModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+var
+  IsRead : Boolean;
+
 begin
-  if Not IsRequestAuthenticated(aRequest) then
+  isRead:=IndexText(aRequest.Method,['GET','HEAD','OPTIONS'])<>-1;
+  if Not IsRequestAuthenticated(aRequest,IsRead) then
     begin
     aResponse.SetStatus(401,True);
     exit;
