@@ -303,10 +303,13 @@ var
       repeat
          index := Pos('%', queryItem);
          if index > 0 then
-         begin
-            queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
-            system.Delete(queryItem, index + 1, 2);
-         end;
+           if index<Length(queryitem)-1 then
+             begin
+             queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
+             system.Delete(queryItem, index + 1, 2);
+             end
+           else
+             index:=0
       until index = 0;
    end;
 
