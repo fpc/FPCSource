@@ -1400,7 +1400,7 @@ HKCR
                       ((Arguments[0].VType and varTypeMask) in [varVariant]) and
                       ((CallDesc^.argtypes[0] and $80) <> 0)
                     ) then
-                  InvokeKind:=DISPATCH_PROPERTYPUTREF;
+                  InvokeKind:=DISPATCH_PROPERTYPUTREF or DISPATCH_PROPERTYPUT;
                 { first name is actually the name of the property to set }
                 DispIDs^[0]:=DISPID_PROPERTYPUT;
                 DispParams.rgdispidNamedArgs:=@DispIDs^[0];
@@ -1619,7 +1619,7 @@ HKCR
             begin
               inc(dispparams.cNamedArgs);
               if (Arguments[0].VType and varTypeMask) = varDispatch then
-                flags:=DISPATCH_PROPERTYPUTREF;
+                flags:=DISPATCH_PROPERTYPUTREF or DISPATCH_PROPERTYPUT;
               dispidNamed:=DISPID_PROPERTYPUT;
               DispParams.rgdispidNamedArgs:=@dispidNamed;
             end;
