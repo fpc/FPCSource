@@ -20,7 +20,7 @@ uses
 
 var
   reg: TRegistry;
-  machine, username, s: String;
+  machine, username, s:AnsiString;
   res: NETRESOURCEA;
   err: DWORD;
   sl: TStringList;
@@ -41,8 +41,9 @@ begin
     Writeln('Connecting to ', machine, ' as ', username);
     FillChar(res, SizeOf(res), 0);
     res.dwType := RESOURCETYPE_ANY;
-    res.lpRemoteName := PChar(Format('%s\IPC$', [machine]));
-    err := WNetAddConnection2A(res, Nil, PChar(username),
+    S:=Format('%s\IPC$', [machine]);
+    res.lpRemoteName := PAnsiChar(S);
+    err := WNetAddConnection2A(res, Nil, PAnsiChar(username),
              CONNECT_TEMPORARY or CONNECT_INTERACTIVE or CONNECT_COMMANDLINE);
     { ERROR_SESSION_CREDENTIAL_CONFLICT means that we already connected to the
       host and the connection is still available }

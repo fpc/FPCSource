@@ -36,6 +36,7 @@ begin
     rdInteger               : Result := dtDword;
     rdBinary                : Result := dtBinary;
     rdMultiString           : Result := dtStrings;
+    rdInt64                 : Result := dtQword;
   else
     Raise ERegistryException.CreateFmt(SErrTypeNotSupported,[GetEnumName(TypeInfo(TRegDataType),Ord(RegData))]);
   end;
@@ -47,6 +48,7 @@ begin
   Case DataType of
     dtUnknown: Result:=rdUnknown;
     dtDword  : Result:=rdInteger;
+    dtQword  : Result:=rdInt64;
     dtString : Result:=rdString;
     dtBinary : Result:=rdBinary;
     dtStrings : Result:=rdMultiString;
@@ -170,6 +172,8 @@ var s : string;
 begin
   FStringSizeIncludesNull:=False;
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
+  if VendorXMLFile and (VendorName <> '') and (ApplicationName <> '') then
+    s:= Copy(s, 1, Length(s)-Length(ApplicationName)-1);
   {$ifdef XMLRegfile_in_CurDir}
   s:='.' + PathDelim;
   {$endif}
@@ -182,8 +186,10 @@ procedure TRegistry.SysRegFree;
 
 begin
   if Assigned(FSysData) then
+  begin
     TXMLRegistry(FSysData).Flush;
-  TXMLRegistryInstance.FreeXMLRegistry(TXMLRegistry(FSysData));
+    TXMLRegistryInstance.FreeXMLRegistry(TXMLRegistry(FSysData));
+  end;
 end;
 
 function TRegistry.SysCreateKey(Key: UnicodeString): Boolean;

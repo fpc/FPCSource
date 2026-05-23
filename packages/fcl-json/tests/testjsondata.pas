@@ -14,6 +14,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$codepage utf8}
 unit testjsondata; 
 
 interface
@@ -177,6 +178,7 @@ type
     procedure TestCreateBoolean;
     procedure TestCreateObject;
     procedure TestCreateJSONString;
+    procedure TestCreateJSONStringSpecialChars;
     procedure TestCreateJSONObject;
     procedure TestCreateNilPointer;
     procedure TestCreatePointer;
@@ -233,6 +235,8 @@ type
     procedure TestCreateIntegerUnquoted;
     procedure TestCreateInt64;
     procedure TestCreateInt64Unquoted;
+    procedure TestCreateQWord;
+    procedure TestCreateQWordUnquoted;
     procedure TestCreateFloat;
     procedure TestCreateFloatUnquoted;
     procedure TestCreateBoolean;
@@ -263,6 +267,7 @@ type
     Procedure TestNonExistingAccessError;
     Procedure TestFormat;
     Procedure TestFormatNil;
+    Procedure TestFormatForceLF;
     Procedure TestFind;
     Procedure TestIfFind;
     Procedure TestDuplicate;
@@ -1516,7 +1521,7 @@ begin
   try
     For I:=0 to 31 do
       begin
-      J.AsString:='-->'+Char(I)+'<--';
+      J.AsString:='-->'+AnsiChar(I)+'<--';
       Case I of
        8  : T:='\b';
        9  : T:='\t';
@@ -1526,7 +1531,7 @@ begin
       else
         T:='\u'+HexStr(I,4);
       end;
-      AssertEquals('Control char','"-->'+T+'<--"',J.AsJSON);
+      AssertEquals('Control AnsiChar','"-->'+T+'<--"',J.AsJSON);
       end;
   finally
     FreeAndNil(J);
@@ -2159,6 +2164,7 @@ begin
   F:=TJSONFloatNumber.Create(1.23);
   try
     AssertEquals('FormatJSON equals asJSON',F.AsJSON,F.FormatJSON);
+    AssertEquals('Formatjson with float formatting','1.23',F.FormatJSON([foFormatFloat]));
   finally
     FreeAndNil(F);
   end;
@@ -2219,7 +2225,7 @@ Var
   J : TJSONArray;
 
 begin
-  J:=TJSonArray.Create([Pchar(S)]);
+  J:=TJSonArray.Create([PAnsiChar(S)]);
   try
     TestJSONType(J,jtArray);
     TestItemCount(J,1);
@@ -2389,6 +2395,37 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[0],jtString);
     TestJSON(J,'["'+S+'"]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestCreateJSONStringSpecialChars;
+const
+  S: array[0..7] of string = (
+    'A'#1,
+    'B'#9,
+    'C'#10,
+    'D'#12,
+    'E'#13,
+    'F'#10#13,
+    'G"Foo"',
+    'H\J');
+Var
+  J : TJSONArray;
+  i: Integer;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    for i:=0 to high(S) do
+      J.Add(S[i]);
+    TestItemCount(J,length(S));
+    for i:=0 to high(S) do
+      begin
+      TestJSONType(J[i],jtString);
+      end;
+    TestJSON(J,'["A\u0001", "B\t", "C\n", "D\f", "E\r", "F\n\r", "G\"Foo\"", "H\\J"]');
   finally
     FreeAndNil(J);
   end;
@@ -3435,6 +3472,21 @@ begin
   AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineObject],1));
 end;
 
+procedure TTestObject.TestFormatForceLF;
+Var
+  O : TJSONObject;
+begin
+  if sLineBreak=#10 then
+    Ignore('Not relevant when linebreak is LF');
+  O:=TJSONObject.Create(['x',1,'y',2]);
+  try
+    TestJSON(O,'{ "x" : 1, "y" : 2 }');
+    AssertEquals('FormatJSON, forced LF','{'+#10+'  "x" : 1,'+#10+'  "y" : 2'+#10+'}',O.FormatJSON([foForceLF]));
+  finally
+    O.Free;
+  end;
+end;
+
 procedure TTestObject.TestFind;
 
 Const
@@ -3465,7 +3517,7 @@ begin
   AssertEquals('6 Existing case-insensitive match, case insensitive',2,J.IndexOfName(Uppercase(C),true));
 end;
 
-Procedure TTestObject.TestIfFind;
+procedure TTestObject.TestIfFind;
 Var
   B: TJSONBoolean;
   S: TJSONString;
@@ -3539,7 +3591,7 @@ Var
   O : TJSONObject;
 
 begin
-  O:=TJSONObject.Create([A,Pchar(S)]);
+  O:=TJSONObject.Create([A,PAnsiChar(S)]);
   try
     TestJSONType(O,jtObject);
     TestItemCount(O,1);
@@ -3562,7 +3614,7 @@ Var
 
 begin
   TJSONObject.UnQuotedMemberNames:=True;
-  O:=TJSONObject.Create([A,Pchar(S)]);
+  O:=TJSONObject.Create([A,PAnsiChar(S)]);
   try
     TestJSONType(O,jtObject);
     TestItemCount(O,1);
@@ -3765,6 +3817,47 @@ procedure TTestObject.TestCreateInt64Unquoted;
 Const
   A = 'A';
   S : Int64 = $FFFFFFFFFFFFF;
+
+Var
+  O : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(O,jtObject);
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtNumber);
+    TestJSON(O,'{ A : '+IntToStr(S)+' }');
+  finally
+    FreeAndNil(O);
+  end;
+end;
+
+procedure TTestObject.TestCreateQWord;
+Const
+  A = 'A';
+  S : QWord = $FFFFFFFFFFFFF;
+
+Var
+  O : TJSONObject;
+
+begin
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(O,jtObject);
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtNumber);
+    TestJSON(O,'{ "A" : '+IntToStr(S)+' }');
+  finally
+    FreeAndNil(O);
+  end;
+end;
+
+procedure TTestObject.TestCreateQWordUnquoted;
+Const
+  A = 'A';
+  S : QWord = $FFFFFFFFFFFFF;
 
 Var
   O : TJSONObject;
@@ -4029,6 +4122,7 @@ Var
 
 begin
   S:='JSONStringToString('''+Src+''')='''+Dest+'''';
+  Flush(output);
   AssertEquals(S,Dest,JSONStringToString(Src));
 end;
 
@@ -4125,6 +4219,9 @@ begin
   TestTo(#10#10,'\n\n');
   TestTo(#12#12,'\f\f');
   TestTo(#13#13,'\r\r');
+  TestTo(#0#1#2#3#4#5#6#7#11,'\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u000B');
+  TestTo(#14#15#16#17#18#19,'\u000E\u000F\u0010\u0011\u0012\u0013');
+  TestTo(#20#29#30#31#32,'\u0014\u001D\u001E\u001F ');
 end;
 
 initialization

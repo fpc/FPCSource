@@ -9,7 +9,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="authenticator"/>
+      <Title Value="extractrsa"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -25,7 +25,7 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="authenticator.pp"/>
+        <Filename Value="extractrsa.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -33,10 +33,11 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="authenticator"/>
+      <Filename Value="extractrsa"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -44,9 +45,6 @@
         <DebugInfoType Value="dsDwarf3"/>
       </Debugging>
     </Linking>
-    <Other>
-      <CompilerPath Value="/usr/lib/fpc/3.3.1/ppcx64"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

@@ -560,7 +560,7 @@ begin
         end;
       ReAllocMem(psa^.Data,(Count+D)*psa^.ElementSize);
       if D>0 then
-        fillchar((PChar(psa^.Data)+Count*psa^.ElementSize)^,D*psa^.ElementSize,0);
+        fillchar((PAnsiChar(psa^.Data)+Count*psa^.ElementSize)^,D*psa^.ElementSize,0);
       end;
     psa^.Bounds[0].ElementCount:=NewBound.ElementCount;
     psa^.Bounds[0].LowBound:=NewBound.LowBound;

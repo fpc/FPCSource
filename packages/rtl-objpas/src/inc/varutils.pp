@@ -15,12 +15,25 @@
 
 {$MODE ObjFPC}
 
+{$ifndef NO_SMART_LINK}
+{$smartlink on}
+{$endif}
+
+{$if defined (win32) or defined (win64)}
+{$define USE_WINDOWS_OLE_FUNCTIONS}
+{$endif}
+
 Unit varutils;
 
 Interface
 
-Uses sysutils;
-
+uses
+  sysutils,
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
+  Types;
+{$else}
+  variants;
+{$endif}
 // Read definitions.
 
 {$i varutilh.inc}
@@ -31,8 +44,14 @@ Implementation
 
 {$i cvarutil.inc}
 
-// Code common to non-win32 platforms.
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
+// Code common to Windows OS platforms.
+
+{$i wvarutil.inc}
+{$else}
+// Code common to other platforms.
 
 {$i varutils.inc}
+{$endif}
 
 end.

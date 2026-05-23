@@ -5,6 +5,9 @@ program testhash;
 {$mode objfpc}
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   consoletestrunner, utestshmac;
 
 var

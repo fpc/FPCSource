@@ -16,7 +16,7 @@ unit fpTLSBigInt;
 
 interface
 
-uses SysUtils;
+uses SysUtils, fphashutils;
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
@@ -389,7 +389,7 @@ begin
     Carry := 0;
     RIndex := I;
     J := 0;
-    if (OuterPartial > 0) and ((OuterPartial-I) > 0) and (OuterPartial < N) then
+    if (OuterPartial > I) and (OuterPartial < N) then
     begin
       RIndex := OuterPartial-1;
       J := OuterPartial-I-1;
@@ -520,6 +520,7 @@ Var
   BI,BNext : PBigInt;
 
 begin
+  BIDepermanent(Context.BIRadix);
   BIRelease(Context, Context.BIRadix);
   Context.BIRadix := nil;
   BI:=Context.FreeList;
@@ -977,6 +978,7 @@ begin
     BIDepermanent(Context.G[I]);
     BIRelease(Context, Context.G[I]);
   end;
+  FreeMem(Context.G);
   BIRelease(Context, BI);
   BIRelease(Context, BIExp);
   Result := BIR;

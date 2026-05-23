@@ -3,16 +3,19 @@ program md5performancetest;
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
+  {$IFDEF UNIX}
+  cwstring,
+  {$IFDEF UseCThreads}
   cthreads,
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
   SysUtils,Classes,md5,dateutils;
 
 var
   StartTime: TDateTime;
   EndTime: TDateTime;
   i: integer;
-  s,ss: string;
+  s,ss: RawByteString;
 begin
   writeln('MD5 of a million "a" symbols');
   Writeln('x86 only: compile md5 unit with -dMD5SLOW to use unoptimized original version');

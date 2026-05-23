@@ -118,6 +118,14 @@ Type
     Property Int64Prop : Int64 Read FIntProp Write FIntProp default 7;
   end;
 
+  TQWordObj = class(TPersistent)
+  private
+    FValue: QWord;
+  published
+    property Value: QWord read FValue write FValue;
+  end;
+
+
   // String property.
   TStringComponent = Class(TComponent)
   private

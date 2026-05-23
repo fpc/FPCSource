@@ -167,8 +167,56 @@ end;
 
 procedure RSAFree(var RSA: TRSA);
 begin
-  if RSA.M = nil then
-    Exit;
+  if RSA.Context.BIMod[BIGINT_M_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_M_OFFSET)
+  else if RSA.M <> nil then
+    BIRelease(RSA.Context, RSA.M);
+
+  if RSA.Context.BIMod[BIGINT_P_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_P_OFFSET)
+  else if RSA.P <> nil then
+    BIRelease(RSA.Context, RSA.P);
+
+  if RSA.Context.BIMod[BIGINT_Q_OFFSET] <> nil then
+    BIFreeMod(RSA.Context, BIGINT_Q_OFFSET)
+  else if RSA.Q <> nil then
+    BIRelease(RSA.Context, RSA.Q);
+
+  if RSA.E <> nil then
+  begin
+    if RSA.E^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.E);
+    BIRelease(RSA.Context, RSA.E);
+  end;
+
+  if RSA.D <> nil then
+  begin
+    if RSA.D^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.D);
+    BIRelease(RSA.Context, RSA.D);
+  end;
+
+  if RSA.DP <> nil then
+  begin
+    if RSA.DP^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.DP);
+    BIRelease(RSA.Context, RSA.DP);
+  end;
+
+  if RSA.DQ <> nil then
+  begin
+    if RSA.DQ^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.DQ);
+    BIRelease(RSA.Context, RSA.DQ);
+  end;
+
+  if RSA.QInv <> nil then
+  begin
+    if RSA.QInv^.References = BIGINT_PERMANENT then
+      BIDepermanent(RSA.QInv);
+    BIRelease(RSA.Context, RSA.QInv);
+  end;
+
   BITerminate(RSA.Context);
 end;
 
@@ -341,37 +389,79 @@ begin
   RSAInitFromX509PrivateKey(RSA,X509RSA);
 end;
 
+function ExtractRSAFromPKCS8(List : TStrings) : TBytes;
+
+Const
+  SInvalid = 'Invalid PKCS#8 ';
+
+var
+  ASNType, ASNSize: integer;
+
+begin
+  Result:=[];
+  ASNParse_GetItem(List,0,ASNType,ASNSize);
+  if ASNType<>ASN1_SEQ then
+    raise Exception.Create(SInvalid+'Sequence 1');
+  ASNParse_GetItem(List,1,ASNType,ASNSize);
+  if ASNType<>ASN1_INT then
+    raise Exception.Create(SInvalid+'Int 1');
+  if StrToIntDef(List[1],-1)<>0 then
+    raise Exception.Create(SInvalid+'Int 1.a');
+  ASNParse_GetItem(List,2,ASNType,ASNSize);
+  if ASNType<>ASN1_SEQ then
+    raise Exception.Create(SInvalid+'Sequence 2');
+  ASNParse_GetItem(List,3,ASNType,ASNSize);
+  if ASNType<>ASN1_OBJID  then
+    raise Exception.Create(SInvalid+'ObjID');
+  ASNParse_GetItem(List,4,ASNType,ASNSize);
+  if ASNType<>ASN1_NULL then
+    raise Exception.Create(SInvalid+'Attribute');
+  ASNParse_GetItem(List,5,ASNType,ASNSize);
+  if ASNType<>ASN1_OCTSTR then
+    raise Exception.Create(SInvalid+'RSA key');
+  Result:=HexStrToBytes(List[5]);
+end;
+
+
 procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const PrivateKeyDER: TBytes);
 var
   List: TStringList;
   ASNType, ASNSize: integer;
+  B : TBytes;
 begin
   RSA:=Default(TX509RSAPrivateKey);
   List:=TStringList.Create;
   try
     ASNParse(PrivateKeyDER,List);
-    if List.Count<10 then
+    if Not List.Count in [6,10] then
       raise Exception.Create('20220428161533');
+    if List.Count = 6 then
+      begin
+      B:=ExtractRSAFromPKCS8(List);
+      X509RsaPrivateKeyInitFromDER(RSA,B);
+      end
+    else
+      begin
+      // check sequence
+      ASNParse_GetItem(List,0,ASNType,ASNSize);
+      if ASNType<>ASN1_SEQ then
+        raise Exception.Create('20220428161631');
 
-    // check sequence
-    ASNParse_GetItem(List,0,ASNType,ASNSize);
-    if ASNType<>ASN1_SEQ then
-      raise Exception.Create('20220428161631');
+      // version
+      ASNParse_GetItem(List,1,ASNType,ASNSize);
+      if ASNType<>ASN1_INT then
+        raise Exception.Create('20220428161716');
+      RSA.Version:=StrToIntDef(List[1],0);
 
-    // version
-    ASNParse_GetItem(List,1,ASNType,ASNSize);
-    if ASNType<>ASN1_INT then
-      raise Exception.Create('20220428161716');
-    RSA.Version:=StrToIntDef(List[1],0);
-
-    RSA.Modulus:=ASNParse_GetIntBytes(List,2,20220428173827);
-    RSA.PublicExponent:=ASNParse_GetIntBytes(List,3,20220428173840);
-    RSA.PrivateExponent:=ASNParse_GetIntBytes(List,4,20220428173852);
-    RSA.Prime1:=ASNParse_GetIntBytes(List,5,20220428173906);
-    RSA.Prime2:=ASNParse_GetIntBytes(List,6,20220428173915);
-    RSA.Exponent1:=ASNParse_GetIntBytes(List,7,20220428173923);
-    RSA.Exponent2:=ASNParse_GetIntBytes(List,8,20220428173930);
-    RSA.Coefficient:=ASNParse_GetIntBytes(List,9,20220428173939);
+      RSA.Modulus:=ASNParse_GetIntBytes(List,2,20220428173827);
+      RSA.PublicExponent:=ASNParse_GetIntBytes(List,3,20220428173840);
+      RSA.PrivateExponent:=ASNParse_GetIntBytes(List,4,20220428173852);
+      RSA.Prime1:=ASNParse_GetIntBytes(List,5,20220428173906);
+      RSA.Prime2:=ASNParse_GetIntBytes(List,6,20220428173915);
+      RSA.Exponent1:=ASNParse_GetIntBytes(List,7,20220428173923);
+      RSA.Exponent2:=ASNParse_GetIntBytes(List,8,20220428173930);
+      RSA.Coefficient:=ASNParse_GetIntBytes(List,9,20220428173939);
+      end;
 
     {$IFDEF TLS_DEBUG}
     with RSA do begin

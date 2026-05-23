@@ -145,7 +145,7 @@ Type
     procedure SetCaseInsensitive(AValue: Boolean);
   protected
     // Try to parse a date.
-    Function ExtractDateTime(S : String): TDateTime;
+    Function ExtractDateTime(const S : String): TDateTime;
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
     procedure DoClearProperty(AObject: TObject; PropInfo: PPropInfo); virtual;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); virtual;
@@ -369,7 +369,7 @@ begin
     Exclude(Foptions,jdoCaseInsensitive);
 end;
 
-function TJSONDeStreamer.ExtractDateTime(S: String): TDateTime;
+function TJSONDeStreamer.ExtractDateTime(const S: String): TDateTime;
 
 Var
   Fmt : String;
@@ -561,7 +561,7 @@ begin
     tkBool :
       SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
     tkQWord :
-      SetOrdProp(AObject,PI,Trunc(PropData.AsFloat));
+      SetOrdProp(AObject,PI,Int64(PropData.AsQWord));
     tkObject,
     tkArray,
     tkRecord,
@@ -913,8 +913,9 @@ begin
     varlongword,
     varint64 :
       Result:=TJSONInt64Number.Create(Data);
+    varqword :
+      Result:=TJSONQWordNumber.Create(Data);
     vardecimal,
-    varqword,
     varsingle,
     vardouble,
     varCurrency :
@@ -1177,7 +1178,7 @@ begin
         end;
         end;
     tkChar:
-      Result:=TJSONString.Create(Char(GetOrdProp(AObject,PI)));
+      Result:=TJSONString.Create(AnsiChar(GetOrdProp(AObject,PI)));
     tkSString,
     tkLString,
     tkAString:
@@ -1195,7 +1196,7 @@ begin
     tkInt64 :
       Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
     tkQWord :
-      Result:=TJSONFloatNumber.Create(GetOrdProp(AObject,PropertyInfo));
+      Result:=TJSONQWordNumber.Create(QWord(GetOrdProp(AObject,PropertyInfo)));
     tkObject :
       Result:=ObjectToJSON(GetObjectProp(AObject,PropertyInfo));
     tkArray,

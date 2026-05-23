@@ -230,7 +230,7 @@ function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; const FormatSettings : TFormatSettings): Integer;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
@@ -346,7 +346,11 @@ Type
 {$undef SBUNICODE}
 
 Type
+{$IF SIZEOF(CHAR)=1}
   TStringBuilder = TAnsiStringBuilder;
+{$ELSE}
+  TStringBuilder = TUnicodeStringBuilder;
+{$ENDIF}
 
-function SafeFormat (const Fmt: AnsiString; Args: array of const; const FormatSettings: TFormatSettings): UTF8String; overload;
-function SafeFormat (const Fmt: AnsiString; Args: array of const): UTF8String; overload;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const; const FormatSettings: TFormatSettings): UTF8String; overload;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const): UTF8String; overload;

@@ -310,6 +310,9 @@ begin
     C.SetValue('a','abc');
     C.GetValue('a',L,'');
     AssertStrings('String',L,['abc']);
+    C.SetValue('a','a'#1#2);
+    C.GetValue('a',L,'');
+    AssertStrings('String',L,['a'#1#2]);
     C.SetValue('a',Integer(1));
     C.GetValue('a',L,'');
     AssertStrings('integer',L,['1']);

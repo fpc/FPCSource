@@ -39,6 +39,7 @@ begin
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
     T:=P.Targets.AddUnit('src/hmac.pp');
+    T:=P.Targets.AddUnit('src/fnvhash.pp');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
     
     T.OSes:=[Linux];

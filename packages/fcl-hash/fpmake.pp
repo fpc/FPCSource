@@ -12,6 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('fcl-hash');
+    P.ShortName:='fclh';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;

@@ -88,15 +88,15 @@ type
     function GetBaseKey(Relative: Boolean): HKey;
     function GetData(const Name: UnicodeString; Buffer: Pointer;
                   BufSize: Integer; Out RegData: TRegDataType): Integer;
-    function GetData(const Name: String; Buffer: Pointer;
+    function GetData(const Name: AnsiString; Buffer: Pointer;
                   BufSize: Integer; Out RegData: TRegDataType): Integer;
     function GetKey(Key: UnicodeString): HKEY;
-    function GetKey(Key: String): HKEY;
+    function GetKey(Key: AnsiString): HKEY;
     procedure ChangeKey(Value: HKey; const Path: UnicodeString);
-    procedure ChangeKey(Value: HKey; const Path: String);
+    procedure ChangeKey(Value: HKey; const Path: AnsiString);
     procedure PutData(const Name: UnicodeString; Buffer: Pointer;
                   BufSize: Integer; RegData: TRegDataType);
-    procedure PutData(const Name: String; Buffer: Pointer;
+    procedure PutData(const Name: AnsiString; Buffer: Pointer;
                   BufSize: Integer; RegData: TRegDataType);
     procedure SetCurrentKey(Value: HKEY);
   public
@@ -105,63 +105,63 @@ type
     destructor Destroy; override;
 
     function CreateKey(const Key: UnicodeString): Boolean;
-    function CreateKey(const Key: String): Boolean;
+    function CreateKey(const Key: AnsiString): Boolean;
     function DeleteKey(const Key: UnicodeString): Boolean;
-    function DeleteKey(const Key: String): Boolean;
+    function DeleteKey(const Key: AnsiString): Boolean;
     function DeleteValue(const Name: UnicodeString): Boolean;
-    function DeleteValue(const Name: String): Boolean;
+    function DeleteValue(const Name: AnsiString): Boolean;
     function GetDataInfo(const ValueName: UnicodeString; Out Value: TRegDataInfo): Boolean;
-    function GetDataInfo(const ValueName: String; Out Value: TRegDataInfo): Boolean;
+    function GetDataInfo(const ValueName: AnsiString; Out Value: TRegDataInfo): Boolean;
     function GetDataSize(const ValueName: UnicodeString): Integer;
-    function GetDataSize(const ValueName: String): Integer;
+    function GetDataSize(const ValueName: AnsiString): Integer;
     function GetDataType(const ValueName: UnicodeString): TRegDataType;
-    function GetDataType(const ValueName: String): TRegDataType;
+    function GetDataType(const ValueName: AnsiString): TRegDataType;
     function GetKeyInfo(Out Value: TRegKeyInfo): Boolean;
     function HasSubKeys: Boolean;
     function KeyExists(const Key: UnicodeString): Boolean;
-    function KeyExists(const Key: String): Boolean;
+    function KeyExists(const Key: AnsiString): Boolean;
     function LoadKey(const Key, FileName: UnicodeString): Boolean;  unimplemented;
-    function LoadKey(const Key, FileName: String): Boolean;  unimplemented;
+    function LoadKey(const Key, FileName: AnsiString): Boolean;  unimplemented;
     function OpenKey(const Key: UnicodeString; CanCreate: Boolean): Boolean;
-    function OpenKey(const Key: String; CanCreate: Boolean): Boolean;
+    function OpenKey(const Key: AnsiString; CanCreate: Boolean): Boolean;
     function OpenKeyReadOnly(const Key: UnicodeString): Boolean;
-    function OpenKeyReadOnly(const Key: String): Boolean;
+    function OpenKeyReadOnly(const Key: AnsiString): Boolean;
     function ReadCurrency(const Name: UnicodeString): Currency;
-    function ReadCurrency(const Name: String): Currency;
+    function ReadCurrency(const Name: AnsiString): Currency;
     function ReadBinaryData(const Name: UnicodeString; var Buffer; BufSize: Integer): Integer;
-    function ReadBinaryData(const Name: String; var Buffer; BufSize: Integer): Integer;
+    function ReadBinaryData(const Name: AnsiString; var Buffer; BufSize: Integer): Integer;
     function ReadBool(const Name: UnicodeString): Boolean;
-    function ReadBool(const Name: String): Boolean;
+    function ReadBool(const Name: AnsiString): Boolean;
     function ReadDate(const Name: UnicodeString): TDateTime;
-    function ReadDate(const Name: String): TDateTime;
+    function ReadDate(const Name: AnsiString): TDateTime;
     function ReadDateTime(const Name: UnicodeString): TDateTime;
-    function ReadDateTime(const Name: String): TDateTime;
+    function ReadDateTime(const Name: AnsiString): TDateTime;
     function ReadFloat(const Name: UnicodeString): Double;
-    function ReadFloat(const Name: String): Double;
+    function ReadFloat(const Name: AnsiString): Double;
     function ReadInteger(const Name: UnicodeString): Integer;
-    function ReadInteger(const Name: String): Integer;
+    function ReadInteger(const Name: AnsiString): Integer;
     function ReadInt64(const Name: UnicodeString): Int64;
-    function ReadInt64(const Name: String): Int64;
+    function ReadInt64(const Name: AnsiString): Int64;
     function ReadString(const Name: UnicodeString): UnicodeString;
-    function ReadString(const Name: String): string;
+    function ReadString(const Name: AnsiString): string;
     procedure ReadStringList(const Name: UnicodeString; AList: TStrings; ForceUtf8: Boolean=False);
-    procedure ReadStringList(const Name: String; AList: TStrings);
+    procedure ReadStringList(const Name: AnsiString; AList: TStrings);
     function ReadStringArray(const Name: UnicodeString): TUnicodeStringArray;
-    function ReadStringArray(const Name: String): TStringArray;
+    function ReadStringArray(const Name: AnsiString): TStringArray;
     function ReadTime(const Name: UnicodeString): TDateTime;
-    function ReadTime(const Name: String): TDateTime;
+    function ReadTime(const Name: AnsiString): TDateTime;
     function RegistryConnect(const UNCName: UnicodeString): Boolean;
-    function RegistryConnect(const UNCName: String): Boolean;
+    function RegistryConnect(const UNCName: AnsiString): Boolean;
     function ReplaceKey(const Key, FileName, BackUpFileName: UnicodeString): Boolean; unimplemented;
-    function ReplaceKey(const Key, FileName, BackUpFileName: String): Boolean;  unimplemented;
+    function ReplaceKey(const Key, FileName, BackUpFileName: AnsiString): Boolean;  unimplemented;
     function RestoreKey(const Key, FileName: UnicodeString): Boolean;  unimplemented;
-    function RestoreKey(const Key, FileName: String): Boolean;  unimplemented;
+    function RestoreKey(const Key, FileName: AnsiString): Boolean;  unimplemented;
     function SaveKey(const Key, FileName: UnicodeString): Boolean;
-    function SaveKey(const Key, FileName: String): Boolean;
+    function SaveKey(const Key, FileName: AnsiString): Boolean;
     function UnLoadKey(const Key: UnicodeString): Boolean;
-    function UnLoadKey(const Key: String): Boolean;
+    function UnLoadKey(const Key: AnsiString): Boolean;
     function ValueExists(const Name: UnicodeString): Boolean;
-    function ValueExists(const Name: String): Boolean;
+    function ValueExists(const Name: AnsiString): Boolean;
 
     procedure CloseKey;
     procedure CloseKey(key:HKEY);
@@ -171,34 +171,34 @@ type
     //ToDo
     function GetValueNames: TUnicodeStringArray;
     procedure MoveKey(const OldName, NewName: UnicodeString; Delete: Boolean);  unimplemented;
-    procedure MoveKey(const OldName, NewName: String; Delete: Boolean);  unimplemented;
+    procedure MoveKey(const OldName, NewName: AnsiString; Delete: Boolean);  unimplemented;
     procedure RenameValue(const OldName, NewName: UnicodeString);
-    procedure RenameValue(const OldName, NewName: String);
+    procedure RenameValue(const OldName, NewName: AnsiString);
     procedure WriteCurrency(const Name: UnicodeString; Value: Currency);
-    procedure WriteCurrency(const Name: String; Value: Currency);
+    procedure WriteCurrency(const Name: AnsiString; Value: Currency);
     procedure WriteBinaryData(const Name: UnicodeString; const Buffer; BufSize: Integer);
-    procedure WriteBinaryData(const Name: String; const Buffer; BufSize: Integer);
+    procedure WriteBinaryData(const Name: AnsiString; const Buffer; BufSize: Integer);
     procedure WriteBool(const Name: UnicodeString; Value: Boolean);
-    procedure WriteBool(const Name: String; Value: Boolean);
+    procedure WriteBool(const Name: AnsiString; Value: Boolean);
     procedure WriteDate(const Name: UnicodeString; Value: TDateTime);
-    procedure WriteDate(const Name: String; Value: TDateTime);
+    procedure WriteDate(const Name: AnsiString; Value: TDateTime);
     procedure WriteDateTime(const Name: UnicodeString; Value: TDateTime);
-    procedure WriteDateTime(const Name: String; Value: TDateTime);
+    procedure WriteDateTime(const Name: AnsiString; Value: TDateTime);
     procedure WriteFloat(const Name: UnicodeString; Value: Double);
-    procedure WriteFloat(const Name: String; Value: Double);
+    procedure WriteFloat(const Name: AnsiString; Value: Double);
     procedure WriteInteger(const Name: UnicodeString; Value: Integer);
-    procedure WriteInteger(const Name: String; Value: Integer);
+    procedure WriteInteger(const Name: AnsiString; Value: Integer);
     procedure WriteInt64(const Name: UnicodeString; Value: Int64);
-    procedure WriteInt64(const Name: String; Value: Int64);
+    procedure WriteInt64(const Name: AnsiString; Value: Int64);
     procedure WriteString(const Name, Value: UnicodeString);
-    procedure WriteString(const Name, Value: String);
+    procedure WriteString(const Name, Value: AnsiString);
     procedure WriteExpandString(const Name, Value: UnicodeString);
-    procedure WriteExpandString(const Name, Value: String);
+    procedure WriteExpandString(const Name, Value: AnsiString);
     procedure WriteStringList(const Name: UnicodeString; List: TStrings; IsUtf8: Boolean=False);
     procedure WriteStringArray(const Name: UnicodeString; const Arr: TUnicodeStringArray);
-    procedure WriteStringArray(const Name: String; const Arr: TStringArray);
+    procedure WriteStringArray(const Name: AnsiString; const Arr: TStringArray);
     procedure WriteTime(const Name: UnicodeString; Value: TDateTime);
-    procedure WriteTime(const Name: String; Value: TDateTime);
+    procedure WriteTime(const Name: AnsiString; Value: TDateTime);
 
     property Access: LongWord read fAccess write fAccess;
     property CurrentKey: HKEY read fCurrentKey;
@@ -218,6 +218,8 @@ type
     fFileName          : String;
     fPath              : String;
     fPreferStringValues: Boolean;
+    fOldCurKey         : HKEY;
+    fOldCurPath        : UnicodeString;
     function OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
     procedure CloseSection;
   public
@@ -282,6 +284,7 @@ type
     procedure DeleteKey(const Section, Name: String); override;
     procedure UpdateFile; override;
     function ValueExists(const Section, Ident: string): Boolean; override;
+    function SectionExists(const Section: string): Boolean; override;
     property RegIniFile: TRegIniFile read FRegIniFile;
   end{$ifdef XMLREG}deprecated 'Use TRegistry instead. Will be removed in 4.0'{$endif} platform; 
 
@@ -293,6 +296,7 @@ ResourceString
 
 var
   GlobalXMLFile : Boolean = False;
+  VendorXMLFile : Boolean = False;
 
 implementation
 
@@ -355,22 +359,22 @@ begin
     Raise ERegistryException.CreateFmt(SRegCreateFailed, [Key]);
 end;
 
-function TRegistry.CreateKey(const Key: String): Boolean;
+function TRegistry.CreateKey(const Key: AnsiString): Boolean;
 begin
   Result:=CreateKey(UnicodeString(Key));
 end;
 
-function TRegistry.DeleteKey(const Key: String): Boolean;
+function TRegistry.DeleteKey(const Key: AnsiString): Boolean;
 begin
   Result:=DeleteKey(UnicodeString(Key));
 end;
 
-function TRegistry.DeleteValue(const Name: String): Boolean;
+function TRegistry.DeleteValue(const Name: AnsiString): Boolean;
 begin
   Result:=DeleteValue(UnicodeString(Name));
 end;
 
-function TRegistry.GetDataInfo(const ValueName: String; out Value: TRegDataInfo
+function TRegistry.GetDataInfo(const ValueName: AnsiString; out Value: TRegDataInfo
   ): Boolean;
 begin
   Result:=GetDataInfo(UnicodeString(ValueName), Value);
@@ -391,18 +395,18 @@ begin
     Raise ERegistryException.CreateFmt(SRegGetDataFailed, [Name]);
 end;
 
-function TRegistry.GetData(const Name: String; Buffer: Pointer;
+function TRegistry.GetData(const Name: AnsiString; Buffer: Pointer;
   BufSize: Integer; out RegData: TRegDataType): Integer;
 begin
   Result:=GetData(UnicodeString(Name), Buffer, BufSize, RegData);
 end;
 
-function TRegistry.GetKey(Key: String): HKEY;
+function TRegistry.GetKey(Key: AnsiString): HKEY;
 begin
   Result:=GetKey(UnicodeString(Key));
 end;
 
-procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
+procedure TRegistry.ChangeKey(Value: HKey; const Path: AnsiString);
 begin
   ChangeKey(Value, UnicodeString(Path));
 end;
@@ -416,7 +420,7 @@ begin
     Raise ERegistryException.CreateFmt(SRegSetDataFailed, [Name]);
 end;
 
-procedure TRegistry.PutData(const Name: String; Buffer: Pointer;
+procedure TRegistry.PutData(const Name: AnsiString; Buffer: Pointer;
   BufSize: Integer; RegData: TRegDataType);
 begin
   PutData(UnicodeString(Name), Buffer, BufSize, RegData);
@@ -435,7 +439,7 @@ begin
     Result := -1;
 end;
 
-function TRegistry.GetDataSize(const ValueName: String): Integer;
+function TRegistry.GetDataSize(const ValueName: AnsiString): Integer;
 begin
   Result:=GetDataSize(UnicodeString(ValueName));
 end;
@@ -450,28 +454,28 @@ begin
   Result:=Info.RegData;
 end;
 
-function TRegistry.GetDataType(const ValueName: String): TRegDataType;
+function TRegistry.GetDataType(const ValueName: AnsiString): TRegDataType;
 begin
   Result:=GetDataType(UnicodeString(ValueName));
 end;
 
 
-function TRegistry.KeyExists(const Key: String): Boolean;
+function TRegistry.KeyExists(const Key: AnsiString): Boolean;
 begin
   Result:=KeyExists(UnicodeString(Key));
 end;
 
-function TRegistry.LoadKey(const Key, FileName: String): Boolean;
+function TRegistry.LoadKey(const Key, FileName: AnsiString): Boolean;
 begin
   Result:=LoadKey(UnicodeString(Key), UnicodeString(FileName));
 end;
 
-function TRegistry.OpenKey(const Key: String; CanCreate: Boolean): Boolean;
+function TRegistry.OpenKey(const Key: AnsiString; CanCreate: Boolean): Boolean;
 begin
   Result:=OpenKey(UnicodeString(Key), CanCreate);
 end;
 
-function TRegistry.OpenKeyReadOnly(const Key: String): Boolean;
+function TRegistry.OpenKeyReadOnly(const Key: AnsiString): Boolean;
 begin
   Result:=OpenKeyReadOnly(UnicodeString(Key));
 end;
@@ -496,7 +500,7 @@ begin
   Result := GetData(Name, @Buffer, BufSize, RegDataType);
 end;
 
-function TRegistry.ReadBinaryData(const Name: String; var Buffer;
+function TRegistry.ReadBinaryData(const Name: AnsiString; var Buffer;
   BufSize: Integer): Integer;
 begin
   Result:=ReadBinaryData(UnicodeString(Name), Buffer, BufSize);
@@ -513,7 +517,7 @@ begin
     Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
 end;
 
-function TRegistry.ReadInteger(const Name: String): Integer;
+function TRegistry.ReadInteger(const Name: AnsiString): Integer;
 begin
   Result:=ReadInteger(UnicodeString(Name));
 end;
@@ -529,7 +533,7 @@ begin
     Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
 end;
 
-function TRegistry.ReadInt64(const Name: String): Int64;
+function TRegistry.ReadInt64(const Name: AnsiString): Int64;
 begin
   Result:=ReadInt64(UnicodeString(Name));
 end;
@@ -540,7 +544,7 @@ begin
   Result:=ReadInteger(Name)<>0;
 end;
 
-function TRegistry.ReadBool(const Name: String): Boolean;
+function TRegistry.ReadBool(const Name: AnsiString): Boolean;
 begin
   Result:=ReadBool(UnicodeString(Name));
 end;
@@ -552,7 +556,7 @@ begin
   ReadBinaryData(Name, Result, SizeOf(Currency));
 end;
 
-function TRegistry.ReadCurrency(const Name: String): Currency;
+function TRegistry.ReadCurrency(const Name: AnsiString): Currency;
 begin
   Result:=ReadCurrency(UnicodeString(Name));
 end;
@@ -563,7 +567,7 @@ begin
   Result:=Trunc(ReadDateTime(Name));
 end;
 
-function TRegistry.ReadDate(const Name: String): TDateTime;
+function TRegistry.ReadDate(const Name: AnsiString): TDateTime;
 begin
   Result:=ReadDate(UnicodeString(Name));
 end;
@@ -575,7 +579,7 @@ begin
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
 end;
 
-function TRegistry.ReadDateTime(const Name: String): TDateTime;
+function TRegistry.ReadDateTime(const Name: AnsiString): TDateTime;
 begin
   Result:=ReadDateTime(UnicodeString(Name));
 end;
@@ -587,7 +591,7 @@ begin
   ReadBinaryData(Name,Result,SizeOf(Double));
 end;
 
-function TRegistry.ReadFloat(const Name: String): Double;
+function TRegistry.ReadFloat(const Name: AnsiString): Double;
 begin
   Result:=ReadFloat(UnicodeString(Name));
 end;
@@ -624,7 +628,7 @@ begin
   end;
 end;
 
-function TRegistry.ReadString(const Name: String): string;
+function TRegistry.ReadString(const Name: AnsiString): string;
 begin
   Result:=ReadString(UnicodeString(Name));
 end;
@@ -640,7 +644,7 @@ begin
   ArrayToList(UArr, AList, ForceUtf8);
 end;
 
-procedure TRegistry.ReadStringList(const Name: String; AList: TStrings);
+procedure TRegistry.ReadStringList(const Name: AnsiString; AList: TStrings);
 begin
   ReadStringList(UnicodeString(Name), AList);
 end;
@@ -752,7 +756,7 @@ begin
    end
 end;
 
-function TRegistry.ReadStringArray(const Name: String): TStringArray;
+function TRegistry.ReadStringArray(const Name: AnsiString): TStringArray;
 var
   UArr: TUnicodeStringArray;
   i: Integer;
@@ -769,37 +773,37 @@ begin
   Result:=Frac(ReadDateTime(Name));
 end;
 
-function TRegistry.ReadTime(const Name: String): TDateTime;
+function TRegistry.ReadTime(const Name: AnsiString): TDateTime;
 begin
   Result:=ReadTime(UnicodeString(Name));
 end;
 
-function TRegistry.RegistryConnect(const UNCName: String): Boolean;
+function TRegistry.RegistryConnect(const UNCName: AnsiString): Boolean;
 begin
   Result:=RegistryConnect(UnicodeString(UNCName));
 end;
 
-function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: String): Boolean;
+function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: AnsiString): Boolean;
 begin
   Result:=ReplaceKey(UnicodeString(Key), UnicodeString(FileName), UnicodeString(BackUpFileName))
 end;
 
-function TRegistry.RestoreKey(const Key, FileName: String): Boolean;
+function TRegistry.RestoreKey(const Key, FileName: AnsiString): Boolean;
 begin
   Result:=RestoreKey(UnicodeString(Key), UnicodeString(FileName));
 end;
 
-function TRegistry.SaveKey(const Key, FileName: String): Boolean;
+function TRegistry.SaveKey(const Key, FileName: AnsiString): Boolean;
 begin
   Result:=SaveKey(UnicodeString(Key), UnicodeString(FileName));
 end;
 
-function TRegistry.UnLoadKey(const Key: String): Boolean;
+function TRegistry.UnLoadKey(const Key: AnsiString): Boolean;
 begin
   Result:=UnloadKey(UnicodeString(Key));
 end;
 
-function TRegistry.ValueExists(const Name: String): Boolean;
+function TRegistry.ValueExists(const Name: AnsiString): Boolean;
 begin
   Result:=ValueExists(UnicodeString(Name));
 end;
@@ -809,7 +813,7 @@ begin
   PutData(Name, @Buffer, BufSize, rdBinary);
 end;
 
-procedure TRegistry.WriteBinaryData(const Name: String; const Buffer;
+procedure TRegistry.WriteBinaryData(const Name: AnsiString; const Buffer;
   BufSize: Integer);
 begin
   WriteBinaryData(UnicodeString(Name), Buffer, BufSize);
@@ -821,7 +825,7 @@ begin
   WriteInteger(Name,Ord(Value));
 end;
 
-procedure TRegistry.WriteBool(const Name: String; Value: Boolean);
+procedure TRegistry.WriteBool(const Name: AnsiString; Value: Boolean);
 begin
   WriteBool(UnicodeString(Name), Value);
 end;
@@ -831,7 +835,7 @@ begin
   WriteBinaryData(Name, Value, SizeOf(Currency));
 end;
 
-procedure TRegistry.WriteCurrency(const Name: String; Value: Currency);
+procedure TRegistry.WriteCurrency(const Name: AnsiString; Value: Currency);
 begin
   WriteCurrency(UnicodeString(Name), Value);
 end;
@@ -841,7 +845,7 @@ begin
   WriteBinarydata(Name, Value, SizeOf(TDateTime));
 end;
 
-procedure TRegistry.WriteDate(const Name: String; Value: TDateTime);
+procedure TRegistry.WriteDate(const Name: AnsiString; Value: TDateTime);
 begin
   WriteDate(UnicodeString(Name), Value);
 end;
@@ -851,7 +855,7 @@ begin
   WriteBinaryData(Name, Value, SizeOf(TDateTime));
 end;
 
-procedure TRegistry.WriteTime(const Name: String; Value: TDateTime);
+procedure TRegistry.WriteTime(const Name: AnsiString; Value: TDateTime);
 begin
   WriteTime(UnicodeString(Name), Value);
 end;
@@ -861,7 +865,7 @@ begin
   WriteBinaryData(Name, Value, SizeOf(TDateTime));
 end;
 
-procedure TRegistry.WriteDateTime(const Name: String; Value: TDateTime);
+procedure TRegistry.WriteDateTime(const Name: AnsiString; Value: TDateTime);
 begin
   WriteDateTime(UnicodeString(Name), Value);
 end;
@@ -871,7 +875,7 @@ begin
   PutData(Name, PWideChar(Value), ByteLength(Value), rdExpandString);
 end;
 
-procedure TRegistry.WriteExpandString(const Name, Value: String);
+procedure TRegistry.WriteExpandString(const Name, Value: AnsiString);
 begin
   WriteExpandString(UnicodeString(Name), UnicodeString(Value));
 end;
@@ -911,7 +915,7 @@ begin
   PutData(Name, PWideChar(Data), ByteLength(Data), rdMultiString);
 end;
 
-procedure TRegistry.WriteStringArray(const Name: String; const Arr: TStringArray);
+procedure TRegistry.WriteStringArray(const Name: AnsiString; const Arr: TStringArray);
 var
   UArr: TUnicodeStringArray;
   i: Integer;
@@ -927,7 +931,7 @@ begin
   WriteBinaryData(Name, Value, SizeOf(Double));
 end;
 
-procedure TRegistry.WriteFloat(const Name: String; Value: Double);
+procedure TRegistry.WriteFloat(const Name: AnsiString; Value: Double);
 begin
   WriteFloat(UnicodeString(Name), Value);
 end;
@@ -937,7 +941,7 @@ begin
   PutData(Name, @Value, SizeOf(Integer), rdInteger);
 end;
 
-procedure TRegistry.WriteInteger(const Name: String; Value: Integer);
+procedure TRegistry.WriteInteger(const Name: AnsiString; Value: Integer);
 begin
   WriteInteger(UnicodeString(Name), Value);
 end;
@@ -947,7 +951,7 @@ begin
   PutData(Name, @Value, SizeOf(Int64), rdInt64);
 end;
 
-procedure TRegistry.WriteInt64(const Name: String; Value: Int64);
+procedure TRegistry.WriteInt64(const Name: AnsiString; Value: Int64);
 begin
   WriteInt64(UnicodeString(Name), Value);
 end;
@@ -957,7 +961,7 @@ begin
   PutData(Name, PWideChar(Value), ByteLength(Value), rdString);
 end;
 
-procedure TRegistry.WriteString(const Name, Value: String);
+procedure TRegistry.WriteString(const Name, Value: AnsiString);
 begin
   WriteString(UnicodeString(Name), UnicodeString(Value));
 end;
@@ -983,12 +987,12 @@ begin
 
 end;
 
-procedure TRegistry.MoveKey(const OldName, NewName: String; Delete: Boolean);
+procedure TRegistry.MoveKey(const OldName, NewName: AnsiString; Delete: Boolean);
 begin
   MoveKey(UnicodeString(OldName), UnicodeString(NewName), Delete);
 end;
 
-procedure TRegistry.RenameValue(const OldName, NewName: String);
+procedure TRegistry.RenameValue(const OldName, NewName: AnsiString);
 begin
   RenameValue(UnicodeString(OldName), UnicodeString(NewName));
 end;
@@ -1139,13 +1143,18 @@ end;
 
 function TRegistryIniFile.ValueExists(const Section, Ident: string): Boolean;
 begin
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        Result:=FRegInifile.ValueExists(Ident);
-      finally
-        CloseSection;
-      end;
+  Result:=FRegInifile.OpenSection(Section);
+  if Result then
+    try
+      Result:=FRegInifile.ValueExists(Ident);
+    finally
+      FRegInifile.CloseSection;
+    end;
+end;
+
+function TRegistryIniFile.SectionExists(const Section: string): Boolean;
+begin
+  Result:=FRegIniFile.KeyExists(Section);
 end;
 
 {$ifdef XMLREG}

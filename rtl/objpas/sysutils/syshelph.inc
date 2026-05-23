@@ -45,8 +45,6 @@ Const
 
 Type
   TGuidHelper = record helper for TGUID
-    Class function Create(const Data; BigEndian: Boolean): TGUID; overload; static;
-    class function Create(const Data: array of Byte; AStartIndex: Cardinal; BigEndian: Boolean): TGUID; overload; static;
     Class Function Create(const Data; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
     Class Function Create(const B: TBytes; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
     Class Function Create(const B: TBytes; AStartIndex: Cardinal; DataEndian: TEndian = CPUEndian): TGUID; overload; static;
@@ -208,7 +206,6 @@ Type
     property Chars[AIndex: SizeInt]: AnsiChar read GetChar;
     property Length: SizeInt read GetLength;
   end;
-
 
   { TWideStringHelper }
 
@@ -636,6 +633,29 @@ Type
       property Length: SizeInt read GetLength;
     end;
 
+
+  TCurrencyHelper = type helper for Currency
+  private
+    function GetMaxValue: Currency; inline;
+    function GetMinValue: Currency; inline;
+  public
+    function Ceil: Int64; inline;
+    function Floor: Int64; inline;
+    function Frac: Currency; inline;
+    class function Parse(const S: string; const AFormatSettings: TFormatSettings): Currency; overload; static;
+    class function Parse(const S: string): Currency; overload; inline; static;
+    class function Size: Integer; inline; static;
+    function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
+    function ToString: string; overload; inline;
+    class function ToString(const Value: Currency; const AFormatSettings: TFormatSettings): string; overload; inline; static;
+    class function ToString(const Value: Currency): string; overload; inline; static;
+    function Trunc: Int64; inline;
+    class function TryParse(const S: string; out Value: Currency; const AFormatSettings: TFormatSettings): Boolean; overload; inline; static;
+    class function TryParse(const S: string; out Value: Currency): Boolean; overload; inline; static;
+
+    property MaxValue: Currency read GetMaxValue;
+    property MinValue: Currency read GetMinValue;
+  end;
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
   TSingleHelper = Type Helper for Single

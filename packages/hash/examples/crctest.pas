@@ -8,24 +8,24 @@ uses
   crc;
 
 const
-  testseq1: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGTVIRGATTSYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
-  testseq2: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGDVIRGATTHYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
+  testseq1: RawByteString = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGTVIRGATTSYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
+  testseq2: RawByteString = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGDVIRGATTHYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
 
-  test1_crc128: u128 = (lo:14444300186948028230; hi:0);
-  test2_crc128: u128 = (lo:3310614217963326015; hi:0);
+  test1_crc128: u128 = (lo:7787709990548801016; hi:8484981956151821693);
+  test2_crc128: u128 = (lo:17574279593289983859; hi:10166839289973635932);
   test1_crc64: qword = 14444300186948028230;
   test2_crc64: qword = 3310614217963326015;
   test1_crc32: longword = 3405150022;
   test2_crc32: longword = 1264209917;
 
 
-function IntToStr128(v: u128): string;
+function IntToStr128(v: u128): RawByteString;
 begin
-  result := 'todo';
+  result := '$'+hexstr(v.hi,16)+hexstr(v.lo,16);
 end;
 
 
-procedure perform_crc32(const name, testcase: string; result: longword);
+procedure perform_crc32(const name, testcase: RawByteString; result: longword);
 var
   crc: longword;
 begin
@@ -36,10 +36,13 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',crc,',expected=',result,')');
+    begin
+      writeln('failed (got=',crc,',expected=',result,')');
+      halt(1);
+    end;
 end;
 
-procedure perform_crc64(const name, testcase: string; result: qword);
+procedure perform_crc64(const name, testcase: RawByteString; result: qword);
 var
   crc: qword;
 begin
@@ -50,10 +53,13 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',crc,',expected=',result,')');
+    begin
+      writeln('failed (got=',crc,',expected=',result,')');
+      halt(1);
+    end;
 end;
 
-procedure perform_crc128(const name, testcase: string; result: u128);
+procedure perform_crc128(const name, testcase: RawByteString; result: u128);
 var
   crc: u128;
 begin
@@ -64,7 +70,10 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',IntToStr128(crc),',expected=',IntToStr128(result),')');
+    begin
+      writeln('failed (got=',IntToStr128(crc),',expected=',IntToStr128(result),')');
+      halt(1);
+    end;
 end;
 
 

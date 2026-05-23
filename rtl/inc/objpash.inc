@@ -132,6 +132,14 @@
 
        PGuid = ^TGuid;
        TGuid = packed record
+       Public
+        class operator =(const aLeft, aRight: TGUID): Boolean;
+        class operator <>(const aLeft, aRight: TGUID): Boolean; inline;
+        class function Empty: TGUID; static;
+        class function Create(const aData; aBigEndian: Boolean = False): TGUID; overload; static;
+        class function Create(const aData: array of Byte; aStartIndex: Cardinal; aBigEndian: Boolean = False): TGUID; overload; static;
+        class function Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
+        function IsEmpty: Boolean;
           case integer of
              1 : (
                   Data1 : DWord;
@@ -329,7 +337,8 @@
 
        TContainedObject = class(TAggregatedObject,IInterface)
          protected
-           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid :
+           tguid;out obj) : longint;virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          end;
 
        { some pointer definitions }
@@ -357,6 +366,11 @@
          ReraiseBuf : jmp_buf;
 {$endif FPC_USE_WIN32_SEH}
        end;
+
+
+Const
+  // In Delphi System.SysInit
+ PtrToNil: Pointer = nil;
 
     Const
        ExceptProc : TExceptProc = Nil;

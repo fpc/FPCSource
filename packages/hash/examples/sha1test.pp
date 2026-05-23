@@ -1,12 +1,19 @@
 program sha1test;
-{$mode objfpc}{$h+}
 
-uses SysUtils, sha1;
+{$mode objfpc}
+{$h+}
+
+uses 
+  {$ifdef unix}
+  cwstring,
+  {$endif}
+  SysUtils, sha1;
 
 function performTest: cardinal;
+
 // Runs test and returns result code (0=success)
 var
-  s, sdig: string;
+  s, sdig: rawbytestring;
   i: integer;
   ctx: TSHA1Context;
   d: TSHA1Digest;
@@ -25,7 +32,7 @@ begin
   for i := 1 to 1000 do s[i] := 'a';
   SHA1Init(ctx);
   for i := 0 to 999 do
-    SHA1Update(ctx, PChar(s)^, 1000);
+    SHA1Update(ctx, PAnsiChar(s)^, 1000);
   SHA1Final(ctx, d);
   sdig := SHA1Print(d);
   if sdig <> '34aa973cd4c4daa4f61eeb2bdbad27316534016f' then

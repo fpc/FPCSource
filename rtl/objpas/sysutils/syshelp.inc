@@ -10,42 +10,6 @@ begin
   Raise Exception.Create('Not yet implemented : '+S);
 end;
 
-Class function TGUIDHelper.Create(const Data; BigEndian: Boolean): TGUID; overload; static;
-
-Const
-  GUIDSize = SizeOf(TGUID);
-
-Var
-  B : Array[1..GUIDSize] of Byte;
-
-begin
-  Move(Data,B,GUIDSize);
-  Result:=Create(B,0,BigEndian);
-end;
-
-class function TGUIDHelper.Create(const Data: array of Byte; AStartIndex: Cardinal; BigEndian: Boolean): TGUID; overload; static;
-
-Var
-  A : Cardinal;
-  B,C : Word;
-
-begin
-  if ((System.Length(Data)-AStartIndex)<16) then
-    raise EArgumentException.CreateFmt('The length of a GUID array must be at least %d',[]);
-  Move(Data[AStartIndex],A,SizeOf(Cardinal));
-  Move(Data[AStartIndex+4],B,SizeOf(Word));
-  Move(Data[AStartIndex+6],C,SizeOf(Word));
-//  Writeln('BigEndian : ',BigEndian,', CPU bigendian : ',(CPUendian=TEndian.Big));
-  if BigEndian<>(CPUendian=TEndian.Big) then
-    begin
-//    Writeln('Swapping');
-    A:=SwapEndian(A);
-    B:=SwapEndian(B);
-    C:=SwapEndian(C);
-    end;
-  Result:=Create(A,B,C,Data[AStartIndex+8],Data[AStartIndex+9],Data[AStartIndex+10],Data[AStartIndex+11],Data[AStartIndex+12],Data[AStartIndex+13],Data[AStartIndex+14],Data[AStartIndex+15]);
-end;
-
 Class Function TGUIDHelper.Create(const Data; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
 
 begin
@@ -188,6 +152,100 @@ end;
 {$undef TSHStringArray}
 {$undef IS_SHORTSTRINGHELPER}
 
+
+{ ---------------------------------------------------------------------
+  TCurrencyHelper
+  ---------------------------------------------------------------------}
+function TCurrencyHelper.GetMaxValue: Currency;
+begin
+  Result:=MaxCurrency;
+end;
+
+function TCurrencyHelper.GetMinValue: Currency;
+begin
+  Result:=MinCurrency;
+end;
+
+function TCurrencyHelper.Ceil: Int64;
+begin
+  Result:=System.Trunc(Self);
+  if Currency(Result)<Self then
+    Result:=Result+1;
+end;
+
+function TCurrencyHelper.Floor: Int64;
+begin
+  Result:=System.Trunc(Self);
+  if Currency(Result)>Self then
+    Result:=Result-1;
+end;
+
+function TCurrencyHelper.Frac: Currency;
+begin
+  Result:=System.Frac(Self);
+end;
+
+class function TCurrencyHelper.Parse(const S: string; const AFormatSettings: TFormatSettings): Currency;
+begin
+  Result:=StrToCurr(S, AFormatSettings);
+end;
+
+class function TCurrencyHelper.Parse(const S: string): Currency;
+begin
+  Result:=StrToCurr(S);
+end;
+
+class function TCurrencyHelper.Size: Integer;
+begin
+  Result:=SizeOf(Currency);
+end;
+
+function TCurrencyHelper.ToString(const AFormatSettings: TFormatSettings): string;
+begin
+  Result:=CurrToStr(Self, AFormatSettings);
+end;
+
+function TCurrencyHelper.ToString: string;
+begin
+  Result:=CurrToStr(Self);
+end;
+
+class function TCurrencyHelper.ToString(const Value: Currency; const AFormatSettings: TFormatSettings): string;
+begin
+  Result:=CurrToStr(Value, AFormatSettings);
+end;
+
+class function TCurrencyHelper.ToString(const Value: Currency): string;
+begin
+  Result:=CurrToStr(Value);
+end;
+
+function TCurrencyHelper.Trunc: Int64;
+begin
+  Result:=System.Trunc(Self);
+end;
+
+class function TCurrencyHelper.TryParse(const S: string; out Value: Currency; const AFormatSettings: TFormatSettings): Boolean;
+begin
+  Result:=True;
+  try
+    Value:=StrToCurr(S, AFormatSettings);
+  except
+    on E: Exception do
+      Result:=False;
+  end;
+end;
+
+class function TCurrencyHelper.TryParse(const S: string; out Value: Currency): Boolean;
+begin
+  Result:=True;
+  try
+    Value:=StrToCurr(S);
+  except
+    on E: Exception do
+      Result:=False;
+  end;
+end;
 
 { ---------------------------------------------------------------------
   TSingleHelper

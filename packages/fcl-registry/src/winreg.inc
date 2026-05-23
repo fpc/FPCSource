@@ -59,6 +59,17 @@ begin
   Result:=(S='') or (S[1]<>'\')
 end;
 
+function RegDataWordToRegDataType(RD: DWORD): TRegDataType;
+begin
+  // Test in ascending because rdString is most commonly used
+  Result := Succ(Low(RegDataWords));
+  repeat
+    if RegDataWords[Result] = RD then
+      Exit;
+    Inc(Result);
+  until Result > High(Result);
+  Result := Low(RegDataWords);
+end;
 
 function TRegistry.sysCreateKey(Key: UnicodeString): Boolean;
 Var
@@ -134,9 +145,7 @@ begin
     Result:=-1
   else
     begin
-    RegData:=High(TRegDataType);
-    While (RegData>rdUnknown) and (RD<>RegDataWords[RegData]) do
-      RegData:=Pred(RegData);
+    RegData:=RegDataWordToRegDataType(RD);
     Result:=BufSize;
     end;
 end;
@@ -149,15 +158,10 @@ Var
 begin
   With Value do
     begin
-    FLastError:=RegQueryValueExW(fCurrentKey,PWideChar(ValueName),Nil,lpdword(@RegData),Nil,lpdword(@DataSize));
+    FLastError:=RegQueryValueExW(fCurrentKey,PWideChar(ValueName),Nil,@RD,Nil,lpdword(@DataSize));
     Result:=FLastError=ERROR_SUCCESS;
     if Result then
-      begin
-      RD:=DWord(RegData);
-      RegData:=High(TRegDataType);
-      While (RegData>rdUnknown) and (RD<>RegDataWords[RegData]) do
-         RegData:=Pred(RegData);
-      end;
+      RegData:=RegDataWordToRegDataType(RD);
     end;
   If Not Result Then
     begin
@@ -187,6 +191,7 @@ function TRegistry.GetKeyInfo(out Value: TRegKeyInfo): Boolean;
 var
   winFileTime: Windows.FILETIME;
   sysTime: TSystemTime;
+  LocalFileTime: Windows.FILETIME;
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
@@ -196,9 +201,9 @@ begin
               lpdword(@MaxDataLen),nil,@winFileTime);
     Result:=FLastError=ERROR_SUCCESS;          
     end;          
-  if Result then
+  if Result and FileTimeToLocalFileTime(@winFileTime, @LocalFileTime) and
+    FileTimeToSystemTime(@LocalFileTime, @sysTime) then
   begin
-    FileTimeToSystemTime(@winFileTime, @sysTime);
     Value.FileTime := SystemTimeToDateTime(sysTime);
   end;
 end;
@@ -469,7 +474,7 @@ var
   L: Integer;
   InfoO,InfoN : TRegDataInfo;
   D : TRegDataType;
-  P: PChar;
+  P: PAnsiChar;
 
 begin
   If GetDataInfo(OldName,InfoO) and Not GetDataInfo(NewName,InfoN) then

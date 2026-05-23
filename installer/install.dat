@@ -152,11 +152,13 @@ package=utils-fpcresdos.zip[fprsdos.zip],Free Pascal Resource Converter
 # Dos-2 25
 package=utils-fpcreslipodos.zip[fprldos.zip],Free Pascal External Resource Thinner
 # Dos-2 26
-package=utils-json2pasdos.zip[js2pdos.zip],A utility to create Object Pascal classes files from sample JSON files
+package=utils-json2pasdos.zip[jsnpdos.zip],A utility to create Object Pascal classes files from sample JSON files
 # Dos-2 27
 package=units-tplylibdos.zip[utplldos.zip],Units for sources created with the compiler generator
 # Dos-2 28
 package=utils-unicodedos.zip[ucddos.zip],Transformation of Unicode consortium data for FPC
+# Dos-2 29
+package=units-fcl-hashdos.zip[ufclhdos.zip],Hash and cryptography algorithm classes
 
 #
 # Win32 packages
@@ -465,13 +467,15 @@ package=utils-pas2jsos2.zip[p2jsos2.zip],Convert Pascal sources to Javascript
 # OS/2-3 3
 package=units-webidlos2.zip[uwidlos2.zip],Web IDL parser and converter to Object Pascal classes
 # OS/2-3 4
-package=utils-json2pasos2.zip[js2pos2.zip],Create Object Pascal classes from JSON files
+package=utils-json2pasos2.zip[jsnpos2.zip],Create Object Pascal classes from JSON files
 # OS/2-3 5
 package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
 # OS/2-3 6
 package=utils-unicodeos2.zip[ucdos2.zip],Transformation of Unicode consortium data for FPC
 # OS/2-3 7
 package=utplylibos2.zip[utpllos2.zip],Units for sources created with the compiler generator
+# OS/2-3 8
+package=units-fcl-hashos2.zip[ufclhos2.zip],Hash and cryptography algorithm classes
 
 
 #
@@ -635,14 +639,15 @@ package=utils-pas2jsemx.zip[p2jsemx.zip],Convert Pascal sources to Javascript
 # EMX-3 3
 package=units-webidlemx.zip[uwidlemx.zip],Web IDL parser and converter to Object Pascal classes
 # EMX-3 4
-package=utils-json2pasemx.zip[js2pemx.zip],Create Object Pascal classes from JSON files
+package=utils-json2pasemx.zip[jsnpemx.zip],Create Object Pascal classes from JSON files
 # EMX-3 5
 package=ufcl-pdfemx.zip[ufcpdemx.zip],PDF generating and TTF file info library
 # EMX-3 6
 package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 # EMX-3 7
 package=utplylibemx.zip[utpllemx.zip],Units for sources created with the compiler generator
-
+# EMX-3 8
+package=units-fcl-hashemx.zip[ufclhemx.zip],Hash and cryptography algorithm classes
 
 #
 # Common packages
@@ -863,7 +868,7 @@ package=units-rtl-unicode.source.zip[urtlusrc.zip],RTL-miscellaneous Unicode sup
 # Source-3 30
 package=units-rtl-generics.source.zip[urtlgsrc.zip],RTL-generic collection library
 # Source-3 31
-package=utils-json2pas.source.zip[js2psrc.zip],Create Object Pascal classes from JSON files
+package=units-fcl-hash-source.zip[ufclhsrc.zip],Hash and cryptography algorithm classes
 
 #
 # Source packages 4th part
@@ -876,6 +881,8 @@ package=utils-fpcreslipo-source.zip[fprlsrc.zip],Free Pascal External Resource T
 package=utils-importtl-source.zip[imptsrc.zip],Create Pascal interface from COM Type Library
 # Source-4 3
 package=utils-instantfpc-source.zip[ifpcsrc.zip],Instantaneous Free Pascal source executer
+# Source-4 4
+package=utils-json2pas.source.zip[jsnpsrc.zip],Create Object Pascal classes from JSON files
 
 defaultcfg=
 #

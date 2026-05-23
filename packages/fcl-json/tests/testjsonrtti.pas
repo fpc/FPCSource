@@ -85,6 +85,8 @@ type
     procedure TestDateTimeProp5;
     procedure TestDateTimeProp6;
     procedure TestDateTimeProp7;
+    Procedure TestQwordProp;
+
     Procedure TestVariantShortint;
     Procedure TestVariantbyte;
     Procedure TestVariantword;
@@ -257,12 +259,14 @@ end;
 procedure TTestJSONDeStreamer.TestVariantString;
 Var
   V : Variant;
+  S : String;
 
 begin
   JD:=TJSONString.Create('A string');
   V:=DS.JSONToVariant(JD);
   AssertVarType('String data',varOleStr,V);
-  AssertEquals('String data','A string',V);
+  S:=V;
+  AssertEquals('String data','A string',S);
 end;
 
 procedure TTestJSONDeStreamer.TestVariantArray;
@@ -548,11 +552,13 @@ end;
 procedure TTestJSONDeStreamer.TestVariantProp;
 Var
   V : TVariantComponent;
+  S : String;
 
 begin
   V:=TVariantComponent.Create(Nil);
   DeStream('{ "VariantProp" : "A string" }',V);
-  AssertEquals('Variant property value','A string',V.VariantProp);
+  S:=V.VariantProp;
+  AssertEquals('Variant property value','A string',S);
 end;
 
 procedure TTestJSONDeStreamer.TestCollection;
@@ -1504,6 +1510,20 @@ begin
   AssertProp('DateTimeProp',FormatDateTime('hh:nn',EncodeDate(1996,8,1)+EncodeTime(23,20,0,0)));
 end;
 
+procedure TTestJSONStreamer.TestQwordProp;
+var
+  D : TJSONObject;
+  V : TJSONData;
+  Obj : TQWordObj;
+begin
+  Obj := TQWordObj.Create;
+  Obj.Value := High(QWord);
+  D:=StreamObject(Obj);
+  V := D.Find('Value');
+  AssertEquals('Max QWord type', 'TJSONQWordNumber', V.ClassName);
+  AssertEquals('Max QWord', High(QWord), V.AsQWord);
+end;
+
 procedure TTestJSONStreamer.TestVariantShortint;
 
 Var
@@ -1684,7 +1704,11 @@ begin
   i:='3.14';
   C:=CreateVariantComp;
   C.VariantProp:=i;
+{$IF SIZEOF(CHAR)=2}
+  AssertEquals('Variant type',VarTypeAsText(varOleStr),VarTypeAsText(VarType(C.VariantProp)));
+{$ELSE}
   AssertEquals('Variant type',VarTypeAsText(varString),VarTypeAsText(VarType(C.VariantProp)));
+{$ENDIF}
   StreamObject(FTofree);
   AssertPropCount(1);
   AssertProp('VariantProp','3.14');

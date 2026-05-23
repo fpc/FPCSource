@@ -12,7 +12,7 @@ var
   StartTime: TDateTime;
   EndTime: TDateTime;
   i: integer;
-  s,ss: string;
+  s,ss: RawByteString;
 begin
   writeln('MD5 of a million "a" symbols');
   Writeln('compile sha unit with -dSHA1SLOW to use unoptimized original version');

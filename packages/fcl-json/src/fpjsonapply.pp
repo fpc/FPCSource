@@ -49,7 +49,7 @@ Type
     procedure SetSourceJSON(AValue: TJSONObject);
   Protected
     procedure Apply(aSrc, aApply: TJSONObject); virtual;
-    procedure SaveDestJSON(aFileName : string);
+    procedure SaveDestJSON(const aFileName : string);
     procedure SaveDestJSON(aStream : TStream);
   Public
     destructor destroy; override;
@@ -194,7 +194,7 @@ begin
     end;
 end;
 
-procedure TJSONApplier.SaveDestJSON(aFileName: string);
+procedure TJSONApplier.SaveDestJSON(const aFileName: string);
 
 Var
   F : TFileStream;
