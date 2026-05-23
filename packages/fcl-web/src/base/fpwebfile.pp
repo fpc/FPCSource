@@ -100,6 +100,7 @@ Type
     class var AllowedBaseDirs : TStringDynArray;
     // Excluded has priority over allowed.
     class var ExcludedBaseDirs : TStringDynArray;
+    class var AllowKeyInQueryField : Boolean;
   Public
     Constructor CreateNew(aOwner : TComponent; CreateMode: Integer); override;
     Destructor Destroy; override;
@@ -685,7 +686,7 @@ begin
   aAuth:=aRequest.Authorization;
   if (aAuth<>'') and SameText(ExtractWord(1,aAuth,[' ']),'Bearer') then
     aAuth:=ExtractWord(2,aAuth,[' '])
-  else
+  else if AllowKeyInQueryField then
     aAuth:=aRequest.QueryFields.Values['APIKey'];
   Result:=SecureCompare(aAuth,APIPassword);
 end;
@@ -805,4 +806,5 @@ initialization
 finalization
   FreeAndNil(Locations);
   FreeAndNil(TFPCustomFileModule._globalHeaders);
+  TFPWebFileLocationAPIModule.AllowKeyInQueryField:=False;
 end.
