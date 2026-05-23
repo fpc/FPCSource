@@ -572,9 +572,9 @@ function TFPWebFileLocationAPIModule.IsLocationAllowed(const aPath : String) : b
   begin
     lParent:=IncludeTrailingPathDelimiter(aParent);
     {$IFDEF UNIX}
-    Result:=StrUtils.StartsStr(lParent,aChild);
+    Result:=StartsStr(lParent,aChild);
     {$ELSE}
-    Result:=StrUtils.StartsText(lParent,aChild);
+    Result:=StartsText(lParent,aChild);
     {$ENDIF}
   end;
 
