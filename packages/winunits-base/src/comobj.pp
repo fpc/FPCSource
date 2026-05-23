@@ -1496,12 +1496,12 @@ HKCR
         for i:=0 to Count-1 do
           writeln('SearchIDs: ID[',i,'] = ',ids^[i]);
 {$endif DEBUG_COMDISPATCH}
+      	freemem(NamesArray);
+      	freemem(NamesData);
       	if res=DISP_E_UNKNOWNNAME then
       	  raise EOleError.createresfmt(@snomethod,[OrigNames])
       	else
       	  OleCheck(res);
-      	freemem(NamesArray);
-      	freemem(NamesData);
       end;
 
 
@@ -1638,10 +1638,10 @@ HKCR
                 dispparams, { var params; }
                 res,@exceptioninfo,nil { VarResult,ExcepInfo,ArgErr : pointer) }
           );
-        if invokeresult<>0 then
-          DispatchInvokeError(invokeresult,exceptioninfo);
         if desc^.calldesc.argcount>Length(preallocateddata) then
           FreeMem(Arguments);
+        if invokeresult<>0 then
+          DispatchInvokeError(invokeresult,exceptioninfo);
       end;
 
     { TTypedComObject }
