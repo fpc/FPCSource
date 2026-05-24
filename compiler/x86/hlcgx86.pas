@@ -80,7 +80,7 @@ implementation
          exit;
        end;
 
-      sym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
+      sym:=list.AsmData.RefAsmSymbol(externalname,AT_FUNCTION);
       reference_reset_symbol(ref,sym,0,sizeof(pint),[]);
 
       { create pic'ed? }
