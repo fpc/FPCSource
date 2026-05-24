@@ -497,6 +497,7 @@ type
 
   TCustomHTMLModule = Class(TSessionHTTPModule)
   private
+    FDisableNoSniff: Boolean;
     FDocument : THTMLDocument;
     FActions: THTMLContentActions;
     FOnCreateDocument: TCreateDocumentEvent;
@@ -506,6 +507,7 @@ type
   Protected
     Function CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
     Function CreateDocument : THTMLDocument;
+    Property DisableNoSniff : Boolean Read FDisableNoSniff Write FDisableNoSniff default false;
     Property OnGetContent : THTMLGetContentEvent Read FOnGetContent Write FOnGetContent;
     Property Actions : THTMLContentActions Read FActions Write SetActions;
     Property OnCreateDocument : TCreateDocumentEvent Read FOnCreateDocument Write FOnCreateDocument;
@@ -520,6 +522,7 @@ type
   Published
     Property Actions;
     Property CreateSession;
+    Property DisableNoSniff;
     Property Session;
     Property Kind;
     Property AfterInitModule;
@@ -1146,7 +1149,7 @@ end;
 
 { TCustomHTMLDataModule }
 
-Function TCustomHTMLModule.CreateDocument : THTMLDocument;
+function TCustomHTMLModule.CreateDocument: THTMLDocument;
 
 begin
   Result:=Nil;
@@ -1167,7 +1170,7 @@ begin
   FActions.Assign(AValue);
 end;
 
-Function TCustomHTMLModule.CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
+function TCustomHTMLModule.CreateWriter(ADocument: THTMLDocument): THTMLWriter;
 
 begin
   Result:=Nil;
@@ -1194,6 +1197,8 @@ begin
       B:=False;
       if Not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
         begin
+        if not DisableNoSniff then
+          aRequest.CustomHeaders.Values['X-Content-Type-Options']:='nosniff';
         If Assigned(OnGetContent) then
           OnGetContent(Self,ARequest,FWriter,B);
         If Not B then
@@ -1212,7 +1217,7 @@ begin
         FDocument.SaveToStream(AResponse.ContentStream);
         AResponse.ContentStream.Position:=0;
         if (AResponse.ContentType='') then
-           AResponse.ContentType:='text/html';
+           AResponse.ContentType:='text/html; charset=utf-8'; // charset to avoid sniffing for that too
         AResponse.ContentLength:=AResponse.ContentStream.Size;
         AResponse.SendContent;
         end;
