@@ -69,6 +69,7 @@ Type
     procedure DoCallModule(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest; AResponse: TResponse);
     procedure HandleModuleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
     procedure OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
+    procedure SetRedirectOnErrorURL(AValue: string);
   protected
     Class Procedure DoError(const Msg : String; AStatusCode : Integer = 0; const AStatusText : String = '');
     Class Procedure DoError(const Fmt : String; Const Args : Array of const; AStatusCode : Integer = 0; Const AStatusText : String = '');
@@ -94,7 +95,7 @@ Type
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
-    Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
+    Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write SetRedirectOnErrorURL;
     Property ApplicationURL : String Read FApplicationURL Write FApplicationURL;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property DefaultModuleName : String Read FDefaultModuleName Write FDefaultModuleName;
@@ -499,6 +500,14 @@ begin
     else
       M:=MC.Create(Self);
    DoCallModule(M,MN,ARequest,AResponse);
+end;
+
+procedure TWebHandler.SetRedirectOnErrorURL(AValue: string);
+begin
+  if FRedirectOnErrorURL=AValue then Exit;
+  if (aValue<>'') and (aValue[1]<>'/') then
+    Raise EHTTP.Create('Only local error redirects are allowed.');
+  FRedirectOnErrorURL:=AValue;
 end;
 
 function TWebHandler.GetApplicationURL(ARequest: TRequest): String;
