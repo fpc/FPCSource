@@ -458,7 +458,7 @@ begin
         else if name = HeaderXRequestedWith then
           hv := hvXRequestedWith;
         if hv <> hvUnknown then
-          SetHTTPVariable(hvSetCookie, value)
+          SetHTTPVariable(hv, value)
         else
           SetCustomHeader(name, value);
       end;
