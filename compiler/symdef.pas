@@ -948,7 +948,7 @@ interface
           procedure setmangledname(const s : TSymStr);
           function  needsglobalasmsym: boolean;
           procedure setcompilerprocname;
-          function  fullprocname(showhidden:boolean):string;
+          function  fullprocname(showhidden:boolean):ansistring;
           function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: TSymStr;
           function  cplusplusmangledname : TSymStr;
@@ -6980,7 +6980,7 @@ implementation
       end;
 
 
-    function tprocdef.fullprocname(showhidden:boolean):string;
+    function tprocdef.fullprocname(showhidden:boolean):ansistring;
       var
         pno: tprocnameoptions;
       begin
