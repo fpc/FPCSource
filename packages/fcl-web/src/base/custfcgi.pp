@@ -422,8 +422,8 @@ begin
     else if (v<>hvUnknown) then
       begin
       Tmp:=MakeString(Value);
-      if (V=hvPathInfo) and (Copy(Tmp,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
-          Delete(Tmp,1,3);
+      if (V=hvPathInfo) and StartsStr('//',Tmp) then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Tmp,1,1);
       if (V<>hvQuery) then
         Tmp:=HTTPDecode(Tmp);
       SetHTTPVariable(v,Tmp);
