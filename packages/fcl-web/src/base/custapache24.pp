@@ -204,11 +204,10 @@ Function DefaultApacheHandler(P : PRequest_Rec) : integer;cdecl;
 begin
   If (AlternateHandler<>Nil) then
     Result:=AlternateHandler(P)
+  else if Assigned(Application) and Application.AllowRequest(P) then
+    Result:=Application.ProcessRequest(P)
   else
-    If Application.AllowRequest(P) then
-      Result:=Application.ProcessRequest(P)
-    else
-      Result:=DECLINED;
+    Result:=DECLINED;
 end;
 
 Procedure RegisterApacheHooks(P: PApr_pool_t);cdecl;
