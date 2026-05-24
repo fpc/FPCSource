@@ -1948,7 +1948,7 @@ begin
       lEventSource(self,Result);
 
   finally
-    lStream.Create;
+    lStream.Free;
     OnEventStream:=lEventSource;
   end;
 
