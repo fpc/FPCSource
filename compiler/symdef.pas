@@ -722,7 +722,7 @@ interface
           has_paraloc_info : tcallercallee; { paraloc info is available }
           { number of user visible parameters }
           maxparacount,
-          minparacount    : byte;
+          minparacount    : word;
           constructor create(dt:tdeftyp;level:byte;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
