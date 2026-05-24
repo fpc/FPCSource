@@ -481,9 +481,17 @@ begin
   Result:=Getmem(BytesRead+ContentLength+PaddingLength);
   Result^:=Header;
   ReadBuf:=PAnsiChar(Result)+SizeOf(Header);
-  ReadBytes(ContentLength);
+  if (ContentLength>0) and not ReadBytes(ContentLength) then
+    begin
+    freemem(Result);
+    Result:=Nil;
+    end;
   ReadBuf:=ReadBuf+BytesRead;
-  ReadBytes(PaddingLength);
+  if (PaddingLength>0) and not ReadBytes(PaddingLength) then
+    begin
+    freemem(Result);
+    Result:=Nil;
+    end;
 {$IFDEF CGIGDEBUG}SendMethodExit('ReadFastCGIRecord');{$ENDIF}
 end;
 
