@@ -139,7 +139,7 @@ interface
           emit_reg(ctx,A_MUL,opsize,reg);
         if needoverflowcheck then
          begin
-           current_asmdata.getjumplabel(hl4);
+           ctx.CurrAsmList.AsmData.getjumplabel(hl4);
            ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_AE,hl4);
            ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
            ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
