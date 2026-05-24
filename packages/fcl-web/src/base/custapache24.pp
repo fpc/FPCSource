@@ -72,8 +72,11 @@ Type
   TBeforeRequestEvent = Procedure(Sender : TObject; Const AHandler : String;
                                   Var AllowRequest : Boolean) of object;
 
+  { TApacheHandler }
+
   TApacheHandler = Class(TWebHandler)
   private
+    Finitialized: Boolean;
     FMaxRequests: Integer;             //Maximum number of simultaneous web module requests (default=64, if set to zero no limit)
     FWorkingWebModules: TList;         //List of currently running web modules handling requests
     FIdleWebModules: TList;            //List of idle web modules available
@@ -86,6 +89,7 @@ Type
     FPriority: THandlerPriority;
     FModuleRecord : PModule;
     function GetModules(Index: integer): TStrings;
+    procedure SetModuleName(AValue: String);
     procedure SetModules(Index: integer; const AValue: TStrings);
     function GetIdleModuleCount : Integer;
     function GetWorkingModuleCount : Integer;
@@ -106,7 +110,7 @@ Type
     Property BeforeModules : TStrings Index 0 Read GetModules Write SetModules;
     Property AfterModules : TStrings Index 1 Read GetModules Write SetModules;
     Property BaseLocation : String Read FBaseLocation Write FBaseLocation;
-    Property ModuleName : String Read FModuleName Write FModuleName;
+    Property ModuleName : String Read FModuleName Write SetModuleName;
     Property HandlerName : String Read FHandlerName Write FHandlerName;
     Property BeforeRequest : TBeforeRequestEvent Read FBeforeRequest Write FBeforeRequest;
     Property MaxRequests: Integer read FMaxRequests write FMaxRequests;
@@ -231,6 +235,14 @@ begin
   Result:=FModules[Index];
 end;
 
+procedure TApacheHandler.SetModuleName(AValue: String);
+begin
+  if FModuleName=AValue then Exit;
+  if FInitialized then
+    Raise EHTTP.Create('Cannot change module name after initialization');
+  FModuleName:=AValue;
+end;
+
 procedure TApacheHandler.SetModules(Index: integer;
   const AValue: TStrings);
 begin
@@ -239,7 +251,7 @@ begin
   FModules[Index].Assign(AValue);
 end;
 
-Function TApacheHandler.ProcessRequest(P: PRequest_Rec) : Integer;
+function TApacheHandler.ProcessRequest(P: PRequest_Rec): Integer;
 
 Var
   Req : TApacheRequest;
@@ -339,8 +351,9 @@ begin
     Raise EFPApacheError.Create(SErrNoModuleName);
   STANDARD20_MODULE_STUFF(FModuleRecord^);
   If (StrPas(FModuleRecord^.name)<>FModuleName) then
-    FModuleRecord^.Name:=PAnsiChar(FModuleName);
+    FModuleRecord^.Name:= PAnsiChar(FModuleName);
   FModuleRecord^.register_hooks:=@RegisterApacheHooks;
+  Finitialized:=True;
 end;
 
 procedure TApacheHandler.LogErrorMessage(const Msg: String; LogLevel: integer);
@@ -376,7 +389,7 @@ begin
   end;
 end;
 
-procedure TApacheHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TApacheHandler.handleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   MC : TCustomHTTPModuleClass;
