@@ -24,7 +24,7 @@ uses
   System.Classes, System.SysUtils, FpWeb.Html, Html.Defs, Html.Writer, Data.Db, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, fphtml, htmldefs, htmlwriter, db, htmlelements;
+  Classes, SysUtils, fphttp, fphtml, htmldefs, htmlwriter, db, htmlelements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -280,6 +280,7 @@ type
   THTMLDatasetFormProducer = class (THTMLContentProducer)
   private
     FAfterSetRecord: TProducerSetRecordEvent;
+    FCSRFToken: String;
     FOnInitializeProducer : TProducerEvent;
     FOnFieldChecked : TFieldCheckEvent;
     FAfterTBodyCreate,
@@ -327,40 +328,42 @@ type
     destructor destroy; override;
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
   published
+    // action of the form (link), if not given; don't use a form element
     property FormAction : string read FFormAction write FFormAction;
-      // action of the form (link), if not given; don't use a form element
+    // method of the form, Get or Post
     property FormMethod : TFormMethod read FFormMethod write FFormMethod;
-      // method of the form, Get or Post
+    // method of the form, Get or Post
     Property DataSource : TDataSource read FDataSource write FDataSource;
-      // the data to use
+    // method of the form, Get or Post
     property Controls : TFormFieldCollection read FControls write FControls;
-      // configuration of the fields and how to generate the html
+    // place label and value/edit in same table cell
     property SeparateLabel : boolean read FSeparateLabel write SetSeparateLabel;
-      // place label and value/edit in same table cell
+    // buttons to place in the form
     property buttonrow : TFormButtonCollection read Fbuttonrow write Fbuttonrow;
-      // buttons to place in the form
+    // number columns in the grid for 1 record
     property TableCols : integer read FTableCols write FTableCols default 2;
-      // number columns in the grid for 1 record
+    // number of rows in the grid for 1 record
     property TableRows : integer read FTableRows write FTableRows;
-      // number of rows in the grid for 1 record
+    // where to place the buttons horizontally
     property ButtonsHorizontal : TButtonHorPosition read FButtonsHor write FButtonsHor default bhpleft;
-      // where to place the buttons horizontally
+    // where to place the buttons vertically
     property ButtonsVertical : TButtonVerPositionSet read FButtonsVer write FButtonsVer default [bvpTop,bvpBottom];
-      // where to place the buttons vertically
+    // Called before the producer creates it's HTML code
     property OnInitializeProducer : TProducerEvent read FOnInitializeProducer write FOnInitializeProducer;
-      // Called before the producer creates it's HTML code
+    // Called after each creation of a cell in the table makeup in the form
     property AfterCellCreate : TFieldCellEvent read FAfterCellCreate write FAfterCellCreate;
-      // Called after each creation of a cell in the table makeup in the form
+    // Called after each creation of a button
     property AfterButtonCreate : TButtonEvent read FAfterButtonCreate write FAfterButtonCreate;
-      // Called after each creation of a button
+    // Called after the creation of the table
     property AfterTableCreate : THTMLElementEvent read FAfterTableCreate write FAfterTableCreate;
-      // Called after the creation of the table
+    // Called after finishing the tbody of each record
     property AfterTBodyCreate : THTMLElementEvent read FAfterTBodyCreate write FAfterTBodyCreate;
-      // Called after finishing the tbody of each record
+    // Called after the dataset is scrolled to the next record
     property AfterSetRecord : TProducerSetRecordEvent read FAfterSetRecord write FAfterSetRecord;
-      // Called after the dataset is scrolled to the next record
+    // return if the field is true or false if the false string differs from '0','false','-'
     property OnFieldChecked : TFieldCheckEvent read FOnFieldChecked write FOnFieldChecked;
-      // return if the field is true or false if the false string differs from '0','false','-'
+    // CSRF token to include.
+    property CSRFToken : String read FCSRFToken write FCSRFToken;
   end;
 
   { THTMLDatasetFormEditProducer }
@@ -850,6 +853,8 @@ begin
       method := MethodAttribute[self.FormMethod];
       action := FormAction;
       end;
+    if CSRFToken<>'' then
+      aWriter.FormHidden (cCSRFVariable, CSRFToken);
     t := aWriter.Starttable;
     end
   else

@@ -21,10 +21,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, Fcl.Template;
+  System.Classes, System.SysUtils, System.StrUtils, FpWeb.Http.Defs, FpWeb.Http.Base, Fcl.Template;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, httpdefs, fphttp, fptemplate;
+  Classes, SysUtils, StrUtils, httpdefs, fphttp, fptemplate;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -129,6 +129,10 @@ Type
     function CreateTemplateVars: TTemplateVars; virtual;
     function CreateTemplate: TFPTemplate; virtual;
     function CreateActions: TFPWebActions; virtual;
+    // Override if you wish to add a method
+    class function IsWriteRequest(const aMethod: string): boolean; virtual;
+    // Check if request contains the CSRF token
+    class function HasToken(ARequest: TRequest; const aToken: string): boolean; virtual;
     Function HandleActions(ARequest : TRequest): Boolean; virtual;
     procedure DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean); virtual;
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
@@ -464,35 +468,48 @@ begin
   inherited Destroy;
 end;
 
-Function TCustomFPWebModule.CreateTemplateVars : TTemplateVars;
+function TCustomFPWebModule.CreateTemplateVars: TTemplateVars;
 
 begin
   Result:=TTemplateVars.Create(TTemplateVar);
 end;
 
-Function TCustomFPWebModule.CreateTemplate : TFPTemplate;
+function TCustomFPWebModule.CreateTemplate: TFPTemplate;
 
 begin
   Result:=TFPWebTemplate.Create(Self);
 end;
 
-Function TCustomFPWebModule.CreateActions : TFPWebActions;
+function TCustomFPWebModule.CreateActions: TFPWebActions;
 
 begin
   Result:=TFPWebActions.Create(TFPWebAction);
 end;
 
-procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; Var AHandled : Boolean);
+procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean);
 
 begin
   If Assigned(FOnRequest) then
     FOnRequest(Self,ARequest,AResponse,AHandled);
 end;
 
+class function TCustomFPWebModule.IsWriteRequest(const aMethod: string): boolean;
+
+begin
+  Result:=IndexStr(UpperCase(aMethod),['POST','PUT','DELETE','PATCH','BATCH'])<>-1;
+end;
+
+
+class function TCustomFPWebModule.HasToken(ARequest: TRequest; const aToken : string) : boolean;
+begin
+  Result:=(ARequest.ContentFields.Values[cCSRFVariable]=aToken)
+end;
+
 procedure TCustomFPWebModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   B : Boolean;
+  Err : EHTTP;
 
 begin
 {$ifdef cgidebug}
@@ -507,6 +524,16 @@ begin
     InitSession(AResponse);
     if not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
       begin
+      if IsWriteRequest(aRequest.Method) and (Session.Variables[cCSRFVariable]<>'') then
+        begin
+        if not HasToken(aRequest,Session.Variables[cCSRFVariable]) then
+          begin
+          Err:=EHTTP.Create('CSRF Token mismatch');
+          Err.StatusCode:=403;
+          Err.StatusText:='FORBIDDEN';
+          Raise Err;
+          end;
+        end;
       DoOnRequest(ARequest,AResponse,B);
       If B then
         begin
