@@ -614,11 +614,11 @@ begin
   Lock;
   try
     Intr:=FIntercepts.AddInterceptor(aName);
+    Intr.Event:=aEvent;
+    Intr.InterceptAt:=aAt;
   finally
     Unlock;
   end;
-  Intr.Event:=aEvent;
-  Intr.InterceptAt:=aAt;
 end;
 
 procedure THTTPRouter.UnRegisterInterceptor(const aName: String);
