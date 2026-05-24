@@ -1193,27 +1193,29 @@ begin
     Try
       B:=False;
       if Not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
+        begin
         If Assigned(OnGetContent) then
           OnGetContent(Self,ARequest,FWriter,B);
         If Not B then
           Actions.HandleRequest(ARequest,FWriter,B);
         If Not B then
           Raise EHTMLError.Create(SErrRequestNotHandled);
-        If (AResponse.ContentStream=Nil) then
-          begin
-          M:=TMemoryStream.Create;
-          AResponse.ContentStream:=M;
-          AResponse.FreeContentStream:=True;
-          end;
-        if not AResponse.ContentSent then
-          begin
-          FDocument.SaveToStream(AResponse.ContentStream);
-          AResponse.ContentStream.Position:=0;
-          if (AResponse.ContentType='') then
-             AResponse.ContentType:='text/html';
-          AResponse.ContentLength:=AResponse.ContentStream.Size;
-          AResponse.SendContent;
-          end;
+        end;
+      If (AResponse.ContentStream=Nil) then
+        begin
+        M:=TMemoryStream.Create;
+        AResponse.ContentStream:=M;
+        AResponse.FreeContentStream:=True;
+        end;
+      if not AResponse.ContentSent then
+        begin
+        FDocument.SaveToStream(AResponse.ContentStream);
+        AResponse.ContentStream.Position:=0;
+        if (AResponse.ContentType='') then
+           AResponse.ContentType:='text/html';
+        AResponse.ContentLength:=AResponse.ContentStream.Size;
+        AResponse.SendContent;
+        end;
     Finally
       FreeAndNil(FWriter);
     end;
