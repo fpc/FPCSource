@@ -155,7 +155,7 @@ implementation
           end;
 
         { local label in order to avoid using GOT }
-        current_asmdata.getlabel(tablelabel,alt_data);
+        jtlist.AsmData.getlabel(tablelabel,alt_data);
         indexreg:=ctx.cg.makeregsize(jtlist,hregister,OS_ADDR);
         ctx.cg.a_load_reg_reg(jtlist,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
