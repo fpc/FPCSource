@@ -131,8 +131,8 @@ implementation
                      we load bits 0..62 and then check bit 63:
                      if it is 1 then we add $80000000 000000000
                      as double                                  }
-                   current_asmdata.getdatalabel(l1);
-                   current_asmdata.getjumplabel(l2);
+                   ctx.CurrAsmList.AsmData.getdatalabel(l1);
+                   ctx.CurrAsmList.AsmData.getjumplabel(l2);
 
                    { Get sign bit }
                    if not(left.location.loc in [LOC_REGISTER,LOC_REFERENCE]) then
@@ -160,8 +160,8 @@ implementation
 
                    ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NC,l2);
                    ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(sizeof(pint)));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                   new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(sizeof(pint)));
+                   ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0,4,[]);
                    { simplify for PIC }
                    tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
@@ -170,15 +170,15 @@ implementation
                    if is_double(resultdef) then
                      begin
                        { double (2^64) }
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
+                       ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                       ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
                        tcgx86(ctx.cg).make_simple_ref(ctx.CurrAsmList,href);
                        ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
                    else if is_single(resultdef) then
                      begin
                        { single(2^64) }
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
+                       ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                        ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
