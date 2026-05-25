@@ -44,7 +44,15 @@ const
       const
         factor: double = double(int64(1) shl 32);
         factor2: double = double(int64(1) shl 31);
+{$if not defined(macos) and not defined(aix)}
+{$ifdef FPC_PIC}
+{$ifndef DARWIN}
+{$define FPC_SKIP_MATH_ASM_CODE}
+{$endif DARWIN}
+{$endif FPC_PIC}
+{$endif not defined(macos) and not defined(aix)}
 
+{$ifndef FPC_SKIP_MATH_ASM_CODE}
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : valreal) : int64;assembler;compilerproc;
@@ -401,3 +409,4 @@ asm
 end;
 {$endif}
 
+{$endif ndef FPC_SKIP_MATH_ASM_CODE}
