@@ -530,18 +530,18 @@ begin
   InColorArea:=false; AreaColor:=0;
 end;
                 { recognize only 4 utf8 characters }
-function TranslateUtf8To475(const utf8 : string; var idx : sw_word):string;
+function TranslateUtf8To437(const utf8 : string; var idx : sw_word):string;
 begin
-  translateUtf8To475:='';
+  translateUtf8To437:='';
   if idx=2 then
     begin
-      if utf8=#$c3#$ab then begin translateUtf8To475:=#$89;idx:=0; end else
-      if utf8=#$c3#$a4 then begin translateUtf8To475:=#$84;idx:=0; end else
-      if utf8=#$c2#$a0 then begin translateUtf8To475:=' '; idx:=0; end;
+      if utf8=#$c3#$ab then begin translateUtf8To437:=#$89;idx:=0; end else
+      if utf8=#$c3#$a4 then begin translateUtf8To437:=#$84;idx:=0; end else
+      if utf8=#$c2#$a0 then begin translateUtf8To437:=' '; idx:=0; end;
     end
   else if idx=3 then
     begin
-      if utf8=#$e2#$80#$99 then begin translateUtf8To475:=''''; end;
+      if utf8=#$e2#$80#$99 then begin translateUtf8To437:=''''; end;
       idx:=0; { reset anyway }
     end;
 end;
@@ -694,7 +694,7 @@ begin
                    begin
                      inc(iTr);
                      Utf8Char:=Utf8Char+C;
-                     sAnsiChar:=TranslateUtf8To475(Utf8Char,iTr);
+                     sAnsiChar:=TranslateUtf8To437(Utf8Char,iTr);
                      if length(sAnsiChar)=1 then
                        CurWord:=CurWord+sAnsiChar[1]
                      else if (length(sAnsiChar)=0) and (iTr=0) then
