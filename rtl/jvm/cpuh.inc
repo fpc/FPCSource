@@ -13,3 +13,5 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$define FPC_SYSTEM_FPUCW_IMMUTABLE}

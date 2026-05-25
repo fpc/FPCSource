@@ -22,7 +22,7 @@ begin
   res:=0;
 
   { exception flags are turned off by kernel }
-  fpc_enable_ppc_fpu_exceptions;
+  SysResetFpu;
   case sig of
     SIGFPE :
       { distuingish between different FPU exceptions }

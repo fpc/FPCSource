@@ -33,27 +33,16 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
-{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11)}
-
-    rfs r0
-    and r0,r0,#0xffe0ffff
-    orr r0,r0,#0x00070000
-    wfs r0
-{$else}
     movw r0, #(0xed88)
     movt r0, #(0xe000)
     ldr r1, [r0]
     orr r1, r1, #(0xF << 20)
     str r1, [r0]
-{$endif}
   end;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
 end;
 {$endif}
-
-procedure fpc_cpuinit;
-begin
-  SysInitFPU;
-end;
 
 {$ifdef wince}
 function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
@@ -68,11 +57,24 @@ end;
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
 end;
 {$endif wince}
+
+{$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+function GetNativeFPUControlWord: TNativeFPUControlWord;
+  begin
+    result:=_controlfp(0,0);
+  end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
+  begin
+    _controlfp(cw,$ffffffff);
+  end;
+
 
 {****************************************************************************
                        stack frame related stuff

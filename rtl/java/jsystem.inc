@@ -920,6 +920,21 @@ begin
    end;
 end;
 *)
+
+{*****************************************************************************
+                        FPU Exceptions state
+*****************************************************************************}
+
+{$if defined(FPC_SYSTEM_FPUCW_IMMUTABLE) or defined(FPU_NONE)}
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+begin
+  result:=default(TNativeFPUControlWord);
+end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+begin
+end;
+{$endif}
 {*****************************************************************************
                           Error / Exit / ExitProc
 *****************************************************************************}
