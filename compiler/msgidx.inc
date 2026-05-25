@@ -27,6 +27,12 @@ const
   general_f_oserror=01025;
   general_e_exception_raised=01026;
   general_t_unitscope=01027;
+  general_i_reduced_filesearch=01028;
+  general_f_compiler_aborted=01029;
+  general_t_unitpath_local=01030;
+  general_t_includepath_local=01031;
+  general_t_librarypath_local=01032;
+  general_t_objectpath_local=01033;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -1119,9 +1125,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 84228;
+  MsgTxtSize = 84494;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,350,127,99,63,142,38,224,67,
+    34,106,350,127,99,63,142,38,224,67,
     69,20,30,1,1,1,1,1,1,1
   );
