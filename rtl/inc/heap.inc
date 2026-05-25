@@ -1900,7 +1900,9 @@ type
     minSize := (minSize + (HeaderSize + Quant - 1)) and SizeUint(-Quant);
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalSection(lock);
+    { VarHugeManager synchronization is guarded with lockUse <> 0 to allow some allocations without the initialized thread manager.
+      See the same guards in ThreadState.Orphan, and also https://gitlab.com/freepascal.org/fpc/source/-/work_items/41782. }
+    if gs.lockUse <> 0 then EnterCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
     { Uses linear search unlike AllocVar. Could ideally use a red-black tree but there shouldn’t be too many fragments,
       or at least the performance of this search shouldn’t be that important. }
@@ -1968,7 +1970,7 @@ type
     if countInUsed then
       inc(used, size);
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    LeaveCriticalSection(lock);
+    if gs.lockUse <> 0 then LeaveCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
@@ -1979,7 +1981,7 @@ type
     fFlags: uint32;
   begin
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalSection(lock);
+    if gs.lockUse <> 0 then EnterCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
     fSize := pVarHugeHeader(p)[-1].size;
     fFlags := pVarHugeHeader(p)[-1].flags;
@@ -2023,7 +2025,7 @@ type
     end;
     AddToFreelist(p);
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    LeaveCriticalSection(lock);
+    if gs.lockUse <> 0 then LeaveCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
     dec(result, HeaderSize);
   end;
@@ -2037,7 +2039,7 @@ type
       exit(p);
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalSection(lock);
+    if gs.lockUse <> 0 then EnterCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
     result := TryResizeAndUnlock(p, size);
   end;
@@ -2092,7 +2094,7 @@ type
             exit(TryResizeAndUnlock(p, size)); { For simplicity, just retry. }
         end;
       {$ifdef FPC_HAS_FEATURE_THREADING}
-        LeaveCriticalSection(lock);
+        if gs.lockUse <> 0 then LeaveCriticalSection(lock);
       {$endif FPC_HAS_FEATURE_THREADING}
         exit;
       end;
@@ -2135,7 +2137,7 @@ type
 
     inc(used, arSize);
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    LeaveCriticalSection(lock);
+    if gs.lockUse <> 0 then LeaveCriticalSection(lock);
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
@@ -2153,7 +2155,7 @@ type
     if not Assigned(result) then
     begin
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      LeaveCriticalSection(lock);
+      if gs.lockUse <> 0 then LeaveCriticalSection(lock);
     {$endif FPC_HAS_FEATURE_THREADING}
       exit(AllocFailed);
     end;
