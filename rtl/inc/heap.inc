@@ -1004,7 +1004,7 @@ type
         begin
           arena := AllocVar(ChooseFixedArenaSize(sizeIndex), High(SizeUint));
           if not Assigned(arena) then
-            exit(nil);
+            exit; { (nil) as arena is mapped to result. }
           { Size index is used to determine if the arena requires reformatting. Set a purposely mismatching value for freshly allocated arena. }
           arena^.sizeIndex := uint16(-1);
         end;
@@ -1733,8 +1733,7 @@ type
       runLast := cur;
       cur := cur^.next;
     until not Assigned(cur);
-    if Assigned(runTs) then
-      runTs^.PushIncomingToFree(runFirst, runLast);
+    runTs^.PushIncomingToFree(runFirst, runLast); { There is always an ongoing run at this point, provided that outcomingToFree was initially non-empty. }
   end;
 
   procedure HeapInc.ThreadState.Orphan;
