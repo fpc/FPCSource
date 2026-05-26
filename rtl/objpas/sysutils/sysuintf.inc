@@ -88,28 +88,8 @@ end;
 
 function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
 
-  function ParseHexDigit(c: char): Byte;
-  begin
-    case c of
-      '0'..'9': Result := Byte(c) - Byte('0');
-      'a'..'f': Result := Byte(c) - Byte('a') + 10;
-      'A'..'F': Result := Byte(c) - Byte('A') + 10;
-      else TryStringToGUID := False;
-    end;
-  end;
-
-var
-  iByte: SizeInt;
-  sp: PChar;
-
 begin
-  Result := (Length(S)=38) and (S[1]='{') and (S[10]='-') and (S[15]='-') and (S[20]='-') and (S[25]='-') and (S[38]='}');
-  if not Result then exit;
-  for iByte := 0 to High(TGUID.AsStringByteScatter) do
-  begin
-    sp := PChar(Pointer(S)) + TGUID.AsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
-    PByte(@Guid)[iByte] := ParseHexDigit(sp[0]) shl 4 + ParseHexDigit(sp[1]);
-  end;
+  Result := TGUID.FromString(S,GUID);
 end;
 
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;

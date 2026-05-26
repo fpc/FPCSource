@@ -383,6 +383,7 @@ begin
   Result:=Create(PByte(@aData),aBigEndian);
 end;
 
+
 class function TGUID.Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
 
 const
@@ -395,6 +396,54 @@ begin
   Result.D1:=SwapEndian(Result.D1);
   Result.D2:=SwapEndian(Result.D2);
   Result.D3:=SwapEndian(Result.D3);
+end;
+
+
+const
+  cAsStringByteScatter: array[0 .. 15] of byte =
+  (
+    // Character 1: {.
+    // Bytes 0−3 go to characters 2−9 as uint32.
+  {$ifdef ENDIAN_LITTLE} 8{..9}, 6{..7}, 4{..5}, 2{..3}, {$else} 2{..3}, 4{..5}, 6{..7}, 8{..9}, {$endif}
+    // Character 10: -.
+    // Bytes 4−5 go to characters 11−14 as uint16.
+    // Character 15: -.
+    // Bytes 6-7 go to characters 16−19 as uint16.
+  {$ifdef ENDIAN_LITTLE} 13{..14}, 11{..12}, 18{..19}, 16{..17}, {$else} 11{..12}, 13{..14}, 16{..17}, 18{..19}, {$endif}
+    // Character 20: -.
+    // Bytes 8-9 go to characters 21−24 as single bytes.
+    21{..22}, 23{..24},
+    // Character 25: -.
+    // Bytes 10-15 go to characters 26−37 as single bytes.
+    26{..27}, 28{..29}, 30{..31}, 32{..33}, 34{..35}, 36{..37}
+    // Character 38: }.
+  );
+
+class function TGUID.FromString(S: AnsiString; out GUID: TGUID): Boolean;
+  function ParseHexDigit(c: char; var aRes : Boolean): Byte;
+  begin
+    case c of
+      '0'..'9': Result := Byte(c) - Byte('0');
+      'a'..'f': Result := Byte(c) - Byte('a') + 10;
+      'A'..'F': Result := Byte(c) - Byte('A') + 10;
+    else
+      aRes := False;
+    end;
+  end;
+
+var
+  iByte: SizeInt;
+  sp: PChar;
+
+begin
+  Result := (Length(S)=38) and (S[1]='{') and (S[10]='-') and (S[15]='-') and (S[20]='-') and (S[25]='-') and (S[38]='}');
+  if not Result then exit;
+  for iByte := 0 to High(cAsStringByteScatter) do
+  begin
+    sp := PChar(Pointer(S)) + cAsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
+    PByte(@Guid)[iByte] := ParseHexDigit(sp[0], Result) shl 4 + ParseHexDigit(sp[1],Result);
+
+  end;
 end;
 
 
@@ -420,25 +469,6 @@ end;
 
 function TGUID.AsString : ShortString;
 
-const
-  AsStringByteScatter: array[0 .. 15] of byte =
-  (
-    // Character 1: {.
-    // Bytes 0−3 go to characters 2−9 as uint32.
-  {$ifdef ENDIAN_LITTLE} 8{..9}, 6{..7}, 4{..5}, 2{..3}, {$else} 2{..3}, 4{..5}, 6{..7}, 8{..9}, {$endif}
-    // Character 10: -.
-    // Bytes 4−5 go to characters 11−14 as uint16.
-    // Character 15: -.
-    // Bytes 6-7 go to characters 16−19 as uint16.
-  {$ifdef ENDIAN_LITTLE} 13{..14}, 11{..12}, 18{..19}, 16{..17}, {$else} 11{..12}, 13{..14}, 16{..17}, 18{..19}, {$endif}
-    // Character 20: -.
-    // Bytes 8-9 go to characters 21−24 as single bytes.
-    21{..22}, 23{..24},
-    // Character 25: -.
-    // Bytes 10-15 go to characters 26−37 as single bytes.
-    26{..27}, 28{..29}, 30{..31}, 32{..33}, 34{..35}, 36{..37}
-    // Character 38: }.
-  );
 
 var
   iByte, iRes: SizeInt;
@@ -451,9 +481,9 @@ begin
   Result[20]:='-';
   Result[25]:='-';
   Result[38]:='}';
-  for iByte:=0 to High(AsStringByteScatter) do
+  for iByte:=0 to High(cAsStringByteScatter) do
   begin
-    iRes:=AsStringByteScatter[iByte];
+    iRes:=cAsStringByteScatter[iByte];
     PAnsiChar(@Result[0])[iRes]:=HexTbl[PByte(@Self)[iByte] shr 4];
     PAnsiChar(@Result[0])[iRes+1]:=HexTbl[PByte(@Self)[iByte] and $F];
   end;

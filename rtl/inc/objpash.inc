@@ -44,6 +44,7 @@
         class function Create(const aData; aBigEndian: Boolean = False): TGUID; overload; static;
         class function Create(const aData: array of Byte; aStartIndex: Cardinal; aBigEndian: Boolean = False): TGUID; overload; static;
         class function Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
+        class function FromString(S : AnsiString; Out GUID : TGUID) : Boolean; static;
         function IsEmpty: Boolean;
         function AsString : ShortString;
 
