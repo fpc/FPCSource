@@ -758,7 +758,7 @@ type
   Public
     Constructor Create; virtual;
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
-    // Handle CORS headers. Returns TRUE if the full headers were added.
+    // Handle CORS headers. Returns TRUE if the full headers were added and response was sent.
     Function HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions : THandleCORSOptions = [hcDetect]) : Boolean; virtual;
     Procedure Assign(Source : TPersistent); override;
   Published
