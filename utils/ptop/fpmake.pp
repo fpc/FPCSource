@@ -22,7 +22,7 @@ begin
         begin
         P := AddPackage('utils-ptop');
         P.ShortName := 'ptop';
-        P.OSes := AllOSes - [embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,human68k,sinclairql];
+        P.OSes := AllOSes - [embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,human68k,sinclairql,ps1];
         
         if Defaults.CPU = jvm then
             P.OSes := P.OSes - [java,android];
