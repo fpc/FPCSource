@@ -47,26 +47,6 @@
         function IsEmpty: Boolean;
         function AsString : ShortString;
 
-      const
-        AsStringByteScatter: array[0 .. 15] of byte =
-        (
-          // Character 1: {.
-          // Bytes 0−3 go to characters 2−9 as uint32.
-        {$ifdef ENDIAN_LITTLE} 8{..9}, 6{..7}, 4{..5}, 2{..3}, {$else} 2{..3}, 4{..5}, 6{..7}, 8{..9}, {$endif}
-          // Character 10: -.
-          // Bytes 4−5 go to characters 11−14 as uint16.
-          // Character 15: -.
-          // Bytes 6-7 go to characters 16−19 as uint16.
-        {$ifdef ENDIAN_LITTLE} 13{..14}, 11{..12}, 18{..19}, 16{..17}, {$else} 11{..12}, 13{..14}, 16{..17}, 18{..19}, {$endif}
-          // Character 20: -.
-          // Bytes 8-9 go to characters 21−24 as single bytes.
-          21{..22}, 23{..24},
-          // Character 25: -.
-          // Bytes 10-15 go to characters 26−37 as single bytes.
-          26{..27}, 28{..29}, 30{..31}, 32{..33}, 34{..35}, 36{..37}
-          // Character 38: }.
-        );
-
       Public
          case integer of
             1 : (
