@@ -530,7 +530,7 @@ implementation
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=((cs_asm_source in compiler.globals.current_settings.globalswitches) or
                 (cs_lineinfo in compiler.globals.current_settings.moduleswitches))
-                 and (p=current_asmdata.asmlists[al_procedures]);
+                 and (asmlisttype=al_procedures);
       InlineLevel:=0;
       DoNotSplitLine:=false;
       hp:=tai(p.first);
