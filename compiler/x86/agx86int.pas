@@ -46,7 +46,7 @@ interface
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         Function  DoAssemble:boolean;override;
-        procedure WriteExternals;
+        procedure WriteExternals(asmdata: TAsmData);
       end;
 
 
@@ -1028,14 +1028,14 @@ implementation
     end;
 
 
-    procedure tx86intelassembler.WriteExternals;
+    procedure tx86intelassembler.WriteExternals(asmdata: TAsmData);
       var
         sym : TAsmSymbol;
         i   : longint;
       begin
-        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+        for i:=0 to asmdata.AsmSymbolDict.Count-1 do
           begin
-            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            sym:=TAsmSymbol(asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
               begin
                 case asminfo^.id of
@@ -1102,12 +1102,12 @@ implementation
           writer.AsmLn;
         end;
 
-      WriteExternals;
+      WriteExternals(asmdata);
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
           writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal],hal);
+          writetree(asmdata.asmlists[hal],hal);
           writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 
