@@ -3011,24 +3011,24 @@ implementation
           system_arm_ios:
             begin
               nlsymname:='L'+symname+'$non_lazy_ptr';
-              l:=current_asmdata.getasmsymbol(nlsymname);
+              l:=list.AsmData.getasmsymbol(nlsymname);
               if not(assigned(l)) then
                 begin
                   if is_data in flags then
                     symtyp:=AT_DATA
                   else
                     symtyp:=AT_FUNCTION;
-                  new_section(current_asmdata.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
-                  l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
-                  current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
+                  new_section(list.AsmData.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
+                  l:=list.AsmData.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
+                  list.AsmData.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   if not(is_weak in flags) then
-                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname,symtyp).Name))
+                    list.AsmData.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,list.AsmData.RefAsmSymbol(symname,symtyp).Name))
                   else
-                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.WeakRefAsmSymbol(symname,symtyp).Name));
+                    list.AsmData.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,list.AsmData.WeakRefAsmSymbol(symname,symtyp).Name));
 {$ifdef cpu64bitaddr}
-                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
+                  list.AsmData.asmlists[al_picdata].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}
-                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
+                  list.AsmData.asmlists[al_picdata].concat(tai_const.create_32bit(0));
 {$endif cpu64bitaddr}
                 end;
               result := getaddressregister(list);
