@@ -138,7 +138,7 @@ unit cgx86;
         procedure make_simple_ref(list:TAsmList;var ref: treference);inline;
         procedure make_direct_ref(list:TAsmList;var ref: treference);
 
-        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
+        function get_darwin_call_stub(list: TAsmList; const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
       protected
@@ -838,7 +838,7 @@ unit cgx86;
           list.concat(taicpu.op_sym(A_JMP,S_NO,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s,false),0,sizeof(pint),[]);
+            reference_reset_symbol(r,get_darwin_call_stub(list,s,false),0,sizeof(pint),[]);
             r.refaddr:=addr_full;
             list.concat(taicpu.op_ref(A_JMP,S_NO,r));
           end;
@@ -851,30 +851,30 @@ unit cgx86;
       end;
 
 
-    function tcgx86.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
+    function tcgx86.get_darwin_call_stub(list: TAsmList; const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
       begin
         stubname := 'L'+s+'$stub';
-        result := current_asmdata.getasmsymbol(stubname);
+        result := list.AsmData.getasmsymbol(stubname);
         if assigned(result) then
           exit;
 
-        if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create(current_asmdata);
+        if list.AsmData.asmlists[al_imports]=nil then
+          list.AsmData.asmlists[al_imports]:=TAsmList.create(list.AsmData);
 
-        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',0);
-        result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
-        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        new_section(list.AsmData.asmlists[al_imports],sec_stub,'',0);
+        result := list.AsmData.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+        list.AsmData.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
-          current_asmdata.weakrefasmsymbol(s,AT_FUNCTION);
-        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
+          list.AsmData.weakrefasmsymbol(s,AT_FUNCTION);
+        list.AsmData.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
       end;
 
 
@@ -908,7 +908,7 @@ unit cgx86;
           end
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s,weak),0,sizeof(pint),[]);
+            reference_reset_symbol(r,get_darwin_call_stub(list,s,weak),0,sizeof(pint),[]);
             r.refaddr:=addr_full;
           end;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
