@@ -178,6 +178,7 @@ var
     VerboseSwitches,
     CodegenSwitches,
     OptimizationSwitches,
+    OptimizationLevelSwitches,
     ProcessorCodeGenerationSwitches,
     ProcessorOptimizationSwitches,
     AsmReaderSwitches,
@@ -984,6 +985,7 @@ begin
      VerboseSwitches^.WriteItemsCfg;
      SyntaxSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
+     OptimizationLevelSwitches^.WriteItemsCfg; { have to write before OptimizationSwitches }
      OptimizationSwitches^.WriteItemsCfg;
      ProcessorCodeGenerationSwitches^.WriteItemsCfg;
      ProcessorOptimizationSwitches^.WriteItemsCfg;
@@ -1060,6 +1062,8 @@ begin
        'g' : res:=DebugInfoSwitches^.ReadItemsCfg(s);
        'O' : begin
                res:=OptimizationSwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=OptimizationLevelSwitches^.ReadItemsCfg(s);
                if not res then
                  res:=ProcessorOptimizationSwitches^.ReadItemsCfg(s);
              end;
@@ -1279,22 +1283,15 @@ begin
   with OptimizationSwitches^ do
    begin
      AddBooleanItem(opt_generatesmallercode,'s',idNone);
-{$if defined(I386) or defined(x86_64) or defined(i8086)}
-{$ifdef I386}
-     AddBooleanItem(opt_useregistervariables,'oregvar',idNone);
-     AddBooleanItem(opt_uncertainoptimizations,'ouncertain',idNone);
-{$endif}
-     AddBooleanItem(opt_disableoptimizations,'-',idNone);
-     AddBooleanItem(opt_level1optimizations,'1',idNone);
-     AddBooleanItem(opt_level2optimizations,'2',idNone);
-     AddBooleanItem(opt_level3optimizations,'3',idNone);
-     AddBooleanItem(opt_level4optimizations,'4',idNone);
-{$else not I386}
- {$ifdef m68k}
-     AddBooleanItem(opt_level1optimizations,'a',idNone);
-     AddBooleanItem(opt_useregistervariables,'x',idNone);
- {$endif m68k}
-{$endif I386}
+   end;
+  New(OptimizationLevelSwitches,InitSelect('O'));
+  with OptimizationLevelSwitches^ do
+   begin
+     AddSelectItem(opt_disableoptimizations,'-',idNone);
+     AddSelectItem(opt_level1optimizations,'1',idNone);
+     AddSelectItem(opt_level2optimizations,'2',idNone);
+     AddSelectItem(opt_level3optimizations,'3',idNone);
+     AddSelectItem(opt_level4optimizations,'4',idNone);
    end;
   New(ProcessorOptimizationSwitches,InitSelect('O'));
   with ProcessorOptimizationSwitches^ do
@@ -1534,6 +1531,8 @@ begin
        case i of
           om_debug:
             begin
+               {Level 1 optimizations (debugger friendly)}
+               OptimizationLevelSwitches^.SetBooleanItem(1,true);
                { debugging info on }
                DebugInfoSwitches^.SetCurrSel(1);
                { range checking }
@@ -1552,18 +1551,18 @@ begin
           om_normal:
             begin
                {Register variables.}
-               OptimizationSwitches^.SetBooleanItem(1,true);
-               {Level 1 optimizations.}
-               OptimizationSwitches^.SetBooleanItem(3,true);
+               //OptimizationSwitches^.SetBooleanItem(1,true);
+               {Level 2 optimizations.}
+               OptimizationLevelSwitches^.SetBooleanItem(2,true);
                {Default unit search path}
                AddUnitSearchPath(UnitPath);
             end;
           om_release:
             begin
                {Register variables.}
-               OptimizationSwitches^.SetBooleanItem(1,true);
-               {Level 2 optimizations.}
-               OptimizationSwitches^.SetBooleanItem(4,true);
+               //OptimizationSwitches^.SetBooleanItem(1,true);
+               {Level 4 optimizations.}
+               OptimizationLevelSwitches^.SetBooleanItem(4,true);
                {Smart linking.}
                LibLinkerSwitches^.SetCurrSel(3);
                CodegenSwitches^.SetBooleanItem(6,true);
@@ -1587,6 +1586,7 @@ begin
   dispose(VerboseSwitches,Done);
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
+  dispose(OptimizationLevelSwitches,Done);
   dispose(ProcessorOptimizationSwitches,Done);
   dispose(ProcessorCodeGenerationSwitches,Done);
   dispose(BrowserSwitches,Done);

@@ -101,7 +101,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     D: PCompilerOptDlg;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
     RB1,RB1b: PScrollerRadioButtons;
-    RB2,RB4,RB5,RB6: PRadioButtons;
+    RB2,RB3,RB4,RB5,RB6: PRadioButtons;
     VScrollBar1,VScrollBar2 : PScrollBar;
     Items: PSItem;
     IL: PEditorInputLine;
@@ -110,7 +110,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     I,L: longint;
     Tab: PTab;
     Label11,Label12,
-    Label21,Label22,Label23,Label23b,
+    Label21,Label22,Label23,Label23b,Label24,
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
     TargetHeight,ProcessorHeight: sw_integer;
@@ -196,10 +196,25 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label21, Init(R2, label_compiler_codegeneration, CB3));
 
-    Count:=OptimizationSwitches^.ItemCount;
+    {Optimization level}
+    Count:=OptimizationLevelSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(OptimizationLevelSwitches^.ItemName(I), Items);
+    New(RB3, Init(R2, Items));
+    L:=OptimizationLevelSwitches^.GetCurrSel;
+    RB3^.SetData(L);
+    Dec(R2.A.Y);
+    R3.Copy(R2);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label22, Init(R2, label_compiler_optimization_level, RB3));
+
+    Count:=OptimizationSwitches^.ItemCount;
+    R2.A.Y:=R3.B.Y+2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -210,7 +225,7 @@ begin
         CB2^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label22, Init(R2, label_compiler_optimizations, CB2));
+    New(Label24, Init(R2, label_compiler_optimizations, CB2));
 
     { --- Sheet 3 --- }
     Count:=ProcessorOptimizationSwitches^.ItemCount;
@@ -366,8 +381,10 @@ begin
         NewTabItem(Label21,
         NewTabItem(CB3,
         NewTabItem(Label22,
+        NewTabItem(RB3,
+        NewTabItem(Label24,
         NewTabItem(CB2,
-        nil)))),
+        nil)))))),
       NewTabDef('~P~rocessor',RB1,
         NewTabItem(Label23,
         NewTabItem(VScrollBar1,
@@ -440,6 +457,7 @@ begin
     CompilerModeSwitches^.SetCurrSel(RB2^.Value);
     for I:=0 to CodeGenSwitches^.ItemCount-1 do
       CodegenSwitches^.SetBooleanItem(I,CB3^.Mark(I));
+    OptimizationLevelSwitches^.SetCurrSel(RB3^.Value);
     for I:=0 to OptimizationSwitches^.ItemCount-1 do
       OptimizationSwitches^.SetBooleanItem(I,CB2^.Mark(I));
     for I:=0 to VerboseSwitches^.ItemCount-1 do
