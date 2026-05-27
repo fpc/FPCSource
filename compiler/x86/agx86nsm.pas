@@ -1459,6 +1459,8 @@ interface
           system_i386_linux,
           system_i386_beos:
             FormatName:='elf';
+          system_i386_os2:
+            FormatName:='obj2';
           system_i386_darwin:
             FormatName:='macho32';
         else
