@@ -835,7 +835,7 @@ unit cgx86;
         r: treference;
       begin
         if (compiler.target.info.system <> system_i386_darwin) then
-          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+          list.concat(taicpu.op_sym(A_JMP,S_NO,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
         else
           begin
             reference_reset_symbol(r,get_darwin_call_stub(s,false),0,sizeof(pint),[]);
@@ -893,9 +893,9 @@ unit cgx86;
         if (compiler.target.info.system <> system_i386_darwin) then
           begin
             if not(weak) then
-              sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
+              sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION)
             else
-              sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
+              sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION);
             reference_reset_symbol(r,sym,0,sizeof(pint),[]);
             if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                { darwin's assembler doesn't want @PLT after call symbols }
@@ -926,7 +926,7 @@ unit cgx86;
         sym : tasmsymbol;
         r : treference;
       begin
-        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+        sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
         reference_reset_symbol(r,sym,0,sizeof(pint),[]);
         r.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
@@ -2536,7 +2536,7 @@ unit cgx86;
 
        if (not not_zero) and not (CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1 in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]) then
          begin
-           current_asmdata.getjumplabel(l);
+           list.AsmData.getjumplabel(l);
            a_jmp_cond(list,OC_NE,l);
            a_reg_dealloc(list,NR_DEFAULTFLAGS);
            list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
@@ -2682,7 +2682,7 @@ unit cgx86;
              begin
                { JP before JA/JAE is redundant, but it must be generated here
                  and left for peephole optimizer to remove. }
-               current_asmdata.getjumplabel(hl);
+               list.AsmData.getjumplabel(hl);
                ai:=Taicpu.op_sym(A_Jcc,S_NO,hl);
                ai.SetCondition(C_P);
                ai.is_jmp:=true;
@@ -3264,7 +3264,7 @@ unit cgx86;
                 else
                  mcountPrefix:='';
                 end;
-                current_asmdata.getaddrlabel(pl);
+                list.AsmData.getaddrlabel(pl);
                 new_section(list,sec_data,lower(compiler.current_procinfo.procdef.mangledname),sizeof(pint));
                 list.concat(Tai_label.Create(pl));
                 list.concat(Tai_const.Create_32bit(0));
@@ -3349,7 +3349,7 @@ unit cgx86;
                  end
                else
                  begin
-                    current_asmdata.getjumplabel(again);
+                    list.AsmData.getjumplabel(again);
                     { Using a_reg_alloc instead of getcpuregister, so this procedure
                       does not change "used_in_proc" state of EDI and therefore can be
                       called after saving registers with "push" instruction
@@ -3394,7 +3394,7 @@ unit cgx86;
                  end
                else
                  begin
-                    current_asmdata.getjumplabel(again);
+                    list.AsmData.getjumplabel(again);
                     getcpuregister(list,NR_R10);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
@@ -3444,11 +3444,11 @@ unit cgx86;
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],hreg));
                 if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
+                  list.AsmData.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
                   begin
-                    current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
-                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                    list.AsmData.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                    list.AsmData.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                   end;
               end;
         end;
@@ -3604,8 +3604,8 @@ unit cgx86;
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
-                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                list.AsmData.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
                 if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
                 else
@@ -3618,7 +3618,7 @@ unit cgx86;
                       maxpushedparasize is already aligned at least on x86_64. }
                     localsize:=compiler.current_procinfo.maxpushedparasize;
                   end;
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+                list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
 
             { allocate stackframe space }
@@ -3632,7 +3632,7 @@ unit cgx86;
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                  list.AsmData.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 compiler.current_procinfo.final_localsize:=localsize;
               end
 {$ifdef i8086}
@@ -3741,7 +3741,7 @@ unit cgx86;
                   a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
                   inc(href.offset,sizeof(aint));
                 end;
-              current_asmdata.asmcfi.cfa_restore(list,hreg);
+              list.AsmData.asmcfi.cfa_restore(list,hreg);
             end;
       end;
 
@@ -3753,16 +3753,16 @@ unit cgx86;
         else
           begin
 {$if defined(x86_64)}
-            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_RSP);
+            list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_RSP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_Q,NR_RBP,NR_RSP));
-            current_asmdata.asmcfi.cfa_restore(list,NR_RBP);
-            current_asmdata.asmcfi.cfa_def_cfa_offset(list,8);
+            list.AsmData.asmcfi.cfa_restore(list,NR_RBP);
+            list.AsmData.asmcfi.cfa_def_cfa_offset(list,8);
             list.Concat(taicpu.op_reg(A_POP,S_Q,NR_RBP));
 {$elseif defined(i386)}
-            current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_ESP);
+            list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_ESP);
             list.Concat(taicpu.op_reg_reg(A_MOV,S_L,NR_EBP,NR_ESP));
-            current_asmdata.asmcfi.cfa_restore(list,NR_EBP);
-            current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
+            list.AsmData.asmcfi.cfa_restore(list,NR_EBP);
+            list.AsmData.asmcfi.cfa_def_cfa_offset(list,4);
             list.Concat(taicpu.op_reg(A_POP,S_L,NR_EBP));
 {$elseif defined(i8086)}
             list.Concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BP,NR_SP));
@@ -3781,7 +3781,7 @@ unit cgx86;
       begin
          if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
-         current_asmdata.getjumplabel(hl);
+         list.AsmData.getjumplabel(hl);
          if not ((def.typ=pointerdef) or
                 ((def.typ=orddef) and
                  (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
