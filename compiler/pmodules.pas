@@ -131,7 +131,7 @@ implementation
     procedure insertobjectfile(curr : tmodule);
     { Insert the used object file for this unit in the used list for this unit }
       begin
-        curr.linkunitofiles.add(curr.objfilename,link_static);
+        curr.linkunitofiles.add(ExtractFileName(curr.objfilename),link_static);
         curr.headerflags:=curr.headerflags or uf_static_linked;
 
         if create_smartlink_library then
