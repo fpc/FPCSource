@@ -21,7 +21,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, FpWeb.Html, Html.Defs, Html.Writer, Data.Db, Xml.HtmlElements;
+  System.Classes, System.SysUtils, FpWeb.Http.Base, FpWeb.Html, Html.Defs, Html.Writer, Data.Db, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttp, fphtml, htmldefs, htmlwriter, db, htmlelements;
