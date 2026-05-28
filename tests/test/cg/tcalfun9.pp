@@ -1,7 +1,7 @@
 program TestManyParams;
 
 {
-  Test: Can a procedure accept more than 256 parameters in Free Pascal?
+  Test: Can a procedure accept more than 255 parameters in Free Pascal?
 
   Background:
     Some Pascal compilers historically limited the number of formal
@@ -11,9 +11,9 @@ program TestManyParams;
     argument arrives intact and in the correct position.
 
   How to read the result:
-    - If the program does not COMPILE, the compiler rejects > 256 params.
+    - If the program does not COMPILE, the compiler rejects > 255 params.
       (Look for an error such as "Too many parameters" / overflow.)
-    - If it compiles and prints "PASS", more than 256 parameters are
+    - If it compiles and prints "PASS", more than 255 parameters are
       supported and are passed correctly.
     - If it compiles but prints "FAIL", parameters are accepted but
       some values were corrupted/misaligned.
@@ -22,7 +22,7 @@ program TestManyParams;
 {$mode objfpc}{$H+}
 
 const
-  PARAM_COUNT = 300;   { deliberately > 256 }
+  PARAM_COUNT = 300;   { deliberately > 255 }
 
 var
   GlobalChecksum : Int64;
@@ -159,7 +159,7 @@ var
   i : Integer;
 
 begin
-  WriteLn('Free Pascal: > 256 parameters test');
+  WriteLn('Free Pascal: > 255 parameters test');
   WriteLn('Declared parameter count: ', PARAM_COUNT);
   WriteLn;
 
@@ -208,7 +208,7 @@ begin
 
   if (GlobalMismatch = 0) and (GlobalChecksum = ExpectedChecksum) then
   begin
-    WriteLn('RESULT: PASS - more than 256 parameters passed correctly.');
+    WriteLn('RESULT: PASS - more than 255 parameters passed correctly.');
     Halt(0);
   end
   else
