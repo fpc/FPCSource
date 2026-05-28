@@ -402,6 +402,7 @@ var
 {$ifdef WinClipSupported}
   PPW: PMenuItem;
   WinClipEmpty: boolean;
+  CurClipSize: longint;
 {$endif WinClipSupported}
   Target: PMenuView;
   R: TRect;
@@ -520,16 +521,18 @@ begin
   repeat
     Action := DoNothing;
 {$ifdef WinClipSupported}
+{$ifndef go32v2} { Exclude Dos target. DosBox-x slowdown when OS holds large clipboard data (+64kb). (M)}
     If Assigned(PPW) then
       begin
-        If WinClipEmpty and (GetTextWinClipboardSize>0) then
+        CurClipSize:=GetTextWinClipboardSize;
+        If WinClipEmpty and (CurClipSize>0) then
           begin
             WinClipEmpty:=false;
             SetCmdState(FromWinClipCmds,true);
             PPW^.disabled:=WinClipEmpty;
             DrawView;
           end
-        else if Not WinClipEmpty and (GetTextWinClipboardSize=0) then
+        else if Not WinClipEmpty and (CurClipSize=0) then
           begin
             WinClipEmpty:=true;
             SetCmdState(FromWinClipCmds,false);
@@ -537,6 +540,7 @@ begin
             DrawView;
           end;
       end;
+{$endif go32v2}
 {$endif WinClipSupported}
     GetEvent(E);
     case E.What of
