@@ -1117,7 +1117,7 @@ type
       n: pNode;
       ht: pHeapTracer;
       nTrace: SizeUint; // NoTrace if UnpackTrace needs to be called.
-      trace: array[0 .. StackTrace.MaxItems] of CodePointer;
+      trace: array[0 .. StackTrace.MaxItems - 1] of CodePointer;
       procedure UnpackTrace;
     end;
 
@@ -1745,17 +1745,18 @@ type
         newn^.userPtr := n^.userPtr;
         newn^.info := info;
         newn^.trace := n^.trace;
+        newn^.allPrev := n^.allPrev;
+        newn^.allNext := n^.allNext;
         newn^.fullUserRequest := size;
         // Fixup allNodes-related pointers...
-        n^.allPrev^.allNext := newn; // Ugh...
-        n^.allNext^.allPrev := newn; // Ugh...
+        if n^.allPrev = n then // n is the only node. CAREFUL WITH THIS CASE!!! It’s almost impossible in wild which makes it hard to test; see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/1475.
+          newn^.allPrev := newn; // This way, (1) will set newn^.allNext to newn, and (2) will be a no-op.
+        newn^.allPrev^.allNext := newn; // Ugh... (1)
+        newn^.allNext^.allPrev := newn; // Ugh... (2)
         if n = this^.allNodes then
           this^.allNodes := newn; // Ugh...
         if n = this^.nextCheckNode then
           this^.nextCheckNode := newn; // Ugh...
-        // Careful: copying n^.allPrev / n^.allNext after the fixups to n^.allPrev^.allNext / n^.allNext^.allPrev automatically handles the case of the only node.
-        newn^.allPrev := n^.allPrev;
-        newn^.allNext := n^.allNext;
         // Replace n with newn in hashtable...
         newn^.hn := n^.hn; // Ugh...
         this^.h.GetLink(@n^.hn, oldHash)^ := @newn^.hn; // Ugh...
