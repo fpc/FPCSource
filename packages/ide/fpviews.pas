@@ -497,7 +497,7 @@ const
       SourceCmds  : TCommandSet =
         ([cmSave,cmSaveAs,cmCompile,cmHide,cmDoReload]);
       EditorCmds  : TCommandSet =
-        ([cmPrint,cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll,cmUnselect]);
+        ([cmPrint,cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll,cmUnselect,cmPasteWin]);
       CompileCmds : TCommandSet =
         ([cmMake,cmBuild,cmRun,cmStepOver,cmTraceInto,cmContToCursor]);
 

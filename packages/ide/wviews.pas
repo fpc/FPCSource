@@ -402,6 +402,7 @@ var
 {$ifdef WinClipSupported}
   PPW: PMenuItem;
   WinClipEmpty: boolean;
+  PasteFromWinClipEnabled: boolean;
   CurClipSize: longint;
 {$endif WinClipSupported}
   Target: PMenuView;
@@ -506,8 +507,8 @@ begin
   PPW:=SearchMenuItem(Menu,cmPasteWin);
   if Assigned(PPW) then
     begin
-      WinClipEmpty:=GetTextWinClipboardSize=0;
-      SetCmdState(FromWinClipCmds,Not WinClipEmpty);
+      PasteFromWinClipEnabled:=CommandEnabled (cmPasteWin);
+      WinClipEmpty:=(not PasteFromWinClipEnabled) or (GetTextWinClipboardSize=0);
       PPW^.disabled:=WinClipEmpty;
     end;
 {$endif WinClipSupported}
@@ -527,15 +528,13 @@ begin
         CurClipSize:=GetTextWinClipboardSize;
         If WinClipEmpty and (CurClipSize>0) then
           begin
-            WinClipEmpty:=false;
-            SetCmdState(FromWinClipCmds,true);
+            WinClipEmpty:=(not PasteFromWinClipEnabled) or false;
             PPW^.disabled:=WinClipEmpty;
             DrawView;
           end
         else if Not WinClipEmpty and (CurClipSize=0) then
           begin
             WinClipEmpty:=true;
-            SetCmdState(FromWinClipCmds,false);
             PPW^.disabled:=WinClipEmpty;
             DrawView;
           end;
