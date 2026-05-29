@@ -797,12 +797,12 @@ const
 
      CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
+     ToClipCmds         : TCommandSet = ([cmCopy,cmCopyWin,
        { cmUnselect should because like cut, copy, copywin:
          if there is a selection, it is active, else it isn't }
-       cmUnselect,cmCommentSel,cmUnCommentSel]);
+       cmUnselect]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
-     NulClipCmds        : TCommandSet = ([cmClear]);
+     NulClipCmds        : TCommandSet = ([cmClear,cmCut,cmCommentSel,cmUnCommentSel]);
      UndoCmd            : TCommandSet = ([cmUndo]);
      RedoCmd            : TCommandSet = ([cmRedo]);
 
@@ -6811,6 +6811,7 @@ begin
       {Enable paste command.}
       CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
                 (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+      CanPaste:=CanPaste and (not IsReadOnly);
       SetCmdState(FromClipCmds,CanPaste);
     end;
   UnLock;
@@ -6839,6 +6840,7 @@ begin
        PopInfo;
      CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
                (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+     CanPaste:=CanPaste and (not IsReadOnly);
      SetCmdState(FromClipCmds,CanPaste);
    end;
   CloseGroupedAction(eaCut);
@@ -7776,12 +7778,12 @@ begin
     begin
       Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
       SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
-      SetCmdState(NulClipCmds,Enable);
+      SetCmdState(NulClipCmds,Enable and (not isReadOnly));
       CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
            (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
-      SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
-      SetCmdState(UndoCmd,(GetUndoActionCount>0));
-      SetCmdState(RedoCmd,(GetRedoActionCount>0));
+      SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self) and (not isReadOnly));
+      SetCmdState(UndoCmd,(GetUndoActionCount>0) and (not isReadOnly));
+      SetCmdState(RedoCmd,(GetRedoActionCount>0) and (not isReadOnly));
       //Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
 end;
