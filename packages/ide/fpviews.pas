@@ -2519,6 +2519,7 @@ begin
   Active:=GetState(sfActive) and Visible;
   SetCmdState(SourceCmds+CompileCmds,False);
   SetCmdState(EditorCmds,True);
+  SetCmdState([cmReplace,cmJumpLine],false);
   if Assigned(HelpView) then
     HelpView^.ChangeCommands;
   SetCmdState([cmHide],Active);
