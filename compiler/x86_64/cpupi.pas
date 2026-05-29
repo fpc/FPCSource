@@ -62,7 +62,8 @@ implementation
       symtable,
       aasmtai,
       tgobj,
-      fmodule;
+      fmodule,
+      pass_2_context;
 
     const
       SCOPE_FINALLY=0;
@@ -118,7 +119,7 @@ implementation
           unwindflags:=unwindflags or 1;
         inc(scopecount);
         if scopes=nil then
-          scopes:=TAsmList.Create(current_asmdata);
+          scopes:=TAsmList.Create(ctx.CurrAsmList.AsmData);
 
         if implicit then
           scopes.concat(tai_const.create_32bit(SCOPE_IMPLICIT))
