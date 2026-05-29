@@ -119,7 +119,7 @@ implementation
         ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
           ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
-        current_asmdata.getjumplabel(table);
+        ctx.CurrAsmList.AsmData.getjumplabel(table);
         hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
         { la.pcrel x,tbl }
         reference_reset_symbol(href, table, 0, 4,[]);
