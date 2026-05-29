@@ -184,9 +184,9 @@ implementation
         href: treference;
       begin
         if not(weak) then
-          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
+          reference_reset_symbol(href,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
         else
-          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
+          reference_reset_symbol(href,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
         if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           { PIC need using global symbol through GOT.  }
           begin
@@ -795,7 +795,7 @@ implementation
         ai: taicpu;
         href: treference;
       begin
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[]);
+        reference_reset_symbol(href,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),0,0,[]);
         href.refaddr:=addr_b26;
         ai:=taicpu.op_ref(A_B,href);
         ai.is_jmp:=true;
@@ -910,7 +910,7 @@ implementation
         { TODO Some optimization. }
         if len_8>0 then
           begin
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             countreg := GetIntRegister(list,OS_INT);
             if len_8>1 then
               begin
@@ -1013,7 +1013,7 @@ implementation
                 reference_reset_base(href,NR_STACK_POINTER_REG,2032-8,ctempposinvalid,0,[]);
                 href.refaddr:=addr_reg_12i;
                 stackadjust:=2032;
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2032);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,2032);
               end
             else
               begin
@@ -1021,28 +1021,28 @@ implementation
                 reference_reset_base(href,NR_STACK_POINTER_REG,localsize-8,ctempposinvalid,0,[]);
                 href.refaddr:=addr_reg_12i;
                 stackadjust:=localsize;
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,localsize);
               end;
             { $ra in cfa -8. }
             if RS_RETURN_ADDRESS_REG in regs then
               begin
                 list.concat(taicpu.op_reg_ref(A_ST_D,newreg(R_INTREGISTER,RS_RETURN_ADDRESS_REG,R_SUBWHOLE),href));
-                current_asmdata.asmcfi.cfa_offset(list,NR_RETURN_ADDRESS_REG,-8);
+                list.AsmData.asmcfi.cfa_offset(list,NR_RETURN_ADDRESS_REG,-8);
               end;
             { $fp in cfa -16. }
             dec(href.offset,8);
             list.concat(taicpu.op_reg_ref(A_ST_D,newreg(R_INTREGISTER,RS_FRAME_POINTER_REG,R_SUBWHOLE),href));
-            current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-16);
+            list.AsmData.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-16);
             { $fp = cfa. }
             list.concat(taicpu.op_reg_reg_const(A_ADDI_D,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,stackadjust));
-            current_asmdata.asmcfi.cfa_def_cfa(list,NR_FRAME_POINTER_REG,0);
+            list.AsmData.asmcfi.cfa_def_cfa(list,NR_FRAME_POINTER_REG,0);
             { Int registers }
             for r:=RS_R1 to RS_R31 do
               if (r in regs) and (r<>RS_FRAME_POINTER_REG) and (r<>RS_RETURN_ADDRESS_REG) then
                 begin
                   dec(href.offset,8);
                   list.concat(taicpu.op_reg_ref(A_ST_D,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
-                  current_asmdata.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),href.offset-stackadjust);
+                  list.AsmData.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),href.offset-stackadjust);
                 end;
             { Float registers }
             for r:=RS_F0 to RS_F31 do
@@ -1050,7 +1050,7 @@ implementation
                 begin
                   dec(href.offset,8);
                   list.concat(taicpu.op_reg_ref(A_FST_D,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
-                  current_asmdata.asmcfi.cfa_offset(list,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href.offset);
+                  list.AsmData.asmcfi.cfa_offset(list,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href.offset);
                 end;
             { Decrease the remaining stack size. }
             if (localsize-stackadjust)>2048 then
@@ -1111,25 +1111,25 @@ implementation
             if RS_RETURN_ADDRESS_REG in regs then
               begin
                 list.concat(taicpu.op_reg_ref(A_LD_D,newreg(R_INTREGISTER,RS_RETURN_ADDRESS_REG,R_SUBWHOLE),href));
-                current_asmdata.asmcfi.cfa_restore(list,NR_RETURN_ADDRESS_REG);
+                list.AsmData.asmcfi.cfa_restore(list,NR_RETURN_ADDRESS_REG);
               end;
             dec(href.offset,8);
             list.concat(taicpu.op_reg_ref(A_LD_D,newreg(R_INTREGISTER,RS_FRAME_POINTER_REG,R_SUBWHOLE),href));
-            current_asmdata.asmcfi.cfa_restore(list,NR_FRAME_POINTER_REG);
-            current_asmdata.asmcfi.cfa_def_cfa(list,NR_STACK_POINTER_REG,stackleft);
+            list.AsmData.asmcfi.cfa_restore(list,NR_FRAME_POINTER_REG);
+            list.AsmData.asmcfi.cfa_def_cfa(list,NR_STACK_POINTER_REG,stackleft);
             for r:=RS_R1 to RS_R31 do
               if (r in regs) and (r<>RS_FRAME_POINTER_REG) and (r<>RS_RETURN_ADDRESS_REG) then
                 begin
                   dec(href.offset,8);
                   list.concat(taicpu.op_reg_ref(A_LD_D,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
-                  current_asmdata.asmcfi.cfa_restore(list,newreg(R_INTREGISTER,r,R_SUBWHOLE));
+                  list.AsmData.asmcfi.cfa_restore(list,newreg(R_INTREGISTER,r,R_SUBWHOLE));
                 end;
             for r:=RS_F0 to RS_F31 do
               if r in fregs then
                 begin
                   dec(href.offset,8);
                   list.concat(taicpu.op_reg_ref(A_FLD_D,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
-                  current_asmdata.asmcfi.cfa_restore(list,newreg(R_FPUREGISTER,r,R_SUBWHOLE));
+                  list.AsmData.asmcfi.cfa_restore(list,newreg(R_FPUREGISTER,r,R_SUBWHOLE));
                 end;
             { Restore $sp. }
             list.concat(taicpu.op_reg_reg_const(A_ADDI_D,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,stackleft));
@@ -1154,7 +1154,7 @@ implementation
         begin
           if is_simm12(a) and (op=OP_ADD) then
             begin
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg1:=getintregister(list,OS_INT);
@@ -1234,7 +1234,7 @@ implementation
         case op of
           OP_ADD:
             begin
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg2:=getintregister(list,OS_INT);
@@ -1292,7 +1292,7 @@ implementation
             end;
           OP_SUB:
             begin
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg2:=getintregister(list,OS_INT);
@@ -1351,7 +1351,7 @@ implementation
           OP_IMUL:
             begin
               { No overflow if upper result is same as sign of result }
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg0:=getintregister(list,OS_INT);
@@ -1392,7 +1392,7 @@ implementation
           OP_MUL:
             begin
               { No overflow if upper result is 0 }
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg0:=getintregister(list,OS_INT);
@@ -1430,7 +1430,7 @@ implementation
           OP_IDIV:
             begin
               { Only overflow if -2^(N-1)/(-1)  }
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
               tmpreg2:=getintregister(list,OS_INT);
