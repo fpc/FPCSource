@@ -168,6 +168,7 @@ const
      hidPrinterDevice      = 211;
      hidEvaluate           = 212;
      hidBreakpointDialogName = 213;
+     hidSearchSymbol       = 214;
 
      { Command constants }
      cmShowClipboard     = 201;
