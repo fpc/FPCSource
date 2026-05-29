@@ -419,7 +419,7 @@ const
     // Character 38: }.
   );
 
-class function TGUID.FromString(const S: RTLString; out GUID: TGUID): Boolean;
+class function TGUID.FromString(const S: ShortString; out GUID: TGUID): Boolean;
   function ParseHexDigit(c: char; var aRes : Boolean): Byte;
   begin
     case c of
@@ -440,7 +440,7 @@ begin
   if not Result then exit;
   for iByte := 0 to High(cAsStringByteScatter) do
   begin
-    sp := PChar(Pointer(S)) + cAsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
+    sp := PChar(Pointer(@S[1])) + cAsStringByteScatter[iByte] - 1 { AsStringByteScatter values are 1-based. };
     PByte(@Guid)[iByte] := ParseHexDigit(sp[0], Result) shl 4 + ParseHexDigit(sp[1],Result);
 
   end;
