@@ -31,7 +31,8 @@ interface
        globtype,compilerbase,systemstypes,systems,
        psub,
        procinfo,psabiehpi,
-       aasmbase,aasmdata;
+       aasmbase,aasmdata,
+       node;
 
     type
        tcpuprocinfo = class(tpsabiehprocinfo)
@@ -43,7 +44,7 @@ interface
          procedure set_first_temp_offset;override;
          procedure generate_parameter_info;override;
          function calc_stackframe_size:longint;override;
-         procedure add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+         procedure add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
          procedure add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
          procedure dump_scopes(list:TAsmList);
          destructor destroy;override;
@@ -110,7 +111,7 @@ implementation
           result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,8);
       end;
 
-    procedure tcpuprocinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+    procedure tcpuprocinfo.add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
       begin
         unwindflags:=unwindflags or 2;
         if implicit then  { also needs catch functionality }

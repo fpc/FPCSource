@@ -382,7 +382,7 @@ procedure tx64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     ctx.cg.a_label(ctx.CurrAsmList,endfinallylabel);
 
     { generate the scope record in .xdata }
-    tcpuprocinfo(compiler.current_procinfo).add_finally_scope(trylabel,endtrylabel,
+    tcpuprocinfo(compiler.current_procinfo).add_finally_scope(ctx,trylabel,endtrylabel,
       ctx.CurrAsmList.AsmData.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
