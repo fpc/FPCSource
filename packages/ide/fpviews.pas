@@ -3011,6 +3011,7 @@ begin
   SetCmdState([cmSaveAs,cmHide,cmRun],Active);
   SetCmdState(EditorCmds,Active);
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
+  SetCmdState([cmReplace],false);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -3310,6 +3311,7 @@ begin
   SetCmdState(SourceCmds+CompileCmds,Active);
   SetCmdState(EditorCmds,Active);
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
+  SetCmdState([cmReplace,cmPasteWin,cmSave,cmSaveAs,cmDoReload],false);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
