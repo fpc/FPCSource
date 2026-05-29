@@ -1296,7 +1296,7 @@ begin
   Con.OnRequestError:=@HandleRequestError;
   Con.OnUnexpectedError:=@HandleUnexpectedError;
   If CanLog(hlmConnect) then
-    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID, Data.RemoteEndpoint.First.Address]);
+    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID,  HostAddrToStr(Data.RemoteAddress.sin_addr)]);
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1689,7 +1689,7 @@ begin
     Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[AStartLine],400);
     end;
   Delete(S,1,5);
-  Request.ProtocolVersion:=trim(S);
+  Request.ProtocolVersion:=trim(S); 
 end;
 
 procedure TFPHTTPConnection.ReadRequestContent(
@@ -1764,7 +1764,7 @@ begin
         Raise Err;
         end;
     Until (S='');
-    Result.RemoteAddress := FSocket.RemoteEndpoint.First.Address;
+    Result.RemoteAddress :=  HostAddrToStr(FSocket.RemoteAddress.sin_addr);
     Result.ServerPort := FServer.Port;
   except
     FreeAndNil(Result);
@@ -1797,7 +1797,7 @@ destructor TFPHTTPConnection.Destroy;
 
 begin
   If Assigned(FServer) and FServer.CanLog(hlmDisConnect) then
-    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID,FSocket.RemoteEndPoint.First.Address]);
+    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID, HostAddrToStr(FSocket.RemoteAddress.sin_addr)]);
   FreeAndNil(FSocket);
   Inherited;
 end;
