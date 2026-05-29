@@ -419,7 +419,7 @@ const
     // Character 38: }.
   );
 
-class function TGUID.FromString(S: RTLString; out GUID: TGUID): Boolean;
+class function TGUID.FromString(const S: RTLString; out GUID: TGUID): Boolean;
   function ParseHexDigit(c: char; var aRes : Boolean): Byte;
   begin
     case c of
