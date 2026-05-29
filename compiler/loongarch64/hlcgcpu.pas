@@ -165,7 +165,7 @@ implementation
       else
         begin
           tmpreg:=NR_R12;
-          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,0,[]);
+          reference_reset_symbol(href,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,0,[]);
           href.refaddr:=addr_pc_hi20;
           list.concat(taicpu.op_reg_ref(A_PCALAU12I,tmpreg,href));
           href.refaddr:=addr_pc_lo12;
