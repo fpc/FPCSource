@@ -507,6 +507,7 @@ begin
   PPW:=SearchMenuItem(Menu,cmPasteWin);
   if Assigned(PPW) then
     begin
+      CurClipSize:=0;
       PasteFromWinClipEnabled:=CommandEnabled (cmPasteWin);
       WinClipEmpty:=(not PasteFromWinClipEnabled) or (GetTextWinClipboardSize=0);
       PPW^.disabled:=WinClipEmpty;
@@ -525,7 +526,8 @@ begin
 {$ifndef go32v2} { Exclude Dos target. DosBox-x slowdown when OS holds large clipboard data (+64kb). (M)}
     If Assigned(PPW) then
       begin
-        CurClipSize:=GetTextWinClipboardSize;
+        if PasteFromWinClipEnabled then
+          CurClipSize:=GetTextWinClipboardSize;
         If WinClipEmpty and (CurClipSize>0) then
           begin
             WinClipEmpty:=(not PasteFromWinClipEnabled) or false;
