@@ -348,7 +348,7 @@ begin
             ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLD, location.register,
               left.location.register, right.location.register));
             { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
             tcgppc(ctx.cg).a_jmp_cond(ctx.CurrAsmList, OC_EQ, hl);
             ctx.cg.a_call_name(ctx.CurrAsmList, 'FPC_OVERFLOW',false);
             ctx.cg.a_label(ctx.CurrAsmList, hl);
