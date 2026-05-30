@@ -182,7 +182,7 @@ implementation
 
         { FPC_EMPTYCHAR is a widechar -> 2 bytes }
         reference_reset(hr,2,[]);
-        hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
+        hr.symbol:=ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
         compiler.current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
         thlcgwasm(ctx.hlcg).a_loadaddr_ref_stack(ctx.CurrAsmList,compiler.deftypes.cwidechartype,resultdef,hr);
 
