@@ -684,7 +684,7 @@ implementation
           begin
             { if it was unsigned, add high(cardinal)+1/high(qword)+1 in case
               the signed interpretation is < 0 }
-            current_asmdata.getjumplabel(l1);
+            ctx.CurrAsmList.AsmData.getjumplabel(l1);
             if srcsize=4 then
               signeddef:=compiler.deftypes.s32inttype
             else
@@ -784,11 +784,11 @@ implementation
 
        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
        location.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,resultdef);
-       current_asmdata.getjumplabel(hlabel2);
+       ctx.CurrAsmList.AsmData.getjumplabel(hlabel2);
        case left.location.loc of
          LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
            begin
-             current_asmdata.getjumplabel(hlabel1);
+             ctx.CurrAsmList.AsmData.getjumplabel(hlabel1);
              ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location,hlabel1);
            end;
          LOC_JUMP :
@@ -831,7 +831,7 @@ implementation
         else
           opc:=a_anewarray;
         { doesn't change stack height: one int replaced by one reference }
-        ctx.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(opc,ctx.CurrAsmList.AsmData.RefAsmSymbol(mangledname,AT_METADATA)));
         { store the data in the newly created array }
         basereg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.java_jlobject);
         thlcgjvm(ctx.hlcg).a_load_stack_reg(ctx.CurrAsmList,compiler.deftypes.java_jlobject,basereg);
