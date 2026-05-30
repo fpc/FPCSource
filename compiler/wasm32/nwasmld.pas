@@ -45,6 +45,7 @@ implementation
       aasmbase,aasmdata,
       cgbase,cgutils,
       symconst,
+      pass_2_context,
       compiler;
 
     { twasmloadnode }
@@ -54,9 +55,9 @@ implementation
         if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           begin
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
+              reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
             else
-              reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_TLS),0,location.reference.alignment,[]);
+              reference_reset_symbol(location.reference,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_TLS),0,location.reference.alignment,[]);
             location.reference.refaddr:=addr_got_tls;
           end
         else
