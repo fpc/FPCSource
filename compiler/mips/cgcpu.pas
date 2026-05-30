@@ -407,9 +407,9 @@ begin
     InternalError(2013022101);
 
   if weak then
-    sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
+    sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)
   else
-    sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+    sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
 
   if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     a_call_sym_pic(list,sym)
@@ -1004,7 +1004,7 @@ begin
             list.concat(taicpu.op_reg(A_MFLO, dst));
             if setflags then
               begin
-                current_asmdata.getjumplabel(hl);
+                list.AsmData.getjumplabel(hl);
                 hreg:=GetIntRegister(list,OS_INT);
                 list.concat(taicpu.op_reg(A_MFHI,hreg));
                 if (op=OP_IMUL) then
@@ -1130,7 +1130,7 @@ end;
 
 procedure TCGMIPS.a_jmp_name(list: tasmlist; const s: string);
 begin
-  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
+  List.Concat(TAiCpu.op_sym(A_BA, list.AsmData.RefAsmSymbol(s,AT_FUNCTION)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
@@ -1190,7 +1190,7 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
           else
             begin
               { TODO: still possible to do branchless by extracting appropriate bit from FCSR? }
-              current_asmdata.getjumplabel(hl);
+              list.AsmData.getjumplabel(hl);
               a_load_const_reg(list,size,1,reg);
               a_jmp_flags(list,f,hl);
               a_load_const_reg(list,size,0,reg);
@@ -1599,7 +1599,7 @@ begin
         countreg := GetIntRegister(list, OS_INT);
         tmpreg1  := GetIntRegister(list, OS_INT);
         a_load_const_reg(list, OS_INT, Count, countreg);
-        current_asmdata.getjumplabel(lab);
+        list.AsmData.getjumplabel(lab);
         a_label(list, lab);
         list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
         list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
@@ -1680,7 +1680,7 @@ begin
       countreg := GetIntRegister(list, OS_INT);
       tmpreg1  := GetIntRegister(list, OS_INT);
       a_load_const_reg(list, OS_INT, len, countreg);
-      current_asmdata.getjumplabel(lab);
+      list.AsmData.getjumplabel(lab);
       a_label(list, lab);
       list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));
       list.concat(taicpu.op_reg_ref(A_SB, tmpreg1, dst));
@@ -1713,12 +1713,12 @@ procedure TCGMIPS.g_profilecode(list:TAsmList);
   begin
     if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
       begin
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint),[]);
+        reference_reset_symbol(href,list.AsmData.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint),[]);
         a_loadaddr_ref_reg(list,href,NR_GP);
       end;
     list.concat(taicpu.op_reg_reg(A_MOVE,NR_R1,NR_RA));
     list.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_SP,NR_SP,-8));
-    a_call_sym_pic(list,current_asmdata.RefAsmSymbol('_mcount',AT_FUNCTION));
+    a_call_sym_pic(list,list.AsmData.RefAsmSymbol('_mcount',AT_FUNCTION));
     tcpuprocinfo(compiler.current_procinfo).setnoat:=true;
   end;
 
