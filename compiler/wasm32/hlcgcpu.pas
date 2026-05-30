@@ -62,7 +62,7 @@ uses
       constructor create(acompiler: TCompilerBase); override;
       destructor Destroy; override;
 
-      function RefStackPointerSym: TWasmGlobalAsmSymbol;
+      function RefStackPointerSym(asmdata: TAsmData): TWasmGlobalAsmSymbol;
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
@@ -360,9 +360,9 @@ implementation
       result:=is_8byterecord or is_methodptr or is_nestedprocptr;
     end;
 
-  function thlcgwasm.RefStackPointerSym: TWasmGlobalAsmSymbol;
+  function thlcgwasm.RefStackPointerSym(asmdata: TAsmData): TWasmGlobalAsmSymbol;
     begin
-      result:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL));
+      result:=TWasmGlobalAsmSymbol(asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL));
       result.WasmGlobalType:=wbt_i32;
     end;
 
@@ -2171,7 +2171,7 @@ implementation
           if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
             ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
-          list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
+          list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym(list.AsmData)));
           incstack(list,1);
           list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
           decstack(list,1);
@@ -2187,7 +2187,7 @@ implementation
             decstack(list,1);
             list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
             incstack(list,1);
-            list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
+            list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym(list.AsmData)));
             decstack(list,1);
           end;
         end;
@@ -2202,7 +2202,7 @@ implementation
         begin
           list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
           incstack(list,1);
-          list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
+          list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym(list.AsmData)));
           decstack(list,1);
         end;
       list.concat(taicpu.op_none(a_end_function));

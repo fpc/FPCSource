@@ -984,7 +984,7 @@ Unit rawasmtext;
                             begin
                               result.ops:=1;
                               result.operands[1].opr.typ:=OPR_SYMBOL;
-                              result.operands[1].opr.symbol:=thlcgwasm(compiler.hlcg).RefStackPointerSym;
+                              result.operands[1].opr.symbol:=thlcgwasm(compiler.hlcg).RefStackPointerSym(current_asmdata);
                               Consume(AS_ID);
                             end;
                           '$'+TLS_SIZE_SYM,
