@@ -268,8 +268,8 @@ procedure tllvmtypeconvnode.second_int_to_bool(ctx:tpassgeneratecodecontext);
       LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF,
       LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
         begin
-          current_asmdata.getjumplabel(truelabel);
-          current_asmdata.getjumplabel(falselabel);
+          ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+          ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
           location_reset_jump(location,truelabel,falselabel);
 
           ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location,location.falselabel);
