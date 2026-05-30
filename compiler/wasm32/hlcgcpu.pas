@@ -463,7 +463,7 @@ implementation
 
   function thlcgwasm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
-      list.concat(taicpu.op_sym_functype(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),tcpuprocdef(pd).create_functype));
+      list.concat(taicpu.op_sym_functype(a_call,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),tcpuprocdef(pd).create_functype));
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
@@ -1386,7 +1386,7 @@ implementation
           else // if (ref.base = NR_FRAME_POINTER_REG) then
             begin
               internalerror(2021012202);
-              //list.Concat(taicpu.op_sym(a_local_get, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
+              //list.Concat(taicpu.op_sym(a_local_get, list.AsmData.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
               //incstack(list,1);
             end;
         end
@@ -2438,7 +2438,7 @@ implementation
     begin
       if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
-      current_asmdata.getjumplabel(hl);
+      list.AsmData.getjumplabel(hl);
       list.concat(taicpu.op_none(a_block));
       a_cmp_const_loc_label(list,compiler.deftypes.s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
