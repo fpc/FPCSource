@@ -73,11 +73,11 @@ implementation
               (left.location.sreg.bitlen=1) then
               begin
                 ctx.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,left.location.sreg.subsetreg,left.location.sreg.startbit));
-                current_asmdata.getjumplabel(truelabel);
-                current_asmdata.getjumplabel(falselabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
                 { sbrc does a jump without an explicit label,
                   if we do not insert skiplabel here and increase its reference count, the optimizer removes the whole true block altogether }
-                current_asmdata.getjumplabel(skiplabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
                 ctx.cg.a_jmp_always(ctx.CurrAsmList,falselabel);
@@ -90,11 +90,11 @@ implementation
                 tmpreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_8);
                 ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,compiler.deftypes.u8inttype,compiler.deftypes.osuinttype,left.location.sref.ref,tmpreg);
                 ctx.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
-                current_asmdata.getjumplabel(truelabel);
-                current_asmdata.getjumplabel(falselabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
                 { sbrc does a jump without an explicit label,
                   if we do not insert skiplabel here and increase its reference count, the optimizer removes the whole true block altogether }
-                current_asmdata.getjumplabel(skiplabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(skiplabel);
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
                 ctx.cg.a_jmp_always(ctx.CurrAsmList,falselabel);
