@@ -193,7 +193,7 @@ uses
      protected
       procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
 
-      function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
+      function get_enum_init_val_ref(asmdata: TAsmData; def: tdef; out ref: treference): boolean;
 
       procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
       procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
@@ -699,7 +699,7 @@ implementation
         elemdef:=tarraydef(elemdef).elementdef;
       if (elemdef.typ in [recorddef,setdef]) or
          ((elemdef.typ=enumdef) and
-          get_enum_init_val_ref(elemdef,enuminitref)) or
+          get_enum_init_val_ref(list.AsmData,elemdef,enuminitref)) or
          is_shortstring(elemdef) or
          ((elemdef.typ=procvardef) and
           not tprocvardef(elemdef).is_addressonly) or
@@ -1697,7 +1697,7 @@ implementation
         end
       else if (t.typ=enumdef) then
         begin
-          if get_enum_init_val_ref(t,eleref) then
+          if get_enum_init_val_ref(list.AsmData,t,eleref) then
             begin
               a_load_ref_stack(list,compiler.deftypes.java_jlobject,eleref,prepare_stack_for_ref(list,eleref,false));
               g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
@@ -2332,7 +2332,7 @@ implementation
     end;
 
 
-  function thlcgjvm.get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
+  function thlcgjvm.get_enum_init_val_ref(asmdata: TAsmData; def: tdef; out ref: treference): boolean;
     var
       sym: tstaticvarsym;
     begin
@@ -2341,7 +2341,7 @@ implementation
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
-      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4,[]);
+      reference_reset_symbol(ref,asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4,[]);
       result:=true;
     end;
 
@@ -2381,7 +2381,7 @@ implementation
                   ((vs.typ<>fieldvarsym) or
                    (tdef(vs.owner.defowner).typ<>objectdef) or
                    (ts_jvm_enum_field_init in compiler.globals.current_settings.targetswitches)) and
-                  get_enum_init_val_ref(vs.vardef,initref) then
+                  get_enum_init_val_ref(list.AsmData,vs.vardef,initref) then
             allocate_enum_with_base_ref(list,vs,initref,ref);
         end;
       { process symtables of routines part of this symtable (for local typed
@@ -2425,7 +2425,7 @@ implementation
              not(sp_static in sym.symoptions) and
              (jvmimplicitpointertype(tfieldvarsym(sym).vardef) or
               ((tfieldvarsym(sym).vardef.typ=enumdef) and
-               get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then
+               get_enum_init_val_ref(list.AsmData,tfieldvarsym(sym).vardef,ref))) then
             begin
               needinit:=true;
               break;
