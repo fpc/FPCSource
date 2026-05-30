@@ -69,8 +69,8 @@ implementation
           "number of bits in right.location", because that generates a poison
           value in LLVM (and even anding it will 0 will keep it a poison value),
           and calculations using poison as input result in undefined behaviour }
-        current_asmdata.getjumplabel(hl);
-        current_asmdata.getjumplabel(hlend);
+        ctx.CurrAsmList.AsmData.getjumplabel(hl);
+        ctx.CurrAsmList.AsmData.getjumplabel(hlend);
         ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,uopdef,OC_AE,
           right.resultdef.packedbitsize,left.location.register,hl);
         ctx.hlcg.a_bit_test_reg_loc_reg(ctx.CurrAsmList,
