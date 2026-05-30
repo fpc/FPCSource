@@ -78,7 +78,7 @@ implementation
           "some targets may provide defined semantics when using the value as
           the operand to an inline assembly") }
         if not(assigned(asmlabel)) then
-          current_asmdata.getjumplabel(asmlabel);
+          ctx.CurrAsmList.AsmData.getjumplabel(asmlabel);
         result:=asmlabel
       end;
 
