@@ -90,7 +90,7 @@ implementation
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
-                current_asmdata.getlabel(l,alt_data);
+                list.AsmData.getlabel(l,alt_data);
                 compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(compiler.current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
@@ -134,7 +134,7 @@ implementation
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
-                current_asmdata.getlabel(l,alt_data);
+                list.AsmData.getlabel(l,alt_data);
                 compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(compiler.current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
@@ -213,11 +213,11 @@ implementation
 
           { create consts entry }
           reference_reset(tmpref,4,[]);
-          current_asmdata.getjumplabel(l);
+          list.AsmData.getjumplabel(l);
           compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
           cg.a_label(compiler.current_procinfo.aktlocaldata,l);
           tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
-          compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+          compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_sym(compiler.current_procinfo.aktlocaldata.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
           tmpref.symbol:=l;
           tmpref.base:=NR_PC;
@@ -227,7 +227,7 @@ implementation
           list.concat(taicpu.op_reg(A_BX,NR_R12));
         end
       else
-        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
       list.concatlist(compiler.current_procinfo.aktlocaldata);
 
       tcompiler(compiler).current_procinfo.Free;
@@ -249,7 +249,7 @@ implementation
 
       { create const entry }
       reference_reset(tmpref,4,[]);
-      current_asmdata.getjumplabel(l);
+      list.AsmData.getjumplabel(l);
       tmpref.symbol:=l;
       tmpref.base:=NR_PC;
       list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
@@ -261,7 +261,7 @@ implementation
       { append const entry }
       list.Concat(tai_align.Create(4));
       list.Concat(tai_label.create(l));
-      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
+      list.concat(tai_const.Create_sym(list.AsmData.RefAsmSymbol(externalname,AT_FUNCTION)));
     end;
 
 
