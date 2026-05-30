@@ -347,7 +347,7 @@ unit cgcpu;
                   internal_restore_regs(list,true);
                 if (compiler.current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
               end
             else
               begin
@@ -494,8 +494,8 @@ unit cgcpu;
         { so we have to access every page first              }
         if compiler.target.info.system=system_i386_win32 then
           begin
-             current_asmdata.getjumplabel(again);
-             current_asmdata.getjumplabel(ok);
+             list.AsmData.getjumplabel(again);
+             list.AsmData.getjumplabel(ok);
              a_label(list,again);
              a_reg_alloc(list,NR_DEFAULTFLAGS);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
@@ -622,7 +622,7 @@ unit cgcpu;
                     compiler.current_module.requires_ecx_pic_helper:=true;
                     a_call_name_static(list,'fpc_geteipasecx');
                   end;
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,list.AsmData.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));
                 list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,compiler.current_procinfo.got));
 
                 { Deallocate parameter registers }
@@ -728,8 +728,8 @@ unit cgcpu;
 
               { the damned shift instructions work only til a count of 32 }
               { so we've to do some tricks here                           }
-              current_asmdata.getjumplabel(l1);
-              current_asmdata.getjumplabel(l2);
+              list.AsmData.getjumplabel(l1);
+              list.AsmData.getjumplabel(l2);
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
               cg.a_jmp_flags(list,F_E,l1);
@@ -863,8 +863,8 @@ unit cgcpu;
 
               { the damned shift instructions work only til a count of 32 }
               { so we've to do some tricks here                           }
-              current_asmdata.getjumplabel(l1);
-              current_asmdata.getjumplabel(l2);
+              list.AsmData.getjumplabel(l1);
+              list.AsmData.getjumplabel(l2);
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
               cg.a_jmp_flags(list,F_E,l1);
