@@ -627,7 +627,12 @@ type
     AString : Sw_PString;
   end;
 
-resourcestring  sChangeDirectory='Change Directory';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sChangeDirectory='Change Directory';
                 sDeleteFile='Delete file?'#13#10#13#3'%s';
                 sDirectory='Directory';
                 sDrives='Drives';

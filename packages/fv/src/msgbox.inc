@@ -221,7 +221,12 @@ var
   ButtonName: array[0..3] of string[40];
 {$endif FV_UNICODE}
 
-resourcestring  sConfirm='Confirm';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sConfirm='Confirm';
                 sError='Error';
                 sInformation='Information';
                 sWarning='Warning';

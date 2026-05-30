@@ -416,7 +416,12 @@ uses
   Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 
-resourcestring  sVideoFailed='Video initialization failed.';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sVideoFailed='Video initialization failed.';
                 sTypeExitOnReturn='Type EXIT to return...';
 
 

@@ -1062,7 +1062,12 @@ CONST
     Load    : @TModalInputLine.Load;
     Store   : @TModalInputLine.Store);
 
-resourcestring  slCancel='Cancel';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                slCancel='Cancel';
                 slOk='O~k~';
                 slYes='~Y~es';
                 slNo='~N~o';

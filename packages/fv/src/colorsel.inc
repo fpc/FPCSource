@@ -29,6 +29,13 @@ unit ColorSel;
 {$ENDIF FPC_DOTTEDUNITS}
 {====Include file to sort compiler platform out =====================}
 {$I platform.inc}
+
+{2.0 compatibility}
+{$ifdef VER2_0}
+  {$macro on}
+  {$define resourcestring := const}
+{$endif}
+
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -53,10 +60,10 @@ uses
   FVConsts;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$ifdef FPC_X86_DATA_NEAR}
-  const
-{$else}
+{$ifdef USE_RESOURCESTRING}
   resourcestring
+{$else}
+  const
 {$endif}
       dialog_colorsel_colors        = 'Colors';
       label_colorsel_group          = '~G~roup';

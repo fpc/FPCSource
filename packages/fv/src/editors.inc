@@ -517,7 +517,12 @@ uses
 type
   pword = ^word;
 
-resourcestring  sClipboard='Clipboard';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sClipboard='Clipboard';
                 sFileCreateError='Error creating file %s';
                 sFileReadError='Error reading file %s';
                 sFileUntitled='Save untitled file?';
