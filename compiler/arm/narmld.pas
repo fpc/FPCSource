@@ -75,8 +75,8 @@ implementation
                   tlsm_global_dynamic:
                     begin
 {$ifdef use_tls_dialect_gnu}
-                      current_asmdata.getjumplabel(l);
-                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
+                      ctx.CurrAsmList.AsmData.getjumplabel(l);
+                      reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
                       href.refaddr:=addr_tlsgd;
                       href.relsymbol:=l;
                       hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
@@ -98,8 +98,8 @@ implementation
                           Glauber de Oliveira Costa, Alexandre Oliva: Speeding Up Thread-Local Storage Access in DynamicLibraries in the ARM platform, 2006.
                           Link: https://www.fsfla.org/~lxoliva/writeups/TLS/paper-lk2006.pdf
                       }
-                      current_asmdata.getjumplabel(l);
-                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
+                      ctx.CurrAsmList.AsmData.getjumplabel(l);
+                      reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
                       href.refaddr:=addr_tlsdesc;
                       href.relsymbol:=l;
                       hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
@@ -131,8 +131,8 @@ implementation
                     end;
                   tlsm_initial_exec:
                     begin
-                      current_asmdata.getjumplabel(l);
-                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
+                      ctx.CurrAsmList.AsmData.getjumplabel(l);
+                      reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
                       href.refaddr:=addr_tpoff;
                       href.relsymbol:=l;
                       hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
@@ -150,7 +150,7 @@ implementation
                     end;
                   tlsm_local_exec:
                     begin
-                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
+                      reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
                       href.refaddr:=addr_tpoff;
                       hregister:=ctx.cg.getaddressregister(ctx.CurrAsmList);
                       ctx.cg.a_loadaddr_ref_reg(ctx.CurrAsmList,href,hregister);
