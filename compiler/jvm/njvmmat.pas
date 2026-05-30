@@ -154,7 +154,7 @@ implementation
              ctx.hlcg.a_op_const_reg_reg(ctx.CurrAsmList,OP_ADD,resultdef,torddef(resultdef).high,right.location.register,tmpreg);
              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
              ctx.hlcg.a_op_reg_reg(ctx.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
-             current_asmdata.getjumplabel(lab);
+             ctx.CurrAsmList.AsmData.getjumplabel(lab);
              ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
              ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil);
              ctx.hlcg.a_label(ctx.CurrAsmList,lab);
