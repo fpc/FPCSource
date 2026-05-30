@@ -131,7 +131,7 @@ begin
     { Check for zero denominator, omit if dividing by constant (constants are checked earlier) }
     if (right.nodetype<>ordconstn) then
     begin
-      current_asmdata.getjumplabel(hl);
+      ctx.CurrAsmList.AsmData.getjumplabel(hl);
       ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,divider,NR_R0,hl);
       ctx.CurrAsmList.Concat(taicpu.op_const(A_BREAK,7));
       ctx.cg.a_label(ctx.CurrAsmList,hl);
@@ -140,7 +140,7 @@ begin
     { Dividing low(longint) by -1 will overflow }
     if is_signed(right.resultdef) and (cs_check_overflow in compiler.globals.current_settings.localswitches) then
     begin
-      current_asmdata.getjumplabel(hl2);
+      ctx.CurrAsmList.AsmData.getjumplabel(hl2);
       ctx.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_R1,NR_R0,-1));
       ctx.cg.a_cmp_reg_reg_label(ctx.CurrAsmList,OS_INT,OC_NE,divider,NR_R1,hl2);
       ctx.CurrAsmList.concat(taicpu.op_reg_const(A_LUI,NR_R1,$8000));
