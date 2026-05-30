@@ -135,9 +135,9 @@ implementation
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        current_asmdata.getjumplabel(lloop);
-        current_asmdata.getjumplabel(lcont);
-        current_asmdata.getjumplabel(lbreak);
+        ctx.CurrAsmList.AsmData.getjumplabel(lloop);
+        ctx.CurrAsmList.AsmData.getjumplabel(lcont);
+        ctx.CurrAsmList.AsmData.getjumplabel(lbreak);
 
         oldflowcontrol:=flowcontrol;
 
@@ -521,7 +521,7 @@ implementation
 
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
-        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
+        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { try block }
         secondpass(left,ctx);
@@ -573,13 +573,13 @@ implementation
 
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
-                ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
+                ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
                 { the 'exit' block }
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
                 oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-                current_asmdata.getjumplabel(NewCurrExitLabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
                 compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
                 { the 'break' block }
@@ -588,7 +588,7 @@ implementation
                 if in_loop then
                   begin
                     oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-                    current_asmdata.getjumplabel(NewBreakLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
                     compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
                   end;
 
@@ -598,7 +598,7 @@ implementation
                 if in_loop then
                   begin
                     oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-                    current_asmdata.getjumplabel(NewContinueLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
@@ -661,7 +661,7 @@ implementation
           end
         else
           begin
-            ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+            ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
@@ -714,7 +714,7 @@ implementation
 
         compiler.exceptionstatehandler.end_try_block(ctx.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
-        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
@@ -759,7 +759,7 @@ implementation
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
                 oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-                current_asmdata.getjumplabel(NewCurrExitLabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
                 compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
                 { the 'break' block }
@@ -768,7 +768,7 @@ implementation
                 if in_loop then
                   begin
                     oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-                    current_asmdata.getjumplabel(NewBreakLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
                     compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
                   end;
 
@@ -778,7 +778,7 @@ implementation
                 if in_loop then
                   begin
                     oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-                    current_asmdata.getjumplabel(NewContinueLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
@@ -825,7 +825,7 @@ implementation
                     compiler.current_procinfo.CurrBreakLabel:=oldBreakLabel;
                   end;
 
-                ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+                ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
                 ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
@@ -890,7 +890,7 @@ implementation
 
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
         oldCurrRaiseLabel:=tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel;
-        current_asmdata.getjumplabel(NewCurrRaiseLabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(NewCurrRaiseLabel);
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=NewCurrRaiseLabel;
 
         { try block }
@@ -948,14 +948,14 @@ implementation
 
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
                 oldCurrRaiseLabel:=tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel;
-                current_asmdata.getjumplabel(NewCurrRaiseLabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(NewCurrRaiseLabel);
                 tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=NewCurrRaiseLabel;
 
                 { the 'exit' block }
                 ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
                 oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-                current_asmdata.getjumplabel(NewCurrExitLabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
                 compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
                 { the 'break' block }
@@ -964,7 +964,7 @@ implementation
                 if in_loop then
                   begin
                     oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-                    current_asmdata.getjumplabel(NewBreakLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
                     compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
                   end;
 
@@ -974,7 +974,7 @@ implementation
                 if in_loop then
                   begin
                     oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-                    current_asmdata.getjumplabel(NewContinueLabel);
+                    ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
                     compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
                   end;
 
@@ -1287,7 +1287,7 @@ implementation
           thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(ctx.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           ctx.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
-          ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
           ctx.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
 
@@ -1349,7 +1349,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         { the inner 'try_table..end_try_table' block }
-        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
+        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { try code }
         if assigned(left) then
@@ -1489,7 +1489,7 @@ implementation
           thlcgwasm(ctx.hlcg).a_cmp_const_reg_stack(ctx.CurrAsmList,compiler.deftypes.exceptionreasontype,OC_EQ,reason,reasonreg);
           ctx.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(ctx.hlcg).decstack(ctx.CurrAsmList,1);
-          ctx.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
           ctx.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
 
@@ -1567,7 +1567,7 @@ implementation
         ctx.hlcg.g_exception_reason_save_const(ctx.CurrAsmList,compiler.deftypes.exceptionreasontype,0,excepttemps.reasonbuf);
         ctx.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
-        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
         { exceptionreason:=1 (exception) }
         ctx.hlcg.g_exception_reason_save_const(ctx.CurrAsmList,compiler.deftypes.exceptionreasontype,1,excepttemps.reasonbuf);
         ctx.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
@@ -1751,7 +1751,7 @@ implementation
         { the inner 'try..end_try' block }
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
         oldCurrRaiseLabel:=tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel;
-        current_asmdata.getjumplabel(raisefinallylabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(raisefinallylabel);
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=raisefinallylabel;
 
         { try code }
@@ -1923,13 +1923,13 @@ implementation
           exception frame for the catch-handler }
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
-        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
+        ctx.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { the 'exit' block }
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        current_asmdata.getjumplabel(NewCurrExitLabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
         compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
         { the 'break' block }
@@ -1938,7 +1938,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            current_asmdata.getjumplabel(NewBreakLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
             compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
           end;
 
@@ -1948,7 +1948,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            current_asmdata.getjumplabel(NewContinueLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
             compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
           end;
 
@@ -2074,7 +2074,7 @@ implementation
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        current_asmdata.getjumplabel(NewCurrExitLabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
         compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
         { the 'break' block }
@@ -2083,7 +2083,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            current_asmdata.getjumplabel(NewBreakLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
             compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
           end;
 
@@ -2093,7 +2093,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            current_asmdata.getjumplabel(NewContinueLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
             compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
           end;
 
@@ -2141,7 +2141,7 @@ implementation
             compiler.current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
 
-        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
         ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
@@ -2218,14 +2218,14 @@ implementation
 
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
         oldCurrRaiseLabel:=tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel;
-        current_asmdata.getjumplabel(NewCurrRaiseLabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(NewCurrRaiseLabel);
         tcpuprocinfo(compiler.current_procinfo).CurrRaiseLabel:=NewCurrRaiseLabel;
 
         { the 'exit' block }
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
         oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-        current_asmdata.getjumplabel(NewCurrExitLabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(NewCurrExitLabel);
         compiler.current_procinfo.CurrExitLabel:=NewCurrExitLabel;
 
         { the 'break' block }
@@ -2234,7 +2234,7 @@ implementation
         if in_loop then
           begin
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            current_asmdata.getjumplabel(NewBreakLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewBreakLabel);
             compiler.current_procinfo.CurrBreakLabel:=NewBreakLabel;
           end;
 
@@ -2244,7 +2244,7 @@ implementation
         if in_loop then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
-            current_asmdata.getjumplabel(NewContinueLabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(NewContinueLabel);
             compiler.current_procinfo.CurrContinueLabel:=NewContinueLabel;
           end;
 
