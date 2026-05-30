@@ -581,9 +581,9 @@ implementation
     procedure tcgaarch64.a_call_name(list: TAsmList; const s: string; weak: boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+          list.concat(taicpu.op_sym(A_BL,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(A_BL,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)));
       end;
 
 
@@ -1677,7 +1677,7 @@ implementation
       var
         ai: taicpu;
       begin
-        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(l.name,AT_FUNCTION));
+        ai:=TAiCpu.op_sym(A_B,list.AsmData.RefAsmSymbol(l.name,AT_FUNCTION));
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -1687,7 +1687,7 @@ implementation
       var
         ai: taicpu;
       begin
-        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        ai:=TAiCpu.op_sym(A_B,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -1737,7 +1737,7 @@ implementation
       begin
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
-        current_asmdata.getjumplabel(hl);
+        list.AsmData.getjumplabel(hl);
         case ovloc.loc of
           LOC_FLAGS:
             begin
@@ -1871,7 +1871,7 @@ implementation
                  end
                else
                  begin
-                    current_asmdata.getjumplabel(again);
+                    list.AsmData.getjumplabel(again);
                     getcpuregister(list,NR_IP0);
                     a_load_const_reg(list,OS_ADDR,localsize div winstackpagesize,NR_IP0);
                     a_label(list,again);
@@ -1931,16 +1931,16 @@ implementation
                 reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
                 ref.addressmode:=AM_PREINDEXED;
                 list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
-                current_asmdata.asmcfi.cfa_offset(list,NR_FP,-16);
-                current_asmdata.asmcfi.cfa_offset(list,NR_LR,-8);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                list.AsmData.asmcfi.cfa_offset(list,NR_FP,-16);
+                list.AsmData.asmcfi.cfa_offset(list,NR_LR,-8);
                 if compiler.target.info.system=system_aarch64_win64 then
                   list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
                 { initialise frame pointer }
                 if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   begin
                     a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
-                    current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FP);
+                    list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FP);
                     if compiler.target.info.system=system_aarch64_win64 then
                       list.concat(cai_seh_directive.create(ash_setfp));
                   end
@@ -2627,7 +2627,7 @@ implementation
             makesimpleforcopy(list,loadop,opsize,postfix,true,tmpsource,sourcebasereplaced);
             storeop:=scaledstoreop;
             makesimpleforcopy(list,storeop,opsize,postfix,true,tmpdest,destbasereplaced);
-            current_asmdata.getjumplabel(hl);
+            list.AsmData.getjumplabel(hl);
             countreg:=getintregister(list,OS_32);
             if loadop=A_LDP then
               a_load_const_reg(list,OS_32,len div (tcgsize2size[opsize]*2),countreg)
@@ -2679,8 +2679,8 @@ implementation
             tmpreg:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_MRS,r,NR_FPSR));
             list.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,r,$1f));
-            current_asmdata.getjumplabel(l1);
-            current_asmdata.getjumplabel(l2);
+            list.AsmData.getjumplabel(l1);
+            list.AsmData.getjumplabel(l2);
             ai:=taicpu.op_reg_sym_ofs(A_CBNZ,tmpreg,l1,0);
             ai.is_jmp:=true;
             list.concat(ai);
