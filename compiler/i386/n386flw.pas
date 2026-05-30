@@ -333,8 +333,8 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     { check if child nodes do a break/continue/exit }
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
-    current_asmdata.getjumplabel(finallylabel);
-    current_asmdata.getjumplabel(endfinallylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(finallylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(endfinallylabel);
 
     { the finally block must catch break, continue and exit }
     { statements                                            }
@@ -342,7 +342,7 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     if implicitframe then
       exitfinallylabel:=finallylabel
     else
-      current_asmdata.getjumplabel(exitfinallylabel);
+      ctx.CurrAsmList.AsmData.getjumplabel(exitfinallylabel);
     compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
     if assigned(compiler.current_procinfo.CurrBreakLabel) then
       begin
@@ -355,8 +355,8 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
           end
         else
           begin
-            current_asmdata.getjumplabel(breakfinallylabel);
-            current_asmdata.getjumplabel(continuefinallylabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(breakfinallylabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(continuefinallylabel);
           end;
         compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
         compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
@@ -368,8 +368,8 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
         with ctx.cg.rg[R_INTREGISTER] do
           used_in_proc:=used_in_proc+[RS_EBX,RS_ESI,RS_EDI];
 
-        current_asmdata.getjumplabel(exceptlabel);
-        sym:=current_asmdata.RefAsmSymbol('__FPC_except_safecall',AT_FUNCTION);
+        ctx.CurrAsmList.AsmData.getjumplabel(exceptlabel);
+        sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol('__FPC_except_safecall',AT_FUNCTION);
         emit_scope_start(
           sym,
           exceptlabel,
@@ -379,10 +379,10 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
       end
     else
       begin
-        sym:=current_asmdata.RefAsmSymbol('__FPC_finally_handler',AT_FUNCTION);
+        sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol('__FPC_finally_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
-          current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),
+          ctx.CurrAsmList.AsmData.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),
           ctx
         );
         compiler.current_module.add_extern_asmsym(sym);
@@ -404,7 +404,7 @@ procedure ti386tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext);
     emit_scope_end(ctx);
     if is_safecall then
       begin
-        current_asmdata.getjumplabel(safecalllabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(safecalllabel);
         ctx.cg.a_jmp_always(ctx.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
         ctx.cg.a_label(ctx.CurrAsmList,exceptlabel);
@@ -532,26 +532,26 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       end;
 
     { get new labels for the control flow statements }
-    current_asmdata.getjumplabel(exittrylabel);
-    current_asmdata.getjumplabel(exitexceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(exittrylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(exitexceptlabel);
     if assigned(compiler.current_procinfo.CurrBreakLabel) then
       begin
-        current_asmdata.getjumplabel(breaktrylabel);
-        current_asmdata.getjumplabel(continuetrylabel);
-        current_asmdata.getjumplabel(breakexceptlabel);
-        current_asmdata.getjumplabel(continueexceptlabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(breaktrylabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(continuetrylabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(breakexceptlabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(continueexceptlabel);
       end;
 
-    current_asmdata.getjumplabel(exceptlabel);
-    current_asmdata.getjumplabel(endexceptlabel);
-    current_asmdata.getjumplabel(lastonlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(exceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(endexceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(lastonlabel);
     filterlabel:=nil;
 
     { start of scope }
     if assigned(right) then
       begin
-        current_asmdata.getaddrlabel(filterlabel);
-        sym:=current_asmdata.RefAsmSymbol('__FPC_on_handler',AT_FUNCTION);
+        ctx.CurrAsmList.AsmData.getaddrlabel(filterlabel);
+        sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol('__FPC_on_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
           filterlabel,
@@ -560,7 +560,7 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
       end
     else
       begin
-        sym:=current_asmdata.RefAsmSymbol('__FPC_except_handler',AT_FUNCTION);
+        sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol('__FPC_except_handler',AT_FUNCTION);
         emit_scope_start(
           sym,
           exceptlabel,
@@ -632,8 +632,8 @@ procedure ti386tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext);
           begin
             if hnode.nodetype<>onn then
               InternalError(2011103101);
-            current_asmdata.getjumplabel(onlabel);
-            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            ctx.CurrAsmList.AsmData.getjumplabel(onlabel);
+            sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
             hlist.concat(tai_const.create_sym(sym));
             hlist.concat(tai_const.create_sym(onlabel));
             compiler.current_module.add_extern_asmsym(sym);
