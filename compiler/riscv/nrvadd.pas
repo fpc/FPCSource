@@ -482,7 +482,7 @@ implementation
 
                 ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,location.register,tmpreg1,tmpreg2));
 
-                current_asmdata.getjumplabel(l1);
+                ctx.CurrAsmList.AsmData.getjumplabel(l1);
                 ctx.CurrAsmList.concat(taicpu.op_reg_sym(A_BEQZ,location.register,l1));
               end;
           end;
