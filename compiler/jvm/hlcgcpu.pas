@@ -669,7 +669,7 @@ implementation
         begin
           { multianewarray typedesc ndim }
           list.concat(taicpu.op_sym_const(a_multianewarray,
-            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype),AT_METADATA),initdim));
+            list.AsmData.RefAsmSymbol(jvmarrtype(elemdef,primitivetype),AT_METADATA),initdim));
           { has to be a multi-dimensional array type }
           if primitivetype then
             internalerror(2011012207);
@@ -688,7 +688,7 @@ implementation
             opc:=a_newarray
           else
             opc:=a_anewarray;
-          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
+          list.concat(taicpu.op_sym(opc,list.AsmData.RefAsmSymbol(mangledname,AT_METADATA)));
         end;
       { all dimensions are removed from the stack, an array reference is
         added }
@@ -777,8 +777,8 @@ implementation
         Note that this means that assigned(arr) can be different from
         length(arr)<>0 for dynamic arrays when targeting the JVM.
       }
-      current_asmdata.getjumplabel(nillab);
-      current_asmdata.getjumplabel(endlab);
+      list.AsmData.getjumplabel(nillab);
+      list.AsmData.getjumplabel(endlab);
 
       { if assigned(arr) ... }
       a_load_loc_stack(list,compiler.deftypes.java_jlobject,arrloc);
@@ -1273,7 +1273,7 @@ implementation
           else
             begin
               a_load_const_stack(list,compiler.deftypes.s32inttype,0,R_INTREGISTER);
-              current_asmdata.getjumplabel(lab);
+              list.AsmData.getjumplabel(lab);
               { can be optimized by removing duplicate xor'ing to convert dst from
                 signed to unsigned quadrant }
               a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
@@ -1337,7 +1337,7 @@ implementation
 
   procedure thlcgjvm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
+      list.concat(taicpu.op_sym(a_goto,list.AsmData.RefAsmSymbol(l.name,AT_METADATA)));
     end;
 
   procedure thlcgjvm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -1758,7 +1758,7 @@ implementation
     begin
       if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
-      current_asmdata.getjumplabel(hl);
+      list.AsmData.getjumplabel(hl);
       a_cmp_const_loc_label(list,compiler.deftypes.s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
       a_label(list,hl);
@@ -2314,7 +2314,7 @@ implementation
     var
       tmpref: treference;
     begin
-      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
+      ref.symbol:=list.AsmData.RefAsmSymbol(vs.mangledname,AT_DATA);
       tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,tmpref,ref);
@@ -2326,7 +2326,7 @@ implementation
 
   procedure thlcgjvm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
     begin
-      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
+      destbaseref.symbol:=list.AsmData.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,compiler.deftypes.java_jlobject,compiler.deftypes.java_jlobject,initref,destbaseref);
     end;
@@ -2469,11 +2469,11 @@ implementation
       else if is_shortstring(checkdef) then
         checkdef:=compiler.deftypes.java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
+        list.concat(taicpu.op_sym(checkop,list.AsmData.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
       else if checkdef.typ=classrefdef then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class',AT_METADATA)))
+        list.concat(taicpu.op_sym(checkop,list.AsmData.RefAsmSymbol('java/lang/Class',AT_METADATA)))
       else
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false),AT_METADATA)));
+        list.concat(taicpu.op_sym(checkop,list.AsmData.RefAsmSymbol(jvmencodetype(checkdef,false),AT_METADATA)));
     end;
 
   procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
@@ -2564,11 +2564,11 @@ implementation
           internalerror(2010122602);
       end;
       if (opc<>a_invokeinterface) then
-        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+        list.concat(taicpu.op_sym(opc,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
       else
         begin
           pd.init_paraloc_info(calleeside);
-          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),pd.calleeargareasize));
+          list.concat(taicpu.op_sym_const(opc,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),pd.calleeargareasize));
         end;
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
