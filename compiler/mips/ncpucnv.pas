@@ -161,8 +161,8 @@ begin
     loadsigned(tfloatdef(resultdef).floattype)
   else
   begin
-    current_asmdata.getglobaldatalabel(l1);
-    current_asmdata.getjumplabel(l2);
+    ctx.CurrAsmList.AsmData.getglobaldatalabel(l1);
+    ctx.CurrAsmList.AsmData.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint), []);
     ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
@@ -176,9 +176,9 @@ begin
       s64real:
       begin
         hregister := ctx.cg.getfpuregister(ctx.CurrAsmList, OS_F64);
-        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(4294967296.0));
+        new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
+        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(4294967296.0));
 
         ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList, OS_F64, OS_F64, href, hregister);
         ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));
@@ -272,7 +272,7 @@ begin
     LOC_JUMP:
     begin
       hreg1 := ctx.cg.getintregister(ctx.CurrAsmList, OS_INT);
-      current_asmdata.getjumplabel(hlabel);
+      ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
       ctx.cg.a_label(ctx.CurrAsmList, left.location.truelabel);
       ctx.cg.a_load_const_reg(ctx.CurrAsmList, OS_INT, 1, hreg1);
       ctx.cg.a_jmp_always(ctx.CurrAsmList, hlabel);
