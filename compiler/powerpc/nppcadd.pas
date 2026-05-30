@@ -318,8 +318,8 @@ interface
           begin
             { we call emit_cmp, which will set location.loc to LOC_FLAGS ->
               wait till the end with setting the location }
-            current_asmdata.getjumplabel(truelabel);
-            current_asmdata.getjumplabel(falselabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
           end;
 
         load_left_right(cmpop,needoverflowcheck or (nodetype = muln),ctx);
@@ -784,7 +784,7 @@ interface
                       ctx.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLW,location.register,
                         left.location.register,right.location.register));
                       { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
-                      current_asmdata.getjumplabel(hl);
+                      ctx.CurrAsmList.AsmData.getjumplabel(hl);
                       tcgppc(ctx.cg).a_jmp_cond(ctx.CurrAsmList,OC_EQ,hl);
                       ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
                       ctx.cg.a_label(ctx.CurrAsmList,hl);
