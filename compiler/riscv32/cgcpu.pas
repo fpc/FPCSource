@@ -260,7 +260,7 @@ unit cgcpu;
             countreg := GetIntRegister(list, OS_INT);
             tmpreg1  := GetIntRegister(list, OS_INT);
             a_load_const_reg(list, OS_INT, Count, countreg);
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
             list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
