@@ -92,7 +92,7 @@ implementation
         if not (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             Result := False;
-            current_asmdata.getjumplabel(_Label);
+            ctx.CurrAsmList.AsmData.getjumplabel(_Label);
             ctx.CurrAsmList.concat(taicpu.op_none(a_block));
             Exit;
           end;
@@ -132,7 +132,7 @@ implementation
         { Create unique label }
         Result := False;
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
-        current_asmdata.getjumplabel(_Label);
+        ctx.CurrAsmList.AsmData.getjumplabel(_Label);
       end;
 
 
@@ -302,7 +302,7 @@ implementation
         oldflowcontrol := flowcontrol;
         include(flowcontrol,fc_inflowcontrol);
 
-        current_asmdata.getjumplabel(endlabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(endlabel);
 
         ctx.CurrAsmList.concat(taicpu.op_none(a_block));
 
