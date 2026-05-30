@@ -80,15 +80,15 @@ implementation
       if not (compiler.target.info.system in systems_ps1) then begin
 
         if weak then
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
 
         if (po_external in pd.procoptions) then
           begin
             if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
               begin
-                reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
+                reference_reset_symbol(ref,list.AsmData.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
                 list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
                 cg.a_loadaddr_ref_reg(list,ref,NR_GP);
               end;
@@ -172,7 +172,7 @@ implementation
     var
       href: treference;
     begin
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint),[]);
+      reference_reset_symbol(href,list.AsmData.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint),[]);
       { Always do indirect jump using $t9, it won't harm in non-PIC mode }
       if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
@@ -278,11 +278,11 @@ implementation
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end
     else if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
-      list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)))
+      list.concat(taicpu.op_sym(A_J,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)))
     else
       begin
         { GAS does not expand "J symbol" into PIC sequence }
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,sizeof(pint),[]);
+        reference_reset_symbol(href,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,sizeof(pint),[]);
         href.base:=NR_GP;
         href.refaddr:=addr_pic_call16;
         list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
