@@ -627,9 +627,9 @@ implementation
       weak : boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(txtensaprocinfo(compiler.current_procinfo).callins,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)));
       end;
 
 
@@ -645,7 +645,7 @@ implementation
         tmpreg: TRegister;
       begin
         { for now, we use A15 here, however, this is not save as it might contain an argument }
-        ai:=TAiCpu.op_sym_reg(A_J,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
+        ai:=TAiCpu.op_sym_reg(A_J,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
         ai.oppostfix := PF_L; // if destination is too far for J then assembler can convert to JX
         ai.is_jmp:=true;
         list.Concat(ai);
@@ -1143,7 +1143,7 @@ implementation
             countreg := GetIntRegister(list, OS_INT);
             tmpreg1  := GetIntRegister(list, OS_INT);
             a_load_const_reg(list, OS_INT, Count, countreg);
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             if CPUXTENSA_HAS_LOOPS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
               begin
                 list.concat(taicpu.op_reg_sym(A_LOOP, countreg, lab));
@@ -1321,7 +1321,7 @@ implementation
             hp:=tai(hp.Next);
           end;
 
-        current_asmdata.getjumplabel(Result);
+        compiler.current_procinfo.aktlocaldata.AsmData.getjumplabel(Result);
         a_label(compiler.current_procinfo.aktlocaldata,Result);
 
         if assigned(symbol) then
@@ -1378,7 +1378,7 @@ implementation
                 Internalerror(2020082205);
               list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reglo, regsrc2.reglo, regsrc1.reglo));
               list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-              current_asmdata.getjumplabel(no_carry);
+              list.AsmData.getjumplabel(no_carry);
               cg.a_cmp_reg_reg_label(list,OS_INT,OC_AE, regsrc1.reglo, regdst.reglo, no_carry);
               list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));
               cg.a_label(list,no_carry);
@@ -1396,7 +1396,7 @@ implementation
                 end;
               list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reglo, regsrc2.reglo, regsrc1.reglo));
               list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-              current_asmdata.getjumplabel(no_carry);
+              list.AsmData.getjumplabel(no_carry);
               cg.a_cmp_reg_reg_label(list,OS_INT,OC_AE, regsrc1.reglo, regsrc2.reglo, no_carry);
               list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, -1));
               cg.a_label(list,no_carry);
@@ -1468,7 +1468,7 @@ implementation
 
                   list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reglo, regsrc.reglo, value));
                   list.concat(taicpu.op_reg_reg(A_MOV, regdst.reghi, regsrc.reghi));
-                  current_asmdata.getjumplabel(no_carry);
+                  list.AsmData.getjumplabel(no_carry);
                   cg.a_cmp_reg_reg_label(list,OS_INT,OC_AE, regsrc.reglo, regdst.reglo, no_carry);
                   list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));
                   cg.a_label(list,no_carry);
