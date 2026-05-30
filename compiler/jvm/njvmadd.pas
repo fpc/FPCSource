@@ -353,8 +353,8 @@ interface
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
 
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -469,8 +469,8 @@ interface
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
 
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         thlcgjvm(ctx.hlcg).a_load_loc_stack(ctx.CurrAsmList,left.resultdef,left.location);
