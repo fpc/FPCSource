@@ -379,9 +379,9 @@ implementation
     procedure TCGSparcGen.a_call_name(list:TAsmList;const s:string; weak: boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+          list.concat(taicpu.op_sym(A_CALL,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(A_CALL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(A_CALL,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)));
         { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
@@ -846,7 +846,7 @@ implementation
 
     procedure TCGSparcGen.a_jmp_always(List:TAsmList;l:TAsmLabel);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(l.name,AT_FUNCTION)));
+        List.Concat(TAiCpu.op_sym(A_BA,list.AsmData.RefAsmSymbol(l.name,AT_FUNCTION)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -854,7 +854,7 @@ implementation
 
     procedure TCGSparcGen.a_jmp_name(list : TAsmList;const s : string);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
+        List.Concat(TAiCpu.op_sym(A_BA,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -933,7 +933,7 @@ implementation
               end
             else
               begin
-                current_asmdata.getjumplabel(hl);
+                list.AsmData.getjumplabel(hl);
                 a_load_const_reg(list,size,1,reg);
                 a_jmp_flags(list,f,hl);
                 a_load_const_reg(list,size,0,reg);
@@ -960,7 +960,7 @@ implementation
       begin
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
-        current_asmdata.getjumplabel(hl);
+        list.AsmData.getjumplabel(hl);
         case ovloc.loc of
           LOC_VOID:
             begin
@@ -1025,14 +1025,14 @@ implementation
            ((pi_needs_got in compiler.current_procinfo.flags) or
            (compiler.current_procinfo.procdef.proctypeoption=potype_unitfinalize)) then
           begin
-            current_asmdata.getjumplabel(hl);
+            list.AsmData.getjumplabel(hl);
             list.concat(taicpu.op_sym(A_CALL,hl));
             { ABI recommends the following sequence:
             1:   call   2f
                  sethi  %hi(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
             2:   or     %l7, %lo(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
                  add    %l7, %o7, %l7 }
-            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint),[]);
+            reference_reset_symbol(ref,list.AsmData.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint),[]);
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
             a_label(list,hl);
@@ -1153,7 +1153,7 @@ implementation
                 countreg:=GetIntRegister(list,OS_INT);
                 tmpreg1:=GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_ADDR,count,countreg);
-                current_asmdata.getjumplabel(lab);
+                list.AsmData.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
                 list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
@@ -1234,7 +1234,7 @@ implementation
                 countreg:=GetIntRegister(list,OS_ADDR);
                 tmpreg1:=GetIntRegister(list,OS_ADDR);
                 a_load_const_reg(list,OS_ADDR,len,countreg);
-                current_asmdata.getjumplabel(lab);
+                list.AsmData.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
                 list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));
