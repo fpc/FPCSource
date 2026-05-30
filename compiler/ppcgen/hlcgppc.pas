@@ -184,7 +184,7 @@ implementation
         case compiler.target.info.system of
           system_powerpc_darwin,
           system_powerpc64_darwin:
-            list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(procdef.mangledname,false)));
+            list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(list,procdef.mangledname,false)));
           else
             begin
               if compiler.target.use_dotted_functions then

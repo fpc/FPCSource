@@ -72,7 +72,7 @@ unit cgppc;
         { represented by a 16 bit immediate as required by some PowerPC }
         { instructions                                                  }
         function hasLargeOffset(const ref : TReference) : Boolean; inline;
-        function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
+        function  get_darwin_call_stub(list: TAsmList; const s: string; weak: boolean): tasmsymbol;
        protected
         function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         { Make sure ref is a valid reference for the PowerPC and sets the }
@@ -309,7 +309,7 @@ unit cgppc;
       end;
 
 
-    function tcgppcgen.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
+    function tcgppcgen.get_darwin_call_stub(list: TAsmList; const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
         instr: taicpu;

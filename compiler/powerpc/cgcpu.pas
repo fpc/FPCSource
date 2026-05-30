@@ -207,7 +207,7 @@ const
                list.concat(taicpu.op_none(A_NOP));
            end
          else
-           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
+           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(list,s,weak)));
 {
        the compiler does not properly set this flag anymore in pass 1, and
        for now we only need it after pass 2 (I hope) (JM)
@@ -681,7 +681,7 @@ const
         p : taicpu;
       begin
          if (compiler.target.info.system = system_powerpc_darwin) then
-           p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
+           p := taicpu.op_sym(A_B,get_darwin_call_stub(list,s,false))
         else
           p := taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         p.is_jmp := true;

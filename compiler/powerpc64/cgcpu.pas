@@ -292,7 +292,7 @@ begin
       a_call_name_direct(list, A_BL, s, weak, compiler.target.info.system=system_powerpc64_aix, true)
     else
       begin
-        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
+        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(list,s,weak)));
         include(compiler.current_procinfo.flags,pi_do_call);
       end;
 end;
@@ -970,7 +970,7 @@ var
 begin
   if (compiler.target.info.system = system_powerpc64_darwin) then
     begin
-      p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false));
+      p := taicpu.op_sym(A_B,get_darwin_call_stub(list,s,false));
       p.is_jmp := true;
       list.concat(p)
     end
