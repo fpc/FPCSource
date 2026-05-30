@@ -194,11 +194,11 @@ implementation
         end
       else
         begin
-          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,0,[]);
+          reference_reset_symbol(href,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,0,[]);
 
           tmpreg:=NR_X5;
 
-          current_asmdata.getjumplabel(l);
+          list.AsmData.getjumplabel(l);
 
           cg.a_label(list, l);
 
@@ -209,7 +209,7 @@ implementation
           href.refaddr:=addr_pcrel_lo12;
           list.concat(taicpu.op_reg_reg_ref(A_JALR,NR_X0,tmpreg,href));
 
-          //list.concat(taicpu.op_reg_sym(A_JAL,NR_X0,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          //list.concat(taicpu.op_reg_sym(A_JAL,NR_X0,list.AsmData.RefAsmSymbol(procdef.mangledname)));
         end;
       list.concatlist(compiler.current_procinfo.aktlocaldata);
 
@@ -231,20 +231,20 @@ implementation
       new_section(list,sec_code,wrappername,compiler.target.info.alignment.procalign);
       if global then
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
+          sym:=list.AsmData.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create_global(sym,0));
         end
       else
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
+          sym:=list.AsmData.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create(sym,0));
         end;
 
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION),0,0,[]);
+      reference_reset_symbol(href,list.AsmData.RefAsmSymbol(externalname,AT_FUNCTION),0,0,[]);
 
       tmpreg:=NR_X5;
 
-      current_asmdata.getjumplabel(l);
+      list.AsmData.getjumplabel(l);
       a_label(list,l);
 
       href.refaddr:=addr_pcrel_hi20;
