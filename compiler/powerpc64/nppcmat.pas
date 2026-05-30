@@ -239,7 +239,7 @@ begin
   location.loc:=LOC_REGISTER;
   location.register:=resultreg;
   if right.nodetype <> ordconstn then begin
-    current_asmdata.getjumplabel(hl);
+    ctx.CurrAsmList.AsmData.getjumplabel(hl);
     ctx.CurrAsmList.concat(taicpu.op_cond_sym(A_BC,zerocond,hl));
     ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_DIVBYZERO',false);
     ctx.cg.a_label(ctx.CurrAsmList,hl);
