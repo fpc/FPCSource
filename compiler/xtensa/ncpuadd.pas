@@ -123,8 +123,8 @@ interface
             (nodetype = gten)) then
           swapleftright;
 
-        current_asmdata.getjumplabel(truelab);
-        current_asmdata.getjumplabel(falselab);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelab);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselab);
 
         location_reset_jump(location,truelab,falselab);
         force_reg_left_right(false,false,ctx);
@@ -162,8 +162,8 @@ interface
       begin
         pass_left_right(ctx);
 
-        current_asmdata.getjumplabel(truelab);
-        current_asmdata.getjumplabel(falselab);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelab);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselab);
 
         location_reset_jump(location,truelab,falselab);
 
@@ -236,8 +236,8 @@ interface
         unsigned: boolean;
         left_reg,right_reg: TRegister64;
       begin
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         pass_left_right(ctx);
