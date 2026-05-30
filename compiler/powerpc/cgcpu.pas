@@ -191,16 +191,16 @@ const
              if compiler.target.info.system<>system_powerpc_aix then
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+                   list.concat(taicpu.op_sym(A_BL,list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+                   list.concat(taicpu.op_sym(A_BL,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)));
                end
              else
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s,AT_FUNCTION)))
+                   list.concat(taicpu.op_sym(A_BL,list.AsmData.RefAsmSymbol('.'+s,AT_FUNCTION)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
+                   list.concat(taicpu.op_sym(A_BL,list.AsmData.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
                end;
 
              if compiler.target.info.system in [system_powerpc_macosclassic,system_powerpc_aix] then
@@ -683,7 +683,7 @@ const
          if (compiler.target.info.system = system_powerpc_darwin) then
            p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
         else
-          p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+          p := taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         p.is_jmp := true;
         list.concat(p)
       end;
@@ -828,7 +828,7 @@ const
                     internalerror(2019050940);
                 end;
                 list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
-                current_asmdata.asmcfi.cfa_offset(list, NR_R0, href.offset);
+                list.AsmData.asmcfi.cfa_offset(list, NR_R0, href.offset);
                 if not(cs_profile in compiler.globals.current_settings.moduleswitches) then
                   a_reg_dealloc(list,NR_R0);
               end;
@@ -854,7 +854,7 @@ const
              if tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer then
                list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
-        current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+        list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
 
         if usesfpr then
           begin
@@ -863,7 +863,7 @@ const
                begin
                  reg:=newreg(R_FPUREGISTER,regcounter,R_SUBNONE);
                  a_loadfpu_reg_ref(list,OS_F64,OS_F64,reg,href);
-                 current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
+                 list.AsmData.asmcfi.cfa_offset(list, reg, href.offset);
                  dec(href.offset,8);
                end;
              { compute start of gpr save area }
@@ -888,7 +888,7 @@ const
                 for regcounter:=firstregint to RS_R31 do
                   begin
                     reg:=newreg(R_INTREGISTER,regcounter,R_SUBNONE);
-                    current_asmdata.asmcfi.cfa_offset(list, reg, aoffset);
+                    list.AsmData.asmcfi.cfa_offset(list, reg, aoffset);
                     dec(aoffset,4);
 		  end;
               end
@@ -897,7 +897,7 @@ const
                 begin
                   reg:=newreg(R_INTREGISTER,regcounter,R_SUBNONE);
                   a_load_reg_ref(list,OS_INT,OS_INT,reg,href);
-                  current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
+                  list.AsmData.asmcfi.cfa_offset(list, reg, href.offset);
                   dec(href.offset,4);
                 end;
           end;
@@ -915,7 +915,7 @@ const
               begin
                 reference_reset_base(href,NR_STACK_POINTER_REG,-localsize,ctempposinvalid,8,[]);
                 a_load_store(list,A_STWU,NR_STACK_POINTER_REG,href);
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,localsize);
               end
             else
               begin
@@ -934,7 +934,7 @@ const
                 else
                   list.concat(taicpu.op_reg_reg_const(A_ORIS,NR_R0,NR_R0,word(((-localsize) shr 16) and $ffff)));
                 a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,localsize);
                 a_reg_dealloc(list,href.index);
               end;
           end;
@@ -945,7 +945,7 @@ const
           begin
             reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
-            current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
+            list.AsmData.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
           end;
 
         { save the CR if/when we ever start using caller-save portions of that
@@ -1040,7 +1040,7 @@ const
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
              if (pi_do_call in compiler.current_procinfo.flags) then
-               a_call_name(current_asmdata.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x',AT_FUNCTION))
+               a_call_name(list.AsmData.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x',AT_FUNCTION))
              else
                { leaf node => lr haven't to be restored }
                a_call_name('_restfpr_'+tostr(ord(firstregfpu.enum)-ord(R_F14)+14)+'_l');
@@ -1494,7 +1494,7 @@ const
             a_load_const_reg(list,OS_32,count,countreg);
             copyreg := getfpuregister(list,OS_F64);
             a_reg_sync(list,copyreg);
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
             list.concat(taicpu.op_reg_ref(A_LFDU,copyreg,src));
@@ -1545,7 +1545,7 @@ const
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
             a_reg_alloc(list,NR_R0);
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
             list.concat(taicpu.op_reg_ref(A_LWZU,NR_R0,src));
