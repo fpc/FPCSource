@@ -638,9 +638,9 @@ unit cgcpu;
         jmp_inst: array[boolean] of tasmop = ( A_JSR, A_BSR );
       begin
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION);
 
         list.concat(taicpu.op_sym(jmp_inst[tf_code_small in compiler.target.info.flags],S_NO,sym));
       end;
@@ -1727,7 +1727,7 @@ unit cgcpu;
       var
        ai: taicpu;
       begin
-         ai := Taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+         ai := Taicpu.op_sym(A_JMP,S_NO,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
          ai.is_jmp := true;
          list.concat(ai);
       end;
@@ -1765,7 +1765,7 @@ unit cgcpu;
           if (f in FloatResFlags) then
             begin
               //list.concat(tai_comment.create(strpnew('flags2reg: float resflags')));
-              current_asmdata.getjumplabel(htrue);
+              list.AsmData.getjumplabel(htrue);
               a_load_const_reg(list,OS_32,1,reg);
               a_jmp_flags(list, f, htrue);
               a_load_const_reg(list,OS_32,0,reg);
@@ -1845,7 +1845,7 @@ unit cgcpu;
                  helpsize := len - len mod 4;
                  len := len mod 4;
                  a_load_const_reg(list,OS_INT,(helpsize div 4)-1,hregister);
-                 current_asmdata.getjumplabel(hl);
+                 list.AsmData.getjumplabel(hl);
                  a_label(list,hl);
                  list.concat(taicpu.op_ref_ref(A_MOVE,S_L,srcrefp,dstrefp));
                  if (compiler.globals.current_settings.cputype in cpu_coldfire) or ((helpsize div 4)-1 > high(smallint)) then
@@ -1885,7 +1885,7 @@ unit cgcpu;
              { Fast 68010 loop mode with no possible alignment problems }
              //list.concat(tai_comment.create(strpnew('g_concatcopy tight byte copy loop')));
              a_load_const_reg(list,OS_INT,len - 1,hregister);
-             current_asmdata.getjumplabel(hl);
+             list.AsmData.getjumplabel(hl);
              a_label(list,hl);
              list.concat(taicpu.op_ref_ref(A_MOVE,S_B,srcrefp,dstrefp));
              if (len - 1) > high(smallint) then
@@ -1906,7 +1906,7 @@ unit cgcpu;
       begin
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
-        current_asmdata.getjumplabel(hl);
+        list.AsmData.getjumplabel(hl);
         if not ((def.typ=pointerdef) or
                ((def.typ=orddef) and
                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
