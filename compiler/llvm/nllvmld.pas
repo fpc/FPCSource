@@ -130,7 +130,7 @@ procedure tllvmloadnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         begin
           selfreg:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,compiler.deftypes.voidcodepointertype);
           ai:=taillvm.blockaddress(compiler.deftypes.voidcodepointertype,
-              current_asmdata.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
+              ctx.CurrAsmList.AsmData.RefAsmSymbol(compiler.current_procinfo.procdef.mangledname,AT_FUNCTION),
               location.reference.symbol
             );
           ctx.CurrAsmList.concat(
