@@ -69,7 +69,7 @@ unit navrinl;
 
         size:=def_cgsize(resultdef);
 
-        current_asmdata.getjumplabel(hl);
+        ctx.CurrAsmList.AsmData.getjumplabel(hl);
         ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
         ctx.cg.a_op_reg_reg(ctx.CurrAsmList,OP_NEG,size,left.location.register,location.register);
 
