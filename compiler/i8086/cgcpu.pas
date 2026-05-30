@@ -186,9 +186,9 @@ unit cgcpu;
         sym : tasmsymbol;
       begin
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION);
         list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
@@ -206,7 +206,7 @@ unit cgcpu;
       var
         sym : tasmsymbol;
       begin
-        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+        sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
         list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
@@ -473,7 +473,7 @@ unit cgcpu;
                           getcpuregister(list,NR_CX);
                           a_load_const_reg(list,OS_16,a,NR_CX);
 
-                          current_asmdata.getjumplabel(hl_loop_start);
+                          list.AsmData.getjumplabel(hl_loop_start);
                           a_label(list,hl_loop_start);
 
                           case op of
@@ -642,7 +642,7 @@ unit cgcpu;
                         getcpuregister(list,NR_CX);
                         a_load_const_reg(list,OS_16,rol_amount,NR_CX);
 
-                        current_asmdata.getjumplabel(hl_loop_start);
+                        list.AsmData.getjumplabel(hl_loop_start);
                         a_label(list,hl_loop_start);
 
                         a_reg_alloc(list,NR_DEFAULTFLAGS);
@@ -670,7 +670,7 @@ unit cgcpu;
                         getcpuregister(list,NR_CX);
                         a_load_const_reg(list,OS_16,ror_amount,NR_CX);
 
-                        current_asmdata.getjumplabel(hl_loop_start);
+                        list.AsmData.getjumplabel(hl_loop_start);
                         a_label(list,hl_loop_start);
 
                         tmpreg:=getintregister(list,OS_16);
@@ -971,14 +971,14 @@ unit cgcpu;
                   a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
-                  current_asmdata.getjumplabel(hl_skip);
+                  list.AsmData.getjumplabel(hl_skip);
                   ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
                   a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
-                  current_asmdata.getjumplabel(hl_loop_start);
+                  list.AsmData.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
 
                   case op of
@@ -1022,14 +1022,14 @@ unit cgcpu;
                   a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
-                  current_asmdata.getjumplabel(hl_skip);
+                  list.AsmData.getjumplabel(hl_skip);
                   ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
                   a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
-                  current_asmdata.getjumplabel(hl_loop_start);
+                  list.AsmData.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
 
                   case op of
@@ -1155,14 +1155,14 @@ unit cgcpu;
                   a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
-                  current_asmdata.getjumplabel(hl_skip);
+                  list.AsmData.getjumplabel(hl_skip);
                   ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
                   a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
-                  current_asmdata.getjumplabel(hl_loop_start);
+                  list.AsmData.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
 
                   case op of
@@ -2051,7 +2051,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_TEST,S_W,GetNextReg(reg),GetNextReg(reg)))
             else
               list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a shr 16),GetNextReg(reg)));
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
 
             if (longint(a and $ffff) = 0) then
@@ -2079,7 +2079,7 @@ unit cgcpu;
             inc(tmpref.offset,2);
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a shr 16),tmpref));
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a and $ffff),tmpref));
@@ -2102,7 +2102,7 @@ unit cgcpu;
             check_register_size(size,reg2);
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,GetNextReg(reg1),GetNextReg(reg2)));
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,reg1,reg2));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
@@ -2127,7 +2127,7 @@ unit cgcpu;
             inc(tmpref.offset,2);
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,GetNextReg(reg)));
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,reg));
@@ -2153,7 +2153,7 @@ unit cgcpu;
             inc(tmpref.offset,2);
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,GetNextReg(reg),tmpref));
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,reg,tmpref));
@@ -2257,7 +2257,7 @@ unit cgcpu;
             hl_skip:=nil;
             if f=F_FB then
               begin
-                current_asmdata.getjumplabel(hl_skip);
+                list.AsmData.getjumplabel(hl_skip);
                 ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
                 ai.SetCondition(C_P);
                 ai.is_jmp:=true;
@@ -2318,7 +2318,7 @@ unit cgcpu;
                 internalerror(2013123103);
             end;
 
-            current_asmdata.getjumplabel(hl_skip);
+            list.AsmData.getjumplabel(hl_skip);
             { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
               in the case of NaNs:
                not(F_FA )<>F_FBE
@@ -2871,8 +2871,8 @@ unit cgcpu;
 
               cg.a_load_reg_reg(list,OS_16,OS_16,regsrc.reglo,NR_CX);
 
-              current_asmdata.getjumplabel(l2);
-              current_asmdata.getjumplabel(l3);
+              list.AsmData.getjumplabel(l2);
+              list.AsmData.getjumplabel(l3);
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_reg(A_AND,S_W,63,NR_CX));
               cg.a_jmp_flags(list,F_E,l3);
@@ -3002,7 +3002,7 @@ unit cgcpu;
                   begin
                     cg.getcpuregister(list,NR_CX);
                     cg.a_load_const_reg(list,OS_16,value,NR_CX);
-                    current_asmdata.getjumplabel(loop_start);
+                    list.AsmData.getjumplabel(loop_start);
                     cg.a_label(list,loop_start);
                     case op of
                       OP_SHL:
@@ -3109,7 +3109,7 @@ unit cgcpu;
                     end;
                     cg.getcpuregister(list,NR_CX);
                     cg.a_load_const_reg(list,OS_16,value-16,NR_CX);
-                    current_asmdata.getjumplabel(loop_start);
+                    list.AsmData.getjumplabel(loop_start);
                     cg.a_label(list,loop_start);
                     case op of
                       OP_SHL:
