@@ -92,7 +92,7 @@ implementation
             hreg1:=left.location.register;
             ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
             emit_reg_reg(ctx,A_TEST,S_L,hreg1,hreg1);
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
             ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NS,hl);
             ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
             if power=1 then
@@ -196,8 +196,8 @@ implementation
 
             { the damned shift instructions work only til a count of 32 }
             { so we've to do some tricks here                           }
-            current_asmdata.getjumplabel(l2);
-            current_asmdata.getjumplabel(l3);
+            ctx.CurrAsmList.AsmData.getjumplabel(l2);
+            ctx.CurrAsmList.AsmData.getjumplabel(l3);
             ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
             emit_const_reg(ctx,A_TEST,S_B,32,NR_CL);
             ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_E,l2);
