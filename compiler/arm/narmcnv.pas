@@ -195,8 +195,8 @@ implementation
                         instr.oppostfix:=PF_D;
                         ctx.CurrAsmList.concat(instr);
 
-                        current_asmdata.getglobaldatalabel(l1);
-                        current_asmdata.getjumplabel(l2);
+                        ctx.CurrAsmList.AsmData.getglobaldatalabel(l1);
+                        ctx.CurrAsmList.AsmData.getjumplabel(l2);
                         reference_reset_symbol(href,l1,0,compiler.globals.const_align(8),[]);
 
                         ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
@@ -205,11 +205,11 @@ implementation
                         ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
 
                         hregister:=ctx.cg.getfpuregister(ctx.CurrAsmList,OS_F64);
-                        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                        new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l1.name,compiler.globals.const_align(8));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                         { I got this constant from a test program (FK) }
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
+                        ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
 
                         ctx.cg.a_loadfpu_ref_reg(ctx.CurrAsmList,OS_F64,OS_F64,href,hregister);
                         ctx.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADF,location.register,hregister,location.register),PF_D));
@@ -348,7 +348,7 @@ implementation
             LOC_JUMP :
               begin
                 hregister:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
-                current_asmdata.getjumplabel(hlabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
                 ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
                 ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,1,hregister);
                 ctx.cg.a_jmp_always(ctx.CurrAsmList,hlabel);
