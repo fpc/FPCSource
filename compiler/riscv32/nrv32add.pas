@@ -84,8 +84,8 @@ unit nrv32add;
         unsigned: boolean;
         left_reg,right_reg: TRegister64;
       begin
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         pass_left_right(ctx);
