@@ -75,6 +75,7 @@ type
       procedure   Store(var S: TStream);
       procedure   Update; virtual;
       procedure   SelectInDebugSession;
+      procedure   SizeLimits (Var Min, Max: TPoint); virtual;
     end;
 
     PFPHelpViewer = ^TFPHelpViewer;
@@ -2447,6 +2448,13 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TFPWindow.SizeLimits (Var Min, Max: TPoint);
+begin
+  inherited SizeLimits(Min,Max);
+  Min.X:=20;
+  if Max.X < Min.X then Max.X:=Min.X;
+  if Max.Y < Min.Y then Max.Y:=Min.Y;
+end;
 
 constructor TFPWindow.Load(var S: TStream);
 begin
