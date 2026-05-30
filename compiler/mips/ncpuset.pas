@@ -114,7 +114,7 @@ begin
       ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
       min_:=0;
     end;
-  current_asmdata.getjumplabel(table);
+  ctx.CurrAsmList.AsmData.getjumplabel(table);
   indexreg := ctx.cg.getaddressregister(ctx.CurrAsmList);
   ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
   { create reference }
