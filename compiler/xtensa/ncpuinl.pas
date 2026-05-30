@@ -76,7 +76,7 @@ unit ncpuinl;
 
         if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
 
             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,$80000000,left.location.register,hl);
             ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
