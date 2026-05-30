@@ -473,7 +473,7 @@ interface
                 ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 if GenerateThumbCode or GenerateThumb2Code then
                   begin
-                    current_asmdata.getjumplabel(l);
+                    ctx.CurrAsmList.AsmData.getjumplabel(l);
                     ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NE,l);
                     ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
                     ctx.cg.a_label(ctx.CurrAsmList,l);
@@ -484,8 +484,8 @@ interface
             else
             { operation requiring proper N, Z and V flags ? }
               begin
-                current_asmdata.getjumplabel(truelabel);
-                current_asmdata.getjumplabel(falselabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
                 location_reset_jump(location,truelabel,falselabel);
                 ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                 ctx.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
