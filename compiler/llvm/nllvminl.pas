@@ -386,8 +386,8 @@ implementation
              lendef:=compiler.deftypes.ossinttype;
            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,
              left.resultdef,cpointerdef.getreusable(lendef,compiler),true);
-           current_asmdata.getjumplabel(nillab);
-           current_asmdata.getjumplabel(lengthlab);
+           ctx.CurrAsmList.AsmData.getjumplabel(nillab);
+           ctx.CurrAsmList.AsmData.getjumplabel(lengthlab);
            ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,cpointerdef.getreusable(lendef,compiler),OC_EQ,0,left.location.register,nillab);
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
