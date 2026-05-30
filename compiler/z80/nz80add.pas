@@ -321,7 +321,7 @@ interface
               else
                 internalerror(2020040403);
             end;
-            current_asmdata.getjumplabel(l);
+            ctx.CurrAsmList.AsmData.getjumplabel(l);
             ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_PO,l);
             ctx.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             ctx.cg.a_label(ctx.CurrAsmList,l);
@@ -359,8 +359,8 @@ interface
                   not(is_signed(right.resultdef));
 
         { we have LOC_JUMP as result }
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         size:=tcgsize2size[def_cgsize(left.resultdef)];
