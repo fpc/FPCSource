@@ -161,10 +161,10 @@ implementation
 
             if compiler.globals.current_settings.fputype in [fpu_coldfire] then
               begin
-                current_asmdata.getglobaldatalabel(l);
-                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,compiler.globals.const_align(sizeof(pint)));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($59800000));
+                ctx.CurrAsmList.AsmData.getglobaldatalabel(l);
+                new_section(ctx.CurrAsmList.AsmData.asmlists[al_typedconsts],sec_rodata_norel,l.name,compiler.globals.const_align(sizeof(pint)));
+                ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_label.Create(l));
+                ctx.CurrAsmList.AsmData.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($59800000));
                 reference_reset_symbol(ref,l,0,4,[]);
                 tcg68k(ctx.cg).fixref(ctx.CurrAsmList,ref,true);
                 ctx.CurrAsmList.concat(taicpu.op_ref_reg(A_FSUB,S_FS,ref,location.register));
@@ -297,7 +297,7 @@ implementation
                 { for now blindly copied from nx86cnv }
                 location_reset(location,LOC_REGISTER,newsize);
                 location.register:=ctx.cg.getintregister(ctx.CurrAsmList,location.size);
-                current_asmdata.getjumplabel(hlabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
                 ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
                 if not(is_cbool(resultdef)) then
                   ctx.cg.a_load_const_reg(ctx.CurrAsmList,location.size,1,location.register)
