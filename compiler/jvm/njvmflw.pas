@@ -194,9 +194,9 @@ implementation
          oldendexceptlabel:=endexceptlabel;
 
          { get new labels for the control flow statements }
-         current_asmdata.getaddrlabel(begintrylabel);
-         current_asmdata.getaddrlabel(endtrylabel);
-         current_asmdata.getjumplabel(endexceptlabel);
+         ctx.CurrAsmList.AsmData.getaddrlabel(begintrylabel);
+         ctx.CurrAsmList.AsmData.getaddrlabel(endtrylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(endexceptlabel);
 
          { try block }
          { set control flow labels for the try block }
@@ -222,7 +222,7 @@ implementation
          { default handling except handling }
          if assigned(t1) then
            begin
-             current_asmdata.getaddrlabel(defaultcatchlabel);
+             ctx.CurrAsmList.AsmData.getaddrlabel(defaultcatchlabel);
              ctx.CurrAsmList.concat(tai_jcatch.create(
                'all',begintrylabel,endtrylabel,defaultcatchlabel));
              ctx.hlcg.a_label(ctx.CurrAsmList,defaultcatchlabel);
@@ -284,7 +284,7 @@ implementation
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
-         current_asmdata.getjumplabel(thisonlabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(thisonlabel);
 
          ctx.hlcg.a_label(ctx.CurrAsmList,thisonlabel);
 
@@ -365,21 +365,21 @@ implementation
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
-         current_asmdata.getjumplabel(finallylabel);
-         current_asmdata.getjumplabel(endfinallylabel);
-         current_asmdata.getjumplabel(reraiselabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(finallylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(endfinallylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(reraiselabel);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
          oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-         current_asmdata.getjumplabel(exitfinallylabel);
+         ctx.CurrAsmList.AsmData.getjumplabel(exitfinallylabel);
          compiler.current_procinfo.CurrExitLabel:=exitfinallylabel;
          if assigned(compiler.current_procinfo.CurrBreakLabel) then
           begin
             oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
             oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-            current_asmdata.getjumplabel(breakfinallylabel);
-            current_asmdata.getjumplabel(continuefinallylabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(breakfinallylabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(continuefinallylabel);
             compiler.current_procinfo.CurrContinueLabel:=continuefinallylabel;
             compiler.current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
@@ -397,8 +397,8 @@ implementation
          endtrylabel:=nil;
          if assigned(left) then
            begin
-              current_asmdata.getaddrlabel(begintrylabel);
-              current_asmdata.getaddrlabel(endtrylabel);
+              ctx.CurrAsmList.AsmData.getaddrlabel(begintrylabel);
+              ctx.CurrAsmList.AsmData.getaddrlabel(endtrylabel);
               ctx.hlcg.a_label(ctx.CurrAsmList,begintrylabel);
               secondpass(left,ctx);
               ctx.hlcg.a_label(ctx.CurrAsmList,endtrylabel);
@@ -478,7 +478,7 @@ implementation
          { generate finally code in case an exception occurred }
          if assigned(begintrylabel) then
            begin
-             current_asmdata.getaddrlabel(finallyexceptlabel);
+             ctx.CurrAsmList.AsmData.getaddrlabel(finallyexceptlabel);
              ctx.hlcg.a_label(ctx.CurrAsmList,finallyexceptlabel);
              { catch the exceptions }
              ctx.CurrAsmList.concat(tai_jcatch.create(
