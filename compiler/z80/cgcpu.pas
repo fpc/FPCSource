@@ -617,9 +617,9 @@ unit cgcpu;
         sym: TAsmSymbol;
       begin
         if weak then
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
 
         list.concat(taicpu.op_sym(A_CALL,sym));
 
@@ -641,7 +641,7 @@ unit cgcpu;
         a_load_reg_reg(list,OS_8,OS_8,reg,NR_L);
         getcpuregister(list,NR_H);
         a_load_reg_reg(list,OS_8,OS_8,GetNextReg(reg),NR_H);
-        current_asmdata.getjumplabel(l);
+        list.AsmData.getjumplabel(l);
         reference_reset(ref,0,[]);
         ref.symbol:=l;
         list.concat(taicpu.op_ref_reg(A_LD,ref,NR_HL));
@@ -823,8 +823,8 @@ unit cgcpu;
 
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
-               current_asmdata.getjumplabel(l1);
-               current_asmdata.getjumplabel(l2);
+               list.AsmData.getjumplabel(l1);
+               list.AsmData.getjumplabel(l2);
                getcpuregister(list,NR_B);
                emit_mov(list,NR_B,src);
                list.concat(taicpu.op_reg(A_INC,NR_B));
@@ -1047,7 +1047,7 @@ unit cgcpu;
                  begin
                    if a>1 then
                      begin
-                       current_asmdata.getjumplabel(l1);
+                       list.AsmData.getjumplabel(l1);
                        getcpuregister(list,NR_B);
                        list.concat(taicpu.op_reg_const(A_LD,NR_B,a));
                      end;
@@ -1769,7 +1769,7 @@ unit cgcpu;
                 getcpuregister(list,NR_A);
                 a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
                 list.concat(taicpu.op_reg_const(A_SUB,NR_A,a));
-                current_asmdata.getjumplabel(tmpl);
+                list.AsmData.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,tmpl);
@@ -1788,7 +1788,7 @@ unit cgcpu;
                 getcpuregister(list,NR_A);
                 a_load_const_reg(list,OS_8,a,NR_A);
                 list.concat(taicpu.op_reg_reg(A_SUB,NR_A,reg));
-                current_asmdata.getjumplabel(tmpl);
+                list.AsmData.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,tmpl);
@@ -1806,7 +1806,7 @@ unit cgcpu;
         else if cmp_op in [OC_EQ,OC_NE] then
           begin
             if cmp_op=OC_EQ then
-              current_asmdata.getjumplabel(tmpl);
+              list.AsmData.getjumplabel(tmpl);
             for i:=0 to tcgsize2size[size]-1 do
               begin
                 a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg(reg,i),NR_A);
@@ -1829,7 +1829,7 @@ unit cgcpu;
         else if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_BE,OC_B,OC_AE,OC_A] then
           begin
             getcpuregister(list,NR_A);
-            current_asmdata.getjumplabel(tmpl);
+            list.AsmData.getjumplabel(tmpl);
             for i:=tcgsize2size[size]-1 downto 0 do
               begin
                 a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg(reg,i),NR_A);
@@ -1896,7 +1896,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_JRJP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        ai:=taicpu.op_sym(A_JRJP,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1930,7 +1930,7 @@ unit cgcpu;
           {nothing}
         else if (onbelow= nil) and (onequal= nil) and (onabove<>nil) then
           begin
-            current_asmdata.getjumplabel(skiplabel);
+            list.AsmData.getjumplabel(skiplabel);
             a_jmp_flags(list,F_E,skiplabel);
             a_jmp_flags(list,F_NC,onabove);
             a_label(list,skiplabel);
@@ -1999,9 +1999,9 @@ unit cgcpu;
           {nothing}
         else if (onless= nil) and (onequal= nil) and (ongreater<>nil) then
           begin
-            current_asmdata.getjumplabel(skiplabel);
+            list.AsmData.getjumplabel(skiplabel);
             a_jmp_flags(list,F_E,skiplabel);
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             a_label(list,l);
@@ -2014,7 +2014,7 @@ unit cgcpu;
           begin
             if onequal<>ongreater then
               a_jmp_flags(list,F_E,onequal);
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             a_label(list,l);
@@ -2022,7 +2022,7 @@ unit cgcpu;
           end
         else if (onless<>nil) and (onequal= nil) and (ongreater= nil) then
           begin
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             a_label(list,l);
@@ -2034,9 +2034,9 @@ unit cgcpu;
               a_jmp_flags(list,F_NE,onless)
             else
               begin
-                current_asmdata.getjumplabel(skiplabel);
+                list.AsmData.getjumplabel(skiplabel);
                 a_jmp_flags(list,F_E,skiplabel);
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,l);
@@ -2048,7 +2048,7 @@ unit cgcpu;
         else if (onless<>nil) and (onequal<>nil) and (ongreater= nil) then
           begin
             a_jmp_flags(list,F_E,onequal);
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             a_label(list,l);
@@ -2060,7 +2060,7 @@ unit cgcpu;
               a_jmp_always(list,onless)
             else if onequal=ongreater then
               begin
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,l);
@@ -2070,7 +2070,7 @@ unit cgcpu;
             else if onless=onequal then
               begin
                 a_jmp_flags(list,F_E,onequal);
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,l);
@@ -2086,7 +2086,7 @@ unit cgcpu;
               begin
                 { the generic case - all 3 are different labels }
                 a_jmp_flags(list,F_E,onequal);
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 list.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
                 a_label(list,l);
@@ -2116,7 +2116,7 @@ unit cgcpu;
           end
         else
           begin
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_load_const_reg(list,size,0,reg);
             tmpflags:=f;
             inverse_flags(tmpflags);
@@ -2159,7 +2159,7 @@ unit cgcpu;
             end;
           else
             begin
-              sym:=current_asmdata.RefAsmSymbol('FPC_Z80_SAVE_HL',AT_DATA);
+              sym:=list.AsmData.RefAsmSymbol('FPC_Z80_SAVE_HL',AT_DATA);
               reference_reset_symbol(ref,sym,0,1,[]);
 
               // block interrupts
@@ -2202,8 +2202,8 @@ unit cgcpu;
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*2);
-                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*2));
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,2*2);
+                list.AsmData.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*2));
                 if compiler.current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   begin
                     list.concat(Taicpu.op_reg_const(A_LD,NR_FRAME_POINTER_REG,0));
@@ -2220,7 +2220,7 @@ unit cgcpu;
                       maxpushedparasize is already aligned at least on x86_64. }
                     localsize:=compiler.current_procinfo.maxpushedparasize;*)
                   end;
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+                list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end
             else
               begin
@@ -2238,7 +2238,7 @@ unit cgcpu;
                   localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                  list.AsmData.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 compiler.current_procinfo.final_localsize:=localsize;
               end
           end;
@@ -2409,7 +2409,7 @@ unit cgcpu;
         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_overflowCheck')));
         //if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         // exit;
-        //current_asmdata.getjumplabel(hl);
+        //list.AsmData.getjumplabel(hl);
         //if not ((def.typ=pointerdef) or
         //       ((def.typ=orddef) and
         //        (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
