@@ -324,60 +324,60 @@ unit cgppc;
         { previously took the address of an external procedure. It doesn't  }
         { really matter, the linker will remove all unnecessary stubs.      }
         stubname := 'L'+s+'$stub';
-        result := current_asmdata.getasmsymbol(stubname);
+        result := list.AsmData.getasmsymbol(stubname);
         if assigned(result) then
           exit;
 
-        if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create(current_asmdata);
+        if list.AsmData.asmlists[al_imports]=nil then
+          list.AsmData.asmlists[al_imports]:=TAsmList.create(list.AsmData);
 
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           stubalign:=32
         else
           stubalign:=16;
-        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',stubalign);
-        result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
-        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        new_section(list.AsmData.asmlists[al_imports],sec_stub,'',stubalign);
+        result := list.AsmData.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+        list.AsmData.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
-          current_asmdata.weakrefasmsymbol(s,AT_FUNCTION);
-        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
+          list.AsmData.weakrefasmsymbol(s,AT_FUNCTION);
+        list.AsmData.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        l1 := list.AsmData.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
         reference_reset_symbol(href,l1,0,sizeof(pint),[]);
         href.refaddr := addr_higha;
         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
-            current_asmdata.getjumplabel(localgotlab);
+            list.AsmData.getjumplabel(localgotlab);
             href.relsymbol:=localgotlab;
             fillchar(cond,sizeof(cond),0);
             cond.simple:=false;
             cond.bo:=20;
             cond.bi:=31;
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R0));
+            list.AsmData.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R0));
             instr:=taicpu.op_sym(A_BCL,localgotlab);
             instr.setcondition(cond);
-            current_asmdata.asmlists[al_imports].concat(instr);
-            a_label(current_asmdata.asmlists[al_imports],localgotlab);
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R11));
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_reg_ref(A_ADDIS,NR_R11,NR_R11,href));
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTLR,NR_R0));
+            list.AsmData.asmlists[al_imports].concat(instr);
+            a_label(list.AsmData.asmlists[al_imports],localgotlab);
+            list.AsmData.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R11));
+            list.AsmData.asmlists[al_imports].concat(taicpu.op_reg_reg_ref(A_ADDIS,NR_R11,NR_R11,href));
+            list.AsmData.asmlists[al_imports].concat(taicpu.op_reg(A_MTLR,NR_R0));
           end
         else
-          current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+          list.AsmData.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_low;
         href.base := NR_R11;
 {$ifndef cpu64bitaddr}
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
 {$else cpu64bitaddr}
         { darwin/ppc64 uses a 32 bit absolute address here, strange... }
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDU,NR_R12,href));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDU,NR_R12,href));
 {$endif cpu64bitaddr}
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_BCTR));
-        new_section(current_asmdata.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
-        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
-        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
+        list.AsmData.asmlists[al_imports].concat(taicpu.op_none(A_BCTR));
+        new_section(list.AsmData.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
+        list.AsmData.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
+        list.AsmData.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        list.AsmData.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
 
 
@@ -634,7 +634,7 @@ unit cgppc;
     begin
       if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
-      current_asmdata.getjumplabel(hl);
+      list.AsmData.getjumplabel(hl);
       if not ((def.typ=pointerdef) or
              ((def.typ=orddef) and
               (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -763,7 +763,7 @@ unit cgppc;
     begin
       if (compiler.target.info.system=system_powerpc64_freebsd) or (compiler.target.info.system=system_powerpc64_linux) then
         begin
-          l:=current_asmdata.getasmsymbol(symbol);
+          l:=list.AsmData.getasmsymbol(symbol);
           reference_reset_symbol(ref,l,0,sizeof(pint),[]);
           ref.base:=NR_RTOC;
           ref.refaddr:=addr_pic;
@@ -802,42 +802,42 @@ unit cgppc;
     begin
       { all global symbol accesses always must be done via the TOC }
       nlsymname:='LC..'+symname;
-      reference_reset_symbol(ref,current_asmdata.getasmsymbol(nlsymname),0,sizeof(pint),[]);
+      reference_reset_symbol(ref,list.AsmData.getasmsymbol(nlsymname),0,sizeof(pint),[]);
       if (assigned(ref.symbol) and
           not(ref.symbol is TTOCAsmSymbol)) or
          (not(ts_small_toc in compiler.globals.current_settings.targetswitches) and
-          (TPPCAsmData(current_asmdata).DirectTOCEntries<AutoDirectTOCLimit)) or
+          (TPPCAsmData(list.AsmData).DirectTOCEntries<AutoDirectTOCLimit)) or
          force_direct_toc then
         begin
           ref.refaddr:=addr_pic_no_got;
           ref.base:=NR_RTOC;
           if not assigned(ref.symbol) then
             begin
-              TPPCAsmData(current_asmdata).DirectTOCEntries:=TPPCAsmData(current_asmdata).DirectTOCEntries+1;
-              new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
-              ref.symbol:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
+              TPPCAsmData(list.AsmData).DirectTOCEntries:=TPPCAsmData(list.AsmData).DirectTOCEntries+1;
+              new_section(list.AsmData.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
+              ref.symbol:=list.AsmData.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
 	      ref.symbol.increfs;
-              current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(ref.symbol,0));
+              list.AsmData.asmlists[al_picdata].concat(tai_symbol.create(ref.symbol,0));
               { do not assign the result of these statements to ref.symbol: the
                 access must be done via the LC..symname symbol; these are just
                 to define the symbol that's being accessed as either weak or
                 not }
               if not(is_weak in flags) then
-                sym:=current_asmdata.RefAsmSymbol(symname,AT_DATA)
+                sym:=list.AsmData.RefAsmSymbol(symname,AT_DATA)
               else if is_data in flags then
-                sym:=current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
+                sym:=list.AsmData.WeakRefAsmSymbol(symname,AT_DATA)
               else
-                sym:=current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
+                sym:=list.AsmData.WeakRefAsmSymbol('.'+symname,AT_DATA);
               sym.increfs;
               newsymname:=ApplyAsmSymbolRestrictions(symname,compiler.target);
-              current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
+              list.AsmData.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
         end
       else
         begin
           if not assigned(ref.symbol) then
             begin
-              TPPCAsmData(current_asmdata).GetNextSmallTocEntry(tocnr,entrynr);
+              TPPCAsmData(list.AsmData).GetNextSmallTocEntry(tocnr,entrynr);
               { new TOC entry? }
               if entrynr=0 then
                 begin
@@ -848,27 +848,27 @@ unit cgppc;
 		  sym.increfs;
                   { base address for this batch of toc table entries that we'll
                     put in a data block instead }
-                  new_section(current_asmdata.AsmLists[al_indirectpicdata],sec_rodata,'',sizeof(pint));
-                  sym:=current_asmdata.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
-                  current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(sym,0));
+                  new_section(list.AsmData.AsmLists[al_indirectpicdata],sec_rodata,'',sizeof(pint));
+                  sym:=list.AsmData.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype);
+                  list.AsmData.asmlists[al_indirectpicdata].concat(tai_symbol.create(sym,0));
 		  sym.increfs;
                 end;
               { add the reference to the actual symbol inside the tocsubtable }
               if not(is_weak in flags) then
-                current_asmdata.RefAsmSymbol(symname,AT_DATA)
+                list.AsmData.RefAsmSymbol(symname,AT_DATA)
               else if is_data in flags then
-                current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
+                list.AsmData.WeakRefAsmSymbol(symname,AT_DATA)
               else
-                current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
-              tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype));
+                list.AsmData.WeakRefAsmSymbol('.'+symname,AT_DATA);
+              tocsym:=TTOCAsmSymbol(list.AsmData.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,compiler.deftypes.voidpointertype));
               ref.symbol:=tocsym;
 	      tocsym.increfs;
               tocsym.ftocsecnr:=tocnr;
-              current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
+              list.AsmData.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
               newsymname:=ApplyAsmSymbolRestrictions(symname,compiler.target);
-              sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
+              sym:=list.AsmData.RefAsmSymbol(newsymname,AT_DATA);
 	      sym.increfs;
-              current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
+              list.AsmData.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
             end;
           { first load the address of the table from the TOC }
           get_aix_toc_sym(list,'tocsubtable'+tostr(TTOCAsmSymbol(ref.symbol).ftocsecnr),[is_data],tmpref,true);
@@ -878,7 +878,7 @@ unit cgppc;
             the table }
           ref.base:=tmpreg;
           ref.refaddr:=addr_pic;
-          ref.relsymbol:=current_asmdata.GetAsmSymbol('tocsubtable'+tostr(TTOCAsmSymbol(ref.symbol).ftocsecnr));
+          ref.relsymbol:=list.AsmData.GetAsmSymbol('tocsubtable'+tostr(TTOCAsmSymbol(ref.symbol).ftocsecnr));
         end;
     end;
 
@@ -915,7 +915,7 @@ unit cgppc;
         reg:=ref.base
       else
         reg:=ref.index;
-      current_asmdata.getjumplabel(lab);
+      list.AsmData.getjumplabel(lab);
       if reg=NR_R0 then
         a_reg_dealloc(list,reg);
       a_cmp_const_reg_label(list,OS_ADDR,OC_A,size-1,reg,lab);
