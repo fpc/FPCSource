@@ -407,7 +407,7 @@ implementation
             emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register64.reghi),ctx.cg.GetNextReg(location.register64.reghi));
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
-                current_asmdata.getjumplabel(hl);
+                ctx.CurrAsmList.AsmData.getjumplabel(hl);
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
                 ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
                 ctx.cg.a_label(ctx.CurrAsmList,hl);
@@ -427,7 +427,7 @@ implementation
             emit_reg_reg(ctx,A_SBB,S_W,ctx.cg.GetNextReg(left.location.register),ctx.cg.GetNextReg(location.register));
             if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
-                current_asmdata.getjumplabel(hl);
+                ctx.CurrAsmList.AsmData.getjumplabel(hl);
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NO,hl);
                 ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
                 ctx.cg.a_label(ctx.CurrAsmList,hl);
