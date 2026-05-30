@@ -159,7 +159,7 @@ implementation
                      overflowlabel:=nil;
                      if not no_overflow then
                        begin
-                         current_asmdata.getjumplabel(overflowlabel);
+                         ctx.CurrAsmList.AsmData.getjumplabel(overflowlabel);
                          ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
                          ai.delayslot_annulled:=true;
                          ctx.CurrAsmList.concat(ai);
@@ -235,7 +235,7 @@ implementation
 
                  if (nodetype = modn) then
                    begin
-                     current_asmdata.getjumplabel(overflowlabel);
+                     ctx.CurrAsmList.AsmData.getjumplabel(overflowlabel);
                      ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
                      ai.delayslot_annulled:=true;
                      ctx.CurrAsmList.concat(ai);
@@ -338,7 +338,7 @@ implementation
 
              if (nodetype = modn) then
                begin
-                 current_asmdata.getjumplabel(overflowlabel);
+                 ctx.CurrAsmList.AsmData.getjumplabel(overflowlabel);
                  ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
                  ai.delayslot_annulled:=true;
                  ctx.CurrAsmList.concat(ai);
