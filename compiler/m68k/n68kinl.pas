@@ -96,7 +96,7 @@ implementation
 
            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
            ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-           current_asmdata.getjumplabel(zerolab);
+           ctx.CurrAsmList.AsmData.getjumplabel(zerolab);
            hregister:=ctx.hlcg.getregisterfordef(ctx.CurrAsmList,resultdef);
            ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,zerolab);
            { the length of a widestring is a 32 bit unsigned int. Since every
@@ -119,7 +119,7 @@ implementation
            { Dynamic arrays do not have their length attached but their maximum index }
            if is_dynamic_array(left.resultdef) then
              ctx.hlcg.a_op_const_reg(ctx.CurrAsmList,OP_ADD,resultdef,1,hregister);
-           current_asmdata.getjumplabel(lengthlab);
+           ctx.CurrAsmList.AsmData.getjumplabel(lengthlab);
            ctx.hlcg.a_jmp_always(ctx.CurrAsmList,lengthlab);
 
            ctx.cg.a_label(ctx.CurrAsmList,zerolab);
