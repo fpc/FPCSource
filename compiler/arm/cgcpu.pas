@@ -355,7 +355,7 @@ unit cgcpu;
             begin
                reference_reset(hr,4,[]);
 
-               current_asmdata.getjumplabel(l);
+               list.AsmData.getjumplabel(l);
                a_label(compiler.current_procinfo.aktlocaldata,l);
                hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
@@ -655,9 +655,9 @@ unit cgcpu;
           generating BL is also what clang and gcc do by default }
         branchopcode:=A_BL;
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION);
         reference_reset_symbol(r,sym,0,sizeof(pint),[]);
 
         if (tf_pic_uses_got in compiler.target.info.flags) and
@@ -1801,7 +1801,7 @@ unit cgcpu;
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
             list.concat(setoppostfix(taicpu.op_reg_reg_const(A_AND,r,r,$9f),PF_S));
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             ai:=taicpu.op_sym(A_B,l);
             ai.is_jmp:=true;
             ai.condition:=C_EQ;
@@ -1884,9 +1884,9 @@ unit cgcpu;
       begin
         { generate far jump, leave it to the optimizer to get rid of it }
         if GenerateThumbCode then
-          ai:=taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION))
+          ai:=taicpu.op_sym(A_BL,list.AsmData.RefAsmSymbol(s,AT_FUNCTION))
         else
-          ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+          ai:=taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1917,7 +1917,7 @@ unit cgcpu;
             inv_flags:=f;
             inverse_flags(inv_flags);
             { the optimizer has to fix this if jump range is sufficient short }
-            current_asmdata.getjumplabel(hlabel);
+            list.AsmData.getjumplabel(hlabel);
             ai:=setcondition(taicpu.op_sym(A_B,hlabel),flags_to_cond(inv_flags));
             ai.is_jmp:=true;
             list.concat(ai);
@@ -2056,7 +2056,7 @@ unit cgcpu;
                              break;
                            end;
                      list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
-                     current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea);
+                     list.AsmData.asmcfi.cfa_def_cfa_offset(list,registerarea);
                    end;
 
                 if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -2065,15 +2065,15 @@ unit cgcpu;
                     for r:=RS_R15 downto RS_R0 do
                       if r in regs then
                         begin
-                          current_asmdata.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),offset);
+                          list.AsmData.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),offset);
                           dec(offset,4);
                         end;
                     { the framepointer now points to the saved R15, so the saved
                       framepointer is at R11-12 (for get_caller_frame) }
                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
                     a_reg_dealloc(list,NR_R12);
-                    current_asmdata.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
-                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,4);
+                    list.AsmData.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
+                    list.AsmData.asmcfi.cfa_def_cfa_offset(list,4);
                   end;
               end
             else
@@ -2157,7 +2157,7 @@ unit cgcpu;
                     a_reg_dealloc(list,NR_R12);
                   end;
                 if compiler.current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
+                  list.AsmData.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
               end;
 
             if (mmregs<>[]) or
@@ -2461,14 +2461,14 @@ unit cgcpu;
             a_reg_alloc(list,NR_R12);
 
             reference_reset(ref,4,[]);
-            current_asmdata.getglobaldatalabel(l);
+            list.AsmData.getglobaldatalabel(l);
             a_label(compiler.current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
             ref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
             list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
-            current_asmdata.getaddrlabel(l);
-            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
+            list.AsmData.getaddrlabel(l);
+            compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,compiler.current_procinfo.aktlocaldata.AsmData.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
             a_label(list,l);
             list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
             list.concat(Taicpu.op_reg_reg(A_MOV,compiler.current_procinfo.got,NR_R12));
@@ -2559,7 +2559,7 @@ unit cgcpu;
         }
         { create consts entry }
         reference_reset(tmpref,4,[]);
-        current_asmdata.getjumplabel(l);
+        list.AsmData.getjumplabel(l);
         a_label(compiler.current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
         piclabel:=nil;
@@ -2608,7 +2608,7 @@ unit cgcpu;
                     right after the call to fixref, so we have to load the
                     complete address already in a register.
                   }
-                  current_asmdata.getaddrlabel(piclabel);
+                  list.AsmData.getaddrlabel(piclabel);
                   compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,ref.symbol,ref.offset-8));
                 end
             else
@@ -2711,7 +2711,7 @@ unit cgcpu;
         var
           l : tasmlabel;
         begin
-          current_asmdata.getjumplabel(l);
+          list.AsmData.getjumplabel(l);
           if count<size then size:=1;
           a_load_const_reg(list,OS_INT,count div size,countreg);
           a_label(list,l);
@@ -2801,7 +2801,7 @@ unit cgcpu;
         var
           l : tasmlabel;
         begin
-          current_asmdata.getjumplabel(l);
+          list.AsmData.getjumplabel(l);
           if count<size then size:=1;
           a_load_const_reg(list,OS_INT,count div size,countreg);
           a_label(list,l);
@@ -3047,7 +3047,7 @@ unit cgcpu;
       begin
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
-        current_asmdata.getjumplabel(hl);
+        list.AsmData.getjumplabel(hl);
         case ovloc.loc of
           LOC_VOID:
             begin
@@ -3103,7 +3103,7 @@ unit cgcpu;
         if GenerateThumbCode then
           begin
             { the optimizer has to fix this if jump range is sufficient short }
-            current_asmdata.getjumplabel(hlabel);
+            list.AsmData.getjumplabel(hlabel);
             ai:=Taicpu.Op_sym(A_B,hlabel);
             ai.SetCondition(inverse_cond(OpCmp2AsmCond[cond]));
             ai.is_jmp:=true;
@@ -3789,9 +3789,9 @@ unit cgcpu;
                    if r in regs then
                      begin
                        inc(registerarea,4);
-                       current_asmdata.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),-registerarea);
+                       list.AsmData.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),-registerarea);
                      end;
-                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea);
+                 list.AsmData.asmcfi.cfa_def_cfa_offset(list,registerarea);
                end;
 
             stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
@@ -3832,13 +3832,13 @@ unit cgcpu;
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R4));
                     include(regs,RS_R4);
                   end;
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
+                list.AsmData.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
               end;
 
             if compiler.current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 list.concat(taicpu.op_reg_reg_const(A_ADD,compiler.current_procinfo.framepointer,NR_STACK_POINTER_REG,0));
-                current_asmdata.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
+                list.AsmData.asmcfi.cfa_def_cfa_register(list,compiler.current_procinfo.framepointer);
               end;
           end;
       end;
@@ -4060,7 +4060,7 @@ unit cgcpu;
             begin
               reference_reset(hr,4,[]);
 
-              current_asmdata.getjumplabel(l);
+              list.AsmData.getjumplabel(l);
               a_label(compiler.current_procinfo.aktlocaldata,l);
               hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
               compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
@@ -4099,7 +4099,7 @@ unit cgcpu;
                       begin
                         list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
                         reference_reset(tmpref,4,[]);
-                        current_asmdata.getjumplabel(l);
+                        list.AsmData.getjumplabel(l);
                         compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                         a_label(compiler.current_procinfo.aktlocaldata,l);
                         tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
@@ -4122,7 +4122,7 @@ unit cgcpu;
                       begin
                         list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
                         reference_reset(tmpref,4,[]);
-                        current_asmdata.getjumplabel(l);
+                        list.AsmData.getjumplabel(l);
                         compiler.current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                         a_label(compiler.current_procinfo.aktlocaldata,l);
                         tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
@@ -4379,8 +4379,8 @@ unit cgcpu;
         l1,l2 : tasmlabel;
         ai : taicpu;
       begin
-        current_asmdata.getjumplabel(l1);
-        current_asmdata.getjumplabel(l2);
+        list.AsmData.getjumplabel(l1);
+        list.AsmData.getjumplabel(l2);
         ai:=setcondition(taicpu.op_sym(A_B,l1),flags_to_cond(f));
         ai.is_jmp:=true;
         list.concat(ai);
@@ -4460,7 +4460,7 @@ unit cgcpu;
             begin
                reference_reset(hr,4,[]);
 
-               current_asmdata.getjumplabel(l);
+               list.AsmData.getjumplabel(l);
                a_label(compiler.current_procinfo.aktlocaldata,l);
                hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
                compiler.current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
@@ -5219,7 +5219,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_INT);
             if assigned(ref.symbol) then
               begin
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_label(compiler.current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
