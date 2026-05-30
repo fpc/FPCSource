@@ -131,8 +131,8 @@ implementation
               call and then the address load to be sure that the
               register that is used for returning is the same (PFV)
             }
-            current_asmdata.getjumplabel(norelocatelab);
-            current_asmdata.getjumplabel(endrelocatelab);
+            ctx.CurrAsmList.AsmData.getjumplabel(norelocatelab);
+            ctx.CurrAsmList.AsmData.getjumplabel(endrelocatelab);
             { make sure hregister can't allocate the register necessary for the parameter }
             pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
             if pvd.typ<>procvardef then
@@ -141,18 +141,18 @@ implementation
             paramanager.getcgtempparaloc(ctx.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=ctx.hlcg.getaddressregister(ctx.CurrAsmList,pvd);
             segreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
-            reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
+            reference_reset_symbol(segref,ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             segref.refaddr:=addr_seg;
             ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_16,OS_16,segref,segreg);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
+            reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             href.segment:=segreg;
             ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,pvd,pvd,href,hregister);
             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
             { don't save the allocated register else the result will be destroyed later }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
+              reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[]);
+              reference_reset_symbol(href,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[]);
             ctx.cg.a_load_ref_cgpara(ctx.CurrAsmList,OS_16,href,paraloc1);
             paramanager.freecgpara(ctx.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -170,9 +170,9 @@ implementation
                 0 - Threadvar index
                 4 - Threadvar value in single threading }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
+              reference_reset_symbol(href,ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
+              reference_reset_symbol(href,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
             ctx.hlcg.a_loadaddr_ref_reg(ctx.CurrAsmList,resultdef,compiler.deftypes.voidpointertype,href,hregister);
             ctx.cg.a_label(ctx.CurrAsmList,endrelocatelab);
             ctx.hlcg.reference_reset_base(location.reference,compiler.deftypes.voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
@@ -226,9 +226,9 @@ implementation
                   if gvs.localloc.loc=LOC_INVALID then
                     begin
                       if not(vo_is_weak_external in gvs.varoptions) then
-                        refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA)
+                        refsym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(gvs.mangledname,AT_DATA)
                       else
-                        refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
+                        refsym:=ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
 
                       segreg:=ctx.cg.getintregister(ctx.CurrAsmList,OS_16);
 
