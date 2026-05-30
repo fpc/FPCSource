@@ -136,9 +136,9 @@ unit cgrv;
         ai: taicpu;
       begin
         if not(weak) then
-          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
+          reference_reset_symbol(href,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
         else
-          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
+          reference_reset_symbol(href,list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
 
         if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           begin
@@ -147,7 +147,7 @@ unit cgrv;
           end
         else
           begin
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
 
             a_label(list,l);
 
@@ -243,8 +243,8 @@ unit cgrv;
           (op in [OP_ADD,OP_SUB,OP_MUL,OP_IMUL,OP_IDIV,OP_NEG]) then
           begin
             ovloc.loc:=LOC_JUMP;
-            current_asmdata.getjumplabel(ovloc.truelabel);
-            current_asmdata.getjumplabel(ovloc.falselabel);
+            list.AsmData.getjumplabel(ovloc.truelabel);
+            list.AsmData.getjumplabel(ovloc.falselabel);
           end
         else
           ovloc.loc:=LOC_VOID;
@@ -528,7 +528,7 @@ unit cgrv;
           begin
             b:= href.base;
 
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_label(list,l);
 
             href.base:=NR_NO;
@@ -553,7 +553,7 @@ unit cgrv;
             b:=href.base;
             href.base:=NR_NO;
 
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             a_label(list,l);
 
             href.refaddr:=addr_pcrel_hi20;
@@ -607,11 +607,11 @@ unit cgrv;
         tmpreg: TRegister;
         l: TAsmLabel;
       begin
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[]);
+        reference_reset_symbol(href,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),0,0,[]);
 
         tmpreg:=getintregister(list,OS_ADDR);
 
-        current_asmdata.getjumplabel(l);
+        list.AsmData.getjumplabel(l);
         a_label(list,l);
 
         href.refaddr:=addr_pcrel_hi20;
@@ -622,7 +622,7 @@ unit cgrv;
         ai.is_jmp:=true;
         list.concat(ai);
 
-        //ai:=taicpu.op_reg_sym(A_JAL,NR_X0,current_asmdata.RefAsmSymbol(s));
+        //ai:=taicpu.op_reg_sym(A_JAL,NR_X0,list.AsmData.RefAsmSymbol(s));
         //ai.is_jmp:=true;
       end;
 
@@ -637,7 +637,7 @@ unit cgrv;
 
         tmpreg:=getintregister(list,OS_ADDR);
 
-        current_asmdata.getjumplabel(l);
+        list.AsmData.getjumplabel(l);
         a_label(list,l);
 
         href.refaddr:=addr_pcrel_hi20;
@@ -1123,7 +1123,7 @@ unit cgrv;
 
                 tmpreg:=getintregister(list,OS_INT);
 
-                current_asmdata.getaddrlabel(l);
+                list.AsmData.getaddrlabel(l);
                 a_label(list,l);
 
                 href.refaddr:=addr_got_pcrel_hi;
@@ -1145,7 +1145,7 @@ unit cgrv;
 
                 tmpreg:=getintregister(list,OS_INT);
 
-                current_asmdata.getaddrlabel(l);
+                list.AsmData.getaddrlabel(l);
                 a_label(list,l);
 
                 href.refaddr:=addr_pcrel_hi20;
@@ -1242,7 +1242,7 @@ unit cgrv;
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg(A_FRFLAGS,r));
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,r,NR_X0,l,0);
             ai.is_jmp:=true;
             ai.condition:=C_EQ;
