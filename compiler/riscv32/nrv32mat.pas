@@ -208,8 +208,8 @@ implementation
                (right.location.size<>OS_32) then
               ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,compiler.deftypes.u32inttype,true);
 
-            current_asmdata.getjumplabel(less32);
-            current_asmdata.getjumplabel(finished);
+            ctx.CurrAsmList.AsmData.getjumplabel(less32);
+            ctx.CurrAsmList.AsmData.getjumplabel(finished);
             tmpreg1:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
             tmpreg2:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
 
