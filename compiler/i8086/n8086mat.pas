@@ -160,7 +160,7 @@ implementation
                         { a jump, but fewer operations }
                         ctx.cg.a_reg_alloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_reg_reg(ctx,A_TEST,S_W,hreg1,hreg1);
-                        current_asmdata.getjumplabel(hl);
+                        ctx.CurrAsmList.AsmData.getjumplabel(hl);
                         ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_NS,hl);
                         ctx.cg.a_reg_dealloc(ctx.CurrAsmList,NR_DEFAULTFLAGS);
                         if power=1 then
