@@ -89,7 +89,7 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
         ctx.hlcg.location_force_reg(ctx.CurrAsmList,right.location,right.resultdef,resultdef,true);
         { in llvm, div-by-zero is undefined on all platforms -> need explicit
           check }
-        current_asmdata.getjumplabel(hl);
+        ctx.CurrAsmList.AsmData.getjumplabel(hl);
         ctx.hlcg.a_cmp_const_loc_label(ctx.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
         ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
         ctx.hlcg.a_label(ctx.CurrAsmList,hl);
@@ -99,7 +99,7 @@ procedure tllvmmoddivnode.pass_generate_code(ctx:tpassgeneratecodecontext);
        ((right.nodetype<>ordconstn) or
         (tordconstnode(right).value=-1)) then
       begin
-        current_asmdata.getjumplabel(hl);
+        ctx.CurrAsmList.AsmData.getjumplabel(hl);
         location_reset(ovloc,LOC_REGISTER,OS_8);
         ovloc.register:=ctx.hlcg.getintregister(ctx.CurrAsmList,compiler.deftypes.llvmbool1type);
         if right.nodetype=ordconstn then
