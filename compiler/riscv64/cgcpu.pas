@@ -188,7 +188,7 @@ implementation
               begin
                 reference_reset(hr,8,[]);
 
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 compiler.current_procinfo.aktlocaldata.Concat(cai_align.Create(8));
                 a_label(compiler.current_procinfo.aktlocaldata,l);
                 hr.symboldata:=compiler.current_procinfo.aktlocaldata.last;
@@ -197,7 +197,7 @@ implementation
                 hr.symbol:=l;
                 hr.refaddr:=addr_pcrel_hi20;
 
-                current_asmdata.getjumplabel(l);
+                list.AsmData.getjumplabel(l);
                 a_label(list,l);
 
                 list.concat(taicpu.op_reg_ref(A_AUIPC,register,hr));
@@ -256,7 +256,7 @@ implementation
             countreg := GetIntRegister(list, OS_INT);
             tmpreg1  := GetIntRegister(list, OS_INT);
             a_load_const_reg(list, OS_INT, Count, countreg);
-            current_asmdata.getjumplabel(lab);
+            list.AsmData.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_ref(A_LD, tmpreg1, src));
             list.concat(taicpu.op_reg_ref(A_SD, tmpreg1, dst));
