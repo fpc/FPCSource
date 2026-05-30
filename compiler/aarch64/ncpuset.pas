@@ -245,10 +245,10 @@ implementation
              min_:=0;
           end;
         if compiler.target.info.system=system_aarch64_win64 then
-          current_asmdata.getstaticdatalabel(tablelabel)
+          ctx.CurrAsmList.AsmData.getstaticdatalabel(tablelabel)
         else
           { local label in order to avoid using GOT }
-          current_asmdata.getlabel(tablelabel,alt_data);
+          ctx.CurrAsmList.AsmData.getlabel(tablelabel,alt_data);
         indexreg:=ctx.cg.makeregsize(ctx.CurrAsmList,hregister,OS_ADDR);
         ctx.cg.a_load_reg_reg(ctx.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
