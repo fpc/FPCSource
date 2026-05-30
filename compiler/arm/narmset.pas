@@ -243,7 +243,7 @@ implementation
             href.shiftimm:=1;
             ctx.CurrAsmList.Concat(taicpu.op_ref(A_TBH,href));
             { generate jump table }
-            current_asmdata.getjumplabel(tablelabel);
+            ctx.CurrAsmList.AsmData.getjumplabel(tablelabel);
             ctx.cg.a_label(ctx.CurrAsmList,tablelabel);
             last:=min_;
             genitem_thumb2(ctx.CurrAsmList,hp);
@@ -253,7 +253,7 @@ implementation
             if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               internalerror(2013082102);
             ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
-            current_asmdata.getaddrlabel(tablelabel);
+            ctx.CurrAsmList.AsmData.getaddrlabel(tablelabel);
 
             ctx.cg.a_op_const_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
 
@@ -292,7 +292,7 @@ implementation
             if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               begin
                 picoffset:=-8;
-                current_asmdata.getaddrlabel(piclabel);
+                ctx.CurrAsmList.AsmData.getaddrlabel(piclabel);
                 indexreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
                 ctx.cg.a_load_ref_reg(ctx.CurrAsmList,OS_ADDR,OS_ADDR,href,indexreg);
                 ctx.cg.a_label(ctx.CurrAsmList,piclabel);
