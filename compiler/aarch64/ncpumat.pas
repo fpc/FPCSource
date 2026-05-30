@@ -429,7 +429,7 @@ implementation
             if not(node_not_zero(right)) then
               begin
                 ctx.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,divider,0));
-                current_asmdata.getjumplabel(hl);
+                ctx.CurrAsmList.AsmData.getjumplabel(hl);
                 ctx.CurrAsmList.concat(taicpu.op_cond_sym(A_B,C_NE,hl));
                 ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_DIVBYZERO',false);
                 ctx.cg.a_label(ctx.CurrAsmList,hl);
