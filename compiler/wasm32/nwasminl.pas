@@ -442,9 +442,9 @@ implementation
       begin
         location_reset(location,LOC_VOID,OS_NO);
         if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
-          ctx.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)))
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)))
         else
-          ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          ctx.CurrAsmList.Concat(taicpu.op_sym(a_throw,ctx.CurrAsmList.AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
       end;
 
 
@@ -566,7 +566,7 @@ implementation
       var
         sym: TWasmGlobalAsmSymbol;
       begin
-        sym:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,SymStr,AT_WASM_GLOBAL));
+        sym:=TWasmGlobalAsmSymbol(ctx.CurrAsmList.AsmData.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,SymStr,AT_WASM_GLOBAL));
         sym.WasmGlobalType:=wbt_i32;
         ctx.CurrAsmList.Concat(taicpu.op_sym(a_global_get,sym));
         thlcgwasm(ctx.hlcg).incstack(ctx.CurrAsmList,1);
