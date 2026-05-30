@@ -120,7 +120,7 @@ implementation
              ctx.hlcg.a_op_const_reg_reg(ctx.CurrAsmList,OP_ADD,resultdef,torddef(resultdef).high,right.location.register,tmpreg);
              ctx.hlcg.location_force_reg(ctx.CurrAsmList,left.location,left.resultdef,resultdef,true);
              ctx.hlcg.a_op_reg_reg(ctx.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
-             current_asmdata.getjumplabel(lab);
+             ctx.CurrAsmList.AsmData.getjumplabel(lab);
              ctx.CurrAsmList.concat(taicpu.op_none(a_block));
              ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
              ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil);
@@ -187,7 +187,7 @@ implementation
 
         if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
-            current_asmdata.getjumplabel(hl);
+            ctx.CurrAsmList.AsmData.getjumplabel(hl);
             ctx.CurrAsmList.concat(taicpu.op_none(a_block));
             ctx.hlcg.a_cmp_const_reg_label(ctx.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
             ctx.hlcg.g_call_system_proc(ctx.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
