@@ -303,9 +303,9 @@ begin
   if (prependDot) then
     s := '.' + s;
   if not(weak) then
-    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+    list.concat(taicpu.op_sym(opc, list.AsmData.RefAsmSymbol(s,AT_FUNCTION)))
   else
-    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+    list.concat(taicpu.op_sym(opc, list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -959,7 +959,7 @@ var
 begin
   if (prependDot) then
     s := '.' + s;
-  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+  p := taicpu.op_sym(opc, list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
   p.is_jmp := true;
   list.concat(p)
 end;
@@ -1159,14 +1159,14 @@ var
         for regcount := RS_F31 downto firstregfpu do begin
           reg:=newreg(R_FPUREGISTER, regcount, R_SUBNONE);
           a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, reg, href);
-          current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
+          list.AsmData.asmcfi.cfa_offset(list, reg, href.offset);
           dec(href.offset, tcgsize2size[OS_FLOAT]);
         end;
       if (gprcount > 0) then
         for regcount := RS_R31 downto firstreggpr do begin
           reg:=newreg(R_INTREGISTER, regcount, R_SUBNONE);
 	  a_load_reg_ref(list, OS_INT, OS_INT, reg, href);
-          current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
+          list.AsmData.asmcfi.cfa_offset(list, reg, href.offset);
           dec(href.offset, sizeof(pint));
         end;
       { VMX registers not supported by FPC atm }
@@ -1178,7 +1178,7 @@ var
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in compiler.globals.init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
-      current_asmdata.asmcfi.cfa_offset(list, NR_R0, href.offset);
+      list.AsmData.asmcfi.cfa_offset(list, NR_R0, href.offset);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1199,11 +1199,11 @@ begin
      (pi_needs_got in compiler.current_procinfo.flags) and
      not nostackframe then
     begin
-      current_asmdata.getlabel(lab,alt_addr);
+      list.AsmData.getlabel(lab,alt_addr);
       getcpuregister(list,NR_R12);
       getcpuregister(list,NR_R2);
       a_label(list,lab);
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt),[]);
+      reference_reset_symbol(href,list.AsmData.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt),[]);
       href.relsymbol:=lab;
       href.refaddr:=addr_higha;
       list.concat(taicpu.op_reg_reg_ref(a_addis,NR_R2,NR_R12,href));
@@ -1239,7 +1239,7 @@ begin
   { save old stack frame pointer }
   if (tcpuprocinfo(compiler.current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
-  current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+  list.AsmData.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and
@@ -1247,7 +1247,7 @@ begin
     if (localsize <= high(smallint)) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, ctempposinvalid, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
-      current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
+      list.AsmData.asmcfi.cfa_def_cfa_offset(list,localsize);
     end else begin
       reference_reset_base(href, NR_NO, -localsize, ctempposinvalid, 8, []);
 
@@ -1270,7 +1270,7 @@ begin
       list.concat(taicpu.op_reg_reg_const(A_ORI, NR_R0, NR_R0, word(href.offset)));
 
       list.concat(taicpu.op_reg_reg_reg(A_STDUX, NR_R1, NR_R1, NR_R0));
-      current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
+      list.AsmData.asmcfi.cfa_def_cfa_offset(list,localsize);
     end;
   end;
 
@@ -1281,7 +1281,7 @@ begin
     begin
       reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
       a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
-      current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
+      list.AsmData.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
     end;
 
   { CR register not used by FPC atm }
@@ -1618,7 +1618,7 @@ begin
     list.concat(taicpu.op_reg_reg_const(A_SUBI, dst.base, dst.base, step));
     countreg := getintregister(list, OS_INT);
     a_load_const_reg(list, OS_INT, count, countreg);
-    current_asmdata.getjumplabel(lab);
+    list.AsmData.getjumplabel(lab);
     a_label(list, lab);
     list.concat(taicpu.op_reg_reg_const(A_SUBIC_, countreg, countreg, 1));
     if (size=OS_64) then
@@ -1869,14 +1869,14 @@ var
   ref: treference;
   symname : string;
 begin
-  maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
-  symname := '_$' + current_asmdata.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
-  l:=current_asmdata.getasmsymbol(symname);
+  maybe_new_object_file(list.AsmData.asmlists[al_picdata]);
+  symname := '_$' + list.AsmData.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
+  l:=list.AsmData.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_METADATA, compiler.deftypes.voidpointertype);
-    new_section(current_asmdata.asmlists[al_picdata],sec_toc, '.toc', 8);
-    current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
-    current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
+    l:=list.AsmData.DefineAsmSymbol(symname,AB_GLOBAL, AT_METADATA, compiler.deftypes.voidpointertype);
+    new_section(list.AsmData.asmlists[al_picdata],sec_toc, '.toc', 8);
+    list.AsmData.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
+    list.AsmData.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;
   reference_reset_symbol(ref,l,0,8,[]);
   ref.base := NR_R2;
