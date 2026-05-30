@@ -128,7 +128,7 @@ implementation
              { case expr greater than max_ => goto elselabel }
              ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
           end;
-        current_asmdata.getjumplabel(table);
+        ctx.CurrAsmList.AsmData.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
         ctx.cg.a_op_const_reg(ctx.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
         reference_reset_symbol(href, table, 0, 4,[]);
