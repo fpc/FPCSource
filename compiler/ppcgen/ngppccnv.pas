@@ -177,7 +177,7 @@ implementation
             LOC_JUMP :
               begin
                 hreg1:=ctx.cg.getintregister(ctx.CurrAsmList,OS_INT);
-                current_asmdata.getjumplabel(hlabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
                 ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
                 if not(is_cbool(resultdef)) then
                   ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,1,hreg1)
