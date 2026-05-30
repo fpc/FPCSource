@@ -788,8 +788,8 @@ implementation
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         { Relational compares against constants having low dword=0 can omit the
