@@ -156,7 +156,7 @@ implementation
             end;
           LOC_JUMP :
             begin
-              current_asmdata.getjumplabel(hlabel);
+              ctx.CurrAsmList.AsmData.getjumplabel(hlabel);
               ctx.cg.a_label(ctx.CurrAsmList,left.location.truelabel);
               ctx.cg.a_load_const_reg(ctx.CurrAsmList,OS_INT,1,hreg1);
               ctx.cg.a_jmp_always(ctx.CurrAsmList,hlabel);
