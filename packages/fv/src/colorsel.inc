@@ -1125,16 +1125,22 @@ begin
     Next))))));
 end;
 
-function DialogColorItems(Palette: Sw_Word; const Next: PColorItem): PColorItem;
 const
   COffset: array[dpBlueDialog..dpGrayDialog] of Byte =
     (64, 96, 32);
+
+{Note: One procedure can add only 15 items to linked list, otherwise in
+     MSDOS target (CPU i8086) near memory models are failing with Error: Local
+     variables size exceeds supported limit. Limit is so low when resource
+     strings are used.
+     Split DialogColorItems in three parts to avoid this limitation. }
+
+function DialogColorItemsPart1(Palette: Sw_Word; const Next: PColorItem): PColorItem;
   var
     Offset: Byte;
 begin
-  //DialogColorItems:=ColorItem('Normal',13,Next); {place holder}
   Offset := COffset[Palette];
-  DialogColorItems :=
+  DialogColorItemsPart1 :=
     ColorItem(label_colors_framebackground,  Offset + 1,
     ColorItem(label_colors_frameicon,        Offset + 2,
     ColorItem(label_colors_scrollbarpage,    Offset + 3,
@@ -1153,7 +1159,17 @@ begin
     ColorItem(label_colors_buttonshadow,     Offset + 14,
 
     ColorItem(label_colors_normalcluster,    Offset + 15,
+    Next)))))))))))))));
+end;
+
+function DialogColorItemsPart2(Palette: Sw_Word; const Next: PColorItem): PColorItem;
+  var
+    Offset: Byte;
+begin
+  Offset := COffset[Palette];
+  DialogColorItemsPart2 :=
     ColorItem(label_colors_selectedcluster,  Offset + 16,
+
     ColorItem(label_colors_shortcutcluster,  Offset + 17,
     ColorItem(label_colors_disabledcluster,  Offset + 30,
 
@@ -1172,8 +1188,26 @@ begin
     ColorItem(label_colors_listdivider,      Offset + 28,
 
     ColorItem(label_colors_infopane,         Offset + 29,
+    Next)))))))))))))));
+end;
+
+function DialogColorItemsPart3(Palette: Sw_Word; const Next: PColorItem): PColorItem;
+  var
+    Offset: Byte;
+begin
+  Offset := COffset[Palette];
+  DialogColorItemsPart3 :=
     ColorItem(label_colors_directory,        Offset + 31,
-    Next)))))))))))))))))))))))))))))));
+    Next);
+end;
+
+function DialogColorItems(Palette: Sw_Word; const Next: PColorItem): PColorItem;
+begin
+  DialogColorItems:=
+    DialogColorItemsPart1(Palette,
+    DialogColorItemsPart2(Palette,
+    DialogColorItemsPart3(Palette,
+    Next)));
 end;
 
 function MenuColorItems(const Next: PColorItem): PColorItem;
