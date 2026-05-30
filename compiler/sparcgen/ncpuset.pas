@@ -109,7 +109,7 @@ unit ncpuset;
             ctx.cg.a_cmp_const_reg_label(ctx.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
             min_:=0;
           end;
-        current_asmdata.getjumplabel(table);
+        ctx.CurrAsmList.AsmData.getjumplabel(table);
         indexreg:=ctx.cg.getaddressregister(ctx.CurrAsmList);
 {$ifdef SPARC64}
         ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,3,hregister,indexreg);
@@ -117,7 +117,7 @@ unit ncpuset;
         ctx.cg.a_op_const_reg_reg(ctx.CurrAsmList,OP_SHL,OS_ADDR,2,hregister,indexreg);
 {$endif SPARC64}
         { create reference }
-        current_asmdata.getjumplabel(base);
+        ctx.CurrAsmList.AsmData.getjumplabel(base);
         ctx.cg.a_label(ctx.CurrAsmList,base);
         reference_reset_symbol(href,table,(-aint(min_))*sizeof(pint),sizeof(pint),[]);
         href.relsymbol:=base;
