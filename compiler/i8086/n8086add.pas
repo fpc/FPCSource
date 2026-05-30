@@ -302,7 +302,7 @@ interface
          begin
            if needoverflowcheck then
             begin
-              current_asmdata.getjumplabel(hl4);
+              ctx.CurrAsmList.AsmData.getjumplabel(hl4);
               if unsigned then
                 ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_AE,hl4)
               else
@@ -650,8 +650,8 @@ interface
                    (torddef(right.resultdef).ordtype=u64bit));
 
         { we have LOC_JUMP as result }
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         { left and right no register?  }
@@ -829,8 +829,8 @@ interface
                   is_hugepointer(left.resultdef);
 
         { we have LOC_JUMP as result }
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(truelabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(falselabel);
         location_reset_jump(location,truelabel,falselabel);
 
         { left and right no register?  }
@@ -1038,7 +1038,7 @@ interface
         { 16->32 bit cannot overflow }
         (not is_32bitint(resultdef)) then
         begin
-          current_asmdata.getjumplabel(hl4);
+          ctx.CurrAsmList.AsmData.getjumplabel(hl4);
           ctx.cg.a_jmp_flags(ctx.CurrAsmList,F_AE,hl4);
           ctx.cg.a_reg_dealloc(ctx.CurrAsmList, NR_DEFAULTFLAGS);
           ctx.cg.a_call_name(ctx.CurrAsmList,'FPC_OVERFLOW',false);
