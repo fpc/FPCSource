@@ -222,7 +222,7 @@ procedure emit_nop(ctx:tpassgeneratecodecontext);
     dummy: TAsmLabel;
   begin
     { To avoid optimizing away the whole thing, prepend a jumplabel with increased refcount }
-    current_asmdata.getjumplabel(dummy);
+    ctx.CurrAsmList.AsmData.getjumplabel(dummy);
     dummy.increfs;
     ctx.cg.a_label(ctx.CurrAsmList,dummy);
     ctx.CurrAsmList.concat(Taicpu.op_none(A_NOP));
@@ -257,10 +257,10 @@ procedure taarch64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext
     flowcontrol:=[fc_inflowcontrol];
 
     templabel:=nil;
-    current_asmdata.getjumplabel(trylabel);
-    current_asmdata.getjumplabel(endtrylabel);
-    current_asmdata.getjumplabel(finallylabel);
-    current_asmdata.getjumplabel(endfinallylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(trylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(endtrylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(finallylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(endfinallylabel);
     oldexitlabel:=compiler.current_procinfo.CurrExitLabel;
     if implicitframe then
       compiler.current_procinfo.CurrExitLabel:=finallylabel;
@@ -302,7 +302,7 @@ procedure taarch64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext
       endtrylabel (bug #34772) }
     if catch_frame then
       begin
-        current_asmdata.getjumplabel(templabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(templabel);
         ctx.cg.a_label(ctx.CurrAsmList, finallylabel);
         { jump over exception handler }
         ctx.cg.a_jmp_always(ctx.CurrAsmList,templabel);
@@ -353,7 +353,7 @@ procedure taarch64tryfinallynode.pass_generate_code(ctx:tpassgeneratecodecontext
 
     { generate the scope record in .xdata }
     tcpuprocinfo(compiler.current_procinfo).add_finally_scope(trylabel,endtrylabel,
-      current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
+      ctx.CurrAsmList.AsmData.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
       compiler.current_procinfo.CurrExitLabel:=oldexitlabel;
@@ -431,22 +431,22 @@ procedure taarch64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext)
 
     { save the old labels for control flow statements }
     oldCurrExitLabel:=compiler.current_procinfo.CurrExitLabel;
-    current_asmdata.getjumplabel(exitexceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(exitexceptlabel);
     if assigned(compiler.current_procinfo.CurrBreakLabel) then
       begin
         oldContinueLabel:=compiler.current_procinfo.CurrContinueLabel;
         oldBreakLabel:=compiler.current_procinfo.CurrBreakLabel;
-        current_asmdata.getjumplabel(breakexceptlabel);
-        current_asmdata.getjumplabel(continueexceptlabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(breakexceptlabel);
+        ctx.CurrAsmList.AsmData.getjumplabel(continueexceptlabel);
       end;
 
-    current_asmdata.getjumplabel(exceptlabel);
-    current_asmdata.getjumplabel(endexceptlabel);
-    current_asmdata.getjumplabel(lastonlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(exceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(endexceptlabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(lastonlabel);
     filterlabel:=nil;
 
     { start of scope }
-    current_asmdata.getjumplabel(trylabel);
+    ctx.CurrAsmList.AsmData.getjumplabel(trylabel);
     emit_nop(ctx);
     ctx.cg.a_label(ctx.CurrAsmList,trylabel);
 
@@ -478,7 +478,7 @@ procedure taarch64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext)
       begin
         { emit filter table to a temporary asmlist }
         hlist:=TAsmList.Create(ctx.CurrAsmList.AsmData);
-        current_asmdata.getaddrlabel(filterlabel);
+        ctx.CurrAsmList.AsmData.getaddrlabel(filterlabel);
         new_section(hlist,sec_rodata_norel,filterlabel.name,4);
         ctx.cg.a_label(hlist,filterlabel);
         onnodecount:=tai_const.create_32bit(0);
@@ -489,8 +489,8 @@ procedure taarch64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext)
           begin
             if hnode.nodetype<>onn then
               InternalError(2011103101);
-            current_asmdata.getjumplabel(onlabel);
-            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            ctx.CurrAsmList.AsmData.getjumplabel(onlabel);
+            sym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
             hlist.concat(tai_const.create_rva_sym(sym));
             hlist.concat(tai_const.create_rva_sym(onlabel));
             compiler.current_module.add_extern_asmsym(sym);
