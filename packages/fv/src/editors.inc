@@ -4763,6 +4763,8 @@ procedure TEditWindow.SizeLimits(var Min, Max: TPoint);
 begin
   inherited SizeLimits(Min, Max);
   Min.X := 23;
+  if Max.X < Min.X then Max.X:=Min.X;
+  if Max.Y < Min.Y then Max.Y:=Min.Y;
 end;
 
 
