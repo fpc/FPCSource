@@ -376,9 +376,9 @@ unit cgcpu;
         sym: TAsmSymbol;
       begin
         if weak then
-          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
+          sym:=list.AsmData.WeakRefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
+          sym:=list.AsmData.RefAsmSymbol(s,AT_FUNCTION);
 
         if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
           list.concat(taicpu.op_sym(A_CALL,sym))
@@ -434,7 +434,7 @@ unit cgcpu;
            countreg: TRegister;
            oldexecutionweight: LongInt;
          begin
-           current_asmdata.getjumplabel(l1);
+           list.AsmData.getjumplabel(l1);
            countreg:=getintregister(list,OS_8);
            a_load_const_reg(list,OS_8,bitstoshift,countreg);
            a_label(list,l1);
@@ -924,8 +924,8 @@ unit cgcpu;
 
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
-               current_asmdata.getjumplabel(l1);
-               current_asmdata.getjumplabel(l2);
+               list.AsmData.getjumplabel(l1);
+               list.AsmData.getjumplabel(l2);
                countreg:=getintregister(list,OS_8);
                a_load_reg_reg(list,size,OS_8,src,countreg);
                a_reg_alloc(list,NR_DEFAULTFLAGS);
@@ -1134,7 +1134,7 @@ unit cgcpu;
              begin
                if (op=OP_SAR) and (a>=(tcgsize2size[size]*8-1)) then
                  begin
-                   current_asmdata.getjumplabel(l1);
+                   list.AsmData.getjumplabel(l1);
                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                    list.concat(taicpu.op_reg(A_TST,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
                    a_load_const_reg(list,OS_8,0,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1));
@@ -1146,7 +1146,7 @@ unit cgcpu;
                  end
                else if (op=OP_SHR) and (a=(tcgsize2size[size]*8-1)) then
                  begin
-                   current_asmdata.getjumplabel(l1);
+                   list.AsmData.getjumplabel(l1);
                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                    list.concat(taicpu.op_reg(A_TST,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
                    a_load_const_reg(list,OS_8,0,GetOffsetReg64(reg,reghi,0));
@@ -2083,9 +2083,9 @@ unit cgcpu;
         ai : taicpu;
       begin
         if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
-          ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION))
+          ai:=taicpu.op_sym(A_JMP,list.AsmData.RefAsmSymbol(s,AT_FUNCTION))
         else
-          ai:=taicpu.op_sym(A_RJMP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+          ai:=taicpu.op_sym(A_RJMP,list.AsmData.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -2121,7 +2121,7 @@ unit cgcpu;
         i: Integer;
         hreg: TRegister;
       begin
-        current_asmdata.getjumplabel(l);
+        list.AsmData.getjumplabel(l);
         {
         if flags_to_cond(f) then
           begin
@@ -2261,7 +2261,7 @@ unit cgcpu;
                 // Check overflow
                 if check_overflow then
                   begin
-                    current_asmdata.getjumplabel(hl);
+                    list.AsmData.getjumplabel(hl);
                     list.concat(taicpu.op_reg_reg(A_AND,NR_R1,NR_R1));
 
                      { Clear carry as it's not affected by any of the instructions }
@@ -2297,7 +2297,7 @@ unit cgcpu;
                 // Check overflow
                 if check_overflow then
                   begin
-                    current_asmdata.getjumplabel(no_overflow);
+                    list.AsmData.getjumplabel(no_overflow);
 
                     list.concat(taicpu.op_reg_const(A_SBRC,NR_R0,7));
                     list.concat(taicpu.op_reg(A_INC,NR_R1));
@@ -2358,8 +2358,8 @@ unit cgcpu;
               begin
                 if check_overflow then
                   begin
-                    current_asmdata.getjumplabel(hl);
-                    current_asmdata.getjumplabel(no_overflow);
+                    list.AsmData.getjumplabel(hl);
+                    list.AsmData.getjumplabel(no_overflow);
                   end;
                 a_reg_alloc(list,NR_R0);
                 a_reg_alloc(list,NR_R1);
@@ -2697,7 +2697,7 @@ unit cgcpu;
       begin
         if len>16 then
           begin
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
 
             reference_reset(srcref,source.alignment,source.volatility);
             reference_reset(dstref,dest.alignment,source.volatility);
@@ -2957,7 +2957,7 @@ unit cgcpu;
       begin
         if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
          exit;
-        current_asmdata.getjumplabel(hl);
+        list.AsmData.getjumplabel(hl);
         if not ((def.typ=pointerdef) or
                ((def.typ=orddef) and
                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -2987,7 +2987,7 @@ unit cgcpu;
         case ovloc.loc of
           LOC_FLAGS:
             begin
-              current_asmdata.getjumplabel(hl);
+              list.AsmData.getjumplabel(hl);
               if not ((def.typ=pointerdef) or
                      ((def.typ=orddef) and
                       (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -3033,7 +3033,7 @@ unit cgcpu;
           OC_GT:
             begin
               { emulate GT }
-              current_asmdata.getjumplabel(hl);
+              list.AsmData.getjumplabel(hl);
               ai2:=Taicpu.Op_Sym(A_BRxx,hl);
               ai2.SetCondition(C_EQ);
               ai2.is_jmp:=true;
@@ -3074,7 +3074,7 @@ unit cgcpu;
           OC_A:
             begin
               { emulate A (unsigned GT) }
-              current_asmdata.getjumplabel(hl);
+              list.AsmData.getjumplabel(hl);
               ai2:=Taicpu.Op_Sym(A_BRxx,hl);
               ai2.SetCondition(C_EQ);
               ai2.is_jmp:=true;
