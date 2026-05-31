@@ -1760,9 +1760,9 @@ implementation
           }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip],compiler);
           tcb.emit_ord_const(0,compiler.deftypes.u64inttype);
-          current_asmdata.asmlists[al_objc_data].concatList(
+          AsmData.asmlists[al_objc_data].concatList(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,compiler.deftypes.u64inttype),
+              AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,compiler.deftypes.u64inttype),
               compiler.deftypes.u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',compiler.globals.const_align(sizeof(pint))
             )
           );
