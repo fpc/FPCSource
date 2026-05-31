@@ -134,6 +134,8 @@ implementation
         s               : string;
         KeepShared      : TCmdStrList;
       begin
+        if curr.asmdata<>current_asmdata then
+          internalerror(2026053101);
         { try to create import entries from system dlls }
         if (tf_has_dllscanner in compiler.target.info.flags) and
            (not curr.linkOtherSharedLibs.Empty) then
