@@ -34,7 +34,7 @@ interface
 
   type
     timportlibandroid=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     { texportlibandroid }
@@ -86,7 +86,7 @@ const
                                TIMPORTLIBANDROID
 *****************************************************************************}
 
-    procedure timportlibandroid.generatelib;
+    procedure timportlibandroid.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

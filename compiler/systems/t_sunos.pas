@@ -42,11 +42,12 @@ implementation
     verbose,systemstypes,systems,globtype,globals,compiler,
     cscript,
     fmodule,
-    import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;
+    import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase,
+    aasmdata;
 
   type
     timportlibsolaris=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibsolaris=class(texportlibunix)
@@ -71,7 +72,7 @@ implementation
                                TIMPORTLIBsolaris
 *****************************************************************************}
 
-    procedure timportlibsolaris.generatelib;
+    procedure timportlibsolaris.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

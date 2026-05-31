@@ -29,11 +29,12 @@ interface
   uses
     symsym,symdef,
     import,export,link,
+    aasmdata,
     compilerbase;
 
   type
     timportlibbeos=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibbeos=class(texportlib)
@@ -61,13 +62,13 @@ implementation
     cutils,cfileutl,cclasses,
     verbose,systemstypes,systems,globtype,globals,compiler,
     symconst,cscript,
-    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_beos,ogbase;
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,i_beos,ogbase;
 
 {*****************************************************************************
                                TIMPORTLIBBEOS
 *****************************************************************************}
 
-    procedure timportlibbeos.generatelib;
+    procedure timportlibbeos.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

@@ -46,7 +46,7 @@ interface
         procedure generateimportlib;
         procedure generateidatasection;
       public
-        procedure generatelib;override;
+        procedure generatelib(AsmData: TAsmData);override;
       end;
 
       TExportLibWin=class(texportlib)
@@ -616,7 +616,7 @@ implementation
       end;
 
 
-    procedure TImportLibWin.generatelib;
+    procedure TImportLibWin.generatelib(AsmData: TAsmData);
       begin
         if compiler.globals.GenerateImportSection then
           generateidatasection

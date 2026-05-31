@@ -43,7 +43,7 @@ implementation
 
   type
     timportlibbsd=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibbsd=class(texportlibunix)
@@ -95,7 +95,7 @@ end;
                                TIMPORTLIBBSD
 *****************************************************************************}
 
-    procedure timportlibbsd.generatelib;
+    procedure timportlibbsd.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

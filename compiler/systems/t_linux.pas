@@ -33,7 +33,7 @@ interface
 
   type
     timportliblinux=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportliblinux=class(texportlibunix)
@@ -91,7 +91,7 @@ implementation
                                TIMPORTLIBLINUX
 *****************************************************************************}
 
-    procedure timportliblinux.generatelib;
+    procedure timportliblinux.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

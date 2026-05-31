@@ -41,7 +41,7 @@ implementation
 
   type
     timportlibjvm=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibjvm=class(texportlib)
@@ -59,7 +59,7 @@ implementation
                              TIMPORTLIBJVM
 *****************************************************************************}
 
-    procedure timportlibjvm.generatelib;
+    procedure timportlibjvm.generatelib(AsmData: TAsmData);
       begin
       end;
 

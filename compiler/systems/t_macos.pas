@@ -26,11 +26,11 @@ unit t_macos;
 interface
 
   uses
-     import,symsym,symdef,link,compilerbase;
+     import,symsym,symdef,link,aasmdata,compilerbase;
 
   type
     timportlibmacos=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     tlinkermpw=class(texternallinker)
@@ -70,7 +70,7 @@ implementation
                                TIMPORTLIBMACOS
 *****************************************************************************}
 
-    procedure timportlibmacos.generatelib;
+    procedure timportlibmacos.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

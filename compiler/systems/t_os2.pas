@@ -42,6 +42,7 @@ implementation
      globtype,systemstypes,systems,symconst,symdef,
      globals,verbose,fmodule,cscript,
      import,link,i_os2,ogbase,
+     aasmdata,
      compilerbase,compiler;
 
   type
@@ -97,7 +98,7 @@ implementation
       procedure aout_write;
       procedure AddImport(const module:string;index:longint;const name,mangledname:string);
     public
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     tlinkeros2=class(texternallinker)
@@ -360,7 +361,7 @@ begin
     inc(seq_no);
 end;
 
-    procedure timportlibos2.generatelib;
+    procedure timportlibos2.generatelib(AsmData: TAsmData);
       const
         ar_magic:array[1..8] of char='!<arch>'#10;
       var

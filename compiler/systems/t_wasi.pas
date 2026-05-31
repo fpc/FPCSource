@@ -56,7 +56,7 @@ type
 
   { timportlibwasi }
   timportlibwasi = class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
   { tlinkerwasi }
@@ -99,7 +99,7 @@ uses
 
 { timportlibwasi }
 
-  procedure timportlibwasi.generatelib;
+  procedure timportlibwasi.generatelib(AsmData: TAsmData);
     begin
     end;
 

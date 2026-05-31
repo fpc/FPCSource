@@ -29,11 +29,11 @@ interface
 
   uses
     symsym,symdef,compilerbase,
-    import,export,link;
+    import,export,link,aasmdata;
 
   type
     timportlibhaiku=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibhaiku=class(texportlib)
@@ -62,13 +62,13 @@ implementation
     cutils,cfileutl,cclasses,compiler,
     verbose,systemstypes,systems,globtype,globals,
     symconst,cscript,
-    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_haiku,ogbase;
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,i_haiku,ogbase;
 
 {*****************************************************************************
                                TIMPORTLIBHAIKU
 *****************************************************************************}
 
-    procedure timportlibhaiku.generatelib;
+    procedure timportlibhaiku.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

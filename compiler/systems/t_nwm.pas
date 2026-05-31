@@ -103,7 +103,7 @@ implementation
 
   type
     timportlibnetware=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibnetware=class(texportlib)
@@ -140,7 +140,7 @@ Const tmpLinkFileName = 'link~tmp._o_';
                                TIMPORTLIBNETWARE
 *****************************************************************************}
 
-    procedure timportlibnetware.generatelib;
+    procedure timportlibnetware.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

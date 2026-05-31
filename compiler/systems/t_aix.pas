@@ -34,7 +34,7 @@ interface
 
   type
     timportlibaix=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibaix=class(texportlibunix)
@@ -72,7 +72,7 @@ implementation
                                timportlibaix
 *****************************************************************************}
 
-    procedure timportlibaix.generatelib;
+    procedure timportlibaix.generatelib(AsmData: TAsmData);
       var
         i : longint;
         ImportLibrary : TImportLibrary;

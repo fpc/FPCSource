@@ -44,7 +44,7 @@ implementation
 
   type
     timportlibdarwin=class(timportlib)
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     texportlibdarwin=class(texportlibunix)
@@ -78,7 +78,7 @@ implementation
                              TIMPORTLIBDARWIN
 *****************************************************************************}
 
-    procedure timportlibdarwin.generatelib;
+    procedure timportlibdarwin.generatelib(AsmData: TAsmData);
       begin
       end;
 

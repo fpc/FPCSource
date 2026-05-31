@@ -25,7 +25,7 @@ unit import;
 interface
 
 uses
-  systemstypes,systems,compilerbase;
+  systemstypes,systems,aasmdata,compilerbase;
 
 type
    timportlib=class
@@ -38,7 +38,7 @@ type
    public
       constructor Create(ACompiler: TCompilerBase);virtual;
       destructor Destroy;override;
-      procedure generatelib;virtual;
+      procedure generatelib(AsmData: TAsmData);virtual;
    end;
 
    TDLLScanner=class
@@ -91,7 +91,7 @@ begin
 end;
 
 
-procedure timportlib.generatelib;
+procedure timportlib.generatelib(AsmData: TAsmData);
 begin
   NotSupported;
 end;

@@ -27,13 +27,13 @@ unit t_aros;
 interface
 
     uses
-      rescmn, comprsrc, import, link, ogbase, compilerbase;
+      rescmn, comprsrc, import, link, ogbase, aasmdata, compilerbase;
 
 
 type
 
   timportlibaros=class(timportlib)
-    procedure generatelib; override;
+    procedure generatelib(AsmData: TAsmData); override;
   end;
 
 
@@ -58,7 +58,7 @@ implementation
        globtype,globals,systemstypes,systems,verbose,cscript,fmodule,i_aros;
 
 
-procedure timportlibaros.generatelib;
+procedure timportlibaros.generatelib(AsmData: TAsmData);
 var
   i: longint;
   ImportLibrary: TImportLibrary;

@@ -37,6 +37,7 @@ implementation
        link,aasmbase,cpuinfo,
        omfbase,ogbase,ogomf,owbase,owomflib,
        symconst,symdef,symsym,
+       aasmdata,
        compilerbase,compiler;
 
     type
@@ -45,7 +46,7 @@ implementation
 
       TImportLibWin16=class(timportlib)
       public
-        procedure generatelib;override;
+        procedure generatelib(AsmData: TAsmData);override;
       end;
 
       { TExportLibWin16 }
@@ -98,7 +99,7 @@ implementation
 ****************************************************************************}
 
 
-procedure TImportLibWin16.generatelib;
+procedure TImportLibWin16.generatelib(AsmData: TAsmData);
 var
   ObjWriter: TOmfLibObjectWriter;
   ObjOutput: TOmfObjOutput;

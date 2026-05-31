@@ -164,7 +164,7 @@ implementation
                curr_AsmData.asmlists[al_imports].clear
               else
                curr_AsmData.asmlists[al_imports]:=TAsmList.Create(curr_AsmData);
-              compiler.importlib.generatelib;
+              compiler.importlib.generatelib(curr_AsmData);
             end;
            { Readd the not processed files }
            while not KeepShared.Empty do
@@ -1816,7 +1816,7 @@ type
 
          { generate imports }
          if module.ImportLibraryList.Count>0 then
-           compiler.importlib.generatelib;
+           compiler.importlib.generatelib(current_asmdata);
 
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
@@ -2333,7 +2333,7 @@ type
 
          { generate imports }
          if curr.ImportLibraryList.Count>0 then
-           compiler.importlib.generatelib;
+           compiler.importlib.generatelib(current_asmdata);
 
          { Reference all DEBUGINFO sections from the main .fpc section }
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
@@ -2636,7 +2636,7 @@ type
 
         { generate imports }
         if curr.ImportLibraryList.Count>0 then
-          compiler.importlib.generatelib;
+          compiler.importlib.generatelib(current_asmdata);
 
         { insert own objectfile }
         insertobjectfile(curr);
