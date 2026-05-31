@@ -252,7 +252,7 @@ interface
 
     TAssemblerClass = class of TAssembler;
 
-    Procedure GenerateAsm(compiler: TCompilerBase;smart:boolean);
+    Procedure GenerateAsm(compiler: TCompilerBase;AsmData:TAsmData;smart:boolean);
 
     { get an instance of an external GNU-style assembler that is compatible
       with the current target, reusing an existing writer. Used by the LLVM
@@ -2941,14 +2941,14 @@ Implementation
                      Generate Assembler Files Main Procedure
 *****************************************************************************}
 
-    Procedure GenerateAsm(compiler: TCompilerBase;smart:boolean);
+    Procedure GenerateAsm(compiler: TCompilerBase;AsmData:TAsmData;smart:boolean);
       var
         a : TAssembler;
       begin
         if not assigned(CAssembler[compiler.target._asm.id]) then
           compiler.verbose.Message(asmw_f_assembler_output_not_supported);
         a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart,compiler);
-        a.MakeObject(current_asmdata);
+        a.MakeObject(AsmData);
         a.Free;
         a := nil;
       end;
