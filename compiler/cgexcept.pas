@@ -189,7 +189,7 @@ unit cgexcept;
         pd: tprocdef;
         tmpresloc: tlocation;
       begin
-        current_asmdata.getjumplabel(exceptstate.exceptionlabel);
+        list.AsmData.getjumplabel(exceptstate.exceptionlabel);
         exceptstate.oldflowcontrol:=flowcontrol;
         exceptstate.finallycodelabel:=nil;
 
@@ -295,7 +295,7 @@ unit cgexcept;
       var
          exitlabel: tasmlabel;
       begin
-         current_asmdata.getjumplabel(exitlabel);
+         list.AsmData.getjumplabel(exitlabel);
          { add an catch all action clause, at least psabieh needs this }
          catch_all_add(list);
          end_try_block(list,tek_except,t,entrystate,exitlabel);
@@ -336,7 +336,7 @@ unit cgexcept;
 
         { send the vmt parameter }
         pd:=search_system_proc('fpc_catches');
-        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        reference_reset_symbol(href2, list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
           compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
