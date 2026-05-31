@@ -402,7 +402,7 @@ implementation
         if (compiler.current_procinfo.procdef.proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
           exit;
-        ctx.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true),AT_METADATA)));
+        ctx.CurrAsmList.concat(taicpu.op_sym(a_new,ctx.CurrAsmList.AsmData.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
