@@ -1298,7 +1298,7 @@ var
 
     // Fast test for default 4-byte tails and 0-byte heads.
     if info = 1 shl TailSizeIndexShift then
-      exit(unaligned(pUint32(n^.userPtr + size)^ = TailFillerByte * FillerByteToUint32));
+      exit(unaligned(pUint32(n^.userPtr + size)^) = TailFillerByte * FillerByteToUint32);
 
     result := false;
     if info and (TailSizeIndexMask shl TailSizeIndexShift) <> 0 then

@@ -1843,7 +1843,7 @@ end;
     if rem > 0 then
     begin
       tail := pByte(p)^;
-      if rem > 1 then inc(tail, unaligned(uint32(pUint16(p + rem - 2)^) shl 8));
+      if rem > 1 then inc(tail, uint32(unaligned(pUint16(p + rem - 2)^) shl 8));
       result := result xor (RolDWord(tail * C1, 15) * C2);
     end;
 
