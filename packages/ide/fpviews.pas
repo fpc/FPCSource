@@ -3555,10 +3555,15 @@ begin
   W:=EditorWindowFile(P^.GetModuleName);
   if assigned(W) then
     begin
-      W^.GetExtent(R);
-      R.B.Y:=Owner^.Origin.Y;
+      //W^.GetExtent(R);
+      {
+      W^.GetBounds(R); { keep original window position }
+      if Owner^.Origin.Y>R.A.Y+4 then
+        R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
+      }
       W^.Editor^.SetCurPtr(Col,Row);
+      W^.Editor^.TrackCursor(do_centre);
     end
   else
     W:=TryToOpenFile(@R,P^.GetModuleName,Col,Row,true);
@@ -3600,11 +3605,15 @@ begin
   W:=EditorWindowFile(P^.GetModuleName);
   if assigned(W) then
     begin
-      W^.GetExtent(R);
+      //W^.GetExtent(R);
+      {
+      W^.GetBounds(R); { keep original window position }
       if Owner^.Origin.Y>R.A.Y+4 then
         R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
+      }
       W^.Editor^.SetCurPtr(Col,Row);
+      W^.Editor^.TrackCursor(do_centre);
     end
   else
    W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
