@@ -43,7 +43,7 @@ interface
 
       TImportLibWin=class(timportlib)
       private
-        procedure generateimportlib;
+        procedure generateimportlib(AsmData: TAsmData);
         procedure generateidatasection(AsmData: TAsmData);
       public
         procedure generatelib(AsmData: TAsmData);override;
@@ -163,7 +163,7 @@ implementation
                              TImportLibWin
 *****************************************************************************}
 
-    procedure TImportLibWin.generateimportlib;
+    procedure TImportLibWin.generateimportlib(AsmData: TAsmData);
       var
         ObjWriter        : tarobjectwriter;
         ObjOutput        : TPECoffObjOutput;
@@ -621,7 +621,7 @@ implementation
         if compiler.globals.GenerateImportSection then
           generateidatasection(AsmData)
         else
-          generateimportlib;
+          generateimportlib(AsmData);
       end;
 
 
