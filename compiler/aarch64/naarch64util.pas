@@ -27,11 +27,12 @@ interface
 
 uses
     cclasses, ngenutil, fmodule,
+    aasmdata,
     compilerbase;
 
 type
     TAArch64NodeUtils = class(TNodeUtils)
-        procedure InsertObjectInfo; override;
+        procedure InsertObjectInfo(AsmData: TAsmData); override;
         procedure Insert_Init_Final_Table(main: tmodule; Entries: TFPList); override;
     end;
 
@@ -43,13 +44,13 @@ uses
     globals,
     cpuinfo,cpubase,
     cgbase,cgutils,
-    aasmbase,aasmdata,aasmtai,aasmcpu,
+    aasmbase,aasmtai,aasmcpu,
     symdef,
     compiler;
 
-procedure TAArch64NodeUtils.InsertObjectInfo;
+procedure TAArch64NodeUtils.InsertObjectInfo(AsmData: TAsmData);
 begin
-    inherited InsertObjectInfo;
+    inherited;
 end;
 
 {

@@ -28,6 +28,7 @@ interface
   uses
     ngenutil,
     symsym,
+    aasmdata,
     compilerbase;
 
   type
@@ -37,7 +38,7 @@ interface
     twasmnodeutils = class(tnodeutils)
     public
       procedure insertbssdata(sym : tstaticvarsym); override;
-      procedure InsertObjectInfo; override;
+      procedure InsertObjectInfo(AsmData: TAsmData); override;
     end;
 
 implementation
@@ -46,7 +47,7 @@ implementation
     cclasses,
     globtype,globals,
     cpubase,
-    aasmbase,aasmdata,aasmtai,aasmcpu,
+    aasmbase,aasmtai,aasmcpu,
     hlcgobj,hlcgcpu,
     symdef,symtype,symconst,symcpu,
     fmodule,
@@ -70,7 +71,7 @@ implementation
         inherited;
     end;
 
-  procedure twasmnodeutils.InsertObjectInfo;
+  procedure twasmnodeutils.InsertObjectInfo(AsmData: TAsmData);
 
       procedure resetfunctypechecked;
       var

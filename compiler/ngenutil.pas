@@ -151,7 +151,7 @@ interface
       { called right before an object is assembled, can be used to insert
         global information into the assembler list (used by LLVM to insert type
         info) }
-      procedure InsertObjectInfo; virtual;
+      procedure InsertObjectInfo(AsmData: TAsmData); virtual;
 
       { register that asm symbol sym with type def has to be considered as "used" even if not
         references to it can be found. If compileronly, this is only for the compiler, otherwise
@@ -1748,7 +1748,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertObjectInfo;
+  procedure tnodeutils.InsertObjectInfo(AsmData: TAsmData);
     var
       tcb: ttai_typedconstbuilder;
     begin

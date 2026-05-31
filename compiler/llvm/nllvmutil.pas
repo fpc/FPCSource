@@ -40,7 +40,7 @@ interface
       procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
       procedure InsertAsanGlobals;
      public
-      procedure InsertObjectInfo; override;
+      procedure InsertObjectInfo(AsmData: TAsmData); override;
       procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
       procedure RegisterModuleInitFunction(pd: tprocdef); override;
       procedure RegisterModuleFiniFunction(pd: tprocdef); override;
@@ -282,7 +282,7 @@ implementation
     end;
 
 
-  procedure tllvmnodeutils.InsertObjectInfo;
+  procedure tllvmnodeutils.InsertObjectInfo(AsmData: TAsmData);
     var
       llvmmoduleflags,
       objcmoduleflag,

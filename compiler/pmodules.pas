@@ -178,7 +178,7 @@ implementation
 
         { allow a target-specific pass over all assembler code (used by LLVM
           to insert type definitions }
-        compiler.nodeutils.InsertObjectInfo;
+        compiler.nodeutils.InsertObjectInfo(curr_AsmData);
 
         { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }

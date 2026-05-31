@@ -27,11 +27,12 @@ interface
 
   uses
     cclasses,ngenutil,fmodule,
+    aasmdata,
     compilerbase;
 
   type
     tarmnodeutils = class(tnodeutils)
-      procedure InsertObjectInfo; override;
+      procedure InsertObjectInfo(AsmData: TAsmData); override;
       procedure insert_init_final_table(main : tmodule; entries: tfplist); override;
     end;
 
@@ -44,7 +45,7 @@ interface
       globals,
       cpuinfo,cpubase,
       cgbase,cgutils,
-      aasmbase,aasmdata,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,
       symdef,
       compiler;
 
@@ -92,9 +93,9 @@ interface
       Tag_T2EE_use = 66;
       Tag_Virtualization_use = 68;
 
-    procedure tarmnodeutils.InsertObjectInfo;
+    procedure tarmnodeutils.InsertObjectInfo(AsmData: TAsmData);
       begin
-        inherited InsertObjectInfo;
+        inherited;
         { write eabi attributes to object file? }
         if (compiler.target.info.system in [system_arm_linux]) and (compiler.target.info.abi in [abi_eabihf,abi_eabi]) then
           begin

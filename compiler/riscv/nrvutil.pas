@@ -26,12 +26,12 @@ unit nrvutil;
 interface
 
   uses
-    ngenutil,compilerbase;
+    ngenutil,aasmdata,compilerbase;
 
 
   type
     trvnodeutils = class(tnodeutils)
-      procedure InsertObjectInfo; override;
+      procedure InsertObjectInfo(AsmData: TAsmData); override;
     end;
 
 implementation
@@ -40,7 +40,7 @@ implementation
     globtype,globals,
     systems,
     cpuinfo,
-    aasmdata,aasmtai,
+    aasmtai,
     compiler;
 
   const
@@ -51,7 +51,7 @@ implementation
     tag_priv_spec_minor = 10;
     tag_priv_spec_revision = 12;
 
-  procedure trvnodeutils.InsertObjectInfo;
+  procedure trvnodeutils.InsertObjectInfo(AsmData: TAsmData);
     var
      attr_arch: String;
     begin

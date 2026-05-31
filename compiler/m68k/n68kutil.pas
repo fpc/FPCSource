@@ -26,11 +26,11 @@ unit n68kutil;
 interface
 
     uses
-      cclasses,ngenutil,compilerbase;
+      cclasses,ngenutil,aasmdata,compilerbase;
 
     type
       t68knodeutils = class(tnodeutils)
-        procedure InsertObjectInfo; override;
+        procedure InsertObjectInfo(AsmData: TAsmData); override;
       end;
 
 implementation
@@ -40,12 +40,12 @@ implementation
       systemstypes,systems,
       globals,
       fmodule,
-      aasmbase,aasmdata,aasmtai,aasmcpu,aasmcnst,
+      aasmbase,aasmtai,aasmcpu,aasmcnst,
       symdef,symtype,
       compiler;
 
 
-    procedure t68knodeutils.InsertObjectInfo;
+    procedure t68knodeutils.InsertObjectInfo(AsmData: TAsmData);
       var
         tcb: ttai_typedconstbuilder;
         s: shortstring;
