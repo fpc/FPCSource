@@ -668,12 +668,12 @@ implementation
       if not(fc_catching_exceptions in flowcontrol) or
          { no invoke for intrinsics }
          (copy(s,1,5)='llvm.') then
-        list.concat(taillvm.call_size_name_paras(get_call_pd(pd),pd.proccalloption,res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas))
+        list.concat(taillvm.call_size_name_paras(get_call_pd(pd),pd.proccalloption,res,llvmretdef,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),callparas))
       else
         begin
-          current_asmdata.getjumplabel(nextinslab);
+          list.AsmData.getjumplabel(nextinslab);
           exceptlab:=tllvmprocinfo(compiler.current_procinfo).CurrExceptLabel;
-          list.concat(taillvm.invoke_size_name_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),callparas,nextinslab,exceptlab));
+          list.concat(taillvm.invoke_size_name_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,list.AsmData.RefAsmSymbol(s,AT_FUNCTION),callparas,nextinslab,exceptlab));
           a_label(list,nextinslab);
         end;
       result:=get_call_result_cgpara(pd,forceresdef);
@@ -695,7 +695,7 @@ implementation
         list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),pd.proccalloption,res,llvmretdef,reg,callparas))
       else
         begin
-          current_asmdata.getjumplabel(nextinslab);
+          list.AsmData.getjumplabel(nextinslab);
           exceptlab:=tllvmprocinfo(compiler.current_procinfo).CurrExceptLabel;
           list.concat(taillvm.invoke_size_reg_paras_retlab_exceptlab(get_call_pd(pd),pd.proccalloption,res,llvmretdef,reg,callparas,nextinslab,exceptlab));
           a_label(list,nextinslab);
@@ -1251,7 +1251,7 @@ implementation
       if getregtype(reg1)<>getregtype(reg2) then
         internalerror(2012111105);
       resreg:=getintregister(list,compiler.deftypes.llvmbool1type);
-      current_asmdata.getjumplabel(falselab);
+      list.AsmData.getjumplabel(falselab);
       { invert order of registers. In FPC, cmp_reg_reg(reg1,reg2) means that
         e.g. OC_GT is true if "subl %reg1,%reg2" in x86 AT&T is >0. In LLVM,
         OC_GT is true if op1>op2 }
@@ -1512,9 +1512,9 @@ implementation
         refer to the symbol and get the binding correct }
       if (cs_profile in compiler.globals.current_settings.moduleswitches) or
          (po_global in compiler.current_procinfo.procdef.procoptions) then
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,compiler.current_procinfo.procdef)
+        asmsym:=list.AsmData.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,compiler.current_procinfo.procdef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,compiler.current_procinfo.procdef);
+        asmsym:=list.AsmData.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,compiler.current_procinfo.procdef);
       while assigned(item) do
         begin
           if mangledname<>item.Str then
@@ -1645,7 +1645,7 @@ implementation
         exit;
       if ovloc.size<>OS_8 then
         internalerror(2015122504);
-      current_asmdata.getjumplabel(hl);
+      list.AsmData.getjumplabel(hl);
       a_cmp_const_loc_label(list,compiler.deftypes.llvmbool1type,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil).resetiftemp;
       a_label(list,hl);
@@ -2282,7 +2282,7 @@ implementation
     begin
       if po_external in procdef.procoptions then
         exit;
-      asmsym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
+      asmsym:=list.AsmData.RefAsmSymbol(externalname,AT_FUNCTION);
       list.concat(taillvmalias.create(asmsym,wrappername,procdef,asmsym.bind));
     end;
 
