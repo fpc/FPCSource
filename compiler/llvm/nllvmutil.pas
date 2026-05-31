@@ -38,7 +38,7 @@ interface
       procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
       procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
       procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
-      procedure InsertAsanGlobals;
+      procedure InsertAsanGlobals(AsmData: TAsmData);
      public
       procedure InsertObjectInfo(AsmData: TAsmData); override;
       procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
@@ -208,7 +208,7 @@ implementation
     end;
 
 
-  procedure tllvmnodeutils.InsertAsanGlobals;
+  procedure tllvmnodeutils.InsertAsanGlobals(AsmData: TAsmData);
     var
       asanglobal,
       asanglobals,
@@ -289,7 +289,7 @@ implementation
       dwarfversionflag: tai_llvmbasemetadatanode;
       objcabiversion: longint;
     begin
-      InsertAsanGlobals;
+      InsertAsanGlobals(AsmData);
 
       llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags',compiler);
       AsmData.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
