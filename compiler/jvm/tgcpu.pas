@@ -71,7 +71,7 @@ unit tgcpu;
         pd: tprocdef;
       begin
         gettemp(list,compiler.deftypes.java_jlobject.size,compiler.deftypes.java_jlobject.alignment,temptype,ref);
-        list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true),AT_METADATA)));
+        list.concat(taicpu.op_sym(a_new,list.AsmData.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
@@ -138,7 +138,7 @@ unit tgcpu;
               if tsetdef(def).elementdef.typ=enumdef then
                 begin
                   { load enum class type }
-                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true),AT_METADATA)));
+                  list.concat(taicpu.op_sym(a_ldc,list.AsmData.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true),AT_METADATA)));
                   thlcgjvm(hlcg).incstack(list,1);
                   { call tenumset.noneOf() class method }
                   sym:=tsym(tobjectdef(compiler.deftypes.java_juenumset).symtable.find('NONEOF'));
@@ -155,7 +155,7 @@ unit tgcpu;
                 end
               else
                 begin
-                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(compiler.deftypes.java_jubitset.jvm_full_typename(true),AT_METADATA)));
+                  list.concat(taicpu.op_sym(a_new,list.AsmData.RefAsmSymbol(compiler.deftypes.java_jubitset.jvm_full_typename(true),AT_METADATA)));
                   { the constructor doesn't return anything, so put a duplicate of the
                     self pointer on the evaluation stack for use as function result
                     after the constructor has run }
