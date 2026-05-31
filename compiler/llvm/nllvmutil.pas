@@ -292,7 +292,7 @@ implementation
       InsertAsanGlobals;
 
       llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags',compiler);
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
+      AsmData.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
 
       if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
         begin
@@ -307,7 +307,7 @@ implementation
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Version')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(objcabiversion)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { image info version }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
@@ -315,7 +315,7 @@ implementation
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Version')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { image info section }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
@@ -323,7 +323,7 @@ implementation
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Image Info Section')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info,compiler.target))));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { garbage collection }
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
@@ -331,7 +331,7 @@ implementation
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Objective-C Garbage Collection')));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(0)));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 
           { insert newly created defs in the implementation rather than interface symtable
           (the interface symtable is sealed at this point) }
@@ -348,7 +348,7 @@ implementation
           dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.charpointertype,tai_string.Create('Debug Info Version')));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[compiler.globals.current_settings.llvmversion])));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
 
           { dwarf version }
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
@@ -365,7 +365,7 @@ implementation
               internalerror(2022022012);
           end;
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+          AsmData.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
         end;
 
       compiler.symtablestack.push(compiler.current_module.localsymtable);
@@ -380,7 +380,7 @@ implementation
       InsertInitFiniList(compiler.current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
-      with TLLVMTypeInfo.Create(current_asmdata,compiler) do
+      with TLLVMTypeInfo.Create(AsmData,compiler) do
         begin
           inserttypeinfo;
           free;
