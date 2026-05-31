@@ -104,7 +104,7 @@ interface
             { const already used ? }
             if not assigned(lab_real) then
               begin
-                current_asmdata.getjumplabel(lastlabel);
+                ctx.CurrAsmList.AsmData.getjumplabel(lastlabel);
                 lab_real:=lastlabel;
                 compiler.current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
                 location.reference.symboldata:=compiler.current_procinfo.aktlocaldata.last;
