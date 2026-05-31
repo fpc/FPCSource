@@ -227,7 +227,7 @@ implementation
       module:=compiler.get_module(compiler.globals.current_filepos.moduleindex);
       for asmlisttype:=low(asmlisttype) to high(asmlisttype) do
         begin
-          list:=current_asmdata.AsmLists[asmlisttype];
+          list:=AsmData.AsmLists[asmlisttype];
           if not assigned(list) then
             continue;
           hp:=tai(list.first);
@@ -240,12 +240,12 @@ implementation
                   if not assigned(asanglobals) then
                     begin
                       asanglobals:=tai_llvmnamedmetadatanode.create('llvm.asan.globals',compiler);
-                      current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobals);
+                      AsmData.AsmLists[al_rotypedconsts].concat(asanglobals);
                     end;
                   hpdecl:=taillvmdecl(hp);
 
                   globalfileloc:=tai_llvmunnamedmetadatanode.create;
-                  current_asmdata.AsmLists[al_rotypedconsts].concat(globalfileloc);
+                  AsmData.AsmLists[al_rotypedconsts].concat(globalfileloc);
                   if assigned(hpdecl.sym) then
                     begin
                       sourcefile:=compiler.get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
@@ -262,7 +262,7 @@ implementation
                     end;
 
                   asanglobal:=tai_llvmunnamedmetadatanode.create;
-                  current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobal);
+                  AsmData.AsmLists[al_rotypedconsts].concat(asanglobal);
                   asanglobal.addvalue(tai_simpletypedconst.create(cpointerdef.getreusable(hpdecl.def,compiler),tai_const.Create_sym(hpdecl.namesym)));
                   asanglobal.addvalue(tai_simpletypedconst.create(compiler.deftypes.llvm_metadatatype,llvm_getmetadatareftypedconst(globalfileloc)));
                   if assigned(hpdecl.sym) then
