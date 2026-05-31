@@ -64,11 +64,11 @@ implementation
       field1, field2: tsym;
     begin
       if sym.globalasmsym then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,_typ,sym.vardef)
+        asmsym:=list.AsmData.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,_typ,sym.vardef)
       else if tf_supports_hidden_symbols in compiler.target.info.flags then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,_typ,sym.vardef)
+        asmsym:=list.AsmData.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,_typ,sym.vardef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
+        asmsym:=list.AsmData.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
         list.concat(taillvmdecl.createdef(asmsym,sym,sym.vardef,nil,sec_data,varalign))
       else if tf_section_threadvars in compiler.target.info.flags then
