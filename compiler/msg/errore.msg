@@ -498,7 +498,7 @@ scan_e_improperly_indented_multiline_string=02120_E_Incorrectly indented multi-l
 #
 # Parser
 #
-# 03368 is the last used one
+# 03376 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1721,6 +1721,9 @@ parser_e_type_alread_forward=03373_E_Duplicate forward type declaration: $1
 parser_e_no_suitable_newinstance_method_found=03374_E_No suitable NewInstance method for class instance creation found
 % To create a new instance of a class, a suitable NewInstance (like \var{TObject.NewInstance}) method must be found. The symbol name NewInstance
 % might not be used for other purposes than to create a new instance of a class.
+parser_w_unaligned_useless=03375_W_Unaligned is useless here.
+parser_w_aligned_useless=03376_W_Aligned is useless here.
+% Use of aligned(EXPR) or unaligned(EXPR) only has an effect if EXPR is a dereference.
 %
 % \end{description}
 %

@@ -158,14 +158,18 @@ implementation
                 secondpass(tcallparanode(left).left);
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                  location.reference.alignment:=1;
+                  location.reference.alignment:=1
+                else
+                  message(parser_w_unaligned_useless);
               end;
             in_aligned_x:
               begin
                 secondpass(tcallparanode(left).left);
                 location:=tcallparanode(left).left.location;
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                  location.reference.alignment:=resultdef.alignment;
+                  location.reference.alignment:=resultdef.alignment
+                else
+                  message(parser_w_aligned_useless);
               end;
             in_volatile_x:
               begin
