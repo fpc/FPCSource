@@ -196,9 +196,9 @@ implementation
               tcb.maybe_end_aggregate(itemdef);
             end;
           tcb.maybe_end_aggregate(arraydef);
-          current_asmdata.AsmLists[al_globals].concatlist(
+          AsmData.AsmLists[al_globals].concatlist(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol(
+              AsmData.DefineAsmSymbol(
                 initfinisymsname,AB_GLOBAL,AT_DATA,arraydef),arraydef,sec_data,
                 initfinisymsname,compiler.deftypes.voidpointertype.alignment
             )
