@@ -42,7 +42,7 @@ interface
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         Function  DoAssemble:boolean;override;
-        procedure WriteExternals;
+        procedure WriteExternals(asmdata: TAsmData);
         procedure WriteAsmFileHeader;
       private
         cur_CSECT_name: String;
@@ -1182,15 +1182,15 @@ interface
           end;
       end;
 
-    procedure TPPCMPWAssembler.WriteExternals;
+    procedure TPPCMPWAssembler.WriteExternals(asmdata: TAsmData);
       var
         i : longint;
       begin
         currentasmlist:=self;
-//        current_asmdata.asmsymboldict.foreach_static(@writeexternal,nil);
-        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+//        asmdata.asmsymboldict.foreach_static(@writeexternal,nil);
+        for i:=0 to asmdata.AsmSymbolDict.Count-1 do
           begin
-            writeexternal(tasmsymbol(current_asmdata.AsmSymbolDict[i]));
+            writeexternal(tasmsymbol(asmdata.AsmSymbolDict[i]));
           end;
      end;
 
@@ -1218,7 +1218,7 @@ interface
 {$endif}
 
       WriteAsmFileHeader;
-      WriteExternals;
+      WriteExternals(asmdata);
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
