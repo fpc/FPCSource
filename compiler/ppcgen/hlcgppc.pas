@@ -189,9 +189,9 @@ implementation
             begin
               if compiler.target.use_dotted_functions then
                 {$note ts:todo add GOT change?? - think not needed :) }
-                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
+                list.concat(taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
               else
-                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+                list.concat(taicpu.op_sym(A_B,list.AsmData.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
               if (compiler.target.info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
                 list.concat(taicpu.op_none(A_NOP));
             end;
