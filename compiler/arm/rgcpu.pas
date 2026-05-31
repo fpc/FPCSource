@@ -480,7 +480,7 @@ unit rgcpu;
             helplist:=TAsmList.create(list.AsmData);
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             cg.a_label(compiler.current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
@@ -541,7 +541,7 @@ unit rgcpu;
             helplist:=TAsmList.create(list.AsmData);
             reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
-            current_asmdata.getjumplabel(l);
+            list.AsmData.getjumplabel(l);
             cg.a_label(compiler.current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=compiler.current_procinfo.aktlocaldata.last;
 
