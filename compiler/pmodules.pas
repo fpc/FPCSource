@@ -133,9 +133,11 @@ implementation
         DLLScanner      : TDLLScanner;
         s               : string;
         KeepShared      : TCmdStrList;
+        curr_asmdata    : TAsmData;
       begin
         if curr.asmdata<>current_asmdata then
           internalerror(2026053101);
+        curr_asmdata:=TAsmData(curr.asmdata);
         { try to create import entries from system dlls }
         if (tf_has_dllscanner in compiler.target.info.flags) and
            (not curr.linkOtherSharedLibs.Empty) then
@@ -158,10 +160,10 @@ implementation
            { Recreate import section }
            if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
-              if assigned(current_asmdata.asmlists[al_imports]) then
-               current_asmdata.asmlists[al_imports].clear
+              if assigned(curr_AsmData.asmlists[al_imports]) then
+               curr_AsmData.asmlists[al_imports].clear
               else
-               current_asmdata.asmlists[al_imports]:=TAsmList.Create(current_asmdata);
+               curr_AsmData.asmlists[al_imports]:=TAsmList.Create(curr_AsmData);
               compiler.importlib.generatelib;
             end;
            { Readd the not processed files }
@@ -186,12 +188,12 @@ implementation
 
         { create the .s file and assemble it }
         if not(compiler.globals.create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in compiler.target.info.flags) then
-          GenerateAsm(compiler,current_asmdata,false);
+          GenerateAsm(compiler,curr_AsmData,false);
 
         { Also create a smartlinked version ? }
         if compiler.globals.create_smartlink_library then
          begin
-           GenerateAsm(compiler,current_asmdata,true);
+           GenerateAsm(compiler,curr_AsmData,true);
            if (af_needar in compiler.target._asm.flags) then
              compiler.Linker.MakeStaticLibrary;
          end;
