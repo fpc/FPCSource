@@ -51,6 +51,7 @@ implementation
        verbose,
        aasmbase,aasmdata,aasmllvm,
        symconst,symdef,
+       pass_2_context,
        compiler;
 
     procedure tllvmcallparanode.push_formal_para(ctx:tpassgeneratecodecontext);
@@ -135,10 +136,10 @@ implementation
               def. LLVM can take the original def into account to load certain
               registers, so if we use a wrong def this can result in wrong code
               generation. }
-           asmsym:=current_asmdata.RefAsmSymbol(overrideprocnamedef.mangledname,AT_FUNCTION);
+           asmsym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(overrideprocnamedef.mangledname,AT_FUNCTION);
            if not asmsym.declared then
              begin
-               current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.createdecl(asmsym,symtableprocentry,overrideprocnamedef,nil,sec_code,overrideprocnamedef.alignment));
+               ctx.CurrAsmList.AsmData.AsmLists[al_imports].Concat(taillvmdecl.createdecl(asmsym,symtableprocentry,overrideprocnamedef,nil,sec_code,overrideprocnamedef.alignment));
              end;
           end;
       end;
