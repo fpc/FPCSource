@@ -761,7 +761,7 @@ begin
 
         if bFoldHResult then  // then fold property with safecall getter to have correct type and convention
            begin
-             sType:=TypeToString(TI,FD^.lprgelemdescParam[0].tdesc);
+             sType:=TypeToString(TI,FD^.lprgelemdescParam[0].tdesc.lptdesc^);
              sConv:='Safecall';
            end;
 
