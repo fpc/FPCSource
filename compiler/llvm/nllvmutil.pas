@@ -150,9 +150,9 @@ implementation
                 end;
             end;
           tcb.maybe_end_aggregate(useddef);
-          current_asmdata.AsmLists[al_globals].concatlist(
+          AsmData.AsmLists[al_globals].concatlist(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol(
+              AsmData.DefineAsmSymbol(
                 usedsymsname,AB_GLOBAL,AT_DATA,useddef),useddef,sec_user,
                 'llvm.metadata',0
             )
