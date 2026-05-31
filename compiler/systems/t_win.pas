@@ -44,7 +44,7 @@ interface
       TImportLibWin=class(timportlib)
       private
         procedure generateimportlib;
-        procedure generateidatasection;
+        procedure generateidatasection(AsmData: TAsmData);
       public
         procedure generatelib(AsmData: TAsmData);override;
       end;
@@ -427,7 +427,7 @@ implementation
       end;
 
 
-    procedure TImportLibWin.generateidatasection;
+    procedure TImportLibWin.generateidatasection(AsmData: TAsmData);
       var
          templab,
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
@@ -619,7 +619,7 @@ implementation
     procedure TImportLibWin.generatelib(AsmData: TAsmData);
       begin
         if compiler.globals.GenerateImportSection then
-          generateidatasection
+          generateidatasection(AsmData)
         else
           generateimportlib;
       end;
