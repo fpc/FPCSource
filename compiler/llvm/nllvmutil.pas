@@ -36,7 +36,7 @@ interface
     tllvmnodeutils = class(tnodeutils)
      strict protected
       procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
-      procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
+      procedure InsertUsedList(AsmData: TAsmData; var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
       procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
       procedure InsertAsanGlobals(AsmData: TAsmData);
      public
@@ -104,7 +104,7 @@ implementation
     end;
 
 
-    procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist;
+    procedure tllvmnodeutils.InsertUsedList(AsmData: TAsmData; var usedsyms: tfpobjectlist;
     const usedsymsname: TSymStr);
     var
       useddef: tdef;
@@ -371,9 +371,9 @@ implementation
       compiler.symtablestack.push(compiler.current_module.localsymtable);
 
       { add the llvm.compiler.used array }
-      InsertUsedList(compiler.current_module.llvmcompilerusedsyms,'llvm.compiler.used');
+      InsertUsedList(AsmData,compiler.current_module.llvmcompilerusedsyms,'llvm.compiler.used');
       { add the llvm.used array }
-      InsertUsedList(compiler.current_module.llvmusedsyms,'llvm.used');
+      InsertUsedList(AsmData,compiler.current_module.llvmusedsyms,'llvm.used');
       { add the llvm.global_ctors array }
       InsertInitFiniList(compiler.current_module.llvminitprocs,'llvm.global_ctors');
       { add the llvm.global_dtors array }
