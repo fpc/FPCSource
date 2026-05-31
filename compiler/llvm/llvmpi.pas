@@ -110,7 +110,7 @@ implementation
         begin
           exceptstate.oldflowcontrol:=flowcontrol;
           if exceptframekind<>tek_except then
-            current_asmdata.getjumplabel(exceptstate.finallycodelabel)
+            list.AsmData.getjumplabel(exceptstate.finallycodelabel)
           else
             exceptstate.finallycodelabel:=nil;
           { all calls inside the exception block have to be invokes instead,
@@ -119,7 +119,7 @@ implementation
                 %reg = landingpad ..
                 <exception handling code>
           }
-          current_asmdata.getjumplabel(exceptstate.exceptionlabel);
+          list.AsmData.getjumplabel(exceptstate.exceptionlabel);
           { for consistency checking when popping }
           tllvmprocinfo(compiler.current_procinfo).pushexceptlabel(exceptstate.exceptionlabel);
           flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
@@ -308,7 +308,7 @@ implementation
                           otherunit;
                   { add "catch exceptiontype" clause to the landing pad }
                   rttidef:=cpointerdef.getreusable(excepttype.vmt_def,compiler);
-                  rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
+                  rttisym:=list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
                   landingpad.landingpad_add_clause(la_catch,rttidef,rttisym);
                 end
               else
@@ -335,7 +335,7 @@ implementation
               exceptloc.register:=hlcg.getintregister(list,landingpadtypeiddef);
               hlcg.gen_load_cgpara_loc(list, landingpadtypeiddef, typeidres, exceptloc, true);
               list.concat(taillvm.extract(la_extractvalue,exceptiontypeidreg,landingpadstructdef,landingpadres,1));
-              current_asmdata.getjumplabel(catchstartlab);
+              list.AsmData.getjumplabel(catchstartlab);
               hlcg.a_cmp_reg_loc_label(list,typeidres.Def,OC_EQ,exceptiontypeidreg,exceptloc,catchstartlab);
               hlcg.a_jmp_always(list,nextonlabel);
               hlcg.a_label(list,catchstartlab);
