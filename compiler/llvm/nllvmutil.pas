@@ -37,7 +37,7 @@ interface
      strict protected
       procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
       procedure InsertUsedList(AsmData: TAsmData; var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
-      procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+      procedure InsertInitFiniList(AsmData: TAsmData; var procdefs: tfplist; const initfinisymsname: TSymStr);
       procedure InsertAsanGlobals(AsmData: TAsmData);
      public
       procedure InsertObjectInfo(AsmData: TAsmData); override;
@@ -164,7 +164,7 @@ implementation
     end;
 
 
-  procedure tllvmnodeutils.InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+  procedure tllvmnodeutils.InsertInitFiniList(AsmData: TAsmData; var procdefs: tfplist; const initfinisymsname: TSymStr);
     var
       itemdef: trecorddef;
       arraydef: tarraydef;
@@ -375,9 +375,9 @@ implementation
       { add the llvm.used array }
       InsertUsedList(AsmData,compiler.current_module.llvmusedsyms,'llvm.used');
       { add the llvm.global_ctors array }
-      InsertInitFiniList(compiler.current_module.llvminitprocs,'llvm.global_ctors');
+      InsertInitFiniList(AsmData,compiler.current_module.llvminitprocs,'llvm.global_ctors');
       { add the llvm.global_dtors array }
-      InsertInitFiniList(compiler.current_module.llvmfiniprocs,'llvm.global_dtors');
+      InsertInitFiniList(AsmData,compiler.current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
       with TLLVMTypeInfo.Create(AsmData,compiler) do
