@@ -48,7 +48,7 @@ type
   { texportlibwasi }
 
   texportlibwasi=class(texportlib)
-      procedure preparelib(const s : string);override;
+      procedure preparelib(AsmData: TAsmData; const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib(AsmData: TAsmData);override;
@@ -271,7 +271,7 @@ end;
 
 { texportlibwasi }
 
-procedure texportlibwasi.preparelib(const s: string);
+procedure texportlibwasi.preparelib(AsmData: TAsmData; const s: string);
 begin
   //nothing to happen. wasm files are modules
 end;

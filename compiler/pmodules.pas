@@ -1502,7 +1502,7 @@ type
          dispose(s1);
 
          if (compiler.target.info.system in systems_unit_program_exports) then
-           compiler.exportlib.preparelib(curr.realmodulename^);
+           compiler.exportlib.preparelib(current_asmdata,curr.realmodulename^);
 
          { parse hint directives }
          try_consume_hintdirective(curr.moduleoptions, curr.deprecatedmsg);
@@ -2062,7 +2062,7 @@ type
 
          curr.setmodulename(module_name);
          curr.ispackage:=true;
-         compiler.exportlib.preparelib(module_name);
+         compiler.exportlib.preparelib(current_asmdata,module_name);
          pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in compiler.target.info.flags then
@@ -2903,7 +2903,7 @@ type
          end;
         curr.setmodulename(program_name);
         curr.islibrary:=true;
-        compiler.exportlib.preparelib(program_name);
+        compiler.exportlib.preparelib(current_asmdata,program_name);
 
         if tf_library_needs_pic in compiler.target.info.flags then
          begin
@@ -2940,7 +2940,7 @@ type
             end;
           curr.setmodulename(program_name);
           if (compiler.target.info.system in systems_unit_program_exports) then
-            compiler.exportlib.preparelib(program_name);
+            compiler.exportlib.preparelib(current_asmdata,program_name);
           if current_scanner.token=_LKLAMMER then
             begin
                parser.pbase.consume(_LKLAMMER);
@@ -3051,7 +3051,7 @@ type
          else
            begin
              if (compiler.target.info.system in systems_unit_program_exports) then
-               compiler.exportlib.preparelib(curr.realmodulename^);
+               compiler.exportlib.preparelib(current_asmdata,curr.realmodulename^);
 
              { setup things using the switches }
              setupglobalswitches;

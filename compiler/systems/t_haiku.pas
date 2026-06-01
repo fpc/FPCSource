@@ -37,7 +37,7 @@ interface
     end;
 
     texportlibhaiku=class(texportlib)
-      procedure preparelib(const s : string);override;
+      procedure preparelib(AsmData: TAsmData; const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib(AsmData: TAsmData);override;
@@ -85,7 +85,7 @@ implementation
                                TEXPORTLIBHAIKU
 *****************************************************************************}
 
-procedure texportlibhaiku.preparelib(const s:string);
+procedure texportlibhaiku.preparelib(AsmData: TAsmData; const s:string);
 begin
 end;
 

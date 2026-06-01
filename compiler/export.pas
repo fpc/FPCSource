@@ -67,7 +67,7 @@ type
    public
       constructor Create(ACompiler: TCompilerBase);virtual;
       destructor Destroy;override;
-      procedure preparelib(const s : string);virtual;
+      procedure preparelib(AsmData: TAsmData; const s : string);virtual;
       procedure exportprocedure(hp : texported_item);virtual;
       procedure exportvar(hp : texported_item);virtual;
       procedure generatelib(AsmData: TAsmData);virtual;
@@ -223,7 +223,7 @@ begin
 end;
 
 
-procedure texportlib.preparelib(const s:string);
+procedure texportlib.preparelib(AsmData: TAsmData; const s:string);
 begin
   NotSupported;
 end;

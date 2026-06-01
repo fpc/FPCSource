@@ -56,7 +56,7 @@ interface
         EList_nonindexed:TFPList;
       public
         destructor Destroy;override;
-        procedure preparelib(const s:string);override;
+        procedure preparelib(AsmData: TAsmData; const s:string);override;
         procedure exportprocedure(hp : texported_item);override;
         procedure exportvar(hp : texported_item);override;
         procedure exportfromlist(hp : texported_item);
@@ -637,7 +637,7 @@ implementation
       end;
 
 
-    procedure TExportLibWin.preparelib(const s:string);
+    procedure TExportLibWin.preparelib(AsmData: TAsmData; const s:string);
       begin
          if current_asmdata.asmlists[al_exports]=nil then
            current_asmdata.asmlists[al_exports]:=TAsmList.create(current_asmdata);

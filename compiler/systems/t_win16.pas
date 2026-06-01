@@ -56,7 +56,7 @@ implementation
         EList: TFPList;
       public
         destructor Destroy;override;
-        procedure preparelib(const s : string);override;
+        procedure preparelib(AsmData: TAsmData; const s : string);override;
         procedure exportprocedure(hp : texported_item);override;
         procedure generatelib(AsmData: TAsmData);override;
       end;
@@ -142,7 +142,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TExportLibWin16.preparelib(const s: string);
+procedure TExportLibWin16.preparelib(AsmData: TAsmData; const s: string);
 begin
   if EList=nil then
     EList:=TFPList.Create;

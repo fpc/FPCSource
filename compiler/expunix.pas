@@ -40,7 +40,7 @@ type
    public
     constructor Create(ACompiler: TCompilerBase); override;
     destructor destroy; override;
-    procedure preparelib(const s : string);override;
+    procedure preparelib(AsmData: TAsmData; const s : string);override;
     procedure exportprocedure(hp : texported_item);override;
     procedure exportvar(hp : texported_item);override;
     procedure generatelib(AsmData: TAsmData);override;
@@ -81,7 +81,7 @@ end;
 
 
 
-procedure texportlibunix.preparelib(const s:string);
+procedure texportlibunix.preparelib(AsmData: TAsmData; const s:string);
 begin
 end;
 

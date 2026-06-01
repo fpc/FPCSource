@@ -107,7 +107,7 @@ implementation
     end;
 
     texportlibnetware=class(texportlib)
-      procedure preparelib(const s : string);override;
+      procedure preparelib(AsmData: TAsmData; const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib(AsmData: TAsmData);override;
@@ -157,7 +157,7 @@ Const tmpLinkFileName = 'link~tmp._o_';
                                TEXPORTLIBNETWARE
 *****************************************************************************}
 
-procedure texportlibnetware.preparelib(const s:string);
+procedure texportlibnetware.preparelib(AsmData: TAsmData; const s:string);
 begin
 end;
 
