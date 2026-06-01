@@ -289,7 +289,7 @@ begin
   else
     begin
       nm := pd.mangledname;
-      current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(hp.name^, nm, ie_Func));
+      AsmData.asmlists[al_exports].Concat(tai_export_name.create(hp.name^, nm, ie_Func));
     end;
 end;
 
