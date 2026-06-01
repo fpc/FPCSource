@@ -787,10 +787,10 @@ implementation
          ordinal_min:=$7FFFFFFF;
          entries:=0;
          named_entries:=0;
-         current_asmdata.getjumplabel(dll_name_label);
-         current_asmdata.getjumplabel(export_address_table);
-         current_asmdata.getjumplabel(export_name_table_pointers);
-         current_asmdata.getjumplabel(export_ordinal_table);
+         AsmData.getjumplabel(dll_name_label);
+         AsmData.getjumplabel(export_address_table);
+         AsmData.getjumplabel(export_name_table_pointers);
+         AsmData.getjumplabel(export_ordinal_table);
 
          { count entries }
          while assigned(hp) do
@@ -811,50 +811,50 @@ implementation
          { we must also count the holes !! }
          entries:=ordinal_max-ordinal_base+1;
 
-         new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
+         new_section(AsmData.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
+         AsmData.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
          { export flags }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { major version }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
          { minor version }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
          { pointer to dll name }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(dll_name_label));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_rva_sym(dll_name_label));
          { ordinal base normally set to 1 }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(ordinal_base));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(ordinal_base));
          { number of entries }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(entries));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(entries));
          { number of named entries }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(named_entries));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(named_entries));
          { address of export address table }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_address_table));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_address_table));
          { address of name pointer pointers }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_name_table_pointers));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_name_table_pointers));
          { address of ordinal number pointers }
-         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_ordinal_table));
+         AsmData.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_ordinal_table));
          { the name }
-         current_asmdata.asmlists[al_exports].concat(Tai_label.Create(dll_name_label));
+         AsmData.asmlists[al_exports].concat(Tai_label.Create(dll_name_label));
          if st='' then
-           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(compiler.current_module.modulename^+compiler.target.info.sharedlibext+#0))
+           AsmData.asmlists[al_exports].concat(Tai_string.Create(compiler.current_module.modulename^+compiler.target.info.sharedlibext+#0))
          else
-           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+compiler.target.info.sharedlibext+#0));
+           AsmData.asmlists[al_exports].concat(Tai_string.Create(st+compiler.target.info.sharedlibext+#0));
 
          {  export address table }
-         address_table:=TAsmList.create(current_asmdata);
+         address_table:=TAsmList.create(AsmData);
          address_table.concat(Tai_align.Create_op(4,0));
          address_table.concat(Tai_label.Create(export_address_table));
-         name_table_pointers:=TAsmList.create(current_asmdata);
+         name_table_pointers:=TAsmList.create(AsmData);
          name_table_pointers.concat(Tai_align.Create_op(4,0));
          name_table_pointers.concat(Tai_label.Create(export_name_table_pointers));
-         ordinal_table:=TAsmList.create(current_asmdata);
+         ordinal_table:=TAsmList.create(AsmData);
          ordinal_table.concat(Tai_align.Create_op(4,0));
          ordinal_table.concat(Tai_label.Create(export_ordinal_table));
-         name_table:=TAsmList.Create(current_asmdata);
+         name_table:=TAsmList.Create(AsmData);
          name_table.concat(Tai_align.Create_op(4,0));
          { write each address }
          hp:=texported_item(compiler.current_module._exports.first);
@@ -862,7 +862,7 @@ implementation
            begin
               if eo_name in hp.options then
                 begin
-                   current_asmdata.getjumplabel(name_label);
+                   AsmData.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
                    ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
                    name_table.concat(Tai_align.Create_op(2,0));
@@ -904,23 +904,23 @@ implementation
               if assigned(hp.sym) and not (eo_no_sym_name in hp.options) then
                 case hp.sym.typ of
                   staticvarsym :
-                    asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname,AT_DATA);
+                    asmsym:=AsmData.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname,AT_DATA);
                   procsym :
-                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname,AT_FUNCTION)
+                    asmsym:=AsmData.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname,AT_FUNCTION)
                   else
                     internalerror(200709272);
                 end
               else
-                asmsym:=current_asmdata.RefAsmSymbol(hp.name^,AT_DATA);
+                asmsym:=AsmData.RefAsmSymbol(hp.name^,AT_DATA);
               address_table.concat(Tai_const.Create_rva_sym(asmsym));
               inc(current_index);
               hp:=texported_item(hp.next);
            end;
 
-         current_asmdata.asmlists[al_exports].concatlist(address_table);
-         current_asmdata.asmlists[al_exports].concatlist(name_table_pointers);
-         current_asmdata.asmlists[al_exports].concatlist(ordinal_table);
-         current_asmdata.asmlists[al_exports].concatlist(name_table);
+         AsmData.asmlists[al_exports].concatlist(address_table);
+         AsmData.asmlists[al_exports].concatlist(name_table_pointers);
+         AsmData.asmlists[al_exports].concatlist(ordinal_table);
+         AsmData.asmlists[al_exports].concatlist(name_table);
          address_table.Free;
          name_table_pointers.free;
          ordinal_table.free;
