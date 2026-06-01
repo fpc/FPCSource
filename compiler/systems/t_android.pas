@@ -148,8 +148,8 @@ const
         // If JNI_OnLoad is exported, export a system proxy function instead
         create_hlcodegen(compiler);
         hlcg:=compiler.hlcg;
-        new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-        hlcg.g_external_wrapper(current_asmdata.asmlists[al_procedures],nil,SJNI_OnLoad,'FPC_JNI_ON_LOAD_PROXY',true);
+        new_section(AsmData.asmlists[al_procedures],sec_code,'',0);
+        hlcg.g_external_wrapper(AsmData.asmlists[al_procedures],nil,SJNI_OnLoad,'FPC_JNI_ON_LOAD_PROXY',true);
         destroy_hlcodegen(compiler);
         exportedsymnames.insert(SJNI_OnLoad);
       end;
