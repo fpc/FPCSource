@@ -639,8 +639,8 @@ implementation
 
     procedure TExportLibWin.preparelib(AsmData: TAsmData; const s:string);
       begin
-         if current_asmdata.asmlists[al_exports]=nil then
-           current_asmdata.asmlists[al_exports]:=TAsmList.create(current_asmdata);
+         if AsmData.asmlists[al_exports]=nil then
+           AsmData.asmlists[al_exports]:=TAsmList.create(AsmData);
          if EList_indexed=nil then
            EList_indexed:=tFPList.Create;
          if EList_nonindexed=nil then
