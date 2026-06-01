@@ -962,9 +962,9 @@ implementation
             referenced anywhere, so also create a reference }
           if (compiler.target.dbg.id=dbg_stabx) and
              (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
-             not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
+             not assigned(list.AsmData.GetAsmSymbol(sym.name)) then
             begin
-              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
+              list.concat(tai_symbol.Create(list.AsmData.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
               list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
           list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef,_typ));
