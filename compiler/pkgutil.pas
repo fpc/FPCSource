@@ -92,7 +92,7 @@ implementation
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportvar(hp);
+      compiler.exportlib.exportvar(current_asmdata,hp);
     end;
 
 
@@ -161,7 +161,7 @@ implementation
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportvar(hp);
+      compiler.exportlib.exportvar(current_asmdata,hp);
     end;
 
 

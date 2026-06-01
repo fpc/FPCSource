@@ -69,7 +69,7 @@ type
       destructor Destroy;override;
       procedure preparelib(AsmData: TAsmData; const s : string);virtual;
       procedure exportprocedure(AsmData: TAsmData; hp : texported_item);virtual;
-      procedure exportvar(hp : texported_item);virtual;
+      procedure exportvar(AsmData: TAsmData; hp : texported_item);virtual;
       procedure generatelib(AsmData: TAsmData);virtual;
       procedure setinitname(list: TAsmList; const s: string); virtual;
       procedure setfininame(list: TAsmList; const s: string); virtual;
@@ -128,7 +128,7 @@ procedure texportlib.exportvarsym(sym: tsym; const s : string; index: longint; o
     hp.is_var:=true;
     hp.options:=options+[eo_name];
     hp.index:=index;
-    exportvar(hp);
+    exportvar(current_asmdata,hp);
   end;
 
 
@@ -235,7 +235,7 @@ begin
 end;
 
 
-procedure texportlib.exportvar(hp : texported_item);
+procedure texportlib.exportvar(AsmData: TAsmData; hp : texported_item);
 begin
   NotSupported;
 end;

@@ -58,7 +58,7 @@ interface
         destructor Destroy;override;
         procedure preparelib(AsmData: TAsmData; const s:string);override;
         procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
-        procedure exportvar(hp : texported_item);override;
+        procedure exportvar(AsmData: TAsmData; hp : texported_item);override;
         procedure exportfromlist(hp : texported_item);
         procedure generatelib(AsmData: TAsmData);override;
         procedure generatenasmlib(AsmData: TAsmData);virtual;
@@ -648,10 +648,10 @@ implementation
       end;
 
 
-    procedure TExportLibWin.exportvar(hp : texported_item);
+    procedure TExportLibWin.exportvar(AsmData: TAsmData; hp : texported_item);
       begin
          { same code used !! PM }
-         exportprocedure(current_asmdata,hp);
+         exportprocedure(AsmData,hp);
       end;
 
     function IdxCompare(Item1, Item2: Pointer): Integer;

@@ -39,7 +39,7 @@ interface
     texportlibhaiku=class(texportlib)
       procedure preparelib(AsmData: TAsmData; const s : string);override;
       procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
-      procedure exportvar(hp : texported_item);override;
+      procedure exportvar(AsmData: TAsmData; hp : texported_item);override;
       procedure generatelib(AsmData: TAsmData);override;
     end;
 
@@ -127,10 +127,10 @@ begin
 end;
 
 
-procedure texportlibhaiku.exportvar(hp : texported_item);
+procedure texportlibhaiku.exportvar(AsmData: TAsmData; hp : texported_item);
 begin
   hp.is_var:=true;
-  exportprocedure(current_asmdata,hp);
+  exportprocedure(AsmData,hp);
 end;
 
 
