@@ -70,7 +70,7 @@ type
       procedure preparelib(const s : string);virtual;
       procedure exportprocedure(hp : texported_item);virtual;
       procedure exportvar(hp : texported_item);virtual;
-      procedure generatelib;virtual;
+      procedure generatelib(AsmData: TAsmData);virtual;
       procedure setinitname(list: TAsmList; const s: string); virtual;
       procedure setfininame(list: TAsmList; const s: string); virtual;
 
@@ -241,7 +241,7 @@ begin
 end;
 
 
-procedure texportlib.generatelib;
+procedure texportlib.generatelib(AsmData: TAsmData);
 begin
   NotSupported;
 end;

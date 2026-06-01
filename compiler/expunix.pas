@@ -31,7 +31,7 @@ uses
   systems,compilerbase,
   export,
   symdef,symsym,
-  aasmbase;
+  aasmbase,aasmdata;
 
 type
   texportlibunix=class(texportlib)
@@ -43,7 +43,7 @@ type
     procedure preparelib(const s : string);override;
     procedure exportprocedure(hp : texported_item);override;
     procedure exportvar(hp : texported_item);override;
-    procedure generatelib;override;
+    procedure generatelib(AsmData: TAsmData);override;
     property exportedsymnames: TCmdStrList read fexportedsymnames;
   end;
 
@@ -56,7 +56,7 @@ implementation
 uses
   symconst,
   globals,
-  aasmdata,aasmtai,
+  aasmtai,
   fmodule,compiler,
   {$ifdef cpuhighleveltarget}
   symcreat,
@@ -167,7 +167,7 @@ begin
 end;
 
 
-procedure texportlibunix.generatelib;  // straight t_linux copy for now.
+procedure texportlibunix.generatelib(AsmData: TAsmData);  // straight t_linux copy for now.
 var
   hlcg: thlcgobj;
   hp2 : texported_item;

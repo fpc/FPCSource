@@ -58,7 +58,7 @@ implementation
         destructor Destroy;override;
         procedure preparelib(const s : string);override;
         procedure exportprocedure(hp : texported_item);override;
-        procedure generatelib;override;
+        procedure generatelib(AsmData: TAsmData);override;
       end;
 
       { the (Open) Watcom linker }
@@ -158,7 +158,7 @@ begin
   EList.Add(hp);
 end;
 
-procedure TExportLibWin16.generatelib;
+procedure TExportLibWin16.generatelib(AsmData: TAsmData);
 var
   ObjWriter: TObjectWriter;
   ObjOutput: TOmfObjOutput;

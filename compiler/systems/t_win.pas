@@ -60,7 +60,7 @@ interface
         procedure exportprocedure(hp : texported_item);override;
         procedure exportvar(hp : texported_item);override;
         procedure exportfromlist(hp : texported_item);
-        procedure generatelib;override;
+        procedure generatelib(AsmData: TAsmData);override;
         procedure generatenasmlib;virtual;
       end;
 
@@ -703,7 +703,7 @@ implementation
       end;
 
 
-    procedure TExportLibWin.generatelib;
+    procedure TExportLibWin.generatelib(AsmData: TAsmData);
 
       function CheckForDuplicatedIndex(out DoubleIndexValue: longint): boolean;
         var

@@ -43,7 +43,7 @@ interface
     public
       procedure setfininame(list: TAsmList; const s: string); override;
       procedure exportprocedure(hp: texported_item); override;
-      procedure generatelib; override;
+      procedure generatelib(AsmData: TAsmData); override;
     end;
 
     { tlinkerandroid }
@@ -138,11 +138,11 @@ const
         inherited exportprocedure(hp);
       end;
 
-    procedure texportlibandroid.generatelib;
+    procedure texportlibandroid.generatelib(AsmData: TAsmData);
       var
         hlcg: thlcgobj;
       begin
-        inherited generatelib;
+        inherited;
         if tlinkerandroid(compiler.Linker).FJNIOnLoadName = '' then
           exit;
         // If JNI_OnLoad is exported, export a system proxy function instead

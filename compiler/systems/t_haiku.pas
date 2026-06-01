@@ -40,7 +40,7 @@ interface
       procedure preparelib(const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
     tlinkerhaiku=class(texternallinker)
@@ -134,7 +134,7 @@ begin
 end;
 
 
-procedure texportlibhaiku.generatelib;
+procedure texportlibhaiku.generatelib(AsmData: TAsmData);
 var
   hp2 : texported_item;
   pd  : tprocdef;

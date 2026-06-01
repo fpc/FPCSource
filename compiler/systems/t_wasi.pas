@@ -51,7 +51,7 @@ type
       procedure preparelib(const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
-      procedure generatelib;override;
+      procedure generatelib(AsmData: TAsmData);override;
     end;
 
   { timportlibwasi }
@@ -298,7 +298,7 @@ begin
   //inherited exportvar(hp);
 end;
 
-procedure texportlibwasi.generatelib;
+procedure texportlibwasi.generatelib(AsmData: TAsmData);
 begin
   //inherited generatelib;
 end;

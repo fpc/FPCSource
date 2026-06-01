@@ -2323,7 +2323,7 @@ type
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
-         compiler.exportlib.generatelib;
+         compiler.exportlib.generatelib(current_asmdata);
 
          compiler.exportlib.ignoreduplicates:=false;
 
@@ -2601,7 +2601,7 @@ type
           current_debuginfo.inserttypeinfo;
 
         if islibrary or (compiler.target.info.system in systems_unit_program_exports) then
-          compiler.exportlib.generatelib;
+          compiler.exportlib.generatelib(current_asmdata);
 
         { Reference all DEBUGINFO sections from the main .fpc section }
         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
