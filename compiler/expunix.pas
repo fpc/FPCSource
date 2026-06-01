@@ -41,7 +41,7 @@ type
     constructor Create(ACompiler: TCompilerBase); override;
     destructor destroy; override;
     procedure preparelib(AsmData: TAsmData; const s : string);override;
-    procedure exportprocedure(hp : texported_item);override;
+    procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
     procedure exportvar(hp : texported_item);override;
     procedure generatelib(AsmData: TAsmData);override;
     property exportedsymnames: TCmdStrList read fexportedsymnames;
@@ -86,7 +86,7 @@ begin
 end;
 
 
-procedure texportlibunix.exportprocedure(hp : texported_item);
+procedure texportlibunix.exportprocedure(AsmData: TAsmData; hp : texported_item);
 var
   hp2 : texported_item;
 {$ifdef cpuhighleveltarget}
@@ -163,7 +163,7 @@ end;
 procedure texportlibunix.exportvar(hp : texported_item);
 begin
   hp.is_var:=true;
-  exportprocedure(hp);
+  exportprocedure(current_asmdata,hp);
 end;
 
 

@@ -39,7 +39,7 @@ interface
 
     texportlibbeos=class(texportlib)
       procedure preparelib(AsmData: TAsmData; const s : string);override;
-      procedure exportprocedure(hp : texported_item);override;
+      procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib(AsmData: TAsmData);override;
     end;
@@ -90,7 +90,7 @@ begin
 end;
 
 
-procedure texportlibbeos.exportprocedure(hp : texported_item);
+procedure texportlibbeos.exportprocedure(AsmData: TAsmData; hp : texported_item);
 var
   hp2 : texported_item;
 begin
@@ -130,7 +130,7 @@ end;
 procedure texportlibbeos.exportvar(hp : texported_item);
 begin
   hp.is_var:=true;
-  exportprocedure(hp);
+  exportprocedure(current_asmdata,hp);
 end;
 
 

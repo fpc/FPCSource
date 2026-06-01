@@ -57,7 +57,7 @@ interface
       public
         destructor Destroy;override;
         procedure preparelib(AsmData: TAsmData; const s:string);override;
-        procedure exportprocedure(hp : texported_item);override;
+        procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
         procedure exportvar(hp : texported_item);override;
         procedure exportfromlist(hp : texported_item);
         procedure generatelib(AsmData: TAsmData);override;
@@ -651,7 +651,7 @@ implementation
     procedure TExportLibWin.exportvar(hp : texported_item);
       begin
          { same code used !! PM }
-         exportprocedure(hp);
+         exportprocedure(current_asmdata,hp);
       end;
 
     function IdxCompare(Item1, Item2: Pointer): Integer;
@@ -663,7 +663,7 @@ implementation
       end;
 
 
-    procedure TExportLibWin.exportprocedure(hp : texported_item);
+    procedure TExportLibWin.exportprocedure(AsmData: TAsmData; hp : texported_item);
       begin
         if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin

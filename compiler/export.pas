@@ -68,7 +68,7 @@ type
       constructor Create(ACompiler: TCompilerBase);virtual;
       destructor Destroy;override;
       procedure preparelib(AsmData: TAsmData; const s : string);virtual;
-      procedure exportprocedure(hp : texported_item);virtual;
+      procedure exportprocedure(AsmData: TAsmData; hp : texported_item);virtual;
       procedure exportvar(hp : texported_item);virtual;
       procedure generatelib(AsmData: TAsmData);virtual;
       procedure setinitname(list: TAsmList; const s: string); virtual;
@@ -114,7 +114,7 @@ procedure texportlib.exportprocsym(sym: tsym; const s : string; index: longint; 
     hp.sym:=sym;
     hp.options:=options+[eo_name];
     hp.index:=index;
-    exportprocedure(hp);
+    exportprocedure(current_asmdata,hp);
   end;
 
 
@@ -229,7 +229,7 @@ begin
 end;
 
 
-procedure texportlib.exportprocedure(hp : texported_item);
+procedure texportlib.exportprocedure(AsmData: TAsmData; hp : texported_item);
 begin
   NotSupported;
 end;

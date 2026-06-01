@@ -57,7 +57,7 @@ implementation
       public
         destructor Destroy;override;
         procedure preparelib(AsmData: TAsmData; const s : string);override;
-        procedure exportprocedure(hp : texported_item);override;
+        procedure exportprocedure(AsmData: TAsmData; hp : texported_item);override;
         procedure generatelib(AsmData: TAsmData);override;
       end;
 
@@ -148,7 +148,7 @@ begin
     EList:=TFPList.Create;
 end;
 
-procedure TExportLibWin16.exportprocedure(hp: texported_item);
+procedure TExportLibWin16.exportprocedure(AsmData: TAsmData; hp: texported_item);
 begin
   if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
     begin

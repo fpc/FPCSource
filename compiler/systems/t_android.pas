@@ -42,7 +42,7 @@ interface
     texportlibandroid=class(texportlibunix)
     public
       procedure setfininame(list: TAsmList; const s: string); override;
-      procedure exportprocedure(hp: texported_item); override;
+      procedure exportprocedure(AsmData: TAsmData; hp: texported_item); override;
       procedure generatelib(AsmData: TAsmData); override;
     end;
 
@@ -113,7 +113,7 @@ const
         inherited setfininame(list,s);
       end;
 
-    procedure texportlibandroid.exportprocedure(hp: texported_item);
+    procedure texportlibandroid.exportprocedure(AsmData: TAsmData; hp: texported_item);
       begin
         {
           Android versions prior to 4.1 do not support recursive dlopen() calls.
@@ -135,7 +135,7 @@ const
             hp.Free;
             exit;
           end;
-        inherited exportprocedure(hp);
+        inherited;
       end;
 
     procedure texportlibandroid.generatelib(AsmData: TAsmData);

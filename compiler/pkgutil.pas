@@ -81,7 +81,7 @@ implementation
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportprocedure(hp);
+      compiler.exportlib.exportprocedure(current_asmdata,hp);
     end;
 
 
