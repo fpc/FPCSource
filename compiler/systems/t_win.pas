@@ -61,7 +61,7 @@ interface
         procedure exportvar(hp : texported_item);override;
         procedure exportfromlist(hp : texported_item);
         procedure generatelib(AsmData: TAsmData);override;
-        procedure generatenasmlib;virtual;
+        procedure generatenasmlib(AsmData: TAsmData);virtual;
       end;
 
       TInternalLinkerWin = class(tinternallinker)
@@ -775,7 +775,7 @@ implementation
 
          if (compiler.target._asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
-            generatenasmlib;
+            generatenasmlib(AsmData);
             exit;
           end;
 
@@ -933,13 +933,13 @@ implementation
       end;
 
 
-    procedure TExportLibWin.generatenasmlib;
+    procedure TExportLibWin.generatenasmlib(AsmData: TAsmData);
       var
          hp : texported_item;
          {p  : pchar;
          s  : string;}
       begin
-         new_section(current_asmdata.asmlists[al_exports],sec_code,'',0);
+         new_section(AsmData.asmlists[al_exports],sec_code,'',0);
          hp:=texported_item(compiler.current_module._exports.first);
          while assigned(hp) do
            begin
@@ -952,7 +952,7 @@ implementation
                  s:='';
              end;
              p:=strpnew(#9+'export '+s+' '+hp.Name^+' '+tostr(hp.index));
-             current_asmdata.asmlists[al_exports].concat(tai_direct.create(p));}
+             AsmData.asmlists[al_exports].concat(tai_direct.create(p));}
              hp:=texported_item(hp.next);
            end;
       end;
