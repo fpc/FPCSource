@@ -611,7 +611,7 @@ procedure fixup_jmps(list: TAsmList);
                           begin
                             { we're adding a new label together with the only branch to it;
                               providing exact label position is not necessary }
-                            current_asmdata.getjumplabel(l);
+                            list.AsmData.getjumplabel(l);
                             pdelayslot:=tai(p.next);
                             { We need to insert the new instruction after the delay slot instruction ! }
                             while assigned(pdelayslot) and (pdelayslot.typ<>ait_instruction) do
