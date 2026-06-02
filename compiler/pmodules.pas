@@ -2625,7 +2625,7 @@ type
         compiler.nodeutils.InsertMemorySizes(current_asmdata);
 
         { Insert symbol to resource info }
-        compiler.nodeutils.InsertResourceInfo(resources_used);
+        compiler.nodeutils.InsertResourceInfo(current_asmdata,resources_used);
 
         { create callframe info }
         create_dwarf_frame;

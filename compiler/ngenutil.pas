@@ -141,7 +141,7 @@ interface
       procedure InsertResStrInits(AsmData: TAsmData); virtual;
       procedure InsertResStrTablesTable(AsmData: TAsmData); virtual;
       procedure InsertResourceTablesTable(AsmData: TAsmData); virtual;
-      procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
+      procedure InsertResourceInfo(AsmData: TAsmData; ResourcesUsed : boolean); virtual;
 
       procedure InsertMemorySizes(AsmData: TAsmData); virtual;
 
@@ -1612,7 +1612,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+  procedure tnodeutils.InsertResourceInfo(AsmData: TAsmData; ResourcesUsed: boolean);
     var
       tcb: ttai_typedconstbuilder;
     begin
@@ -1628,9 +1628,9 @@ implementation
           else
             { Nil pointer to resource information }
             tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
-          current_asmdata.asmlists[al_globals].concatList(
+          AsmData.asmlists[al_globals].concatList(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA,compiler.deftypes.voidpointertype),
+              AsmData.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA,compiler.deftypes.voidpointertype),
               compiler.deftypes.voidpointertype,
               sec_rodata,
               'FPC_RESLOCATION',
