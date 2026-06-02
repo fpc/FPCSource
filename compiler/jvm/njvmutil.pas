@@ -48,7 +48,7 @@ interface
       procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
 
       procedure InsertThreadvarTablesTable(AsmData: TAsmData); override;
-      procedure InsertThreadvars; override;
+      procedure InsertThreadvars(AsmData: TAsmData); override;
       procedure InsertWideInitsTablesTable; override;
       procedure InsertWideInits; override;
       procedure InsertResourceTablesTable; override;
@@ -446,7 +446,7 @@ implementation
     end;
 
 
-  procedure tjvmnodeutils.InsertThreadvars;
+  procedure tjvmnodeutils.InsertThreadvars(AsmData: TAsmData);
     begin
       { not yet supported }
     end;

@@ -1799,7 +1799,7 @@ type
          write_persistent_type_info(compiler,module.localsymtable,false);
 
          { Tables }
-         compiler.nodeutils.InsertThreadvars;
+         compiler.nodeutils.InsertThreadvars(current_asmdata);
 
          { Resource strings }
          GenerateResourceStrings(compiler);
@@ -2588,7 +2588,7 @@ type
           InsertPData;
   {$endif arm}
 
-        compiler.nodeutils.InsertThreadvars;
+        compiler.nodeutils.InsertThreadvars(current_asmdata);
 
         { generate rtti/init tables }
         write_persistent_type_info(compiler,curr.localsymtable,false);

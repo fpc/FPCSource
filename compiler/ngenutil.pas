@@ -135,7 +135,7 @@ interface
       procedure release_init_final_list(list:tfplist);
      public
       procedure InsertThreadvarTablesTable(AsmData: TAsmData); virtual;
-      procedure InsertThreadvars; virtual;
+      procedure InsertThreadvars(AsmData: TAsmData); virtual;
       procedure InsertWideInitsTablesTable; virtual;
       procedure InsertWideInits; virtual;
       procedure InsertResStrInits; virtual;
@@ -1412,7 +1412,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertThreadvars;
+  procedure tnodeutils.InsertThreadvars(AsmData: TAsmData);
     var
       s : TSymStr;
       tcb: ttai_typedconstbuilder;
@@ -1435,8 +1435,8 @@ implementation
        if add then
          begin
            s:=make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,'');
-           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
-           current_asmdata.asmlists[al_globals].concatlist(
+           sym:=AsmData.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
+           AsmData.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
            include(compiler.current_module.moduleflags,mf_threadvars);
            compiler.current_module.add_public_asmsym(sym);
