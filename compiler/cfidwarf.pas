@@ -528,7 +528,7 @@ implementation
       begin
         if datatype=dt_none then
           exit;
-        current_asmdata.getlabel(FFrameEndLabel,alt_dbgframe);
+        list.AsmData.getlabel(FFrameEndLabel,alt_dbgframe);
         FLastloclabel:=get_frame_start;
         list.concat(tai_label.create(get_frame_start));
         DwarfList.concat(tdwarfitem.create_reloffset(DW_CFA_start_frame,doe_32bit,get_frame_start,FFrameEndLabel));
