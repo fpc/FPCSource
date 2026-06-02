@@ -493,7 +493,7 @@ implementation
                                 compiler.verbose.MessagePos1(taicpu(curtai).fileinfo,asmw_e_destination_out_of_range,'BR'+uppercond2str[taicpu(curtai).condition])
                               else
                                 begin
-                                  current_asmdata.getjumplabel(l);
+                                  list.AsmData.getjumplabel(l);
                                   l.increfs;
                                   list.insertafter(tai_label.create(l),curtai);
                                   if CPUAVR_HAS_JMP_CALL in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
