@@ -1155,6 +1155,8 @@ implementation
     var
       entries : tfplist;
     begin
+      if current_asmdata<>main.AsmData then
+        internalerror(2026060201);
       entries := get_init_final_list(main);
 
       insert_init_final_table(main,entries);
