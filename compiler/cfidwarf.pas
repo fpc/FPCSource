@@ -621,7 +621,7 @@ implementation
             hp:=tai(hp.Previous);
           end;
 
-        current_asmdata.getlabel(currloclabel,alt_dbgframe);
+        list.AsmData.getlabel(currloclabel,alt_dbgframe);
         list.concat(tai_label.create(currloclabel));
         if dwarfloc=DW_CFA_advance_loc1 then
           DwarfList.concat(tdwarfitem.create_reloffset(DW_CFA_advance_loc1,doe_8bit,FLastloclabel,currloclabel))
