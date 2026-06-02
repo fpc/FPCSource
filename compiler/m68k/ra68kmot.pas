@@ -1426,7 +1426,7 @@ var
                           l:=oper.opr.val;
                           oper.opr.typ := OPR_SYMBOL;
                           oper.opr.symofs := l;
-                          oper.opr.symbol := current_asmdata.RefAsmSymbol(tempstr,AT_FUNCTION);
+                          oper.opr.symbol := AsmData.RefAsmSymbol(tempstr,AT_FUNCTION);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1680,7 +1680,7 @@ var
             SetupTables;
             _asmsorted := TRUE;
           end;
-        curlist:=TAsmList.Create(current_asmdata);
+        curlist:=TAsmList.Create(AsmData);
         gettoken;
         while actasmtoken<>AS_END do
           begin
