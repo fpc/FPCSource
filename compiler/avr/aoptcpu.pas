@@ -659,7 +659,7 @@ Implementation
               else
                 taicpu(hp2).opcode:=A_RJMP;
 
-              current_asmdata.getjumplabel(l);
+              AsmData.getjumplabel(l);
               l.increfs;
               asml.InsertAfter(tai_label.create(l), hp2);
 
