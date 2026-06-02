@@ -178,7 +178,7 @@ begin
   pd:=nil;
   create_hlcodegen(compiler);
   hlcg:=compiler.hlcg;
-  new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
+  new_section(AsmData.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(compiler.current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -200,7 +200,7 @@ begin
               break;
           end;
         if not anyhasalias then
-          hlcg.g_external_wrapper(current_asmdata.asmlists[al_procedures],pd,hp2.name^,pd.mangledname,true);
+          hlcg.g_external_wrapper(AsmData.asmlists[al_procedures],pd,hp2.name^,pd.mangledname,true);
 {$endif cpuhighleveltarget}
         exportedsymnames.insert(hp2.name^);
       end
