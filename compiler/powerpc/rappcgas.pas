@@ -238,7 +238,7 @@ Unit rappcgas;
                     if (relsym<>'') then
                       begin
                         if (oper.opr.typ = OPR_REFERENCE) then
-                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,asmsymtyp)
+                          oper.opr.ref.relsymbol:=AsmData.RefAsmSymbol(relsym,asmsymtyp)
                         else
                           begin
                             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
@@ -357,7 +357,7 @@ Unit rappcgas;
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+                    oper.opr.symbol:=AsmData.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
                   end
                 else
                   inc(oper.opr.val,l);
@@ -772,13 +772,13 @@ Unit rappcgas;
               compiler.verbose.Message(asmr_e_syn_operand);
             if compiler.target.use_dotted_functions and
                assigned(instr.Operands[1].opr.ref.symbol) then
-              instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+              instr.Operands[1].opr.ref.symbol:=AsmData.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
           end;
         { regular name is toc entry, .-based name is actual code }
         if compiler.target.use_dotted_functions and
            (instr.Operands[1].opr.typ = OPR_SYMBOL) and
            (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
-          instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+          instr.Operands[1].opr.symbol:=AsmData.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
       end;
 
 
