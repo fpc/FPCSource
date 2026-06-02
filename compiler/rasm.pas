@@ -125,7 +125,7 @@ unit rasm;
               end;
             lab.Emitted:=true;
           end;
-        hl:=lab.Gettasmlabel(current_asmdata);
+        hl:=lab.Gettasmlabel(AsmData);
       end;
 
 
