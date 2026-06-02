@@ -136,7 +136,7 @@ interface
      public
       procedure InsertThreadvarTablesTable(AsmData: TAsmData); virtual;
       procedure InsertThreadvars(AsmData: TAsmData); virtual;
-      procedure InsertWideInitsTablesTable; virtual;
+      procedure InsertWideInitsTablesTable(AsmData: TAsmData); virtual;
       procedure InsertWideInits(AsmData: TAsmData); virtual;
       procedure InsertResStrInits(AsmData: TAsmData); virtual;
       procedure InsertResStrTablesTable; virtual;
@@ -1553,7 +1553,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertWideInitsTablesTable;
+  procedure tnodeutils.InsertWideInitsTablesTable(AsmData: TAsmData);
     begin
       InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
     end;

@@ -2620,7 +2620,7 @@ type
         compiler.nodeutils.InsertInitFinalTable(curr);
         compiler.nodeutils.InsertThreadvarTablesTable(current_asmdata);
         compiler.nodeutils.InsertResourceTablesTable;
-        compiler.nodeutils.InsertWideInitsTablesTable;
+        compiler.nodeutils.InsertWideInitsTablesTable(current_asmdata);
         compiler.nodeutils.InsertResStrTablesTable;
         compiler.nodeutils.InsertMemorySizes(current_asmdata);
 
