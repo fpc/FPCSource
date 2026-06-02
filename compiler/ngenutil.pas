@@ -127,7 +127,7 @@ interface
       procedure InsertInitFinalTable(main : tmodule);
      protected
       procedure InsertRuntimeInits(AsmData:TAsmData;const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
-      procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
+      procedure InsertRuntimeInitsTablesTable(AsmData:TAsmData;const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
       procedure insert_init_final_table(main: tmodule; entries:tfplist); virtual;
 
@@ -1446,7 +1446,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag);
+  procedure tnodeutils.InsertRuntimeInitsTablesTable(AsmData:TAsmData;const prefix,tablename:string;unitflag:tmoduleflag);
     var
       hp: tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1487,9 +1487,9 @@ implementation
       countplaceholder := nil;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
-      current_asmdata.asmlists[al_globals].concatlist(
+      AsmData.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA,tabledef),
+          AsmData.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
           sec_data,tablename,compiler.globals.const_align(sizeof(pint))
         )
@@ -1555,13 +1555,13 @@ implementation
 
   procedure tnodeutils.InsertWideInitsTablesTable(AsmData: TAsmData);
     begin
-      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
+      InsertRuntimeInitsTablesTable(AsmData,'WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
     end;
 
 
   procedure tnodeutils.InsertResStrTablesTable(AsmData: TAsmData);
     begin
-      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
+      InsertRuntimeInitsTablesTable(AsmData,'RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
     end;
 
 
