@@ -1692,7 +1692,7 @@ type
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
                begin
-                 release_proc_symbol(init_procinfo.procdef);
+                 release_proc_symbol(current_asmdata,init_procinfo.procdef);
                  release_main_proc(module,init_procinfo);
                end;
              init_procinfo:=gen_implicit_initfinal(module,mf_init,module.localsymtable);
@@ -1706,7 +1706,7 @@ type
              { first release the not used finalize procinfo }
              if assigned(finalize_procinfo) then
                begin
-                 release_proc_symbol(finalize_procinfo.procdef);
+                 release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
                  release_main_proc(module,finalize_procinfo);
                end;
              finalize_procinfo:=gen_implicit_initfinal(module,mf_finalize,module.localsymtable);
@@ -1726,7 +1726,7 @@ type
                  include(module.moduleflags,mf_init);
                end
              else
-               release_proc_symbol(init_procinfo.procdef);
+               release_proc_symbol(current_asmdata,init_procinfo.procdef);
              init_procinfo.resetprocdef;
              release_main_proc(module,init_procinfo);
            end;
@@ -1741,7 +1741,7 @@ type
                  include(module.moduleflags,mf_finalize);
                end
              else
-               release_proc_symbol(finalize_procinfo.procdef);
+               release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
              finalize_procinfo.resetprocdef;
              release_main_proc(module,finalize_procinfo);
            end;
@@ -2832,7 +2832,7 @@ type
             { first release the not used finalize procinfo }
             if assigned(finalize_procinfo) then
               begin
-                release_proc_symbol(finalize_procinfo.procdef);
+                release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
                 release_main_proc(curr,finalize_procinfo);
               end;
             finalize_procinfo:=gen_implicit_initfinal(curr,mf_finalize,curr.localsymtable);

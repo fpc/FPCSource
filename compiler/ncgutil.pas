@@ -72,7 +72,7 @@ interface
 
 
     procedure alloc_proc_symbol(AsmData: TAsmData; pd: tprocdef);
-    procedure release_proc_symbol(pd:tprocdef);
+    procedure release_proc_symbol(AsmData: TAsmData; pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
     procedure gen_save_used_regs(list:TAsmList);
@@ -796,7 +796,7 @@ implementation
       end;
 
 
-    procedure release_proc_symbol(pd:tprocdef);
+    procedure release_proc_symbol(AsmData: TAsmData; pd:tprocdef);
       var
         idx : longint;
         item : TCmdStrListItem;
@@ -804,9 +804,9 @@ implementation
         item:=TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
-            idx:=current_asmdata.AsmSymbolDict.findindexof(item.str);
+            idx:=AsmData.AsmSymbolDict.findindexof(item.str);
             if idx>=0 then
-              current_asmdata.AsmSymbolDict.Delete(idx);
+              AsmData.AsmSymbolDict.Delete(idx);
             item:=TCmdStrListItem(item.next);
           end;
       end;
