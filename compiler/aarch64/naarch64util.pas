@@ -58,6 +58,8 @@ end;
     ARM (32-bit) version in compiler/arm/narmutil.pas
 }
 procedure TAArch64NodeUtils.Insert_Init_Final_Table(main: tmodule; Entries: TFPList);
+var
+    main_asmdata: TAsmData;
 
     procedure GenEntry(List: TAsmList);
     var
@@ -114,14 +116,15 @@ var
     Entry : PInitFinalEntry;
     i : longint;
 begin
+    main_asmdata:=TAsmData(main.AsmData);
     if not(tf_init_final_units_by_calls in compiler.target.info.flags) then
     begin
         inherited insert_init_final_table(main,Entries);
         exit;
     end;
 
-    InitList := TAsmList.Create(current_asmdata);
-    FinalList := TAsmList.Create(current_asmdata);
+    InitList := TAsmList.Create(main_asmdata);
+    FinalList := TAsmList.Create(main_asmdata);
 
     GenEntry(finalList);
     GenEntry(initList);
@@ -130,31 +133,31 @@ begin
     begin
         Entry := PInitFinalEntry(Entries[i]);
         if Entry^.finifunc <> '' then
-            finalList.Concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(entry^.finifunc, AT_FUNCTION)));
+            finalList.Concat(taicpu.op_sym(A_BL, main_asmdata.RefAsmSymbol(entry^.finifunc, AT_FUNCTION)));
         if Entry^.initfunc <> '' then
-            initList.Concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(entry^.initfunc, AT_FUNCTION)));
+            initList.Concat(taicpu.op_sym(A_BL, main_asmdata.RefAsmSymbol(entry^.initfunc, AT_FUNCTION)));
     end;
 
     GenExit(finalList);
     GenExit(initList);
 
-    Header := TAsmList.Create(current_asmdata);
+    Header := TAsmList.Create(main_asmdata);
     New_Section(Header, Sec_Code, 'FPC_INIT_FUNC_TABLE', 1);
     Header.Concat(TAI_Symbol.CreateName_Global('FPC_INIT_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 
     InitList.InsertList(Header);
     Header.Free;
 
-    current_asmdata.AsmLists[al_procedures].concatList(initList);
+    main_asmdata.AsmLists[al_procedures].concatList(initList);
 
-    Header := TAsmList.Create(current_asmdata);
+    Header := TAsmList.Create(main_asmdata);
     New_Section(Header, Sec_Code, 'FPC_FINALIZE_FUNC_TABLE', 1);
     Header.Concat(TAI_Symbol.CreateName_Global('FPC_FINALIZE_FUNC_TABLE', AT_FUNCTION, 0, compiler.deftypes.voidcodepointertype));
 
     FinalList.InsertList(Header);
     Header.Free;
 
-    current_asmdata.AsmLists[al_procedures].concatList(finalList);
+    main_asmdata.AsmLists[al_procedures].concatList(finalList);
 
     InitList.Free;
     FinalList.Free;
