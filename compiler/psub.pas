@@ -2541,7 +2541,7 @@ implementation
     {$endif state_tracking}
 
          { allocate the symbol for this procedure }
-         alloc_proc_symbol(procdef);
+         alloc_proc_symbol(current_asmdata,procdef);
 
          { add parast/localst to symtablestack }
          add_to_symtablestack;

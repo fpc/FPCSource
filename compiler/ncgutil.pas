@@ -71,7 +71,7 @@ interface
     procedure register_maybe_adjust_setbase(hlcg: thlcgobj; list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
 
-    procedure alloc_proc_symbol(pd: tprocdef);
+    procedure alloc_proc_symbol(AsmData: TAsmData; pd: tprocdef);
     procedure release_proc_symbol(pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
@@ -783,14 +783,14 @@ implementation
                                 Entry/Exit
 ****************************************************************************}
 
-    procedure alloc_proc_symbol(pd: tprocdef);
+    procedure alloc_proc_symbol(AsmData: TAsmData; pd: tprocdef);
       var
         item: TCmdStrListItem;
       begin
         item:=TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
-            current_asmdata.DefineProcAsmSymbol(pd,item.str,pd.needsglobalasmsym);
+            AsmData.DefineProcAsmSymbol(pd,item.str,pd.needsglobalasmsym);
             item:=TCmdStrListItem(item.next);
          end;
       end;
