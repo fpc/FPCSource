@@ -41,7 +41,7 @@ interface
       constructor create(ACompiler: TCompilerBase);override;
 
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-      procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);override;
+      procedure record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList);override;
     end;
 
 implementation
@@ -120,7 +120,7 @@ implementation
     end;
 
 
-  procedure thlcgxtensa.record_generated_code_for_procdef(pd : tprocdef; code,
+  procedure thlcgxtensa.record_generated_code_for_procdef(AsmData: TAsmData; pd : tprocdef; code,
     data : TAsmList);
     var
       alt : TAsmListType;
@@ -132,7 +132,7 @@ implementation
           data.Concat(tai_align.Create(4));
           code.insertlist(data);
         end;
-      inherited record_generated_code_for_procdef(pd,code,nil);
+      inherited;
     end;
 
 begin

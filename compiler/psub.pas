@@ -2394,7 +2394,7 @@ implementation
 
             finish_eh;
 
-            hlcg.record_generated_code_for_procdef(compiler.current_procinfo.procdef,aktproccode,aktlocaldata);
+            hlcg.record_generated_code_for_procdef(FCodeGenContext.CurrAsmList.AsmData,compiler.current_procinfo.procdef,aktproccode,aktlocaldata);
 
             { now generate code for any exception filters (they need the tempgen) }
             generate_code_exceptfilters;

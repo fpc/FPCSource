@@ -93,7 +93,7 @@ uses
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
 
       procedure gen_load_return_value(list:TAsmList);override;
-      procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
+      procedure record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList); override;
 
       procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
       procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string); override;
@@ -1636,14 +1636,14 @@ implementation
       inherited gen_load_return_value(list);
     end;
 
-  procedure thlcgjvm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+  procedure thlcgjvm.record_generated_code_for_procdef(AsmData: TAsmData; pd: tprocdef; code, data: TAsmList);
     begin
       { add something to the al_procedures list as well, because if all al_*
         lists are empty, the assembler writer isn't called }
       if not code.empty and
-         current_asmdata.asmlists[al_procedures].empty then
-        current_asmdata.asmlists[al_procedures].concat(tai_align.Create(4));
-      tcpuprocdef(pd).exprasmlist:=TAsmList.create(current_asmdata);
+         AsmData.asmlists[al_procedures].empty then
+        AsmData.asmlists[al_procedures].concat(tai_align.Create(4));
+      tcpuprocdef(pd).exprasmlist:=TAsmList.create(AsmData);
       tcpuprocdef(pd).exprasmlist.concatlist(code);
       if assigned(data) and
          not data.empty then
