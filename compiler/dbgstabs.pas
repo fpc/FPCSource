@@ -1139,12 +1139,12 @@ implementation
         current_procdef:=def;
 
         templist:=gen_procdef_endsym_stabs(def);
-        current_asmdata.asmlists[al_procedures].insertlistafter(def.procendtai,templist);
+        AsmData.asmlists[al_procedures].insertlistafter(def.procendtai,templist);
 
         { FUNC stabs }
         templist.free;
         templist:=gen_procdef_startsym_stabs(def);
-        current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
+        AsmData.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
         { para types }
         if assigned(def.parast) then
@@ -1176,7 +1176,7 @@ implementation
           end;
 
 
-        current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
+        AsmData.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
         templist.free;
         templist := nil;
@@ -1379,7 +1379,7 @@ implementation
         Obj,Info,
         mangledname: ansistring;
       begin
-        result:=TAsmList.create(current_asmdata);
+        result:=TAsmList.create(AsmData);
         { "The stab representing a procedure is located immediately
           following the code of the procedure. This stab is in turn
           directly followed by a group of other stabs describing
@@ -1420,10 +1420,10 @@ implementation
         ss, mangledname: ansistring;
         stabsendlabel: tasmlabel;
       begin
-        result:=TAsmList.create(current_asmdata);
+        result:=TAsmList.create(AsmData);
 
         { end of procedure }
-        current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
+        AsmData.getlabel(stabsendlabel,alt_dbgtype);
 
         if dbgtype<>dbg_stabx then
           begin
@@ -1690,8 +1690,8 @@ implementation
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
         deftowritelist:=TFPObjectlist.create(false);
-        stabsvarlist:=TAsmList.create(current_asmdata);
-        stabstypelist:=TAsmList.create(current_asmdata);
+        stabsvarlist:=TAsmList.create(AsmData);
+        stabstypelist:=TAsmList.create(AsmData);
 
         vardatatype:=try_search_system_type('TVARDATA');
         if assigned(vardatatype) then
@@ -1702,11 +1702,11 @@ implementation
         include(compiler.current_module.moduleflags,mf_has_stabs_debuginfo);
         if not(compiler.target.info.system in systems_darwin) then
           begin
-            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
-            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
+            new_section(AsmData.asmlists[al_stabs],sec_data,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
+            AsmData.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
           end
         else
-          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
+          new_section(AsmData.asmlists[al_stabs],sec_code,GetSymTableName(compiler.current_module.localsymtable),sizeof(pint));
 
         { write all global/local variables. This will flag all required tdefs  }
         if assigned(compiler.current_module.globalsymtable) then
@@ -1733,8 +1733,8 @@ implementation
 
         write_remaining_defs_to_write(stabstypelist);
 
-        current_asmdata.asmlists[al_stabs].concatlist(stabstypelist);
-        current_asmdata.asmlists[al_stabs].concatlist(stabsvarlist);
+        AsmData.asmlists[al_stabs].concatlist(stabstypelist);
+        AsmData.asmlists[al_stabs].concatlist(stabsvarlist);
 
         { reset stab numbers }
         for i:=0 to defnumberlist.count-1 do
@@ -1798,7 +1798,7 @@ implementation
                     infile:=compiler.get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
-                        current_asmdata.getlabel(hlabel,alt_dbgfile);
+                        AsmData.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
                         if not(ds_stabs_abs_include_files in compiler.globals.current_settings.debugswitches) or
                            path_absolute(infile.path) then
@@ -1821,7 +1821,7 @@ implementation
                      if assigned(currfuncname) and
                         not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then
                       begin
-                        current_asmdata.getlabel(hlabel,alt_dbgline);
+                        AsmData.getlabel(hlabel,alt_dbgline);
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(stabs_n_textline)+',0,'+tostr(currfileinfo.line)+','+
                                           hlabel.name+' - '+{$IFDEF POWERPC64}'.'+{$ENDIF POWERPC64}currfuncname^),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
@@ -1844,34 +1844,34 @@ implementation
         infile : tinputfile;
       begin
         { emit main source n_sourcefile for start of module }
-        current_asmdata.getlabel(hlabel,alt_dbgfile);
+        AsmData.getlabel(hlabel,alt_dbgfile);
         infile:=compiler.current_module.sourcefiles.get_file(1);
-        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),sizeof(pint),secorder_begin);
+        new_section(AsmData.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
+          AsmData.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
 {$ifdef MIPS}
        { at least mipsel needs an explicit '.set nomips16' before any reference to
          procedure/function, see bug report 32138 }
-        current_asmdata.asmlists[al_start].concat(Taicpu.op_none(A_P_SET_NOMIPS16));
+        AsmData.asmlists[al_start].concat(Taicpu.op_none(A_P_SET_NOMIPS16));
 {$endif MIPS}
-        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
+        AsmData.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
-        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
+        AsmData.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         hlabel.increfs;
-        current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
+        AsmData.asmlists[al_start].concat(tai_label.create(hlabel));
         { for darwin, you need a "module marker" too to work around      }
         { either some assembler or gdb bug (radar 4386531 according to a }
         { comment in dbxout.c of Apple's gcc)                            }
         if (compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(STABS_N_OSO,'0','0','0')));
+          AsmData.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(STABS_N_OSO,'0','0','0')));
         { emit empty n_sourcefile for end of module }
-        current_asmdata.getlabel(hlabel,alt_dbgfile);
-        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),sizeof(pint),secorder_end);
+        AsmData.getlabel(hlabel,alt_dbgfile);
+        new_section(AsmData.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),sizeof(pint),secorder_end);
         if not(compiler.target.info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
-        current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
-        current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
+          AsmData.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
+        AsmData.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
+        AsmData.asmlists[al_end].concat(tai_label.create(hlabel));
         hlabel.increfs;
       end;
 

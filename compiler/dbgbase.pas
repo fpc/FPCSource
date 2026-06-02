@@ -40,6 +40,7 @@ interface
       TDebugInfo=class
       private
         FCompiler: TCompilerBase;
+        FAsmData: TAsmData;
         function GetParaManager: TParaManager; inline;
       protected
         { definitions }
@@ -90,6 +91,7 @@ interface
         procedure write_used_unit_type_info(list:TAsmList;hp:tmodule);
         property Compiler: TCompilerBase read FCompiler;
         property ParaManager: TParaManager read GetParaManager;
+        property AsmData: TAsmData read FAsmData;
       public
         constructor Create(AAsmData: TAsmData; ACompiler: TCompilerBase);virtual;
         procedure inserttypeinfo;virtual;
@@ -121,6 +123,7 @@ implementation
 
     constructor TDebugInfo.Create(AAsmData: TAsmData; ACompiler: TCompilerBase);
       begin
+        FAsmData:=AAsmData;
         FCompiler:=ACompiler;
       end;
 

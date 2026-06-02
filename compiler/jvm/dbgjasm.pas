@@ -113,8 +113,8 @@ implementation
       if not assigned(def.procstarttai) then
         exit;
 
-      current_asmdata.getlabel(procstartlabel,alt_dbgtype);
-      current_asmdata.getlabel(procendlabel,alt_dbgtype);
+      AsmData.getlabel(procstartlabel,alt_dbgtype);
+      AsmData.getlabel(procendlabel,alt_dbgtype);
       tcpuprocdef(def).exprasmlist.insertafter(tai_label.create(procstartlabel),def.procstarttai);
       tcpuprocdef(def).exprasmlist.insertbefore(tai_label.create(procendlabel),def.procendtai);
 
@@ -139,7 +139,7 @@ implementation
         end;
       if assigned(hp) then
         begin
-          current_asmdata.getlabel(afterprocstartlabel,alt_dbgtype);
+          AsmData.getlabel(afterprocstartlabel,alt_dbgtype);
           tcpuprocdef(def).exprasmlist.insertafter(tai_label.create(afterprocstartlabel),afterproccodestart);
           fcurrprocafterstart:=afterprocstartlabel;
         end

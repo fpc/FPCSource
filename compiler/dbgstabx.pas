@@ -223,10 +223,10 @@ implementation
         exit;
       if assigned(inclstart) then
         begin
-          current_asmdata.asmlists[al_procedures].Remove(inclstart);
+          AsmData.asmlists[al_procedures].Remove(inclstart);
           result.concat(inclstart);
         end;
-      current_asmdata.asmlists[al_procedures].Remove(hp);
+      AsmData.asmlists[al_procedures].Remove(hp);
       result.concat(hp);
       { also hoist up the function start symbol(s) }
       hp:=def.procstarttai;
@@ -239,7 +239,7 @@ implementation
               hpp:=tai(hp.next);
               if hp=def.procstarttai then
                 def.procstarttai:=hpp;
-              current_asmdata.asmlists[al_procedures].Remove(hp);
+              AsmData.asmlists[al_procedures].Remove(hp);
               result.insert(hp);
               hp:=hpp;
             end
@@ -256,8 +256,8 @@ implementation
       result:=inherited gen_procdef_endsym_stabs(def);
       if not assigned(def.procstarttai) then
         exit;
-      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ApplyAsmSymbolRestrictions(def.mangledname),AB_LOCAL,AT_ADDR,compiler.deftypes.voidpointertype);
-      current_asmdata.asmlists[al_procedures].insertbefore(tai_symbol.create(procendsymbol,0),def.procendtai);
+      procendsymbol:=AsmData.DefineAsmSymbol('LT..'+ApplyAsmSymbolRestrictions(def.mangledname),AB_LOCAL,AT_ADDR,compiler.deftypes.voidpointertype);
+      AsmData.asmlists[al_procedures].insertbefore(tai_symbol.create(procendsymbol,0),def.procendtai);
     end;
 
 
@@ -278,7 +278,7 @@ implementation
       ismem:=not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]);
       isglobal:=false;
       if ismem then
-        isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA).bind=AB_GLOBAL;
+        isglobal:=AsmData.RefAsmSymbol(sym.mangledname,AT_DATA).bind=AB_GLOBAL;
 
       { put extra ss/es markers in place }
       if ismem then
