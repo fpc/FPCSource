@@ -58,6 +58,9 @@ implementation
 
   procedure trv32nodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
 
+    var
+      main_asmdata: TAsmData;
+
     procedure genentry(list : TAsmList);
       var
         ref: treference;
@@ -95,13 +98,14 @@ implementation
       i : longint;
       ref:treference;
     begin
+      main_asmdata:=TAsmData(main.AsmData);
       if not(tf_init_final_units_by_calls in compiler.target.info.flags) then
         begin
           inherited insert_init_final_table(main,entries);
           exit;
         end;
-      initList:=TAsmList.create(current_asmdata);
-      finalList:=TAsmList.create(current_asmdata);
+      initList:=TAsmList.create(main_asmdata);
+      finalList:=TAsmList.create(main_asmdata);
 
       genentry(initList);
       genentry(finalList);
@@ -110,34 +114,34 @@ implementation
         begin
           entry:=pinitfinalentry(entries[i]);
           if entry^.finifunc<>'' then
-            finalList.Concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
+            finalList.Concat(taicpu.op_sym(A_CALL,main_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
           if entry^.initfunc<>'' then
-            initList.Concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
+            initList.Concat(taicpu.op_sym(A_CALL,main_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
         end;
 
       genexit(initList);
       genexit(finalList);
 
       begin
-        header:=TAsmList.create(current_asmdata);
+        header:=TAsmList.create(main_asmdata);
         new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
         initList.insertList(header);
         header.free;
 
-        current_asmdata.AsmLists[al_procedures].concatList(initList);
+        main_asmdata.AsmLists[al_procedures].concatList(initList);
       end;
 
       begin
-        header:=TAsmList.create(current_asmdata);
+        header:=TAsmList.create(main_asmdata);
         new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
         header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
 
         finalList.insertList(header);
         header.free;
 
-        current_asmdata.AsmLists[al_procedures].concatList(finalList);
+        main_asmdata.AsmLists[al_procedures].concatList(finalList);
       end;
 
       initList.Free;
