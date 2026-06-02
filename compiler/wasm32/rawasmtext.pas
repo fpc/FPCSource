@@ -984,7 +984,7 @@ Unit rawasmtext;
                             begin
                               result.ops:=1;
                               result.operands[1].opr.typ:=OPR_SYMBOL;
-                              result.operands[1].opr.symbol:=thlcgwasm(compiler.hlcg).RefStackPointerSym(current_asmdata);
+                              result.operands[1].opr.symbol:=thlcgwasm(compiler.hlcg).RefStackPointerSym(AsmData);
                               Consume(AS_ID);
                             end;
                           '$'+TLS_SIZE_SYM,
@@ -992,7 +992,7 @@ Unit rawasmtext;
                           '$'+TLS_BASE_SYM:
                             begin
                               globsym:=TWasmGlobalAsmSymbol(
-                                current_asmdata.RefAsmSymbolByClass(
+                                AsmData.RefAsmSymbolByClass(
                                   TWasmGlobalAsmSymbol,
                                   Copy(actasmpattern,2,Length(actasmpattern)-1),
                                   AT_WASM_GLOBAL));
@@ -1030,7 +1030,7 @@ Unit rawasmtext;
 
                                   result.ops:=2;
                                   result.operands[1].opr.typ:=OPR_SYMBOL;
-                                  result.operands[1].opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION);
+                                  result.operands[1].opr.symbol:=AsmData.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION);
 
                                   result.operands[2].opr.typ:=OPR_FUNCTYPE;
                                   result.operands[2].opr.functype:=tcpuprocdef(tprocsym(srsym).ProcdefList[0]).create_functype;
@@ -1096,7 +1096,7 @@ Unit rawasmtext;
             SetupTables;
             _asmsorted:=TRUE;
           end;
-        curlist:=TAsmList.Create(current_asmdata);
+        curlist:=TAsmList.Create(AsmData);
 
         { we might need to know which parameters are passed in registers }
         if not compiler.parser.pbase.parse_generic then
