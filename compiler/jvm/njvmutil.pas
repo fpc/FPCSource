@@ -393,6 +393,7 @@ implementation
   procedure tjvmnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
 
     var
+      main_asmdata: TAsmData;
       unitinits : TAsmList;
       unitclassname: string;
       mainpsym: tsym;
@@ -401,7 +402,8 @@ implementation
       entry : pinitfinalentry;
 
     begin
-      unitinits:=TAsmList.Create(current_asmdata);
+      main_asmdata:=TAsmData(main.AsmData);
+      unitinits:=TAsmList.Create(main_asmdata);
       for I:=0 to entries.Count-1 do
         begin
           entry:=pinitfinalentry(entries[i]);
@@ -420,7 +422,7 @@ implementation
                   replace(unitclassname,'.','/');
                 end;
               unitclassname:=unitclassname+entry^.module.realmodulename^;
-              unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname,AT_METADATA)));
+              unitinits.concat(taicpu.op_sym(a_new,main_asmdata.RefAsmSymbol(unitclassname,AT_METADATA)));
               unitinits.concat(taicpu.op_none(a_pop));
             end;
         end;
