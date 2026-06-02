@@ -2620,7 +2620,7 @@ Unit AoptObj;
                           insertllitem(asml,p1,p1.next,tai_comment.Create(
                             strpnew('previous label inserted'))));
 {$endif finaldestdebug}
-                          current_asmdata.getjumplabel(l);
+                          AsmData.getjumplabel(l);
                           insertllitem(p1,p1.next,tai_label.Create(l));
 
                           ThisLabel.decrefs;
