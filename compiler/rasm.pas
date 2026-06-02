@@ -72,15 +72,15 @@ unit rasm;
       TLocalLabel = class(TFPHashObject)
         emitted: boolean;
         lab: tasmlabel;
-        function Gettasmlabel: tasmlabel;
+        function Gettasmlabel(AsmData: TAsmData): tasmlabel;
       end;
 
 
-    function TLocalLabel.Gettasmlabel:tasmlabel;
+    function TLocalLabel.Gettasmlabel(AsmData: TAsmData):tasmlabel;
       begin
         if not assigned(lab) then
          begin
-           current_asmdata.getjumplabel(lab);
+           AsmData.getjumplabel(lab);
            { this label is forced to be used so it's always written }
            lab.increfs;
          end;
@@ -125,7 +125,7 @@ unit rasm;
               end;
             lab.Emitted:=true;
           end;
-        hl:=lab.Gettasmlabel;
+        hl:=lab.Gettasmlabel(current_asmdata);
       end;
 
 
