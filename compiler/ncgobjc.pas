@@ -46,7 +46,8 @@ uses
     cgbase,cgutils,defutil,objcgutl,compiler,
     symconst,symsym,symdef,
     nld,ncon,
-    verbose;
+    verbose,
+    pass_2_context;
 
 {*****************************************************************************
                            TCGOBJCSELECTORNODE
@@ -58,7 +59,7 @@ procedure tcgobjcselectornode.pass_generate_code(ctx:tpassgeneratecodecontext);
     entry  : PHashSetItem;
     name   : pshortstring;
   begin
-    pool:=current_asmdata.ConstPools[sp_varnamerefs];
+    pool:=ctx.CurrAsmList.AsmData.ConstPools[sp_varnamerefs];
 
     case left.nodetype of
       loadn:
