@@ -2622,7 +2622,7 @@ type
         compiler.nodeutils.InsertResourceTablesTable;
         compiler.nodeutils.InsertWideInitsTablesTable;
         compiler.nodeutils.InsertResStrTablesTable;
-        compiler.nodeutils.InsertMemorySizes;
+        compiler.nodeutils.InsertMemorySizes(current_asmdata);
 
         { Insert symbol to resource info }
         compiler.nodeutils.InsertResourceInfo(resources_used);

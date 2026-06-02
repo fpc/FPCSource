@@ -55,7 +55,7 @@ interface
       procedure InsertResourceInfo(ResourcesUsed : boolean); override;
       procedure InsertResStrTablesTable; override;
       procedure InsertResStrInits; override;
-      procedure InsertMemorySizes; override;
+      procedure InsertMemorySizes(AsmData: TAsmData); override;
      protected
        procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
      strict protected
@@ -486,7 +486,7 @@ implementation
     end;
 
 
-  procedure tjvmnodeutils.InsertMemorySizes;
+  procedure tjvmnodeutils.InsertMemorySizes(AsmData: TAsmData);
     begin
       { not required }
     end;

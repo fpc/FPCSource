@@ -143,7 +143,7 @@ interface
       procedure InsertResourceTablesTable; virtual;
       procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
 
-      procedure InsertMemorySizes; virtual;
+      procedure InsertMemorySizes(AsmData: TAsmData); virtual;
 
       { Call this to check if init code is required }
       function has_init_list: boolean;
@@ -1640,7 +1640,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertMemorySizes;
+  procedure tnodeutils.InsertMemorySizes(AsmData: TAsmData);
     var
       tcb: ttai_typedconstbuilder;
       s: shortstring;

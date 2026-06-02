@@ -26,12 +26,12 @@ unit n8086util;
 interface
 
   uses
-    ngenutil,compilerbase;
+    ngenutil,aasmdata,compilerbase;
 
 
   type
     ti8086nodeutils = class(tnodeutils)
-      procedure InsertMemorySizes; override;
+      procedure InsertMemorySizes(AsmData: TAsmData); override;
       procedure InsertStackSegment;
       procedure InsertHeapSegment;
       procedure InsertStackPlusHeapSize;
@@ -43,12 +43,12 @@ implementation
   uses
     sysutils,cutils,
     globtype,globals,cpuinfo,systemstypes,systems,
-    aasmbase,aasmdata,aasmtai,
+    aasmbase,aasmtai,
     symdef,
     compiler;
 
 
-  procedure ti8086nodeutils.InsertMemorySizes;
+  procedure ti8086nodeutils.InsertMemorySizes(AsmData: TAsmData);
     begin
       inherited;
       if compiler.globals.current_settings.x86memorymodel<>mm_tiny then

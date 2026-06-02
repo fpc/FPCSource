@@ -31,6 +31,7 @@ interface
     node,nbas,
     ngenutil,
     symtype,symconst,symsym,symdef,
+    aasmdata,
     compilerbase;
 
 
@@ -42,14 +43,14 @@ interface
     protected
       procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     public
-      procedure InsertMemorySizes; override;
+      procedure InsertMemorySizes(AsmData: TAsmData); override;
     end;
 
 implementation
 
     uses
       verbose,cutils,globtype,globals,constexp,
-      aasmdata,aasmtai,aasmcpu,aasmcnst,aasmbase,
+      aasmtai,aasmcpu,aasmcnst,aasmbase,
       cpubase,
       symbase,symcpu,symtable,defutil,
       ncnv,ncon,ninl,ncal,nld,nmem,
@@ -115,7 +116,7 @@ implementation
       inherited insert_init_final_table(main,entries);
     end;
 
-  procedure tavrnodeutils.InsertMemorySizes;
+  procedure tavrnodeutils.InsertMemorySizes(AsmData: TAsmData);
     var
       tcb: ttai_typedconstbuilder;
       notename, strtable: shortstring;
@@ -174,7 +175,7 @@ implementation
       defu32.free;
       tcb.free;
 
-      inherited InsertMemorySizes;
+      inherited;
     end;
 
 begin
