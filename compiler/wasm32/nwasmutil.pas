@@ -144,7 +144,7 @@ implementation
 
       resetfunctypechecked;
 
-      list:=current_asmdata.asmlists[al_start];
+      list:=AsmData.asmlists[al_start];
 
       list.Concat(tai_globaltype.create(STACK_POINTER_SYM,wbt_i32,false));
 
@@ -158,7 +158,7 @@ implementation
       if [ts_wasm_native_legacy_exceptions,ts_wasm_native_exnref_exceptions]*compiler.globals.current_settings.targetswitches<>[] then
         begin
           list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
-          list.Concat(tai_symbol.Create_Weak(current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
+          list.Concat(tai_symbol.Create_Weak(AsmData.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
         end;
 
       for i:=0 to compiler.current_module.deflist.Count-1 do
