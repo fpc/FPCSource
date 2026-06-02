@@ -29,6 +29,7 @@ interface
     procinfo,
     psub,
     aasmdata,aasmbase,
+    node,
     compilerbase;
 
   type
@@ -41,7 +42,7 @@ interface
       constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
       destructor destroy; override;
       procedure set_first_temp_offset; override;
-      procedure add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+      procedure add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
       procedure add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
       procedure dump_scopes(list:tasmlist);
     end;
@@ -89,7 +90,7 @@ implementation
      tg.setfirsttemp(align(maxpushedparasize,16));
     end;
 
-  procedure tcpuprocinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+  procedure tcpuprocinfo.add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
     begin
       unwindflags:=unwindflags or 2;
       if implicit then  { also needs catch functionality }
