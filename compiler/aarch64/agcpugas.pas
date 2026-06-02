@@ -469,7 +469,7 @@ unit agcpugas;
                             { note: we can pass Nil here, because in case of a LLVM
                                     backend this whole code shouldn't be required
                                     anyway }
-                            xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
+                            xdatasym:=list.AsmData.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
 
                             tmplist:=tasmlist.create(list.AsmData);
                             new_section(tmplist,sec_pdata,lastsec.name^,0);
@@ -540,7 +540,7 @@ unit agcpugas;
 
                             if handlerflags<>0 then
                               begin
-                                tmplist.concat(tai_const.Create_rva_sym(current_asmdata.RefAsmSymbol(handlername,AT_FUNCTION,false)));
+                                tmplist.concat(tai_const.Create_rva_sym(tmplist.AsmData.RefAsmSymbol(handlername,AT_FUNCTION,false)));
                                 if length(handlerdata)>0 then
                                   begin
                                     tmplist.concat(handlerdatacount);
