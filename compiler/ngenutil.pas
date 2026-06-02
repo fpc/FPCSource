@@ -126,7 +126,7 @@ interface
       function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       procedure InsertInitFinalTable(main : tmodule);
      protected
-      procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
+      procedure InsertRuntimeInits(AsmData:TAsmData;const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
       procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
       procedure insert_init_final_table(main: tmodule; entries:tfplist); virtual;
@@ -1499,7 +1499,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
+  procedure tnodeutils.InsertRuntimeInits(AsmData:TAsmData;const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
     var
       s: string;
       item: TTCInitItem;
@@ -1531,9 +1531,9 @@ implementation
       { end-of-list marker }
       tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
       rawdatadef:=tcb.end_anonymous_record;
-      current_asmdata.asmlists[al_globals].concatList(
+      AsmData.asmlists[al_globals].concatList(
         tcb.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
+          AsmData.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
           rawdatadef,sec_data,s,compiler.globals.const_align(sizeof(pint))));
       tcb.free;
       tcb := nil;
@@ -1543,13 +1543,13 @@ implementation
 
   procedure tnodeutils.InsertWideInits(AsmData: TAsmData);
     begin
-      InsertRuntimeInits('WIDEINITS',AsmData.WideInits,mf_wideinits);
+      InsertRuntimeInits(AsmData,'WIDEINITS',AsmData.WideInits,mf_wideinits);
     end;
 
 
   procedure tnodeutils.InsertResStrInits(AsmData: TAsmData);
     begin
-      InsertRuntimeInits('RESSTRINITS',AsmData.ResStrInits,mf_resstrinits);
+      InsertRuntimeInits(AsmData,'RESSTRINITS',AsmData.ResStrInits,mf_resstrinits);
     end;
 
 
