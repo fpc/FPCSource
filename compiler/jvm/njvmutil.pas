@@ -47,7 +47,7 @@ interface
       function  trashable_sym(p: tsym): boolean; override;
       procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
 
-      procedure InsertThreadvarTablesTable; override;
+      procedure InsertThreadvarTablesTable(AsmData: TAsmData); override;
       procedure InsertThreadvars; override;
       procedure InsertWideInitsTablesTable; override;
       procedure InsertWideInits; override;
@@ -440,7 +440,7 @@ implementation
     end;
 
 
-  procedure tjvmnodeutils.InsertThreadvarTablesTable;
+  procedure tjvmnodeutils.InsertThreadvarTablesTable(AsmData: TAsmData);
     begin
       { not yet supported }
     end;

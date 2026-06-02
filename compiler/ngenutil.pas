@@ -134,7 +134,7 @@ interface
       function get_init_final_list(main : tmodule): tfplist;
       procedure release_init_final_list(list:tfplist);
      public
-      procedure InsertThreadvarTablesTable; virtual;
+      procedure InsertThreadvarTablesTable(AsmData: TAsmData); virtual;
       procedure InsertThreadvars; virtual;
       procedure InsertWideInitsTablesTable; virtual;
       procedure InsertWideInits; virtual;
@@ -1327,7 +1327,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertThreadvarTablesTable;
+  procedure tnodeutils.InsertThreadvarTablesTable(AsmData: TAsmData);
     var
       hp : tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1348,7 +1348,7 @@ implementation
        begin
          if mf_threadvars in hp.u.moduleflags then
            begin
-             sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
+             sym:=AsmData.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
              tcb.emit_tai(
                tai_const.Create_sym(sym),
                compiler.deftypes.voidpointertype);
@@ -1360,7 +1360,7 @@ implementation
       { Add program threadvars, if any }
       if mf_threadvars in compiler.current_module.moduleflags then
         begin
-          sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,''),AT_DATA,true);
+          sym:=AsmData.RefAsmSymbol(make_mangledname('THREADVARLIST',compiler.current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
             Tai_const.Create_sym(sym),
             compiler.deftypes.voidpointertype);
@@ -1372,8 +1372,8 @@ implementation
       placeholder := nil;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
-      sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
-      current_asmdata.asmlists[al_globals].concatlist(
+      sym:=AsmData.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
+      AsmData.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
           sym,tabledef,sec_data,'FPC_THREADVARTABLES',compiler.globals.const_align(sizeof(pint))
         )
