@@ -137,7 +137,7 @@ interface
       procedure InsertThreadvarTablesTable(AsmData: TAsmData); virtual;
       procedure InsertThreadvars(AsmData: TAsmData); virtual;
       procedure InsertWideInitsTablesTable; virtual;
-      procedure InsertWideInits; virtual;
+      procedure InsertWideInits(AsmData: TAsmData); virtual;
       procedure InsertResStrInits; virtual;
       procedure InsertResStrTablesTable; virtual;
       procedure InsertResourceTablesTable; virtual;
@@ -1541,9 +1541,9 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertWideInits;
+  procedure tnodeutils.InsertWideInits(AsmData: TAsmData);
     begin
-      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,mf_wideinits);
+      InsertRuntimeInits('WIDEINITS',AsmData.WideInits,mf_wideinits);
     end;
 
 

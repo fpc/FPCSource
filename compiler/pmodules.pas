@@ -1805,7 +1805,7 @@ type
          GenerateResourceStrings(compiler);
 
          { Widestring typed constants }
-         compiler.nodeutils.InsertWideInits;
+         compiler.nodeutils.InsertWideInits(current_asmdata);
 
          { Resourcestring references }
          compiler.nodeutils.InsertResStrInits;
@@ -2611,7 +2611,7 @@ type
         GenerateResourceStrings(compiler);
 
         { Windows widestring needing initialization }
-        compiler.nodeutils.InsertWideInits;
+        compiler.nodeutils.InsertWideInits(current_asmdata);
 
         { Resourcestring references (const foo:string=someresourcestring) }
         compiler.nodeutils.InsertResStrInits;
