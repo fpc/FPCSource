@@ -556,7 +556,7 @@ procedure taarch64tryexceptnode.pass_generate_code(ctx:tpassgeneratecodecontext)
 
     emit_nop(ctx);
     ctx.cg.a_label(ctx.CurrAsmList,endexceptlabel);
-    tcpuprocinfo(compiler.current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
+    tcpuprocinfo(compiler.current_procinfo).add_except_scope(ctx,trylabel,exceptlabel,endexceptlabel,filterlabel);
 
 errorexit:
     { restore all saved labels }

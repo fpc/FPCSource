@@ -43,7 +43,7 @@ interface
       destructor destroy; override;
       procedure set_first_temp_offset; override;
       procedure add_finally_scope(ctx:tpassgeneratecodecontext;startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
-      procedure add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+      procedure add_except_scope(ctx:tpassgeneratecodecontext;trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
       procedure dump_scopes(list:tasmlist);
     end;
 
@@ -108,7 +108,7 @@ implementation
       scopes.concat(tai_const.create_rva_sym(handler));
     end;
 
-  procedure tcpuprocinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+  procedure tcpuprocinfo.add_except_scope(ctx:tpassgeneratecodecontext;trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
     begin
       unwindflags:=unwindflags or 3;
       inc(scopecount);
