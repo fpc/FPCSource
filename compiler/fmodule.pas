@@ -1564,7 +1564,7 @@ implementation
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }
-        current_asmdata.name:=modulename;
+        TAsmData(asmdata).name:=modulename;
       end;
 
 
