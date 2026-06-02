@@ -28,16 +28,19 @@ unit rabase;
     uses
       cclasses,
       systemstypes,systems,
+      aasmdata,
       compilerbase;
 
     type
        tbaseasmreader = class
        private
          FCompiler: TCompilerBase;
+         FAsmData: TAsmData;
        protected
          property Compiler: TCompilerBase read FCompiler;
+         property AsmData: TAsmData read FAsmData;
        public
-         constructor create(ACompiler: TCompilerBase);virtual;
+         constructor create(ACompiler: TCompilerBase; AAsmData: TAsmData);virtual;
          { the real return type is TAsmList, but this would introduce too much unit circles }
          function Assemble: tlinkedlist;virtual;abstract;
        end;
@@ -95,10 +98,11 @@ unit rabase;
       end;
 
 
-    constructor tbaseasmreader.create(ACompiler: TCompilerBase);
+    constructor tbaseasmreader.create(ACompiler: TCompilerBase; AAsmData: TAsmData);
       begin
         inherited create;
         FCompiler:=ACompiler;
+        FAsmData:=AAsmData;
       end;
 
 var

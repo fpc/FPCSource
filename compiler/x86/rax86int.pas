@@ -29,7 +29,7 @@ Unit Rax86int;
       cclasses,
       cpubase,compilerbase,
       globtype,
-      aasmbase,
+      aasmbase,aasmdata,
       cgbase,
       rasm,
       rax86;
@@ -82,7 +82,7 @@ Unit Rax86int;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
          inexpression : boolean;
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(ACompiler: TCompilerBase; AAsmData: TAsmData);override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
          function is_asmdirective(const s: string):boolean;
@@ -121,7 +121,7 @@ Unit Rax86int;
        globals,verbose,
        systems,compiler,
        { aasm }
-       aasmdata,aasmcpu,
+       aasmcpu,
 {$ifdef i8086}
        aasmtai,
 {$endif i8086}
@@ -177,11 +177,11 @@ Unit Rax86int;
         'and','or','xor','wrt','..gotpcrel','','{RN-SAE}'
       );
 
-    constructor tx86intreader.create(ACompiler: TCompilerBase);
+    constructor tx86intreader.create(ACompiler: TCompilerBase; AAsmData: TAsmData);
       var
         i : tasmop;
       Begin
-        inherited create(ACompiler);
+        inherited;
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));

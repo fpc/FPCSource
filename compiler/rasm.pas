@@ -47,7 +47,7 @@ unit rasm;
          actcondition   : tasmcond;
          iasmops        : TFPHashList;
          locallabels    : TFPHashObjectList;
-         constructor create(ACompiler: TCompilerBase);override;
+         constructor create(ACompiler: TCompilerBase; AAsmData: TAsmData);override;
          destructor destroy;override;
          function createlocallabel(const s: string; var hl: tasmlabel; emit: boolean): boolean;
          procedure checklocallabels;
@@ -88,9 +88,9 @@ unit rasm;
       end;
 
 
-    constructor tasmreader.create(ACompiler: TCompilerBase);
+    constructor tasmreader.create(ACompiler: TCompilerBase; AAsmData: TAsmData);
       begin
-        inherited create(ACompiler);
+        inherited;
         firsttoken:=true;
         locallabels:=TFPHashObjectList.create;
       end;
