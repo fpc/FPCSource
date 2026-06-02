@@ -1490,7 +1490,7 @@ Unit raz80asm;
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
-            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+            oper.opr.symbol:=AsmData.RefAsmSymbol(tempstr,tempsymtyp);
             oper.opr.symseg:=cseof_isseg in cse_out_flags;
             oper.opr.sym_farproc_entry:=cseof_is_farproc_entry in cse_out_flags;
           end
@@ -1871,7 +1871,7 @@ Unit raz80asm;
                     compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
                      begin
-                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+                       oper.opr.ref.symbol:=AsmData.RefAsmSymbol(tempstr,tempsymtyp);
 {$ifdef i8086}
                        if cseof_isseg in cse_out_flags then
                          begin
@@ -2372,7 +2372,7 @@ Unit raz80asm;
             SetupTables;
             _asmsorted:=TRUE;
           end;
-        curlist:=TAsmList.Create(current_asmdata);
+        curlist:=TAsmList.Create(AsmData);
 
         { we might need to know which parameters are passed in registers }
         if not compiler.parser.pbase.parse_generic then
