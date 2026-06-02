@@ -250,9 +250,11 @@ Unit AoptObj;
       private
         FCompiler: TCompilerBase;
         function GetParaManager: TParaManager; inline;
+        function GetAsmData: TAsmData; inline;
       protected
         property Compiler: TCompilerBase read FCompiler;
         property ParaManager: TParaManager read GetParaManager;
+        property AsmData: TAsmData read GetAsmData;
       public
         { the PAasmOutput list this optimizer instance works on }
         AsmL: TAsmList;
@@ -983,6 +985,11 @@ Unit AoptObj;
     function TAOptObj.GetParaManager: TParaManager; inline;
       begin
         result:=compiler.paramanager;
+      end;
+
+    function TAOptObj.GetAsmData: TAsmData; inline;
+      begin
+        result:=AsmL.AsmData;
       end;
 
     constructor TAOptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
