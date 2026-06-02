@@ -523,7 +523,7 @@ Implementation
               BuildConstSymbolExpression(true,true,false,l,relsym,asmsymtyp);
               if (relsym<>'') then
                 if not assigned(oper.opr.ref.relsymbol) then
-                  oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,asmsymtyp)
+                  oper.opr.ref.relsymbol:=AsmData.RefAsmSymbol(relsym,asmsymtyp)
                 else
                   compiler.verbose.Message(asmr_e_invalid_reference_syntax)
               else
@@ -610,7 +610,7 @@ Implementation
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
+                    oper.opr.symbol:=AsmData.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
