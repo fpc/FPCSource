@@ -80,6 +80,7 @@ implementation
     symbase,symtable,defutil,defcmp,
     htypechk,
     pparautl,psub,
+    aasmdata,
     compiler;
 
 
@@ -532,8 +533,8 @@ implementation
 
           if st.symtabletype<>localsymtable then
             begin
-              compiler.nodeutils.insertbssdata(tstaticvarsym(result));
-              compiler.nodeutils.insertbssdata(tstaticvarsym(keepalive));
+              compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(result));
+              compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(keepalive));
             end;
 
           { avoid warnings as these symbols are initialized using initialize_capturer

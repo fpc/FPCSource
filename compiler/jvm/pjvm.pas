@@ -654,7 +654,7 @@ implementation
               { ensure that we allocate space for global symbols (won't actually
                 allocate space for this one, since it's external, but for the
                 constsym) }
-              compiler.nodeutils.insertbssdata(ssym);
+              compiler.nodeutils.insertbssdata(current_asmdata,ssym);
               elemdef:=tsetdef(csym.constdef).elementdef;
               if not assigned(elemdef) then
                 begin

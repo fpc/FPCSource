@@ -455,7 +455,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,compiler.deftypes.rec_jmp_buf,[]);
                         compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
-                        compiler.nodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
+                        compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }

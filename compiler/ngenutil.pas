@@ -121,7 +121,7 @@ interface
       { finalization of iso styled program parameters }
       procedure finalize_filerecs(p : TObject; statn : pointer);
      public
-      procedure insertbssdata(sym : tstaticvarsym); virtual;
+      procedure insertbssdata(AsmData: TAsmData; sym : tstaticvarsym); virtual;
 
       function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       procedure InsertInitFinalTable(main : tmodule);
@@ -974,7 +974,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure tnodeutils.insertbssdata(AsmData: TAsmData; sym: tstaticvarsym);
     var
       l : asizeint;
       varalign,wantedalign,explicitalign : shortint;

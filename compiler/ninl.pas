@@ -153,6 +153,7 @@ implementation
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
       cgbase,procinfo,
+      aasmdata,
       nodehelper,
       compiler;
 
@@ -538,7 +539,7 @@ implementation
                   tabstractvarsym(srsym).varstate:=vs_initialised;
 
                   srsymtable.insertsym(srsym);
-                  compiler.nodeutils.insertbssdata(tstaticvarsym(srsym));
+                  compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(srsym));
                 end;
               result:=compiler.cloadnode(srsym,srsymtable);
             end

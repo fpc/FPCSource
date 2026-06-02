@@ -1676,7 +1676,7 @@ implementation
                  if (vs.typ=staticvarsym) and
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
-                   compiler.nodeutils.insertbssdata(tstaticvarsym(vs));
+                   compiler.nodeutils.insertbssdata(current_asmdata,tstaticvarsym(vs));
                  if vo_is_public in vs.varoptions then
                    compiler.current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
                end;
@@ -2004,7 +2004,7 @@ implementation
                      if vd_threadvar in options then
                        include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parser.pbase.parse_generic then
-                       compiler.nodeutils.insertbssdata(hstaticvs);
+                       compiler.nodeutils.insertbssdata(current_asmdata,hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;

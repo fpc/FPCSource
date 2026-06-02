@@ -37,7 +37,7 @@ interface
 
     twasmnodeutils = class(tnodeutils)
     public
-      procedure insertbssdata(sym : tstaticvarsym); override;
+      procedure insertbssdata(AsmData: TAsmData; sym : tstaticvarsym); override;
       procedure InsertObjectInfo(AsmData: TAsmData); override;
     end;
 
@@ -55,7 +55,7 @@ implementation
 
   { twasmnodeutils }
 
-  procedure twasmnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure twasmnodeutils.insertbssdata(AsmData: TAsmData; sym: tstaticvarsym);
     var
       symcpu: tcpustaticvarsym;
     begin

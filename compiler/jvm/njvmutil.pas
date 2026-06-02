@@ -30,6 +30,7 @@ interface
     node,nbas,
     fmodule,ngenutil,
     symtype,symconst,symsym,symdef,
+    aasmdata,
     compilerbase;
 
 
@@ -39,7 +40,7 @@ interface
       function finalize_data_node(p:tnode):tnode; override;
       procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); override;
       function force_init: boolean; override;
-      procedure insertbssdata(sym: tstaticvarsym); override;
+      procedure insertbssdata(AsmData: TAsmData; sym: tstaticvarsym); override;
       function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
 
       function check_insert_trashing(pd: tprocdef): boolean; override;
@@ -66,7 +67,7 @@ implementation
 
     uses
       verbose,cutils,globtype,globals,constexp,compinnr,
-      aasmdata,aasmtai,cpubase,aasmbase,aasmcpu,
+      aasmtai,cpubase,aasmbase,aasmcpu,
       symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
@@ -191,7 +192,7 @@ implementation
       result:=true;
     end;
 
-  procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure tjvmnodeutils.insertbssdata(AsmData: TAsmData; sym: tstaticvarsym);
     var
       enuminitsym,
       vs: tstaticvarsym;
