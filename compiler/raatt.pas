@@ -1135,7 +1135,7 @@ unit raatt;
           SetupTables;
           _asmsorted:=TRUE;
         end;
-       curlist:=TAsmList.Create(current_asmdata);
+       curlist:=TAsmList.Create(AsmData);
 
        { we might need to know which parameters are passed in registers }
        if not compiler.parser.pbase.parse_generic then
@@ -1887,7 +1887,7 @@ unit raatt;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+           oper.opr.symbol:=AsmData.RefAsmSymbol(tempstr,tempsymtyp);
          end
         else
          begin
@@ -1919,7 +1919,7 @@ unit raatt;
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
-                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,current_asmdata.RefAsmSymbol(asmsym,asmsymtyp));
+                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,AsmData.RefAsmSymbol(asmsym,asmsymtyp));
                    ai.value:=value;
                    curlist.concat(ai);
                  end
