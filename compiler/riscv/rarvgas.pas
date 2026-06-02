@@ -235,7 +235,7 @@ unit rarvgas;
                     if (relsym<>'') then
                       begin
                         if (oper.opr.typ = OPR_REFERENCE) then
-                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,AT_DATA)
+                          oper.opr.ref.relsymbol:=AsmData.RefAsmSymbol(relsym,AT_DATA)
                         else
                           begin
                             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
@@ -355,7 +355,7 @@ unit rarvgas;
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
+                    oper.opr.symbol:=AsmData.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,compiler.deftypes.voidcodepointertype);
                   end
                 else
                   inc(oper.opr.val,l);
