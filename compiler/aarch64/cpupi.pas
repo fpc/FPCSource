@@ -56,7 +56,8 @@ implementation
     tgobj,
     cpubase,
     aasmtai,
-    compiler;
+    compiler,
+    pass_2_context;
 
   const
     SCOPE_FINALLY=0;
@@ -113,7 +114,7 @@ implementation
       unwindflags:=unwindflags or 3;
       inc(scopecount);
       if scopes=nil then
-        scopes:=TAsmList.Create(current_asmdata);
+        scopes:=TAsmList.Create(ctx.CurrAsmList.AsmData);
 
       if Assigned(filter) then
         scopes.concat(tai_const.create_rva_sym(filter))
