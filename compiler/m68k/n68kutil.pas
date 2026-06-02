@@ -62,8 +62,8 @@ implementation
             tcb.maybe_begin_aggregate(def);
             tcb.emit_tai(Tai_string.Create(s),def);
             tcb.maybe_end_aggregate(def);
-            sym:=current_asmdata.DefineAsmSymbol('__fpc_program_name',AB_GLOBAL,AT_DATA,def);
-            current_asmdata.asmlists[al_globals].concatlist(
+            sym:=AsmData.DefineAsmSymbol('__fpc_program_name',AB_GLOBAL,AT_DATA,def);
+            AsmData.asmlists[al_globals].concatlist(
               tcb.get_final_asmlist(sym,def,sec_rodata,'__fpc_program_name',compiler.globals.const_align(compiler.globals.current_settings.alignment.constalignmax))
             );
             tcb.free;
