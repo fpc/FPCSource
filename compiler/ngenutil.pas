@@ -1662,8 +1662,8 @@ implementation
       tcb.maybe_begin_aggregate(def);
       tcb.emit_tai(Tai_string.Create(s),def);
       tcb.maybe_end_aggregate(def);
-      sym:=current_asmdata.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA,def);
-      current_asmdata.asmlists[al_globals].concatlist(
+      sym:=AsmData.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA,def);
+      AsmData.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,def,sec_fpc,'version',compiler.globals.const_align(32))
       );
       tcb.free;
@@ -1674,8 +1674,8 @@ implementation
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
           tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.stacksize),compiler.deftypes.ptruinttype);
-          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
-          current_asmdata.asmlists[al_globals].concatlist(
+          sym:=AsmData.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
+          AsmData.asmlists[al_globals].concatlist(
             tcb.get_final_asmlist(sym,compiler.deftypes.ptruinttype,sec_data,'__stklen',compiler.globals.const_align(sizeof(pint)))
           );
           tcb.free;
@@ -1688,10 +1688,10 @@ implementation
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this
             is separate in the builder }
-          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',compiler.globals.current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(compiler.deftypes.u8inttype,1,compiler),AT_DATA));
+          maybe_new_object_file(AsmData.asmlists[al_globals]);
+          new_section(AsmData.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',compiler.globals.current_settings.alignment.varalignmax);
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(compiler.deftypes.u8inttype,1,compiler),AT_DATA));
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1707,8 +1707,8 @@ implementation
          tcb.maybe_begin_aggregate(def);
          tcb.emit_tai(Tai_string.Create(s),def);
          tcb.maybe_end_aggregate(def);
-         sym:=current_asmdata.DefineAsmSymbol('__stack_cookie',AB_GLOBAL,AT_DATA,def);
-         current_asmdata.asmlists[al_globals].concatlist(
+         sym:=AsmData.DefineAsmSymbol('__stack_cookie',AB_GLOBAL,AT_DATA,def);
+         AsmData.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(sym,def,sec_data,'__stack_cookie',sizeof(pint))
          );
          tcb.free;
@@ -1718,8 +1718,8 @@ implementation
       { Initial heapsize }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
       tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.heapsize),compiler.deftypes.ptruinttype);
-      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
-      current_asmdata.asmlists[al_globals].concatlist(
+      sym:=AsmData.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,compiler.deftypes.ptruinttype);
+      AsmData.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,compiler.deftypes.ptruinttype,sec_data,'__heapsize',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
@@ -1731,16 +1731,16 @@ implementation
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this
             is separate in the builder }
-          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',compiler.globals.current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
+          maybe_new_object_file(AsmData.asmlists[al_globals]);
+          new_section(AsmData.asmlists[al_globals],sec_bss,'__fpc_initialheap',compiler.globals.current_settings.alignment.varalignmax);
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
       tcb.emit_ord_const(byte(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches),compiler.deftypes.u8inttype);
-      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,compiler.deftypes.u8inttype);
-      current_asmdata.asmlists[al_globals].concatlist(
+      sym:=AsmData.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,compiler.deftypes.u8inttype);
+      AsmData.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,compiler.deftypes.u8inttype,sec_data,'__fpc_valgrind',compiler.globals.const_align(sizeof(pint)))
       );
       tcb.free;
