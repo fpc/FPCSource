@@ -207,9 +207,9 @@ implementation
       { handled while generating the unit/program init code, or class
         constructor; add something to al_globals to indicate that we need to
         insert an init section though }
-      if current_asmdata.asmlists[al_globals].empty and
+      if AsmData.asmlists[al_globals].empty and
          jvmimplicitpointertype(sym.vardef) then
-        current_asmdata.asmlists[al_globals].concat(cai_align.Create(1));
+        AsmData.asmlists[al_globals].concat(cai_align.Create(1));
       { in case of a threadvar, allocate a separate sym that's a subtype of the
         java.lang.ThreadLocal class which will wrap the actual variable value }
       if vo_is_thread_var in sym.varoptions then
