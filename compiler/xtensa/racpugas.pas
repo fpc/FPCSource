@@ -307,7 +307,7 @@ Unit racpugas;
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
+                    oper.opr.symbol:=AsmData.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
@@ -391,7 +391,7 @@ Unit racpugas;
                   hp:=tai(hp.Next);
                 end;
 
-              current_asmdata.getjumplabel(lab);
+              AsmData.getjumplabel(lab);
               compiler.current_procinfo.aktlocaldata.concat(tai_align.create(4));
               compiler.current_procinfo.aktlocaldata.concat(tai_label.create(lab));
               compiler.current_procinfo.aktlocaldata.concat(newconst);
