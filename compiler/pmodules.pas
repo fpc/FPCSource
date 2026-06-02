@@ -1808,7 +1808,7 @@ type
          compiler.nodeutils.InsertWideInits(current_asmdata);
 
          { Resourcestring references }
-         compiler.nodeutils.InsertResStrInits;
+         compiler.nodeutils.InsertResStrInits(current_asmdata);
 
          { generate debuginfo }
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
@@ -2614,7 +2614,7 @@ type
         compiler.nodeutils.InsertWideInits(current_asmdata);
 
         { Resourcestring references (const foo:string=someresourcestring) }
-        compiler.nodeutils.InsertResStrInits;
+        compiler.nodeutils.InsertResStrInits(current_asmdata);
 
         { insert Tables and StackLength }
         compiler.nodeutils.InsertInitFinalTable(curr);

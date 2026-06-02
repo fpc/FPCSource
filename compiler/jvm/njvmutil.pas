@@ -54,7 +54,7 @@ interface
       procedure InsertResourceTablesTable; override;
       procedure InsertResourceInfo(ResourcesUsed : boolean); override;
       procedure InsertResStrTablesTable; override;
-      procedure InsertResStrInits; override;
+      procedure InsertResStrInits(AsmData: TAsmData); override;
       procedure InsertMemorySizes(AsmData: TAsmData); override;
      protected
        procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
@@ -482,7 +482,7 @@ implementation
     end;
 
 
-  procedure tjvmnodeutils.InsertResStrInits;
+  procedure tjvmnodeutils.InsertResStrInits(AsmData: TAsmData);
     begin
       { not supported }
     end;
