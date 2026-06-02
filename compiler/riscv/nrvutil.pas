@@ -59,12 +59,12 @@ implementation
       if (compiler.target.info.system in systems_linux) then
         begin
           if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
-            current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'))
+            AsmData.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'))
           else
-            current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'nopic'));
+            AsmData.asmlists[al_start].Concat(tai_directive.create(asd_option,'nopic'));
 
-          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,compiler.target.info.stackalign));
-          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
+          AsmData.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,compiler.target.info.stackalign));
+          AsmData.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
 {$if defined(RISCV32)}
           if CPURV_HAS_16REGISTERS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
             attr_arch:='rv32e2p0'
@@ -108,7 +108,7 @@ implementation
             attr_arch:=attr_arch+'_zbc1p0';
           if CPURV_HAS_ZBS in compiler.target.cpu_capabilities[compiler.globals.current_settings.cputype] then
             attr_arch:=attr_arch+'_zbs1p0';
-          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_arch,attr_arch));
+          AsmData.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_arch,attr_arch));
         end;
     end;
 
