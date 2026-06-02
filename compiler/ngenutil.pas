@@ -1015,7 +1015,7 @@ implementation
         begin
           if (vo_is_thread_var in sym.varoptions) then
             begin
-              list:=current_asmdata.asmlists[al_threadvars];
+              list:=AsmData.asmlists[al_threadvars];
               sectype:=sec_threadvar;
               asmtype:=AT_TLS;
             end
