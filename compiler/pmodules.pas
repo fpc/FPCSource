@@ -2621,7 +2621,7 @@ type
         compiler.nodeutils.InsertThreadvarTablesTable(current_asmdata);
         compiler.nodeutils.InsertResourceTablesTable;
         compiler.nodeutils.InsertWideInitsTablesTable(current_asmdata);
-        compiler.nodeutils.InsertResStrTablesTable;
+        compiler.nodeutils.InsertResStrTablesTable(current_asmdata);
         compiler.nodeutils.InsertMemorySizes(current_asmdata);
 
         { Insert symbol to resource info }

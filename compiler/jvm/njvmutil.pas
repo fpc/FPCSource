@@ -53,7 +53,7 @@ interface
       procedure InsertWideInits(AsmData: TAsmData); override;
       procedure InsertResourceTablesTable; override;
       procedure InsertResourceInfo(ResourcesUsed : boolean); override;
-      procedure InsertResStrTablesTable; override;
+      procedure InsertResStrTablesTable(AsmData: TAsmData); override;
       procedure InsertResStrInits(AsmData: TAsmData); override;
       procedure InsertMemorySizes(AsmData: TAsmData); override;
      protected
@@ -476,7 +476,7 @@ implementation
     end;
 
 
-  procedure tjvmnodeutils.InsertResStrTablesTable;
+  procedure tjvmnodeutils.InsertResStrTablesTable(AsmData: TAsmData);
     begin
       { not supported }
     end;

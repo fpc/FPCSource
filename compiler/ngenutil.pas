@@ -139,7 +139,7 @@ interface
       procedure InsertWideInitsTablesTable(AsmData: TAsmData); virtual;
       procedure InsertWideInits(AsmData: TAsmData); virtual;
       procedure InsertResStrInits(AsmData: TAsmData); virtual;
-      procedure InsertResStrTablesTable; virtual;
+      procedure InsertResStrTablesTable(AsmData: TAsmData); virtual;
       procedure InsertResourceTablesTable; virtual;
       procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
 
@@ -1559,7 +1559,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertResStrTablesTable;
+  procedure tnodeutils.InsertResStrTablesTable(AsmData: TAsmData);
     begin
       InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
     end;
