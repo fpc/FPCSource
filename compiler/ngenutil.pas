@@ -1021,7 +1021,7 @@ implementation
             end
           else
             begin
-              list:=current_asmdata.asmlists[al_globals];
+              list:=AsmData.asmlists[al_globals];
               sectype:=sec_bss;
             end;
         end
@@ -1035,7 +1035,7 @@ implementation
               { everything anyway                              }
               varalign:=sizeof(pint);
             end;
-          list:=current_asmdata.asmlists[al_globals];
+          list:=AsmData.asmlists[al_globals];
           sectype:=sec_bss;
         end;
       maybe_new_object_file(list);
