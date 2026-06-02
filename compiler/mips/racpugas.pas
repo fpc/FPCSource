@@ -274,7 +274,7 @@ Interface
                     if (oper.opr.val<>0) then
                       compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
+                    oper.opr.symbol:=AsmData.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
@@ -363,7 +363,7 @@ Interface
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
                 if not assigned(oper.opr.ref.symbol) then
-                  oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp)
+                  oper.opr.ref.symbol:=AsmData.RefAsmSymbol(tempstr,tempsymtyp)
                 else
                   compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 case oper.opr.typ of
