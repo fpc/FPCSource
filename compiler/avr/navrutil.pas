@@ -168,7 +168,7 @@ implementation
       tcb.maybe_end_aggregate(defstr);
       tcb.maybe_end_aggregate(defu32);
 
-      sym:=current_asmdata.DefineAsmSymbol('__AVR_deviceinfo',AB_LOCAL,AT_DATA,defstr);
+      sym:=AsmData.DefineAsmSymbol('__AVR_deviceinfo',AB_LOCAL,AT_DATA,defstr);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,defstr,sec_note,'.gnu.avr.deviceinfo',compiler.globals.const_align(32))
       );
