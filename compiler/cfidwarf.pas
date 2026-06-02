@@ -383,10 +383,10 @@ implementation
              <...>   start sequence
 
         }
-        current_asmdata.getlabel(cielabel,alt_dbgframe);
+        list.AsmData.getlabel(cielabel,alt_dbgframe);
         list.concat(tai_label.create(cielabel));
-        current_asmdata.getlabel(lenstartlabel,alt_dbgframe);
-        current_asmdata.getlabel(lenendlabel,alt_dbgframe);
+        list.AsmData.getlabel(lenstartlabel,alt_dbgframe);
+        list.AsmData.getlabel(lenendlabel,alt_dbgframe);
         list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
         list.concat(tai_label.create(lenstartlabel));
         if datatype=dt_eh_frame then
@@ -411,8 +411,8 @@ implementation
         { augmentation data }
         if datatype=dt_eh_frame then
           begin
-            current_asmdata.getlabel(augstartlabel,alt_dbgframe);
-            current_asmdata.getlabel(augendlabel,alt_dbgframe);
+            list.AsmData.getlabel(augstartlabel,alt_dbgframe);
+            list.AsmData.getlabel(augendlabel,alt_dbgframe);
             { size of augmentation data ('z') }
             list.concat(tai_const.create_rel_sym(aitconst_uleb128bit,augstartlabel,augendlabel));
             list.concat(tai_label.create(augstartlabel));
@@ -452,8 +452,8 @@ implementation
                   if (hp.ops<>1) or
                      (hp.oper[0].typ<>dop_reloffset) then
                     internalerror(200404126);
-                  current_asmdata.getlabel(lenstartlabel,alt_dbgframe);
-                  current_asmdata.getlabel(lenendlabel,alt_dbgframe);
+                  list.AsmData.getlabel(lenstartlabel,alt_dbgframe);
+                  list.AsmData.getlabel(lenendlabel,alt_dbgframe);
                   { FDE
                      DWORD length
                      DWORD CIE-pointer = cielabel relative to section start
@@ -465,7 +465,7 @@ implementation
                   if datatype=dt_eh_frame then
                     begin
                       { relative offset to the CIE }
-                      current_asmdata.getlabel(fdeofslabel,alt_dbgframe);
+                      list.AsmData.getlabel(fdeofslabel,alt_dbgframe);
                       list.concat(tai_label.create(fdeofslabel));
                       list.concat(tai_const.create_rel_sym(aitconst_32bit,cielabel,fdeofslabel));
                     end
@@ -479,7 +479,7 @@ implementation
                       list.concat(tc);
                     end;
 
-                  current_asmdata.getlabel(curpos,alt_dbgframe);
+                  list.AsmData.getlabel(curpos,alt_dbgframe);
                   list.concat(tai_label.create(curpos));
                   list.concat(tai_const.Create_sym(hp.oper[0].beginsym));
 {$if defined(avr)}
