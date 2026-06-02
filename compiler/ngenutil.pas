@@ -140,7 +140,7 @@ interface
       procedure InsertWideInits(AsmData: TAsmData); virtual;
       procedure InsertResStrInits(AsmData: TAsmData); virtual;
       procedure InsertResStrTablesTable(AsmData: TAsmData); virtual;
-      procedure InsertResourceTablesTable; virtual;
+      procedure InsertResourceTablesTable(AsmData: TAsmData); virtual;
       procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
 
       procedure InsertMemorySizes(AsmData: TAsmData); virtual;
@@ -1565,7 +1565,7 @@ implementation
     end;
 
 
-  procedure tnodeutils.InsertResourceTablesTable;
+  procedure tnodeutils.InsertResourceTablesTable(AsmData: TAsmData);
     var
       hp : tmodule;
       count : longint;
@@ -1601,9 +1601,9 @@ implementation
       countplaceholder := nil;
       { Add to data segment }
       tabledef:=tcb.end_anonymous_record;
-      current_asmdata.AsmLists[al_globals].concatList(
+      AsmData.AsmLists[al_globals].concatList(
         tcb.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA,tabledef),
+          AsmData.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA,tabledef),
           tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',compiler.globals.const_align(sizeof(pint))
         )
       );

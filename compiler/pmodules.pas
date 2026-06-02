@@ -2619,7 +2619,7 @@ type
         { insert Tables and StackLength }
         compiler.nodeutils.InsertInitFinalTable(curr);
         compiler.nodeutils.InsertThreadvarTablesTable(current_asmdata);
-        compiler.nodeutils.InsertResourceTablesTable;
+        compiler.nodeutils.InsertResourceTablesTable(current_asmdata);
         compiler.nodeutils.InsertWideInitsTablesTable(current_asmdata);
         compiler.nodeutils.InsertResStrTablesTable(current_asmdata);
         compiler.nodeutils.InsertMemorySizes(current_asmdata);
