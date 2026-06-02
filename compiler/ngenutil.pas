@@ -1175,6 +1175,7 @@ implementation
       unitnametcb : ttai_typedconstbuilder;
       unitnamedef : tdef;
       unitnamelbl : tasmlabel;
+      main_asmdata : TAsmData;
 
       procedure add_initfinal_import(symtable:tsymtable);
         var
@@ -1216,6 +1217,7 @@ implementation
         end;
 
     begin
+      main_asmdata:=TAsmData(main.AsmData);
       unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -1276,7 +1278,7 @@ implementation
           if assigned(entry^.module.realmodulename) then
             begin
               { Create string constant and emit pointer to it }
-              unitinits.start_internal_data_builder(current_asmdata.asmlists[al_globals],sec_rodata,'',unitnametcb,unitnamelbl);
+              unitinits.start_internal_data_builder(main_asmdata.asmlists[al_globals],sec_rodata,'',unitnametcb,unitnamelbl);
               unitnamedef:=unitnametcb.emit_shortstring_const(entry^.module.realmodulename^);
               unitinits.finish_internal_data_builder(unitnametcb,unitnamelbl,unitnamedef,sizeof(pint));
               unitinits.queue_init(compiler.deftypes.charpointertype);
@@ -1288,9 +1290,9 @@ implementation
 
       { Add to data segment }
       tabledef:=unitinits.end_anonymous_record;
-      current_asmdata.asmlists[al_globals].concatlist(
+      main_asmdata.asmlists[al_globals].concatlist(
         unitinits.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA,tabledef),
+          main_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
           sec_data,'INITFINAL',compiler.globals.const_align(sizeof(pint))
         )
