@@ -564,7 +564,7 @@ uses cutils, cclasses;
 {$pop}
                           begin
                             // add a new label after this jump
-                            current_asmdata.getjumplabel(l);
+                            list.AsmData.getjumplabel(l);
                             { new label -> may have to increase array size }
                             if (l.labelnr >= labelpositions.count) then
                               labelpositions.count := l.labelnr + 10;
