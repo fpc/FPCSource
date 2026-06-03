@@ -582,7 +582,7 @@ Var
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+','+IntToStr(TimeoutMs)+')');{$ENDIF}
   if TimeoutMs>=0 then
-    TimeoutNs:=TimeoutMs*1000000
+    TimeoutNs:=Int64(TimeoutMs)*1000000
   else
     TimeoutNs:=-1;
   WasiRTLEventWaitFor(TH^.DoneEvent);
@@ -967,12 +967,12 @@ begin
     end;
 end;
 
-function WasiBasicEventWaitFor(timeout:cardinal;state:peventstate;FUseComWait : Boolean=False):longint;
+function WasiBasicEventWaitFor(TimeOut: cardinal; state: peventstate; FUseComWait: Boolean=False): longint;
 var
   timeoutNS: Int64;
 begin
   if timeout<>$FFFFFFFF then
-    timeoutNS:=timeout*1000000
+    timeoutNS:=Int64(TimeOut)*1000000
   else
     timeoutNS:=-1;
   if isWaitAllowed then
