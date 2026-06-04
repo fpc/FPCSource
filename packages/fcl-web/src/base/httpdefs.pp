@@ -261,7 +261,7 @@ type
     Procedure DeleteTempUploadedFiles; virtual;
   public
     class var MaxUploadFiles : Word;
-    class var MaxUploadFileSize : Word;
+    class var MaxUploadFileSize : Int64;
   public
     Function First : TUploadedFile;
     Function Last : TUploadedFile;
