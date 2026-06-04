@@ -629,8 +629,8 @@ begin
         VSeg:=SegB800;
       SOfs:=MemW[Seg0040:$4e];
       DosmemPut(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
-      djgpp_set_ctrl_c(Ctrl_c_state);
     end;
+    djgpp_set_ctrl_c(Ctrl_c_state);
 end;
 
 

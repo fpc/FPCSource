@@ -972,6 +972,10 @@ begin
   do_initsymbolinfo:=@InitBrowserCol;
   do_donesymbolinfo:=@DoneBrowserCol;
   do_extractsymbolinfo:=@CreateBrowserCol;
+  { Compiler will set "needsymbolinfo" to true for program.
+    If this is set to true for unit, then
+    loaded units are destroyed while references is still in use. }
+  needsymbolinfo:=false;
 { Compile ! }
 {$ifdef redircompiler}
   ChangeRedirOut(FPOutFileName,false);

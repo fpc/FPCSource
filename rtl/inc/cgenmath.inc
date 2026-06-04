@@ -78,13 +78,26 @@
 {$endif aix}
 
 
-{$ifndef SOLARIS}
 
+{$if defined(LINUX) or defined(BSD) or defined(AIX) or defined(SOLARIS)}
+const
+  mathlibname = 'm';
+{$endif}
+{$ifdef HAIKU}
+const
+  mathlibname = 'root';
+{$endif}
+{$if not declared(mathlibname)}
+const
+  mathlibname = 'c';
+{$endif}
+
+{$ifndef SOLARIS}
 {$ifndef FPC_SYSTEM_HAS_INT}
 {$define FPC_SYSTEM_HAS_INT}
 
 {$ifdef SUPPORT_DOUBLE}
-    function c_trunc(d: double): double; cdecl; external 'c' name 'trunc';
+    function c_trunc(d: double): double; cdecl; external mathlibname name 'trunc';
 
     function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -96,7 +109,7 @@
 
 {$else SUPPORT_DOUBLE}
 
-    function c_truncf(d: single): double; cdecl; external 'c' name 'truncf';
+    function c_truncf(d: single): double; cdecl; external mathlibname name 'truncf';
 
     function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
       begin
@@ -113,7 +126,7 @@
 
 {$ifndef SYSTEM_HAS_FREXP}
 {$define SYSTEM_HAS_FREXP}
-    function c_frexp(x: double; out e: longint): double; cdecl; external 'c' name 'frexp';
+    function c_frexp(x: double; out e: longint): double; cdecl; external mathlibname name 'frexp';
 
     procedure frexp(x:ValReal; out Mantissa: ValReal; out Exponent: longint); {$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -126,7 +139,7 @@
 
 {$ifndef SYSTEM_HAS_LDEXP}
 {$define SYSTEM_HAS_LDEXP}
-    function c_ldexp(x: double; n: longint): double; cdecl; external 'c' name 'ldexp';
+    function c_ldexp(x: double; n: longint): double; cdecl; external mathlibname name 'ldexp';
 
     function ldexp( x: ValReal; N: Integer):ValReal;{$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -140,7 +153,7 @@
 {$ifndef FPC_SYSTEM_HAS_SQRT}
 {$define FPC_SYSTEM_HAS_SQRT}
 
-    function c_sqrt(d: double): double; cdecl; external 'c' name 'sqrt';
+    function c_sqrt(d: double): double; cdecl; external mathlibname name 'sqrt';
 
     function fpc_sqrt_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -154,7 +167,7 @@
 
 {$ifndef FPC_SYSTEM_HAS_EXP}
 {$define FPC_SYSTEM_HAS_EXP}
-    function c_exp(d: double): double; cdecl; external 'c' name 'exp';
+    function c_exp(d: double): double; cdecl; external mathlibname name 'exp';
 
 
     function fpc_Exp_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
@@ -171,7 +184,7 @@
 {$ifndef FPC_SYSTEM_HAS_LN}
 {$define FPC_SYSTEM_HAS_LN}
 
-    function c_log(d: double): double; cdecl; external 'c' name 'log';
+    function c_log(d: double): double; cdecl; external mathlibname name 'log';
 
     function fpc_Ln_real(d:ValReal):ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -185,7 +198,7 @@
 
 {$ifndef FPC_SYSTEM_HAS_SIN}
 {$define FPC_SYSTEM_HAS_SIN}
-    function c_sin(d: double): double; cdecl; external 'c' name 'sin';
+    function c_sin(d: double): double; cdecl; external mathlibname name 'sin';
 
     function fpc_Sin_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -199,7 +212,7 @@
 
 {$ifndef FPC_SYSTEM_HAS_COS}
 {$define FPC_SYSTEM_HAS_COS}
-    function c_cos(d: double): double; cdecl; external 'c' name 'cos';
+    function c_cos(d: double): double; cdecl; external mathlibname name 'cos';
 
     function fpc_Cos_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
@@ -213,7 +226,7 @@
 
 {$ifndef FPC_SYSTEM_HAS_ARCTAN}
 {$define FPC_SYSTEM_HAS_ARCTAN}
-    function c_atan(d: double): double; cdecl; external 'c' name 'atan';
+    function c_atan(d: double): double; cdecl; external mathlibname name 'atan';
 
     function fpc_ArcTan_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin

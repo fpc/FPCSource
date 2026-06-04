@@ -339,7 +339,7 @@ implementation
 
       { debug information }
       if (([cs_debuginfo,cs_lineinfo]*compiler.globals.current_settings.moduleswitches)<>[]) and
-         (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+         (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5]) then
         begin
           { the debug info version is the version of the debug info metadata
             format }
@@ -361,6 +361,8 @@ implementation
               dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(3)));
             dbg_dwarf4:
               dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(4)));
+            dbg_dwarf5:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(compiler.deftypes.s32inttype,tai_const.Create_32bit(5)));
             else
               internalerror(2022022012);
           end;

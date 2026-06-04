@@ -1386,6 +1386,11 @@ type
     dec(result, VarHeaderSize);
   end;
 
+{$ifdef DISPLAY_O3_BUG}
+{$push}
+{$optimization useloadmodifystore}
+{$endif DISPLAY_O3_BUG}
+
   function HeapInc.ThreadState.TryResizeVar(p: pointer; size: SizeUint): pointer;
   var
     ar: pointer absolute result;
@@ -1536,6 +1541,11 @@ type
     if statv > maxUsed then
       maxUsed := statv;
   end;
+{$ifdef DISPLAY_O3_BUG}
+{$pop}
+{  disable optimization useloadmodifystore}
+{$endif DISPLAY_O3_BUG}
+
 
 {$ifdef HAS_SYSOSFREE}
   class function HeapInc.ThreadState.AddToHugeUsed(delta: SizeInt): SizeUint;

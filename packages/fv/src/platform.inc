@@ -187,6 +187,15 @@ FOR FPC THESE ARE THE TRANSLATIONS
     {$DEFINE Sw_NewStr:=NewStr}
   {$ENDIF FV_UNICODE}
 
+  {$IFNDEF NO_RESOURCESTRING}
+    {$DEFINE USE_RESOURCESTRING} { use resourcestring for string constants }
+  {$ENDIF NO_RESOURCESTRING}
+
+  {2.0 compatibility}
+  {$ifdef VER2_0}
+    {$UNDEF USE_RESOURCESTRING}
+  {$endif}
+
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$IFNDEF CPU16}

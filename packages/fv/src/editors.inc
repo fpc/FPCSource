@@ -36,12 +36,6 @@ unit Editors;
 
 {$define UNIXLF}
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
-
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -517,7 +511,12 @@ uses
 type
   pword = ^word;
 
-resourcestring  sClipboard='Clipboard';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sClipboard='Clipboard';
                 sFileCreateError='Error creating file %s';
                 sFileReadError='Error reading file %s';
                 sFileUntitled='Save untitled file?';
@@ -4758,6 +4757,8 @@ procedure TEditWindow.SizeLimits(var Min, Max: TPoint);
 begin
   inherited SizeLimits(Min, Max);
   Min.X := 23;
+  if Max.X < Min.X then Max.X:=Min.X;
+  if Max.Y < Min.Y then Max.Y:=Min.Y;
 end;
 
 

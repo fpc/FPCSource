@@ -764,20 +764,15 @@ end;
 procedure loadFile(var theFile: TFile);
 var
   numSelectors : dword;
-  data : pointer;
 
 begin
 
   numSelectors:= (theFile.size + 2048 - 1) div 2048;
-  getmem(data, numSelectors * 2048);
+  getmem(theFile.data, numSelectors * 2048);
 
-  startCDROMRead(theFile.lba, data, numSelectors, 2048, true, true);
+  startCDROMRead(theFile.lba, theFile.data, numSelectors, 2048, true, true);
 
-  getmem(theFile.data, theFile.size);
-
-  move(data^, theFile.data^, theFile.size);
-
-  freemem(data);
+  ReAllocMem(theFile.data, theFile.size);
 
 end;
 

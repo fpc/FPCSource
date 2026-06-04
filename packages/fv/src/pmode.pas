@@ -35,14 +35,14 @@ uses Dos;
 type
     MemPtr = object
       Ofs,Seg: word;
-      Size   : word;
+      Size   : longint;
       Sel    : word;
       function  DosPtr: pointer;
       function  DataPtr: pointer;
       function  DosSeg: word;
       function  DosOfs: word;
-      procedure MoveDataTo(var Src; DSize: word);
-      procedure MoveDataFrom(DSize: word; var Dest);
+      procedure MoveDataTo(var Src; DSize: longint);
+      procedure MoveDataFrom(DSize: longint; var Dest);
       procedure Clear;
     private
       function DataSeg: word;
@@ -75,13 +75,13 @@ type
 
     pregisters = ^registers;
 
-function  GetDosMem(var M: MemPtr; Size: word): boolean;
+function  GetDosMem(var M: MemPtr; Size: longint): boolean;
 procedure FreeDosMem(var M: MemPtr);
 procedure realintr(IntNo: byte; var r: registers);
 {procedure realintr32(IntNo: byte; var r: registers32);}
 procedure realcall(Proc: pointer; var r: registers);
-function  MoveDosToPM(DosPtr: pointer; PMPtr: pointer; Size: word): boolean;
-function  MovePMToDos(PMPtr: pointer; DosPtr: pointer; Size: word): boolean;
+function  MoveDosToPM(DosPtr: pointer; PMPtr: pointer; Size: longint): boolean;
+function  MovePMToDos(PMPtr: pointer; DosPtr: pointer; Size: longint): boolean;
 procedure realGetIntVec(IntNo: byte; var P: pointer);
 function  allocrmcallback(PMAddr: pointer; RealRegs: pregisters): pointer;
 procedure freermcallback(RealCallAddr: pointer);
@@ -99,7 +99,7 @@ uses DOSApi.GO32;
 uses go32;
 {$ENDIF FPC_DOTTEDUNITS}
 
-function  GetDosMem(var M: MemPtr; Size: word): boolean;
+function  GetDosMem(var M: MemPtr; Size: longint): boolean;
 var L: longint;
 begin
   M.Size:=Size;
@@ -187,13 +187,13 @@ begin
   r.flags:=rr.Flags and $ffff;
 end;
 
-function MoveDosToPM(DosPtr: pointer; PMPtr: pointer; Size: word): boolean;
+function MoveDosToPM(DosPtr: pointer; PMPtr: pointer; Size: longint): boolean;
 begin
   dosmemget(PtrRec(DosPtr).Seg,PtrRec(DosPtr).Ofs,PMPtr^,Size);
   MoveDosToPM:=true;
 end;
 
-function MovePMToDos(PMPtr, DosPtr: pointer; Size: word): boolean;
+function MovePMToDos(PMPtr, DosPtr: pointer; Size: longint): boolean;
 begin
   dosmemput(PtrRec(DosPtr).Seg,PtrRec(DosPtr).Ofs,PMPtr^,Size);
   MovePMToDos:=true;
@@ -206,12 +206,12 @@ begin
   PtrRec(P).Seg:=si.segment; PtrRec(P).Ofs:=longint(si.offset);
 end;
 
-procedure MemPtr.MoveDataTo(var Src; DSize: word);
+procedure MemPtr.MoveDataTo(var Src; DSize: longint);
 begin
   dpmi_dosmemput(DosSeg,DosOfs,Src,DSize);
 end;
 
-procedure MemPtr.MoveDataFrom(DSize: word; var Dest);
+procedure MemPtr.MoveDataFrom(DSize: longint; var Dest);
 begin
   dpmi_dosmemget(DosSeg,DosOfs,Dest,DSize);
 end;

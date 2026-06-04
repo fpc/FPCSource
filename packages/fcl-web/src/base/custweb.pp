@@ -44,6 +44,7 @@ Type
   TWebHandler = class(TComponent)
   private
     FDefaultModuleName: String;
+    FIncludeStackTraceInErrorPage: Boolean;
     FLegacyRouting: Boolean;
     FOnIdle: TNotifyEvent;
     FOnInitModule: TInitModuleEvent;
@@ -63,9 +64,12 @@ Type
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
+    procedure CreateExceptionHTMLPage(R: TResponse; E: Exception);
+    procedure CreateExceptionJSON(R: TResponse; E: Exception);
     procedure DoCallModule(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest; AResponse: TResponse);
     procedure HandleModuleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
     procedure OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
+    procedure SetRedirectOnErrorURL(AValue: string);
   protected
     Class Procedure DoError(const Msg : String; AStatusCode : Integer = 0; const AStatusText : String = '');
     Class Procedure DoError(const Fmt : String; Const Args : Array of const; AStatusCode : Integer = 0; Const AStatusText : String = '');
@@ -91,7 +95,7 @@ Type
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
-    Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
+    Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write SetRedirectOnErrorURL;
     Property ApplicationURL : String Read FApplicationURL Write FApplicationURL;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property DefaultModuleName : String Read FDefaultModuleName Write FDefaultModuleName;
@@ -107,11 +111,13 @@ Type
     Property OnInitModule: TInitModuleEvent Read FOnInitModule write FOnInitModule;
     Property PreferModuleName : Boolean Read FPreferModuleName Write FPreferModuleName;
     Property LegacyRouting : Boolean Read FLegacyRouting Write FLegacyRouting;
+    Property IncludeStackTraceInErrorPage : Boolean Read FIncludeStackTraceInErrorPage Write FIncludeStackTraceInErrorPage default false;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
   Private
     FEventLog: TEventLog;
+    FIncludeStackTraceInErrorPage: Boolean;
     FWebHandler: TWebHandler;
     function GetAdministrator: String;
     function GetAllowDefaultModule: Boolean;
@@ -120,6 +126,7 @@ Type
     function GetEmail: String;
     function GetEventLog: TEventLog;
     function GetHandleGetOnPost: Boolean;
+    function GetIncludeStackTraceInErrorPage: Boolean;
     function GetLegacyRouting: Boolean;
     function GetModuleVar: String;
     function GetOnGetModule: TGetModuleEvent;
@@ -134,6 +141,7 @@ Type
     procedure SetDefaultModuleName(const AValue: String);
     procedure SetEmail(const AValue: String);
     procedure SetHandleGetOnPost(const AValue: Boolean);
+    procedure SetIncludeStackTraceInErrorPage(AValue: Boolean);
     procedure SetLegacyRouting(AValue: Boolean);
     procedure SetModuleVar(const AValue: String);
     procedure SetOnGetModule(const AValue: TGetModuleEvent);
@@ -172,11 +180,12 @@ Type
     Property EventLog: TEventLog read GetEventLog;
     Property PreferModuleName : Boolean Read GetPreferModuleName Write SetPreferModuleName;
     Property LegacyRouting : Boolean Read GetLegacyRouting Write SetLegacyRouting;
+    Property IncludeStackTraceInErrorPage : Boolean Read GetIncludeStackTraceInErrorPage Write SetIncludeStackTraceInErrorPage default false;
   end;
 
   EFpWebError = Class(EFPHTTPError);
 
-procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
+procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string; IncludeStackTrace : Boolean);
 
 Implementation
 
@@ -186,12 +195,14 @@ uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  Xml.HtmlElements,
   FpWeb.Route;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
+  htmlelements,
   httproute;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -204,7 +215,13 @@ resourcestring
   SError = 'Error: ';
   SNotify = 'Notify: ';
 
-procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
+function SimpleHTMLEncode(const aValue : string) : string;
+
+begin
+  Result:=EscapeHTML(aValue);
+end;
+
+procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string; IncludeStackTrace : Boolean);
 var
   FrameNumber: Integer;
   Frames: PPointer;
@@ -218,22 +235,25 @@ begin
     Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
     Add(SAppEncounteredError+'<br>');
     Add('<ul>');
-    Add('<li>'+SError+' <b>'+E.Message+'</b>');
-    Add('<li> Stack trace:<br>');
-    Add(BackTraceStrFunc(ExceptAddr)+'<br>');
-    FrameCount:=ExceptFrameCount;
-    Frames:=ExceptFrames;
-    for FrameNumber := 0 to FrameCount-1 do
-      Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+    Add('<li>'+SError+' <b>'+SimpleHTMLEncode(E.Message)+'</b>');
+    if IncludeStackTrace then
+      begin
+      Add('<li> Stack trace:<br>');
+      Add(SimpleHTMLEncode(BackTraceStrFunc(ExceptAddr))+'<br>');
+      FrameCount:=ExceptFrameCount;
+      Frames:=ExceptFrames;
+      for FrameNumber := 0 to FrameCount-1 do
+        Add(SimpleHTMLEncode(BackTraceStrFunc(Frames[FrameNumber]))+'<br>');
+      end;
     Add('</ul><hr>');
-    TheEmail:=Email;
+    TheEmail:=SimpleHTMLEncode(Email);
     If (TheEmail<>'') then
       Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
     Add('</body></html>');
     end;
 end;
 
-Procedure TWebHandler.Run;
+procedure TWebHandler.Run;
 var ARequest : TRequest;
     AResponse : TResponse;
 begin
@@ -246,11 +266,64 @@ begin
     end;
 end;
 
-Procedure TWebHandler.Log(EventType: TEventType; Const Msg: String);
+procedure TWebHandler.Log(EventType: TEventType; const Msg: String);
 begin
   If Assigned(FOnLog) then
     FOnLog(EventType,Msg);
 end;
+
+procedure TWebHandler.CreateExceptionHTMLPage(R : TResponse;E : Exception);
+var
+  S : TStrings;
+
+begin
+  S:=TStringList.Create;
+  Try
+    ExceptionToHTML(S, E, Title, Email, Administrator, IncludeStackTraceInErrorPage);
+    R.Content:=  S.Text;
+  Finally
+    FreeAndNil(  S);
+  end;
+end;
+
+procedure TWebHandler.CreateExceptionJSON(R : TResponse;E : Exception);
+
+const
+  SErrJSON = '{ "error" : { "class" : "%s", "message": "%s", "admin": "%s", "email" : "%s"}, "title": "%s", stack: "%s" }';
+
+  function DoEscape (S : String) : string;
+  begin
+    Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
+    Result:=StringReplace(Result,'"','\"',[rfReplaceAll]);
+    Result:=StringReplace(Result,#10,'\n',[rfReplaceAll]);
+    Result:=StringReplace(Result,#13,'\r',[rfReplaceAll]);
+    Result:=StringReplace(Result,#8,'\t',[rfReplaceAll]);
+  end;
+var
+  lStack : String;
+  FrameNumber, FrameCount:Integer;
+  Frames: PPointer;
+
+begin
+  lStack:='';
+  if IncludeStackTraceInErrorPage then
+    begin
+    lStack:=BackTraceStrFunc(ExceptAddr)+#10;
+    FrameCount:=ExceptFrameCount;
+    Frames:=ExceptFrames;
+      for FrameNumber := 0 to FrameCount-1 do
+        lStack:=lStack+BackTraceStrFunc(Frames[FrameNumber])+#10;
+    end;
+  R.Content:=Format(SErrJSON,[
+    DoEscape(E.ClassName),
+    DoEscape(E.Message),
+    DoEscape(Administrator),
+    DoEscape(Email),
+    DoEscape(Title),
+    DoEscape(lStack)
+  ]);
+end;
+
 
 procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
 
@@ -266,7 +339,6 @@ procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
   end;
 
 Var
-  S : TStrings;
   handled: boolean;
   CT : String;
 
@@ -298,38 +370,37 @@ begin
     end;
   If (R.ContentType='text/html') then
     begin
-    S:=TStringList.Create;
-    Try
-      ExceptionToHTML(S, E, Title, Email, Administrator);
-      R.Content:=S.Text;
-      R.SendContent;
-    Finally
-      FreeAndNil(S);
-    end;
-    end;
+    CreateExceptionHTMLPage(R,E);
+    R.SendContent;
+    end
+  else if (R.ContentType='application/json') then
+    begin
+    CreateExceptionJSON(R,E);
+    R.SendContent;
+    end
 end;
 
-Procedure TWebHandler.InitRequest(ARequest: TRequest);
+procedure TWebHandler.InitRequest(ARequest: TRequest);
 begin
   ARequest.OnUnknownEncoding:=Self.OnUnknownRequestEncoding;
 end;
 
-Procedure TWebHandler.InitResponse(AResponse: TResponse);
+procedure TWebHandler.InitResponse(AResponse: TResponse);
 begin
   // Do nothing
 end;
 
-Function TWebHandler.GetEmail: String;
+function TWebHandler.GetEmail: String;
 begin
   Result := FEmail;
 end;
 
-Function TWebHandler.GetAdministrator: String;
+function TWebHandler.GetAdministrator: String;
 begin
   Result := FAdministrator;
 end;
 
-Procedure TWebHandler.DoCallModule(AModule : TCustomHTTPModule; const AModuleName : String ; ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.DoCallModule(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest; AResponse: TResponse);
 
 begin
   SetBaseURL(AModule,AModuleName,ARequest);
@@ -348,7 +419,7 @@ begin
     AModule.HandleRequest(ARequest,AResponse);
 end;
 
-Procedure TWebHandler.HandleModuleRequest(Sender : TModuleItem; ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.HandleModuleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
 
 Var
   MC : TCustomHTTPModuleClass;
@@ -386,7 +457,7 @@ begin
   DoCallModule(M,MN,ARequest,AResponse);
 end;
 
-Procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 begin
   try
@@ -400,7 +471,7 @@ begin
   end;
 end;
 
-Procedure TWebHandler.OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   MC : TCustomHTTPModuleClass;
@@ -431,6 +502,14 @@ begin
    DoCallModule(M,MN,ARequest,AResponse);
 end;
 
+procedure TWebHandler.SetRedirectOnErrorURL(AValue: string);
+begin
+  if FRedirectOnErrorURL=AValue then Exit;
+  if (aValue<>'') and (aValue[1]<>'/') then
+    Raise EHTTP.Create('Only local error redirects are allowed.');
+  FRedirectOnErrorURL:=AValue;
+end;
+
 function TWebHandler.GetApplicationURL(ARequest: TRequest): String;
 begin
   Result:=FApplicationURL;
@@ -438,7 +517,7 @@ begin
     Result:=ARequest.ScriptName;
 end;
 
-Class Procedure TWebHandler.DoError(Const Msg : String;AStatusCode : Integer = 0; const AStatusText : String = '');
+class procedure TWebHandler.DoError(const Msg: String; AStatusCode: Integer; const AStatusText: String);
 
 Var
   E : EFpWebError;
@@ -450,8 +529,7 @@ begin
   Raise E;
 end;
 
-Class Procedure TWebHandler.DoError(Const Fmt: String; Const Args: Array of const;
-  AStatusCode: Integer = 0; Const AStatusText: String = '');
+class procedure TWebHandler.DoError(const Fmt: String; const Args: array of const; AStatusCode: Integer; const AStatusText: String);
 begin
   DoError(Format(Fmt,Args),AStatusCode,AStatusText);
 end;
@@ -463,7 +541,7 @@ begin
     FOnTerminate(Self);
 end;
 
-Function TWebHandler.GetModuleName(Arequest: TRequest): string;
+function TWebHandler.GetModuleName(Arequest: TRequest): string;
 
    Function GetDefaultModuleName : String;
 
@@ -520,8 +598,7 @@ begin
     Result:=Nil;
 end;
 
-Procedure TWebHandler.SetBaseURL(AModule: TCustomHTTPModule;
-  Const AModuleName: String; ARequest: TRequest);
+procedure TWebHandler.SetBaseURL(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest);
 
 Var
   S,P : String;
@@ -539,7 +616,7 @@ begin
   AModule.BaseURL:=S+P;
 end;
 
-Procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   Try
     HandleRequest(ARequest,AResponse);
@@ -630,6 +707,11 @@ begin
   result := FWebHandler.HandleGetOnPost;
 end;
 
+function TCustomWebApplication.GetIncludeStackTraceInErrorPage: Boolean;
+begin
+  Result:=FWebHandler.IncludeStackTraceInErrorPage;
+end;
+
 function TCustomWebApplication.GetLegacyRouting: Boolean;
 begin
   Result:=FWebHandler.LegacyRouting;
@@ -698,6 +780,11 @@ end;
 procedure TCustomWebApplication.SetHandleGetOnPost(const AValue: Boolean);
 begin
   FWebHandler.HandleGetOnPost := AValue;
+end;
+
+procedure TCustomWebApplication.SetIncludeStackTraceInErrorPage(AValue: Boolean);
+begin
+  FWebHandler.IncludeStackTraceInErrorPage:=aValue;
 end;
 
 procedure TCustomWebApplication.SetLegacyRouting(AValue: Boolean);
@@ -789,7 +876,7 @@ begin
   EventLog.log(EventType,Msg);
 end;
 
-Procedure TCustomWebApplication.Terminate;
+procedure TCustomWebApplication.Terminate;
 
 begin
   Inherited;

@@ -75,6 +75,7 @@ type
       procedure   Store(var S: TStream);
       procedure   Update; virtual;
       procedure   SelectInDebugSession;
+      procedure   SizeLimits (Var Min, Max: TPoint); virtual;
     end;
 
     PFPHelpViewer = ^TFPHelpViewer;
@@ -345,19 +346,24 @@ type
 
 
     PScreenView = ^TScreenView;
-    TScreenView = object(TScroller)
+    TScreenView = object(TFileEditor)
       Screen: PScreen;
+      ScreenLines: PLineCollection;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
-                    AScreen: PScreen);
+                    AIndicator: PIndicator; AScreen: PScreen);
       procedure   Draw; virtual;
       procedure   Update; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
+      function    Valid(Command: Word): Boolean;virtual;
     end;
 
     PScreenWindow = ^TScreenWindow;
     TScreenWindow = object(TFPWindow)
       ScreenView : PScreenView;
+      Indicator : PIndicator;
       constructor Init(AScreen: PScreen; ANumber: integer);
+      procedure   UpdateCommands; virtual;
+      function    GetPalette: PPalette; virtual;
       destructor  Done; virtual;
     end;
 
@@ -492,7 +498,7 @@ const
       SourceCmds  : TCommandSet =
         ([cmSave,cmSaveAs,cmCompile,cmHide,cmDoReload]);
       EditorCmds  : TCommandSet =
-        ([cmPrint,cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll,cmUnselect]);
+        ([cmPrint,cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll,cmUnselect,cmPasteWin]);
       CompileCmds : TCommandSet =
         ([cmMake,cmBuild,cmRun,cmStepOver,cmTraceInto,cmContToCursor]);
 
@@ -769,6 +775,7 @@ begin
      (P^.HelpCtx=hcCompilerMessagesWindow) or
      (P^.HelpCtx=hcGDBWindow) or
      (P^.HelpCtx=hcdisassemblyWindow) or
+     (P^.HelpCtx=hcUserScreenWindow) or
      (P^.HelpCtx=hcWatchesWindow) or
      (P^.HelpCtx=hcRegistersWindow) or
      (P^.HelpCtx=hcFPURegisters) or
@@ -2441,6 +2448,13 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TFPWindow.SizeLimits (Var Min, Max: TPoint);
+begin
+  inherited SizeLimits(Min,Max);
+  Min.X:=20;
+  if Max.X < Min.X then Max.X:=Min.X;
+  if Max.Y < Min.Y then Max.Y:=Min.Y;
+end;
 
 constructor TFPWindow.Load(var S: TStream);
 begin
@@ -2519,6 +2533,7 @@ begin
   Active:=GetState(sfActive) and Visible;
   SetCmdState(SourceCmds+CompileCmds,False);
   SetCmdState(EditorCmds,True);
+  SetCmdState([cmReplace,cmJumpLine],false);
   if Assigned(HelpView) then
     HelpView^.ChangeCommands;
   SetCmdState([cmHide],Active);
@@ -3004,6 +3019,7 @@ begin
   SetCmdState([cmSaveAs,cmHide,cmRun],Active);
   SetCmdState(EditorCmds,Active);
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
+  SetCmdState([cmReplace],false);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -3303,6 +3319,7 @@ begin
   SetCmdState(SourceCmds+CompileCmds,Active);
   SetCmdState(EditorCmds,Active);
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
+  SetCmdState([cmReplace,cmPasteWin,cmSave,cmSaveAs,cmDoReload],false);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -3555,10 +3572,15 @@ begin
   W:=EditorWindowFile(P^.GetModuleName);
   if assigned(W) then
     begin
-      W^.GetExtent(R);
-      R.B.Y:=Owner^.Origin.Y;
+      //W^.GetExtent(R);
+      {
+      W^.GetBounds(R); { keep original window position }
+      if Owner^.Origin.Y>R.A.Y+4 then
+        R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
+      }
       W^.Editor^.SetCurPtr(Col,Row);
+      W^.Editor^.TrackCursor(do_centre);
     end
   else
     W:=TryToOpenFile(@R,P^.GetModuleName,Col,Row,true);
@@ -3600,11 +3622,15 @@ begin
   W:=EditorWindowFile(P^.GetModuleName);
   if assigned(W) then
     begin
-      W^.GetExtent(R);
+      //W^.GetExtent(R);
+      {
+      W^.GetBounds(R); { keep original window position }
       if Owner^.Origin.Y>R.A.Y+4 then
         R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
+      }
       W^.Editor^.SetCurPtr(Col,Row);
+      W^.Editor^.TrackCursor(do_centre);
     end
   else
    W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
@@ -3837,28 +3863,69 @@ end;
 
 
 constructor TScreenView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
-              AScreen: PScreen);
+              AIndicator: PIndicator; AScreen: PScreen);
 begin
-  inherited Init(Bounds,AHScrollBar,AVScrollBar);
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,nil,'');
   Screen:=AScreen;
   if Screen=nil then
    Fail;
   SetState(sfCursorVis,true);
+  GrowMode:=gfGrowHiX+gfGrowHiY;
+  SetFlags(efInsertMode{+efSyntaxHighlight}+efNoIndent+efKeepTrailingSpaces+efKeepLineAttr+efEnhWordRightLeft);
+  New(ScreenLines,Init(100,500));
+  { do not allow to write into that window }
+  ReadOnly:=true;
   Update;
 end;
 
 procedure TScreenView.Update;
+var iLine : Sw_Integer;
+    Cur: TPoint;
+    Text,Attr:String;
+    k : longword;
 begin
+  ScreenLines^.FreeAll;
+  //for iLine:=0 to {Screen^.GetHeight} 47 do
+  for iLine:=0 to Screen^.GetHeight do
+  begin
+    Screen^.GetLine(iLine,Text,Attr);
+    {
+    Str(iLine,Text);
+    Text:='Line nr '+Text+'   ';
+    SetLength(Attr,Length(Text));
+    for k:=1 to Length(Text) do
+       Attr[k]:=#$07;
+    }
+    AddLine(Text);
+    SetLineFormat(iLine,Attr);
+  end;
+  //SetLimit(80,47);
   SetLimit(UserScreen^.GetWidth,UserScreen^.GetHeight);
+  //Cur.X:=3;Cur.Y:=45;
+  Screen^.GetCursorPos(Cur);
+  SetCurPtr(Cur.X,Cur.Y);
+  //TrackCursor(do_centre);
   DrawView;
 end;
 
 procedure TScreenView.HandleEvent(var Event: TEvent);
+var DontClear : boolean;
 begin
   case Event.What of
     evBroadcast :
       case Event.Command of
         cmUpdate  : Update;
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmSaveAs : SaveAs;
+          else
+            DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -3869,21 +3936,67 @@ var B: TDrawBuffer;
     X,Y: integer;
     Text,Attr: string;
     P: TPoint;
+    LineCount : sw_integer;
+    LastAttr,Color,SelectColor:Byte;
+    HaveSelection : boolean;
+    TextLen : sw_word;
+    CurChar : AnsiChar;
 begin
-  Screen^.GetCursorPos(P);
+  P:=CurPos;
+  LineCount:=GetLineCount;
+  LastAttr:=GetColor(1);
+  SelectColor:=GetColor(10);
+  HaveSelection:=(SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y);
   for Y:=Delta.Y to Delta.Y+Size.Y-1 do
   begin
-    if Y<Screen^.GetHeight then
-      Screen^.GetLine(Y,Text,Attr)
+    if Y<LineCount then
+      begin
+        Text:=GetLineText(Y);
+        Attr:=GetLineFormat(Y);
+        TextLen:=Length(Text);
+      end
     else
-       begin Text:=''; Attr:=''; end;
-    Text:=copy(Text,Delta.X+1,255); Attr:=copy(Attr,Delta.X+1,255);
-    MoveChar(B,' ',GetColor(1),Size.X);
-    for X:=1 to length(Text) do
-      MoveChar(B[X-1],Text[X],ord(Attr[X]),1);
+      begin Text:=''; Attr:=''; TextLen:=0; end;
+    if Length(Attr)>0 then LastAttr:=byte(Attr[Length(Attr)]);
+    for X:=Delta.X to Delta.X-1+Size.X  do
+    begin
+      if X<TextLen then
+      begin
+         CurChar:=Text[X+1];
+         Color:=ord(Attr[X+1]);
+      end else
+      begin
+        CurChar:=' ';
+        Color:=LastAttr;
+      end;
+      if HaveSelection then
+        if (SelStart.Y=SelEnd.Y) then
+        begin
+          if (SelStart.Y=Y) and (SelStart.X<=X) and (SelEnd.X>X) then
+            Color:=SelectColor;
+        end else if (SelStart.Y<=Y) and (SelEnd.Y>=Y) then
+        begin
+          if (SelStart.Y=Y) then
+          begin
+            if (SelStart.X<=X) then Color:=SelectColor;
+          end else
+          if (SelEnd.Y=Y) then
+          begin
+            if (SelEnd.X>X) then Color:=SelectColor;
+          end else Color:=SelectColor;
+        end;
+      MoveChar(B[X-Delta.X],CurChar,Color,1);
+    end;
     WriteLine(0,Y-Delta.Y,Size.X,1,B);
   end;
   SetCursor(P.X-Delta.X,P.Y-Delta.Y);
+end;
+
+function TScreenView.Valid(Command: Word): Boolean;
+var OK: boolean;
+begin
+  OK:=TCodeEditor.Valid(Command); { Do NOT ask for save !! }
+  Valid:=OK;
 end;
 
 constructor TScreenWindow.Init(AScreen: PScreen; ANumber: integer);
@@ -3892,18 +4005,45 @@ var R: TRect;
 begin
   Desktop^.GetExtent(R);
   inherited Init(R, dialog_userscreen, ANumber);
-  Options:=Options or ofTileAble;
-  GetExtent(R); R.Grow(-1,-1); R.Move(1,0); R.A.X:=R.B.X-1;
-  New(VSB, Init(R)); VSB^.Options:=VSB^.Options or ofPostProcess;
-  VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
-  GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.A.Y:=R.B.Y-1;
-  New(HSB, Init(R)); HSB^.Options:=HSB^.Options or ofPostProcess;
-  HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
+  //Options:=Options or ofTileAble;
+  HelpCtx:=hcUserScreenWindow;
+  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=15;
+  New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
+  Insert(HSB);
+  GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
+  New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+  Insert(VSB);
+  GetExtent(R); R.A.X:=3; R.B.X:=15; R.A.Y:=R.B.Y-1;
+  New(Indicator, Init(R));
+  Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Indicator);
   GetExtent(R); R.Grow(-1,-1);
-  New(ScreenView, Init(R, HSB, VSB, AScreen));
+  New(ScreenView, Init(R, HSB, VSB, Indicator, AScreen));
   ScreenView^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Insert(ScreenView);
+  ScreenView^.TrackCursor(do_centre);
   UserScreenWindow:=@Self;
+end;
+
+procedure TScreenWindow.UpdateCommands;
+var Active, Visible: boolean;
+begin
+  Visible:=GetState(sfVisible);
+  Active:=GetState(sfActive) and Visible;
+  SetCmdState([cmSave,cmCompile,cmDoReload],false);
+  SetCmdState([cmSaveAs,cmHide],Active);
+  SetCmdState(CompileCmds,false);
+  SetCmdState([cmReplace,cmPasteWin],false);
+  SetCmdState([cmPrint,cmFind,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll],Active);
+  SetCmdState(FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
+  SetCmdState([cmTile,cmCascade,cmStepped,cmSteppedReverse],IsThereAnyVisibleEditorWindow);
+  Message(Application,evBroadcast,cmCommandSetChanged,nil);
+end;
+
+function TScreenWindow.GetPalette: PPalette;
+const P: string[length(CSourceWindow)] = CSourceWindow;
+begin
+  GetPalette:=@P;
 end;
 
 destructor TScreenWindow.Done;

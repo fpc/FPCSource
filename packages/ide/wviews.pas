@@ -402,6 +402,8 @@ var
 {$ifdef WinClipSupported}
   PPW: PMenuItem;
   WinClipEmpty: boolean;
+  PasteFromWinClipEnabled: boolean;
+  CurClipSize: longint;
 {$endif WinClipSupported}
   Target: PMenuView;
   R: TRect;
@@ -505,8 +507,9 @@ begin
   PPW:=SearchMenuItem(Menu,cmPasteWin);
   if Assigned(PPW) then
     begin
-      WinClipEmpty:=GetTextWinClipboardSize=0;
-      SetCmdState(FromWinClipCmds,Not WinClipEmpty);
+      CurClipSize:=0;
+      PasteFromWinClipEnabled:=CommandEnabled (cmPasteWin);
+      WinClipEmpty:=(not PasteFromWinClipEnabled) or (GetTextWinClipboardSize=0);
       PPW^.disabled:=WinClipEmpty;
     end;
 {$endif WinClipSupported}
@@ -520,23 +523,25 @@ begin
   repeat
     Action := DoNothing;
 {$ifdef WinClipSupported}
+{$ifndef go32v2} { Exclude Dos target. DosBox-x slowdown when OS holds large clipboard data (+64kb). (M)}
     If Assigned(PPW) then
       begin
-        If WinClipEmpty and (GetTextWinClipboardSize>0) then
+        if PasteFromWinClipEnabled then
+          CurClipSize:=GetTextWinClipboardSize;
+        If WinClipEmpty and (CurClipSize>0) then
           begin
-            WinClipEmpty:=false;
-            SetCmdState(FromWinClipCmds,true);
+            WinClipEmpty:=(not PasteFromWinClipEnabled) or false;
             PPW^.disabled:=WinClipEmpty;
             DrawView;
           end
-        else if Not WinClipEmpty and (GetTextWinClipboardSize=0) then
+        else if Not WinClipEmpty and (CurClipSize=0) then
           begin
             WinClipEmpty:=true;
-            SetCmdState(FromWinClipCmds,false);
             PPW^.disabled:=WinClipEmpty;
             DrawView;
           end;
       end;
+{$endif go32v2}
 {$endif WinClipSupported}
     GetEvent(E);
     case E.What of

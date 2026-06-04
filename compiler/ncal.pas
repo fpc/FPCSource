@@ -2880,9 +2880,9 @@ implementation
 
     function tcallnode.handle_compilerproc: tnode;
       var
-        para, encodingnode: TCallParaNode;
-        maxlennode, outnode, valnode: TNode;
-        MaxStrLen: Int64;
+        para: TCallParaNode;
+        minlennode, maxlennode, outnode, valnode, constnode: TNode;
+        minstrlen: Int64;
         StringLiteral, name: string;
         ValOutput: TConstExprInt;
         ValCode: Longint;
@@ -2895,6 +2895,7 @@ implementation
         dw: DWord;
         i64: Int64;
         qw: QWord;
+        paracount: Integer;
       begin
         result := nil;
         case intrinsiccode of
@@ -2912,55 +2913,79 @@ implementation
 
               { Remember the parameters are in reverse order - the leftmost one
                 can usually be ignored }
-              para := GetParaFromIndex(1);
+              paracount := 0;
+              para := TCallParaNode(Self.parameters);
+              while Assigned(para) do
+                begin
+                  Inc(paracount);
+                  para := TCallParaNode(para.nextpara);
+                end;
+
+              { The 4-parameter versions contain a parameter that contains the
+                highest index of the destination object (the case for shortstrings) }
+              para := GetParaFromIndex(paracount - 3);
               if Assigned(para) then
                 begin
                   { Output variable }
                   outnode := para.left;
-                  para := GetParaFromIndex(2);
+                  para := GetParaFromIndex(paracount - 2);
 
                   if Assigned(para) then
                     begin
-                      { Maximum length }
-                      maxlennode := para.left;
-                      if is_integer(maxlennode.resultdef) then
+                      { Minimum length }
+                      minlennode := para.left;
+                      if is_integer(minlennode.resultdef) then
                         begin
-                          para := GetParaFromIndex(3);
+                          para := GetParaFromIndex(paracount - 1);
 
-                          while (maxlennode.nodetype = typeconvn) and (ttypeconvnode(maxlennode).convtype in [tc_equal, tc_int_2_int]) do
+                          while (minlennode.nodetype = typeconvn) and (ttypeconvnode(minlennode).convtype in [tc_equal, tc_int_2_int]) do
                             begin
-                              maxlennode := ttypeconvnode(maxlennode).left;
+                              minlennode := ttypeconvnode(minlennode).left;
                             end;
 
-                          if Assigned(para) and is_constintnode(maxlennode) then
+                          if Assigned(para) and is_constintnode(minlennode) then
                             begin
                               { Numeric value }
                               valnode := para.left;
-                              if is_integer(valnode.resultdef) and not Assigned(GetParaFromIndex(4)) then
+                              if is_integer(valnode.resultdef) then
                                 begin
                                   while (valnode.nodetype = typeconvn) and (ttypeconvnode(valnode).convtype in [tc_equal, tc_int_2_int]) do
                                     begin
                                       valnode := ttypeconvnode(valnode).left;
                                     end;
 
-                                  encodingnode:=GetParaFromIndex(0);
-
-                                  if is_constintnode(valnode) and
-                                  { for now replace only nodes if no encoding is passed/encoding is zero }
-                                    (not(assigned(encodingnode)) or
-                                    (is_constintnode(encodingnode.left) and
-                                    (tordconstnode(encodingnode.left).value=0))) then
+                                  if is_constintnode(valnode) then
                                     begin
-                                      MaxStrLen := TOrdConstNode(maxlennode).value.svalue;
+                                      minstrlen := TOrdConstNode(minlennode).value.svalue;
 
                                       { If we've gotten this far, we can convert the node into a direct assignment }
-                                      StringLiteral := tostr(tordconstnode(valnode).value);
-                                      if MaxStrLen <> -1 then
-                                        SetLength(StringLiteral, Integer(MaxStrLen));
+                                      if tordconstnode(valnode).value.signed then
+                                        Str(tordconstnode(valnode).value.svalue:minstrlen, StringLiteral)
+                                      else
+                                        Str(tordconstnode(valnode).value.uvalue:minstrlen, StringLiteral);
+
+                                      para := GetParaFromIndex(paracount);
+                                      if Assigned(para) then
+                                        begin
+                                          { Maximum supported length of destination object }
+                                          maxlennode := para.left;
+                                          while (minlennode.nodetype = typeconvn) and (ttypeconvnode(minlennode).convtype in [tc_equal, tc_int_2_int]) do
+                                            maxlennode := ttypeconvnode(maxlennode).left;
+
+                                          if is_constintnode(maxlennode) then
+                                            SetLength(StringLiteral, tordconstnode(maxlennode).value.svalue)
+                                          else
+                                            Exit;
+                                        end;
+
+                                      if Length(StringLiteral) = 1 then
+                                        constnode := compiler.cordconstnode(Ord(StringLiteral[1]), compiler.deftypes.cchartype, False)
+                                      else
+                                        constnode := compiler.cstringconstnode_str(StringLiteral);
 
                                       result := compiler.cassignmentnode(
                                         outnode.getcopy,
-                                        compiler.cstringconstnode_str(StringLiteral)
+                                        constnode
                                       );
                                     end;
                                 end;

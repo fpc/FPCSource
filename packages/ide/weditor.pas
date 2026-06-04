@@ -797,12 +797,12 @@ const
 
      CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
+     ToClipCmds         : TCommandSet = ([cmCopy,cmCopyWin,
        { cmUnselect should because like cut, copy, copywin:
          if there is a selection, it is active, else it isn't }
-       cmUnselect,cmCommentSel,cmUnCommentSel]);
+       cmUnselect]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
-     NulClipCmds        : TCommandSet = ([cmClear]);
+     NulClipCmds        : TCommandSet = ([cmClear,cmCut,cmCommentSel,cmUnCommentSel]);
      UndoCmd            : TCommandSet = ([cmUndo]);
      RedoCmd            : TCommandSet = ([cmRedo]);
 
@@ -2280,7 +2280,7 @@ var
   CurrentCommentDepth : sw_integer;
   NestedComments,LookForNestedComments : boolean;
   CommentStartX,CommentStartY : sw_integer;
-  FirstCC,LastCC: TCharClass;
+  FirstCC,LastCC,PrevNumCC: TCharClass;
   InAsm,InComment,InSingleLineComment,InDirective,InString,InStringMultiLine: boolean;
   WhiteSpaceLine,OnlyStringSuffix,StringSuffixEnded : boolean;
   X,ClassStart: Sw_integer;
@@ -2501,7 +2501,10 @@ var
     else if (LastCC=ccHexNumber) and (C in {$ifdef USE_UNTYPEDSET}['0'..'9','A'..'F','a'..'f']{$else}HexNumberChars{$endif}) then
       CC:=ccHexNumber
     else if C in {$ifdef USE_UNTYPEDSET}['0'..'9']{$else}NumberChars{$endif} then
-      CC:=ccNumber
+      begin
+        PrevNumCC:=ccNumber;
+        CC:=ccNumber;
+      end
     else if (LastCC=ccNumber) and (C in {$ifdef USE_UNTYPEDSET}['E','e','.']{$else}RealNumberChars{$endif}) then
       begin
         if (C='.') then
@@ -2520,6 +2523,21 @@ var
             else
               cc:=ccAlpha
           end;
+        PrevNumCC:=cc;
+      end
+    else if (C in ['-','+']) and ((LastCC=ccNumber)and (PrevNumCC=ccRealNumber)) then
+      begin
+        if (X>1) and (LineText[X-1]='.') then
+          CC:=ccSymbol
+        else
+          CC:=ccNumber; { real number scientific notation exponent sign is part of the number itself }
+      end
+    else if (C = '_') and ((LastCC=ccHexNumber) or (LastCC=ccNumber)) then
+      begin
+        if (X>1) and (LineText[X-1]='.') then
+          CC:=ccAlpha
+        else
+          CC:=LastCC;  { allow number to have "_" as visual separation marker }
       end
     else if C in {$ifdef USE_UNTYPEDSET}['A'..'Z','a'..'z','_']{$else}AlphaChars{$endif} then CC:=ccAlpha else
       CC:=ccSymbol;
@@ -6793,6 +6811,7 @@ begin
       {Enable paste command.}
       CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
                 (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+      CanPaste:=CanPaste and (not IsReadOnly);
       SetCmdState(FromClipCmds,CanPaste);
     end;
   UnLock;
@@ -6821,6 +6840,7 @@ begin
        PopInfo;
      CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
                (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+     CanPaste:=CanPaste and (not IsReadOnly);
      SetCmdState(FromClipCmds,CanPaste);
    end;
   CloseGroupedAction(eaCut);
@@ -7758,12 +7778,12 @@ begin
     begin
       Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
       SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
-      SetCmdState(NulClipCmds,Enable);
+      SetCmdState(NulClipCmds,Enable and (not isReadOnly));
       CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
            (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
-      SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
-      SetCmdState(UndoCmd,(GetUndoActionCount>0));
-      SetCmdState(RedoCmd,(GetRedoActionCount>0));
+      SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self) and (not isReadOnly));
+      SetCmdState(UndoCmd,(GetUndoActionCount>0) and (not isReadOnly));
+      SetCmdState(RedoCmd,(GetRedoActionCount>0) and (not isReadOnly));
       //Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
 end;

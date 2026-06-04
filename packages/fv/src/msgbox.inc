@@ -53,12 +53,6 @@ UNIT MsgBox;
 {$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
-
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -221,7 +215,12 @@ var
   ButtonName: array[0..3] of string[40];
 {$endif FV_UNICODE}
 
-resourcestring  sConfirm='Confirm';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sConfirm='Confirm';
                 sError='Error';
                 sInformation='Information';
                 sWarning='Warning';

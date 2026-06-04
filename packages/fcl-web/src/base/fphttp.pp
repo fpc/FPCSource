@@ -25,6 +25,9 @@ uses System.SysUtils,System.Classes,FpWeb.Http.Defs, FpWeb.Route;
 uses sysutils,classes,httpdefs, httproute;
 {$ENDIF FPC_DOTTEDUNITS}
 
+const
+  cCSRFVariable = '_CSRFToken_';
+
 Type
 { TODO : Implement wkSession }
   TWebModuleKind = (wkPooled, wkOneShot{, wkSession});
@@ -170,6 +173,9 @@ Type
 
   TSessionFactory = Class(TComponent)
   private
+    FGenerateCSRFToken: Boolean;
+    FSameSitePolicy: TSameSite;
+    FSecureSession: Boolean;
     FSessionCookie: String;
     FSessionCookiePath: String;
     FTimeOut: Integer;
@@ -182,6 +188,7 @@ Type
     Procedure DoCleanupSessions; virtual; abstract;
     Property DoneCount : Integer Read FDoneCount;
   Public
+    constructor Create(aOwner : TComponent); override;
     Function CreateSession(ARequest : TRequest) : TCustomSession;
     Procedure DoneSession(Var ASession : TCustomSession);
     Procedure CleanupSessions;
@@ -196,6 +203,12 @@ Type
     property SessionCookie : String Read FSessionCookie Write FSessionCookie;
     // Default session cookie path
     Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
+    // Secure session ? If set, then the cookie will be marked 'secure', only usable in https.
+    Property SecureSession : Boolean Read FSecureSession Write FSecureSession default false;
+    // Same Site Policy: TSameSite
+    Property SameSitePolicy : TSameSite Read FSameSitePolicy Write FSameSitePolicy default ssLax;
+    // Generate CSRFToken when creating a new session. for SameSitePolicy ssLax and ssStrict, this should not be needed.
+    Property GenerateCSRFToken : Boolean Read FGenerateCSRFToken Write FGenerateCSRFToken default False;
   end;
   TSessionFactoryClass = Class of TSessionFactory;
 
@@ -360,7 +373,17 @@ end;
 
 { TSessionFactory }
 
+constructor TSessionFactory.Create(aOwner: TComponent);
+begin
+  inherited Create(aOwner);
+  FSameSitePolicy:=ssLax;
+  FSecureSession:=False;
+end;
+
 function TSessionFactory.CreateSession(ARequest: TRequest): TCustomSession;
+var
+  G :  TGUID;
+  S : String;
 begin
   Result:=DoCreateSession(ARequest);
   if Assigned(Result) then
@@ -369,6 +392,15 @@ begin
       Result.TimeoutMinutes:=FTimeOut;
     Result.SessionCookie:=Self.SessionCookie;
     Result.SessionCookiePath:=Self.SessionCookiePath;
+    Result.SameSitePolicy:=Self.SameSitePolicy;
+    Result.SecureSession:=Self.SecureSession;
+    if GenerateCSRFToken then
+      begin
+      if CreateGUID(G)<>0 then
+        Raise EHTTP.Create('Could not create a GUID');
+      S:=GuidToString(G);
+      Result.Variables[cCSRFVariable]:=Copy(S,2,Length(S)-2);
+      end;
     end;
 end;
 

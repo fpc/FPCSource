@@ -225,7 +225,9 @@ begin
                  Val(H,PByte(R)^,C);
                  If (C<>0) then
                    R^:=' ';
-                 end;
+                 end
+               else
+                 R^:=' '
                end;
              end;
            end;

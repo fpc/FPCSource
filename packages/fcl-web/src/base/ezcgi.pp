@@ -20,9 +20,9 @@ unit EzCgi;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Classes, System.SysUtils;
+uses System.Classes, System.SysUtils, Xml.HtmlElements;
 {$ELSE FPC_DOTTEDUNITS}
-uses classes, sysutils;
+uses classes, sysutils, HtmlElements;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -68,7 +68,7 @@ type
       destructor Destroy; override;
       procedure Run;
       procedure WriteContent(const ctype : String);
-      procedure PutLine(const sOut : String);
+      procedure PutLine(const sOut: String; escape: boolean=false);
       function GetValue(const Index : String; const defaultValue : String) : String;
 
       procedure DoPost; virtual;
@@ -124,9 +124,12 @@ begin
    writeln;
 end;
 
-procedure TEZcgi.PutLine(const sOut : String);
+procedure TEZcgi.PutLine(const sOut : String; escape : boolean = false);
 begin
-   writeln(sOut);
+   if escape then
+     Writeln(EscapeHTML(sOut))
+   else
+     writeln(sOut);
 end;
 
 function TEZcgi.GetValue(Const Index, defaultValue : String) : String;
@@ -300,10 +303,13 @@ var
       repeat
          index := Pos('%', queryItem);
          if index > 0 then
-         begin
-            queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
-            system.Delete(queryItem, index + 1, 2);
-         end;
+           if index<Length(queryitem)-1 then
+             begin
+             queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
+             system.Delete(queryItem, index + 1, 2);
+             end
+           else
+             index:=0
       until index = 0;
    end;
 
@@ -328,8 +334,8 @@ begin
    writeln('<center><hr><h1>CGI ERROR</h1><hr></center><br><br>');
    writeln('This CGI application encountered the following error: <br>');
    writeln('<ul><br>');
-   writeln('<li> error: ',errorMessage,'<br><hr>');
-   writeln('<h5><p><i>Notify ',FName,' <a href="mailto:',FEmail,'">',FEmail,'</a></i></p></h5>');
+   writeln('<li> error: ',EscapeHTML(errorMessage),'<br><hr>');
+   writeln('<h5><p><i>Notify ',EscapeHTML(FName),' <a href="mailto:',EscapeHTML(FEmail),'">',EscapeHTML(FEmail),'</a></i></p></h5>');
    writeln('</body></html>');
 
    Raise ECGIException.Create(errorMessage);

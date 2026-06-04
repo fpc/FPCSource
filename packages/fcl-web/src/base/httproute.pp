@@ -571,9 +571,16 @@ begin
 end;
 
 class function THTTPRouter.Service: THTTPRouter;
+var
+  NewService : THTTPRouter;
 begin
   if FService=Nil then
-    FService:=ServiceClass.Create(Nil);
+    begin
+    // Avoid locking.
+    NewService:=ServiceClass.Create(Nil);
+    if InterlockedCompareExchange(Pointer(FService), Pointer(NewService), Nil) <> Nil then
+      NewService.Free;
+    end;
   Result:=FService;
 end;
 
@@ -614,11 +621,11 @@ begin
   Lock;
   try
     Intr:=FIntercepts.AddInterceptor(aName);
+    Intr.Event:=aEvent;
+    Intr.InterceptAt:=aAt;
   finally
     Unlock;
   end;
-  Intr.Event:=aEvent;
-  Intr.InterceptAt:=aAt;
 end;
 
 procedure THTTPRouter.UnRegisterInterceptor(const aName: String);

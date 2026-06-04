@@ -373,6 +373,7 @@ var
   lockres: cint;
   closeres: cint;
   lockerr: cint;
+  TryCount : integer;
 begin
   DoFileLocking:=Handle;
 {$ifdef beos}
@@ -406,21 +407,31 @@ begin
           lockop:=LOCK_SH or LOCK_NB;
         else
           begin
-            { fmShareDenyRead does not exit under *nix, only shared access
+            { fmShareDenyRead does not exist under *nix, only shared access
               (similar to fmShareDenyWrite) and exclusive access (same as
               fmShareExclusive)
             }
             repeat
               closeres:=FpClose(Handle);
-            until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
+            until (closeres<>-1) or (fpgeterrno<>ESysEAGAIN);
             DoFileLocking:=-1;
             exit;
           end;
       end;
+      TryCount:=0;
       repeat
         lockres:=fpflock(Handle,lockop);
+        // On EAGAIN, do not try indefinitely
+        if (lockres<>0) and (fpgeterrno=ESysEAGAIN) then
+          begin
+          Inc(TryCount);
+          if TryCount > 30 then
+            Break
+          else
+            Sleep(1);
+          end;
       until (lockres=0) or
-            (fpgeterrno<>ESysEIntr);
+            ((fpgeterrno<>ESysEIntr) and (fpgeterrno<>ESysEAGAIN));
       lockerr:=fpgeterrno;
       { Only return an error if locks are working and the file was already
         locked. Not if locks are simply unsupported (e.g., on Angstrom Linux
@@ -431,7 +442,7 @@ begin
         begin
           repeat
             closeres:=FpClose(Handle);
-          until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
+          until (closeres<>-1) or (fpgeterrno<>ESysEAGAIN);
           DoFileLocking:=-1;
           exit;
         end;
@@ -526,10 +537,17 @@ begin
   if (fd>=0) then
     begin
       if ((ShareMode and fmShareNoLocking)=0) then
-        Result:=DoFileLocking(fd,ShareMode)
+        begin
+        Result:=DoFileLocking(fd,ShareMode);
+        // If lock succeeded, close. If lock failed, the file was already closed.
+        if Result<>-1 then 
+          FileClose(fd);
+        end
       else
+        begin
         Result:=0;
-      FileClose(fd);
+        FileClose(fd);
+        end;
      { Can't lock -> abort }
       if Result<0 then
         exit;
@@ -580,11 +598,11 @@ end;
 
 Procedure FileClose (Handle : Longint);
 var
-  res: cint;
+  closeres: cint;
 begin
   repeat
-    res:=fpclose(Handle);
-  until (res<>-1) or (fpgeterrno<>ESysEINTR);
+    closeres:=fpclose(Handle);
+  until (closeres<>-1) or (fpgeterrno<>ESysEAGAIN);
 end;
 
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;

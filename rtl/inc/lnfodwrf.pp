@@ -308,6 +308,33 @@ const
   DW_FORM_sec_offset = $17;
   DW_FORM_exprloc = $18;
   DW_FORM_flag_present = $19;
+  DW_FORM_strx           = $1A;
+  DW_FORM_addrx          = $1B;
+  DW_FORM_ref_sup4       = $1C;
+  DW_FORM_strp_sup       = $1D;
+  DW_FORM_data16         = $1E;
+  DW_FORM_line_strp      = $1F;
+  DW_FORM_ref_sig8       = $20;
+  DW_FORM_implicit_const = $21;
+  DW_FORM_loclistx       = $22;
+  DW_FORM_rnglistx       = $23;
+  DW_FORM_ref_sup8       = $24;
+  DW_FORM_strx1          = $25;
+  DW_FORM_strx2          = $26;
+  DW_FORM_strx3          = $27;
+  DW_FORM_strx4          = $28;
+  DW_FORM_addrx1         = $29;
+  DW_FORM_addrx2         = $2A;
+  DW_FORM_addrx3         = $2B;
+  DW_FORM_addrx4         = $2C;
+
+  DW_LNCT_invalid = 0;
+  DW_LNCT_path = 1;
+  DW_LNCT_directory_index = 2;
+  DW_LNCT_timestamp = 3;
+  DW_LNCT_size = 4;
+
+  DW_UT_compile = 1;
 
 type
   { state record for the line info state machine }
@@ -338,6 +365,7 @@ type
     line_range : Byte;
     opcode_base : Byte;
   end;
+  PLineNumberProgramHeader64 = ^TLineNumberProgramHeader64;
 
 { DWARF line number program header preceding the line number program, 32 bit version }
   TLineNumberProgramHeader32 = packed record
@@ -350,6 +378,19 @@ type
     line_range : Byte;
     opcode_base : Byte;
   end;
+  PLineNumberProgramHeader32 = ^TLineNumberProgramHeader32;
+
+  TLineNumberProgramHeaderDirFormat = packed record
+    cnt: byte;
+    f1, f2: byte; // ULeb, known to fit into a byte
+    dir_cnt: byte;
+  end;
+
+  TLineNumberProgramHeaderFileFormat = packed record
+    cnt: byte;
+    f1, f2, f3, f4, f5, f6, f7, f8: byte; // ULeb, known to fit into a byte
+    file_cnt: byte;
+  end;
 
   TDebugInfoProgramHeader64 = packed record
     magic : DWord;
@@ -358,12 +399,31 @@ type
     debug_abbrev_offset : QWord;
     address_size : Byte;
   end;
+  PDebugInfoProgramHeader64 = ^TDebugInfoProgramHeader64;
+
+  TDebugInfoProgramHeader64_v5 = packed record // DWARF 5
+    magic : DWord;
+    unit_length : QWord;
+    version : Word;
+    unit_type: byte;
+    address_size : Byte;
+    debug_abbrev_offset : QWord;
+  end;
 
   TDebugInfoProgramHeader32= packed record
     unit_length : DWord;
     version : Word;
     debug_abbrev_offset : DWord;
     address_size : Byte;
+  end;
+  PDebugInfoProgramHeader32 = ^TDebugInfoProgramHeader32;
+
+  TDebugInfoProgramHeader32_v5= packed record // Dwarf 5
+    unit_length : DWord;
+    version : Word;
+    unit_type: byte;
+    address_size : Byte;
+    debug_abbrev_offset : DWord;
   end;
 
   TDebugArangesHeader64 = packed record
@@ -859,6 +919,8 @@ var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TLineNumberProgramHeader64;
   header32 : TLineNumberProgramHeader32;
+  header_dir : TLineNumberProgramHeaderDirFormat;
+  header_file : TLineNumberProgramHeaderFileFormat;
 
   adjusted_opcode : Int64;
 
@@ -906,9 +968,28 @@ begin
   er.SetRange(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
+  header_length := 0;
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+
+    if header32.version >= 4 then begin
+      i := 1;
+      if header32.version >= 5 then begin
+        i := 3;
+        // Remove: U-BYTE address size, U-BYTE segment size
+        move((PByte(@header32.length)+2)^,
+          header32.length,
+          SizeOf(header32)-2-PtrUint(@PLineNumberProgramHeader32(nil)^.length));
+        header_length := 2;
+      end;
+      // Remove: U-BYTE maximum_operations_per_instruction => currently value is always 1
+      move((PByte(@header32.default_is_stmt)+1)^,
+        header32.default_is_stmt,
+        SizeOf(header32)-1-PtrUint(@PLineNumberProgramHeader32(nil)^.default_is_stmt));
+      er.ReadNext((PByte(@header32)+SizeOf(header32)-i)^, i);
+    end;
+
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -919,12 +1000,32 @@ begin
     header64.line_range := header32.line_range;
     header64.opcode_base := header32.opcode_base;
     header_length :=
+      header_length +
       sizeof(header32.length) + sizeof(header32.version) +
       sizeof(header32.unit_length);
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+
+    if header64.version >= 4 then begin
+      i := 1;
+      if header64.version >= 5 then begin
+        i := 3;
+        // Remove: U-BYTE address size, U-BYTE segment size
+        move((PByte(@header64.length)+2)^,
+          header64.length,
+          SizeOf(header64)-2-PtrUint(@PLineNumberProgramHeader64(nil)^.length));
+        header_length := 2;
+      end;
+      // Remove: U-BYTE maximum_operations_per_instruction => currently value is always 1
+      move((PByte(@header64.default_is_stmt)+1)^,
+        header64.default_is_stmt,
+        SizeOf(header64)-1-PtrUint(@PLineNumberProgramHeader64(nil)^.default_is_stmt));
+      er.ReadNext((PByte(@header64)+SizeOf(header64)-i)^, i);
+    end;
+
     header_length :=
+      header_length +
       sizeof(header64.magic) + sizeof(header64.version) +
       sizeof(header64.length) + sizeof(header64.unit_length);
   end;
@@ -938,12 +1039,59 @@ begin
     DEBUG_WRITELN('Opcode[', i, '] - ', numoptable[i], ' parameters');
   end;
 
+
   DEBUG_WRITELN('Reading directories...');
-  include_directories := er.Pos();
-  SkipDirectories(er);
+  if header64.version >= 5 then begin
+    // directory formats
+    er.ReadNext(header_dir, SizeOf(header_dir));
+    // check its the known format
+    if (header_dir.cnt <> 1) or
+       (header_dir.f1 <> DW_LNCT_path) or
+       (header_dir.f2 <> DW_FORM_string) or
+       (header_dir.dir_cnt < 1)
+    then
+      exit; // Can not read this line info
+
+    er.ReadString(nil);
+    include_directories := er.Pos();
+    for i := 1 to header_dir.dir_cnt-1 do
+      er.ReadString(nil);
+  end
+  else begin
+    include_directories := er.Pos();
+    SkipDirectories(er);
+  end;
+
   DEBUG_WRITELN('Reading filenames...');
-  file_names := er.Pos();
-  SkipFilenames(er);
+  if header64.version >= 5 then begin
+    // filename formats
+    er.ReadNext(header_file, SizeOf(header_file));
+    // check its the known format
+    if (header_file.cnt <> 4) or
+       (header_file.f1 <> DW_LNCT_path) or
+       (header_file.f2 <> DW_FORM_string) or
+       (header_file.f3 <> DW_LNCT_directory_index) or
+       (header_file.f4 <> DW_FORM_udata) or
+       (header_file.f5 <> DW_LNCT_timestamp) or
+       (header_file.f6 <> DW_FORM_udata) or
+       (header_file.f7 <> DW_LNCT_size) or
+       (header_file.f8 <> DW_FORM_udata) or
+       (header_file.file_cnt < 1)
+    then
+      exit; // Can not read this line info
+
+    er.ReadString(nil);
+    er.SkipLEB128s(3);
+    file_names := er.Pos();
+    for i := 1 to header_file.file_cnt-1 do begin
+      er.ReadString(nil);
+      er.SkipLEB128s(3);
+    end;
+  end
+  else begin
+    file_names := er.Pos();
+    SkipFilenames(er);
+  end;
 
   er.Seek(header_length);
 
@@ -1285,8 +1433,10 @@ function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOff
   var func : ShortString; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
-  header64 : TDebugInfoProgramHeader64;
-  header32 : TDebugInfoProgramHeader32;
+  header64_v5 : TDebugInfoProgramHeader64_v5;
+  header32_v5 : TDebugInfoProgramHeader32_v5;
+  header64 : TDebugInfoProgramHeader64 absolute header64_v5;
+  header32 : TDebugInfoProgramHeader32 absolute header32_v5;
   isdwarf64 : boolean;
   abbrev,
   high_pc,
@@ -1345,6 +1495,8 @@ procedure SkipAttr(var er: TEReader; form : QWord);
             else
               nskip := header64.address_size;
           end;
+      DW_FORM_line_strp,
+      DW_FORM_strp_sup,
       DW_FORM_strp,
       DW_FORM_sec_offset:
         if isdwarf64 then
@@ -1359,6 +1511,23 @@ procedure SkipAttr(var er: TEReader; form : QWord);
       DW_FORM_indirect:
         SkipAttr(er, er.ReadULEB128);
       DW_FORM_flag_present: {none};
+      DW_FORM_ref_sig8 : nskip := 8;
+      DW_FORM_ref_sup4: nskip := 4;
+      DW_FORM_ref_sup8: nskip := 8;
+      DW_FORM_data16:   nskip := 16;
+      //DW_FORM_implicit_const: ; // no inc => the value is in the attrib-spec (after the form)
+      DW_FORM_loclistx,
+      DW_FORM_rnglistx: er.ReadULEB128;
+      DW_FORM_strx:     er.ReadULEB128;
+      DW_FORM_strx1:    nskip := 1;
+      DW_FORM_strx2:    nskip := 2;
+      DW_FORM_strx3:    nskip := 3;
+      DW_FORM_strx4:    nskip := 4;
+      DW_FORM_addrx:    er.ReadULEB128;
+      DW_FORM_addrx1:   nskip := 1;
+      DW_FORM_addrx2:   nskip := 2;
+      DW_FORM_addrx3:   nskip := 3;
+      DW_FORM_addrx4:   nskip := 4;
       else
         begin
           writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
@@ -1372,6 +1541,7 @@ var
   i : PtrInt;
   prev_base,prev_size,prev_pos : TFilePos;
   curAbbrev : ^TAbbrevRec;
+  o: DWord;
 
 begin
   found := false;
@@ -1392,6 +1562,18 @@ begin
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
     er.ReadNext(header32, sizeof(header32));
+
+    if header32.version >= 5 then begin
+      if header32_v5.unit_type <> DW_UT_compile then
+        exit;
+
+      er.ReadNext((PByte(@header32_v5)+SizeOf(header32))^, SizeOf(header32_v5)-SizeOf(header32));
+      i := header32_v5.address_size;
+      o := header32_v5.debug_abbrev_offset;
+      header32.address_size := i;
+      header32.debug_abbrev_offset := o;
+    end;
+
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -1401,6 +1583,17 @@ begin
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     er.ReadNext(header64, sizeof(header64));
+
+    if header64.version >= 5 then begin
+      if header64_v5.unit_type <> DW_UT_compile then
+        exit;
+
+      er.ReadNext((PByte(@header64_v5)+SizeOf(header64))^, SizeOf(header64_v5)-SizeOf(header64));
+      i := header64_v5.address_size;
+      o := header64_v5.debug_abbrev_offset;
+      header64.address_size := i;
+      header64.debug_abbrev_offset := o;
+    end;
     isdwarf64:=true;
   end;
 
@@ -1650,7 +1843,7 @@ end;
     if rem > 0 then
     begin
       tail := pByte(p)^;
-      if rem > 1 then inc(tail, unaligned(uint32(pUint16(p + rem - 2)^) shl 8));
+      if rem > 1 then inc(tail, uint32(unaligned(pUint16(p + rem - 2)^) shl 8));
       result := result xor (RolDWord(tail * C1, 15) * C2);
     end;
 

@@ -1400,7 +1400,7 @@ HKCR
                       ((Arguments[0].VType and varTypeMask) in [varVariant]) and
                       ((CallDesc^.argtypes[0] and $80) <> 0)
                     ) then
-                  InvokeKind:=DISPATCH_PROPERTYPUTREF;
+                  InvokeKind:=DISPATCH_PROPERTYPUTREF or DISPATCH_PROPERTYPUT;
                 { first name is actually the name of the property to set }
                 DispIDs^[0]:=DISPID_PROPERTYPUT;
                 DispParams.rgdispidNamedArgs:=@DispIDs^[0];
@@ -1496,12 +1496,12 @@ HKCR
         for i:=0 to Count-1 do
           writeln('SearchIDs: ID[',i,'] = ',ids^[i]);
 {$endif DEBUG_COMDISPATCH}
+      	freemem(NamesArray);
+      	freemem(NamesData);
       	if res=DISP_E_UNKNOWNNAME then
       	  raise EOleError.createresfmt(@snomethod,[OrigNames])
       	else
       	  OleCheck(res);
-      	freemem(NamesArray);
-      	freemem(NamesData);
       end;
 
 
@@ -1619,7 +1619,7 @@ HKCR
             begin
               inc(dispparams.cNamedArgs);
               if (Arguments[0].VType and varTypeMask) = varDispatch then
-                flags:=DISPATCH_PROPERTYPUTREF;
+                flags:=DISPATCH_PROPERTYPUTREF or DISPATCH_PROPERTYPUT;
               dispidNamed:=DISPID_PROPERTYPUT;
               DispParams.rgdispidNamedArgs:=@dispidNamed;
             end;
@@ -1638,10 +1638,10 @@ HKCR
                 dispparams, { var params; }
                 res,@exceptioninfo,nil { VarResult,ExcepInfo,ArgErr : pointer) }
           );
-        if invokeresult<>0 then
-          DispatchInvokeError(invokeresult,exceptioninfo);
         if desc^.calldesc.argcount>Length(preallocateddata) then
           FreeMem(Arguments);
+        if invokeresult<>0 then
+          DispatchInvokeError(invokeresult,exceptioninfo);
       end;
 
     { TTypedComObject }

@@ -35,12 +35,6 @@ UNIT Dialogs;
 
 {$CODEPAGE cp437}
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
-
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -1062,7 +1056,12 @@ CONST
     Load    : @TModalInputLine.Load;
     Store   : @TModalInputLine.Store);
 
-resourcestring  slCancel='Cancel';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                slCancel='Cancel';
                 slOk='O~k~';
                 slYes='~Y~es';
                 slNo='~N~o';

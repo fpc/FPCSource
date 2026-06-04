@@ -72,8 +72,11 @@ Type
   TBeforeRequestEvent = Procedure(Sender : TObject; Const AHandler : String;
                                   Var AllowRequest : Boolean) of object;
 
+  { TApacheHandler }
+
   TApacheHandler = Class(TWebHandler)
   private
+    Finitialized: Boolean;
     FMaxRequests: Integer;             //Maximum number of simultaneous web module requests (default=64, if set to zero no limit)
     FWorkingWebModules: TList;         //List of currently running web modules handling requests
     FIdleWebModules: TList;            //List of idle web modules available
@@ -86,6 +89,7 @@ Type
     FPriority: THandlerPriority;
     FModuleRecord : PModule;
     function GetModules(Index: integer): TStrings;
+    procedure SetModuleName(AValue: String);
     procedure SetModules(Index: integer; const AValue: TStrings);
     function GetIdleModuleCount : Integer;
     function GetWorkingModuleCount : Integer;
@@ -106,7 +110,7 @@ Type
     Property BeforeModules : TStrings Index 0 Read GetModules Write SetModules;
     Property AfterModules : TStrings Index 1 Read GetModules Write SetModules;
     Property BaseLocation : String Read FBaseLocation Write FBaseLocation;
-    Property ModuleName : String Read FModuleName Write FModuleName;
+    Property ModuleName : String Read FModuleName Write SetModuleName;
     Property HandlerName : String Read FHandlerName Write FHandlerName;
     Property BeforeRequest : TBeforeRequestEvent Read FBeforeRequest Write FBeforeRequest;
     Property MaxRequests: Integer read FMaxRequests write FMaxRequests;
@@ -175,6 +179,7 @@ resourcestring
   SErrNoModuleRecord = 'No module record location set.';
   SErrNoModuleName = 'No module name set';
   SErrTooManyRequests = 'Too many simultaneous requests.';
+  SErrContentLengthTooBig = 'Content length exceeds maximum body size';
 
 
 Function MaybeAnsi(S : String) : AnsiString; inline;
@@ -199,11 +204,10 @@ Function DefaultApacheHandler(P : PRequest_Rec) : integer;cdecl;
 begin
   If (AlternateHandler<>Nil) then
     Result:=AlternateHandler(P)
+  else if Assigned(Application) and Application.AllowRequest(P) then
+    Result:=Application.ProcessRequest(P)
   else
-    If Application.AllowRequest(P) then
-      Result:=Application.ProcessRequest(P)
-    else
-      Result:=DECLINED;
+    Result:=DECLINED;
 end;
 
 Procedure RegisterApacheHooks(P: PApr_pool_t);cdecl;
@@ -230,6 +234,14 @@ begin
   Result:=FModules[Index];
 end;
 
+procedure TApacheHandler.SetModuleName(AValue: String);
+begin
+  if FModuleName=AValue then Exit;
+  if FInitialized then
+    Raise EHTTP.Create('Cannot change module name after initialization');
+  FModuleName:=AValue;
+end;
+
 procedure TApacheHandler.SetModules(Index: integer;
   const AValue: TStrings);
 begin
@@ -238,7 +250,7 @@ begin
   FModules[Index].Assign(AValue);
 end;
 
-Function TApacheHandler.ProcessRequest(P: PRequest_Rec) : Integer;
+function TApacheHandler.ProcessRequest(P: PRequest_Rec): Integer;
 
 Var
   Req : TApacheRequest;
@@ -283,7 +295,10 @@ Var
   Hn : String;
 
 begin
-  HN:=StrPas(p^.Handler);
+  if p^.Handler=Nil then
+    HN:=''
+  else
+    HN:=StrPas(p^.Handler);
   Result:=CompareText(HN,FHandlerName)=0;
   If Assigned(FBeforeRequest) then
     FBeforeRequest(Self,HN,Result);
@@ -335,8 +350,9 @@ begin
     Raise EFPApacheError.Create(SErrNoModuleName);
   STANDARD20_MODULE_STUFF(FModuleRecord^);
   If (StrPas(FModuleRecord^.name)<>FModuleName) then
-    FModuleRecord^.Name:=PAnsiChar(FModuleName);
+    FModuleRecord^.Name:= PAnsiChar(FModuleName);
   FModuleRecord^.register_hooks:=@RegisterApacheHooks;
+  Finitialized:=True;
 end;
 
 procedure TApacheHandler.LogErrorMessage(const Msg: String; LogLevel: integer);
@@ -372,7 +388,7 @@ begin
   end;
 end;
 
-procedure TApacheHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TApacheHandler.handleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   MC : TCustomHTTPModuleClass;
@@ -409,6 +425,17 @@ Var
     end;
   end;
 
+  procedure MarkIdle(aModule : TCustomHTTPModule);
+  begin
+    FCriticalSection.Enter;
+    try
+      FWorkingWebModules.Remove(aModule);
+      FIdleWebModules.Add(aModule);
+    finally
+      FCriticalSection.Leave;
+    end;
+  end;
+
 begin
   try
     MC:=Nil;
@@ -429,14 +456,10 @@ begin
       MC:=MI.ModuleClass;
     end;
     GetAWebModule;
-    M.HandleRequest(ARequest,AResponse);
-
-    FCriticalSection.Enter;
     try
-      FWorkingWebModules.Remove(M);
-      FIdleWebModules.Add(M);
+      M.HandleRequest(ARequest,AResponse);
     finally
-      FCriticalSection.Leave;
+      MarkIdle(M);
     end;
   except
     On E : Exception do
@@ -547,6 +570,8 @@ begin
   If (ap_should_client_block(FRequest)=1) then
     begin
     Len:=ContentLength;
+    if (MaxBodySize>0) and (Len>MaxBodySize) then
+      PayloadTooLarge(SErrContentLengthTooBig);
     If (Len>0) then
       begin
       SetLength(S,Len);
@@ -555,10 +580,13 @@ begin
       Count:=0;
       Repeat
         Bytes:=ap_get_client_block(FRequest,P,MinS(10*1024,Left));
+        // ap_get_client_block returns -1 on error
+        if Bytes<=0 then
+          break;
         Dec(Left,Bytes);
         Inc(P,Bytes);
         Inc(Count,Bytes);
-      Until (Count>=Len) or (Bytes=0);
+      Until (Count>=Len);
       SetLength(S,Count);
       end;
     end;

@@ -67,6 +67,16 @@ type
     DW_TAG_rvalue_reference_type := $42,
     DW_TAG_template_alias := $43,
 
+    { DWARF 5 }
+    DW_TAG_coarray_type := $44,
+    DW_TAG_generic_subrange := $45,
+    DW_TAG_dynamic_type := $46,
+    DW_TAG_atomic_type := $47,
+    DW_TAG_call_site := $48,
+    DW_TAG_call_site_parameter := $49,
+    DW_TAG_skeleton_unit := $4a,
+    DW_TAG_immutable_type := $4b,
+
 
     { SGI/MIPS Extensions.   }
     DW_TAG_MIPS_loop := $4081,
@@ -96,6 +106,8 @@ type
     DW_ATE_float := $4,DW_ATE_signed := $5,
     DW_ATE_signed_char := $6,DW_ATE_unsigned := $7,
     DW_ATE_unsigned_char := $8,DW_ATE_imaginary_float := $9,
+    { DWARF 5 }
+    DW_ATE_UCS := $11, DW_ATE_ASCII := $12,
     { HP extensions.   }
     DW_ATE_HP_float80 := $80,DW_ATE_HP_complex_float80 := $81,
     DW_ATE_HP_float128 := $82,DW_ATE_HP_complex_float128 := $83,
@@ -169,6 +181,38 @@ type
     DW_AT_enum_class := $6d,      { flag }
     DW_AT_linkage_name := $6e,    { string }
 
+    { DWARF 5 values }
+    DW_AT_string_length_bit_size := $6f,
+    DW_AT_string_length_byte_size := $70,
+    DW_AT_rank := $71,
+    DW_AT_str_offsets_base := $72,
+    DW_AT_addr_base := $73,
+    DW_AT_rnglists_base := $74,
+    //Reserved 0x75 Unused
+    DW_AT_dwo_name := $76,
+    DW_AT_reference := $77,
+    DW_AT_rvalue_reference := $78,
+    DW_AT_macros := $79,
+    DW_AT_call_all_calls := $7a,
+    DW_AT_call_all_source_calls := $7b,
+    DW_AT_call_all_tail_calls := $7c,
+    DW_AT_call_return_pc := $7d,
+    DW_AT_call_value := $7e,
+    DW_AT_call_origin := $7f,
+    DW_AT_call_parameter := $80,
+    DW_AT_call_pc := $81,
+    DW_AT_call_tail_call := $82,
+    DW_AT_call_target := $83,
+    DW_AT_call_target_clobbered := $84,
+    DW_AT_call_data_location := $85,
+    DW_AT_call_data_value := $86,
+    DW_AT_noreturn := $87,
+    DW_AT_alignment := $88,
+    DW_AT_export_symbols := $89,
+    DW_AT_deleted := $8a,
+    DW_AT_defaulted := $8b,
+    DW_AT_loclists_base := $8c,
+
 
     { SGI/MIPS extensions.   }
     DW_AT_MIPS_fde := $2001,DW_AT_MIPS_loop_begin := $2002,
@@ -218,6 +262,18 @@ type
   );
 {$pop}
 
+  { Calling conventions }
+  Tdwarf_calling_convention = (
+    DW_CC_normal  := $01,
+    DW_CC_program := $02,
+    DW_CC_nocall  := $03,
+    // DWARF 5
+    DW_CC_pass_by_reference := $04,
+    DW_CC_pass_by_value     := $05,
+    DW_CC_lo_user := $40,
+    DW_CC_hi_user := $ff
+  );
+
   { Form names and codes.   }
   Tdwarf_form = (DW_FORM_addr := $01,DW_FORM_block2 := $03,
     DW_FORM_block4 := $04,DW_FORM_data2 := $05,
@@ -235,7 +291,27 @@ type
     DW_FORM_sec_offset := $17,   { lineptr, loclistptr, macptr, rangelistptr }
     DW_FORM_exprloc := $18,      { exprloc }
     DW_FORM_flag_present := $19, { flag }
-    DW_FORM_ref_sig8 := $20      { reference }
+
+    { DWARF 5 }
+    DW_FORM_strx := $1A,            { string }
+    DW_FORM_addrx := $1B,           { address }
+    DW_FORM_ref_sup4 := $1C,        { reference }
+    DW_FORM_strp_sup := $1D,        { string }
+    DW_FORM_data16 := $1E,          { constant }
+    DW_FORM_line_strp := $1F,       { string }
+    DW_FORM_ref_sig8 := $20,        { reference } // DWARF4
+    DW_FORM_implicit_const := $21,  { constant }
+    DW_FORM_loclistx := $22,        { loclist }
+    DW_FORM_rnglistx := $23,        { rnglist }
+    DW_FORM_ref_sup8 := $24,        { reference }
+    DW_FORM_strx1 := $25,           { string }
+    DW_FORM_strx2 := $26,           { string }
+    DW_FORM_strx3 := $27,           { string }
+    DW_FORM_strx4 := $28,           { string }
+    DW_FORM_addrx1 := $29,          { address }
+    DW_FORM_addrx2 := $2A,          { address }
+    DW_FORM_addrx3 := $2B,          { address }
+    DW_FORM_addrx4 := $2C           { address }
     );
 
   { values of DW_AT_address_class }
@@ -259,6 +335,89 @@ type
     DW_WATCOM_MEMORY_MODEL_huge := 6
   );
 
+  { DWARF 5 }
+
+  Tdwarf_unit_type_encoding = (
+    DW_UT_invalid := 0,
+    DW_UT_compile := 1,
+    DW_UT_type := 2,
+    DW_UT_partial := 3,
+    DW_UT_skeleton := 4,
+    DW_UT_split_compile := 5,
+    DW_UT_split_type := 6,
+    DW_UT_lo_user := $80,
+    DW_UT_hi_user := $ff
+  );
+
+  Tdwarf_linenumber_content_type = (
+    DW_LNCT_invalid := 0,
+    DW_LNCT_path := 1,
+    DW_LNCT_directory_index := 2,
+    DW_LNCT_timestamp := 3,
+    DW_LNCT_size := 4,
+    DW_LNCT_MD5 := 5,
+    DW_LNCT_lo_user := $2000,
+    DW_LNCT_hi_user := $3fff
+  );
+
+  Tdwarf_location_list_encoding = (
+    DW_LLE_end_of_list := $00,
+    DW_LLE_base_addressx := $01,
+    DW_LLE_startx_endx := $02,
+    DW_LLE_startx_length := $03,
+    DW_LLE_offset_pair := $04,
+    DW_LLE_default_location := $05,
+    DW_LLE_base_address := $06,
+    DW_LLE_start_end := $07,
+    DW_LLE_start_length := $08
+  );
+
+  Tdwarf_name_index = (
+    DW_IDX_compile_unit := $01, { constant }
+    DW_IDX_type_unit := $02,    { constant }
+    DW_IDX_die_offset := $03,   { reference }
+    DW_IDX_parent := $04,       { constant }
+    DW_IDX_type_hash := $05,    { DW_FORM_data8 }
+    DW_IDX_lo_user := $0200,
+    DW_IDX_hi_user := $03ff
+  );
+
+  Tdwarf_default_member_encoding = (
+    DW_DEFAULTED_no := $00,
+    DW_DEFAULTED_in_class := $01,
+    DW_DEFAULTED_out_of_class := $02
+  );
+
+  Tdwarf_macro_information_entry_type = (
+    DW_MACRO_define := $01,
+    DW_MACRO_undef := $02,
+    DW_MACRO_start_file := $03,
+    DW_MACRO_end_file := $04,
+    DW_MACRO_define_strp := $05,
+    DW_MACRO_undef_strp := $06,
+    DW_MACRO_import := $07,
+    DW_MACRO_define_sup := $08,
+    DW_MACRO_undef_sup := $09,
+    DW_MACRO_import_sup := $0a,
+    DW_MACRO_define_strx := $0b,
+    DW_MACRO_undef_strx := $0c,
+    DW_MACRO_lo_user := $e0,
+    DW_MACRO_hi_user := $ff
+  );
+
+  Tdwarf_range_list_encoding = (
+    DW_RLE_end_of_list := $00,
+    DW_RLE_base_addressx := $01,
+    DW_RLE_startx_endx := $02,
+    DW_RLE_startx_length := $03,
+    DW_RLE_offset_pair := $04,
+    DW_RLE_base_address := $05,
+    DW_RLE_start_end := $06,
+    DW_RLE_start_length := $07
+  );
+
+
+
 type
   { Source language names and codes.   }
   tdwarf_source_language = (DW_LANG_C89 := $0001,DW_LANG_C := $0002,DW_LANG_Ada83 := $0003,
@@ -269,10 +428,24 @@ type
 
     { DWARF 3.   }
     DW_LANG_C99 := $000c,DW_LANG_Ada95 := $000d,
-    DW_LANG_Fortran95 := $000e,
+    DW_LANG_Fortran95 := $000e, DW_LANG_PLI := $000f,
 
     { Objective-C }
     DW_LANG_ObjC := $10,
+
+    DW_LANG_ObjC_plus_plus := $0011, // DW_LANG_UPC := $0012,
+    DW_LANG_D := $0013,
+
+    { DWARF 5.   }
+    DW_LANG_Python := $14, DW_LANG_OpenCL := $15,
+    DW_LANG_Go := $16, DW_LANG_Modula3 := $17,
+    DW_LANG_Haskell := $18, DW_LANG_C_plus_plus_03 := $19,
+    DW_LANG_C_plus_plus_11 := $1a, DW_LANG_OCaml := $1b,
+    DW_LANG_Rust := $1c, DW_LANG_C11 := $1d,
+    DW_LANG_Swift := $1e, DW_LANG_Julia := $1f,
+    DW_LANG_Dylan := $20, DW_LANG_C_plus_plus_14 := $21,
+    DW_LANG_Fortran03 := $22, DW_LANG_Fortran08 := $23,
+    DW_LANG_RenderScript := $24, DW_LANG_BLISS := $25,
 
     { MIPS.   }
     DW_LANG_Mips_Assembler := $8001,
@@ -354,6 +527,18 @@ type
 
     { DWARF 4 extensions.   }
     DW_OP_implicit_value := $9e, DW_OP_stack_value := $9f,
+
+    { DWARF 5 extensions.   }
+    DW_OP_implicit_pointer := $a0,
+    DW_OP_addrx := $a1,
+    DW_OP_constx := $a2,
+    DW_OP_entry_value := $a3,
+    DW_OP_const_type := $a4,
+    DW_OP_regval_type := $a5,
+    DW_OP_deref_type := $a6,
+    DW_OP_xderef_type := $a7,
+    DW_OP_convert := $a8,
+    DW_OP_reinterpret := $a9,
 
     { GNU extensions.   }
     DW_OP_GNU_push_tls_address := $e0,

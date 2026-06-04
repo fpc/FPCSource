@@ -258,9 +258,9 @@ begin
   if FLogToConsole=AValue then Exit;
   FLogToConsole:=AValue;
   if FLogToConsole then
-    RegisterHandler(cCaptureToFile,@DoLogToConsole)
+    RegisterHandler(cCaptureToConsole,@DoLogToConsole)
   else
-    UnRegisterHandler(cCaptureToFile);
+    UnRegisterHandler(cCaptureToConsole);
 end;
 
 procedure TDebugCaptureService.DoLog(aType: TEventType; const aMsg: String);

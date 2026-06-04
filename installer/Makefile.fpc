@@ -43,6 +43,7 @@ endif
 
 installer.pas: install.pas
         $(COPY) install.pas installer.pas
+        $(COPY) install.dat installer.dat
 
 install$(EXEEXT) : install.pas scroll.pas
 

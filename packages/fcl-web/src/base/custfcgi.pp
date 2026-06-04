@@ -207,6 +207,7 @@ ResourceString
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
   SErrNoRequest     = 'Internal error: No request available when writing data';
+  SErrHeadersTooLong = 'Internal error: total header length exceeds 64Kb';
 
 Implementation
 
@@ -280,7 +281,8 @@ begin
 end;
 
 function TFCGIRequest.ProcessFCGIRecord(AFCGIRecord: PFCGI_Header): boolean;
-var cl,rcl : Integer;
+var
+  rcl : Integer;
   State: TContentStreamingState;
 begin
   Result := False;
@@ -351,6 +353,7 @@ procedure TFCGIRequest.GetNameValuePairsFromContentRecord(const ARecord: PFCGI_C
 
 var
   i : integer;
+  RecordLength : Integer;
 
   function GetVarLength : Integer;
   begin
@@ -358,20 +361,25 @@ var
       Result:=ARecord^.ContentData[i]
     else
       begin
-//      Result:=BEtoN(PLongint(@(ARecord^.ContentData[i]))^);
-      Result:=Int64(((ARecord^.ContentData[i] and $7f) shl 24)) + (ARecord^.ContentData[i+1] shl 16)
+      if (I+3>=RecordLength) then
+        Result:=0
+      else
+        begin
+        Result:=Int64(((ARecord^.ContentData[i] and $7f) shl 24)) + (ARecord^.ContentData[i+1] shl 16)
                    + (ARecord^.ContentData[i+2] shl 8) + (ARecord^.ContentData[i+3]);
-      inc(i,3);
+        inc(i,3);
+        end;
       end;
     inc(i);
   end;
 
   function GetBytes(ALength : integer) : TBytes;
   begin
+    Result:=[];
     if (ALength<0) then
       ALength:=0;
     SetLength(Result,ALength);
-    if (ALength>0) then
+    if (ALength>0) and ((i+aLength)<=RecordLength) then
       move(ARecord^.ContentData[i],Result[0],ALength);
     inc(i,ALength);
   end;
@@ -389,7 +397,6 @@ var
 
 var
   NameLength, ValueLength : Integer;
-  RecordLength : Integer;
   Name,Tmp : String;
   Value : TBytes;
   h : THeader;
@@ -402,6 +409,8 @@ begin
     begin
     NameLength:=GetVarLength;
     ValueLength:=GetVarLength;
+    if (NameLength + ValueLength + i > RecordLength) then
+      break;
     Name:=MakeString(GetBytes(NameLength));
     Value:=GetBytes(ValueLength);
     if Not DoMapCgiToHTTP(Name,H,V) then
@@ -413,8 +422,8 @@ begin
     else if (v<>hvUnknown) then
       begin
       Tmp:=MakeString(Value);
-      if (V=hvPathInfo) and (Copy(Tmp,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
-          Delete(Tmp,1,3);
+      if (V=hvPathInfo) and StartsStr('//',Tmp) then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Tmp,1,1);
       if (V<>hvQuery) then
         Tmp:=HTTPDecode(Tmp);
       SetHTTPVariable(v,Tmp);
@@ -494,7 +503,7 @@ var
   pl : byte;
   str : AnsiString;
   ARespRecord : PFCGI_ContentRecord;
-  I : Integer;
+  I,len : Integer;
 
 begin
   For I:=Headers.Count-1 downto 0 do
@@ -510,7 +519,10 @@ begin
   {$ELSE}
   str := Headers.Text+sLineBreak;
   {$ENDIF}
-  cl := length(str);
+  Len:=length(str);
+  if len>High(Word) then
+    Raise EHTTP.Create(SErrHeadersTooLong);
+  cl := len and $FFFF;
   if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
     pl:=0
   else
@@ -676,9 +688,11 @@ begin
 {$endif}
     begin
     i:=fpshutdown(FHandle,SHUT_RDWR);
-//      Log(etError,Format('Shutting down socket: %d ',[i]));
+    if I<>0 then
+      Log(etError,Format('Shutting down socket: %d ',[i]));
     i:=CloseSocket(FHandle);
-//      Log(etError,Format('Closing socket %d',[i]));
+    if I<>0 then
+      Log(etError,Format('Closing socket %d',[i]));
     end;
   FHandle := THandle(-1);
 end;
@@ -957,7 +971,7 @@ begin
   ARequestID:=BEtoN(AFCGI_Record^.requestID);
   if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
     begin
-    if ARequestID>FRequestsAvail then
+    if ARequestID>=FRequestsAvail then
       begin
       inc(FRequestsAvail,10);
       SetLength(FRequestsArray,FRequestsAvail);
@@ -973,11 +987,8 @@ begin
     ATempRequest.FLog:=@Log;
     FRequestsArray[ARequestID].Request := ATempRequest;
     end;
-  if (ARequestID>FRequestsAvail) then
-    begin
-    // TODO : ARequestID can be invalid. What to do ?
-    // in each case not try to access the array with requests.
-    end
+  if (ARequestID>=FRequestsAvail) then
+    Raise ERangeError.CreateFmt('Request ID out of range [0..%d[',[ARequestID])
   else if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
     begin
     ARequest:=FRequestsArray[ARequestID].Request;

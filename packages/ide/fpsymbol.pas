@@ -98,17 +98,26 @@ type
 
     PFilteredSym = ^TFilteredSym;
     TFilteredSym = Object(TObject)
-        constructor Init(AItemSym:Sw_Integer;ASym : PSymbol);
+        constructor Init(AItemSym:Sw_Integer;ASym : PHollowSymbol);
         function GetText:String;
+        function GetName:String;
+        function GetQualifiedName:String;
         destructor Done;virtual;
       private
-        Sym:PSymbol;
+        Sym:PHollowSymbol;
         ItemSym : Sw_Integer;
       end;
 
     PFilteredSymCollection=^TFilteredSymCollection;
-    TFilteredSymCollection = Object(TCollection)
-      function  At(Index: sw_Integer): PFilteredSym;
+    TFilteredSymCollection = Object(TSortedCollection)
+        SortAlways : Boolean; { Sort with qualified symbol on }
+        NeedPrefix : Boolean; { Include in sort object prefix if SortAlways }
+        //Inherit : Boolean;
+        constructor Init(ALimit, ADelta: Integer);
+        function  At(Index: sw_Integer): PFilteredSym;
+        function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+        procedure Insert(Item: Pointer); virtual;
+        function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
       end;
 
 
@@ -153,7 +162,8 @@ type
       FilteredSym: PFilteredSymCollection;
       Symbols  : PHollowSymbolCollection;
       SymbolsValue : PGDBValueCollection;
-      LookupStr: string;
+      LookupStr: string;  { Display lookup string (might include prefixed qualified symbol)}
+      LookupStrPlain: string; { For edit and lookup }
       procedure   CopyOrgSymbols;
       procedure   PullInInheritance;
     end;
@@ -790,7 +800,7 @@ end;
 {****************************************************************************
                                TFilteredSym
 ****************************************************************************}
-constructor TFilteredSym.Init(AItemSym:Sw_Integer;ASym : PSymbol);
+constructor TFilteredSym.Init(AItemSym:Sw_Integer;ASym : PHollowSymbol);
 begin
    inherited Init;
    ItemSym:=AItemSym;
@@ -802,6 +812,19 @@ begin
    GetText:=Sym^.GetText;
 end;
 
+function TFilteredSym.GetName:String;
+begin
+  GetName:=Sym^.Sym^.GetName; { Original symbol name (for sorting purpose)}
+end;
+
+function TFilteredSym.GetQualifiedName:String;
+begin
+  if {(not NeedPrefix) or} (not assigned(Sym^.Parent)) then
+    GetQualifiedName:=Sym^.Sym^.GetName
+  else
+    GetQualifiedName:=Sym^.Parent^.Name^+'.'+Sym^.Sym^.GetName;
+end;
+
 destructor TFilteredSym.Done;
 begin
    inherited Done;
@@ -810,9 +833,159 @@ end;
 {****************************************************************************
                                TFilteredSymCollection
 ****************************************************************************}
+
+constructor TFilteredSymCollection.Init(ALimit, ADelta: Integer);
+begin
+  inherited Init(ALimit,ADelta);
+  Duplicates:=true;
+  SortAlways:=false;
+  NeedPrefix:=false;
+  //Inherit:=false;
+end;
+
+
 function TFilteredSymCollection.At(Index: sw_Integer): PFilteredSym;
 begin
   At:= Inherited At(Index);
+end;
+
+function TFilteredSymCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var K1: PFilteredSym absolute Key1;
+    K2: PFilteredSym absolute Key2;
+    R: Sw_integer;
+    S1,S2: string;
+    S11,S22: string;
+    //bb: boolean;
+begin
+{
+  bb:=false;
+  S1:=k1^.GetName;
+  S2:=k2^.GetName;
+  for r:=1 to length(s1) do
+    if s1[r]<#32 then begin bb:=true; break; end;
+  for r:=1 to length(s2) do
+    if s2[r]<#32 then begin bb:=true; break; end;
+  if bb then
+    fog('TFilteredSymCollection. call for compare "'+okname(S1)+'" and "'+okname(S2)+'"');
+}
+  if (SortAlways {or (not Inherit)}) and (NeedPrefix) then
+  begin
+    S11:=K1^.GetQualifiedName;
+    S22:=K2^.GetQualifiedName;
+    S1:=UpCase(S11);
+    S2:=UpCase(S22);
+  end else
+  begin
+    S11:=K1^.GetName;
+    S22:=K2^.GetName;
+    S1:=UpCase(S11);
+    S2:=UpCase(S22);
+  end;
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:=1 else
+   if K1^.Sym^.TypeID=K2^.Sym^.TypeID then
+     R:=0
+   else
+    begin
+      //S1:=K1^.GetName;
+      //S2:=K2^.GetName;
+      if S11<S22 then R:=-1 else
+      if S11>S22 then R:=1 else
+       if K1^.Sym^.TypeID<K2^.Sym^.TypeID then R:=-1 else
+       if K1^.Sym^.TypeID>K2^.Sym^.TypeID then R:= 1 else
+         begin
+           { Handle overloaded functions }
+           if (K1^.Sym^.Typ=procsym) then
+             begin
+               S1:=K1^.GetText;
+               S2:=K2^.GetText;
+               if S1<S2 then R:=-1 else
+               if S1>S2 then R:=1 else
+                 R:=0;
+             end
+           else
+             R:=0;
+         end
+    end;
+  Compare:=R;
+end;
+
+procedure TFilteredSymCollection.Insert(Item: Pointer);
+begin
+  TSortedCollection.Insert(Item);
+end;
+
+function TFilteredSymCollection.LookUp(const S: string; var Idx: sw_integer): string;
+var OLI,ORI,Left,Right,Mid: integer;
+    LeftP,RightP,MidP: PFilteredSym;
+    LeftS,MidS,RightS: string;
+    FoundS: string;
+    UpS : string;
+begin
+  Idx:=-1; FoundS:='';
+  Left:=0; Right:=Count-1;
+  UpS:=UpCase(S);
+  if Left<Right then
+  begin
+    while (Left<Right) do
+    begin
+      OLI:=Left; ORI:=Right;
+      Mid:=Left+(Right-Left) div 2;
+      MidP:=At(Mid);
+{$ifdef DEBUG}
+      LeftP:=At(Left); RightP:=At(Right);
+      LeftS:=UpCase(LeftP^.GetName);
+      RightS:=UpCase(RightP^.GetName);
+{$endif DEBUG}
+      if (SortAlways {or (not Inherit)}) and (NeedPrefix) then
+         MidS:=UpCase(MidP^.GetQualifiedName)
+      else
+         MidS:=UpCase(MidP^.GetName);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          Idx:=Mid;
+          FoundS:=MidS;
+        end;
+{      else}
+        if UpS<MidS then
+          Right:=Mid
+        else
+          Left:=Mid;
+      if (OLI=Left) and (ORI=Right) then
+        begin
+          if idX<>-1 then
+            break;
+          if Mid=Left then
+            begin
+              RightP:=At(Right);
+              if (SortAlways {or (not Inherit)}) and (NeedPrefix) then
+                RightS:=UpCase(RightP^.GetQualifiedName)
+              else
+                RightS:=UpCase(RightP^.GetName);
+              if copy(RightS,1,length(UpS))=UpS then
+                begin
+                  Idx:=Right;
+                  FoundS:=RightS;
+                end;
+            end;
+          if Mid=Right then
+            begin
+              LeftP:=At(Left);
+              if (SortAlways {or (not Inherit)}) and (NeedPrefix) then
+                LeftS:=UpCase(LeftP^.GetQualifiedName)
+              else
+                LeftS:=UpCase(LeftP^.GetName);
+              if copy(LeftS,1,length(UpS))=UpS then
+                begin
+                  Idx:=Left;
+                  FoundS:=LeftS;
+                end;
+            end;
+          Break;
+        end;
+    end;
+  end;
+  LookUp:=FoundS;
 end;
 
 {****************************************************************************
@@ -1115,13 +1288,13 @@ begin
       case Event.KeyCode of
         kbBack :
           begin
-            LookUp(copy(LookUpStr,1,length(LookUpStr)-1));
+            LookUp(copy(LookupStrPlain,1,length(LookupStrPlain)-1));
             ClearEvent(Event);
           end;
       else
         if Event.CharCode in[#33..#255] then
           begin
-            LookUp(LookUpStr+Event.CharCode);
+            LookUp(LookupStrPlain+Event.CharCode);
             ClearEvent(Event);
           end;
       end;
@@ -1143,56 +1316,36 @@ end;
 
 procedure TSymbolScopeView.LookUp(S: string);
 var LookUpS : String;
-
-  function GetFilteredLookUpIdx(Item:Sw_Integer):Sw_Integer;
-  var I, Count : Sw_Integer;
-      F : PFilteredSym;
-      UpS,LeftS : String;
-  begin
-    GetFilteredLookUpIdx:=-1;
-    Count:=FilteredSym^.Count;
-    if Count > 0 then
-      for I:=0 to Count-1 do
-      begin
-         F:=FilteredSym^.At(I);
-         if F^.ItemSym = Item then   {perfect match}
-         begin
-           GetFilteredLookUpIdx:=I;
-           break;
-         end;
-         if F^.ItemSym > Item then  { test next item if perfect match is missing}
-         begin
-           LeftS:=UpcaseStr(F^.Sym^.GetName);
-           UpS:=UpcaseStr(LookUpS);
-           if copy(LeftS,1,length(UpS))=UpS then  {perfect match}
-             GetFilteredLookUpIdx:=I;
-           break; {all you get is one second chance, it wont be any better from here}
-         end;
-      end;
-  end;
-
-var Idx,Slength,I: Sw_integer;
+    Idx,Slength,I: Sw_integer;
     NS: string;
 begin
-  NS:=LookUpStr;
+  NS:=LookupStrPlain;
   Slength:=Length(S);
+  Idx:=-1;
   LookUpS:=S;
   if (Symbols=nil) or (S='') then NS:='' else
     begin
-      S:=Symbols^.LookUp(S,Idx);
+      S:=FilteredSym^.LookUp(S,Idx);
       if Idx<>-1 then
         begin
-          { Have found, but get filtered list index first
-            Some entries might be missing if need then look up again }
-          Idx:=GetFilteredLookUpIdx(Idx);
-          if Idx<>-1 then
-          begin
-            NS:=S;
-            FocusItem(Idx);
-          end;
+          NS:=S;
+          FocusItem(Idx);
         end;
     end;
-  LookUpStr:=Copy(NS,1,Slength);
+
+  LookUpStrPlain:=Copy(NS,1,Slength);
+  with FilteredSym^ do
+    if ((not SortAlways) {and ( Inherit)}) and (NeedPrefix) and (Slength>0) then
+      begin
+        if Idx<>-1 then
+        begin
+          S:=At(Idx)^.GetQualifiedName;
+          LookUpStr:=Copy(S,1,Length(S)-Length(NS))+LookUpStrPlain;
+        end;
+      end
+    else
+      LookUpStr:=LookUpStrPlain;
+
   SetState(sfCursorVis,LookUpStr<>'');
   DrawView;
 end;
@@ -1316,7 +1469,7 @@ procedure TSymbolScopeView.FilterSymbols(AFilter:boolean);
 var S : PHollowSymbol;
     I : sw_integer;
     Flags : Longint;
-    bUni, bLab, bCon, bTyp, bVar, bPrc, bInh, bQua: boolean;
+    bUni, bLab, bCon, bTyp, bVar, bPrc, bInh, bQua, bSor: boolean;
 begin
   Flags:=0;
   if assigned(MyBW) then
@@ -1329,8 +1482,14 @@ begin
   bPrc:=(Flags and bfProcedures)<>0;
   bInh:=(Flags and bfInherited)<>0;
   bQua:=(Flags and bfQualifiedSymbols)<>0;
+  bSor:=(Flags and bfSortAlways)<>0;
   FilteredSym^.FreeAll;
+  LookUpStr:='';  { reset lookup string when changed filter }
+  LookUpStrPlain:='';
   if Symbols^.Count = 0 then exit;
+  FilteredSym^.SortAlways:=bSor;
+  FilteredSym^.NeedPrefix:=bQua;
+  //FilteredSym^.Inherit:=bInh;
   For i:=0 to Symbols^.Count-1 do
     begin
       S:=Symbols^.At(I);

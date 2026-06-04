@@ -1538,7 +1538,7 @@ end;
 
 class function TPath.IsPathRooted(const aPath: string): Boolean;
 begin
-  Result:=aPath.StartsWith(PathSeparator) or TPath.IsDriveRooted(aPath);
+  Result:=aPath.StartsWith(PathDelim) or TPath.IsDriveRooted(aPath);
 end;
 
 { TFile }

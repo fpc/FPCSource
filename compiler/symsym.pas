@@ -1645,10 +1645,17 @@ implementation
 
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
+      type
+         small_interval = 0..31;
+         small_set = set of small_interval;
+         psmall_set = ^small_set;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pap : tpropaccesslisttypes;
+        d : entryreal;
+        s : single;
+        aset : small_set;
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getset(tppuset2(propoptions));
@@ -1656,7 +1663,19 @@ implementation
            ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
-         default:=ppufile.getlongint;
+         if ppo_default_is_single in propoptions then
+           begin
+             d:=ppufile.getreal;
+	     s:=d;
+             default:=plongint(@s)^;
+           end
+         else if ppo_default_is_set in propoptions then
+           begin
+             ppufile.getset(tppuset4(aset));
+             default:=plongint(@aset)^;
+           end
+         else
+           default:=ppufile.getlongint;
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
@@ -1872,8 +1891,14 @@ implementation
 
 
     procedure tpropertysym.ppuwrite(ppufile:tcompilerppufile);
+      type
+         small_interval = 0..31;
+         small_set = set of small_interval;
+         psmall_set = ^small_set;
       var
         pap : tpropaccesslisttypes;
+        s : single;
+        aset : small_set;
       begin
         inherited ppuwrite(ppufile);
         ppufile.putset(tppuset2(propoptions));
@@ -1881,7 +1906,18 @@ implementation
           ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
-        ppufile.putlongint(default);
+        if ppo_default_is_single in propoptions then
+          begin
+            s:=psingle(@default)^;
+            ppufile.putreal(s);
+          end
+        else if ppo_default_is_set in propoptions then
+          begin
+            aset:=psmall_set(@default)^;
+            ppufile.putset(tppuset4(aset));
+          end
+        else
+          ppufile.putlongint(default);
         ppufile.putderef(indexdefderef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);

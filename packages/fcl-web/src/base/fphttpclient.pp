@@ -31,6 +31,9 @@ uses
 Const
   // Socket Read buffer size
   ReadBufLen = 4096;
+  DefaultMaxHeaderLineLength = 8*ReadBufLen;
+  DefaultMaxHeaderCount = 256;
+  DefaultMaxResponseSize = MaxInt;
   // Default for MaxRedirects Request redirection is aborted after this number of redirects.
   DefMaxRedirects = 16;
 
@@ -112,6 +115,9 @@ Type
   private
     FDataRead : Int64;
     FContentLength : Int64;
+    FMaxHeaderCount: SizeInt;
+    FMaxHeaderLineLength: SizeInt;
+    FMaxResponseSize: SizeInt;
     FOnEventStream: THTTPEventStreamHandler;
     FRequestCookies: TCookies;
     FRequestDataWritten : Int64;
@@ -250,6 +256,8 @@ Type
     Function ExtractSocket : TSocketStream;
     // Return the buffer and empty the local buffer.
     function ExtractBuffer : AnsiString;
+    // Only quote CR/LF/" characters
+    function SimpleQuote(const aValue : string) : string;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
@@ -455,6 +463,12 @@ Type
     Property OnVerifySSLCertificate : THTTPVerifyCertificateEvent Read FOnVerifyCertificate Write FOnVerifyCertificate;
     // Called when a server-sent event stream is detected
     Property OnEventStream : THTTPEventStreamHandler Read FOnEventStream Write FOnEventStream;
+    // Max header line length.
+    Property MaxHeaderLineLength : SizeInt Read FMaxHeaderLineLength Write FMaxHeaderLineLength default DefaultMaxHeaderLineLength;
+    // Max header count.
+    Property MaxHeaderCount : SizeInt Read FMaxHeaderCount Write FMaxHeaderCount default DefaultMaxHeaderCount;
+    // Maximum response content Size
+    Property MaxResponseSize : SizeInt Read FMaxResponseSize Write FMaxResponseSize default DefaultMaxResponseSize;
   end;
 
 
@@ -532,6 +546,9 @@ resourcestring
   SErrChunkLineEndMissing = 'Chunk line end missing';
   SErrMaxRedirectsReached = 'Maximum allowed redirects reached : %d';
   SErrNoEventStream = 'No Event Stream returned by server';
+  SerrResponseContentTooBig = 'Response content size exceeds max. allowed size (%d)';
+  SErrResponseTooManyHeaders = 'Response header count exceeds max allowed header count (%d)';
+  SErrResponseHeaderTooLong = 'Response header line exceeds max header length (%d)';
   //SErrRedirectAborted = 'Redirect aborted.';
 
 Const
@@ -794,6 +811,13 @@ begin
   FBuffer:='';
 end;
 
+function TFPCustomHTTPClient.SimpleQuote(const aValue: string): string;
+begin
+  Result:=StringReplace(aValue,#10,'%0A',[rfReplaceAll]);
+  Result:=StringReplace(Result,#13,'%0D',[rfReplaceAll]);
+  Result:=StringReplace(Result,'"','%22',[rfReplaceAll]);
+end;
+
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
   APort: Integer; UseSSL : Boolean = False);
 
@@ -875,9 +899,17 @@ begin
 end;
 
 function TFPCustomHTTPClient.AllowHeader(var AHeader: String): Boolean;
-
+var
+  Len,I : Integer;
 begin
   Result:=(AHeader<>'') and (Pos(':',AHeader)<>0);
+  I:=1;
+  Len:=Length(aHeader);
+  While Result and (I<=Len) do
+    begin
+    Result:=not (aHeader[I] in [#10,#13,#0]);
+    Inc(i);
+    end;
 end;
 
 function TFPCustomHTTPClient.HasConnectionClose: Boolean;
@@ -1031,6 +1063,8 @@ begin
         Result:=True;
         end;
       end;
+    if (MaxHeaderLineLength>0) and (Length(S)>MaxHeaderLineLength) then
+      raise EHTTPClient.CreateFmt(SErrResponseHeaderTooLong, [MaxHeaderLineLength]);
   until Result or Terminated;
 end;
 
@@ -1175,6 +1209,8 @@ begin
   Repeat
     if ReadString(S) and (S<>'') then
       begin
+      if (MaxHeaderCount>0) and (ResponseHeaders.Count>MaxHeaderCount) then
+        raise EHTTPClient.CreateFmt(SErrResponseTooManyHeaders, [MaxHeaderCount]);
       ResponseHeaders.Add(S);
       If StartsText(SetCookie,S) then
         begin
@@ -1344,6 +1380,8 @@ function TFPCustomHTTPClient.ReadResponse(Stream: TStream; const AllowedResponse
     if (Result>0) then
       begin
       FDataRead:=FDataRead+Result;
+      if (MaxResponseSize>0) and (FDataRead>MaxResponseSize) then
+        raise EHTTPClient.CreateFmt(SerrResponseContentTooBig, [MaxResponseSize]);
       DoDataRead;
       Stream.Write(FBuffer[1],Result);
       end;
@@ -1700,6 +1738,9 @@ begin
   FMaxRedirects:=DefMaxRedirects;
   FRequestCookies:=CreateCookies;
   FResponseCookies:=CreateCookies;
+  FMaxHeaderLineLength:=DefaultMaxHeaderLineLength;
+  FMaxHeaderCount:=DefaultMaxHeaderCount;
+  FMaxResponseSize:=DefaultMaxResponseSize;
 end;
 
 destructor TFPCustomHTTPClient.Destroy;
@@ -1907,7 +1948,7 @@ begin
       lEventSource(self,Result);
 
   finally
-    lStream.Create;
+    lStream.Free;
     OnEventStream:=lEventSource;
   end;
 
@@ -2670,7 +2711,7 @@ begin
         WriteStringToStream(S);
         end;
     S:='--'+Sep+CRLF;
-    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
+    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[SimpleQuote(AFieldName),SimpleQuote(ExtractFileName(AFileName))]);
     s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
     WriteStringToStream(S);
     AStream.Seek(0, soFromBeginning);

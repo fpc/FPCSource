@@ -529,6 +529,36 @@ begin
   ColorAreas^.Insert(NewColorArea(AreaColor,Mask,ColorAreaStart,ColorAreaEnd));
   InColorArea:=false; AreaColor:=0;
 end;
+                { recognize only 4 utf8 characters }
+function TranslateUtf8To437(const utf8 : string; var idx : sw_word):string;
+begin
+  translateUtf8To437:='';
+  if idx=2 then
+    begin
+      if utf8=#$c3#$ab then begin translateUtf8To437:=#$89;idx:=0; end else
+      if utf8=#$c3#$a4 then begin translateUtf8To437:=#$84;idx:=0; end else
+      if utf8=#$c2#$a0 then begin translateUtf8To437:=' '; idx:=0; end;
+    end
+  else if idx=3 then
+    begin
+      if utf8=#$e2#$80#$99 then begin translateUtf8To437:=''''; end;
+      idx:=0; { reset anyway }
+    end;
+end;
+
+var Utf8Char,sAnsiChar : string[3];
+    iTr : sw_word;
+
+procedure FlushUtf8Char;
+begin
+  if iTr>0 then
+  begin   { we have incomplete or not recognized utf8 char }
+    CurWord:=CurWord+Utf8Char;  { add to word as is }
+    iTr:=0;
+  end;
+end;
+
+
 begin
   Lines^.FreeAll; LinesPos^.FreeAll;
   Links^.FreeAll; NamedMarks^.FreeAll; ColorAreas^.FreeAll;
@@ -543,6 +573,8 @@ begin
     ZeroLevel:=0;
     LineAlign:=laLeft;
     FirstLink:=0; LastLink:=0; NextByte:=nbNormal;
+    iTr:=0;
+    Utf8Char:='';
     while (TextPos<Topic^.TextSize) or InImage do
     begin
       C:=chr(PByteArray(Topic^.Text)^[TextPos]);
@@ -563,13 +595,16 @@ begin
               hscLineBreak :
                   {if ZeroLevel=0 then ZeroLevel:=1 else
                       begin FlushLine; FlushLine; ZeroLevel:=0; end;}
-                   if InLink then CurWord:=CurWord+' ' else
+                   begin
+                     FlushUtf8Char;
+                     if InLink then CurWord:=CurWord+' ' else
                      begin
                        NextLineStart:=0;
                        FlushLine;
                        LineStart:=0;
                        LineAlign:=laLeft;
                      end;
+                   end;
               #1 : {Break};
               hscLink :
                    begin
@@ -643,13 +678,41 @@ begin
                    end;
               #32: if InLink then CurWord:=CurWord+C else
                       begin CheckZeroLevel; AddWord(CurWord+C); CurWord:=''; end;
-            else begin CheckZeroLevel; CurWord:=CurWord+C; end;
+            else
+               begin
+                 CheckZeroLevel;
+                 { all we need to do is: CurWord:=CurWord+C, but do some
+                   gymnastics to recognize and translate utf8 chars
+                   and then add it to CurWord }
+                 if (byte(C) and $c0)=$c0 then { utf8 char starts }
+                   begin
+                     FlushUtf8Char;
+                     iTr:=1;
+                     Utf8Char:=C;
+                   end
+                 else if (iTr>0) and ((byte(C) and $c0)=$80) then { next byte of utf8 char }
+                   begin
+                     inc(iTr);
+                     Utf8Char:=Utf8Char+C;
+                     sAnsiChar:=TranslateUtf8To437(Utf8Char,iTr);
+                     if length(sAnsiChar)=1 then
+                       CurWord:=CurWord+sAnsiChar[1]
+                     else if (length(sAnsiChar)=0) and (iTr=0) then
+                       CurWord:=CurWord+Utf8Char; { utf8 not recognized }
+                   end
+                 else
+                   begin
+                     FlushUtf8Char;
+                     CurWord:=CurWord+C;
+                   end;
+               end;
             end;
           end;
       end;
       CurPos.X:=Margin+length(Line)+length(CurWord);
       Inc(TextPos);
     end;
+    FlushUtf8Char;
     if (Line<>'') or (CurWord<>'') then FlushLine;
   end;
 end;

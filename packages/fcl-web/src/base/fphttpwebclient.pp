@@ -159,12 +159,15 @@ begin
     end;
   Result:=TFPHTTPResponse.Create(ARequest as TFPHTTPRequest);
   try
-    if Assigned(ARequest.Content) and (ARequest.Headers.IndexOfName('Content-length')<0) then
-      H.AddHeader('Content-length',IntToStr(ARequest.Content.size));
-    if ARequest.Content.Size>0 then
+    if Assigned(ARequest.Content) then
       begin
-      H.RequestBody:=ARequest.Content;
-      H.RequestBody.Position:=0;
+      if (ARequest.Headers.IndexOfName('Content-length')<0) then
+        H.AddHeader('Content-length',IntToStr(ARequest.Content.size));
+      if ARequest.Content.Size>0 then
+        begin
+        H.RequestBody:=ARequest.Content;
+        H.RequestBody.Position:=0;
+        end;
       end;
     H.HTTPMethod(AMethod,U,Result.Content,[]); // Will raise an exception
   except

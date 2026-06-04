@@ -33,12 +33,6 @@ UNIT App;
 {$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
-
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -416,7 +410,12 @@ uses
   Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 
-resourcestring  sVideoFailed='Video initialization failed.';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sVideoFailed='Video initialization failed.';
                 sTypeExitOnReturn='Type EXIT to return...';
 
 

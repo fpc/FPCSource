@@ -614,7 +614,8 @@ type
     ppo_implements,
     ppo_enumerator_current,       { implements current property for enumerator }
     ppo_overrides,                { overrides ancestor property }
-    ppo_dispid_write              { no longer used }
+    ppo_default_is_single,        { default is a single (required for correct PPU put/load) }
+    ppo_default_is_set            { default is a set (required for correct PPU put/load) }
   );
   tpropertyoptions=set of tpropertyoption;
 

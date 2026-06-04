@@ -905,14 +905,13 @@ begin
 {$endif MSDOS}
 {$ifdef DOS}
   l:=InternGetDataSize;
-  if (l=0) or (l>65520) then
+  if not GetDosMem(M,l) then
     begin
       l:=0;
       CloseWinClipBoard;
       exit;
     end;
   GetMem(p,l+1);
-  GetDosMem(M,l);
   r.ax:=$1705;
   r.dx:=7{ OEM Text rather then 1 : Text };
   r.es:=M.DosSeg;
@@ -995,8 +994,10 @@ var
 {$ENDIF OS2}
 begin
   SetTextWinClipBoardData:=False;
+{$ifdef MSDOS}
   if (l=0) or (l>65520) then
     exit;
+{$endif MSDOS}
   if not OpenWinClipBoard then
     exit;
   EmptyWinClipBoard;
@@ -1011,7 +1012,11 @@ begin
   SetTextWinClipBoardData:=(r.ax<>0);
 {$endif MSDOS}
 {$ifdef DOS}
-  GetDosMem(M,l);
+  if not GetDosMem(M,l) then
+    begin
+      CloseWinClipBoard;
+      exit;
+    end;
   M.MoveDataTo(P^,l);
   r.ax:=$1703;
   r.dx:=7{ OEM Text rather then 1 : Text };

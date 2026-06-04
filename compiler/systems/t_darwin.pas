@@ -586,7 +586,7 @@ implementation
       { create dsym file? }
       extdbgbinstr:='';
       extdbgcmdstr:='';
-      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
+      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5]) and
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
@@ -705,7 +705,7 @@ implementation
       { create dsym file? }
       extdbgbinstr:='';
       extdbgcmdstr:='';
-      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
+      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5]) and
          (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');

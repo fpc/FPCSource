@@ -24,6 +24,11 @@ begin
   Result := (ACodePoint >= $18D00) and (ACodePoint <= $18D7F);
 end;
 
+function IsTangutComponentSupplement(ACodePoint : Cardinal) : Boolean;inline;
+begin
+  Result := (ACodePoint >= $18D80) and (ACodePoint <= $18DFF);
+end;
+
 procedure DeriveWeightTangut(const ACodePoint : Cardinal; AResult : PUCA_PropWeights);inline;
 begin
   AResult[0].Weights[0] := Word($FB00);
@@ -31,6 +36,17 @@ begin
   AResult[0].Weights[2] := $2;
 
   AResult[1].Weights[0] := (ACodePoint - $17000) or $8000;
+  AResult[1].Weights[1] := 0;
+  AResult[1].Weights[2] := 0;
+end;
+
+procedure DeriveWeightTangutComponent(const ACodePoint : Cardinal; AResult : PUCA_PropWeights);inline;
+begin
+  AResult[0].Weights[0] := Word($FB01);
+  AResult[0].Weights[1] := $20;
+  AResult[0].Weights[2] := $2;
+
+  AResult[1].Weights[0] := (ACodePoint - $18800) or $8000;
   AResult[1].Weights[1] := 0;
   AResult[1].Weights[2] := 0;
 end;
@@ -47,7 +63,7 @@ end;
 
 procedure DeriveWeightNushu(const ACodePoint : Cardinal; AResult : PUCA_PropWeights);inline;
 begin
-  AResult[0].Weights[0] := Word($FB01);
+  AResult[0].Weights[0] := Word($FB02);
   AResult[0].Weights[1] := $20;
   AResult[0].Weights[2] := $2;
 
@@ -58,7 +74,7 @@ end;
 
 procedure DeriveWeightKhitanSmallScript(const ACodePoint : Cardinal; AResult : PUCA_PropWeights);inline;
 begin
-  AResult[0].Weights[0] := Word($FB02);
+  AResult[0].Weights[0] := Word($FB03);
   AResult[0].Weights[1] := $20;
   AResult[0].Weights[2] := $2;
 
@@ -100,10 +116,13 @@ var
   ui : boolean;
 begin
   if IsTangut(ACodePoint) or
-     IsTangutComponent(ACodePoint) or
      IsTangutSupplement(ACodePoint)
   then begin
     DeriveWeightTangut(ACodePoint,AResult);
+  end else if IsTangutComponent(ACodePoint) or
+    IsTangutComponentSupplement(ACodePoint)
+  then begin
+    DeriveWeightTangutComponent(ACodePoint,AResult);
   end else if IsNushu(ACodePoint) then begin
     DeriveWeightNushu(ACodePoint,AResult);
   end else if IsKhitanSmallScript(ACodePoint) then begin

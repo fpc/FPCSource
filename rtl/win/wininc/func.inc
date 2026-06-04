@@ -117,6 +117,7 @@ function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:
 function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
 function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
 procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
+function SwitchToThread():WinBool; external 'kernel32' name 'SwitchToThread';
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
 function SetProcessAffinityMask(hProcess: THandle; dwProcessAffinityMask: DWORD_PTR): BOOL; external 'kernel32' name 'SetProcessAffinityMask';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';

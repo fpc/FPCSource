@@ -27,8 +27,8 @@
 {$endif}
 
 { Using inlining for small system functions/wrappers }
-{$inline on}
 {$ifndef DISABLE_SYSTEMINLINE}
+  {$inline on}
   {$define SYSTEMINLINE}
 {$endif}
 

@@ -497,6 +497,7 @@ type
 
   TCustomHTMLModule = Class(TSessionHTTPModule)
   private
+    FDisableNoSniff: Boolean;
     FDocument : THTMLDocument;
     FActions: THTMLContentActions;
     FOnCreateDocument: TCreateDocumentEvent;
@@ -506,6 +507,7 @@ type
   Protected
     Function CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
     Function CreateDocument : THTMLDocument;
+    Property DisableNoSniff : Boolean Read FDisableNoSniff Write FDisableNoSniff default false;
     Property OnGetContent : THTMLGetContentEvent Read FOnGetContent Write FOnGetContent;
     Property Actions : THTMLContentActions Read FActions Write SetActions;
     Property OnCreateDocument : TCreateDocumentEvent Read FOnCreateDocument Write FOnCreateDocument;
@@ -520,6 +522,7 @@ type
   Published
     Property Actions;
     Property CreateSession;
+    Property DisableNoSniff;
     Property Session;
     Property Kind;
     Property AfterInitModule;
@@ -640,8 +643,16 @@ begin
 end;
 
 procedure TJavaScriptStack.Redirect(const AUrl: string);
+
+  function EscapeQuotes(const s : string) : string;
+  begin
+    Result:=StringReplace(s,'"','\"',[rfReplaceAll]);
+    Result:=StringReplace(Result,#10,'\n',[rfReplaceAll]);
+    Result:=StringReplace(Result,#13,'\r',[rfReplaceAll]);
+  end;
+
 begin
-  AddScriptLine('window.location = "'+AUrl+'";');
+  AddScriptLine('window.location = "'+EscapeQuotes(AUrl)+'";');
 end;
 
 function TJavaScriptStack.ScriptIsEmpty: Boolean;
@@ -1138,7 +1149,7 @@ end;
 
 { TCustomHTMLDataModule }
 
-Function TCustomHTMLModule.CreateDocument : THTMLDocument;
+function TCustomHTMLModule.CreateDocument: THTMLDocument;
 
 begin
   Result:=Nil;
@@ -1159,7 +1170,7 @@ begin
   FActions.Assign(AValue);
 end;
 
-Function TCustomHTMLModule.CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
+function TCustomHTMLModule.CreateWriter(ADocument: THTMLDocument): THTMLWriter;
 
 begin
   Result:=Nil;
@@ -1185,27 +1196,31 @@ begin
     Try
       B:=False;
       if Not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
+        begin
+        if not DisableNoSniff then
+          aRequest.CustomHeaders.Values['X-Content-Type-Options']:='nosniff';
         If Assigned(OnGetContent) then
           OnGetContent(Self,ARequest,FWriter,B);
         If Not B then
           Actions.HandleRequest(ARequest,FWriter,B);
         If Not B then
           Raise EHTMLError.Create(SErrRequestNotHandled);
-        If (AResponse.ContentStream=Nil) then
-          begin
-          M:=TMemoryStream.Create;
-          AResponse.ContentStream:=M;
-          AResponse.FreeContentStream:=True;
-          end;
-        if not AResponse.ContentSent then
-          begin
-          FDocument.SaveToStream(AResponse.ContentStream);
-          AResponse.ContentStream.Position:=0;
-          if (AResponse.ContentType='') then
-             AResponse.ContentType:='text/html';
-          AResponse.ContentLength:=AResponse.ContentStream.Size;
-          AResponse.SendContent;
-          end;
+        end;
+      If (AResponse.ContentStream=Nil) then
+        begin
+        M:=TMemoryStream.Create;
+        AResponse.ContentStream:=M;
+        AResponse.FreeContentStream:=True;
+        end;
+      if not AResponse.ContentSent then
+        begin
+        FDocument.SaveToStream(AResponse.ContentStream);
+        AResponse.ContentStream.Position:=0;
+        if (AResponse.ContentType='') then
+           AResponse.ContentType:='text/html; charset=utf-8'; // charset to avoid sniffing for that too
+        AResponse.ContentLength:=AResponse.ContentStream.Size;
+        AResponse.SendContent;
+        end;
     Finally
       FreeAndNil(FWriter);
     end;

@@ -3331,7 +3331,7 @@ link_f_executable_too_big_exceeds_X_by_Y_bytes=09224_F_Executable image size is 
 #
 # Unit loading
 #
-# 10070 is the last used one
+# 10072 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3357,8 +3357,11 @@ unit_u_ppu_file_too_short=10006_U_PPU File too short
 % The ppufile is too short, not all declarations are present.
 unit_u_ppu_invalid_header=10007_U_PPU Invalid Header (no PPU at the begin)
 % A unit file contains as the first three bytes the ASCII codes of the characters \var{PPU}.
-unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1
+unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1 expecting $2
 % This unit file was compiled with a different version of the compiler, and
+% cannot be read.
+unit_u_ppu_invalid_long_version=10072_U_PPU Invalid Long Version $1 expecting $2
+% This unit file was compiled with a different long version of the compiler, and
 % cannot be read.
 unit_u_ppu_invalid_processor=10009_U_PPU is compiled for another processor $1
 % This unit file was compiled for a different processor type, and

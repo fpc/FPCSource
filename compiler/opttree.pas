@@ -30,12 +30,21 @@ unit opttree;
   interface
 
     uses
-      compilerbase,node,nutils;
+      compilerbase,node,nbas,nutils;
 
 type
+
+  { TTreeOptimizations }
+
   TTreeOptimizations = class
   private
     FCompiler: TCompilerBase;
+
+    { success pointer shared across recursive searchstatements calls so nested
+      blockns can be processed with the proper arg (their own statement chain) }
+    normalize_success : pboolean;
+
+    function block_extract_tempdelete(block: tblocknode; ti: ptempinfo): ttempdeletenode;
     function searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
     function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;
     property Compiler: TCompilerBase read FCompiler;
@@ -57,8 +66,9 @@ type
     uses
       verbose,
       globtype,
+      cgbase,
       defutil,
-      nbas,nld,ncal,
+      nld,ncal,
       pass_1,compiler;
 
     constructor TTreeOptimizations.Create(ACompiler: TCompilerBase);
@@ -73,14 +83,39 @@ type
           result:=fen_norecurse_true;
       end;
 
+    { scan the block's top-level statements for a tempdeletenode referring to
+      the given tempinfo, unlink it (replace its statement slot with a
+      nothingnode) and return it; nil if not found. Matches the flat
+      tempcreate/.../tempdelete pattern emitted around internalstatements
+      blocks (nested deletes not expected) }
+    function TTreeOptimizations.block_extract_tempdelete(block : tblocknode; ti : ptempinfo) : ttempdeletenode;
+      var
+        s : tstatementnode;
+      begin
+        result:=nil;
+        s:=tstatementnode(block.left);
+        while assigned(s) do
+          begin
+            if assigned(s.left) and
+               (s.left.nodetype=tempdeleten) and
+               (ttempdeletenode(s.left).tempinfo=ti) then
+              begin
+                result:=ttempdeletenode(s.left);
+                s.left:=compiler.cnothingnode;
+                exit;
+              end;
+            s:=tstatementnode(s.right);
+          end;
+      end;
+
     function TTreeOptimizations.searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
       var
         hp,
-        statements,
         stmnt : tstatementnode;
         res : pnode;
         tempcreatenode : ttempcreatenode;
-        newblock : tnode;
+        tempdelnode : ttempdeletenode;
+        movedblock : tnode;
       begin
         result:=fen_true;
         if n.nodetype in [addn,orn] then
@@ -121,6 +156,23 @@ type
               if assigned(tblocknode(n).left) and (tblocknode(n).left.nodetype<>statementn) then
                 internalerror(2013120502);
 
+              { blocks used as statements (void result) cannot be extracted -
+                replacing the statement slot with a value would produce a
+                malformed tree. But their body may contain extractable blockns
+                with references to this block's own temps; recurse through the
+                statement chain so those inner blockns get normalized at the
+                scope where their external temp refs are still valid. }
+              if not assigned(tblocknode(n).resultdef) or
+                 is_void(tblocknode(n).resultdef) then
+                begin
+                  if assigned(tblocknode(n).left) then
+                    foreachnode(tblocknode(n).left,@searchstatements,normalize_success);
+                  { tell the outer foreachnodestatic not to descend again -
+                    we've already walked the body with searchstatements }
+                  result:=fen_norecurse_true;
+                  exit;
+                end;
+
               stmnt:=tstatementnode(tblocknode(n).left);
               { search for the result of the block node }
               if assigned(stmnt) then
@@ -144,6 +196,15 @@ type
                         setconstn,
                         temprefn:
                           begin
+                            { when the block ends with temprefn(t) and also
+                              contains tempdelete(t), lift the tempdelete out
+                              so the extracted tempref outlives its backing
+                              temp (otherwise the delete would run before the
+                              use and trip IE 200108231); nil for other cases }
+                            if res^.nodetype=temprefn then
+                              tempdelnode:=block_extract_tempdelete(tblocknode(n),ttemprefnode(res^).tempinfo)
+                            else
+                              tempdelnode:=nil;
                             { create a new statement node and insert it }
                             hp:=compiler.cstatementnode(n,pnode(arg)^);
                             pnode(arg)^:=hp;
@@ -151,33 +212,47 @@ type
                             n:=res^;
                             { the old statement is not used anymore }
                             res^:=compiler.cnothingnode;
+                            { splice the lifted tempdelete after the original
+                              statement so the temp outlives the extracted tempref }
+                            if assigned(tempdelnode) then
+                              tstatementnode(hp.right).right:=
+                                compiler.cstatementnode(tempdelnode,tstatementnode(hp.right).right);
                             { process the newly generated statement }
                             foreachnode(pnode(arg)^,@searchstatements,nil);
                           end
                         else if assigned(res^.resultdef) and not(is_void(res^.resultdef)) then
                           begin
-                            { replace the last node of the block by an assignment to a temp, and move the block out
-                              of the expression }
-                            newblock:=internalstatements(compiler,statements);
+                            { Splice into the parent chain:
+                                tempcreate -> block (now assigns to temp) -> origstmt -> tempdelete
+                              The blockn's slot in the source expression is
+                              replaced by a temprefn for the new temp; the
+                              statement slot at pnode(arg)^ stays a statementn. }
                             tempcreatenode:=compiler.ctempcreatenode(res^.resultdef,res^.resultdef.size,tt_persistent,true);
-                            addstatement(statements,tempcreatenode);
-                            addstatement(statements,n);
+                            { pass_1 on tempcreate sets pi_needs_implicit_finally
+                              for managed typedefs; must fire before
+                              add_entry_exit_code reads that flag }
+                            do_firstpass(tnode(tempcreatenode));
 
-                            { replace the old result node of the block by an assignment to the newly generated temp }
+                            { rewrite block's last expression: "temp := <expr>" }
                             res^:=compiler.cassignmentnode_internal(compiler.ctemprefnode(tempcreatenode),res^);
                             do_firstpass(res^);
-                            addstatement(statements,compiler.ctempdeletenode_normal_temp(tempcreatenode));
-                            addstatement(statements,pnode(arg)^);
-
-                            { use the temp. ref instead of the block node }
+                            { replace blockn in source expression with a temprefn }
+                            movedblock:=n;
                             n:=compiler.ctemprefnode(tempcreatenode);
-                            { replace the statement with the block }
-                            pnode(arg)^:=newblock;
-                            { first pass the newly generated block }
-                            do_firstpass(newblock);
-                            { ... and the inserted temp. }
                             do_firstpass(n);
-                            { process the newly generated block }
+
+                            { tempdelete after origstmt }
+                            hp:=compiler.cstatementnode(
+                                  compiler.ctempdeletenode_normal_temp(tempcreatenode),
+                                  tstatementnode(pnode(arg)^).right);
+                            tstatementnode(pnode(arg)^).right:=hp;
+                            { movedblock before origstmt }
+                            hp:=compiler.cstatementnode(movedblock,pnode(arg)^);
+                            pnode(arg)^:=hp;
+                            { tempcreate before movedblock }
+                            hp:=compiler.cstatementnode(tempcreatenode,pnode(arg)^);
+                            pnode(arg)^:=hp;
+
                             foreachnode(pnode(arg)^,@searchstatements,nil);
                           end;
                       end;
@@ -218,6 +293,7 @@ type
         writeln('******************************************** Before ********************************************');
         printnode(output,n);
 {$endif DEBUG_NORMALIZE}
+        normalize_success:=@success;
         foreachnode(n,@searchstatements,@success);
 {$ifdef DEBUG_NORMALIZE}
         if success then

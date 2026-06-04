@@ -210,6 +210,8 @@ interface
         procedure finish_children;
         procedure finish_entry;
         procedure finish_lineinfo;
+
+        procedure insert_cu_header_after_version;virtual;
       public
         constructor Create(AAsmData: TAsmData; ACompiler: TCompilerBase);override;
         destructor Destroy;override;
@@ -258,8 +260,18 @@ interface
         function  dwarf_version: Word; override;
       end;
 
+      { TDebugInfoDwarf4 }
 
       TDebugInfoDwarf4 = class(TDebugInfoDwarf3)
+      public
+        function  dwarf_version: Word; override;
+      end;
+
+      { TDebugInfoDwarf5 }
+
+      TDebugInfoDwarf5 = class(TDebugInfoDwarf4)
+      protected
+        procedure insert_cu_header_after_version; override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -3059,7 +3071,7 @@ implementation
         templist: TAsmList;
         linelist: TAsmList;
         lbl   : tasmlabel;
-        n,m   : Integer;
+        n,m,found_dot_dir: Integer;
         ditem : TDirIndexItem;
         fitem : TFileIndexItem;
         flist : TFPList;
@@ -3134,6 +3146,14 @@ implementation
         { version }
         linelist.concat(tai_const.create_16bit_unaligned(dwarf_version));
 
+        if dwarf_version >= 5 then
+          begin
+            { address size }
+            linelist.concat(tai_const.create_8bit(sizeof(pint)));
+            { segment size }
+            linelist.concat(tai_const.create_8bit(0));
+          end;
+
         { header length }
         AsmData.getlabel(lbl,alt_dbgfile);
         linelist.concat(tai_const.create_rel_sym(offsetreltype,
@@ -3188,14 +3208,30 @@ implementation
         linelist.concat(tai_const.create_8bit(1));
 
         { Create single list of filenames sorted in IndexNr }
+        found_dot_dir := 0;
         flist:=TFPList.Create;
         for n := 0 to dirlist.Count - 1 do
           begin
             ditem := TDirIndexItem(dirlist[n]);
+            if ditem.Name = '.' then
+              found_dot_dir := 1;
             for m := 0 to ditem.Files.Count - 1 do
               flist.Add(ditem.Files[m]);
           end;
         flist.Sort(@FileListSortCompare);
+
+        if dwarf_version >= 5 then
+          begin
+            { directory_entry_format count }
+            linelist.concat(tai_const.create_8bit(1));
+            { directory_entry_format }
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_LNCT_path)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+            { directory_entry count }
+            linelist.concat(tai_const.create_8bit(dirlist.Count - found_dot_dir + 1));
+            { directory_entry 0 / DWARF-5 needs current dir FIRST }
+            linelist.concat(tai_string.create(BSToSlash(FixPath(GetCurrentDir,false))+#0));
+          end;
 
         { include_directories }
         linelist.concat(tai_comment.Create(strpnew('include_directories')));
@@ -3208,8 +3244,35 @@ implementation
 
             linelist.concat(tai_string.create(ditem.Name+#0));
           end;
-        linelist.concat(tai_const.create_8bit(0));
+        if dwarf_version < 5 then
+          linelist.concat(tai_const.create_8bit(0));
 
+        { file_names count }
+        if dwarf_version >= 5 then
+          begin
+            { file_entry_format count }
+            linelist.concat(tai_const.create_8bit(4));
+            { file_entry_format }
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_LNCT_path)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_LNCT_directory_index)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_FORM_udata)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_LNCT_timestamp)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_FORM_udata)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_LNCT_size)));
+            linelist.concat(tai_const.create_uleb128bit(ord(DW_FORM_udata)));
+
+            { file count }
+            linelist.concat(tai_const.create_8bit(flist.Count+1));
+            { file name }
+            linelist.concat(tai_string.create(compiler.current_module.sourcefiles.get_file(1).name+#0));
+            { directory index }
+            linelist.concat(tai_const.create_uleb128bit(0));
+            { last modification }
+            linelist.concat(tai_const.create_uleb128bit(0));
+            { file length }
+            linelist.concat(tai_const.create_uleb128bit(0));
+          end;
         { file_names }
         linelist.concat(tai_comment.Create(strpnew('file_names')));
         for n := 0 to flist.Count - 1 do
@@ -3224,7 +3287,8 @@ implementation
             { file length }
             linelist.concat(tai_const.create_uleb128bit(0));
           end;
-        linelist.concat(tai_const.create_8bit(0));
+        if dwarf_version < 5 then
+          linelist.concat(tai_const.create_8bit(0));
 
         { end of debug line header }
         linelist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'ehdebug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
@@ -3339,17 +3403,7 @@ implementation
         AsmData.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
         AsmData.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(dwarf_version));
-        { abbrev table (=relative from section start)}
-        if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
-          AsmData.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
-            AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)))
-        else
-          AsmData.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
-            AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrevsection0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype),
-            AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)));
-
-        { address size }
-        AsmData.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
+        insert_cu_header_after_version;
 
         if (ds_dwarf_cpp in compiler.globals.current_settings.debugswitches) then
           lang:=DW_LANG_C_plus_plus
@@ -3817,6 +3871,21 @@ implementation
         asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
         asmline.concat(tai_comment.Create(strpnew('###################')));
       end;
+
+    procedure TDebugInfoDwarf.insert_cu_header_after_version;
+    begin
+      { abbrev table (=relative from section start)}
+      if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
+        AsmData.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)))
+      else
+        AsmData.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrevsection0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype),
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)));
+
+      { address size }
+      AsmData.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
+    end;
 
 {****************************************************************************
                               TDebugInfoDwarf2
@@ -4293,14 +4362,14 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_object(list:TAsmList;def: tobjectdef);
 
-      procedure dostruct(tag: tdwarf_tag);
+      procedure dostruct(tag: tdwarf_tag; has_children: boolean=true);
         begin
           if assigned(def.objname) then
-            append_entry(tag,true,[
+            append_entry(tag,has_children,[
               DW_AT_name,DW_FORM_string,def.objrealname^+#0
               ])
           else
-            append_entry(DW_TAG_structure_type,true,[]);
+            append_entry(DW_TAG_structure_type,has_children,[]);
           append_attribute(DW_AT_byte_size,DW_FORM_udata,[tobjectsymtable(def.symtable).datasize]);
           { an old style object and a cpp class are accessed directly, so we do not need DW_AT_allocated and DW_AT_data_location tags,
             see issue #36017 }
@@ -4379,7 +4448,16 @@ implementation
           odt_interfacecorba,
           odt_dispinterface:
             begin
-              dostruct(DW_TAG_interface_type);
+              if (not assigned(def.childof)) and
+                 ((not assigned(def.ImplementedInterfaces)) or (def.ImplementedInterfaces.count = 0)) and
+                (def.symtable.symList.count = 0)
+              then
+                begin
+                dostruct(DW_TAG_interface_type, False);
+                exit;
+                end
+              else
+                dostruct(DW_TAG_interface_type);
               doparent(true);
             end;
           odt_helper,
@@ -4497,20 +4575,26 @@ implementation
           begin
             if (compiler.globals.features*VARIANTS[idx].features)=VARIANTS[idx].features then
               begin
-                append_entry(DW_TAG_variant,true,[
-                  DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
-                  ]);
-                finish_entry;
-
                 if VARIANTS[idx].name <> '' then
                   begin
+                    append_entry(DW_TAG_variant,true,[
+                      DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
+                      ]);
+                    finish_entry;
                     fs := tfieldvarsym(vardatadef.symtable.Find(VARIANTS[idx].name));
                     if (fs = nil) or (fs.typ <> fieldvarsym) then
                       internalerror(2006092702+idx);
                     appendsym_fieldvar(list,fs);
+                    finish_children; { variant }
+                  end
+                else
+                  begin
+                    append_entry(DW_TAG_variant,false,[
+                      DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
+                      ]);
+                    finish_entry;
                   end;
 
-                finish_children; { variant }
               end;
           end;
 
@@ -4538,6 +4622,29 @@ implementation
       Result:=4;
     end;
 
+    procedure TDebugInfoDwarf5.insert_cu_header_after_version;
+    begin
+      { DWARF-5 has a different order of fields in the header }
+      { unit type }
+      AsmData.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_UT_compile))); // DW_UT_compile = 0x01
+      { address size }
+      AsmData.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
+
+      { abbrev table (=relative from section start)}
+      if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
+        AsmData.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)))
+      else
+        AsmData.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrevsection0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype),
+          AsmData.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,compiler.deftypes.voidpointertype)));
+    end;
+
+    function TDebugInfoDwarf5.dwarf_version: Word;
+    begin
+      Result:=5;
+    end;
+
 
 {****************************************************************************
 ****************************************************************************}
@@ -4560,10 +4667,17 @@ implementation
            idtxt  : 'DWARF4';
          );
 
+      dbg_dwarf5_info : tdbginfo =
+         (
+           id     : dbg_dwarf5;
+           idtxt  : 'DWARF5';
+         );
+
 
 initialization
   RegisterDebugInfo(dbg_dwarf2_info,TDebugInfoDwarf2);
   RegisterDebugInfo(dbg_dwarf3_info,TDebugInfoDwarf3);
   RegisterDebugInfo(dbg_dwarf4_info,TDebugInfoDwarf4);
+  RegisterDebugInfo(dbg_dwarf5_info,TDebugInfoDwarf5);
 
 end.

@@ -767,7 +767,8 @@ var
   I: Integer;
 begin
   xContentType := GetResponseContentType;
-  xContentType := 'Content-Type: text/html; charset=utf-8';
+  if xContentType='' then
+    xContentType := 'Content-Type: text/html; charset=utf-8';
   xStrL := TStringList.Create;
   try
     xStrL.Delimiter := ';';

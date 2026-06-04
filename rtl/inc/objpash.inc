@@ -32,6 +32,21 @@
     type
       TextFile = Text;
 
+       // "Maximum" available stringtype : Shortstring, AnsiString or UnicodeString
+      {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+      
+      {$IFNDEF UNICODERTL}
+      RTLString = ansistring;
+      {$ELSE UNICODERTL}
+      RTLString = unicodestring;
+      {$ENDIF UNICODERTL}
+ 
+      {$else FPC_HAS_FEATURE_ANSISTRINGS}
+
+      RTLString = shortstring; 
+ 
+      {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
       PGUID = ^TGUID;
 
       { TGUID }
@@ -44,8 +59,10 @@
         class function Create(const aData; aBigEndian: Boolean = False): TGUID; overload; static;
         class function Create(const aData: array of Byte; aStartIndex: Cardinal; aBigEndian: Boolean = False): TGUID; overload; static;
         class function Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
+        class function FromString(const S : ShortString; Out GUID : TGUID) : Boolean; static;
         function IsEmpty: Boolean;
         function AsString : ShortString;
+
       Public
          case integer of
             1 : (
@@ -220,20 +237,7 @@
          class operator <=(const aLeft, aRight: TMethod): Boolean; inline;
        end;
 
-       // "Maximum" available stringtype : Shortstring, AnsiString or WideString
-       {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 
-       {$IFNDEF UNICODERTL}
-       RTLString = ansistring;
-       {$ELSE UNICODERTL}
-       RTLString = unicodestring;
-       {$ENDIF UNICODERTL}
-
-       {$else FPC_HAS_FEATURE_ANSISTRINGS}
-
-       RTLString = shortstring;
-
-       {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
        // Dispatch needs a DWord as the first 4 bytes in its untyped parameter.
        // Note that this is different from Delphi, which uses only a word.

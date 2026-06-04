@@ -68,12 +68,6 @@ unit StdDlg;
   {$define HAS_DOS_DRIVES}
 {$endif}
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
-
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -627,7 +621,12 @@ type
     AString : Sw_PString;
   end;
 
-resourcestring  sChangeDirectory='Change Directory';
+{$ifdef USE_RESOURCESTRING}
+  resourcestring
+{$else}
+  const
+{$endif}
+                sChangeDirectory='Change Directory';
                 sDeleteFile='Delete file?'#13#10#13#3'%s';
                 sDirectory='Directory';
                 sDrives='Drives';

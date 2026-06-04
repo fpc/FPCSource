@@ -800,6 +800,17 @@ begin
     Cpu2Str:=Unknown('cpu',w);
 end;
 
+{Avoid dependency on cpuinfo because the cpu directory isn't
+ searched during utils building.}
+{$ifdef GENERIC_CPU}
+type  bestreal=extended;
+{$else}
+{$ifdef x86}
+type  bestreal=extended;
+{$else}
+type  bestreal=double;
+{$endif}
+{$endif}
 
 Function Varspez2Str(w:longint):string;
 const
@@ -3498,7 +3509,8 @@ end;
     ppo_implements,
     ppo_enumerator_current,
     ppo_overrides,
-    ppo_dispid_write              { no longer used }
+    ppo_default_is_single,
+    ppo_default_is_set
   );
   tpropertyoptions=set of tpropertyoption;
 *)
@@ -3518,7 +3530,8 @@ const
     (mask:ppo_implements;str:'implements'),
     (mask:ppo_enumerator_current;str:'enumerator current'),
     (mask:ppo_overrides;str:'overrides'),
-    (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
+    (mask:ppo_default_is_single;str:'default is a single'),
+    (mask:ppo_default_is_set;str:'default is a set')
   );
 var
   i      : longint;
@@ -3720,6 +3733,8 @@ var
   realvalue : ppureal;
   doublevalue : double;
   singlevalue : single;
+  extvalue : extended;
+  aset : set of 0..31;
   realstr : shortstring;
   extended : TSplit80bitReal;
   pw : tcompilerwidestring;
@@ -4094,7 +4109,42 @@ begin
              write  ([space,'    Prop Type : ']);
              readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
-             writeln([space,'      Default : ',getlongint]);
+             if ppo_default_is_single in propoptions then
+               begin
+                 if (CurUnit.ByteSizeOfPpuReal=10) and (sizeof(extvalue)<10) then
+                   begin
+                     getdata(extended,10);
+                     ss:=Real80bitToStr(extended,extvalue);
+                     writeln([space,'      Default (single): ',ss]);
+                   end
+                 else
+                   begin
+                     singlevalue:=getrealsize(CurUnit.ByteSizeOfPpuReal);
+                     writeln([space,'      Default (single): ',singlevalue]);
+                   end
+               end
+             else if ppo_default_is_set in propoptions then
+               begin
+                 { this is always a 4-byte long set }
+                 ppufile.getset(tppuset4(aset));
+                 write([space,'      Default (set): ']);
+                 for j:=0 to 3 do
+                   begin
+                     if j>0 then
+                       write(',');
+                     if not ppufile.change_endian then
+                       b:=pbyte(@aset)[j]
+                     else
+                       begin
+                         b:=pbyte(@aset)[3-j];
+                         b:=reverse_byte(b);
+                       end;
+                     write(hexstr(b,2));
+                   end;
+                 writeln;
+               end
+             else
+               writeln([space,'      Default : ',getlongint]);
              write  ([space,'   Index Type : ']);
              readderef('');
              { palt_none }
@@ -5134,7 +5184,9 @@ begin
   if b<>ibextraheader then
     exit;
   CurUnit.LongVersion:=cardinal(ppufile.getlongint);
+  CurUnit.ByteSizeOfPpuReal:=ppufile.getbyte;
   Writeln(['LongVersion: ',CurUnit.LongVersion]);
+  Writeln(['Byte size of PPU real: ',CurUnit.ByteSizeOfPpuReal]);
   ppufile.getset(tppuset4(CurUnit.ModuleFlags));
   result:=ppufile.EndOfEntry and (CurUnit.LongVersion=CurrentPPULongVersion);
   if mf_symansistr in CurUnit.ModuleFlags then
