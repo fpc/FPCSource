@@ -597,7 +597,7 @@ begin
   { Set default code page for ansistrings on unix-like systems }
   DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
-  FNodeUtils:=tnodeutils.Create(Self);
+  FNodeUtils:=cnodeutils.Create(Self);
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FBlockUtl:=TBlockUtils.Create(Self);
   FPkgUtil:=TPackageUtils.Create(Self);
