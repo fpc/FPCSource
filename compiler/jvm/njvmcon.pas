@@ -454,7 +454,7 @@ implementation
         include(csym.symoptions,sp_internal);
         compiler.current_module.localsymtable.insertsym(csym);
         { generate assignment of the constant to the typed constant symbol }
-        ssym:=jvm_add_typed_const_initializer(csym);
+        ssym:=jvm_add_typed_const_initializer(ctx.CurrAsmList.AsmData,csym);
         result:=ctx.CurrAsmList.AsmData.RefAsmSymbol(ssym.mangledname,AT_DATA);
       end;
 

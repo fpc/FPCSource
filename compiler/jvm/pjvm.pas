@@ -27,7 +27,7 @@ unit pjvm;
 interface
 
     uses
-      globtype,
+      globtype,aasmdata,
       symconst,symtype,symbase,symdef,symsym,compilerbase;
 
     { records are emulated via Java classes. They require a default constructor
@@ -40,7 +40,7 @@ interface
 
     procedure jvm_wrap_virtual_class_methods(obj: tobjectdef);
 
-    function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
+    function jvm_add_typed_const_initializer(AsmData: TAsmData; csym: tconstsym): tstaticvarsym;
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
 
@@ -51,7 +51,7 @@ implementation
     cutils,cclasses,
     verbose,globals,systems,
     fmodule,
-    parabase,aasmdata,
+    parabase,
     ngenutil,pparautl,
     symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
     defutil,paramgr,compiler;
@@ -588,7 +588,7 @@ implementation
       end;
 
 
-    function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
+    function jvm_add_typed_const_initializer(AsmData: TAsmData; csym: tconstsym): tstaticvarsym;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -627,7 +627,7 @@ implementation
                   exit;
                 end;
               replace_scanner('jvm_enum_const',sstate);
-              str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],esym.name+';',ssym);
+              str_parse_typedconst(AsmData.asmlists[al_typedconsts],esym.name+';',ssym);
               restore_scanner(sstate);
               result:=ssym;
             end;
@@ -654,7 +654,7 @@ implementation
               { ensure that we allocate space for global symbols (won't actually
                 allocate space for this one, since it's external, but for the
                 constsym) }
-              compiler.nodeutils.insertbssdata(current_asmdata,ssym);
+              compiler.nodeutils.insertbssdata(AsmData,ssym);
               elemdef:=tsetdef(csym.constdef).elementdef;
               if not assigned(elemdef) then
                 begin
@@ -677,7 +677,7 @@ implementation
                       end;
                   conststr:=conststr+'];';
                 end;
-              str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],conststr,ssym);
+              str_parse_typedconst(AsmData.asmlists[al_typedconsts],conststr,ssym);
               restore_scanner(sstate);
               result:=ssym;
             end;

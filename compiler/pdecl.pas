@@ -312,7 +312,7 @@ implementation
                        if (compiler.symtablestack.top.symtablelevel<normal_function_level) and
                           assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
-                         jvm_add_typed_const_initializer(tconstsym(sym));
+                         jvm_add_typed_const_initializer(current_asmdata,tconstsym(sym));
 {$endif}
                      end
                    else
