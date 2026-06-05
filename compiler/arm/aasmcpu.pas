@@ -1154,7 +1154,7 @@ implementation
                               if (GenerateThumbCode) and
                                 tai_label(curdatatai).inserted then
                                 begin
-                                  current_asmdata.getjumplabel(l);
+                                  listtoinsert.AsmData.getjumplabel(l);
                                   hp:=tai_label.create(l);
                                   listtoinsert.Concat(hp);
                                   hp2:=tai(curdatatai.Next.GetCopy);
@@ -1393,7 +1393,7 @@ implementation
                     inserttai:=tai(inserttai.next);
 
                 doinsert:=false;
-                current_asmdata.getjumplabel(l);
+                curdata.AsmData.getjumplabel(l);
 
                 { align jump in thumb .text section to 4 bytes }
                 if not(curdata.empty) and (GenerateThumbCode) then
