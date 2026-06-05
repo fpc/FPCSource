@@ -1431,7 +1431,7 @@ implementation
                 limit:=1016;
                 doinsert:=false;
                 hp:=tai(curtai.next);
-                current_asmdata.getjumplabel(l);
+                curdata.AsmData.getjumplabel(l);
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
                 list.insertlistafter(curtai,curdata);
