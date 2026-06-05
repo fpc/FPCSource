@@ -176,7 +176,7 @@ implementation
 
         { send the vmt parameter }
         pd:=search_system_proc('fpc_catches');
-        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        reference_reset_symbol(href2, list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
           compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
@@ -260,7 +260,7 @@ implementation
 
         { send the vmt parameter }
         pd:=search_system_proc('fpc_catches');
-        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        reference_reset_symbol(href2, list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
           compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
@@ -343,7 +343,7 @@ implementation
 
         { send the vmt parameter }
         pd:=search_system_proc('fpc_catches');
-        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        reference_reset_symbol(href2, list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
         if otherunit then
           compiler.current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
         paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
@@ -851,9 +851,9 @@ implementation
           asmlist.Concat(taicpu.op_const(a_local_set,machine_state));
           asmlist.Concat(taicpu.op_none(a_block));
           asmlist.Concat(taicpu.op_none(a_loop));
-          current_asmdata.getjumplabel(state_machine_loop_start_label);
+          asmlist.AsmData.getjumplabel(state_machine_loop_start_label);
           asmlist.concat(tai_label.create(state_machine_loop_start_label));
-          current_asmdata.getjumplabel(state_machine_exit);
+          asmlist.AsmData.getjumplabel(state_machine_exit);
           for block_nr:=0 to blocks.Count-1 do
             asmlist.Concat(taicpu.op_none(a_block));
           for block_nr:=0 to blocks.Count-1 do
