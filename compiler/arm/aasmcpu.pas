@@ -312,7 +312,7 @@ uses
       and transforms special instructions to valid instruction encodings }
     procedure finalizearmcode(list,listtoinsert : TAsmList);
     { inserts .pdata section and dummy function prolog needed for arm-wince exception handling }
-    procedure InsertPData;
+    procedure InsertPData(AsmData: TAsmData);
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -1861,24 +1861,24 @@ implementation
         insertpcrelativedata(list, listtoinsert);
       end;
 
-    procedure InsertPData;
+    procedure InsertPData(AsmData: TAsmData);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         prolog: TAsmList;
       begin
-        prolog:=TAsmList.create(current_asmdata);
+        prolog:=TAsmList.create(AsmData);
         new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
         prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
         prolog.concat(Tai_const.Create_32bit(0));
         prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { dummy function }
         prolog.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
-        current_asmdata.asmlists[al_start].insertList(prolog);
+        AsmData.asmlists[al_start].insertList(prolog);
         prolog.Free;
-        new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(pint));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
+        new_section(AsmData.asmlists[al_end],sec_pdata,'',sizeof(pint));
+        AsmData.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
+        AsmData.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
       end;
 
 (*

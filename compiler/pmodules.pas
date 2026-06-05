@@ -2316,7 +2316,7 @@ type
          { Insert .pdata section for arm-wince.
            It is needed for exception handling. }
          if compiler.target.info.system in [system_arm_wince] then
-           InsertPData;
+           InsertPData(current_asmdata);
 {$endif arm}
 
          { generate debuginfo }
@@ -2585,7 +2585,7 @@ type
         { Insert .pdata section for arm-wince.
           It is needed for exception handling. }
         if compiler.target.info.system in [system_arm_wince] then
-          InsertPData;
+          InsertPData(current_asmdata);
   {$endif arm}
 
         compiler.nodeutils.InsertThreadvars(current_asmdata);
