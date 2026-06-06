@@ -355,6 +355,7 @@ interface
          ref     : tpropaccesslist;
          constructor create(const n : TSymStr;def:tdef);virtual;
          constructor create_ref(const n : TSymStr;def:tdef;_ref:tpropaccesslist);virtual;
+	 procedure adjust_varregable;
          destructor  destroy;override;
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
@@ -2594,6 +2595,22 @@ implementation
         ref:=_ref;
       end;
 
+    procedure tabsolutevarsym.adjust_varregable;
+      var
+        plist : ppropaccesslistitem;
+      begin
+        if assigned(ref) and (abstyp=tovar) then
+          begin
+            plist:=ref.firstsym;
+            if assigned(plist) and (plist^.sltype=sl_load) and
+               assigned(plist^.sym) and (plist^.sym is tabstractvarsym) and
+               (varregable<>tabstractvarsym(plist^.sym).varregable) then
+              begin
+                varregable:=vr_none;
+	        tabstractvarsym(plist^.sym).varregable:=vr_none;
+             end;
+          end;
+      end;
 
     destructor tabsolutevarsym.destroy;
       begin

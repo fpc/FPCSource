@@ -1362,6 +1362,7 @@ implementation
                      is_array_of_const(pt.resultdef) or
                      (vs.vardef.size <> pt.resultdef.size) then
                     make_not_regable(pt,[ra_addr_regable]);
+                  tabsolutevarsym(abssym).adjust_varregable;
                 end
               else
                 Message(parser_e_absolute_only_to_var_or_const);
