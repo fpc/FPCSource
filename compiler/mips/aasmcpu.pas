@@ -809,7 +809,7 @@ procedure resolveReadAfterWrite(list: TAsmList);
       secondR3:= R3;
 
       if is_calljmp(taicpu(nextInstruction).opcode) then goto skip2nop;
-      if taicpu(nextInstruction).opcode in [{A_SB, A_SH, A_SW, A_SWL, A_SWR,} A_NOP, A_MFHI, A_MFLO] then goto skip2nop;
+      if taicpu(nextInstruction).opcode in [A_NOP, A_MFHI, A_MFLO] then goto skip2nop;
 
       if (firstR1 <> NR_NO) and (secondR1 <> NR_NO) and (firstR1 = secondR1) then goto skip2nop;
       if (firstR1 <> NR_NO) and (secondR2 <> NR_NO) and (firstR1 = secondR2) then goto skip2nop;
@@ -841,7 +841,7 @@ procedure resolveReadAfterWrite(list: TAsmList);
         p:= tai(l);
         if p.typ = ait_instruction then 
           begin
-            if taicpu(p).opcode in [A_LB, A_LBU, A_LH, A_LHU, A_LW, A_LWU, A_LWL, A_LWR, A_MFC0 {MFC2, LWC2}] then 
+            if taicpu(p).opcode in [A_LB, A_LBU, A_LH, A_LHU, A_LW, A_LWU, A_LWL, A_LWR, A_MFC0, A_MFC2] then 
             begin
               firstReg:= taicpu(p).oper[0]^.reg;
 
