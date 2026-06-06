@@ -2628,9 +2628,7 @@ function area_for(addr : Pointer) : area_id;
 
 procedure CheckPointer(p: pointer); {$ifndef debug_heaptrc} [public, alias : 'FPC_CHECKPOINTER']; {$endif}
 var
-  hp : HashList.ppNode;
-  hleft : SizeUint;
-  hn: HashList.pNode;
+  n,first : HeapTracer.pNode;
 {$ifdef go32v2}
   get_ebp,stack_top : longword;
   bss_end : longword;
@@ -2729,18 +2727,19 @@ begin
 {$endif BEOS}
 
   ht.Lock;
-  // searching h for exactly p shouldn’t be worth it...
-  hp:=ht.h.h;
-  hleft:=1+ht.h.nhmask;
-  repeat
-    hn:=hp^;
-    while Assigned(hn) and not HeapTracer.pNode(pointer(hn)-PtrUint(@HeapTracer.Node(nil^).hn))^.Contains(p) do
-      hn:=hn^.next;
-    if Assigned(hn) then break;
-    inc(hp); dec(hleft);
-  until hleft=0;
+  first := ht.allNodes;
+  if Assigned(first) then
+  begin
+    n := first;
+    repeat
+      n := n^.allPrev; { Iterate backwards, assuming recently created pointers are checked more often. }
+    until n^.Contains(p) or (n = first);
+    if (n = first) and not n^.Contains(p) then
+      first := nil; { first = nil signals that pointer is not found. }
+  end;
   ht.Unlock;
-  if hleft<>0 then exit;
+  if Assigned(first) then
+    exit;
   ht.ReportBadPointer(p,[]);
   RunError(204);
 end;
