@@ -17,48 +17,57 @@ type
 	end;
 	pGTEMatrix = ^GTEMatrix;
 
+
+const
+	GTE_COP2_INSTR = $4A000000;					// this is the COP2 opcode
+
+
 { Command definitions and Flags}
 const
-	GTE_CMD_BITMASK = 63 shl  0;
-	GTE_CMD_RTPS    =  1 shl  0; // Perspective transformation (1 vertex)
-	GTE_CMD_NCLIP   =  6 shl  0; // Normal clipping
-	GTE_CMD_OP      = 12 shl  0; // Outer product (Cross product of 2 vectors)
-	GTE_CMD_DPCS    = 16 shl  0; // Depth cue (1 vertex)
-	GTE_CMD_INTPL   = 17 shl  0; // Depth cue with vector
-	GTE_CMD_MVMVA   = 18 shl  0; // Matrix-vector multiplication
-	GTE_CMD_NCDS    = 19 shl  0; // Normal color depth (1 vertex)
-	GTE_CMD_CDP     = 20 shl  0; // Color depth cue
-	GTE_CMD_NCDT    = 22 shl  0; // Normal color depth (3 vertices)
-	GTE_CMD_NCCS    = 27 shl  0; // Normal color color (1 vertex)
-	GTE_CMD_CC      = 28 shl  0; // Color color
-	GTE_CMD_NCS     = 30 shl  0; // Normal color (1 vertex) (NORM)
-	GTE_CMD_NCT     = 32 shl  0; // Normal color (3 vertices)
-	GTE_CMD_SQR     = 40 shl  0; // Square of vector
-	GTE_CMD_DCPL    = 41 shl  0; // Depth cue with light
-	GTE_CMD_DPCT    = 42 shl  0; // Depth cue (3 vertices)
-	GTE_CMD_AVSZ3   = 45 shl  0; // Average Z value (3 vertices)
-	GTE_CMD_AVSZ4   = 46 shl  0; // Average Z value (4 vertices)
-	GTE_CMD_RTPT    = 48 shl  0; // Perspective transformation (3 vertices)
-	GTE_CMD_GPF     = 61 shl  0; // Linear interpolation
-	GTE_CMD_GPL     = 62 shl  0; // Linear interpolation with base
-	GTE_CMD_NCCT    = 63 shl  0; // Normal color color (3 vertices)
-	GTE_LM          =  1 shl 10; // Saturate IR to 0x0000-0x7fff
-	GTE_CV_BITMASK  =  3 shl 13;
-	GTE_CV_TR       =  0 shl 13; // Use TR as translation vector for MVMVA
-	GTE_CV_BK       =  1 shl 13; // Use BK as translation vector for MVMVA
-	GTE_CV_FC       =  2 shl 13; // Use FC as translation vector for MVMVA
-	GTE_CV_NONE     =  3 shl 13; // Skip translation for MVMVA
-	GTE_V_BITMASK   =  3 shl 15;
-	GTE_V_V0        =  0 shl 15; // Use V0 as operand for MVMVA
-	GTE_V_V1        =  1 shl 15; // Use V1 as operand for MVMVA
-	GTE_V_V2        =  2 shl 15; // Use V2 as operand for MVMVA
-	GTE_V_IR        =  3 shl 15; // Use IR as operand for MVMVA
-	GTE_MX_BITMASK  =  3 shl 17;
-	GTE_MX_RT       =  0 shl 17; // Use rotation matrix as operand for MVMVA
-	GTE_MX_LLM      =  1 shl 17; // Use light matrix as operand for MVMVA
-	GTE_MX_LCM      =  2 shl 17; // Use light color matrix as operand for MVMVA
-	GTE_SF          =  1 shl 19;  // Shift results by 12 bits
+	GTE_CMD_GET_REAL_BITMASK = $3F;		 		// If You need the real value do an AND with this
+ 	GTE_CMD_RTPS  	= ($01 shl 20) or $01;   	// Perspective transformation (1 vertex)
+  	GTE_CMD_NCLIP 	= ($14 shl 20) or $06;   	// Normal clipping
+	GTE_CMD_OP    	= ($17 shl 20) or $0C;   	// Outer product (Cross product of 2 vectors)
+	GTE_CMD_DPCS  	= ($07 shl 20) or $10;   	// Depth cue (1 vertex)
+	GTE_CMD_INTPL 	= ($09 shl 20) or $11;   	// Depth cue with vector
+	GTE_CMD_MVMVA 	= ($04 shl 20) or $12;   	// Matrix-vector multiplication
+	GTE_CMD_NCDS  	= ($0E shl 20) or $13;   	// Normal color depth (1 vertex)
+	GTE_CMD_CDP   	= ($12 shl 20) or $14;   	// Color depth cue
+	GTE_CMD_NCDT  	= ($0F shl 20) or $16;   	// Normal color depth (3 vertices)
+	GTE_CMD_NCCS  	= ($10 shl 20) or $1B;   	// Normal color color (1 vertex)
+	GTE_CMD_CC    	= ($13 shl 20) or $1C;   	// Color color
+	GTE_CMD_NCS   	= ($0C shl 20) or $1E;   	// Normal color (1 vertex) (NORM)
+	GTE_CMD_NCT   	= ($0D shl 20) or $20;   	// Normal color (3 vertices)
+	GTE_CMD_SQR   	= ($0A shl 20) or $28;   	// Square of vector
+	GTE_CMD_DCPL  	= ($06 shl 20) or $29;   	// Depth cue with light
+	GTE_CMD_DPCT  	= ($0F shl 20) or $2A;   	// Depth cue (3 vertices)
+	GTE_CMD_AVSZ3 	= ($15 shl 20) or $2D;   	// Average Z value (3 vertices)
+	GTE_CMD_AVSZ4 	= ($16 shl 20) or $2E;   	// Average Z value (4 vertices)
+	GTE_CMD_RTPT  	= ($02 shl 20) or $30;   	// Perspective transformation (3 vertices)
+	GTE_CMD_GPF   	= ($19 shl 20) or $3D;   	// Linear interpolation
+	GTE_CMD_GPL   	= ($1A shl 20) or $3E;   	// Linear interpolation with base
+	GTE_CMD_NCCT  	= ($11 shl 20) or $3F;   	// Normal color color (3 vertices)
 
+	GTE_LM          =  1 shl 10; 				// Saturate IR to 0x0000-0x7fff
+
+	GTE_CV_BITMASK  =  3 shl 13;
+	GTE_CV_TR       =  0 shl 13; 				// Use TR as translation vector for MVMVA
+	GTE_CV_BK       =  1 shl 13; 				// Use BK as translation vector for MVMVA
+	GTE_CV_FC       =  2 shl 13; 				// Use FC as translation vector for MVMVA
+	GTE_CV_NONE     =  3 shl 13; 				// Skip translation for MVMVA
+
+	GTE_V_BITMASK   =  3 shl 15;
+	GTE_V_V0        =  0 shl 15; 				// Use V0 as operand for MVMVA
+	GTE_V_V1        =  1 shl 15; 				// Use V1 as operand for MVMVA
+	GTE_V_V2        =  2 shl 15; 				// Use V2 as operand for MVMVA
+	GTE_V_IR        =  3 shl 15; 				// Use IR as operand for MVMVA
+
+	GTE_MX_BITMASK  =  3 shl 17;
+	GTE_MX_RT       =  0 shl 17; 				// Use rotation matrix as operand for MVMVA
+	GTE_MX_LLM      =  1 shl 17; 				// Use light matrix as operand for MVMVA
+	GTE_MX_LCM      =  2 shl 17; 				// Use light color matrix as operand for MVMVA
+
+	GTE_SF          =  1 shl 19;  				// Shift results by 12 bits
 
 
 { Control register definitions }
@@ -95,6 +104,7 @@ const
 	GTE_ZSF3       = 29;  { Average Z scale factor }
 	GTE_ZSF4       = 30;  { Average Z scale factor }
 	GTE_FLAG       = 31;  { Error/overflow flags }
+
 
 { Status flags }
 const
