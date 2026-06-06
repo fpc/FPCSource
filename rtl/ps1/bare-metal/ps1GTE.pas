@@ -125,9 +125,9 @@ procedure gte_setControlRegRT13RT21(value: dword);
 procedure gte_setControlRegRT22RT23(value: dword);
 procedure gte_setControlRegRT31RT32(value: dword);
 procedure gte_setControlRegRT33(value: dword);
-procedure gte_setControlRegTRX(value: dword);
-procedure gte_setControlRegTRY(value: dword);
-procedure gte_setControlRegTRZ(value: dword);
+procedure gte_setControlRegTRX(value: longint);
+procedure gte_setControlRegTRY(value: longint);
+procedure gte_setControlRegTRZ(value: longint);
 procedure gte_setControlRegL11L12(value: dword);
 procedure gte_setControlRegL13L21(value: dword);
 procedure gte_setControlRegL22L23(value: dword);
@@ -157,15 +157,15 @@ function gte_getControlRegRT11RT12: dword;
 function gte_getControlRegRT13RT21: dword;
 function gte_getControlRegRT22RT23: dword;
 function gte_getControlRegRT31RT32: dword;
-function gte_getControlRegRT33: dword;
-function gte_getControlRegTRX: dword;
-function gte_getControlRegTRY: dword;
-function gte_getControlRegTRZ: dword;
+function gte_getControlRegRT33: longint;
+function gte_getControlRegTRX: longint;
+function gte_getControlRegTRY: longint;
+function gte_getControlRegTRZ: longint;
 function gte_getControlRegL11L12: dword;
 function gte_getControlRegL13L21: dword;
 function gte_getControlRegL22L23: dword;
 function gte_getControlRegL31L32: dword;
-function gte_getControlRegL33: dword;
+function gte_getControlRegL33: longint;
 function gte_getControlRegRBK: dword;
 function gte_getControlRegGBK: dword;
 function gte_getControlRegBBK: dword;
@@ -174,16 +174,16 @@ function gte_getControlRegLC13LC21: dword;
 function gte_getControlRegLC22LC23: dword;
 function gte_getControlRegLC31LC32: dword;
 function gte_getControlRegLC33: dword;
-function gte_getControlRegRFC: dword;
-function gte_getControlRegGFC: dword;
-function gte_getControlRegBFC: dword;
-function gte_getControlRegOFX: dword;
-function gte_getControlRegOFY: dword;
+function gte_getControlRegRFC: longint;
+function gte_getControlRegGFC: longint;
+function gte_getControlRegBFC: longint;
+function gte_getControlRegOFX: longint;
+function gte_getControlRegOFY: longint;
 function gte_getControlRegH: dword;
-function gte_getControlRegDQA: dword;
-function gte_getControlRegDQB: dword;
-function gte_getControlRegZSF3: dword;
-function gte_getControlRegZSF4: dword;
+function gte_getControlRegDQA: longint;
+function gte_getControlRegDQB: longint;
+function gte_getControlRegZSF3: longint;
+function gte_getControlRegZSF4: longint;
 function gte_getControlRegFLAG: dword;
 
 	
@@ -274,17 +274,17 @@ procedure gte_setDataRegLZCS(value: dword);
 procedure gte_setDataRegLZCR(value: dword);
 
 function gte_getDataRegVXY0: dword;
-function gte_getDataRegVZ0: dword;
+function gte_getDataRegVZ0: longint;
 function gte_getDataRegVXY1: dword;
-function gte_getDataRegVZ1: dword;
+function gte_getDataRegVZ1: longint;
 function gte_getDataRegVXY2: dword;
-function gte_getDataRegVZ2: dword;
+function gte_getDataRegVZ2: longint;
 function gte_getDataRegRGBC: dword;
 function gte_getDataRegOTZ: dword;
-function gte_getDataRegIR0: dword;
-function gte_getDataRegIR1: dword;
-function gte_getDataRegIR2: dword;
-function gte_getDataRegIR3: dword;
+function gte_getDataRegIR0: longint;
+function gte_getDataRegIR1: longint;
+function gte_getDataRegIR2: longint;
+function gte_getDataRegIR3: longint;
 function gte_getDataRegSXY0: dword;
 function gte_getDataRegSXY1: dword;
 function gte_getDataRegSXY2: dword;
@@ -296,10 +296,10 @@ function gte_getDataRegSZ3: dword;
 function gte_getDataRegRGB0: dword;
 function gte_getDataRegRGB1: dword;
 function gte_getDataRegRGB2: dword;
-function gte_getDataRegMAC0: dword;
-function gte_getDataRegMAC1: dword;
-function gte_getDataRegMAC2: dword;
-function gte_getDataRegMAC3: dword;
+function gte_getDataRegMAC0: longint;
+function gte_getDataRegMAC1: longint;
+function gte_getDataRegMAC2: longint;
+function gte_getDataRegMAC3: longint;
 function gte_getDataRegIRGB: dword;
 function gte_getDataRegORGB: dword;
 function gte_getDataRegLZCS: dword;
@@ -444,19 +444,19 @@ asm
 end;
 
 
-procedure gte_setControlRegTRX(value: dword); assembler;
+procedure gte_setControlRegTRX(value: longint); assembler;
 asm
 	ctc2 $a0, $TRX
 end;
 
 
-procedure gte_setControlRegTRY(value: dword); assembler;
+procedure gte_setControlRegTRY(value: longint); assembler;
 asm
 	ctc2 $a0, $TRY
 end;
 
 
-procedure gte_setControlRegTRZ(value: dword); assembler;
+procedure gte_setControlRegTRZ(value: longint); assembler;
 asm
 	ctc2 $a0, $TRZ
 end;
@@ -630,25 +630,25 @@ asm
 end;
 
 
-function gte_getControlRegRT33: dword; assembler;
+function gte_getControlRegRT33: longint; assembler;
 asm
 	cfc2 $v0, $RT33
 end;
 
 
-function gte_getControlRegTRX: dword; assembler;
+function gte_getControlRegTRX: longint; assembler;
 asm
 	cfc2 $v0, $TRX
 end;
 
 
-function gte_getControlRegTRY: dword; assembler;
+function gte_getControlRegTRY: longint; assembler;
 asm
 	cfc2 $v0, $TRY
 end;
 
 
-function gte_getControlRegTRZ: dword; assembler;
+function gte_getControlRegTRZ: longint; assembler;
 asm
 	cfc2 $v0, $TRZ
 end;
@@ -678,7 +678,7 @@ asm
 end;
 
 
-function gte_getControlRegL33: dword; assembler;
+function gte_getControlRegL33: longint; assembler;
 asm
 	cfc2 $v0, $L33
 end;
@@ -732,31 +732,31 @@ asm
 end;
 
 
-function gte_getControlRegRFC: dword; assembler;
+function gte_getControlRegRFC: longint; assembler;
 asm
 	cfc2 $v0, $RFC
 end;
 
 
-function gte_getControlRegGFC: dword; assembler;
+function gte_getControlRegGFC: longint; assembler;
 asm
 	cfc2 $v0, $GFC
 end;
 
 
-function gte_getControlRegBFC: dword; assembler;
+function gte_getControlRegBFC: longint; assembler;
 asm
 	cfc2 $v0, $BFC
 end;
 
 
-function gte_getControlRegOFX: dword; assembler;
+function gte_getControlRegOFX: longint; assembler;
 asm
 	cfc2 $v0, $OFX
 end;
 
 
-function gte_getControlRegOFY: dword; assembler;
+function gte_getControlRegOFY: longint; assembler;
 asm
 	cfc2 $v0, $OFY
 end;
@@ -768,25 +768,25 @@ asm
 end;
 
 
-function gte_getControlRegDQA: dword; assembler;
+function gte_getControlRegDQA: longint; assembler;
 asm
 	cfc2 $v0, $DQA
 end;
 
 
-function gte_getControlRegDQB: dword; assembler;
+function gte_getControlRegDQB: longint; assembler;
 asm
 	cfc2 $v0, $DQB
 end;
 
 
-function gte_getControlRegZSF3: dword; assembler;
+function gte_getControlRegZSF3: longint; assembler;
 asm
 	cfc2 $v0, $ZSF3
 end;
 
 
-function gte_getControlRegZSF4: dword; assembler;
+function gte_getControlRegZSF4: longint; assembler;
 asm
 	cfc2 $v0, $ZSF4
 end;
@@ -1111,7 +1111,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ0: dword; assembler;
+function gte_getDataRegVZ0: longint; assembler;
 asm
 	mfc2 $v0, $VZ0
 end;
@@ -1123,7 +1123,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ1: dword; assembler;
+function gte_getDataRegVZ1: longint; assembler;
 asm
 	mfc2 $v0, $VZ1
 end;
@@ -1135,7 +1135,7 @@ asm
 end;
 
 
-function gte_getDataRegVZ2: dword; assembler;
+function gte_getDataRegVZ2: longint; assembler;
 asm
 	mfc2 $v0, $VZ2
 end;
@@ -1153,25 +1153,25 @@ asm
 end;
 
 
-function gte_getDataRegIR0: dword; assembler;
+function gte_getDataRegIR0: longint; assembler;
 asm
 	mfc2 $v0, $IR0
 end;
 
 
-function gte_getDataRegIR1: dword; assembler;
+function gte_getDataRegIR1: longint; assembler;
 asm
 	mfc2 $v0, $IR1
 end;
 
 
-function gte_getDataRegIR2: dword; assembler;
+function gte_getDataRegIR2: longint; assembler;
 asm
 	mfc2 $v0, $IR2
 end;
 
 
-function gte_getDataRegIR3: dword; assembler;
+function gte_getDataRegIR3: longint; assembler;
 asm
 	mfc2 $v0, $IR3
 end;
@@ -1243,25 +1243,25 @@ asm
 end;
 
 
-function gte_getDataRegMAC0: dword; assembler;
+function gte_getDataRegMAC0: longint; assembler;
 asm
 	mfc2 $v0, $MAC0
 end;
 
 
-function gte_getDataRegMAC1: dword; assembler;
+function gte_getDataRegMAC1: longint; assembler;
 asm
 	mfc2 $v0, $MAC1
 end;
 
 
-function gte_getDataRegMAC2: dword; assembler;
+function gte_getDataRegMAC2: longint; assembler;
 asm
 	mfc2 $v0, $MAC2
 end;
 
 
-function gte_getDataRegMAC3: dword; assembler;
+function gte_getDataRegMAC3: longint; assembler;
 asm
 	mfc2 $v0, $MAC3
 end;
@@ -1822,7 +1822,7 @@ begin
 
   gte_setControlRegOFX((width shl 16) div 2);
   gte_setControlRegOFY((height shl 16) div 2);
-  gte_setControlRegH(256);
+  gte_setControlRegH(240);
   gte_setControlRegZSF3(ORDERING_TABLE_SIZE div 3);
   gte_setControlRegZSF4(ORDERING_TABLE_SIZE div 4);
 

@@ -106,10 +106,10 @@ function SIO_MODE(N: dword): Word; inline;
 function SIO_CTRL(N: dword): Word; inline;
 function SIO_BAUD(N: dword): Word; inline;
 procedure SIO_DATA_Set(N: dword; value: byte); inline;
-procedure SIO_STAT_Set(N: dword; value: word); inline;
-procedure SIO_MODE_Set(N: dword; value: word); inline;
-procedure SIO_CTRL_Set(N: dword; value: word); inline;
-procedure SIO_BAUD_Set(N: dword; value: word); inline;
+procedure SIO_STAT_Set(N: dword; value: word);
+procedure SIO_MODE_Set(N: dword; value: word);
+procedure SIO_CTRL_Set(N: dword; value: word);
+procedure SIO_BAUD_Set(N: dword; value: word);
 
 
 { --- DRAM controller ------------------------------------------------------ }
@@ -192,9 +192,9 @@ function DMA_DICR_CH_STAT(N: dword): dword;   inline;
 function DMA_MADR(N: dword): LongWord; inline;
 function DMA_BCR(N: dword): LongWord;  inline;
 function DMA_CHCR(N: dword): LongWord; inline;
-procedure DMA_MADR_Set(N: dword; value: LongWord); inline;
-procedure DMA_BCR_Set(N: dword; value: LongWord);  inline;
-procedure DMA_CHCR_Set(N: dword; value: LongWord); inline;
+procedure DMA_MADR_Set(N: dword; value: LongWord);
+procedure DMA_BCR_Set(N: dword; value: LongWord);
+procedure DMA_CHCR_Set(N: dword; value: LongWord);
 
 var
   DMA_DPCR: LongWord absolute (IO_BASE or $0F0);
@@ -221,11 +221,11 @@ const
   TIMER_CTRL_OVERFLOWED      = 1 shl 12;
 
 function TIMER_VALUE(N: dword): Word;  inline;
-function TIMER_CTRL_REG(N: dword): Word; inline; // renamed to avoid clash with constant block
+function TIMER_CTRL_REG(N: dword): Word; inline;
 function TIMER_RELOAD(N: dword): Word; inline;
-procedure TIMER_VALUE_Set(N: dword; value: Word);  inline;
-procedure TIMER_CTRL_REG_Set(N: dword; value: Word); inline;
-procedure TIMER_RELOAD_Set(N: dword; value: Word); inline;
+procedure TIMER_VALUE_Set(N: dword; value: Word);
+procedure TIMER_CTRL_REG_Set(N: dword; value: Word);
+procedure TIMER_RELOAD_Set(N: dword; value: Word);
 
 
 { --- CD-ROM drive --------------------------------------------------------- }
@@ -429,13 +429,13 @@ function SPU_CH_ADSR1(N: dword): Word;     inline;
 function SPU_CH_ADSR2(N: dword): Word;     inline;
 function SPU_CH_ADSR_VOL(N: dword): Word;  inline;
 function SPU_CH_LOOP_ADDR(N: dword): Word; inline;
-procedure SPU_CH_VOL_L_Set(N: dword; value: Word);     inline;
-procedure SPU_CH_VOL_R_Set(N: dword; value: Word);     inline;
-procedure SPU_CH_FREQ_Set(N: dword; value: Word);      inline;
-procedure SPU_CH_ADDR_Set(N: dword; value: Word);      inline;
-procedure SPU_CH_ADSR1_Set(N: dword; value: Word);     inline;
-procedure SPU_CH_ADSR2_Set(N: dword; value: Word);     inline;
-procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word); inline;
+procedure SPU_CH_VOL_L_Set(N: dword; value: Word);
+procedure SPU_CH_VOL_R_Set(N: dword; value: Word);
+procedure SPU_CH_FREQ_Set(N: dword; value: Word);
+procedure SPU_CH_ADDR_Set(N: dword; value: Word);
+procedure SPU_CH_ADSR1_Set(N: dword; value: Word);
+procedure SPU_CH_ADSR2_Set(N: dword; value: Word);
+procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word);
 
 var
  SPU_MASTER_VOL_L: Word absolute (IO_BASE or $D80);
@@ -595,7 +595,7 @@ const
 const
   DTR_DELAY   = 60;
   DSR_TIMEOUT = 120;
-  
+
 procedure InitJOYSTICKControllers;
 procedure SelectJoystickPort(port: Integer);
 function ExchangeSIO0Byte(value: Byte): Byte;
@@ -627,6 +627,9 @@ var
 
   currentThread : PThread; export name 'currentThread';
   nextThread    : PThread; export name 'nextThread';
+
+function IRQBit(irq: IRQChannel): Word;
+procedure AcknowledgeIRQBit(irq: IRQChannel);
 
 procedure _unhandledException(cause: longint; badv: dword); cdecl; export;
 
@@ -846,7 +849,7 @@ begin
   Pbyte((IO_BASE or $040) + (16*N))^:= value; 
 end;
 
-procedure SIO_STAT_Set(N: dword; value: word); inline; 
+procedure SIO_STAT_Set(N: dword; value: word);
 begin
   asm
     li $t0, IO_BASE | 0x044
@@ -864,7 +867,7 @@ begin
   end;
 end;
 
-procedure SIO_MODE_Set(N: dword; value: word); inline; 
+procedure SIO_MODE_Set(N: dword; value: word); 
 begin
   asm
     li $t0, IO_BASE | 0x048
@@ -882,7 +885,7 @@ begin
   end;
 end;
 
-procedure SIO_CTRL_Set(N: dword; value: word); inline; 
+procedure SIO_CTRL_Set(N: dword; value: word);
 begin
   asm
     li $t0, IO_BASE | 0x04A
@@ -900,7 +903,7 @@ begin
   end;
 end;
 
-procedure SIO_BAUD_Set(N: dword; value: word); inline; 
+procedure SIO_BAUD_Set(N: dword; value: word);
 begin
   asm
     li $t0, IO_BASE | 0x04E
@@ -933,7 +936,7 @@ function DMA_MADR(N: dword): LongWord; inline; begin result:= pdword((IO_BASE or
 function DMA_BCR(N: dword): LongWord;  inline; begin result:= pdword((IO_BASE or $084) + (16*N))^; end;
 function DMA_CHCR(N: dword): LongWord; inline; begin result:= pdword((IO_BASE or $088) + (16*N))^; end;
 
-procedure DMA_MADR_Set(N: dword; value: LongWord); inline; 
+procedure DMA_MADR_Set(N: dword; value: LongWord);
 begin
   asm
     li $t0, IO_BASE | 0x080
@@ -952,7 +955,7 @@ begin
 end;
 
 
-procedure DMA_BCR_Set(N: dword; value: LongWord); inline; 
+procedure DMA_BCR_Set(N: dword; value: LongWord);
 begin
   asm
     li $t0, IO_BASE | 0x084
@@ -970,7 +973,7 @@ begin
   end;
 end;
 
-procedure DMA_CHCR_Set(N: dword; value: LongWord); inline; 
+procedure DMA_CHCR_Set(N: dword; value: LongWord);
 begin
   asm
     li $t0, IO_BASE | 0x088
@@ -995,7 +998,7 @@ function TIMER_VALUE(N: dword): Word; inline; begin result:= Pword((IO_BASE or $
 function TIMER_CTRL_REG(N: dword): Word; inline; begin result:= Pword((IO_BASE or $104) + (16*N))^; end;
 function TIMER_RELOAD(N: dword): Word; inline; begin result:= Pword((IO_BASE or $108) + (16*N))^; end;
 
-procedure TIMER_VALUE_Set(N: dword; value: Word); inline; 
+procedure TIMER_VALUE_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0x100
@@ -1014,7 +1017,7 @@ begin
 end;
 
 
-procedure TIMER_CTRL_REG_Set(N: dword; value: Word); inline; 
+procedure TIMER_CTRL_REG_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0x104
@@ -1033,7 +1036,7 @@ begin
 end;
 
 
-procedure TIMER_RELOAD_Set(N: dword; value: Word); inline; 
+procedure TIMER_RELOAD_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0x108
@@ -1063,7 +1066,7 @@ function SPU_CH_ADSR2(N: dword): Word; inline; begin result:= Pword((IO_BASE or 
 function SPU_CH_ADSR_VOL(N: dword): Word;  inline; begin result:= Pword((IO_BASE or $C0C) + (16*N))^; end;
 function SPU_CH_LOOP_ADDR(N: dword): Word; inline; begin result:= Pword((IO_BASE or $C0E) + (16*N))^; end;
 
-procedure SPU_CH_VOL_L_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_VOL_L_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC00
@@ -1081,7 +1084,7 @@ begin
   end;
 end;
 
-procedure SPU_CH_VOL_R_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_VOL_R_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC02
@@ -1100,7 +1103,7 @@ begin
 end;
 
 
-procedure SPU_CH_FREQ_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_FREQ_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC04
@@ -1119,7 +1122,7 @@ begin
 end;
 
   
-procedure SPU_CH_ADDR_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_ADDR_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC06
@@ -1138,7 +1141,7 @@ begin
 end;
 
 
-procedure SPU_CH_ADSR1_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_ADSR1_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC08
@@ -1159,7 +1162,7 @@ end;
 
 
 
-procedure SPU_CH_ADSR2_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_ADSR2_Set(N: dword; value: Word); 
 begin
   asm
     li $t0, IO_BASE | 0xC0A
@@ -1178,7 +1181,7 @@ begin
 end;
 
 
-procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word); inline; 
+procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word);
 begin
   asm
     li $t0, IO_BASE | 0xC0E
@@ -1463,9 +1466,9 @@ begin
 
 	result:= false;
 
-	if ((IRQ_STAT and (1 shl irq))) <> 0 then begin
+	if ((IRQ_STAT and IRQBit(irq))) <> 0 then begin
 		
-		IRQ_STAT:= word(not (1 shl irq));
+		AcknowledgeIRQBit(irq);
 
 		result:= true;
 
@@ -1560,7 +1563,7 @@ begin
 
   setInterruptHandler(@InterruptHandlerFunction, nil);
 
-  IRQ_MASK := (1 shl IRQ_CDROM) or (1 shl IRQ_VSYNC);
+  IRQ_MASK := IRQBit(IRQ_CDROM) or IRQBit(IRQ_VSYNC);
 
   enableInterrupts;
 
@@ -1625,6 +1628,15 @@ begin
 
 end;
 
+function IRQBit(irq: IRQChannel): Word; inline;
+begin
+  Result := Word(1) shl irq;
+end;
+
+procedure AcknowledgeIRQBit(irq: IRQChannel); inline;
+begin
+  IRQ_STAT := $FFFF xor IRQBit(irq);
+end;
 
 function WaitForSIO0Acknowledge(timeout: Integer): Boolean;
 begin
@@ -1633,9 +1645,9 @@ begin
 
   while timeout > 0 do begin
 
-    if (IRQ_STAT and (1 shl IRQ_SIO0)) <> 0 then begin
-      { Clear IRQ_SIO0 flag }
-      IRQ_STAT := word(not (1 shl IRQ_SIO0));
+    if (IRQ_STAT and IRQBit(IRQ_SIO0)) <> 0 then begin
+      { Clear IRQ flag }
+      AcknowledgeIRQBit(IRQ_SIO0);
 
       { Acknowledge on SIO side }
       SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_ACKNOWLEDGE);
@@ -1659,7 +1671,7 @@ var
 begin
 
   { Reset IRQ flag and assert DTR + ACK to start a packet }
-  IRQ_STAT:= word(not (1 shl IRQ_SIO0));
+  AcknowledgeIRQBit(IRQ_SIO0);
   SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_DTR or SIO_CTRL_ACKNOWLEDGE);
 
   delayMicroseconds(DTR_DELAY);

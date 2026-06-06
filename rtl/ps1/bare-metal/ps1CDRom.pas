@@ -217,7 +217,7 @@ var
 type
   TDirectoryEntry = record
     lba      : dword;
-    length   : byte;
+    length   : dword;
     fileSize : array [0..1] of dword;
     name     : array [0..254] of char;
   end;
@@ -535,6 +535,7 @@ begin
   Move(pointer(data + offset)^, dataSector[0], 2048);
 
   recordLength      := dataSector[0];
+
   directoryEntry.lba := Int32_LM(dataSector, 2);
   directoryEntry.length := Int32_LM(dataSector, 10);
 
@@ -603,7 +604,7 @@ begin
   setlength(entrys, 0);
   offset := 0;
   while offset < 2048 do begin
-  
+
     if ParseDirRecord(dirData, offset, recLen, entry) <> 0 then break;
     Inc(offset, recLen);
 
@@ -654,7 +655,7 @@ var
   p, start, count, i: dword;
 
 begin
-
+  if length(s) = 0 then exit;
   count:= 0;
   start:= 1;
   SetLength(Result, 0);
@@ -665,7 +666,7 @@ begin
 
       SetLength(Result, count + 1);
       Result[count]:= '';
-
+ 
       i:= start;
       repeat
         Result[count]:= Result[count] + s[i];
@@ -686,12 +687,15 @@ begin
       SetLength(Result, count + 1);
       Result[count]:= '';
       i:= start;
+      
       repeat
         Result[count]:= Result[count] + s[i];
         inc(i);
-      until (s[i] = sep) or (i = (length(s) + 1));
+      until (i = (length(s) + 1)) or (s[i] = sep);
+
   end;
-  
+
+
 end;
 
 
@@ -699,7 +703,7 @@ function getFileLBA(const name: string; startLBA: longint; var fileInfo: TDirect
 var
   entries : TEntries;
   stringArray: TStringArray;
-  lba, lba2 : longint;
+  lba : longint;
   curname : string;
   i : dword;
 
@@ -713,6 +717,7 @@ begin
   stringArray:= Split(name, '/');
 
   curname:= stringArray[0];
+
   if curname[length(curname)] = '/' then setlength(curname, length(curname) - 1);
 
   if length(curname) > 0 then begin
