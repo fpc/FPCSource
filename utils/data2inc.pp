@@ -292,7 +292,8 @@ procedure WriteByteFile(var t:text;constname:ansistring);
   {Translates byte B to a $xx hex constant}
   VAR l : Byte;
   begin
-   createconst[1]:='$'; SetLength(createconst,3);
+   SetLength(createconst,3);
+   createconst[1]:='$';
    l:=ORD(B SHR 4) +48;
    IF l>57 THEN
     l:=L+7;
