@@ -1756,6 +1756,7 @@ uses
         hadtypetoken : boolean;
         i,
         replaydepth : longint;
+        hdef : tdef;
         item : tobject;
         hintsprocessed : boolean;
         pd : tprocdef;
@@ -1894,20 +1895,62 @@ uses
           end
         else
           begin
-            { if one of the type parameters is owned by a local- or parasymtable
-              then use the localsymtable for specialization }
+            { if one of the type parameters resolves to a type living in a
+              local- or parasymtable then use that local symtable for the
+              specialization. Walk the underlying typedef chain (pointer,
+              array, set, ...) so that e.g. TEnumerable<TLocal>.PT = ^TLocal,
+              when used to specialize TEnumerator<PT>, is recognised as
+              proc-local rather than wrongly placed at unit scope (which
+              would result in a PPU defref that fails to resolve on reload). }
             specializest:=nil;
             for i:=0 to context.paramlist.count-1 do
               begin
                 psym:=tsym(context.paramlist[i]);
+                if psym.typ=typesym then
+                  hdef:=ttypesym(psym).typedef
+                else
+                  hdef:=nil;
+                while assigned(hdef) do
+                  begin
+                    if assigned(hdef.owner) and
+                       (hdef.owner.symtabletype in [localsymtable,parasymtable]) then
+                      begin
+                        if (hdef.owner.symtabletype=parasymtable) and
+                           assigned(hdef.owner.defowner) and
+                           (hdef.owner.defowner.typ=procdef) then
+                          specializest:=tprocdef(hdef.owner.defowner).getsymtable(gs_local)
+                        else
+                          specializest:=hdef.owner;
+                        break;
+                      end;
+                    case hdef.typ of
+                      pointerdef:
+                        hdef:=tpointerdef(hdef).pointeddef;
+                      arraydef:
+                        hdef:=tarraydef(hdef).elementdef;
+                      setdef:
+                        hdef:=tsetdef(hdef).elementdef;
+                      filedef:
+                        hdef:=tfiledef(hdef).typedfiledef;
+                      classrefdef:
+                        hdef:=tclassrefdef(hdef).pointeddef;
+                      else
+                        hdef:=nil;
+                    end;
+                  end;
+                if assigned(specializest) then
+                  break;
+                { also accept the param's immediate sym owner being a local
+                  scope — covers the case where the type-arg is a const-sym
+                  rather than a typesym }
                 if psym.owner.symtabletype in [localsymtable,parasymtable] then
                   begin
-                    if (psym.owner.symtabletype=localsymtable) or (psym.owner.defowner.typ<>procdef) then
-                      specializest:=psym.owner
+                    if (psym.owner.symtabletype=parasymtable) and
+                       assigned(psym.owner.defowner) and
+                       (psym.owner.defowner.typ=procdef) then
+                      specializest:=tprocdef(psym.owner.defowner).getsymtable(gs_local)
                     else
-                      specializest:=tprocdef(psym.owner.defowner).getsymtable(gs_local);
-                    if not assigned(specializest) then
-                      internalerror(2025122402);
+                      specializest:=psym.owner;
                     break;
                   end;
               end;
