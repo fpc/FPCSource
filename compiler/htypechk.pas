@@ -2893,7 +2893,7 @@ implementation
         hp       : pcandidate;
         currpara : tparavarsym;
         paraidx,fp_precision_distance : integer;
-        currparanr : byte;
+        currparanr : word;
         obj_from,
         obj_to   : tobjectdef;
         def_from,
