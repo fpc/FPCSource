@@ -161,7 +161,7 @@ uses
       begin
         AsmData:=AAsmData;
         Compiler:=ACompiler;
-        List:=TAsmList.Create(current_asmdata);
+        List:=TAsmList.Create(AsmData);
       end;
 
 
@@ -190,13 +190,13 @@ uses
         tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
         { Write unitname entry }
         tcb.maybe_begin_aggregate(resstrdef);
-        namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@compiler.current_module.localsymtable.name^[1],length(compiler.current_module.localsymtable.name^),getansistringcodepage);
+        namelab:=tcb.emit_ansistring_const(AsmData.asmlists[al_const],@compiler.current_module.localsymtable.name^[1],length(compiler.current_module.localsymtable.name^),getansistringcodepage);
         tcb.emit_string_offset(namelab,length(compiler.current_module.localsymtable.name^),st_ansistring,false,compiler.deftypes.charpointertype);
         tcb.emit_tai(tai_const.create_nil_dataptr,compiler.deftypes.cansistringtype);
         tcb.emit_tai(tai_const.create_nil_dataptr,compiler.deftypes.cansistringtype);
         tcb.emit_ord_const(0,compiler.deftypes.u32inttype);
         tcb.maybe_end_aggregate(resstrdef);
-        current_asmdata.asmlists[al_resourcestrings].concatList(
+        AsmData.asmlists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
             nil,resstrdef,'RESSTR','',compiler.current_module.localsymtable,sizeof(pint)
           )
@@ -218,7 +218,7 @@ uses
               if R.isUnicode and assigned(R.WValue) then
                 begin
                   enc:=tstringdef(compiler.deftypes.cunicodestringtype).encoding;
-                  valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
+                  valuelab:=tcb.emit_unicodestring_const(AsmData.asmlists[al_const],R.WValue,enc,False);
                   charlen:=getlengthwidestring(R.WValue);
                   st:=st_unicodestring;
                   strcharpointertype:=compiler.deftypes.widecharpointertype;;
@@ -226,11 +226,11 @@ uses
               else
                 begin
                   if assigned(R.AValue) then
-                    valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage);
+                    valuelab:=tcb.emit_ansistring_const(AsmData.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage);
                 end;
               end;
-            current_asmdata.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
-            namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
+            AsmData.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
+            namelab:=tcb.emit_ansistring_const(AsmData.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
             {
               Resourcestring index:
                   TResourceStringRecord = Packed Record
@@ -246,7 +246,7 @@ uses
             tcb.emit_string_offset(valuelab,charlen,st,false,strcharpointertype);
             tcb.emit_ord_const(R.hash,compiler.deftypes.u32inttype);
             tcb.maybe_end_aggregate(resstrdef);
-            current_asmdata.asmlists[al_resourcestrings].concatList(
+            AsmData.asmlists[al_resourcestrings].concatList(
               tcb.get_final_asmlist_vectorized_dead_strip(
                 R.Sym,resstrdef,'RESSTR',R.Sym.Name,R.Sym.Owner,sizeof(pint))
             );
@@ -258,7 +258,7 @@ uses
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
           default_settings.packrecords,sizeof(pint),
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
-        current_asmdata.AsmLists[al_resourcestrings].concatList(
+        AsmData.AsmLists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
             nil,tcb.end_anonymous_record,'RESSTR','',compiler.current_module.localsymtable,sizeof(pint)
           )
