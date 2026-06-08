@@ -1348,21 +1348,20 @@ implementation
                       abssym.fileinfo:=vs.fileinfo;
                       abssym.abstyp:=tovar;
                       abssym.ref:=node_to_propaccesslist(pt);
+                      { if the sizes are different, can't be a regvar since you }
+                      { can't be "absolute upper 8 bits of a register" (except  }
+                      { if its a record field of the same size of a record      }
+                      { regvar, but in that case pt.resultdef.size will have    }
+                      { the same size since it refers to the field and not to   }
+                      { the whole record -- which is why we use pt and not hp)  }
+
+                      { we can't take the size of an open array or an array of const }
+                      if is_open_array(pt.resultdef) or
+                         is_array_of_const(pt.resultdef) or
+                         (vs.vardef.size <> pt.resultdef.size) then
+                        make_not_regable(pt,[ra_addr_regable]);
+                      tabsolutevarsym(abssym).adjust_varregable;
                     end;
-
-                  { if the sizes are different, can't be a regvar since you }
-                  { can't be "absolute upper 8 bits of a register" (except  }
-                  { if its a record field of the same size of a record      }
-                  { regvar, but in that case pt.resultdef.size will have    }
-                  { the same size since it refers to the field and not to   }
-                  { the whole record -- which is why we use pt and not hp)  }
-
-                  { we can't take the size of an open array or an array of const }
-                  if is_open_array(pt.resultdef) or
-                     is_array_of_const(pt.resultdef) or
-                     (vs.vardef.size <> pt.resultdef.size) then
-                    make_not_regable(pt,[ra_addr_regable]);
-                  tabsolutevarsym(abssym).adjust_varregable;
                 end
               else
                 Message(parser_e_absolute_only_to_var_or_const);
