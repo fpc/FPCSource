@@ -742,7 +742,7 @@ procedure TTestConvertToJSON.TestBoolean;
 begin
   Data:=TYAMLScalar.Create(True);
   DoConvert;
-  AssertJSON('Boolean',jtBoolean,'True');
+  AssertJSON('Boolean',jtBoolean,'true');
 end;
 
 procedure TTestConvertToJSON.TestString;
