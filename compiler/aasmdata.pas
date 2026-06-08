@@ -176,8 +176,10 @@ interface
       TAsmCFI=class
       private
         FCompiler: TCompilerBase;
+        FAsmData: TAsmData;
       protected
         property Compiler: TCompilerBase read FCompiler;
+        property AsmData: TAsmData read FAsmData;
       public
         constructor create(AAsmData: TAsmData; acompiler: TCompilerBase);virtual;
         destructor destroy;override;
@@ -303,6 +305,7 @@ function current_asmdata : TAsmData; inline;
 
     constructor TAsmCFI.create(AAsmData: TAsmData; acompiler: TCompilerBase);
       begin
+        FAsmData:=AAsmData;
         FCompiler:=ACompiler;
       end;
 
