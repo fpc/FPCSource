@@ -61,9 +61,10 @@ uses
       private
         Compiler : TCompilerBase;
         List : TLinkedList;
+        AsmData: TAsmData;
         procedure ConstSym_Register(p:TObject;arg:pointer);
       public
-        constructor Create(ACompiler: TCompilerBase);
+        constructor Create(AAsmData: TAsmData; ACompiler: TCompilerBase);
         destructor  Destroy;override;
         procedure CreateResourceStringData;
         procedure WriteRSJFile;
@@ -156,8 +157,9 @@ uses
                           Tresourcestrings
   ---------------------------------------------------------------------}
 
-    Constructor Tresourcestrings.Create(ACompiler: TCompilerBase);
+    Constructor Tresourcestrings.Create(AAsmData: TAsmData; ACompiler: TCompilerBase);
       begin
+        AsmData:=AAsmData;
         Compiler:=ACompiler;
         List:=TAsmList.Create(current_asmdata);
       end;
@@ -376,7 +378,7 @@ uses
         if assigned(compiler.current_module.globalsymtable) then
           compiler.symtablestack.push(compiler.current_module.globalsymtable);
         compiler.symtablestack.push(compiler.current_module.localsymtable);
-        resstrs:=Tresourcestrings.Create(compiler);
+        resstrs:=Tresourcestrings.Create(current_asmdata,compiler);
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
