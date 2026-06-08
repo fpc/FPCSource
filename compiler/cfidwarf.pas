@@ -538,7 +538,7 @@ implementation
     function TDwarfAsmCFILowLevel.get_frame_start : TAsmLabel;
       begin
         if not(assigned(FFrameStartLabel)) then
-          current_asmdata.getlabel(FFrameStartLabel,alt_dbgframe);
+          AsmData.getlabel(FFrameStartLabel,alt_dbgframe);
         Result:=FFrameStartLabel;
       end;
 
