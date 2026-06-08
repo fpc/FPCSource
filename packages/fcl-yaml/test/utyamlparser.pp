@@ -69,10 +69,13 @@ type
     procedure TestBlockMappingUnindentedSequenceWithIndent;
     procedure TestBlockMappingFlowSequence;
     procedure TestBlockMappingLiteralAtEOF;
+    procedure TestBlockMappingEmptyValue;
+    procedure TestBlockMappingEmptyValueBetween;
     procedure TestFlowMapping;
     procedure TestFlowMappingOne;
     procedure TestFlowMappingTwo;
     procedure TestFlowMappingNested;
+    procedure TestFlowMappingEmptyValue;
   end;
 
 implementation
@@ -450,6 +453,37 @@ begin
   AssertScalar('Second value',Map.Items[1],yttString,'line1'+#10+'line2');
 end;
 
+procedure TTestYamlParser.TestBlockMappingEmptyValue;
+// A mapping key with no value is a null value, also when it is the last
+// entry in the stream (at EOF).
+var
+  Map : TYAMLMapping;
+begin
+  Parse(['one: two','empty:']);
+  Map:=TYAMLMapping(AssertValue(TYAMLMapping));
+  AssertTrue('Correct kind',Map.Kind=yckBlock);
+  AssertEquals('Element count',2,Map.Count);
+  AssertScalar('First key',Map.Key[0],yttString,'one');
+  AssertScalar('First value',Map.Items[0],yttString,'two');
+  AssertScalar('Second key',Map.Key[1],yttString,'empty');
+  AssertScalar('Second value',Map.Items[1],yttNull,'');
+end;
+
+procedure TTestYamlParser.TestBlockMappingEmptyValueBetween;
+// A mapping key with no value is a null value, also when another key follows.
+var
+  Map : TYAMLMapping;
+begin
+  Parse(['empty:','other: value']);
+  Map:=TYAMLMapping(AssertValue(TYAMLMapping));
+  AssertTrue('Correct kind',Map.Kind=yckBlock);
+  AssertEquals('Element count',2,Map.Count);
+  AssertScalar('First key',Map.Key[0],yttString,'empty');
+  AssertScalar('First value',Map.Items[0],yttNull,'');
+  AssertScalar('Second key',Map.Key[1],yttString,'other');
+  AssertScalar('Second value',Map.Items[1],yttString,'value');
+end;
+
 procedure TTestYamlParser.TestFlowMapping;
 var
   Map : TYAMLMapping;
@@ -504,6 +538,23 @@ begin
   AssertScalar('2 - first value',Map.Items[0],yttString,'six');
   AssertScalar('2 - Second key',Map.Key[1],yttString,'seven');
   AssertScalar('2 - second value',Map.Items[1],yttString,'eight');
+end;
+
+procedure TTestYamlParser.TestFlowMappingEmptyValue;
+// A flow mapping entry with no value is a null value.
+var
+  Map : TYAMLMapping;
+begin
+  Parse(['{ a: 1, b: , c: 3 }']);
+  Map:=TYAMLMapping(AssertValue(TYAMLMapping));
+  AssertTrue('Correct kind',Map.Kind=yckFlow);
+  AssertEquals('Element count',3,Map.Count);
+  AssertScalar('First key',Map.Key[0],yttString,'a');
+  AssertScalar('First value',Map.Items[0],yttInteger,'1');
+  AssertScalar('Second key',Map.Key[1],yttString,'b');
+  AssertScalar('Second value',Map.Items[1],yttNull,'');
+  AssertScalar('Third key',Map.Key[2],yttString,'c');
+  AssertScalar('Third value',Map.Items[2],yttInteger,'3');
 end;
 
 procedure TTestYamlParser.TestEmptyDocument;
