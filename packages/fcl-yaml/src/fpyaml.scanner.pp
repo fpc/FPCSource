@@ -355,14 +355,14 @@ begin
   if AllowEOF and (FCurrCol>FCurrLineLen) then
     Result:=True
   else
-    Result:=(FCurrCol<=FCurrLineLen) and (FCurrLine[FCurrCol] in WhiteSpace);
+    Result:=(FCurrCol>=1) and (FCurrCol<=FCurrLineLen) and (FCurrLine[FCurrCol] in WhiteSpace);
 end;
 
 
 function TYAMLScanner.IsCurrSpace: Boolean;
 
 begin
-  Result:=(FCurrCol<=FCurrLineLen) and (FCurrLine[FCurrCol]=' ');
+  Result:=(FCurrCol>=1) and (FCurrCol<=FCurrLineLen) and (FCurrLine[FCurrCol]=' ');
 end;
 
 
@@ -1212,7 +1212,7 @@ end;
 function TYAMLScanner.GetCurrChar: AnsiChar;
 
 begin
-  if FCurrCol>FCurrLineLen then
+  if (FCurrCol<1) or (FCurrCol>FCurrLineLen) then
     Result:=#0
   else
     Result:=FCurrLine[FCurrCol];

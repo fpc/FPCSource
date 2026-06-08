@@ -68,6 +68,7 @@ type
     procedure TestBlockMappingUnindentedSequence;
     procedure TestBlockMappingUnindentedSequenceWithIndent;
     procedure TestBlockMappingFlowSequence;
+    procedure TestBlockMappingLiteralAtEOF;
     procedure TestFlowMapping;
     procedure TestFlowMappingOne;
     procedure TestFlowMappingTwo;
@@ -429,6 +430,24 @@ begin
 //  AssertScalar('2 - key',map.key[1],yttString,'two');
   AssertScalar('2 - key',map.key[1],yttString,'two');
   AssertScalar('2 - item',map.items[1],yttString,'c');
+end;
+
+procedure TTestYamlParser.TestBlockMappingLiteralAtEOF;
+// Regression test for issue #41785: a block scalar that is the last thing in
+// the stream (reaches EOF) must not cause an access violation in the scanner.
+var
+  Map : TYAMLMapping;
+begin
+  // The trailing empty line makes the scanner read an empty (nil) line at EOF,
+  // which is what triggered the access violation.
+  Parse(['one: two','desc: |-','  line1','  line2','']);
+  Map:=TYAMLMapping(AssertValue(TYAMLMapping));
+  AssertTrue('Correct kind',Map.Kind=yckBlock);
+  AssertEquals('Element count',2,Map.Count);
+  AssertScalar('First key',Map.Key[0],yttString,'one');
+  AssertScalar('First value',Map.Items[0],yttString,'two');
+  AssertScalar('Second key',Map.Key[1],yttString,'desc');
+  AssertScalar('Second value',Map.Items[1],yttString,'line1'+#10+'line2');
 end;
 
 procedure TTestYamlParser.TestFlowMapping;
