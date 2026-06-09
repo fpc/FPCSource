@@ -7605,7 +7605,7 @@ var
 begin
   case (FPropInfo^.PropProcs shr 2) and 3 of
     ptField:
-      {$ifdef cpu8086}
+      {$ifdef cpui8086}
       { convert to the correct pointer type }
       AValue.Cast(FPropInfo^.PropType).ExtractRawData(PPointer(@(FPropInfo^.SetProc))^);
       {$else}
@@ -7670,7 +7670,7 @@ begin
     { tkRecord etc }
     case (FPropInfo^.PropProcs shr 2) and 3 of
       ptField:
-        {$ifdef cpu8086}
+        {$ifdef cpui8086}
         { convert to the correct pointer type }
         AValue.Cast(FPropInfo^.PropType).ExtractRawData(Pointer(Instance)+CodePtrUInt(FPropInfo^.SetProc));
         {$else}
