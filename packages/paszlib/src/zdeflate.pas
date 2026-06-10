@@ -1465,9 +1465,17 @@ distances are limited to MAX_DIST instead of WSIZE. }
         end;
 {$ifndef NOGOTO}
     nextstep:
+{$ENDIF}
+      { Advance to the next hash-chain entry and count down. 
+        This MUST run on every fall-through iteration 
+        (mismatch paths already advanced via DoNextStep + Continue, which skips these statements). 
+        Previously these two lines were inside "$ifndef NOGOTO", 
+        so in NOGOTO (wasm) mode a   match that was found but shorter than nice_match fell through to
+        'until' WITHOUT advancing cur_match / chain_length
+        This resulted in an infinite loop on compressible data. 
+        The goto build was unaffected (the label is here). }
       cur_match := prev^[cur_match and wmask];
       dec(chain_length);
-{$ENDIF}
     until (cur_match <= limit) or (chain_length = 0);
 
     if (cardinal(best_len) <= s.lookahead) then
