@@ -529,7 +529,10 @@ end;
 function TNetEncoding.DoDecodeStringToBytes(const aInput: UnicodeString): TBytes;
 
 begin
-  Result:=TEncoding.UTF8.GetBytes(DoDecode(aInput));
+  { The base64 *text* is ASCII: turn it into a byte string and decode that as
+    raw bytes. Do not pass aInput to DoDecode(UnicodeString) 
+    Explicit RawByteString cast so this unambiguously selects the RawByteString }
+  Result:=DoDecodeStringToBytes(RawByteString(UTF8Encode(aInput)));
 end;
 
 function TNetEncoding.DoEncode(const aInput: array of Byte): TBytes;
@@ -543,13 +546,15 @@ end;
 function TNetEncoding.DoDecodeStringToBytes(const aInput: RawByteString): TBytes;
 
 Var
-  U : RawByteString;
+  R : RawByteString;
 
 begin
-  U:=AInput;
-  UniqueString(U);
-  SetCodePage(U,CP_UTF8,True);
-  Result:=DoDecodeStringToBytes(UTF8Decode(U));
+  { Decode straight to raw bytes via the RawByteString DoDecode (DecodeStringBase64). 
+    No UTF8Decode/codepage round-trip, so arbitrary binary payloads survive intact. }
+  R:=DoDecode(aInput);
+  SetLength(Result, Length(R));
+  if Length(R)>0 then
+    Move(R[1], Result[0], Length(R));
 end;
 
 function TNetEncoding.DoEncodeBytesToString(const aInput: array of Byte): UnicodeString;
