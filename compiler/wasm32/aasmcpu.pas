@@ -1407,7 +1407,7 @@ uses
           res_ft:=nil;
         AllocateLocalsForSavingParamsAndResult;
 
-        current_asmdata.getjumplabel(then_label);
+        list.AsmData.getjumplabel(then_label);
         SaveParams;
         list.concat(taicpu.op_sym(a_br_if,then_label));
         RestoreParams;
