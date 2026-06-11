@@ -206,7 +206,7 @@ uses
       public
         wstyp: taiwstype;
 
-        constructor Create;
+        constructor Create(srclist: TAsmList);
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);virtual;abstract;
         procedure ConvertToFlatList(l: TAsmList);virtual;abstract;
         function getlabel: TAsmLabel;
@@ -262,7 +262,7 @@ uses
       public
         try_asmlist: TAsmList;
 
-        constructor internal_create(a_try_asmlist: TAsmList);
+        constructor internal_create(a_try_asmlist: TAsmList; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure ConvertToFlatList(l: TAsmList);override;
@@ -1197,9 +1197,9 @@ uses
 
     { taicpu_wasm_structured_instruction }
 
-    constructor taicpu_wasm_structured_instruction.Create;
+    constructor taicpu_wasm_structured_instruction.Create(srclist: TAsmList);
       begin
-        inherited;
+        inherited Create;
         typ:=ait_wasm_structured_instruction;
       end;
 
@@ -1221,7 +1221,7 @@ uses
         ThenDone, ElsePresent, ElseDone: Boolean;
       begin
         wstyp:=aitws_if;
-        inherited Create;
+        inherited Create(srclist);
         if assigned(a_if_instr.Previous) or assigned(a_if_instr.Next) then
           internalerror(2023100301);
         if_instr:=a_if_instr;
@@ -1428,7 +1428,7 @@ uses
         p: tai;
       begin
         wstyp:=aitws_block;
-        inherited Create;
+        inherited Create(srclist);
         if assigned(a_block_instr.Previous) or assigned(a_block_instr.Next) then
           internalerror(2023100304);
         block_instr:=a_block_instr;
@@ -1497,7 +1497,7 @@ uses
         p: tai;
       begin
         wstyp:=aitws_loop;
-        inherited Create;
+        inherited Create(srclist);
         if assigned(a_loop_instr.Previous) or assigned(a_loop_instr.Next) then
           internalerror(2023100306);
         loop_instr:=a_loop_instr;
@@ -1599,9 +1599,9 @@ uses
         end;
       end;
 
-    constructor tai_wasmstruc_legacy_try.internal_create(a_try_asmlist: TAsmList);
+    constructor tai_wasmstruc_legacy_try.internal_create(a_try_asmlist: TAsmList; srclist: TAsmList);
       begin
-        inherited Create;
+        inherited Create(srclist);
         try_asmlist:=a_try_asmlist;
       end;
 
@@ -1681,7 +1681,7 @@ uses
         Done: Boolean;
       begin
         wstyp:=aitws_legacy_try_catch;
-        inherited internal_create(a_try_asmlist);
+        inherited internal_create(a_try_asmlist,srclist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100310);
         Done:=False;
@@ -1789,7 +1789,7 @@ uses
         p: tai;
       begin
         wstyp:=aitws_try_table;
-        inherited Create;
+        inherited Create(srclist);
         if assigned(a_try_table_instr.Previous) or assigned(a_try_table_instr.Next) then
           internalerror(2023100304);
         try_table_instr:=a_try_table_instr;
@@ -1856,7 +1856,7 @@ uses
     constructor tai_wasmstruc_legacy_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
       begin
         wstyp:=aitws_legacy_try_delegate;
-        inherited internal_create(a_try_asmlist);
+        inherited internal_create(a_try_asmlist,srclist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100309);
         delegate_instr:=first_ins;
