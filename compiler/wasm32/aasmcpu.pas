@@ -363,9 +363,9 @@ uses
         is_external: boolean;
         is_global: boolean;
         sym       : TWasmGlobalAsmSymbol;
-        constructor create(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean);
-        constructor create_local(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
-        constructor create_global(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+        constructor create(AsmData: TAsmData; const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean);
+        constructor create_local(AsmData: TAsmData; const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+        constructor create_global(AsmData: TAsmData; const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       end;
 
       { tai_functype }
@@ -1899,10 +1899,10 @@ uses
 
     { tai_globaltype }
 
-    constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean);
+    constructor tai_globaltype.create(AsmData: TAsmData; const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean);
       begin
         inherited Create;
-        sym:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AT_WASM_GLOBAL));
+        sym:=TWasmGlobalAsmSymbol(AsmData.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AT_WASM_GLOBAL));
         sym.WasmGlobalType:=atype;
         typ:=ait_globaltype;
         globalname:=aglobalname;
@@ -1912,10 +1912,10 @@ uses
         is_global:=false;
       end;
 
-    constructor tai_globaltype.create_local(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+    constructor tai_globaltype.create_local(AsmData: TAsmData; const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       begin
         inherited Create;
-        sym:=TWasmGlobalAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_LOCAL,AT_WASM_GLOBAL,def));
+        sym:=TWasmGlobalAsmSymbol(AsmData.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_LOCAL,AT_WASM_GLOBAL,def));
         sym.WasmGlobalType:=atype;
         typ:=ait_globaltype;
         globalname:=aglobalname;
@@ -1925,10 +1925,10 @@ uses
         is_global:=false;
       end;
 
-    constructor tai_globaltype.create_global(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+    constructor tai_globaltype.create_global(AsmData: TAsmData; const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       begin
         inherited Create;
-        sym:=TWasmGlobalAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_GLOBAL,AT_WASM_GLOBAL,def));
+        sym:=TWasmGlobalAsmSymbol(AsmData.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_GLOBAL,AT_WASM_GLOBAL,def));
         sym.WasmGlobalType:=atype;
         typ:=ait_globaltype;
         globalname:=aglobalname;

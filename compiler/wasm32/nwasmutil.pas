@@ -63,9 +63,9 @@ implementation
       if symcpu.is_wasm_global then
         begin
           if sym.globalasmsym then
-            AsmData.asmlists[al_start].Concat(tai_globaltype.create_global(symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef))
+            AsmData.asmlists[al_start].Concat(tai_globaltype.create_global(AsmData,symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef))
           else
-            AsmData.asmlists[al_start].Concat(tai_globaltype.create_local(symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef));
+            AsmData.asmlists[al_start].Concat(tai_globaltype.create_local(AsmData,symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef));
         end
       else
         inherited;
@@ -146,13 +146,13 @@ implementation
 
       list:=AsmData.asmlists[al_start];
 
-      list.Concat(tai_globaltype.create(STACK_POINTER_SYM,wbt_i32,false));
+      list.Concat(tai_globaltype.create(AsmData,STACK_POINTER_SYM,wbt_i32,false));
 
       if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
         begin
-          list.Concat(tai_globaltype.create(TLS_SIZE_SYM,wbt_i32,true));
-          list.Concat(tai_globaltype.create(TLS_ALIGN_SYM,wbt_i32,true));
-          list.Concat(tai_globaltype.create(TLS_BASE_SYM,wbt_i32,false));
+          list.Concat(tai_globaltype.create(AsmData,TLS_SIZE_SYM,wbt_i32,true));
+          list.Concat(tai_globaltype.create(AsmData,TLS_ALIGN_SYM,wbt_i32,true));
+          list.Concat(tai_globaltype.create(AsmData,TLS_BASE_SYM,wbt_i32,false));
         end;
 
       if [ts_wasm_native_legacy_exceptions,ts_wasm_native_exnref_exceptions]*compiler.globals.current_settings.targetswitches<>[] then
