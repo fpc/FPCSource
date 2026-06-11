@@ -372,7 +372,6 @@ begin
             Break;
         end;
       until count = 0;
-      // writeln(Result);
       // we are now either at the end of the stream, or encountered our first '=', stored in c
       if c = '=' then begin // '=' found
         if Result mod 4 <= 1 then // badly placed '=', disregard last block
@@ -586,7 +585,11 @@ begin
         Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
       try
          Outstream.CopyFrom(Decoder,Decoder.Size);
-         Result:=Outstream.DataString;
+         { Do NOT use Outstream.DataString to avoid codepage conversions ! }
+         Outstream.Position := 0;
+         SetLength(Result, Outstream.Size);
+         if Outstream.Size > 0 then
+           Outstream.ReadBuffer(Result[1], Outstream.Size);
       finally
         Decoder.Free;
         end;
