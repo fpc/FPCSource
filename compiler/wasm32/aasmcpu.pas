@@ -203,6 +203,8 @@ uses
       protected
         FLabel: TAsmLabel;
         FLabelIsNew: Boolean;
+        FAsmData: TAsmData;
+        property AsmData: TAsmData read FAsmData;
       public
         wstyp: taiwstype;
 
@@ -1201,13 +1203,14 @@ uses
       begin
         inherited Create;
         typ:=ait_wasm_structured_instruction;
+        FAsmData:=srclist.AsmData;
       end;
 
     function taicpu_wasm_structured_instruction.getlabel: TAsmLabel;
       begin
         if not assigned(FLabel) then
           begin
-            current_asmdata.getjumplabel(FLabel);
+            AsmData.getjumplabel(FLabel);
             FLabelIsNew:=true;
           end;
         result:=FLabel;
