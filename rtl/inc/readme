@@ -1,36 +1,110 @@
-This directory contains only RTL parts independent
+dThis directory contains only RTL parts independent
 of the processor and of the operating system.
 
 The include files contain the following:
 
-astrings.pp     AnsiStrings implementation.
+aliases.inc     Forward definitions of internal functions using external name aliases
+astrings.inc    AnsiStrings implementation.
+cgeneric.inc    libc based implementations of CPU dependent functions
+cgenmath.inc    libc based implementations of math functions
+cgenstr.inc     libc based implementations of p(ansi)char string functions
+compproc.inc    compiler procedures, procedure/functions called by the compiler
+currh.inc       Round and trunc declarations for currency and comp types.
+dos.inc         Common implementations of functions for unit BP7 compatible Dos unit
+dosh.inc        Common declarations of functions for unit BP7 compatible Dos unit
+dynarr.inc      implements helper routines for Dynamic Arrays
+dynarrh.inc     Declarations and types for Dynanic Arrays
+dynlib.inc      Dynamic loading support for low level RTL (packages)
+dynlibh.inc     Declarations for Dynamic loading support for low level RTL (packages)
 except.inc      Delphi styled exception support.
+excepth.inc     Declarations of Delphi styled exception support
+extres.inc      Generic parts of resource support implementation.
+fexpand.inc     Path canonicalisation 
 file.inc        Untyped file support routines.
 filerec.inc     Untyped file record definition.
+flt_*.inc       Routines to convert floating point numbers to strings and vice versa.
+generic.inc     Processor independant implementation of assembler procs on i386
+                (to allow easy porting to new processors).
+gencurr.inc     round/trunc currency routines implementation (declarations see currh.inc)
+genset.inc      Processor independant implementation of set handling
+genmath.inc     Processor independant implementation of mathematical routines
+genmathh.inc    Declarations of Processor independant implementation of mathematical routines
+genrrti.inc     Processor independant implementation of runtime type information routines
+genstr.inc      p(ansi)char string primitives. Native version of cgenstr.inc
+genstrs.inc     shortstring to pchar conversion.
 heap.inc        Runtime heap manager .
 heaph.inc       Declarations of Heap functions.
-innr.inc        Internal function delcarations.
+innr.inc        Internal function declarations.
 int64.inc       Support for 64-bit integer arithmetic.
-lstrings.pp     LongStrings routine implementation.
+intres.inc      Resource support for non-PECOFF 
+isotmp.inc      Temporary file support for mode ISO.
+llvmintr.inc    Declarations for LLVM intrinsics
 mathh.inc       Declarations of mathematical functions.
-flt_*.inc       Routines to convert floating point numbers to strings and vice versa.
+monitor.inc     Delphi compatible TMonitor support
+objc1.inc       interface of interface to the Objective-C 1.0 runtime
+objcnf.inc      interface to the Objective-C non-fragile run time (1.5+/2.x) 
+objpas.inc      Delphi dialect system unit extensions (relative to BP7)
+objpash.inc     Declarations of Delphi dialect system unit extensions 
+oldheap.inc     Old version of the heapmanager.
+osheap.inc      OS heap manager for small targets
+psabieh.inc     Non Windows exception and unwinding handling
+psabiehh.inc    Declarations for Non Windows exception and unwinding handling
+resh.inc        Declaration Windows compatible resources
 rtti.inc        Delphi like runtime type information
+rttidecl.inc    RTTI declarations needed before rtti.inc inclusion.
+rttih.inc       RTTI declarations for in interface
 sstrings.inc    ShortStrings (TP/BP pascal like strings) implementation.
+stringsi.inc    portable implementation of string primitives
+sysres.inc      Part of resource handling implementation
 system.inc      OS and Processor independent implementation part of system unit.
 systemh.inc     Interface part of the system unit.
 text.inc        Text file support routines.
 textrec.inc     Definition of Textrec record.
+thread.inc      OS independent part of multi threading support in FPC
+threadh.inc     Declarations for multi threading support
+threadvr.inc    Threadvar support, platform independent part
+tinyheap.inc    Tiny heap manager for the i8086 near heap
+tnyheaph.inc    declarations for tiny heap manager.
 typefile.inc    Text file record definition.
-generic.inc     Processor independant implementation of assembler procs on i386
-                (to allow easy porting to new processors).
-genset.inc      Processor independant implementation of set handling
-genmath.inc     Processor independant implementation of mathematical routines
-genrrti.inc     Processor independant implementation of runtime type information routines
+typshrd.inc     Implementation for (TRect,Tpoint andsimilar types) in windows or unit types, depending on target.
+typshrdh.inc    Declaration for (TRect,Tpoint andsimilar types) in windows or unit types, depending on target.
+ustringh.inc    Unicodestring declarations
+ustrings.inc    Unicodestring implementation
+varerror.inc    Constants for variant handling.
+variant.inc     Variant type implementation
+varianth.inc    Variant type declarations
+wstringh.inc    widestring type declarations
+wstrings.inc    widestring type implementation 
 
 The unit files are:
+Note these units are often implicitely used in certain compiler modi, and might not be for direct use!
 
-ucomplex.pp     Complex functions using operator overloading
+blockrtl.pp     Objective C block management functions
+charset.pp      Base unit for character conversions.
+cmem.pp         Link to (a?) C runtimes memory allocator.
+ctypes.pp       Aliases for common C/POSIX types.
+dynlibs.pas     Dynamic library loading implementation.
+exeinfo.pp      Part of traceback support.
+extpas.pp       Extended pascal compatible mode runtime parts.
+fpextres.pp     External resource support
+fpintres.pp     Internal resource support
 getopts.pp      Pascal implementation of the GNU Getops
-objects.pp      Turbo Pascal like implementation of objects unit
 heaptrc.pp      Runtime memory leak tracer and tests for memory integrity.
+iso7185.pp      unit that is automatically added when mode ISO is selected.
+lineinfo.pp     Provide lineinformation in tracebacks ((PE)COFF)
+lnfodwrf.pp     Provide lineinformation in tracebacks (ELF/DWARF)
+lstrings.pp     Longstring type (?)
+macpas.pp       macpas (Classic MacOS) mode runtime parts.
+nothreads.pp    empty thread manager.
+objc.pp         objective C related 
+objcbase.pp     objective C related - NSObject root class
+sfpu128.pp      128-bit floating point emulation   
+sfpux80.pp      80-bit floating point emulation
+softfpu.pp      generic softfpu
+sortbase.pp     pluggable sorting algorithm support.  
+strings.pp      pchar support.
+uachar.pp       Aliases  (p)char  to (p)ansichar etc. Normal delphi mode.
+ufloat128.pp    128-bit float operator overload support
+ufloatx80.pp    80-bit float operator overload support
+uuchar.pp       Aliases  (p)char  to (p)unicodechar etc. Delphiunicode mode.
 
