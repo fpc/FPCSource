@@ -48,7 +48,7 @@ type
   private
     procedure create_objectfile(curr : tmodule);
     procedure insertobjectfile(curr : tmodule);
-    procedure create_dwarf_frame;
+    procedure create_dwarf_frame(curr : tmodule);
     Function CheckResourcesUsed(curr : tmodule) : boolean;
     function AddUnit(curr : tmodule; const s:string; addasused:boolean = true): tppumodule;
     function maybeloadvariantsunit(curr : tmodule) : boolean;
@@ -222,8 +222,13 @@ implementation
       end;
 
 
-    procedure TModulesParser.create_dwarf_frame;
+    procedure TModulesParser.create_dwarf_frame(curr : tmodule);
+      var
+        curr_asmdata: TAsmData;
       begin
+        if curr.asmdata<>current_asmdata then
+          internalerror(2026061301);
+        curr_asmdata:=TAsmData(curr.asmdata);
         { Dwarf conflicts with smartlinking in separate .a files }
         if compiler.globals.create_smartlink_library then
           exit;
@@ -237,9 +242,9 @@ implementation
             (compiler.target.dbg.id in [dbg_dwarf2, dbg_dwarf3, dbg_dwarf4, dbg_dwarf5])
            ) then
           begin
-            current_asmdata.asmlists[al_dwarf_frame].Free;
-            current_asmdata.asmlists[al_dwarf_frame] := TAsmList.create(current_asmdata);
-            current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf_frame]);
+            curr_asmdata.asmlists[al_dwarf_frame].Free;
+            curr_asmdata.asmlists[al_dwarf_frame] := TAsmList.create(curr_asmdata);
+            curr_asmdata.asmcfi.generate_code(curr_asmdata.asmlists[al_dwarf_frame]);
           end;
       end;
 
@@ -1833,7 +1838,7 @@ type
          if ag then
            begin
              { create callframe info }
-             create_dwarf_frame;
+             create_dwarf_frame(module);
              { assemble }
              create_objectfile(module);
            end;
@@ -2628,7 +2633,7 @@ type
         compiler.nodeutils.InsertResourceInfo(current_asmdata,resources_used);
 
         { create callframe info }
-        create_dwarf_frame;
+        create_dwarf_frame(curr);
 
         { create import library for all packages }
         if compiler.globals.packagelist.count>0 then
