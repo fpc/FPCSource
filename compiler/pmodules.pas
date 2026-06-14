@@ -2020,10 +2020,12 @@ type
         module_name: ansistring;
         pentry: ppackageentry;
         feature : tfeature;
+        curr_asmdata: TAsmData;
       begin
          if curr.asmdata<>current_asmdata then
            internalerror(2026061403);
          Result:=True;
+         curr_asmdata:=TAsmData(curr.asmdata);
          Status.IsPackage:=true;
          Status.IsExe:=true;
          parser.pbase.parse_only:=false;
@@ -2077,7 +2079,7 @@ type
 
          curr.setmodulename(module_name);
          curr.ispackage:=true;
-         compiler.exportlib.preparelib(current_asmdata,module_name);
+         compiler.exportlib.preparelib(curr_asmdata,module_name);
          pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in compiler.target.info.flags then
@@ -2251,7 +2253,7 @@ type
          if assigned(compiler.exportlib) and
             (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
             (mf_has_exports in curr.moduleflags) then
-           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
+           curr_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
 
          { all labels must be defined before generating code }
          if compiler.verbose.Errorcount=0 then
@@ -2331,14 +2333,14 @@ type
          { Insert .pdata section for arm-wince.
            It is needed for exception handling. }
          if compiler.target.info.system in [system_arm_wince] then
-           InsertPData(current_asmdata);
+           InsertPData(curr_asmdata);
 {$endif arm}
 
          { generate debuginfo }
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
-         compiler.exportlib.generatelib(current_asmdata);
+         compiler.exportlib.generatelib(curr_asmdata);
 
          compiler.exportlib.ignoreduplicates:=false;
 
@@ -2348,11 +2350,11 @@ type
 
          { generate imports }
          if curr.ImportLibraryList.Count>0 then
-           compiler.importlib.generatelib(current_asmdata);
+           compiler.importlib.generatelib(curr_asmdata);
 
          { Reference all DEBUGINFO sections from the main .fpc section }
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
-           current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
+           current_debuginfo.referencesections(curr_asmdata.asmlists[al_procedures]);
 
          { insert own objectfile }
          insertobjectfile(curr);
