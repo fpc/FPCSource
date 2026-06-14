@@ -1509,7 +1509,7 @@ type
          dispose(s1);
 
          if (compiler.target.info.system in systems_unit_program_exports) then
-           compiler.exportlib.preparelib(current_asmdata,curr.realmodulename^);
+           compiler.exportlib.preparelib(TAsmData(curr.asmdata),curr.realmodulename^);
 
          { parse hint directives }
          try_consume_hintdirective(curr.moduleoptions, curr.deprecatedmsg);
