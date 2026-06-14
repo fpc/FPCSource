@@ -1639,6 +1639,8 @@ type
         finishstate : tfinishstate;
         old_module, wait_m: tmodule;
       begin
+         if module.asmdata<>current_asmdata then
+           internalerror(2026061402);
          result:=true;
          { curr is now module }
 
