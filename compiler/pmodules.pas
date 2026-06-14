@@ -1612,6 +1612,9 @@ type
 
     function TModulesParser.finish_compile_unit(module: tmodule): boolean;
 
+      var
+        curr_asmdata: TAsmData;
+
       function is_assembler_generated:boolean;
       var
         hal : tasmlisttype;
@@ -1620,7 +1623,7 @@ type
         if compiler.verbose.Errorcount=0 then
           begin
             for hal:=low(TasmlistType) to high(TasmlistType) do
-              if not current_asmdata.asmlists[hal].empty then
+              if not curr_asmdata.asmlists[hal].empty then
                 begin
                   result:=true;
                   exit;
@@ -1646,6 +1649,7 @@ type
 
          old_module:=compiler.current_module;
          compiler.set_current_module(module);
+         curr_asmdata:=TAsmData(module.asmdata);
 
          if not assigned(module.finishstate) then
            internalerror(2012091801);
@@ -1701,7 +1705,7 @@ type
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
                begin
-                 release_proc_symbol(current_asmdata,init_procinfo.procdef);
+                 release_proc_symbol(curr_asmdata,init_procinfo.procdef);
                  release_main_proc(module,init_procinfo);
                end;
              init_procinfo:=gen_implicit_initfinal(module,mf_init,module.localsymtable);
@@ -1715,7 +1719,7 @@ type
              { first release the not used finalize procinfo }
              if assigned(finalize_procinfo) then
                begin
-                 release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
+                 release_proc_symbol(curr_asmdata,finalize_procinfo.procdef);
                  release_main_proc(module,finalize_procinfo);
                end;
              finalize_procinfo:=gen_implicit_initfinal(module,mf_finalize,module.localsymtable);
@@ -1735,7 +1739,7 @@ type
                  include(module.moduleflags,mf_init);
                end
              else
-               release_proc_symbol(current_asmdata,init_procinfo.procdef);
+               release_proc_symbol(curr_asmdata,init_procinfo.procdef);
              init_procinfo.resetprocdef;
              release_main_proc(module,init_procinfo);
            end;
@@ -1750,7 +1754,7 @@ type
                  include(module.moduleflags,mf_finalize);
                end
              else
-               release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
+               release_proc_symbol(curr_asmdata,finalize_procinfo.procdef);
              finalize_procinfo.resetprocdef;
              release_main_proc(module,finalize_procinfo);
            end;
@@ -1808,16 +1812,16 @@ type
          write_persistent_type_info(compiler,module.localsymtable,false);
 
          { Tables }
-         compiler.nodeutils.InsertThreadvars(current_asmdata);
+         compiler.nodeutils.InsertThreadvars(curr_asmdata);
 
          { Resource strings }
          GenerateResourceStrings(compiler);
 
          { Widestring typed constants }
-         compiler.nodeutils.InsertWideInits(current_asmdata);
+         compiler.nodeutils.InsertWideInits(curr_asmdata);
 
          { Resourcestring references }
-         compiler.nodeutils.InsertResStrInits(current_asmdata);
+         compiler.nodeutils.InsertResStrInits(curr_asmdata);
 
          { generate debuginfo }
          if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
@@ -1825,7 +1829,7 @@ type
 
          { generate imports }
          if module.ImportLibraryList.Count>0 then
-           compiler.importlib.generatelib(current_asmdata);
+           compiler.importlib.generatelib(curr_asmdata);
 
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
