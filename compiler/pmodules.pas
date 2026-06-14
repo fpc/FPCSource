@@ -2021,6 +2021,8 @@ type
         pentry: ppackageentry;
         feature : tfeature;
       begin
+         if curr.asmdata<>current_asmdata then
+           internalerror(2026061403);
          Result:=True;
          Status.IsPackage:=true;
          Status.IsExe:=true;
