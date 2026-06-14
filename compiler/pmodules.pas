@@ -1449,6 +1449,8 @@ type
          load_ok : boolean;
 
       begin
+         if curr.asmdata<>current_asmdata then
+           internalerror(2026061401);
          result:=true;
 
          if m_mac in compiler.globals.current_settings.modeswitches then
