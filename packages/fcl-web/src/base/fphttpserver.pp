@@ -678,13 +678,7 @@ procedure TFPHTTPConnectionThread.Execute;
 begin
   try
     try
-      repeat
-        if Connection.KeepAliveSupport and Connection.KeepAlive
-        and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
-          break;
-
-        FConnection.HandleRequest;
-      until not (FConnection.KeepAliveSupport and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+      FConnection.HandleRequest;
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
