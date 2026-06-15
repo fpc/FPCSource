@@ -64,10 +64,6 @@ Type
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
     FBuffer : Ansistring;
-    FEnableKeepAlive : Boolean;
-    FKeepAliveSupport : Boolean;
-    FKeepAlive : Boolean;
-    FKeepAliveTimeout : Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
@@ -85,12 +81,6 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
-    // is the current connection set up for KeepAlive?
-    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
-    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
-    Property KeepAlive: Boolean read FKeepAlive;
   end;
 
   { TFPHTTPConnectionThread }
@@ -136,8 +126,6 @@ Type
     FConnectionThreadList: TThreadList;
     FConnectionCount : Integer;
     FUseSSL: Boolean;
-    FKeepAliveSupport: Boolean;
-    FKeepAliveTimeout: Integer;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
     function GetHostName: string;
@@ -230,10 +218,7 @@ Type
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
-    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
-    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
-    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
+
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -861,11 +846,7 @@ begin
     Con.FServer:=Self;
     Con.OnRequestError:=@HandleRequestError;
     if Threaded then
-      begin
-      Con.KeepAliveSupport:=KeepAliveSupport;
-      Con.KeepAliveTimeout:=KeepAliveTimeout;
-      CreateConnectionThread(Con);
-      end
+      CreateConnectionThread(Con)
     else
       begin
       Con.HandleRequest;
