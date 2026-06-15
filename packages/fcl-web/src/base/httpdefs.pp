@@ -253,7 +253,6 @@ type
   protected
     FLocalFilename: string;
 
-    Function CreateUploadedFileStreaming(Files : TUploadedFiles) : TUploadedFile; virtual;
     Function CreateUploadedFile(Files : TUploadedFiles) : TUploadedFile; virtual;
     function CreateFile(Files: TUploadedFiles): TUploadedFile; virtual;
     Function ProcessHeader(Const AHeader,AValue : String) : Boolean; virtual;
@@ -287,10 +286,7 @@ type
   Protected
     Procedure CreateUploadFiles(Files : TUploadedFiles; Vars : TStrings); virtual;
     procedure FormSplit(var Cnt: String; boundary: String); virtual;
-    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
-    // With streaming is meant that the incoming data is processed in smaller
-    // chunks. To support streaming descendents have to implement
-    // ProcessStreamingMultiPart
+    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual; abstract;
     class function SupportsStreamingProcessing: Boolean; virtual;
     procedure SetBoundary(AValue: string); virtual;
   Public
@@ -1120,13 +1116,10 @@ begin
       end;
     Line:=GetLine(D);
     end;
-  // Now D contains the rest of the data, plus a CR/LF. Strip the CR/LF
+  // Now Data contains the rest of the data, plus a CR/LF. Strip the CR/LF
   Len:=Length(D);
   If (len>2) then
-    begin
-    FDataSize := Len-2;
-    Data:=Copy(D,1,FDataSize)
-    end
+    Data:=Copy(D,1,Len-2)
   else
     Data:='';
   {$ifdef CGIDEBUG}SendMethodExit('THTTPMimeItem.Process');{$ENDIF}
@@ -1874,7 +1867,7 @@ begin
       begin
       Value:=P.FileName;
       if SupportsStreamingProcessing then
-        P.CreateUploadedFileStreaming(Files)
+        P.CreateFile(Files)
       else
         P.CreateUploadedFile(Files);
       end;
@@ -1958,18 +1951,6 @@ begin
    end;
 end;
 
-function TMimeItem.CreateUploadedFileStreaming(Files: TUploadedFiles): TUploadedFile;
-begin
-  if FLocalFilename='' then
-    // Even though this class supports streaming procesing of data, does not
-    // mean it is being used that way. In those cases the non-streaming file-
-    // creation has to take place: (For example, CGI does not use the
-    // streaming capabilities (may 2021))
-    CreateUploadedFile(Files)
-  else
-    CreateFile(Files);
-end;
-
 
 {
   This needs MASSIVE improvements for large files.
@@ -2041,11 +2022,6 @@ end;
 procedure TMimeItems.SetBoundary(AValue: string);
 begin
   FBoundary := AValue;
-end;
-
-procedure TMimeItems.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
-begin
-  raise Exception.Create('Streaming processing of data not supported');
 end;
 
 { -------------------------------------------------------------------
