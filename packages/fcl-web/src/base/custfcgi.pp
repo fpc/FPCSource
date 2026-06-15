@@ -62,10 +62,6 @@ Type
     FUR: TUnknownRecordEvent;
     FLog : TLogEvent;
     FSTDin : String;
-    FSTDinRead: Integer;
-
-    FRequestHeadersInitialized: Boolean;
-    FStreamingContentReceived: Boolean;
   Protected
     function DoGetCGIVar(AVarName: String): String; override;
     procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings); virtual;
@@ -251,7 +247,6 @@ end;
 
 function TFCGIRequest.ProcessFCGIRecord(AFCGIRecord: PFCGI_Header): boolean;
 var cl,rcl : Integer;
-  State: TContentStreamingState;
 begin
   Result := False;
   case AFCGIRecord^.reqtype of
@@ -262,7 +257,6 @@ begin
 //           log(etDebug,Format('Begin request body role & flags: %d %d',[Beton(Role),Flags]));
          end;
     FCGI_PARAMS :       begin
-                        FRequestHeadersInitialized := False;
                         if AFCGIRecord^.contentLength=0 then
                           Result := False
                         else
@@ -273,34 +267,14 @@ begin
                           end;
                         end;
     FCGI_STDIN :        begin
-                        if not FRequestHeadersInitialized then
-                          begin
-                          InitHeaderRequestVars;
-                          FRequestHeadersInitialized := True;
-                          end;
                         Result:=AFCGIRecord^.contentLength=0;
                         if not Result then
                           begin
+                          cl := length(FSTDin);
                           rcl := BetoN(PFCGI_ContentRecord(AFCGIRecord)^.header.contentLength);
-                          if FStreamingContentReceived then
-                            State := cssData
-                          else
-                            State := cssStart;
-                          FStreamingContentReceived := True;
-
-                          ProcessStreamingContent(State, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], rcl);
-                          end
-                        else
-                          begin
-                          if not FStreamingContentReceived then
-                            begin
-                            ProcessStreamingContent(cssStart, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
-                            ProcessStreamingContent(cssEnd, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
-                            end
-                          else
-                            begin
-                            ProcessStreamingContent(cssEnd, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
-                            end;
+                          SetLength(FSTDin, rcl+cl);
+                          move(PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0],FSTDin[cl+1],rcl);
+                          InitContent(FSTDin);
                           end;
                         end;
   else
@@ -310,6 +284,8 @@ begin
       if poFailonUnknownRecord in FPO then
         TFCgiHandler.DoError('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
   end;
+  if Result then
+    InitRequestVars;
 end;
 
 function TFCGIRequest.DoGetCGIVar(AVarName: String): String;
