@@ -60,7 +60,7 @@ element/type: 1 p, :before
 *: 0
 
 ToDo:
-- 'all' attribute: resets all properties, except direction, unicode bidi and custom css properties
+- 'all' attribute: resets all properties, except direction, unicode-bidi and custom css properties
 - :has()
 - namespaces
 - layers
@@ -112,7 +112,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Types, System.Contnrs, System.StrUtils, System.Math,
+  System.Classes, System.SysUtils, System.Types, System.Contnrs, System.StrUtils,
   Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -902,7 +902,7 @@ begin
   try
     ms.Write(Src[1],length(Src)*SizeOf(TCSSChar));
     ms.Position:=0;
-    aParser:=TCSSResolverParser.Create(ms); // ss is freed by the parser
+    aParser:=TCSSResolverParser.Create(ms); // stream is freed by the parser
     aParser.Resolver:=Self;
     aParser.OnLog:=@Log;
     aParser.CSSNthChildParamsClass:=TCSSResolverNthChildParams;
@@ -2728,6 +2728,8 @@ begin
       writeln('TCSSResolver.ComputeValue Float=[',Result,']');
       {$ENDIF}
     end;
+    if El.CustomData<>nil then
+      raise ECSSResolver.Create('20260416220031');
     ElData:=TCSSValueData.Create;
     TCSSValueData(ElData).NormValue:=Result;
     El.CustomData:=ElData;
@@ -2928,7 +2930,7 @@ begin
   end;
 
   KeyData:=TCSSAttributeKeyData(aKey.CustomData);
-  if KeyData.Invalid then
+  if KeyData.Kind=cadkInvalid then
   begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -3091,13 +3093,13 @@ begin
     else begin
       Key:=AttrP^.DeclEl.Keys[0];
       KeyData:=Key.CustomData as TCSSAttributeKeyData;
-      Value:=KeyData.Value;
+      Value:=KeyData.GetValue;
       //writeln('TCSSResolver.LoadMergedValues AttrID=',AttrID,' Decl=',AttrP^.DeclEl.Classname,' Key=',(AttrP^.DeclEl.Keys[0] as TCSSResolvedIdentifierElement).Name,' Value=',Value);
       AttrP^.Value:=Value;
       if TCSSResolverParser.IsWhiteSpace(Value) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=KeyData.Complete;
+        AttrP^.Complete:=KeyData.Kind<>cadkVar;
     end;
     AttrID:=NextAttrID;
   end;
@@ -3375,7 +3377,7 @@ begin
         // replace shorthand with longhands, keep already set longhands
         LHAttrIDs:=[];
         LHValues:=[];
-        InitParseAttr(AttrDesc,nil,AttrP^.Value);
+        InitParseAttr(AttrDesc,AttrP^.Value);
         if not (CurComp.Kind in [rvkNone,rvkInvalid]) then
         begin
           AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
@@ -3420,7 +3422,7 @@ begin
   if FMergedAllDecl<>nil then
   begin
     // set Result.AllValue
-    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],nil,GetDeclarationValue(FMergedAllDecl));
+    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],GetDeclarationValue(FMergedAllDecl));
     if (CurComp.Kind=rvkKeyword) and IsBaseKeyword(CurComp.KeywordID) then
     begin
       Result.AllValue:=CurComp.KeywordID;
@@ -3709,7 +3711,7 @@ begin
   if Decl.KeyCount=0 then exit;
   KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
   if KeyData=nil then exit;
-  Result:=KeyData.Value;
+  Result:=KeyData.GetValue;
 end;
 
 procedure TCSSResolver.ClearStyleSheets;

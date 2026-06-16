@@ -293,7 +293,7 @@ const
     (Name: 'teal'; Color: TCSSAlphaColor($ff008080)),
     (Name: 'thistle'; Color: TCSSAlphaColor($ffd8bfd8)),
     (Name: 'tomato'; Color: TCSSAlphaColor($ffff6347)),
-    (Name: 'transparent'; Color: TCSSAlphaColor($ff0)),
+    (Name: 'transparent'; Color: TCSSAlphaColor(0)),
     (Name: 'turquoise'; Color: TCSSAlphaColor($ff40e0d0)),
     (Name: 'violet'; Color: TCSSAlphaColor($ffee82ee)),
     (Name: 'wheat'; Color: TCSSAlphaColor($fff5deb3)),
@@ -314,13 +314,41 @@ type
     Index: TCSSNumericalID;
   end;
 
+  TCSSAttributeDataKind = (
+    cadkNone, // not yet parsed
+    cadkInvalid, // value is invalid, resolver skips it
+    cadkVar, // value contains a var() call, resolver has not yet resolved it
+    cadkString,
+    cadkKeyword, // keyword id
+    cadkFloat // number plus unit
+  );
+const
+  cadkAllString = [cadkNone,cadkInvalid,cadkVar,cadkString];
+
+type
+  TCSSRegistry = class;
+
+  TCSSAttributeData = packed record
+    case Integer of
+    0: (KeywordID: TCSSNumericalID);
+    1: (Float: Double; FloatUnit: TCSSUnit);
+    2: (Value: Pointer); // TCSSString
+  end;
+
   { TCSSAttributeKeyData }
 
   TCSSAttributeKeyData = class(TCSSElementOwnedData)
   public
-    Invalid: boolean;
-    Complete: boolean;
-    Value: TCSSString;
+    CSSRegistry: TCSSRegistry;
+    Kind: TCSSAttributeDataKind;
+    Data: TCSSAttributeData;
+    function GetValue: TCSSString;
+    procedure MakeInvalid;
+    procedure MakeVar;
+    procedure MakeString(const s: TCSSString);
+    procedure MakeKeyword(const Id: TCSSNumericalID);
+    procedure MakeUnit(const Units: TCSSUnit; const aFloat: Double);
+    destructor Destroy; override;
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
 
@@ -539,6 +567,8 @@ type
     StartP, EndP: PCSSChar;
     function AsString: TCSSString;
     function FloatAsString: TCSSString;
+    function IsInteger: boolean;
+    function IsIntegerValue(v: Integer): boolean;
     case longint of
     1: (Float: Double; FloatUnit: TCSSUnit);
     2: (KeywordID: TCSSNumericalID);
@@ -580,7 +610,8 @@ type
     CurDesc: TCSSAttributeDesc;
     CurValue: TCSSString;
     CurComp: TCSSResCompValue;
-    function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData; const Value: TCSSString): boolean; virtual; // true if parsing can start
+    function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
+    function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     procedure InitParseAttr(const Value: TCSSString); virtual;
     // check whole attribute, skipping invalid values, emit warnings:
     function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
@@ -1580,6 +1611,17 @@ begin
   Result:=FloatToCSSStr(Float)+CSSUnitNames[FloatUnit];
 end;
 
+function TCSSResCompValue.IsInteger: boolean;
+begin
+  Result:=(Kind=rvkFloat) and (FloatUnit=cuNone);
+end;
+
+function TCSSResCompValue.IsIntegerValue(v: Integer): boolean;
+begin
+  if (Kind<>rvkFloat) or (FloatUnit<>cuNone) then exit(false);
+  Result:=SameValue(Float,v);
+end;
+
 { TCSSCheckAttrParams_Dimension }
 
 function TCSSCheckAttrParams_Dimension.Fits(const ResValue: TCSSResCompValue): boolean;
@@ -1604,6 +1646,112 @@ begin
   end;
 end;
 
+{ TCSSAttributeKeyData }
+
+function TCSSAttributeKeyData.GetValue: TCSSString;
+var
+  s: string;
+begin
+  case Kind of
+  cadkKeyword:
+    Result:=CSSRegistry.Keywords[Data.KeywordID];
+  cadkFloat:
+    Result:=FloatToCSSStr(Data.Float)+CSSUnitNames[Data.FloatUnit];
+  else
+    Pointer(s):=Data.Value;
+    Result:=s; // increase refcount
+    Pointer(s):=nil;
+  end;
+end;
+
+procedure TCSSAttributeKeyData.MakeInvalid;
+var
+  s: TCSSString;
+begin
+  if Kind in [cadkKeyword,cadkFloat] then
+  begin
+    s:=GetValue;
+    Data.Value:=Pointer(s);
+    Pointer(s):=nil; // keep refcount in Data.Value
+  end;
+  Kind:=cadkInvalid;
+end;
+
+procedure TCSSAttributeKeyData.MakeVar;
+var
+  s: TCSSString;
+begin
+  if Kind in [cadkKeyword,cadkFloat] then
+  begin
+    s:=GetValue;
+    Data.Value:=Pointer(s);
+    Pointer(s):=nil; // keep refcount in Data.Value
+  end;
+  Kind:=cadkVar;
+end;
+
+procedure TCSSAttributeKeyData.MakeString(const s: TCSSString);
+var
+  {%H-}OldStr: TCSSString;
+  NewStr: TCSSString;
+begin
+  NewStr:=s; // increase refcount before releasing old (s may alias Value)
+  if Kind in cadkAllString then
+  begin
+    // release old string
+    Pointer(OldStr):=Data.Value;
+    Data.Value:=nil;
+    OldStr:=''; // decrease refcount
+  end;
+  Data.Value:=Pointer(NewStr);
+  Pointer(NewStr):=nil; // keep refcount in Data.Value
+  Kind:=cadkString;
+end;
+
+procedure TCSSAttributeKeyData.MakeKeyword(const Id: TCSSNumericalID);
+var
+  {%H-}OldStr: TCSSString;
+begin
+  if Kind in cadkAllString then
+  begin
+    // release old string
+    Pointer(OldStr):=Data.Value;
+    Data.Value:=nil;
+    OldStr:=''; // decrease refcount
+  end;
+  Data.KeywordID:=Id;
+  Kind:=cadkKeyword;
+end;
+
+procedure TCSSAttributeKeyData.MakeUnit(const Units: TCSSUnit; const aFloat: Double);
+var
+  {%H-}OldStr: TCSSString;
+begin
+  if Kind in cadkAllString then
+  begin
+    // release old string
+    Pointer(OldStr):=Data.Value;
+    Data.Value:=nil;
+    OldStr:=''; // decrease refcount
+  end;
+  Data.Float:=aFloat;
+  Data.FloatUnit:=Units;
+  Kind:=cadkFloat;
+end;
+
+destructor TCSSAttributeKeyData.Destroy;
+var
+  {%H-}s: TCSSString;
+begin
+  if Kind in cadkAllString then
+  begin
+    Pointer(s):=Data.Value;
+    Data.Value:=nil;
+    s:=''; // decrease refcount
+  end;
+  inherited Destroy;
+end;
+
 { TCSSBaseResolver }
 
 procedure TCSSBaseResolver.SetCSSRegistry(const AValue: TCSSRegistry);
@@ -1612,33 +1760,84 @@ begin
   FCSSRegistry:=AValue;
 end;
 
-function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData;
-  const Value: TCSSString): boolean;
+function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData
+  ): boolean;
 var
   p: PCSSChar;
+  IsSingleComp: boolean;
 begin
   Result:=false;
   CurAttrData:=AttrData;
   CurDesc:=Desc;
-  CurValue:=Value;
   CurComp:=Default(TCSSResCompValue);
+
+  case AttrData.Kind of
+  cadkInvalid:
+    begin
+      CurComp.Kind:=rvkInvalid;
+      exit;
+    end;
+  cadkKeyword:
+    begin
+      CurComp.Kind:=rvkKeyword;
+      CurComp.KeywordID:=AttrData.Data.KeywordID;
+      exit;
+    end;
+  cadkFloat:
+    begin
+      CurComp.Kind:=rvkFloat;
+      CurComp.Float:=AttrData.Data.Float;
+      CurComp.FloatUnit:=AttrData.Data.FloatUnit;
+      exit;
+    end;
+  end;
+
+  CurValue:=AttrData.GetValue;
   CurComp.EndP:=PCSSChar(CurValue);
   if not ReadNext then
     exit;
-  if (CurAttrData<>nil) and (CurComp.Kind=rvkKeyword)
-      and IsBaseKeyword(CurComp.KeywordID) then
+
+  // check if the value consists of a single component
+  IsSingleComp:=false;
+  if CurComp.Kind in [rvkKeyword,rvkFloat] then
   begin
     p:=CurComp.EndP;
     while (p^ in Whitespace) do inc(p);
-    if p^>#0 then
+    IsSingleComp:=p^=#0;
+  end;
+
+  if (CurAttrData<>nil) and (CurComp.Kind=rvkKeyword)
+      and IsBaseKeyword(CurComp.KeywordID) then
+  begin
+    if not IsSingleComp then
     begin
       // "inherit" must be alone
-      CurAttrData.Invalid:=true;
+      CurAttrData.MakeInvalid;
       exit;
     end;
-    CurAttrData.Complete:=true;
   end;
+
+  if (CurAttrData<>nil) and IsSingleComp then
+  begin
+    // store a single keyword or a single number with optional unit directly
+    case CurComp.Kind of
+    rvkKeyword: CurAttrData.MakeKeyword(CurComp.KeywordID);
+    rvkFloat: CurAttrData.MakeUnit(CurComp.FloatUnit,CurComp.Float);
+    end;
+  end;
+
   Result:=true;
+end;
+
+function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean;
+begin
+  Result:=false;
+  CurAttrData:=nil;
+  CurDesc:=Desc;
+  CurValue:=Value;
+  CurComp:=Default(TCSSResCompValue);
+  CurComp.EndP:=PCSSChar(CurValue);
+  Result:=ReadNext;
 end;
 
 procedure TCSSBaseResolver.InitParseAttr(const Value: TCSSString);
@@ -1652,12 +1851,23 @@ end;
 function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
   ): boolean;
 var
-  Invalid: Boolean;
+  i: Integer;
 begin
-  if CurAttrData<>nil then
-    Result:=ReadAttribute_Keyword(CurAttrData.Invalid,AllowedKeywordIDs)
-  else
-    Result:=ReadAttribute_Keyword(Invalid,AllowedKeywordIDs);
+  case CurComp.Kind of
+  rvkKeyword:
+    for i:=0 to length(AllowedKeywordIDs)-1 do
+      if CurComp.KeywordID=AllowedKeywordIDs[i] then
+      begin
+        if not ReadNext and (CurComp.Kind=rvkNone) then
+          exit(true);
+      end;
+  rvkFunction:
+    if CurComp.FunctionID=CSSAttrFuncVar then
+      // maybe
+      exit(true);
+  end;
+
+  Result:=false;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Keyword_List(
@@ -1693,10 +1903,9 @@ function TCSSBaseResolver.CheckAttribute_Dimension(const Params: TCSSCheckAttrPa
 var
   Invalid: boolean;
 begin
-  if CurAttrData<>nil then
-    Result:=ReadAttribute_Dimension(CurAttrData.Invalid,Params)
-  else
-    Result:=ReadAttribute_Dimension(Invalid,Params);
+  Result:=ReadAttribute_Dimension(Invalid,Params);
+  if (not Result) and (CurAttrData<>nil) then
+    CurAttrData.MakeInvalid;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray
@@ -1704,10 +1913,9 @@ function TCSSBaseResolver.CheckAttribute_Color(const AllowedKeywordIDs: TCSSNume
 var
   Invalid: boolean;
 begin
-  if CurAttrData<>nil then
-    Result:=ReadAttribute_Color(CurAttrData.Invalid,AllowedKeywordIDs)
-  else
-    Result:=ReadAttribute_Color(Invalid,AllowedKeywordIDs);
+  Result:=ReadAttribute_Color(Invalid,AllowedKeywordIDs);
+  if (not Result) and (CurAttrData<>nil) then
+    CurAttrData.MakeInvalid;
 end;
 
 function TCSSBaseResolver.ReadNext: boolean;
@@ -2523,6 +2731,7 @@ var
   Desc: TCSSAttributeDesc;
   AttrData: TCSSAttributeKeyData;
   i, ChildCnt: Integer;
+  ValueStr: TCSSString;
 begin
   Result:=inherited ParseDeclaration(aIsAt);
   if Result.KeyCount<>1 then
@@ -2542,38 +2751,43 @@ begin
     if aKey.CustomData<>nil then
       raise ECSSParser.Create('20240626113536');
     AttrData:=CSSAttributeKeyDataClass.Create;
+    AttrData.CSSRegistry:=Resolver.CSSRegistry;
     aKey.CustomData:=AttrData;
 
     ChildCnt:=Result.ChildCount;
     if ChildCnt=0 then
     begin
-      AttrData.Invalid:=true;
+      AttrData.MakeInvalid;
       exit;
     end;
+
+    ValueStr:='';
     for i:=0 to ChildCnt-1 do
     begin
       if (i>0) then
-        AttrData.Value+=', ';
-      AttrData.Value+=Result.Children[i].AsString;
+        ValueStr+=', ';
+      ValueStr+=Result.Children[i].AsString;
     end;
+    AttrData.MakeString(ValueStr);
 
     if AttrId>=CSSAttributeID_All then
     begin
       Desc:=Resolver.GetAttributeDesc(AttrId);
 
-      if Pos('var(',AttrData.Value)>0 then
+      if Pos('var(',ValueStr)>0 then
       begin
         // cannot be parsed yet
+        AttrData.MakeVar;
       end else if AttrId<Resolver.CSSRegistry.AttributeCount then
       begin
-        if Resolver.InitParseAttr(Desc,AttrData,AttrData.Value) then
+        if Resolver.InitParseAttr(Desc,AttrData) then
         begin
-          if Assigned(Desc.OnCheck) then
-            AttrData.Invalid:=not Desc.OnCheck(Resolver);
+          if Assigned(Desc.OnCheck) and not Desc.OnCheck(Resolver) then
+            AttrData.MakeInvalid;
         end;
       end;
       {$IFDEF VerboseCSSResolver}
-      if AttrData.Invalid then
+      if AttrData.Kind=cadkInvalid then
         Log(etWarning,20240710162400,'Invalid CSS attribute value: '+Result.AsString,aKey);
       {$ENDIF}
     end;
@@ -2968,6 +3182,8 @@ begin
       FloatEl:=TCSSFloatElement(El);
       Result:=FloatEl.AsString;
     end;
+    if El.CustomData<>nil then
+      raise ECSSParser.Create('20260416220050');
     ElData:=TCSSValueData.Create;
     TCSSValueData(ElData).NormValue:=Result;
     El.CustomData:=ElData;

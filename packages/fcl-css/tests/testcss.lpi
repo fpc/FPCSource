@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="13"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
@@ -26,16 +26,13 @@
     <Units>
       <Unit>
         <Filename Value="testcss.lpr"/>
-        <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tccssresolver.pp"/>
-        <IsPartOfProject Value="True"/>
         <UnitName Value="tcCSSResolver"/>
       </Unit>
       <Unit>
         <Filename Value="tccssskipinvalid.pas"/>
-        <IsPartOfProject Value="True"/>
         <UnitName Value="tcCSSSkipInvalid"/>
       </Unit>
     </Units>
