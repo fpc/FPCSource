@@ -44,6 +44,7 @@ uses
 {$endif}
 {$ifdef testimpl}
   tests.rtti.impl,
+  tests.rtti.intercept,
 {$endif}
   tests.rtti,
   tests.rtti.util,
