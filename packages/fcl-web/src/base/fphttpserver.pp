@@ -37,6 +37,7 @@ Const
   DefaultMaxHeaderCount = 256;
   DefaultMaxLiveConnectionCount = 128;
   DefaultKeepConnectionIdleTimeout = 50; // Ms
+  DefaultRequestReadTimeout = 30000; // Ms. Per-read timeout while reading a request. 0 disables.
 
 Type
   TFPHTTPConnection = Class;
@@ -346,7 +347,9 @@ Type
     FAddress: string;
     FPort: Word;
     FQueueSize: Word;
+    FRequestReadTimeout: Integer;
     FSend503OnMaxConnections: Boolean;
+    FStrictASCIIURL: Boolean;
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
@@ -492,6 +495,15 @@ Type
     Property MaxLiveConnectionCount : Integer Read FMaxLiveConnectionCount Write FMaxLiveConnectionCount Default DefaultMaxLiveConnectionCount;
     // If true, when max connections is reached, send a 503. If false, connection is simply closed.
     property Send503OnMaxConnections : Boolean Read FSend503OnMaxConnections Write FSend503OnMaxConnections Default True;
+    // Per-read socket time-out (ms) used while reading a request (headers and content).
+    //   Set as SO_RCVTIMEO/SO_SNDTIMEO on the connection socket, so it limits a single recv/send call,
+    //   not the total request time. Protects against clients that connect and then stall mid-request
+    //   (e.g. slowloris, or non-HTTP clients sending a TLS handshake to a plaintext port). 0 disables.
+    Property RequestReadTimeout : Integer Read FRequestReadTimeout Write FRequestReadTimeout Default DefaultRequestReadTimeout;
+    // If True (the default), the complete request line - including the URL - must be printable US-ASCII.
+    //   If False, only the method and HTTP-version tokens are validated, so a URL may contain raw
+    //   (non percent-encoded) high bytes. Switch off only if you must accept such non-conforming clients.
+    Property StrictASCIIURL : Boolean Read FStrictASCIIURL Write FStrictASCIIURL Default True;
   published
     //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -536,9 +548,13 @@ Type
     Property OnLog;
     Property MaxLineLength;
     Property MaxHeaderCount;
+    Property RequestReadTimeout;
+    Property StrictASCIIURL;
   end;
 
   EHTTPServer = Class(EHTTP);
+  // Raised when the peer stalls mid-request and the read time-out expires.
+  EHTTPServerTimeout = Class(EHTTPServer);
 
   Function GetStatusCode (ACode: Integer) : String; deprecated 'Use GetHTTPStatusText from unit httpprotocol';
 
@@ -551,7 +567,11 @@ implementation
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
+  SErrRequestReadTimeout = 'Time-out after %d ms reading request from %s (connection %s), closing connection';
   SErrMissingProtocol = 'Missing HTTP protocol version in request "%s"';
+  SErrInvalidRequestLine = 'Invalid characters in request line "%s"';
+  SErrInvalidMethod = 'Invalid HTTP method in request line "%s"';
+  SErrInvalidControlChar = 'Invalid control character in request "%s"';
   SErrDuplicateUpgradeHandler = 'Duplicate upgrade handler';
   SUpgradingConnection = 'connection "%s" is upgraded to %s for request: %s';
   SErrAcceptingNewConnection = 'Accepting new connection (%s) from %s';
@@ -914,6 +934,52 @@ begin
     Result := NetAddrToStr(ASocketAddr.sin_addr)
   else // no ipv6 support yet
     Result := '';
+end;
+
+Function EscapeLogText(const S: String; AMaxLen: Integer = 256): String;
+// Escape control/non-printable bytes before request data is logged or put in an
+// exception message. This keeps raw bytes from a malformed or non-HTTP request
+// (e.g. a TLS handshake sent to a plaintext port) from corrupting the log and
+// prevents log injection through embedded CR/LF or terminal escape sequences.
+// Overly long input is truncated.
+Var
+  I,L : Integer;
+  C : Char;
+  Truncated : Boolean;
+begin
+  Result:='';
+  L:=Length(S);
+  Truncated:=(AMaxLen>0) and (L>AMaxLen);
+  if Truncated then
+    L:=AMaxLen;
+  For I:=1 to L do
+    begin
+    C:=S[I];
+    if (C<#32) or (C>=#127) or (C='\') then
+      Result:=Result+'\x'+HexStr(Ord(C),2)
+    else
+      Result:=Result+C;
+    end;
+  if Truncated then
+    Result:=Result+'...';
+end;
+
+Function HasIllegalControlChar(const S: String): Boolean;
+// True if S contains a control byte that may not appear in a request line or
+// header line. CR and LF are line terminators (handled by the line reader) and
+// HTAB is permitted in field values; anything else below #32 is illegal and
+// indicates a non-HTTP / binary request (e.g. a TLS handshake byte such as $16).
+Var
+  I : Integer;
+  C : Char;
+begin
+  Result:=False;
+  For I:=1 to Length(S) do
+    begin
+    C:=S[I];
+    if (C<#32) and not (C in [#9,#10,#13]) then
+      Exit(True);
+    end;
 end;
 
 
@@ -1421,6 +1487,8 @@ begin
   FMaxBodySize:=DefaultMaxBodySize;
   FMaxLiveConnectionCount:=DefaultMaxLiveConnectionCount;
   FSend503OnMaxConnections:=True;
+  FRequestReadTimeout:=DefaultRequestReadTimeout;
+  FStrictASCIIURL:=True;
 end;
 
 
@@ -1519,6 +1587,15 @@ function TFPHTTPConnection.ReadString : String;
     R : Integer;
 
   begin
+    // Do not block indefinitely while reading a request. If a read time-out is
+    // configured and no data arrives within it, the peer has stalled mid-request
+    // (e.g. slowloris). Distinguish this from a genuine read error: CanRead uses
+    // select(), so it is portable and tells us "no data within timeout" without
+    // depending on platform errno values. We log it and close the connection.
+    if Assigned(Server) and (Server.RequestReadTimeout>0)
+       and not FSocket.CanRead(Server.RequestReadTimeout) then
+      Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
+              [Server.RequestReadTimeout,HostAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
     SetLength(FBuffer,ReadBufLen);
     r:=FSocket.Read(FBuffer[1],ReadBufLen);
     If r<0 then
@@ -1530,6 +1607,7 @@ function TFPHTTPConnection.ReadString : String;
 Var
   CheckLF,Done : Boolean;
   P,L : integer;
+  Chunk : String;
   Err : EHTTP;
 begin
   Result:='';
@@ -1559,17 +1637,22 @@ begin
         L:=Length(FBuffer);
         CheckLF:=FBuffer[L]=#13;
         if CheckLF then
-          Result:=Result+Copy(FBuffer,1,L-1)
+          Chunk:=Copy(FBuffer,1,L-1)
         else
-          Result:=Result+FBuffer;
+          Chunk:=FBuffer;
         FBuffer:='';
         end
       else
         begin
-        Result:=Result+Copy(FBuffer,1,P-1);
+        Chunk:=Copy(FBuffer,1,P-1);
         Delete(FBuffer,1,P+1);
         Done:=True;
         end;
+      // Reject binary / non-HTTP input as soon as it is seen, instead of waiting
+      // for a line terminator (or the read time-out) that will never arrive.
+      if HasIllegalControlChar(Chunk) then
+        Raise EHTTPServer.CreateFmtHelp(SErrInvalidControlChar,[EscapeLogText(Result+Chunk)],400);
+      Result:=Result+Chunk;
       end;
     if (Server.MaxLineLength>0) and (Length(Result)>Server.MaxLineLength) then
       begin
@@ -1614,6 +1697,9 @@ begin
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
 {$endif}
+  // Reap connections that stall mid-request so they cannot hold a slot indefinitely.
+  if Assigned(FServer) and (FServer.RequestReadTimeout>0) then
+    FSocket.IOTimeout:=FServer.RequestReadTimeout;
   FIsSocketSetup:=True;
 end;
 
@@ -1661,14 +1747,51 @@ procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest;
     Delete(S,1,P);
   end;
 
+  // The request line must be printable US-ASCII (space allowed, no control or high bytes).
+  Function IsPrintableAscii(const aLine : String) : Boolean;
+
+  Var
+    J : Integer;
+
+  begin
+    Result:=True;
+    For J:=1 to Length(aLine) do
+      if (aLine[J]<#32) or (aLine[J]>#126) then
+        Exit(False);
+  end;
+
+  // The method is a non-empty token of ASCII letters (covers all standard and WebDAV methods).
+  Function IsValidMethod(const aMethod : String) : Boolean;
+
+  Var
+    J : Integer;
+
+  begin
+    Result:=aMethod<>'';
+    if Result then
+      For J:=1 to Length(aMethod) do
+        if not (aMethod[J] in ['A'..'Z','a'..'z']) then
+          Exit(False);
+  end;
+
 Var
-  S : String;
+  S,OrigLine : String;
   I : Integer;
+  Strict : Boolean;
 
 begin
   if aStartLine='' then
     exit;
+  OrigLine:=aStartLine;
+  Strict:=(not Assigned(Server)) or Server.StrictASCIIURL;
+  // Reject non-HTTP / binary requests up front, before any field is assigned or logged.
+  // In strict mode the whole request line (URL included) must be printable US-ASCII.
+  if Strict and not IsPrintableAscii(aStartLine) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidRequestLine,[EscapeLogText(OrigLine)],400);
   Request.Method:=GetNextWord(AStartLine);
+  // The method is always validated, even in non-strict mode.
+  if not IsValidMethod(Request.Method) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidMethod,[EscapeLogText(OrigLine)],400);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
   I:=Pos('?',S);
@@ -1680,13 +1803,16 @@ begin
     S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
+  // In non-strict mode the URL was not checked, so validate the HTTP-version token here.
+  if (not Strict) and (S<>'') and not IsPrintableAscii(S) then
+    Raise EHTTPServer.CreateFmtHelp(SErrInvalidRequestLine,[EscapeLogText(OrigLine)],400);
   If Assigned(Server) and Server.CanLog(hlmRequestStart) then
-    Server.DoLog(hlmRequestStart,SRequestStart,[Request.ToString]);
+    Server.DoLog(hlmRequestStart,SRequestStart,[EscapeLogText(Request.ToString)]);
   If (S<>'') and (Pos('HTTP/',S)<>1) then
     begin
     If Assigned(Server) and Server.CanLog(hlmNoHTTPProtocol) then
-      Server.DoLog(hlmNoHTTPProtocol,SErrLogMissingProtocol,[aStartLine,Request.ToString]);
-    Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[AStartLine],400);
+      Server.DoLog(hlmNoHTTPProtocol,SErrLogMissingProtocol,[EscapeLogText(aStartLine),EscapeLogText(Request.ToString)]);
+    Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[EscapeLogText(AStartLine)],400);
     end;
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S); 
@@ -1720,6 +1846,12 @@ begin
     R:=1;
     While (L>0) and (R>0) do
       begin
+      // Same stall protection as the header reader: a client that announced a
+      // body but stops sending must not block the connection indefinitely.
+      if Assigned(Server) and (Server.RequestReadTimeout>0)
+         and not FSocket.CanRead(Server.RequestReadTimeout) then
+        Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
+                [Server.RequestReadTimeout,HostAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
       R:=FSocket.Read(S[p],L);
       If R<0 then
         Raise EHTTPServer.Create(SErrReadingSocket);

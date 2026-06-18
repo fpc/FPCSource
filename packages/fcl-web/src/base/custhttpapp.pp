@@ -55,6 +55,7 @@ Type
     property HostName;
     Property CertificateData;
     Property UseSSL;
+    Property StrictASCIIURL;
   end;
 
   { TFCgiHandler }
@@ -74,6 +75,7 @@ Type
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
     function GetUseSSL: Boolean;
+    function GetStrictASCIIURL: Boolean;
     procedure SetHostName(const AValue: String);
     procedure SetIdle(AValue: TNotifyEvent);
     procedure SetIDleTimeOut(AValue: Cardinal);
@@ -85,6 +87,7 @@ Type
     function GetLookupHostNames : Boolean;
     Procedure SetLookupHostnames(Avalue : Boolean);
     procedure SetUseSSL(AValue: Boolean);
+    procedure SetStrictASCIIURL(AValue: Boolean);
   protected
     procedure HTTPHandleRequest(Sender: TObject; var ARequest: TFPHTTPConnectionRequest; var AResponse: TFPHTTPConnectionResponse); virtual;
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
@@ -119,6 +122,8 @@ Type
     Property UseSSL : Boolean Read GetUseSSL Write SetUseSSL;
     // HostName to use when using SSL
     Property HostName : String Read GetHostName Write SetHostName;
+    // Require the whole request line (URL included) to be printable US-ASCII.
+    Property StrictASCIIURL : Boolean Read GetStrictASCIIURL Write SetStrictASCIIURL Default True;
     // Access to server so you can set certificate data
     Property HTTPServer : TEmbeddedHttpServer Read FServer;
   end;
@@ -134,6 +139,7 @@ Type
     function GetIDleTimeOut: Cardinal;
     function GetLookupHostNames : Boolean;
     function GetUseSSL: Boolean;
+    function GetStrictASCIIURL: Boolean;
     procedure SetHostName(const AValue: String);
     procedure SetIdle(AValue: TNotifyEvent);
     procedure SetIDleTimeOut(AValue: Cardinal);
@@ -149,6 +155,7 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
     procedure SetUseSSL(AValue: Boolean);
+    procedure SetStrictASCIIURL(AValue: Boolean);
   protected
     function InitializeWebHandler: TWebHandler; override;
   Public
@@ -173,6 +180,8 @@ Type
     Property UseSSL : Boolean Read GetUseSSL Write SetUseSSL;
     // Hostname to use when using SSL
     Property HostName : String Read GetHostName Write SetHostName;
+    // Require the whole request line (URL included) to be printable US-ASCII.
+    Property StrictASCIIURL : Boolean Read GetStrictASCIIURL Write SetStrictASCIIURL Default True;
     // Access to certificate data
     Property CertificateData : TCertificateData Read GetCertificateData;
   end;
@@ -219,6 +228,11 @@ end;
 function TCustomHTTPApplication.GetUseSSL: Boolean;
 begin
   Result:=HTTPHandler.UseSSL;
+end;
+
+function TCustomHTTPApplication.GetStrictASCIIURL: Boolean;
+begin
+  Result:=HTTPHandler.StrictASCIIURL;
 end;
 
 procedure TCustomHTTPApplication.SetHostName(const AValue: String);
@@ -295,6 +309,11 @@ end;
 procedure TCustomHTTPApplication.SetUseSSL(AValue: Boolean);
 begin
   HTTPHandler.UseSSL:=aValue;
+end;
+
+procedure TCustomHTTPApplication.SetStrictASCIIURL(AValue: Boolean);
+begin
+  HTTPHandler.StrictASCIIURL:=AValue;
 end;
 
 function TCustomHTTPApplication.InitializeWebHandler: TWebHandler;
@@ -381,6 +400,16 @@ end;
 procedure TFPHTTPServerHandler.SetUseSSL(AValue: Boolean);
 begin
   FServer.UseSSL:=aValue;
+end;
+
+function TFPHTTPServerHandler.GetStrictASCIIURL: Boolean;
+begin
+  Result:=FServer.StrictASCIIURL;
+end;
+
+procedure TFPHTTPServerHandler.SetStrictASCIIURL(AValue: Boolean);
+begin
+  FServer.StrictASCIIURL:=AValue;
 end;
 
 function TFPHTTPServerHandler.GetAllowConnect: TConnectQuery;
