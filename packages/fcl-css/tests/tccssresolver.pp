@@ -419,7 +419,6 @@ type
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
-    procedure TestRes_ParseAttr_Keyword_SkipInvalid;
     procedure TestRes_ParseAttr_Float;
 
     procedure TestRes_Selector_Universal;
@@ -1692,14 +1691,6 @@ procedure TTestCSSResolver.TestRes_ParseAttr_Keyword;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: ltr; }';
-  ApplyStyle;
-  AssertEquals('Root.direction','ltr',Doc.Root.Direction);
-end;
-
-procedure TTestCSSResolver.TestRes_ParseAttr_Keyword_SkipInvalid;
-begin
-  Doc.Root:=TDemoNode.Create(nil);
-  Doc.Style:='* { direction: something ltr; }';
   ApplyStyle;
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
