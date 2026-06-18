@@ -943,11 +943,10 @@ begin
   if Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs) then
   begin
     Value.Value:=Keywords[Resolver.CurComp.KeywordID];
-    Value.State:=cavsComputed;
   end
   else begin
     Value.Value:='invalid';
-    Value.State:=cavsInvalid;
+    Value.Invalid:=true;
   end;
   if Node=nil then ;
 end;
@@ -965,11 +964,10 @@ begin
     rvkKeyword:
       Value.Value:=Keywords[Resolver.CurComp.KeywordID];
     end;
-    Value.State:=cavsComputed;
   end
   else begin
     Value.Value:='invalid';
-    Value.State:=cavsInvalid;
+    Value.Invalid:=true;
   end;
   if Node=nil then ;
 end;
@@ -982,11 +980,10 @@ begin
   if Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight) then
   begin
     Value.Value:=Resolver.CurComp.FloatAsString;
-    Value.State:=cavsComputed;
   end
   else begin
     Value.Value:='invalid';
-    Value.State:=cavsInvalid;
+    Value.Invalid:=true;
   end;
   if Node=nil then ;
 end;
@@ -1281,30 +1278,23 @@ begin
   for i:=0 to length(Values.Values)-1 do
   begin
     CurValue:=Values.Values[i];
-    case CurValue.State of
-      cavsSource, cavsBaseKeywords:
-        begin
-          AttrID:=CurValue.AttrID;
-          Desc:=Resolver.GetAttributeDesc(AttrID);
-          if Desc=nil then
-            raise Exception.Create('20240823100115 AttrID='+IntToStr(AttrID));
-          if Desc is TDemoCSSAttributeDesc then
-          begin
-            AttrDesc:=TDemoCSSAttributeDesc(Desc);
-            if AttrDesc.OnCompute<>nil then
-            begin
-              Resolver.CurComp.EndP:=PChar(CurValue.Value);
-              Resolver.ReadNext;
-              AttrDesc.OnCompute(Resolver,Self,CurValue);
-              {$IFDEF VerboseCSSResolver}
-              writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
-              {$ENDIF}
-            end else
-              CurValue.State:=cavsComputed;
-          end;
-        end;
-      cavsComputed: ;
-      cavsInvalid: ;
+    if CurValue.Invalid then continue;
+    AttrID:=CurValue.AttrID;
+    Desc:=Resolver.GetAttributeDesc(AttrID);
+    if Desc=nil then
+      raise Exception.Create('20240823100115 AttrID='+IntToStr(AttrID));
+    if Desc is TDemoCSSAttributeDesc then
+    begin
+      AttrDesc:=TDemoCSSAttributeDesc(Desc);
+      if AttrDesc.OnCompute<>nil then
+      begin
+        Resolver.CurComp.EndP:=PChar(CurValue.Value);
+        Resolver.ReadNext;
+        AttrDesc.OnCompute(Resolver,Self,CurValue);
+        {$IFDEF VerboseCSSResolver}
+        writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
+        {$ENDIF}
+      end;
     end;
   end;
 end;

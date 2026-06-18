@@ -347,7 +347,7 @@ type
     procedure MakeVar;
     procedure MakeString(const s: TCSSString);
     procedure MakeKeyword(const Id: TCSSNumericalID);
-    procedure MakeUnit(const Units: TCSSUnit; const aFloat: Double);
+    procedure MakeFloat(const Units: TCSSUnit; const aFloat: Double);
     destructor Destroy; override;
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
@@ -1649,8 +1649,6 @@ end;
 { TCSSAttributeKeyData }
 
 function TCSSAttributeKeyData.GetValue: TCSSString;
-var
-  s: string;
 begin
   case Kind of
   cadkKeyword:
@@ -1658,9 +1656,7 @@ begin
   cadkFloat:
     Result:=FloatToCSSStr(Data.Float)+CSSUnitNames[Data.FloatUnit];
   else
-    Pointer(s):=Data.Value;
-    Result:=s; // increase refcount
-    Pointer(s):=nil;
+    Result:=TCSSString(Data.Value);
   end;
 end;
 
@@ -1671,8 +1667,8 @@ begin
   if Kind in [cadkKeyword,cadkFloat] then
   begin
     s:=GetValue;
-    Data.Value:=Pointer(s);
-    Pointer(s):=nil; // keep refcount in Data.Value
+    Data.Value:=nil;
+    TCSSString(Data.Value):=s;
   end;
   Kind:=cadkInvalid;
 end;
@@ -1684,71 +1680,41 @@ begin
   if Kind in [cadkKeyword,cadkFloat] then
   begin
     s:=GetValue;
-    Data.Value:=Pointer(s);
-    Pointer(s):=nil; // keep refcount in Data.Value
+    Data.Value:=nil;
+    TCSSString(Data.Value):=s;
   end;
   Kind:=cadkVar;
 end;
 
 procedure TCSSAttributeKeyData.MakeString(const s: TCSSString);
-var
-  {%H-}OldStr: TCSSString;
-  NewStr: TCSSString;
 begin
-  NewStr:=s; // increase refcount before releasing old (s may alias Value)
-  if Kind in cadkAllString then
-  begin
-    // release old string
-    Pointer(OldStr):=Data.Value;
+  if Kind in [cadkKeyword,cadkFloat] then
     Data.Value:=nil;
-    OldStr:=''; // decrease refcount
-  end;
-  Data.Value:=Pointer(NewStr);
-  Pointer(NewStr):=nil; // keep refcount in Data.Value
+  TCSSString(Data.Value):=s;
   Kind:=cadkString;
 end;
 
 procedure TCSSAttributeKeyData.MakeKeyword(const Id: TCSSNumericalID);
-var
-  {%H-}OldStr: TCSSString;
 begin
   if Kind in cadkAllString then
-  begin
-    // release old string
-    Pointer(OldStr):=Data.Value;
-    Data.Value:=nil;
-    OldStr:=''; // decrease refcount
-  end;
+    TCSSString(Data.Value):='';
   Data.KeywordID:=Id;
   Kind:=cadkKeyword;
 end;
 
-procedure TCSSAttributeKeyData.MakeUnit(const Units: TCSSUnit; const aFloat: Double);
-var
-  {%H-}OldStr: TCSSString;
+procedure TCSSAttributeKeyData.MakeFloat(const Units: TCSSUnit; const aFloat: Double);
 begin
   if Kind in cadkAllString then
-  begin
-    // release old string
-    Pointer(OldStr):=Data.Value;
-    Data.Value:=nil;
-    OldStr:=''; // decrease refcount
-  end;
+    TCSSString(Data.Value):='';
   Data.Float:=aFloat;
   Data.FloatUnit:=Units;
   Kind:=cadkFloat;
 end;
 
 destructor TCSSAttributeKeyData.Destroy;
-var
-  {%H-}s: TCSSString;
 begin
   if Kind in cadkAllString then
-  begin
-    Pointer(s):=Data.Value;
-    Data.Value:=nil;
-    s:=''; // decrease refcount
-  end;
+    TCSSString(Data.Value):='';
   inherited Destroy;
 end;
 
@@ -1822,7 +1788,7 @@ begin
     // store a single keyword or a single number with optional unit directly
     case CurComp.Kind of
     rvkKeyword: CurAttrData.MakeKeyword(CurComp.KeywordID);
-    rvkFloat: CurAttrData.MakeUnit(CurComp.FloatUnit,CurComp.Float);
+    rvkFloat: CurAttrData.MakeFloat(CurComp.FloatUnit,CurComp.Float);
     end;
   end;
 

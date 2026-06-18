@@ -237,16 +237,8 @@ type
 
   TCSSAttributeValue = class
   public
-    type
-      TState = (
-        cavsSource, // value from CSS - simple normalization, e.g. no comments, some spaces differ, floats
-        cavsBaseKeywords, // base keywords resolved e.g. "initial" or "inherit"
-        cavsComputed, // has final result
-        cavsInvalid // skip this value
-        );
-  public
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
-    State: TState;
+    Invalid: boolean;
     Value: TCSSString; // the resolver has substituted all var() calls
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
@@ -756,7 +748,7 @@ procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aV
     while (i>0) and (Values[i-1].AttrID>AttrID) do dec(i);
     Item:=TCSSAttributeValue.Create;
     Item.AttrID:=AttrID;
-    Item.State:=cavsComputed;
+    Item.Invalid:=false;
     Item.Value:=aValue;
     System.Insert(Item,Values,i);
   end;
@@ -773,7 +765,7 @@ begin
     i:=IndexOf(AttrID);
     if i>=0 then
     begin
-      Values[i].State:=cavsComputed;
+      Values[i].Invalid:=false;
       Values[i].Value:=aValue;
     end else begin
       AddNew;
