@@ -694,7 +694,7 @@ begin
     FLocations.GetNameValue(I,N,V);
     Log(etInfo,'Enabled file location "%s", serving from: %s',[N,V]);
     end;
-  Log(etInfo,'Enabled index page: %s',[not BToS(NoIndexPage)]);
+  Log(etInfo,'Enabled index page: %s',[BToS(not NoIndexPage)]);
   if not NoIndexPage then
     Log(etInfo,'Index page name: %s',[IndexPageName]);
   Log(etInfo,'Enabled SSL: %s',[BtoS(UseSSL)]);
