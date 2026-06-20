@@ -206,8 +206,9 @@ type
   private
     FNodes: TFPObjectList; // list of TDemoNode
     FCSSClasses: TStrings;
-    FCSSClassArr: TCSSNumericalIDArray; // cached class ids of FCSSClasses, valid if FCSSClassArrValid
+    FCSSClassArr: TCSSNumericalIDArray; // cached class ids of FCSSClasses, valid if FCSSClassArrValid and FCSSClassArrStamp=Resolver.CSSClassIDStamp
     FCSSClassArrValid: boolean;
+    FCSSClassArrStamp: TCSSNumericalID; // Resolver.CSSClassIDStamp when FCSSClassArr was built
     FResolver: TCSSResolver; // last resolver, used to map class names to ids
     FParent: TDemoNode;
     FPseudoClasses: array [TDemoPseudoClass] of boolean;
@@ -436,6 +437,8 @@ type
     procedure TestRes_CSSClassID_Unknown;
     procedure TestRes_CSSClassID_CaseSensitive;
     procedure TestRes_CSSClassID_ResolvedElement;
+    procedure TestRes_CSSClassID_AddClassToStylesheet;
+    procedure TestRes_CSSClassID_DeleteClassFromStylesheet;
     procedure TestRes_Selector_ClassClass; // AND combinator
     procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
     procedure TestRes_Selector_TypeCommaType; // OR combinator
@@ -1335,13 +1338,15 @@ var
   i: Integer;
 begin
   if aClassID=CSSIDNone then exit(false);
-  if not FCSSClassArrValid then
+  // rebuild the cache if the class names changed or the resolver remapped class ids
+  if (not FCSSClassArrValid) or (FCSSClassArrStamp<>FResolver.CSSClassIDStamp) then
   begin
     // map the class names to their resolver ids
     SetLength(FCSSClassArr,FCSSClasses.Count);
     for i:=0 to FCSSClasses.Count-1 do
       FCSSClassArr[i]:=FResolver.GetCSSClassID(FCSSClasses[i]);
     FCSSClassArrValid:=true;
+    FCSSClassArrStamp:=FResolver.CSSClassIDStamp;
   end;
   for i:=0 to length(FCSSClassArr)-1 do
     if aClassID=FCSSClassArr[i] then
@@ -1928,6 +1933,55 @@ begin
   finally
     Visitor.Free;
   end;
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_AddClassToStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+  OldStamp: TCSSNumericalID;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('west');
+  // the stylesheet does not yet contain a .west rule
+  Doc.Style:='.east { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // class 'west' is not used by any selector -> not registered yet
+  AssertEquals('west unknown before',CSSIDNone,R.GetCSSClassID('west'));
+  AssertEquals('Button1.left before','',Button1.Left);
+
+  // add a .west rule: a new class id is registered and the stamp must change
+  OldStamp:=R.CSSClassIDStamp;
+  Doc.Style:='.east { left: 1px; }.west { left: 22px; }';
+  ApplyStyle;
+  AssertTrue('CSSClassIDStamp changed after add',R.CSSClassIDStamp<>OldStamp);
+  AssertTrue('west registered after add',R.GetCSSClassID('west')>=1);
+  // the node noticed the changed stamp and rebuilt its cached class id array,
+  // so the freshly added rule now matches
+  AssertEquals('Button1.left after','22px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_DeleteClassFromStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('west');
+  Doc.Style:='.west { left: 22px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('west registered before',R.GetCSSClassID('west')>=1);
+  AssertEquals('Button1.left before','22px',Button1.Left);
+
+  // delete the .west rule from the stylesheet
+  Doc.Style:='.east { left: 1px; }';
+  ApplyStyle;
+  // the rule is gone -> it is no longer applied to the node
+  AssertEquals('Button1.left after','',Button1.Left);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_ClassClass;

@@ -383,6 +383,8 @@ type
     FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSClassNameCount: TCSSNumericalID;
+    FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class to id mapping changed
+    procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
@@ -485,6 +487,7 @@ type
     function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
     function GetCSSClassName(aID: TCSSNumericalID): TCSSString; virtual;
     property CSSClassNameCount: TCSSNumericalID read FCSSClassNameCount;
+    property CSSClassIDStamp: TCSSNumericalID read FCSSClassIDStamp; // always >0, changed whenever the css class to id mapping changed
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
     property StringComparison: TCSSResStringComparison read FStringComparison;
@@ -945,6 +948,7 @@ begin
   FCSSClassNameToID.Clear;
   FCSSClassNames:=nil;
   FCSSClassNameCount:=0;
+  ChangeCSSClassIDStamp;
 
   // not referencing CSSRegistry anymore
   FCSSRegistryStamp:=0;
@@ -3561,6 +3565,15 @@ begin
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
   FCustomAttributeNameToDesc:=TFPHashList.Create;
   FCSSClassNameToID:=TFPHashList.Create;
+  FCSSClassIDStamp:=1;
+end;
+
+procedure TCSSResolver.ChangeCSSClassIDStamp;
+begin
+  if FCSSClassIDStamp<high(FCSSClassIDStamp) then
+    inc(FCSSClassIDStamp)
+  else
+    FCSSClassIDStamp:=1;
 end;
 
 destructor TCSSResolver.Destroy;
@@ -3742,6 +3755,7 @@ begin
     SetLength(FCSSClassNames,Cnt);
   end;
   FCSSClassNames[Result-1]:=aCSSClassName;
+  ChangeCSSClassIDStamp;
 end;
 
 function TCSSResolver.GetCSSClassName(aID: TCSSNumericalID): TCSSString;
