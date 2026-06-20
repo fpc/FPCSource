@@ -385,6 +385,9 @@ type
     procedure ParseSource(Index: integer); virtual;
     function ParseCSSSource(const Src: TCSSString; Inline: boolean): TCSSElement; virtual;
     procedure ClearElements; virtual;
+    // Drop every layer entry that belongs to aSheet (used before reparsing it,
+    // so a replaced sheet leaves no dangling element pointer in the layers).
+    procedure RemoveStyleSheetFromLayers(aSheet: TStyleSheet); virtual;
     procedure ClearCustomAttributes; virtual;
 
     // resolving rules
@@ -2922,7 +2925,7 @@ begin
   end;
 
   KeyData:=TCSSAttributeKeyData(aKey.CustomData);
-  if KeyData.Kind=cadkInvalid then
+  if KeyData.Invalid then
   begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -3085,13 +3088,13 @@ begin
     else begin
       Key:=AttrP^.DeclEl.Keys[0];
       KeyData:=Key.CustomData as TCSSAttributeKeyData;
-      Value:=KeyData.GetValue;
+      Value:=KeyData.Value;
       //writeln('TCSSResolver.LoadMergedValues AttrID=',AttrID,' Decl=',AttrP^.DeclEl.Classname,' Key=',(AttrP^.DeclEl.Keys[0] as TCSSResolvedIdentifierElement).Name,' Value=',Value);
       AttrP^.Value:=Value;
       if TCSSResolverParser.IsWhiteSpace(Value) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=KeyData.Kind<>cadkVar;
+        AttrP^.Complete:=Pos('var(',Value)<=0;
     end;
     AttrID:=NextAttrID;
   end;
@@ -3774,11 +3777,35 @@ begin
   if NewSource=Sheet.Source then exit;
   ClearMerge;
   ClearSharedRuleLists;
+  { ParseSource appended this sheet's element to the layers; drop that entry
+    before freeing the element, or the layers keep a dangling pointer that
+    FindMatchingRules would later walk (a use-after-free). }
+  RemoveStyleSheetFromLayers(Sheet);
   FreeAndNil(Sheet.Element);
   Sheet.Parsed:=false;
   Sheet.Source:=NewSource;
 
   ParseSource(Index);
+end;
+
+
+procedure TCSSResolver.RemoveStyleSheetFromLayers(aSheet: TStyleSheet);
+var
+  l, i, d: Integer;
+begin
+  for l:=0 to length(FLayers)-1 do
+    with FLayers[l] do
+    begin
+      d:=0;
+      for i:=0 to ElementCount-1 do
+        if Elements[i].Src<>aSheet then
+        begin
+          if d<>i then
+            Elements[d]:=Elements[i];
+          inc(d);
+        end;
+      ElementCount:=d;
+    end;
 end;
 
 function TCSSResolver.IndexOfStyleSheetWithElement(El: TCSSElement): integer;
