@@ -364,6 +364,12 @@ type
       PMergedAttribute = ^TMergedAttribute;
       TMergedAttributeArray = array of TMergedAttribute;
 
+      TAtMediaCacheEntry = record
+        Rule: TCSSAtRuleElement;
+        Specificity: TCSSSpecificity;
+      end;
+      TAtMediaCacheArray = array of TAtMediaCacheEntry;
+
   protected
     FCustomAttributes: TCSSResCustomAttributeDescArray;
     FCustomAttributeCount: TCSSNumericalID;
@@ -384,6 +390,8 @@ type
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSClassNameCount: TCSSNumericalID;
     FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class to id mapping changed
+    FAtMediaCache: TAtMediaCacheArray;
+    FAtMediaCacheCount: integer;
     procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
@@ -441,6 +449,9 @@ type
     // resolving identifiers
     function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
+    // @media caching
+    procedure EvalAtMediaRules; virtual; // evaluate all @media rules once; called from Init
+    function FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
     // shared rules
     procedure ClearSharedRuleLists; virtual;
     procedure FindMatchingRules; virtual; // create FElRules for current FNode
@@ -1063,13 +1074,14 @@ begin
 
   case aRule.AtKeyWord of
   '@media':
-    for i:=0 to aRule.SelectorCount-1 do
-    begin
-      aSelector:=aRule.Selectors[i];
-      Specificity:=MediaSelectorMatches(aSelector);
-      if Specificity>BestSpecificity then
-        BestSpecificity:=Specificity;
-    end;
+    if not FindAtMediaCached(aRule,BestSpecificity) then
+      for i:=0 to aRule.SelectorCount-1 do
+      begin
+        aSelector:=aRule.Selectors[i];
+        Specificity:=MediaSelectorMatches(aSelector);
+        if Specificity>BestSpecificity then
+          BestSpecificity:=Specificity;
+      end;
   else
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20260322092255,'Unknown CSS rule @'+aRule.AtKeyWord,aRule);
@@ -3605,6 +3617,8 @@ begin
 
   // todo: if CSSRegistry has changed, reparse all stylesheets
 
+  EvalAtMediaRules;
+
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
     FMergedAttributes[i].Stamp:=0;
@@ -3694,6 +3708,80 @@ begin
         raise ECSSResolver.Create('20240822174053');
     end;
   end;
+end;
+
+procedure TCSSResolver.EvalAtMediaRules;
+
+  procedure CollectEl(El: TCSSElement);
+  var
+    C: TClass;
+    AtRule: TCSSAtRuleElement;
+    j: integer;
+    BestSpec, Spec: TCSSSpecificity;
+    l: SizeInt;
+  begin
+    if El=nil then exit;
+    C:=El.ClassType;
+    if C=TCSSCompoundElement then
+    begin
+      for j:=0 to TCSSCompoundElement(El).ChildCount-1 do
+        CollectEl(TCSSCompoundElement(El).Children[j]);
+    end else if C=TCSSAtRuleElement then
+    begin
+      AtRule:=TCSSAtRuleElement(El);
+      if AtRule.AtKeyWord='@media' then
+      begin
+        BestSpec:=CSSSpecificityNoMatch;
+        for j:=0 to AtRule.SelectorCount-1 do
+        begin
+          Spec:=MediaSelectorMatches(AtRule.Selectors[j]);
+          if Spec>BestSpec then
+            BestSpec:=Spec;
+        end;
+        l:=length(FAtMediaCache);
+        if FAtMediaCacheCount=l then
+        begin
+          if l<8 then l:=8 else l:=l*2;
+          SetLength(FAtMediaCache,l);
+        end;
+        FAtMediaCache[FAtMediaCacheCount].Rule:=AtRule;
+        FAtMediaCache[FAtMediaCacheCount].Specificity:=BestSpec;
+        inc(FAtMediaCacheCount);
+        // recurse for nested @media
+        for j:=0 to AtRule.NestedRuleCount-1 do
+          if AtRule.NestedRules[j].ClassType=TCSSAtRuleElement then
+            CollectEl(AtRule.NestedRules[j]);
+      end;
+    end else if C=TCSSRuleElement then
+    begin
+      for j:=0 to TCSSRuleElement(El).NestedRuleCount-1 do
+        if TCSSRuleElement(El).NestedRules[j].ClassType=TCSSAtRuleElement then
+          CollectEl(TCSSRuleElement(El).NestedRules[j]);
+    end;
+  end;
+
+var
+  aLayerIndex, i: integer;
+begin
+  FAtMediaCacheCount:=0;
+  for aLayerIndex:=0 to length(FLayers)-1 do
+    with FLayers[aLayerIndex] do
+      for i:=0 to ElementCount-1 do
+        CollectEl(Elements[i].Element);
+end;
+
+function TCSSResolver.FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
+var
+  i: integer;
+begin
+  for i:=0 to FAtMediaCacheCount-1 do
+    if FAtMediaCache[i].Rule=aRule then
+    begin
+      Specificity:=FAtMediaCache[i].Specificity;
+      exit(true);
+    end;
+  Result:=false;
+  Specificity:=CSSSpecificityNoMatch;
 end;
 
 procedure TCSSResolver.FindMatchingRules;

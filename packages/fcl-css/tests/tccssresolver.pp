@@ -378,6 +378,7 @@ type
   private
     FCSSResolver: TCSSResolver;
     FHeight: integer;
+    FMediaEvalCount: integer;
     FStyle: TCSSString;
     FWidth: integer;
     function HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
@@ -398,6 +399,7 @@ type
     property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
+    property MediaEvalCount: integer read FMediaEvalCount;
     property Width: integer read FWidth write FWidth;
     property Height: integer read FHeight write FHeight;
   end;
@@ -540,6 +542,8 @@ type
     procedure TestRes_Media_Comma;
     procedure TestRes_Media_Not;
     procedure TestRes_Media_NotAnd;
+    procedure TestRes_Media_EvalOncePerInit;
+    procedure TestRes_Media_ReplaceStyleSheet;
     // todo procedure TestRes_Media_Only
   end;
 
@@ -706,6 +710,7 @@ begin
   ApplyTypeStyles;
 
   CSSResolver.AddStyleSheet(cssoAuthor,'test.css',Style);
+  FMediaEvalCount:=0;
   CSSResolver.Init;
   Traverse(Root);
 end;
@@ -718,6 +723,7 @@ end;
 
 function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
 begin
+  inc(FMediaEvalCount);
   Result:=false;
   case KW of
   TDemoCSSRegistry.kwHeight,
@@ -3972,6 +3978,45 @@ begin
   AssertEquals('Div1.Width','10px',Div1.Width);
   // 4/3 > 3/2 -> no match
   AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_EvalOncePerInit;
+var
+  Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div2:=AddDiv('Div2',Doc.Root);
+  Div3:=AddDiv('Div3',Doc.Root);
+
+  // one @media rule with one boolean selector -> HasMediaBoolean called once in Init
+  Doc.Style:='@media screen { div{ width: 10px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','10px',Div2.Width);
+  AssertEquals('Div3.Width','10px',Div3.Width);
+  AssertEquals('MediaEvalCount',1,Doc.MediaEvalCount);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_ReplaceStyleSheet;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:='@media screen { div{ width: 10px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width before','10px',Div1.Width);
+
+  // replace stylesheet: print does not match -> width not set
+  Doc.Style:='@media print { div{ width: 20px; } }';
+  ApplyStyle;
+  AssertEquals('Div1.Width after','',Div1.Width);
 end;
 
 initialization
