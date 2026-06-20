@@ -261,6 +261,7 @@ type
     function GetCSSChildCount: integer; virtual;
     function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
     function HasCSSClass(const aClassID: TCSSNumericalID): boolean; virtual;
+    function GetCSSClasses: TCSSNumericalIDArray; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
@@ -310,6 +311,7 @@ type
     function GetCSSChildCount: integer; override;
     function GetCSSChild(const anIndex: integer): ICSSNode; override;
     function HasCSSClass(const aClassID: TCSSNumericalID): boolean; override;
+    function GetCSSClasses: TCSSNumericalIDArray; override;
     function GetCSSAttributeClass: TCSSString; override;
   end;
 
@@ -545,6 +547,17 @@ type
     procedure TestRes_Media_EvalOncePerInit;
     procedure TestRes_Media_ReplaceStyleSheet;
     // todo procedure TestRes_Media_Only
+
+    // rule buckets: selectors bucketed by their rightmost identifier
+    procedure TestRes_Buckets_GetCSSClasses;
+    procedure TestRes_Buckets_ClassBucket; // only the .red bucket matches
+    procedure TestRes_Buckets_TypeBucket; // only the button bucket matches
+    procedure TestRes_Buckets_IdBucket; // only the #id bucket matches
+    procedure TestRes_Buckets_OtherBucket; // universal/pseudo-only rules always apply
+    procedure TestRes_Buckets_MultiSelectorRuleOnce; // rule with several matching selectors added once
+    procedure TestRes_Buckets_NonMatchingSkipped; // wrong class/type/id never apply
+    procedure TestRes_Buckets_CompoundRightmost; // div.red bucketed by class .red
+    procedure TestRes_Buckets_DescendantRightmost; // div .red bucketed by class .red
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -1343,8 +1356,20 @@ end;
 function TDemoNode.HasCSSClass(const aClassID: TCSSNumericalID): boolean;
 var
   i: Integer;
+  Classes: TCSSNumericalIDArray;
 begin
   if aClassID=CSSIDNone then exit(false);
+  Classes:=GetCSSClasses;
+  for i:=0 to length(Classes)-1 do
+    if aClassID=Classes[i] then
+      exit(true);
+  Result:=false;
+end;
+
+function TDemoNode.GetCSSClasses: TCSSNumericalIDArray;
+var
+  i: Integer;
+begin
   // rebuild the cache if the class names changed or the resolver remapped class ids
   if (not FCSSClassArrValid) or (FCSSClassArrStamp<>FResolver.CSSClassIDStamp) then
   begin
@@ -1355,10 +1380,7 @@ begin
     FCSSClassArrValid:=true;
     FCSSClassArrStamp:=FResolver.CSSClassIDStamp;
   end;
-  for i:=0 to length(FCSSClassArr)-1 do
-    if aClassID=FCSSClassArr[i] then
-      exit(true);
-  Result:=false;
+  Result:=FCSSClassArr;
 end;
 
 function TDemoNode.GetCSSParent: ICSSNode;
@@ -1631,6 +1653,11 @@ function TDemoPseudoElement.HasCSSClass(const aClassID: TCSSNumericalID): boolea
 begin
   Result:=false;
   if aClassID=CSSIDNone then ;
+end;
+
+function TDemoPseudoElement.GetCSSClasses: TCSSNumericalIDArray;
+begin
+  Result:=nil;
 end;
 
 function TDemoPseudoElement.GetCSSAttributeClass: TCSSString;
@@ -4017,6 +4044,167 @@ begin
   Doc.Style:='@media print { div{ width: 20px; } }';
   ApplyStyle;
   AssertEquals('Div1.Width after','',Div1.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_GetCSSClasses;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+  Classes: TCSSNumericalIDArray;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  Button1.CSSClasses.Add('big');
+  Doc.Style:='.red { left: 1px; } .big { top: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Classes:=Button1.GetCSSClasses;
+  AssertEquals('class count',2,length(Classes));
+  AssertEquals('class[0] is red id',R.GetCSSClassID('red'),Classes[0]);
+  AssertEquals('class[1] is big id',R.GetCSSClassID('big'),Classes[1]);
+  // GetCSSClasses is consistent with HasCSSClass
+  AssertTrue('HasCSSClass red',Button1.HasCSSClass(R.GetCSSClassID('red')));
+  AssertTrue('HasCSSClass big',Button1.HasCSSClass(R.GetCSSClassID('big')));
+  AssertFalse('not HasCSSClass unknown',Button1.HasCSSClass(R.GetCSSClassID('green')));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_ClassBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // Note: every node also matches its user-agent type style (button{display:..})
+  // via the type bucket, so the rule counts below include that one extra rule.
+  // .blue does not match -> only .red applies (+ the UA button rule)
+  Doc.Style:='.red { left: 1px; }'
+            +'.blue { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('Button1.display (UA)','inline-block',Button1.Display);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_TypeBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // span does not match the button -> only button applies (+ the UA button rule)
+  Doc.Style:='button { left: 1px; }'
+            +'span { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_IdBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // #Other does not match -> only #Button1 applies (+ the UA button rule)
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { top: 2px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_OtherBucket;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // the universal selector goes to the Other bucket and must always be checked;
+  // *, .red and button all match -> 3 author rules + the UA button rule
+  Doc.Style:='* { left: 1px; }'
+            +'.red { top: 2px; }'
+            +'button { width: 3px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','2px',Button1.Top);
+  AssertEquals('Button1.width','3px',Button1.Width);
+  AssertEquals('rule count',4,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_MultiSelectorRuleOnce;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.CSSClasses.Add('red');
+  // all three selectors of this single rule match the node (class, type, id)
+  // -> the rule lands in three buckets but must be applied only once.
+  // rule count = 1 author rule + the UA button rule (would be 3 if duplicated).
+  Doc.Style:='.red, button, #Button1 { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_NonMatchingSkipped;
+var
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Span1:=AddSpan_Class('Span1','blue',Doc.Root);
+  // none of these author rules match a span.blue with id Span1
+  // -> only the UA span type style applies
+  Doc.Style:='.red { left: 1px; }'
+            +'button { top: 2px; }'
+            +'#Other { width: 3px; }';
+  ApplyStyle;
+  AssertEquals('Span1.left','',Span1.Left);
+  AssertEquals('Span1.top','',Span1.Top);
+  AssertEquals('Span1.width','',Span1.Width);
+  AssertEquals('Span1.display (UA)','inline-block',Span1.Display);
+  AssertEquals('rule count',1,length(Span1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_CompoundRightmost;
+var
+  Div1: TDemoDiv;
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('red');
+  Span1:=AddSpan_Class('Span1','red',Doc.Root);
+  // compound div.red: rightmost identifier is the class .red, but the type div
+  // must still be verified -> only the div matches, not the span
+  Doc.Style:='div.red { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Div1.left','1px',Div1.Left);
+  AssertEquals('Span1.left','',Span1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_DescendantRightmost;
+var
+  Div1: TDemoDiv;
+  Span1, Span2: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Span1:=AddSpan_Class('Span1','red',Div1); // inside the div
+  Span2:=AddSpan_Class('Span2','red',Doc.Root); // not inside a div
+  // descendant combinator div .red: rightmost is the class .red, ancestor div required
+  Doc.Style:='div .red { left: 1px; }';
+  ApplyStyle;
+  AssertEquals('Span1.left','1px',Span1.Left);
+  AssertEquals('Span2.left','',Span2.Left);
+  if Div1=nil then ;
 end;
 
 initialization
