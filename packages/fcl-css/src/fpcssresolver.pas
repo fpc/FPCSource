@@ -380,6 +380,9 @@ type
     FMergedAllSpecificity: TCSSSpecificity;
     FSourceSpecificity: TCSSSpecificity;
     FCSSRegistryStamp: TCSSNumericalID;
+    FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
+    FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
+    FCSSClassNameCount: TCSSNumericalID;
 
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
@@ -477,6 +480,11 @@ type
     function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; override;
     function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; override;
     function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
+    // css class names from selectors, numbered from 1
+    function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
+    function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
+    function GetCSSClassName(aID: TCSSNumericalID): TCSSString; virtual;
+    property CSSClassNameCount: TCSSNumericalID read FCSSClassNameCount;
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
     property StringComparison: TCSSResStringComparison read FStringComparison;
@@ -932,6 +940,11 @@ begin
 
   for i:=0 to FStyleSheetCount-1 do
     FreeAndNil(FStyleSheets[i].Element);
+
+  // class name ids are rebuilt while reparsing the selectors
+  FCSSClassNameToID.Clear;
+  FCSSClassNames:=nil;
+  FCSSClassNameCount:=0;
 
   // not referencing CSSRegistry anymore
   FCSSRegistryStamp:=0;
@@ -1646,8 +1659,8 @@ begin
     Result:=SelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSHashIdentifierElement then
     Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
-  else if C=TCSSClassNameElement then
-    Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode,OnlySpecificity)
+  else if C=TCSSResolvedClassNameElement then
+    Result:=SelectorClassNameMatches(TCSSResolvedClassNameElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedPseudoClassElement then
     Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSUnaryElement then
@@ -3550,11 +3563,13 @@ begin
   FLogEntries:=TFPObjectList.Create(true);
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
   FCustomAttributeNameToDesc:=TFPHashList.Create;
+  FCSSClassNameToID:=TFPHashList.Create;
 end;
 
 destructor TCSSResolver.Destroy;
 begin
   Clear;
+  FreeAndNil(FCSSClassNameToID);
   FreeAndNil(FCustomAttributeNameToDesc);
   FreeAndNil(FSharedRuleLists);
   FreeAndNil(FLogEntries);
@@ -3695,6 +3710,49 @@ begin
     if AttrID<FCustomAttributeCount then
       Result:=FCustomAttributes[AttrId];
   end;
+end;
+
+function TCSSResolver.GetCSSClassID(const aCSSClassName: TCSSString
+  ): TCSSNumericalID;
+var
+  p: Pointer;
+begin
+  // class names are case sensitive
+  p:=FCSSClassNameToID.Find(aCSSClassName);
+  if p=nil then
+    Result:=CSSIDNone
+  else
+    Result:={%H-}TCSSNumericalID(p);
+end;
+
+function TCSSResolver.AddCSSClassID(const aCSSClassName: TCSSString
+  ): TCSSNumericalID;
+var
+  Cnt: SizeInt;
+begin
+  Result:=GetCSSClassID(aCSSClassName);
+  if Result<>CSSIDNone then exit;
+  inc(FCSSClassNameCount);
+  Result:=FCSSClassNameCount;
+  FCSSClassNameToID.Add(aCSSClassName,{%H-}Pointer(Result));
+  Cnt:=length(FCSSClassNames);
+  if Cnt<FCSSClassNameCount then
+  begin
+    if Cnt<8 then
+      Cnt:=8
+    else
+      Cnt:=Cnt*2;
+    SetLength(FCSSClassNames,Cnt);
+  end;
+  FCSSClassNames[Result-1]:=aCSSClassName;
+end;
+
+function TCSSResolver.GetCSSClassName(aID: TCSSNumericalID): TCSSString;
+begin
+  if (aID>=1) and (aID<=FCSSClassNameCount) then
+    Result:=FCSSClassNames[aID-1]
+  else
+    Result:='';
 end;
 
 function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;

@@ -426,6 +426,10 @@ type
     procedure TestRes_Selector_Type_Spaces;
     procedure TestRes_Selector_Id;
     procedure TestRes_Selector_Class;
+    procedure TestRes_CSSClassID_Numbering;
+    procedure TestRes_CSSClassID_Unknown;
+    procedure TestRes_CSSClassID_CaseSensitive;
+    procedure TestRes_CSSClassID_ResolvedElement;
     procedure TestRes_Selector_ClassClass; // AND combinator
     procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
     procedure TestRes_Selector_TypeCommaType; // OR combinator
@@ -1685,6 +1689,27 @@ begin
   Result.CSSClasses.Add(aClass);
 end;
 
+{ TClassNameCollector }
+
+type
+  TClassNameCollector = class(TCSSTreeVisitor)
+  public
+    Items: array of TCSSResolvedClassNameElement;
+    Count: integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure TClassNameCollector.Visit(obj: TCSSElement);
+begin
+  if obj is TCSSResolvedClassNameElement then
+  begin
+    if Count=length(Items) then
+      SetLength(Items,Count*2+8);
+    Items[Count]:=TCSSResolvedClassNameElement(obj);
+    inc(Count);
+  end;
+end;
+
 { TTestCSSResolver }
 
 procedure TTestCSSResolver.TestRes_ParseAttr_Keyword;
@@ -1784,6 +1809,98 @@ begin
   ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button1.left','13px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_Numbering;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // first occurrence in selector order determines the id, beginning at 1
+  Doc.Style:='.alpha { left: 1px; }'
+            +'.beta { left: 2px; }'
+            +'.alpha.gamma { left: 3px; }'; // alpha repeats, gamma is new
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSClassNameCount',3,R.CSSClassNameCount);
+  AssertEquals('id alpha',1,R.GetCSSClassID('alpha'));
+  AssertEquals('id beta',2,R.GetCSSClassID('beta'));
+  AssertEquals('id gamma',3,R.GetCSSClassID('gamma'));
+  // stable on re-query
+  AssertEquals('id alpha again',1,R.GetCSSClassID('alpha'));
+  // reverse lookup
+  AssertEquals('name 1','alpha',R.GetCSSClassName(1));
+  AssertEquals('name 2','beta',R.GetCSSClassName(2));
+  AssertEquals('name 3','gamma',R.GetCSSClassName(3));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_Unknown;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='.west { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // lookup-only: a class never seen in any selector returns CSSIDNone
+  AssertEquals('unknown class',CSSIDNone,R.GetCSSClassID('east'));
+  AssertEquals('empty name',CSSIDNone,R.GetCSSClassID(''));
+  // querying did not register anything
+  AssertEquals('CSSClassNameCount',1,R.CSSClassNameCount);
+  AssertEquals('name of unknown id','',R.GetCSSClassName(99));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_CaseSensitive;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // css class names are case sensitive -> two distinct ids
+  Doc.Style:='.Foo { left: 1px; }'
+            +'.foo { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSClassNameCount',2,R.CSSClassNameCount);
+  AssertEquals('id Foo',1,R.GetCSSClassID('Foo'));
+  AssertEquals('id foo',2,R.GetCSSClassID('foo'));
+  AssertTrue('distinct ids',R.GetCSSClassID('Foo')<>R.GetCSSClassID('foo'));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSClassID_ResolvedElement;
+var
+  R: TCSSResolver;
+  Visitor: TClassNameCollector;
+  i: Integer;
+  El: TCSSResolvedClassNameElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='.west { left: 1px; }'
+            +'.east { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Visitor:=TClassNameCollector.Create;
+  try
+    for i:=0 to R.StyleSheetCount-1 do
+      if R.StyleSheets[i].Element<>nil then
+        R.StyleSheets[i].Element.Iterate(Visitor);
+    // both class selectors got resolved into TCSSResolvedClassNameElement
+    AssertEquals('collected class elements',2,Visitor.Count);
+    for i:=0 to Visitor.Count-1 do
+    begin
+      El:=Visitor.Items[i];
+      AssertEquals('Kind is nikClassName',ord(nikClassName),ord(El.Kind));
+      AssertEquals('NumericalID matches GetCSSClassID for '+El.Name,
+        R.GetCSSClassID(El.Name),El.NumericalID);
+      AssertTrue('NumericalID>=1 for '+El.Name,El.NumericalID>=1);
+    end;
+  finally
+    Visitor.Free;
+  end;
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_ClassClass;

@@ -126,7 +126,8 @@ type
     nikPseudoFunction, // e.g. "is" of ":is()"
     nikType,
     nikKeyword,
-    nikAttrFunction // e.g. "calc" of "calc()"
+    nikAttrFunction, // e.g. "calc" of "calc()"
+    nikClassName // e.g. "row" of ".row"
     );
   TCSSNumericalIDs = set of TCSSNumericalIDKind;
 
@@ -140,7 +141,8 @@ const
     'PseudoFunction',
     'Attribute',
     'Keyword',
-    'AttributeFunction'
+    'AttributeFunction',
+    'ClassName'
     );
 
 type
@@ -491,6 +493,14 @@ type
     Kind: TCSSNumericalIDKind;
   end;
 
+  { TCSSResolvedClassNameElement }
+
+  TCSSResolvedClassNameElement = class(TCSSClassNameElement)
+  public
+    NumericalID: TCSSNumericalID;
+    Kind: TCSSNumericalIDKind;
+  end;
+
   { TCSSNthChildParams }
 
   TCSSNthChildParams = class
@@ -620,6 +630,8 @@ type
     function GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc; virtual;
     function GetTypeID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoClassID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; virtual; // lookup only, CSSIDNone if unknown
+    function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; virtual; // get or create, used while parsing selectors
     function GetPseudoElementID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoElFuncID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
@@ -643,6 +655,7 @@ type
     function ResolveAttribute(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolveType(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoClass(El: TCSSResolvedPseudoClassElement): TCSSNumericalID; virtual;
+    function ResolveClassName(El: TCSSResolvedClassNameElement): TCSSNumericalID; virtual;
     function ResolvePseudoElement(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoElementFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
@@ -2358,6 +2371,17 @@ begin
   Result:=CSSRegistry.IndexOfPseudoClassName(aName);
 end;
 
+function TCSSBaseResolver.GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID;
+begin
+  if aCSSClassName='' then ;
+  Result:=CSSIDNone;
+end;
+
+function TCSSBaseResolver.AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID;
+begin
+  Result:=GetCSSClassID(aCSSClassName);
+end;
+
 function TCSSBaseResolver.GetPseudoElementID(const aName: TCSSString): TCSSNumericalID;
 begin
   Result:=CSSRegistry.IndexOfPseudoElementName(aName);
@@ -2435,6 +2459,17 @@ begin
     Log(etWarning,20240822172826,'unknown pseudo class "'+aName+'"',El);
   end else
     El.NumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolveClassName(El: TCSSResolvedClassNameElement
+  ): TCSSNumericalID;
+begin
+  if El.NumericalID<>CSSIDNone then
+    raise ECSSParser.Create('20260620120000');
+  El.Kind:=nikClassName;
+  // class names are case sensitive and registered on first use
+  Result:=Resolver.AddCSSClassID(El.Name);
+  El.NumericalID:=Result;
 end;
 
 function TCSSResolverParser.ResolvePseudoElement(El: TCSSResolvedIdentifierElement
@@ -2673,8 +2708,9 @@ begin
     ResolveType(TCSSResolvedIdentifierElement(El))
   else if C=TCSSHashIdentifierElement then
     // e.g. #id {}
-  else if C=TCSSClassNameElement then
+  else if C=TCSSResolvedClassNameElement then
     // e.g. .classname {}
+    ResolveClassName(TCSSResolvedClassNameElement(El))
   else if C=TCSSResolvedPseudoClassElement then
     // e.g. :pseudoclass {}
     ResolvePseudoClass(TCSSResolvedPseudoClassElement(El))
@@ -3047,6 +3083,7 @@ begin
   inherited Create(AScanner);
   CSSIdentifierElementClass:=TCSSResolvedIdentifierElement;
   CSSPseudoClassElementClass:=TCSSResolvedPseudoClassElement;
+  CSSClassNameElementClass:=TCSSResolvedClassNameElement;
   CSSCallElementClass:=TCSSResolvedCallElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;
