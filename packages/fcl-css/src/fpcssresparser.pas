@@ -685,6 +685,8 @@ type
     property OnLog: TCSSValueParserLogEvent read FOnLog write FOnLog;
   end;
 
+function HasCSSValueVarCall(const s: TCSSString): boolean; // true if a case insensitive "var(" is in s
+
 implementation
 
 Const
@@ -697,6 +699,20 @@ Const
   //WhitespaceZ = Whitespace+[#0];
   Hex = ['0'..'9','a'..'z','A'..'Z'];
   ValEnd = [#0,#10,#13,#9,' ',';',',','}',')',']']; // used for skipping a component value
+
+function HasCSSValueVarCall(const s: TCSSString): boolean;
+var
+  i, l: SizeInt;
+begin
+  l:=length(s);
+  for i:=1 to l-3 do
+    if (s[i] in ['v','V'])
+        and (s[i+1] in ['a','A'])
+        and (s[i+2] in ['r','R'])
+        and (s[i+3]='(') then
+      exit(true);
+  Result:=false;
+end;
 
 { TCSSRegistry }
 
@@ -2660,7 +2676,7 @@ begin
     begin
       Desc:=Resolver.GetAttributeDesc(AttrId);
 
-      if Pos('var(',ValueStr)>0 then
+      if HasCSSValueVarCall(ValueStr) then
       begin
         // cannot be parsed yet
       end else if AttrId<Resolver.CSSRegistry.AttributeCount then

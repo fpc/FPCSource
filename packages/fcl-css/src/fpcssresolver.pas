@@ -3108,7 +3108,7 @@ begin
       if TCSSResolverParser.IsWhiteSpace(Value) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=Pos('var(',Value)<=0;
+        AttrP^.Complete:=not HasCSSValueVarCall(Value);
     end;
     AttrID:=NextAttrID;
   end;
@@ -3191,7 +3191,9 @@ var
             SkipIdentifier;
         end;
       'a'..'z','A'..'Z','_':
-        if (p^='v') and (p[1]='a') and (p[2]='r') and (p[3]='(') then
+        // the var() function name is ASCII case insensitive
+        if (p^ in ['v','V']) and (p[1] in ['a','A']) and (p[2] in ['r','R'])
+            and (p[3]='(') then
         begin
           // var() found
 
@@ -3342,7 +3344,7 @@ begin
     if not AttrP^.Complete then
     begin
       // check attribute
-      if Pos('var(',AttrP^.Value)>0 then
+      if HasCSSValueVarCall(AttrP^.Value) then
       begin
         // can have var() calls -> parse
         p:=PCSSChar(AttrP^.Value);

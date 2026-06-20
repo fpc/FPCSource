@@ -499,6 +499,7 @@ type
     procedure TestRes_Var_NoDefault;
     procedure TestRes_Var_Inline_NoDefault;
     procedure TestRes_Var_Defaults;
+    procedure TestRes_Var_MixedCase;
 
     // pseudo elements (works like child combinator)
     procedure TestRes_PseudoElement;
@@ -3074,6 +3075,28 @@ begin
   AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
   AssertEquals('Div1.Color','',Div1.Color);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_MixedCase;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // the var() function name is case insensitive, while the custom property
+  // name --bird-color is case sensitive
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --bird-color: red;',
+  '  --bird-width: 3px;',
+  '  border-color: VAR(--bird-color);',
+  '  border-width: Var(--bird-width);',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
 end;
 
 procedure TTestCSSResolver.TestRes_PseudoElement;
