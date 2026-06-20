@@ -185,7 +185,7 @@ type
     function GetCSSChildCount: integer;
     function GetCSSChild(const anIndex: integer): ICSSNode;
     // attributes
-    function HasCSSClass(const aClassName: TCSSString): boolean;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean;
     function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
@@ -413,7 +413,7 @@ type
     function SelectorAndCompoundMatches(aList: TCSSListElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndRightAndMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
-    function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorClassNameMatches(aClassName: TCSSResolvedClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorUnaryMatches(aUnary: TCSSUnaryElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -1941,19 +1941,16 @@ begin
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
-  aClassName: TCSSClassNameElement; const TestNode: ICSSNode;
+  aClassName: TCSSResolvedClassNameElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
-var
-  aValue: TCSSString;
 begin
   if OnlySpecificity then
     exit(CSSSpecificityClass+FSourceSpecificity);
-  aValue:=aClassName.Name;
-  if TestNode.HasCSSClass(aValue) then
+  if TestNode.HasCSSClass(aClassName.NumericalID) then
     Result:=CSSSpecificityClass+FSourceSpecificity
   else
     Result:=CSSSpecificityNoMatch;
-  //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
+  //writeln('TCSSResolver.SelectorClassNameMatches ',aClassName.Name,' ',Result);
 end;
 
 function TCSSResolver.SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement;

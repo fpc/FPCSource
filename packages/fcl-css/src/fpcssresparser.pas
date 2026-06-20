@@ -2830,6 +2830,11 @@ begin
   case aUnary.Operation of
   uoDoubleColon:
     ; // right side was done in ParsePseudoElement
+  uoGT,
+  uoPlus,
+  uoTilde:
+    // nested rule combinator with implicit &, e.g. "> .class" -> resolve operand
+    CheckSelector(aUnary.Right);
   else
     Log(etWarning,20250225103443,'Invalid CSS unary selector '+UnaryOperators[aUnary.Operation],aUnary);
   end;

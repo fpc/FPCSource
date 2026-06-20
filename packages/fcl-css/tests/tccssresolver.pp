@@ -199,13 +199,16 @@ type
 
   { TDemoNode }
 
-  TDemoNode = class(TComponent,ICSSNode)
+  TDemoNode = class(TComponent,ICSSNode,IFPObserver)
   private
     class var CSSRegistry: TDemoCSSRegistry;
     class var FDemoNodeTypeID: TCSSNumericalID;
   private
     FNodes: TFPObjectList; // list of TDemoNode
     FCSSClasses: TStrings;
+    FCSSClassArr: TCSSNumericalIDArray; // cached class ids of FCSSClasses, valid if FCSSClassArrValid
+    FCSSClassArrValid: boolean;
+    FResolver: TCSSResolver; // last resolver, used to map class names to ids
     FParent: TDemoNode;
     FPseudoClasses: array [TDemoPseudoClass] of boolean;
     FInlineStyleElements: TCSSRuleElement;
@@ -221,6 +224,9 @@ type
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
+    // IFPObserver: FCSSClasses changed -> invalidate FCSSClassArr cache
+    procedure FPOObservedChanged(ASender: TObject;
+      Operation: TFPObservedOperation; Data: Pointer);
   public
     // computed by resolver:
     Rules: TCSSSharedRuleList; // owned by resolver
@@ -253,7 +259,7 @@ type
     function GetCSSEmpty: boolean; virtual;
     function GetCSSChildCount: integer; virtual;
     function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
-    function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
@@ -302,7 +308,7 @@ type
     function GetCSSEmpty: boolean; override;
     function GetCSSChildCount: integer; override;
     function GetCSSChild(const anIndex: integer): ICSSNode; override;
-    function HasCSSClass(const aClassName: TCSSString): boolean; override;
+    function HasCSSClass(const aClassID: TCSSNumericalID): boolean; override;
     function GetCSSAttributeClass: TCSSString; override;
   end;
 
@@ -1229,6 +1235,7 @@ begin
   FNodes:=TFPObjectList.Create(false);
   FCSSClasses:=TStringList.Create;
   FCSSClasses.Delimiter:=' ';
+  FCSSClasses.FPOAttachObserver(Self);
 end;
 
 destructor TDemoNode.Destroy;
@@ -1264,6 +1271,8 @@ var
   CurValue: TCSSAttributeValue;
   Desc: TCSSAttributeDesc;
 begin
+  FResolver:=Resolver;
+
   if (InlineStyleElement=nil) and (InlineStyle<>'') then
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
 
@@ -1312,12 +1321,30 @@ begin
   Result:=DemoElementTypeNames[detNode];
 end;
 
-function TDemoNode.HasCSSClass(const aClassName: TCSSString): boolean;
+procedure TDemoNode.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+  if ASender=nil then ;
+  if Data=nil then ;
+  if Operation in [ooChange,ooAddItem,ooDeleteItem,ooFree] then
+    FCSSClassArrValid:=false;
+end;
+
+function TDemoNode.HasCSSClass(const aClassID: TCSSNumericalID): boolean;
 var
   i: Integer;
 begin
-  for i:=0 to CSSClasses.Count-1 do
-    if aClassName=CSSClasses[i] then
+  if aClassID=CSSIDNone then exit(false);
+  if not FCSSClassArrValid then
+  begin
+    // map the class names to their resolver ids
+    SetLength(FCSSClassArr,FCSSClasses.Count);
+    for i:=0 to FCSSClasses.Count-1 do
+      FCSSClassArr[i]:=FResolver.GetCSSClassID(FCSSClasses[i]);
+    FCSSClassArrValid:=true;
+  end;
+  for i:=0 to length(FCSSClassArr)-1 do
+    if aClassID=FCSSClassArr[i] then
       exit(true);
   Result:=false;
 end;
@@ -1588,10 +1615,10 @@ begin
   if anIndex=0 then ;
 end;
 
-function TDemoPseudoElement.HasCSSClass(const aClassName: TCSSString): boolean;
+function TDemoPseudoElement.HasCSSClass(const aClassID: TCSSNumericalID): boolean;
 begin
   Result:=false;
-  if aClassName='' then ;
+  if aClassID=CSSIDNone then ;
 end;
 
 function TDemoPseudoElement.GetCSSAttributeClass: TCSSString;
