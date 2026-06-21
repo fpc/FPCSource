@@ -739,7 +739,6 @@ end;
 constructor TCSSRegistry.Create;
 var
   Kind: TCSSNumericalIDKind;
-  i: Integer;
 begin
   for Kind in TCSSNumericalIDKind do
     FHashLists[Kind]:=TFPHashList.Create;
@@ -754,17 +753,14 @@ begin
 
   // init attributes
   SetLength(Attributes,32);
-  for i:=0 to length(Attributes)-1 do Attributes[i]:=nil;
   FAttributeCount:=1; // index 0 is CSSIDNone
 
   // init pseudo classes
   SetLength(PseudoClasses,32);
-  for i:=0 to length(PseudoClasses)-1 do PseudoClasses[i]:=nil;
   FPseudoClassCount:=1; // index 0 is CSSIDNone
 
   // init pseudo elements
   SetLength(PseudoElements,32);
-  for i:=0 to length(PseudoElements)-1 do PseudoElements[i]:=nil;
   FPseudoElementCount:=1; // index 0 is CSSIDNone
 
   // init pseudo functions
@@ -773,7 +769,6 @@ begin
 
   // init types
   SetLength(Types,32);
-  for i:=0 to length(Types)-1 do Types[i]:=nil;
   FTypeCount:=1; // index 0 is CSSIDNone
 
   // init keywords
@@ -1100,7 +1095,6 @@ begin
       SetLength(Attributes,32)
     else
       SetLength(Attributes,2*AttributeCount);
-    FillByte(Attributes[AttributeCount],SizeOf(Pointer)*(length(Attributes)-AttributeCount),0);
   end;
   Attributes[AttributeCount]:=Attr;
   Attr.Index:=AttributeCount;
@@ -1276,7 +1270,6 @@ begin
       SetLength(PseudoClasses,32)
     else
       SetLength(PseudoClasses,2*PseudoClassCount);
-    FillByte(PseudoClasses[PseudoClassCount],SizeOf(Pointer)*(length(PseudoClasses)-PseudoClassCount),0);
   end;
   PseudoClasses[PseudoClassCount]:=aPseudo;
   aPseudo.Index:=PseudoClassCount;
@@ -1334,7 +1327,6 @@ begin
       SetLength(PseudoElements,32)
     else
       SetLength(PseudoElements,2*PseudoElementCount);
-    FillByte(PseudoElements[PseudoElementCount],SizeOf(Pointer)*(length(PseudoElements)-PseudoElementCount),0);
   end;
   PseudoElements[PseudoElementCount]:=aPseudo;
   aPseudo.Index:=PseudoElementCount;
@@ -1429,7 +1421,6 @@ begin
       SetLength(Types,32)
     else
       SetLength(Types,2*TypeCount);
-    FillByte(Types[TypeCount],SizeOf(Pointer)*(length(Types)-TypeCount),0);
   end;
   Types[TypeCount]:=aType;
   aType.Index:=TypeCount;

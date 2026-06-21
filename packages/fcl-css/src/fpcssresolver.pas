@@ -965,7 +965,6 @@ begin
       else
         Cnt:=Cnt*2;
       SetLength(Elements,Cnt);
-      FillByte(Elements[ElementCount],SizeOf(TLayerElement)*(Cnt-ElementCount),0);
     end;
     Elements[ElementCount].Src:=aStyleSheet;
     Elements[ElementCount].Element:=El;
@@ -1586,7 +1585,6 @@ begin
   if NewLen>OldLen then
   begin
     SetLength(FMergedAttributes,NewLen);
-    FillByte(FMergedAttributes[OldLen],(NewLen-OldLen)*SizeOf(TMergedAttribute),0);
   end;
 end;
 
@@ -3776,7 +3774,6 @@ begin
         else
           Cnt:=Cnt*2;
         SetLength(FCustomAttributes,Cnt);
-        FillByte(FCustomAttributes[FCustomAttributeCount],SizeOf(Pointer)*(Cnt-FCustomAttributeCount),0);
       end;
 
       Desc:=TCSSResCustomAttributeDesc.Create;
@@ -3900,16 +3897,9 @@ begin
 end;
 
 function TCSSResolver.GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
-var
-  OldLen, i: SizeInt;
 begin
   if aTypeID>=length(FBucketType) then
-  begin
-    OldLen:=length(FBucketType);
     SetLength(FBucketType,aTypeID+1);
-    for i:=OldLen to aTypeID do
-      FBucketType[i]:=nil;
-  end;
   Result:=FBucketType[aTypeID];
   if Result=nil then
   begin
@@ -3919,16 +3909,9 @@ begin
 end;
 
 function TCSSResolver.GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
-var
-  OldLen, i: SizeInt;
 begin
   if aClassID>=length(FBucketClass) then
-  begin
-    OldLen:=length(FBucketClass);
     SetLength(FBucketClass,aClassID+1);
-    for i:=OldLen to aClassID do
-      FBucketClass[i]:=nil;
-  end;
   Result:=FBucketClass[aClassID];
   if Result=nil then
   begin
@@ -3938,16 +3921,9 @@ begin
 end;
 
 function TCSSResolver.GetIDBucket(aID: TCSSNumericalID): TCSSRuleBucket;
-var
-  OldLen, i: SizeInt;
 begin
   if aID>=length(FBucketID) then
-  begin
-    OldLen:=length(FBucketID);
     SetLength(FBucketID,aID+1);
-    for i:=OldLen to aID do
-      FBucketID[i]:=nil;
-  end;
   Result:=FBucketID[aID];
   if Result=nil then
   begin
@@ -4375,7 +4351,6 @@ begin
     else
       Cnt:=Cnt*2;
     SetLength(FStyleSheets,Cnt);
-    FillByte(FStyleSheets[FStyleSheetCount],SizeOf(Pointer)*(Cnt-FStyleSheetCount),0);
   end;
   Result:=FStyleSheets[FStyleSheetCount];
   if Result=nil then
