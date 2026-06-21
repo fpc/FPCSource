@@ -487,11 +487,11 @@ type
     function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
     // @media caching
-    procedure EvalAtMediaRules; virtual; // evaluate all @media rules once; called from EnsureRuleBuckets
+    procedure EvalGlobalAtRules; virtual; // evaluate all @media rules once
     function FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
     // rule buckets
     procedure ClearRuleBuckets; virtual;
-    procedure EnsureRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
+    procedure UpdateRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure GetSelectorBucketKey(aSelector: TCSSElement; out Kind: TCSSRuleBucketKind;
@@ -499,8 +499,8 @@ type
     function GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
     function GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
     function GetIDBucket(const aIDName: TCSSString): TCSSRuleBucket;
-    procedure GatherBucket(Bucket: TCSSRuleBucket); // append bucket items to FRuleCandidates
-    procedure SortRuleCandidates; // sort FRuleCandidates ascending for DocIndex
+    procedure AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
+    procedure SortRuleCandidates;
     // shared rules
     procedure ClearSharedRuleLists; virtual;
     procedure FindMatchingRules; virtual; // create FElRules for current FNode
@@ -3693,7 +3693,7 @@ begin
   // todo: if CSSRegistry has changed, reparse all stylesheets
 
   // Note: the @media cache and rule buckets are built lazily in Compute (see
-  // EnsureRuleBuckets), because the stylesheets are added to FLayers after Init.
+  // UpdateRuleBuckets), because the stylesheets are added to FLayers after Init.
 
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
@@ -3713,7 +3713,7 @@ begin
   Rules:=nil;
   FNode:=Node;
   try
-    EnsureRuleBuckets;
+    UpdateRuleBuckets;
     InitMerge;
 
     FindMatchingRules;
@@ -3787,7 +3787,7 @@ begin
   end;
 end;
 
-procedure TCSSResolver.EvalAtMediaRules;
+procedure TCSSResolver.EvalGlobalAtRules;
 
   procedure CollectEl(El: TCSSElement);
   var
@@ -3883,10 +3883,10 @@ begin
   FRuleBucketsValid:=false;
 end;
 
-procedure TCSSResolver.EnsureRuleBuckets;
+procedure TCSSResolver.UpdateRuleBuckets;
 begin
   if FRuleBucketsValid then exit;
-  EvalAtMediaRules;
+  EvalGlobalAtRules;
   BuildRuleBuckets;
 end;
 
@@ -4116,7 +4116,7 @@ begin
   FRuleBucketsValid:=true;
 end;
 
-procedure TCSSResolver.GatherBucket(Bucket: TCSSRuleBucket);
+procedure TCSSResolver.AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
 var
   l: SizeInt;
 begin
@@ -4178,22 +4178,22 @@ begin
 
   // only the buckets that can match this node are inspected:
   // the Other bucket, the node's type bucket, its id bucket and its class buckets
-  GatherBucket(FBucketOther);
+  AddBucketToRuleCandidates(FBucketOther);
 
   TypeID:=FNode.GetCSSTypeID;
   if (TypeID>=0) and (TypeID<length(FBucketType)) then
-    GatherBucket(FBucketType[TypeID]);
+    AddBucketToRuleCandidates(FBucketType[TypeID]);
 
   IDName:=FNode.GetCSSID;
   if IDName<>'' then
-    GatherBucket(TCSSRuleBucket(FBucketID.Find(IDName)));
+    AddBucketToRuleCandidates(TCSSRuleBucket(FBucketID.Find(IDName)));
 
   Classes:=FNode.GetCSSClasses;
   for i:=0 to length(Classes)-1 do
   begin
     c:=Classes[i];
     if (c>=1) and (c<length(FBucketClass)) then
-      GatherBucket(FBucketClass[c]);
+      AddBucketToRuleCandidates(FBucketClass[c]);
   end;
 
   // restore document order so the cascade tie-break is identical to a linear scan
