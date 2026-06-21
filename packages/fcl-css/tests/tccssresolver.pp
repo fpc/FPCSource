@@ -245,7 +245,7 @@ type
     class function GetCSSTypeStyle: TCSSString; virtual;
 
     // ICSSNode interface:
-    function GetCSSID: TCSSString; virtual;
+    function GetCSSID: TCSSNumericalID; virtual;
     function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
     function GetCSSPseudoElementName: TCSSString; virtual;
@@ -263,6 +263,7 @@ type
     function HasCSSClass(const aClassID: TCSSNumericalID): boolean; virtual;
     function GetCSSClasses: TCSSNumericalIDArray; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
+    function GetCSSAttributeID: TCSSString; virtual;
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
@@ -443,6 +444,12 @@ type
     procedure TestRes_CSSClassID_ResolvedElement;
     procedure TestRes_CSSClassID_AddClassToStylesheet;
     procedure TestRes_CSSClassID_DeleteClassFromStylesheet;
+    procedure TestRes_CSSID_Numbering;
+    procedure TestRes_CSSID_Unknown;
+    procedure TestRes_CSSID_CaseSensitive;
+    procedure TestRes_CSSID_ResolvedElement;
+    procedure TestRes_CSSID_AddIdToStylesheet;
+    procedure TestRes_CSSID_DeleteIdFromStylesheet;
     procedure TestRes_Selector_ClassClass; // AND combinator
     procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
     procedure TestRes_Selector_TypeCommaType; // OR combinator
@@ -553,6 +560,7 @@ type
     procedure TestRes_Buckets_ClassBucket; // only the .red bucket matches
     procedure TestRes_Buckets_TypeBucket; // only the button bucket matches
     procedure TestRes_Buckets_IdBucket; // only the #id bucket matches
+    procedure TestRes_Buckets_IdBucketNumerical; // node id index selects the id bucket
     procedure TestRes_Buckets_OtherBucket; // universal/pseudo-only rules always apply
     procedure TestRes_Buckets_MultiSelectorRuleOnce; // rule with several matching selectors added once
     procedure TestRes_Buckets_NonMatchingSkipped; // wrong class/type/id never apply
@@ -1334,9 +1342,13 @@ begin
   end;
 end;
 
-function TDemoNode.GetCSSID: TCSSString;
+function TDemoNode.GetCSSID: TCSSNumericalID;
 begin
-  Result:=Name;
+  // map the node name to the resolver's id index (the same index the #name
+  // selectors were registered under); CSSIDNone if the name is not used by any selector
+  if FResolver=nil then
+    exit(CSSIDNone);
+  Result:=FResolver.GetCSSIDIndex(Name);
 end;
 
 class function TDemoNode.CSSTypeName: TCSSString;
@@ -1473,6 +1485,12 @@ function TDemoNode.GetCSSAttributeClass: TCSSString;
 begin
   FCSSClasses.Delimiter:=' ';
   Result:=FCSSClasses.DelimitedText;
+end;
+
+function TDemoNode.GetCSSAttributeID: TCSSString;
+begin
+  // the demo node uses its component name as the 'id' attribute
+  Result:=Name;
 end;
 
 function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
@@ -1776,6 +1794,27 @@ begin
   end;
 end;
 
+{ THashIdentifierCollector }
+
+type
+  THashIdentifierCollector = class(TCSSTreeVisitor)
+  public
+    Items: array of TCSSResolvedHashIdentifierElement;
+    Count: integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure THashIdentifierCollector.Visit(obj: TCSSElement);
+begin
+  if obj is TCSSResolvedHashIdentifierElement then
+  begin
+    if Count=length(Items) then
+      SetLength(Items,Count*2+8);
+    Items[Count]:=TCSSResolvedHashIdentifierElement(obj);
+    inc(Count);
+  end;
+end;
+
 { TTestCSSResolver }
 
 procedure TTestCSSResolver.TestRes_ParseAttr_Keyword;
@@ -1959,7 +1998,6 @@ begin
     for i:=0 to Visitor.Count-1 do
     begin
       El:=Visitor.Items[i];
-      AssertEquals('Kind is nikClassName',ord(nikClassName),ord(El.Kind));
       AssertEquals('NumericalID matches GetCSSClassID for '+El.Name,
         R.GetCSSClassID(El.Name),El.NumericalID);
       AssertTrue('NumericalID>=1 for '+El.Name,El.NumericalID>=1);
@@ -2013,6 +2051,140 @@ begin
 
   // delete the .west rule from the stylesheet
   Doc.Style:='.east { left: 1px; }';
+  ApplyStyle;
+  // the rule is gone -> it is no longer applied to the node
+  AssertEquals('Button1.left after','',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_Numbering;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // first occurrence in selector order determines the id index, beginning at 1
+  Doc.Style:='#alpha { left: 1px; }'
+            +'#beta { left: 2px; }'
+            +'#alpha#gamma { left: 3px; }'; // alpha repeats, gamma is new
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSIDCount',3,R.CSSIDCount);
+  AssertEquals('index alpha',1,R.GetCSSIDIndex('alpha'));
+  AssertEquals('index beta',2,R.GetCSSIDIndex('beta'));
+  AssertEquals('index gamma',3,R.GetCSSIDIndex('gamma'));
+  // stable on re-query
+  AssertEquals('index alpha again',1,R.GetCSSIDIndex('alpha'));
+  // reverse lookup
+  AssertEquals('name 1','alpha',R.GetCSSIDName(1));
+  AssertEquals('name 2','beta',R.GetCSSIDName(2));
+  AssertEquals('name 3','gamma',R.GetCSSIDName(3));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_Unknown;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='#west { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // lookup-only: an id never seen in any selector returns CSSIDNone
+  AssertEquals('unknown id',CSSIDNone,R.GetCSSIDIndex('east'));
+  AssertEquals('empty name',CSSIDNone,R.GetCSSIDIndex(''));
+  // querying did not register anything
+  AssertEquals('CSSIDCount',1,R.CSSIDCount);
+  AssertEquals('name of unknown index','',R.GetCSSIDName(99));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_CaseSensitive;
+var
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  // css ids are case sensitive -> two distinct indices
+  Doc.Style:='#Foo { left: 1px; }'
+            +'#foo { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertEquals('CSSIDCount',2,R.CSSIDCount);
+  AssertEquals('index Foo',1,R.GetCSSIDIndex('Foo'));
+  AssertEquals('index foo',2,R.GetCSSIDIndex('foo'));
+  AssertTrue('distinct indices',R.GetCSSIDIndex('Foo')<>R.GetCSSIDIndex('foo'));
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_ResolvedElement;
+var
+  R: TCSSResolver;
+  Visitor: THashIdentifierCollector;
+  i: Integer;
+  El: TCSSResolvedHashIdentifierElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddButton('Button1',Doc.Root);
+  Doc.Style:='#west { left: 1px; }'
+            +'#east { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  Visitor:=THashIdentifierCollector.Create;
+  try
+    for i:=0 to R.StyleSheetCount-1 do
+      if R.StyleSheets[i].Element<>nil then
+        R.StyleSheets[i].Element.Iterate(Visitor);
+    // both id selectors got resolved into TCSSResolvedHashIdentifierElement
+    AssertEquals('collected id elements',2,Visitor.Count);
+    for i:=0 to Visitor.Count-1 do
+    begin
+      El:=Visitor.Items[i];
+      AssertEquals('NumericalID matches GetCSSIDIndex for '+El.Value,
+        R.GetCSSIDIndex(El.Value),El.NumericalID);
+      AssertTrue('NumericalID>=1 for '+El.Value,El.NumericalID>=1);
+    end;
+  finally
+    Visitor.Free;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_AddIdToStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  // the stylesheet does not yet contain a #Button1 rule
+  Doc.Style:='#Other { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // id 'Button1' is not used by any selector -> not registered yet
+  AssertEquals('Button1 unknown before',CSSIDNone,R.GetCSSIDIndex('Button1'));
+  AssertEquals('Button1.left before','',Button1.Left);
+
+  // add a #Button1 rule: a new id index is registered
+  Doc.Style:='#Other { left: 1px; }#Button1 { left: 22px; }';
+  ApplyStyle;
+  AssertTrue('Button1 registered after add',R.GetCSSIDIndex('Button1')>=1);
+  // the node maps its name to the freshly added id index, so the rule now matches
+  AssertEquals('Button1.left after','22px',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_DeleteIdFromStylesheet;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Doc.Style:='#Button1 { left: 22px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  AssertTrue('Button1 registered before',R.GetCSSIDIndex('Button1')>=1);
+  AssertEquals('Button1.left before','22px',Button1.Left);
+
+  // delete the #Button1 rule from the stylesheet
+  Doc.Style:='#Other { left: 1px; }';
   ApplyStyle;
   // the rule is gone -> it is no longer applied to the node
   AssertEquals('Button1.left after','',Button1.Left);
@@ -4114,6 +4286,28 @@ begin
   Doc.Style:='#Button1 { left: 1px; }'
             +'#Other { top: 2px; }';
   ApplyStyle;
+  AssertEquals('Button1.left','1px',Button1.Left);
+  AssertEquals('Button1.top','',Button1.Top);
+  AssertEquals('rule count',2,length(Button1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_Buckets_IdBucketNumerical;
+var
+  Button1: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { top: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // the node reports its id as a numerical index, equal to the index the
+  // #Button1 selector was registered under (and different from #Other)
+  AssertTrue('node id index>=1',Button1.GetCSSID>=1);
+  AssertEquals('node id index = #Button1 index',R.GetCSSIDIndex('Button1'),Button1.GetCSSID);
+  AssertTrue('node id index <> #Other index',Button1.GetCSSID<>R.GetCSSIDIndex('Other'));
+  // and only the matching #Button1 rule applies (+ the UA button rule)
   AssertEquals('Button1.left','1px',Button1.Left);
   AssertEquals('Button1.top','',Button1.Top);
   AssertEquals('rule count',2,length(Button1.Rules.Rules));

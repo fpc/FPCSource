@@ -126,8 +126,7 @@ type
     nikPseudoFunction, // e.g. "is" of ":is()"
     nikType,
     nikKeyword,
-    nikAttrFunction, // e.g. "calc" of "calc()"
-    nikClassName // e.g. "row" of ".row"
+    nikAttrFunction // e.g. "calc" of "calc()"
     );
   TCSSNumericalIDs = set of TCSSNumericalIDKind;
 
@@ -141,8 +140,7 @@ const
     'PseudoFunction',
     'Attribute',
     'Keyword',
-    'AttributeFunction',
-    'ClassName'
+    'AttributeFunction'
     );
 
 type
@@ -498,7 +496,13 @@ type
   TCSSResolvedClassNameElement = class(TCSSClassNameElement)
   public
     NumericalID: TCSSNumericalID;
-    Kind: TCSSNumericalIDKind;
+  end;
+
+  { TCSSResolvedHashIdentifierElement - e.g. "x" of "#x" in a selector }
+
+  TCSSResolvedHashIdentifierElement = class(TCSSHashIdentifierElement)
+  public
+    NumericalID: TCSSNumericalID;
   end;
 
   { TCSSNthChildParams }
@@ -632,6 +636,8 @@ type
     function GetPseudoClassID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; virtual; // lookup only, CSSIDNone if unknown
     function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; virtual; // get or create, used while parsing selectors
+    function GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID; virtual; // lookup only, CSSIDNone if unknown
+    function AddCSSID(const aCSSID: TCSSString): TCSSNumericalID; virtual; // get or create, used while parsing selectors
     function GetPseudoElementID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoElFuncID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
@@ -656,6 +662,7 @@ type
     function ResolveType(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoClass(El: TCSSResolvedPseudoClassElement): TCSSNumericalID; virtual;
     function ResolveClassName(El: TCSSResolvedClassNameElement): TCSSNumericalID; virtual;
+    function ResolveHashIdentifier(El: TCSSResolvedHashIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoElement(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoElementFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
@@ -2398,6 +2405,17 @@ begin
   Result:=GetCSSClassID(aCSSClassName);
 end;
 
+function TCSSBaseResolver.GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID;
+begin
+  if aCSSID='' then ;
+  Result:=CSSIDNone;
+end;
+
+function TCSSBaseResolver.AddCSSID(const aCSSID: TCSSString): TCSSNumericalID;
+begin
+  Result:=GetCSSIDIndex(aCSSID);
+end;
+
 function TCSSBaseResolver.GetPseudoElementID(const aName: TCSSString): TCSSNumericalID;
 begin
   Result:=CSSRegistry.IndexOfPseudoElementName(aName);
@@ -2482,9 +2500,18 @@ function TCSSResolverParser.ResolveClassName(El: TCSSResolvedClassNameElement
 begin
   if El.NumericalID<>CSSIDNone then
     raise ECSSParser.Create('20260620120000');
-  El.Kind:=nikClassName;
   // class names are case sensitive and registered on first use
   Result:=Resolver.AddCSSClassID(El.Name);
+  El.NumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolveHashIdentifier(
+  El: TCSSResolvedHashIdentifierElement): TCSSNumericalID;
+begin
+  if El.NumericalID<>CSSIDNone then
+    raise ECSSParser.Create('20260621120000');
+  // ids are case sensitive and registered on first use
+  Result:=Resolver.AddCSSID(El.Value);
   El.NumericalID:=Result;
 end;
 
@@ -2722,8 +2749,9 @@ begin
   if C=TCSSResolvedIdentifierElement then
     // e.g. div {}
     ResolveType(TCSSResolvedIdentifierElement(El))
-  else if C=TCSSHashIdentifierElement then
+  else if C=TCSSResolvedHashIdentifierElement then
     // e.g. #id {}
+    ResolveHashIdentifier(TCSSResolvedHashIdentifierElement(El))
   else if C=TCSSResolvedClassNameElement then
     // e.g. .classname {}
     ResolveClassName(TCSSResolvedClassNameElement(El))
@@ -3105,6 +3133,7 @@ begin
   CSSIdentifierElementClass:=TCSSResolvedIdentifierElement;
   CSSPseudoClassElementClass:=TCSSResolvedPseudoClassElement;
   CSSClassNameElementClass:=TCSSResolvedClassNameElement;
+  CSSHashIdentifierElementClass:=TCSSResolvedHashIdentifierElement;
   CSSCallElementClass:=TCSSResolvedCallElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;

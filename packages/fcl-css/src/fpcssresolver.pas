@@ -166,10 +166,8 @@ type
   { ICSSNode }
 
   ICSSNode = interface
-    function GetCSSID: TCSSString;
-    function GetCSSTypeName: TCSSString;
+    function GetCSSID: TCSSNumericalID; // resolver id index of this node's 'id' (see GetCSSIDIndex), CSSIDNone if none/unknown
     function GetCSSTypeID: TCSSNumericalID;
-    function GetCSSPseudoElementName: TCSSString;
     function GetCSSPseudoElementID: TCSSNumericalID;
     // parent
     function GetCSSParent: ICSSNode;
@@ -188,6 +186,7 @@ type
     function HasCSSClass(const aClassID: TCSSNumericalID): boolean;
     function GetCSSClasses: TCSSNumericalIDArray; // all class ids of this node
     function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
+    function GetCSSAttributeID: TCSSString; // get the 'id' attribute
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
@@ -417,6 +416,9 @@ type
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSClassNameCount: TCSSNumericalID;
     FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class to id mapping changed
+    FCSSIDNameToIndex: TFPHashList; // id name -> TCSSNumericalID (>=1)
+    FCSSIDNames: TCSSStringArray; // index = ID-1, reverse lookup
+    FCSSIDCount: TCSSNumericalID;
     FAtMediaCache: TAtMediaCacheArray;
     FAtMediaCacheCount: integer;
     // rule buckets, based on the rightmost identifier of each selector;
@@ -424,7 +426,7 @@ type
     FBucketOther: TCSSRuleBucket;
     FBucketType: TCSSRuleBucketArray; // index = type id
     FBucketClass: TCSSRuleBucketArray; // index = class id
-    FBucketID: TFPHashList; // css id name -> TCSSRuleBucket
+    FBucketID: TCSSRuleBucketArray; // index = id numerical id
     FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
@@ -495,10 +497,10 @@ type
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure GetSelectorBucketKey(aSelector: TCSSElement; out Kind: TCSSRuleBucketKind;
-      out NumID: TCSSNumericalID; out IDName: TCSSString); virtual;
+      out NumID: TCSSNumericalID); virtual;
     function GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
     function GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
-    function GetIDBucket(const aIDName: TCSSString): TCSSRuleBucket;
+    function GetIDBucket(aID: TCSSNumericalID): TCSSRuleBucket;
     procedure AddBucketToRuleCandidates(Bucket: TCSSRuleBucket);
     procedure SortRuleCandidates;
     // shared rules
@@ -548,6 +550,11 @@ type
     function GetCSSClassName(aID: TCSSNumericalID): TCSSString; virtual;
     property CSSClassNameCount: TCSSNumericalID read FCSSClassNameCount;
     property CSSClassIDStamp: TCSSNumericalID read FCSSClassIDStamp; // always >0, changed whenever the css class to id mapping changed
+    // css ids from selectors, numbered from 1
+    function GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID; override;
+    function AddCSSID(const aCSSID: TCSSString): TCSSNumericalID; override;
+    function GetCSSIDName(aID: TCSSNumericalID): TCSSString; virtual;
+    property CSSIDCount: TCSSNumericalID read FCSSIDCount;
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
     property StringComparison: TCSSResStringComparison read FStringComparison;
@@ -1032,6 +1039,11 @@ begin
   FCSSClassNames:=nil;
   FCSSClassNameCount:=0;
   ChangeCSSClassIDStamp;
+
+  // id name indices are rebuilt while reparsing the selectors
+  FCSSIDNameToIndex.Clear;
+  FCSSIDNames:=nil;
+  FCSSIDCount:=0;
 
   // not referencing CSSRegistry anymore
   FCSSRegistryStamp:=0;
@@ -1745,8 +1757,8 @@ begin
   C:=aSelector.ClassType;
   if C=TCSSResolvedIdentifierElement then
     Result:=SelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector),TestNode,OnlySpecificity)
-  else if C=TCSSHashIdentifierElement then
-    Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
+  else if C=TCSSResolvedHashIdentifierElement then
+    Result:=SelectorHashIdentifierMatches(TCSSResolvedHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedClassNameElement then
     Result:=SelectorClassNameMatches(TCSSResolvedClassNameElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedPseudoClassElement then
@@ -2018,13 +2030,13 @@ function TCSSResolver.SelectorHashIdentifierMatches(
   Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
 var
-  aValue: TCSSString;
+  aID: TCSSNumericalID;
 begin
   if OnlySpecificity then
     exit(CSSSpecificityIdentifier+FSourceSpecificity);
   Result:=CSSSpecificityNoMatch;
-  aValue:=Identifier.Value;
-  if TestNode.GetCSSID=aValue then
+  aID:=TCSSResolvedHashIdentifierElement(Identifier).NumericalID;
+  if (aID>=1) and (TestNode.GetCSSID=aID) then
     Result:=CSSSpecificityIdentifier+FSourceSpecificity;
 end;
 
@@ -2433,7 +2445,7 @@ begin
   case AttrID of
   CSSIDNone: exit(CSSSpecificityNoMatch);
   CSSAttributeID_ID:
-    LeftValue:=TestNode.GetCSSID;
+    LeftValue:=TestNode.GetCSSAttributeID;
   CSSAttributeID_Class:
     LeftValue:=TestNode.GetCSSAttributeClass;
   CSSAttributeID_All:
@@ -3651,7 +3663,7 @@ begin
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
   FCustomAttributeNameToDesc:=TFPHashList.Create;
   FCSSClassNameToID:=TFPHashList.Create;
-  FBucketID:=TFPHashList.Create;
+  FCSSIDNameToIndex:=TFPHashList.Create;
   FCSSClassIDStamp:=1;
 end;
 
@@ -3667,7 +3679,7 @@ destructor TCSSResolver.Destroy;
 begin
   Clear;
   ClearRuleBuckets;
-  FreeAndNil(FBucketID);
+  FreeAndNil(FCSSIDNameToIndex);
   FreeAndNil(FCSSClassNameToID);
   FreeAndNil(FCustomAttributeNameToDesc);
   FreeAndNil(FSharedRuleLists);
@@ -3872,12 +3884,9 @@ begin
   for i:=0 to length(FBucketClass)-1 do
     FBucketClass[i].Free;
   FBucketClass:=nil;
-  if FBucketID<>nil then
-  begin
-    for i:=0 to FBucketID.Count-1 do
-      TCSSRuleBucket(FBucketID[i]).Free;
-    FBucketID.Clear;
-  end;
+  for i:=0 to length(FBucketID)-1 do
+    FBucketID[i].Free;
+  FBucketID:=nil;
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
   FRuleBucketsValid:=false;
@@ -3928,34 +3937,42 @@ begin
   end;
 end;
 
-function TCSSResolver.GetIDBucket(const aIDName: TCSSString): TCSSRuleBucket;
+function TCSSResolver.GetIDBucket(aID: TCSSNumericalID): TCSSRuleBucket;
+var
+  OldLen, i: SizeInt;
 begin
-  Result:=TCSSRuleBucket(FBucketID.Find(aIDName));
+  if aID>=length(FBucketID) then
+  begin
+    OldLen:=length(FBucketID);
+    SetLength(FBucketID,aID+1);
+    for i:=OldLen to aID do
+      FBucketID[i]:=nil;
+  end;
+  Result:=FBucketID[aID];
   if Result=nil then
   begin
     Result:=TCSSRuleBucket.Create;
-    FBucketID.Add(aIDName,Result);
+    FBucketID[aID]:=Result;
   end;
 end;
 
 procedure TCSSResolver.GetSelectorBucketKey(aSelector: TCSSElement;
-  out Kind: TCSSRuleBucketKind; out NumID: TCSSNumericalID; out IDName: TCSSString);
+  out Kind: TCSSRuleBucketKind; out NumID: TCSSNumericalID);
 
   procedure Classify(El: TCSSElement; out aKind: TCSSRuleBucketKind;
-    out aNumID: TCSSNumericalID; out aName: TCSSString);
+    out aNumID: TCSSNumericalID);
   var
     C: TClass;
     TypeID: TCSSNumericalID;
   begin
     aKind:=rbkOther;
     aNumID:=CSSIDNone;
-    aName:='';
     if El=nil then exit;
     C:=El.ClassType;
-    if C=TCSSHashIdentifierElement then
+    if C=TCSSResolvedHashIdentifierElement then
     begin
-      aName:=TCSSHashIdentifierElement(El).Value;
-      if aName<>'' then
+      aNumID:=TCSSResolvedHashIdentifierElement(El).NumericalID;
+      if aNumID>=1 then
         aKind:=rbkID;
     end
     else if C=TCSSResolvedClassNameElement then
@@ -3984,11 +4001,9 @@ var
   i: Integer;
   ChildKind: TCSSRuleBucketKind;
   ChildNum: TCSSNumericalID;
-  ChildName: TCSSString;
 begin
   Kind:=rbkOther;
   NumID:=CSSIDNone;
-  IDName:='';
 
   // descend combinators to the rightmost selector part
   while aSelector<>nil do
@@ -4027,18 +4042,17 @@ begin
     aList:=TCSSListElement(aSelector);
     for i:=0 to aList.ChildCount-1 do
     begin
-      Classify(aList.Children[i],ChildKind,ChildNum,ChildName);
+      Classify(aList.Children[i],ChildKind,ChildNum);
       if ChildKind>Kind then
       begin
         Kind:=ChildKind;
         NumID:=ChildNum;
-        IDName:=ChildName;
         if Kind=rbkID then break; // id is the most distinctive, stop early
       end;
     end;
   end
   else
-    Classify(aSelector,Kind,NumID,IDName);
+    Classify(aSelector,Kind,NumID);
 end;
 
 procedure TCSSResolver.BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
@@ -4046,7 +4060,6 @@ var
   i: Integer;
   Kind: TCSSRuleBucketKind;
   NumID: TCSSNumericalID;
-  IDName: TCSSString;
   DocIndex: Integer;
 begin
   DocIndex:=FBucketDocIndex;
@@ -4068,9 +4081,9 @@ begin
 
   for i:=0 to aRule.SelectorCount-1 do
   begin
-    GetSelectorBucketKey(aRule.Selectors[i],Kind,NumID,IDName);
+    GetSelectorBucketKey(aRule.Selectors[i],Kind,NumID);
     case Kind of
-    rbkID:    GetIDBucket(IDName).Add(aRule,DocIndex,SrcSpecificity);
+    rbkID:    GetIDBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
     rbkClass: GetClassBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
     rbkType:  GetTypeBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
     else
@@ -4168,8 +4181,7 @@ procedure TCSSResolver.FindMatchingRules;
 var
   i, c: Integer;
   Classes: TCSSNumericalIDArray;
-  TypeID: TCSSNumericalID;
-  IDName: TCSSString;
+  TypeID, IDIndex: TCSSNumericalID;
   LastRule: TCSSRuleElement;
   Item: PCSSRuleBucketItem;
 begin
@@ -4184,9 +4196,9 @@ begin
   if (TypeID>=0) and (TypeID<length(FBucketType)) then
     AddBucketToRuleCandidates(FBucketType[TypeID]);
 
-  IDName:=FNode.GetCSSID;
-  if IDName<>'' then
-    AddBucketToRuleCandidates(TCSSRuleBucket(FBucketID.Find(IDName)));
+  IDIndex:=FNode.GetCSSID;
+  if (IDIndex>=1) and (IDIndex<length(FBucketID)) then
+    AddBucketToRuleCandidates(FBucketID[IDIndex]);
 
   Classes:=FNode.GetCSSClasses;
   for i:=0 to length(Classes)-1 do
@@ -4268,6 +4280,47 @@ function TCSSResolver.GetCSSClassName(aID: TCSSNumericalID): TCSSString;
 begin
   if (aID>=1) and (aID<=FCSSClassNameCount) then
     Result:=FCSSClassNames[aID-1]
+  else
+    Result:='';
+end;
+
+function TCSSResolver.GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID;
+var
+  p: Pointer;
+begin
+  // ids are case sensitive
+  p:=FCSSIDNameToIndex.Find(aCSSID);
+  if p=nil then
+    Result:=CSSIDNone
+  else
+    Result:={%H-}TCSSNumericalID(p);
+end;
+
+function TCSSResolver.AddCSSID(const aCSSID: TCSSString): TCSSNumericalID;
+var
+  Cnt: SizeInt;
+begin
+  Result:=GetCSSIDIndex(aCSSID);
+  if Result<>CSSIDNone then exit;
+  inc(FCSSIDCount);
+  Result:=FCSSIDCount;
+  FCSSIDNameToIndex.Add(aCSSID,{%H-}Pointer(Result));
+  Cnt:=length(FCSSIDNames);
+  if Cnt<FCSSIDCount then
+  begin
+    if Cnt<8 then
+      Cnt:=8
+    else
+      Cnt:=Cnt*2;
+    SetLength(FCSSIDNames,Cnt);
+  end;
+  FCSSIDNames[Result-1]:=aCSSID;
+end;
+
+function TCSSResolver.GetCSSIDName(aID: TCSSNumericalID): TCSSString;
+begin
+  if (aID>=1) and (aID<=FCSSIDCount) then
+    Result:=FCSSIDNames[aID-1]
   else
     Result:='';
 end;
