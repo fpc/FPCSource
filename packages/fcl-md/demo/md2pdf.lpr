@@ -7,7 +7,7 @@ uses
   cthreads, cwstring,
   {$ENDIF}
   dynlibs, Classes, SysUtils, CustApp, fppdf, fpttf,
-  Markdown.Processors, Markdown.Parser, MarkDown.PDFRender;
+  Markdown.Processors, Markdown.Parser, Markdown.Elements, MarkDown.PDFRender;
 
 type
 
@@ -61,8 +61,12 @@ var
   lRenderer : TMarkDownPDFRenderer;
   lPDF : TPDFDocument;
   lMarkDown : TStrings;
+  lParser : TMarkDownParser;
+  lDoc : TMarkDownDocument;
 begin
   lRenderer:=Nil;
+  lParser:=Nil;
+  lDoc:=Nil;
   lMarkDown:=TStringList.Create;
   try
     lMarkDown.LoadFromFile(aInput);
@@ -80,12 +84,16 @@ begin
         lRenderer.BaseFontSize:=FBaseFontSize;
       // Resolve relative image paths against the markdown file's directory
       lRenderer.ImageBaseDir:=ExtractFilePath(ExpandFileName(aInput));
-      lRenderer.ParseMarkdown(lMarkDown);
-      lRenderer.RenderDocument(lPDF);
+      // Parse the markdown, then render the document into the PDF
+      lParser:=TMarkDownParser.Create(Self);
+      lDoc:=lParser.Parse(lMarkDown);
+      lRenderer.RenderDocument(lDoc,lPDF);
       lPDF.SaveToFile(aOutput);
       Writeln('  pages written: ',lPDF.Pages.Count);
     finally
       lRenderer.Free;
+      lDoc.Free;
+      lParser.Free;
       lPDF.Free;
     end;
   finally

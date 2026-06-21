@@ -285,8 +285,9 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Rendering interface
-    procedure RenderDocument(aPDFDocument: TPDFDocument);
+    // Rendering interface. The markdown document is supplied by the caller (who
+    // retains ownership) and rendered into aPDFDocument.
+    procedure RenderDocument(aDocument: TMarkDownDocument; aPDFDocument: TPDFDocument);
 
     function HitTestLink(const aX, aY: LongInt; const aPageIndex: Integer; out aHref: utf8string): boolean;
 
@@ -821,6 +822,7 @@ procedure TPDFMarkDownListItemBlockRenderer.DoRender(aBlock: TMarkDownBlock);
 var
   lListRenderer: TPDFMarkDownListBlockRenderer;
   lPrefix: string;
+  lIndent: Integer;
 begin
   if not assigned(aBlock) then
     exit;
@@ -832,8 +834,10 @@ begin
   else
     lPrefix := PDFRenderer.GetBullet;
 
-  // Render bullet/number
+  // Render bullet/number, then hang-indent so wrapped lines align after it
   LayoutText(lPrefix+' ', PDFRenderer.BaseFontSize, [], '', []);
+  lIndent := MeasureTextWidth(lPrefix+'_', PDFRenderer.BaseFontSize, [], []);
+  PDFRenderer.Indent(lIndent);
 
   // Keep the item text on the same line as the bullet
   PDFRenderer.SuppressNextParagraphBreak;
@@ -841,6 +845,7 @@ begin
   Renderer.RenderChildren(aBlock as TMarkDownContainerBlock);
   // Clear the suppression in case the content produced no paragraph to consume it
   PDFRenderer.FSuppressParagraphBreak:=False;
+  PDFRenderer.Undent(lIndent);
   NewLine;
 end;
 
@@ -1439,7 +1444,7 @@ begin
   FreeAndNil(FPageList);
   FreeAndNil(FLists.Items);
   FreeAndNil(FLists.LinkRects);
-  FreeAndNil(fDocument);
+  // FDocument is owned by the caller, not freed here.
   inherited Destroy;
 end;
 
@@ -1839,8 +1844,9 @@ begin
     fLineWidth:=lNewWidth;
 end;
 
-procedure TMarkDownPDFRenderer.RenderDocument(aPDFDocument : TPDFDocument);
+procedure TMarkDownPDFRenderer.RenderDocument(aDocument : TMarkDownDocument; aPDFDocument : TPDFDocument);
 begin
+  FDocument:=aDocument; // referenced only; the caller owns it
   FPDFDocument:=aPDFDocument;
   // We embed TrueType fonts (see ApplyFont); subsetting is required for the
   // embedded glyphs - including non-ASCII ones such as list bullets - to render.

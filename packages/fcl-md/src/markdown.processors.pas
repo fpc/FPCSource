@@ -628,6 +628,7 @@ function TOListProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: T
 var
   lBlock : TMarkdownContainerBlock;
   lList : TMarkdownListBlock absolute lBlock;
+  lProc : TMarkdownBlockProcessor;
 
 begin
   lBlock:=aBlock;
@@ -641,8 +642,22 @@ begin
   // Check if we're still in the parent list
   if aLine.LeadingWhitespace>=lList.baseIndent then
     begin
-    aLine.Advance(lList.LastIndent);
-    Result:=False
+    Result:=False;
+    { A non-indented block that "interrupts" a list (CommonMark) ends it.
+      Without this, e.g. a heading at column 0 following a top-level ordered
+      list would be parsed as a child of the last list item (the same fix as
+      in TUListProcessor.LineEndsBlock). }
+    if aLine.LeadingWhitespace <= lList.BaseIndent then
+      for lProc in Parser.Processors do
+        if (lProc.ClassType <> ClassType)
+           and lProc.EndsList
+           and lProc.HandlesLine(aBlock, aLine) then
+          begin
+          Result:=True;
+          Break;
+          end;
+    if not Result then
+      aLine.Advance(lList.LastIndent);
     end;
 end;
 
