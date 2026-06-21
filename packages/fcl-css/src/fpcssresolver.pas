@@ -415,7 +415,7 @@ type
     FCSSClassNameToID: TFPHashList; // class name -> TCSSNumericalID (>=1)
     FCSSClassNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSClassNameCount: TCSSNumericalID;
-    FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class to id mapping changed
+    FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class or id name to numerical id mapping changed
     FCSSIDNameToIndex: TFPHashList; // id name -> TCSSNumericalID (>=1)
     FCSSIDNames: TCSSStringArray; // index = ID-1, reverse lookup
     FCSSIDCount: TCSSNumericalID;
@@ -549,7 +549,7 @@ type
     function AddCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
     function GetCSSClassName(aID: TCSSNumericalID): TCSSString; virtual;
     property CSSClassNameCount: TCSSNumericalID read FCSSClassNameCount;
-    property CSSClassIDStamp: TCSSNumericalID read FCSSClassIDStamp; // always >0, changed whenever the css class to id mapping changed
+    property CSSClassIDStamp: TCSSNumericalID read FCSSClassIDStamp; // always >0, changed whenever the css class or id name to numerical id mapping changed
     // css ids from selectors, numbered from 1
     function GetCSSIDIndex(const aCSSID: TCSSString): TCSSNumericalID; override;
     function AddCSSID(const aCSSID: TCSSString): TCSSNumericalID; override;
@@ -4302,6 +4302,7 @@ begin
     SetLength(FCSSIDNames,Cnt);
   end;
   FCSSIDNames[Result-1]:=aCSSID;
+  ChangeCSSClassIDStamp;
 end;
 
 function TCSSResolver.GetCSSIDName(aID: TCSSNumericalID): TCSSString;
