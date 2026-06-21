@@ -444,10 +444,11 @@ begin
       begin
 //      aLine.Advance(lList.LastIndent);
       Result:=False;
-      { A non-indented block that "interrupts" a list (CommonMark) ends it.
-        Without this, e.g. a heading at column 0 following a top-level list
-        would be parsed as a child of the last list item. }
       if aLine.LeadingWhitespace <= lList.BaseIndent then
+        begin
+        { A non-indented block that "interrupts" a list (CommonMark) ends it.
+          Without this, e.g. a heading at column 0 following a top-level list
+          would be parsed as a child of the last list item. }
         for lProc in Parser.Processors do
           if (lProc.ClassType <> ClassType)
              and lProc.EndsList
@@ -456,6 +457,13 @@ begin
             Result:=True;
             Break;
             end;
+        { A non-indented, non-blank line after a blank line that is not a marker
+          of this list is a new top-level block, not a lazy continuation. }
+        if (not Result) and (not aLine.isWhitespace)
+           and Assigned(CurrentLine) and CurrentLine.isWhitespace
+           and (not IsItemInList(lList,aLine)) then
+          Result:=True;
+        end;
       end;
 end;
 
@@ -643,11 +651,12 @@ begin
   if aLine.LeadingWhitespace>=lList.baseIndent then
     begin
     Result:=False;
-    { A non-indented block that "interrupts" a list (CommonMark) ends it.
-      Without this, e.g. a heading at column 0 following a top-level ordered
-      list would be parsed as a child of the last list item (the same fix as
-      in TUListProcessor.LineEndsBlock). }
     if aLine.LeadingWhitespace <= lList.BaseIndent then
+      begin
+      { A non-indented block that "interrupts" a list (CommonMark) ends it.
+        Without this, e.g. a heading at column 0 following a top-level ordered
+        list would be parsed as a child of the last list item (the same fix as
+        in TUListProcessor.LineEndsBlock). }
       for lProc in Parser.Processors do
         if (lProc.ClassType <> ClassType)
            and lProc.EndsList
@@ -656,6 +665,13 @@ begin
           Result:=True;
           Break;
           end;
+      { A non-indented, non-blank line after a blank line that is not a marker
+        of this list is a new top-level block, not a lazy continuation. }
+      if (not Result) and (not aLine.isWhitespace)
+         and Assigned(CurrentLine) and CurrentLine.isWhitespace
+         and (not IsItemInList(lList,aLine)) then
+        Result:=True;
+      end;
     if not Result then
       aLine.Advance(lList.LastIndent);
     end;

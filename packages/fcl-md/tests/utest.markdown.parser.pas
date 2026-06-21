@@ -86,6 +86,14 @@ type
     procedure TestNestedList4;
     procedure TestNestedList5;
     procedure TestNestedList6;
+    // A non-indented block after a blank line ends the list (CommonMark), it is
+    // not absorbed as a loose continuation of the last item.
+    procedure TestOrderedListThenParagraph;
+    procedure TestUnorderedListThenParagraph;
+    procedure TestOrderedListThenHeading;
+    // These must keep working (the fix must not be over-eager):
+    procedure TestLooseListPreserved;
+    procedure TestLazyContinuationPreserved;
   end;
 
   { TTestThematicBreaks }
@@ -573,6 +581,75 @@ begin
   InnerList := OuterItem.Blocks[1] as TMarkDownListBlock;
   if not InnerList.Blocks.Count = 4 then
     Fail('Inner list item should have 4 items');
+end;
+
+procedure TTestLists.TestOrderedListThenParagraph;
+var
+  List: TMarkDownListBlock;
+begin
+  // The blank line + non-indented paragraph ends the ordered list; "After." is a
+  // top-level paragraph, not a second paragraph of the last item.
+  SetupParser('1. one'#10'2. two'#10#10'After.');
+  AssertEquals('Document should have 2 blocks (list + paragraph)', 2, Doc.Blocks.Count);
+  AssertTrue('First block is a list', Doc.Blocks[0] is TMarkDownListBlock);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('List should have exactly 2 items', 2, List.Blocks.Count);
+  AssertTrue('Second block is a paragraph', Doc.Blocks[1] is TMarkDownParagraphBlock);
+  CheckBlockText('Trailing paragraph', Doc.Blocks[1], 'After.', False);
+end;
+
+procedure TTestLists.TestUnorderedListThenParagraph;
+var
+  List: TMarkDownListBlock;
+begin
+  SetupParser('* one'#10'* two'#10#10'After.');
+  AssertEquals('Document should have 2 blocks (list + paragraph)', 2, Doc.Blocks.Count);
+  AssertTrue('First block is a list', Doc.Blocks[0] is TMarkDownListBlock);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('List should have exactly 2 items', 2, List.Blocks.Count);
+  AssertTrue('Second block is a paragraph', Doc.Blocks[1] is TMarkDownParagraphBlock);
+  CheckBlockText('Trailing paragraph', Doc.Blocks[1], 'After.', False);
+end;
+
+procedure TTestLists.TestOrderedListThenHeading;
+var
+  List: TMarkDownListBlock;
+begin
+  // An interrupting block (a heading) at column 0 also ends the list.
+  SetupParser('1. one'#10'2. two'#10#10'# Heading');
+  AssertEquals('Document should have 2 blocks (list + heading)', 2, Doc.Blocks.Count);
+  AssertTrue('First block is a list', Doc.Blocks[0] is TMarkDownListBlock);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('List should have exactly 2 items', 2, List.Blocks.Count);
+  AssertTrue('Second block is a heading', Doc.Blocks[1] is TMarkDownHeadingBlock);
+end;
+
+procedure TTestLists.TestLooseListPreserved;
+var
+  List: TMarkDownListBlock;
+begin
+  // A blank line between two markers makes the list loose; it stays ONE list.
+  SetupParser('1. one'#10#10'2. two');
+  AssertEquals('Document should have 1 block (the loose list)', 1, Doc.Blocks.Count);
+  AssertTrue('Block is a list', Doc.Blocks[0] is TMarkDownListBlock);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('Loose list should still have 2 items', 2, List.Blocks.Count);
+end;
+
+procedure TTestLists.TestLazyContinuationPreserved;
+var
+  List: TMarkDownListBlock;
+  Item: TMarkDownListItemBlock;
+begin
+  // No blank line: "continued" is a lazy continuation of the first item, so the
+  // document is still a single list and "continued" did not leak out as a block.
+  SetupParser('1. one'#10'continued'#10'2. two');
+  AssertEquals('Document should have 1 block (the list)', 1, Doc.Blocks.Count);
+  AssertTrue('Block is a list', Doc.Blocks[0] is TMarkDownListBlock);
+  List := Doc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals('List should have 2 items', 2, List.Blocks.Count);
+  Item := List.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('First item should have a single paragraph (with the lazy line)', 1, Item.Blocks.Count);
 end;
 
 { TTestThematicBreaks }
