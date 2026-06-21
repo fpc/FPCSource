@@ -219,6 +219,25 @@ type
   PCSSSharedRule = ^TCSSSharedRule;
   TCSSSharedRuleArray = array of TCSSSharedRule;
 
+  // A "sibling selector" is one whose match result for the subject (rightmost) compound
+  // depends on the node's siblings, its position among siblings, or its descendants
+  // (combinators '+'/'~', :nth-*(), :first/last/only-child/of-type, :empty, :has()).
+  // Same-parent siblings share their ancestor chain, so combinators/pseudos that appear
+  // only in an ancestor part are NOT sibling selectors. Used by the style-sharing
+  // optimization (see TFresnelElement.ComputeCSSValues).
+  TCSSSiblingSelector = record
+    Selector: TCSSElement;
+    Rule: TCSSRuleElement; // owning rule, passed to SelectorMatches for the nested context
+    SrcSpecificity: TCSSSpecificity; // origin specificity of the rule's layer
+  end;
+  TCSSSiblingSelectorArray = array of TCSSSiblingSelector;
+
+  { TCSSSiblingMatchList - the subset of the resolver's sibling selectors that match a
+    given node, in FSiblingSelectors order (so two nodes' lists are directly comparable). }
+  TCSSSiblingMatchList = record
+    Matched: array of TCSSElement;
+  end;
+
   { TCSSSharedRuleList - elements with same CSS rules share the base attributes }
 
   TCSSSharedRuleList = class
@@ -431,6 +450,10 @@ type
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
     FRuleBucketsValid: boolean; // false when FLayers changed and buckets/@media cache need a rebuild
+    // all selectors whose subject match depends on siblings/position/descendants;
+    // (re)built lazily with the rule buckets, used by MatchSiblingSelectors
+    FSiblingSelectors: TCSSSiblingSelectorArray;
+    FSiblingSelectorCount: integer;
     procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
@@ -496,6 +519,11 @@ type
     procedure UpdateRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
     procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    // sibling selectors (style sharing)
+    procedure CollectSiblingSelectors(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
+    procedure AddSiblingSelector(aSelector: TCSSElement; aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
+    function SelectorHasSiblingDependency(aSelector: TCSSElement): boolean; virtual; // subject-side
+    function SelectorComponentSiblingDep(aComponent: TCSSElement): boolean; virtual;
     procedure GetSelectorBucketKey(aSelector: TCSSElement; out Kind: TCSSRuleBucketKind;
       out NumID: TCSSNumericalID); virtual;
     function GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
@@ -536,8 +564,12 @@ type
     procedure Compute(Node: ICSSNode;
       InlineStyle: TCSSRuleElement; // inline style of Node
       out Rules: TCSSSharedRuleList {owned by resolver};
-      out Values: TCSSAttributeValues
+      out Values: TCSSAttributeValues;
+      out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
       ); virtual;
+    // Match all sibling/positional selectors against Node (cheap: only the usually-small
+    // sibling-selector set is evaluated, not the full bucketed cascade).
+    function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
@@ -578,6 +610,7 @@ type
     property OnLog: TCSSResolverLogEvent read FOnLog write FOnLog;
   end;
 
+function SameCSSSiblingMatches(const A, B: TCSSSiblingMatchList): boolean;
 function ComparePointer(Data1, Data2: Pointer): integer;
 function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): integer;
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
@@ -585,6 +618,17 @@ function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Point
 
 
 implementation
+
+function SameCSSSiblingMatches(const A, B: TCSSSiblingMatchList): boolean;
+var
+  i, n: Integer;
+begin
+  n:=length(A.Matched);
+  if n<>length(B.Matched) then exit(false);
+  for i:=0 to n-1 do
+    if A.Matched[i]<>B.Matched[i] then exit(false);
+  Result:=true;
+end;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
 begin
@@ -3716,11 +3760,13 @@ begin
 end;
 
 procedure TCSSResolver.Compute(Node: ICSSNode; InlineStyle: TCSSRuleElement;
-  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues);
+  out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues;
+  out SiblingMatches: TCSSSiblingMatchList);
 var
   i: Integer;
 begin
   Rules:=nil;
+  SiblingMatches:=Default(TCSSSiblingMatchList);
   FNode:=Node;
   try
     UpdateRuleBuckets;
@@ -3744,6 +3790,9 @@ begin
 
     // create sorted map AttrId to Value
     Values:=CreateValueList;
+
+    // collect the sibling selectors matching this node, so siblings can be style-shared
+    SiblingMatches:=MatchSiblingSelectors(Node);
   finally
     FNode:=nil;
   end;
@@ -3886,6 +3935,8 @@ begin
   FBucketID:=nil;
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
+  FSiblingSelectorCount:=0;
+  FSiblingSelectors:=nil;
   FRuleBucketsValid:=false;
 end;
 
@@ -4068,6 +4119,145 @@ begin
   end;
 end;
 
+procedure TCSSResolver.CollectSiblingSelectors(aRule: TCSSRuleElement;
+  SrcSpecificity: TCSSSpecificity);
+// Add every selector of aRule (and its nested rules) whose subject match depends on
+// siblings/position/descendants to FSiblingSelectors. @-rule "selectors" are media
+// queries, not node selectors, so only their nested rules are descended.
+var
+  i: Integer;
+begin
+  if aRule=nil then exit;
+  if aRule.ClassType<>TCSSAtRuleElement then
+    for i:=0 to aRule.SelectorCount-1 do
+      if SelectorHasSiblingDependency(aRule.Selectors[i]) then
+        AddSiblingSelector(aRule.Selectors[i],aRule,SrcSpecificity);
+  for i:=0 to aRule.NestedRuleCount-1 do
+    CollectSiblingSelectors(aRule.NestedRules[i],SrcSpecificity);
+end;
+
+procedure TCSSResolver.AddSiblingSelector(aSelector: TCSSElement;
+  aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
+var
+  l: Integer;
+begin
+  l:=length(FSiblingSelectors);
+  if FSiblingSelectorCount=l then
+  begin
+    if l<8 then l:=8 else l:=l*2;
+    SetLength(FSiblingSelectors,l);
+  end;
+  FSiblingSelectors[FSiblingSelectorCount].Selector:=aSelector;
+  FSiblingSelectors[FSiblingSelectorCount].Rule:=aRule;
+  FSiblingSelectors[FSiblingSelectorCount].SrcSpecificity:=SrcSpecificity;
+  inc(FSiblingSelectorCount);
+end;
+
+function TCSSResolver.SelectorHasSiblingDependency(aSelector: TCSSElement): boolean;
+// Walks the subject (rightmost) side of aSelector. Combinators/pseudos in an ancestor
+// part are deliberately not followed - same-parent siblings share their ancestors.
+var
+  aBinary: TCSSBinaryElement;
+  aUnary: TCSSUnaryElement;
+  aList: TCSSListElement;
+  i: Integer;
+begin
+  Result:=false;
+  if aSelector=nil then exit;
+  if aSelector.ClassType=TCSSBinaryElement then
+  begin
+    aBinary:=TCSSBinaryElement(aSelector);
+    case aBinary.Operation of
+    boPlus,boTilde: Result:=true; // subject preceded by a (matching) sibling
+    else
+      // descendant/child combinator (or attribute binary): only the subject matters
+      Result:=SelectorHasSiblingDependency(aBinary.Right);
+    end;
+  end
+  else if aSelector.ClassType=TCSSUnaryElement then
+  begin
+    aUnary:=TCSSUnaryElement(aSelector);
+    case aUnary.Operation of
+    uoPlus,uoTilde: Result:=true;
+    uoGT: Result:=SelectorHasSiblingDependency(aUnary.Right);
+    end;
+  end
+  else if aSelector.ClassType=TCSSListElement then
+  begin
+    aList:=TCSSListElement(aSelector);
+    for i:=0 to aList.ChildCount-1 do
+      if SelectorComponentSiblingDep(aList.Children[i]) then exit(true);
+  end
+  else
+    Result:=SelectorComponentSiblingDep(aSelector);
+end;
+
+function TCSSResolver.SelectorComponentSiblingDep(aComponent: TCSSElement): boolean;
+// A single component of the subject compound (pseudo-class, call, type, class, ...).
+var
+  aCall: TCSSResolvedCallElement;
+  i: Integer;
+begin
+  Result:=false;
+  if aComponent=nil then exit;
+  if aComponent.ClassType=TCSSResolvedPseudoClassElement then
+  begin
+    case TCSSResolvedPseudoClassElement(aComponent).NumericalID of
+    CSSPseudoID_Empty,
+    CSSPseudoID_FirstChild,CSSPseudoID_LastChild,CSSPseudoID_OnlyChild,
+    CSSPseudoID_FirstOfType,CSSPseudoID_LastOfType,CSSPseudoID_OnlyOfType:
+      Result:=true;
+    end;
+  end
+  else if aComponent.ClassType=TCSSResolvedCallElement then
+  begin
+    aCall:=TCSSResolvedCallElement(aComponent);
+    case aCall.NameNumericalID of
+    CSSCallID_NthChild,CSSCallID_NthLastChild,
+    CSSCallID_NthOfType,CSSCallID_NthLastOfType,
+    CSSCallID_Has:
+      Result:=true;
+    CSSCallID_Not,CSSCallID_Is,CSSCallID_Where:
+      // forgiving wrappers apply to the same subject node -> recurse into the args
+      for i:=0 to aCall.ArgCount-1 do
+        if SelectorHasSiblingDependency(aCall.Args[i]) then exit(true);
+    end;
+  end;
+end;
+
+function TCSSResolver.MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList;
+var
+  i, Cnt: Integer;
+  SavedNode: ICSSNode;
+  SavedSrcSpec: TCSSSpecificity;
+  Sel: TCSSElement;
+begin
+  Result.Matched:=nil;
+  if FSiblingSelectorCount=0 then exit;
+
+  SetLength(Result.Matched,FSiblingSelectorCount);
+  Cnt:=0;
+  SavedNode:=FNode;
+  SavedSrcSpec:=FSourceSpecificity;
+  FNode:=Node;
+  try
+    for i:=0 to FSiblingSelectorCount-1 do
+    begin
+      FSourceSpecificity:=FSiblingSelectors[i].SrcSpecificity;
+      Sel:=FSiblingSelectors[i].Selector;
+      if SelectorMatches(Sel,Node,false,FSiblingSelectors[i].Rule)>=0 then
+      begin
+        Result.Matched[Cnt]:=Sel;
+        inc(Cnt);
+      end;
+    end;
+  finally
+    FNode:=SavedNode;
+    FSourceSpecificity:=SavedSrcSpec;
+  end;
+  SetLength(Result.Matched,Cnt);
+end;
+
 procedure TCSSResolver.BuildRuleBuckets;
 
   procedure CollectEl(El: TCSSElement; SrcSpecificity: TCSSSpecificity);
@@ -4083,7 +4273,10 @@ procedure TCSSResolver.BuildRuleBuckets;
         CollectEl(TCSSCompoundElement(El).Children[i],SrcSpecificity);
     end
     else if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+    begin
       BucketRule(TCSSRuleElement(El),SrcSpecificity);
+      CollectSiblingSelectors(TCSSRuleElement(El),SrcSpecificity);
+    end;
     // unknown top-level elements are ignored here (warned by ComputeElement)
   end;
 

@@ -1303,13 +1303,14 @@ var
   AttrID: TCSSNumericalID;
   CurValue: TCSSAttributeValue;
   Desc: TCSSAttributeDesc;
+  SiblingMatches: TCSSSiblingMatchList;
 begin
   FResolver:=Resolver;
 
   if (InlineStyleElement=nil) and (InlineStyle<>'') then
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
 
-  Resolver.Compute(Self,InlineStyleElement,Rules,Values);
+  Resolver.Compute(Self,InlineStyleElement,Rules,Values,SiblingMatches);
 
   {$IFDEF VerboseCSSResolver}
   writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
