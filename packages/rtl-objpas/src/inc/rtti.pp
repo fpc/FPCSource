@@ -989,11 +989,22 @@ type
     const aArgs: TValueArray; out aRaiseException: Boolean;
     aTheException: Exception; out aResult: TValue) of object;
 
-  { Intercepts the virtual method calls of instances of a given class.
-    It builds a proxy class (a runtime copy of the original VMT) whose virtual
-    method table routes through this object. 
-    Proxify changes an instance to use the proxy class, 
-    Unproxify restores the original class. }
+  (* Intercepts the virtual method calls of instances of a given class.
+     It builds a proxy class (a runtime copy of the original VMT) whose virtual
+     method table routes through this object.
+     Proxify changes an instance to use the proxy class,
+     Unproxify restores the original class.
+     Only virtual methods that have RTTI are intercepted. 
+    
+     NOTE: 
+     Unlike Delphi, FPC does not emit method RTTI by default, it is opt-in.
+     so the target class must be compiled with e.g. 
+     
+     {$RTTI EXPLICIT METHODS[vcPrivate,vcProtected,vcPublic,vcPublished]
+  
+    for the OnBefore/OnAfter/OnException events to fire; 
+    virtual methods without RTTI keep working but are not intercepted. 
+    *)
   TVirtualMethodInterceptor = class
   private
     fContext: TRttiContext;
@@ -8754,8 +8765,8 @@ var
   t: TRttiType;
   methods: specialize TArray<TRttiMethod>;
   m: TRttiMethod;
-  maxIndex, slotCount, vmtSize, idx: SizeInt;
-  slots: PCodePointer;
+  slotCount, vmtSize, idx: SizeInt;
+  slots, origSlots: PCodePointer;
   filled: array of Boolean;
 
 begin
@@ -8765,14 +8776,19 @@ begin
 
   methods:=t.GetMethods;
 
-  { determine the highest virtual method slot in use. 
-    The proxy VMT must hold at least the standard TObject method slots }
-  maxIndex:=StdMethodSlots;
-  for m in methods do
-    if (m.VirtualIndex<>-1) and (m.VirtualIndex>maxIndex) then
-      maxIndex:=m.VirtualIndex;
-  slotCount:=maxIndex + 1;
-  vmtSize:=vmtMethodStart+(slotCount * SizeOf(CodePointer));
+  { Determine the number of virtual method slots of the original class.
+    The compiler emits all virtual methods followed by a terminating nil
+    code pointer (no real entry, not even an abstract one, is nil), so the
+    slot count can be found by scanning until that terminator. This covers
+    the complete VMT even for virtual methods that have no RTTI - they must
+    still be copied so that calling them keeps working after proxification. }
+  origSlots:=PCodePointer(PByte(fOriginalClass) + vmtMethodStart);
+  slotCount:=StdMethodSlots;
+  while Assigned(origSlots[slotCount]) do
+    Inc(slotCount);
+
+  { allocate room for all method slots plus the terminating nil entry }
+  vmtSize:=vmtMethodStart+((slotCount + 1) * SizeOf(CodePointer));
 
   fProxyVmt:=GetMem(vmtSize);
   if not Assigned(fProxyVmt) then

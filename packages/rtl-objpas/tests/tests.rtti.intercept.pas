@@ -35,6 +35,18 @@ type
     function Add(aA, aB: Integer): Integer; override;
   end;
 
+  {$RTTI EXPLICIT METHODS[]}
+  { TNoRttiSample: 
+    its virtual methods have no RTTI and sit beyond the standard TObject slots. 
+    Reproduces issue #41799, where the proxy VMT was sized from RTTI-visible 
+    methods only and was therefore too small. 
+    }
+  TNoRttiSample = class
+  public
+    function Value: Integer; virtual;
+  end;
+  {$RTTI EXPLICIT METHODS[vcPrivate,vcProtected,vcPublic,vcPublished]}
+
   { TTestVirtualMethodInterceptor }
 
   TTestVirtualMethodInterceptor = class(TTestCase)
@@ -70,6 +82,7 @@ type
     procedure TestIsOperatorAndParent;
     procedure TestVarParameter;
     procedure TestChildOverride;
+    procedure TestNoRttiVirtualMethodNotCrash;
   end;
 
 implementation
@@ -117,6 +130,15 @@ function TInterceptChild.Add(aA, aB: Integer): Integer;
 
 begin
   Result:=inherited Add(aA, aB) + 1000;
+end;
+
+
+{ TNoRttiSample }
+
+function TNoRttiSample.Value: Integer;
+
+begin
+  Result:=4711;
 end;
 
 
@@ -448,6 +470,30 @@ begin
     res:=obj.Add(2, 3);
     CheckEquals(1005, res, 'Childmost override is invoked');
     CheckEquals(1, FBeforeCount, 'OnBefore fired once for the override');
+  finally
+    obj.Free;
+    itc.Free;
+  end;
+end;
+
+
+procedure TTestVirtualMethodInterceptor.TestNoRttiVirtualMethodNotCrash;
+
+var
+  itc: TVirtualMethodInterceptor;
+  obj: TNoRttiSample;
+
+begin
+  itc:=CreateInterceptor(TNoRttiSample);
+  obj:=TNoRttiSample.Create;
+  try
+    itc.Proxify(obj);
+    { Issue #41799: 
+      a proxified virtual method without RTTI must still be callable 
+      (falling through to the original implementation) and must not
+      cause an access violation because of a too-small proxy VMT. }
+    CheckEquals(4711, obj.Value, 'Non-RTTI virtual method callable when proxified');
+    itc.Unproxify(obj);
   finally
     obj.Free;
     itc.Free;
