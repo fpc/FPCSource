@@ -514,6 +514,7 @@ type
     procedure TestRes_Var_Inline_NoDefault;
     procedure TestRes_Var_Defaults;
     procedure TestRes_Var_MixedCase;
+    procedure TestRes_Var_StringLiteral;
 
     // pseudo elements (works like child combinator)
     procedure TestRes_PseudoElement;
@@ -3387,6 +3388,31 @@ begin
   ApplyStyle;
   AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_Var_StringLiteral;
+begin
+  // plain var() call
+  AssertEquals('var(--a)',true,HasCSSValueVarCall('var(--a)'));
+  AssertEquals('VAR(--a) case insensitive',true,HasCSSValueVarCall('VAR(--a)'));
+  AssertEquals('1px var(--a)',true,HasCSSValueVarCall('1px var(--a)'));
+
+  // no var() call
+  AssertEquals('empty',false,HasCSSValueVarCall(''));
+  AssertEquals('red',false,HasCSSValueVarCall('red'));
+  AssertEquals('var without bracket',false,HasCSSValueVarCall('var'));
+  AssertEquals('variable',false,HasCSSValueVarCall('variable'));
+
+  // var() inside a string literal must be skipped
+  AssertEquals('"var(--a)" double quoted',false,HasCSSValueVarCall('"var(--a)"'));
+  AssertEquals('''var(--a)'' single quoted',false,HasCSSValueVarCall(''''+'var(--a)'+''''));
+  AssertEquals('text before quoted var',false,HasCSSValueVarCall('url("var(--a)")'));
+  AssertEquals('escaped quote in string',false,HasCSSValueVarCall('"\"var(--a)"'));
+  AssertEquals('unterminated string',false,HasCSSValueVarCall('"var(--a)'));
+
+  // a real var() call outside a string is still found
+  AssertEquals('quoted then real var',true,HasCSSValueVarCall('"text" var(--a)'));
+  AssertEquals('real var then quoted',true,HasCSSValueVarCall('var(--a) "var(--b)"'));
 end;
 
 procedure TTestCSSResolver.TestRes_PseudoElement;

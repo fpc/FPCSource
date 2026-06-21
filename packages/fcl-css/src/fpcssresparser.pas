@@ -710,14 +710,39 @@ Const
 function HasCSSValueVarCall(const s: TCSSString): boolean;
 var
   i, l: SizeInt;
+  Quote: TCSSChar;
 begin
   l:=length(s);
-  for i:=1 to l-3 do
-    if (s[i] in ['v','V'])
+  i:=1;
+  while i<=l do
+    begin
+    if s[i] in ['"',''''] then
+      begin
+      // skip string literal
+      Quote:=s[i];
+      inc(i);
+      while i<=l do
+        begin
+        if s[i]='\' then
+          inc(i,2) // skip escaped character
+        else if s[i]=Quote then
+          begin
+          inc(i);
+          break;
+          end
+        else
+          inc(i);
+        end;
+      end
+    else if (i<=l-3)
+        and (s[i] in ['v','V'])
         and (s[i+1] in ['a','A'])
         and (s[i+2] in ['r','R'])
         and (s[i+3]='(') then
-      exit(true);
+      exit(true)
+    else
+      inc(i);
+    end;
   Result:=false;
 end;
 
