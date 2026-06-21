@@ -444,12 +444,14 @@ type
     procedure TestRes_CSSClassID_ResolvedElement;
     procedure TestRes_CSSClassID_AddClassToStylesheet;
     procedure TestRes_CSSClassID_DeleteClassFromStylesheet;
+    procedure TestRes_CSSClassID_ChangeNodeClass; // add/delete a class on the node between two ApplyStyle
     procedure TestRes_CSSID_Numbering;
     procedure TestRes_CSSID_Unknown;
     procedure TestRes_CSSID_CaseSensitive;
     procedure TestRes_CSSID_ResolvedElement;
     procedure TestRes_CSSID_AddIdToStylesheet;
     procedure TestRes_CSSID_DeleteIdFromStylesheet;
+    procedure TestRes_CSSID_ChangeNodeId; // rename a node's id between two ApplyStyle
     procedure TestRes_Selector_ClassClass; // AND combinator
     procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
     procedure TestRes_Selector_TypeCommaType; // OR combinator
@@ -2056,6 +2058,37 @@ begin
   AssertEquals('Button1.left after','',Button1.Left);
 end;
 
+procedure TTestCSSResolver.TestRes_CSSClassID_ChangeNodeClass;
+var
+  Node: TDemoButton;
+  R: TCSSResolver;
+  RedID: TCSSNumericalID;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Node:=AddButton('Button1',Doc.Root);
+  // the stylesheet stays the same; only the node's class list changes
+  Doc.Style:='.red { left: 1px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  RedID:=R.GetCSSClassID('red');
+  // the node has no class yet -> the .red rule does not match
+  AssertFalse('HasCSSClass red before',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left before','',Node.Left);
+
+  // add the class: the IFPObserver invalidates the cached class id array, so
+  // GetCSSClasses rebuilds and the .red rule now matches
+  Node.CSSClasses.Add('red');
+  ApplyStyle;
+  AssertTrue('HasCSSClass red after add',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left after add','1px',Node.Left);
+
+  // delete the class again: the rule no longer matches
+  Node.CSSClasses.Clear;
+  ApplyStyle;
+  AssertFalse('HasCSSClass red after delete',Node.HasCSSClass(RedID));
+  AssertEquals('Button1.left after delete','',Node.Left);
+end;
+
 procedure TTestCSSResolver.TestRes_CSSID_Numbering;
 var
   R: TCSSResolver;
@@ -2188,6 +2221,31 @@ begin
   ApplyStyle;
   // the rule is gone -> it is no longer applied to the node
   AssertEquals('Button1.left after','',Button1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_CSSID_ChangeNodeId;
+var
+  Node: TDemoButton;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Node:=AddButton('Button1',Doc.Root);
+  // the stylesheet stays the same; only the node's id (name) changes
+  Doc.Style:='#Button1 { left: 1px; }'
+            +'#Other { left: 2px; }';
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+  // initially the node is #Button1 -> the first rule matches
+  AssertEquals('node id is #Button1',R.GetCSSIDIndex('Button1'),Node.GetCSSID);
+  AssertEquals('Button1.left before','1px',Node.Left);
+
+  // rename the node to 'Other': its id index now resolves to #Other
+  Node.Name:='Other';
+  ApplyStyle;
+  AssertEquals('node id is #Other',R.GetCSSIDIndex('Other'),Node.GetCSSID);
+  AssertTrue('node id changed',Node.GetCSSID<>R.GetCSSIDIndex('Button1'));
+  // the freshly matched #Other rule applies, the old #Button1 rule no longer does
+  AssertEquals('Other.left after','2px',Node.Left);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_ClassClass;

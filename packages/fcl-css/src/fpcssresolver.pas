@@ -4094,6 +4094,17 @@ begin
   ClearRuleBuckets;
   FBucketOther:=TCSSRuleBucket.Create;
 
+  // pre-size the type/class/id bucket arrays to their final length, so the
+  // GetTypeBucket/GetClassBucket/GetIDBucket calls in BucketRule never grow
+  // (and reallocate) them one id at a time. The bucket objects themselves are
+  // still created lazily; index 0 is the unused CSSIDNone slot.
+  if CSSRegistry.TypeCount>0 then
+    SetLength(FBucketType,CSSRegistry.TypeCount);
+  if FCSSClassNameCount>0 then
+    SetLength(FBucketClass,FCSSClassNameCount+1);
+  if FCSSIDCount>0 then
+    SetLength(FBucketID,FCSSIDCount+1);
+
   // walk in the same order FindMatchingRules used, assigning document order indexes
   for aLayerIndex:=0 to length(FLayers)-1 do
     with FLayers[aLayerIndex] do
