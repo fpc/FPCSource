@@ -419,7 +419,8 @@ type
     FCSSClassIDStamp: TCSSNumericalID; // changed whenever the css class to id mapping changed
     FAtMediaCache: TAtMediaCacheArray;
     FAtMediaCacheCount: integer;
-    // rule buckets, rebuilt by Init, based on the rightmost identifier of each selector
+    // rule buckets, based on the rightmost identifier of each selector;
+    // (re)built lazily by Compute when FRuleBucketsValid is false
     FBucketOther: TCSSRuleBucket;
     FBucketType: TCSSRuleBucketArray; // index = type id
     FBucketClass: TCSSRuleBucketArray; // index = class id
@@ -427,6 +428,7 @@ type
     FRuleCandidates: TCSSRuleBucketItemArray; // working buffer of FindMatchingRules
     FRuleCandidateCount: integer;
     FBucketDocIndex: integer; // running document order while building buckets
+    FRuleBucketsValid: boolean; // false when FLayers changed and buckets/@media cache need a rebuild
     procedure ChangeCSSClassIDStamp;
 
     // parse stylesheets
@@ -485,11 +487,12 @@ type
     function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
     // @media caching
-    procedure EvalAtMediaRules; virtual; // evaluate all @media rules once; called from Init
+    procedure EvalAtMediaRules; virtual; // evaluate all @media rules once; called from EnsureRuleBuckets
     function FindAtMediaCached(aRule: TCSSAtRuleElement; out Specificity: TCSSSpecificity): boolean;
     // rule buckets
     procedure ClearRuleBuckets; virtual;
-    procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from Init
+    procedure EnsureRuleBuckets; virtual; // rebuild @media cache and buckets if FLayers changed
+    procedure BuildRuleBuckets; virtual; // bucket all selector rules; called from EnsureRuleBuckets
     procedure BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity); virtual;
     procedure GetSelectorBucketKey(aSelector: TCSSElement; out Kind: TCSSRuleBucketKind;
       out NumID: TCSSNumericalID; out IDName: TCSSString); virtual;
@@ -936,6 +939,7 @@ begin
   El:=ParseCSSSource(Src,false);
   if El=nil then exit;
   aStyleSheet.Element:=El;
+  FRuleBucketsValid:=false; // FLayers about to change -> buckets need a rebuild
 
   // find last layer with this Origin or lower
   LayerIndex:=length(FLayers);
@@ -3688,8 +3692,8 @@ begin
 
   // todo: if CSSRegistry has changed, reparse all stylesheets
 
-  EvalAtMediaRules;
-  BuildRuleBuckets;
+  // Note: the @media cache and rule buckets are built lazily in Compute (see
+  // EnsureRuleBuckets), because the stylesheets are added to FLayers after Init.
 
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
@@ -3709,6 +3713,7 @@ begin
   Rules:=nil;
   FNode:=Node;
   try
+    EnsureRuleBuckets;
     InitMerge;
 
     FindMatchingRules;
@@ -3875,6 +3880,14 @@ begin
   end;
   FRuleCandidateCount:=0;
   FBucketDocIndex:=0;
+  FRuleBucketsValid:=false;
+end;
+
+procedure TCSSResolver.EnsureRuleBuckets;
+begin
+  if FRuleBucketsValid then exit;
+  EvalAtMediaRules;
+  BuildRuleBuckets;
 end;
 
 function TCSSResolver.GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
@@ -4100,6 +4113,7 @@ begin
       for i:=0 to ElementCount-1 do
         CollectEl(Elements[i].Element,SrcSpecificity);
     end;
+  FRuleBucketsValid:=true;
 end;
 
 procedure TCSSResolver.GatherBucket(Bucket: TCSSRuleBucket);
@@ -4354,6 +4368,7 @@ procedure TCSSResolver.RemoveStyleSheetFromLayers(aSheet: TStyleSheet);
 var
   l, i, d: Integer;
 begin
+  FRuleBucketsValid:=false; // FLayers changing -> buckets need a rebuild
   for l:=0 to length(FLayers)-1 do
     with FLayers[l] do
     begin
