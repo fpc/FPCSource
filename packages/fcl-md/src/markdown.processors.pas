@@ -672,7 +672,7 @@ begin
     lList.baseIndent:=lindent;
     lList.lastIndent:=lIndent;
     lList.marker:=lMarker;
-    lList.Start:=FStart;
+    lList.Start:=lStart;
     FLastList:=lList;
     end;
   // While we have a line that part of this list block, add an item and parse it.

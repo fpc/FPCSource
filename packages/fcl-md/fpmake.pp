@@ -21,6 +21,8 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('fcl-image');
+    P.Dependencies.Add('fcl-pdf');
     P.Dependencies.Add('regexpr');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
@@ -117,10 +119,19 @@ begin
       AddUnit('markdown.render');
       end;
 
+    T:=P.Targets.AddUnit('markdown.pdfrender.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('markdown.elements');
+      AddUnit('markdown.htmlentities');
+      AddUnit('markdown.render');
+      end;
+
     P.ExamplePath.Add('demo');
     T:=P.Targets.AddExampleProgram('demomd.lpr');
     T:=P.Targets.AddExampleProgram('md2html.lpr');
     T:=P.Targets.AddExampleProgram('md2fpdoc.lpr');
+    T:=P.Targets.AddExampleProgram('md2pdf.lpr');
 
 {$ifndef ALLPACKAGES}
     Run;
