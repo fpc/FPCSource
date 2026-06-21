@@ -2948,26 +2948,19 @@ begin
   Arg:=aCall.Args[i];
   if Arg.ClassType=TCSSIntegerElement then
   begin
-    aModulo:=TCSSIntegerElement(Arg).Value;
-    inc(i);
-    // check n
-    if ArgCount<=i then
+    if (i+1<ArgCount)
+        and (aCall.Args[i+1].ClassType=TCSSResolvedIdentifierElement)
+        and (TCSSResolvedIdentifierElement(aCall.Args[i+1]).Value='n') then
     begin
-      NthWarn(20220915143843,'missing arguments',aCall);
-      exit;
-    end;
-    Arg:=aCall.Args[i];
-    if Arg.ClassType<>TCSSResolvedIdentifierElement then
+      // An, An+B: integer followed by 'n'
+      aModulo:=TCSSIntegerElement(Arg).Value;
+      inc(i); // i now points at 'n'
+    end else
     begin
-      NthWarn(20220915144312,'expected n',Arg);
-      exit;
+      // plain integer B (a=0), e.g. nth-child(2)
+      aStart:=TCSSIntegerElement(Arg).Value;
+      aModulo:=0;
     end;
-    if TCSSResolvedIdentifierElement(Arg).Value<>'n' then
-    begin
-      NthWarn(20220915144359,'expected n',Arg);
-      exit;
-    end;
-
   end
   else if Arg.ClassType=TCSSResolvedIdentifierElement then
   begin
@@ -3040,6 +3033,12 @@ begin
       aStart:=TCSSIntegerElement(OffsetEl).Value;
       if UnaryEl.Operation=uoMinus then
         aStart:=-aStart;
+    end
+    else if (Arg.ClassType=TCSSResolvedIdentifierElement)
+        and SameText(TCSSResolvedIdentifierElement(Arg).Value,'of') then
+    begin
+      // no offset, directly the 'of <selector>' part; let the of-handler below process it
+      dec(i);
     end else
     begin
       NthWarn(20220915150851,'expected offset',Arg);

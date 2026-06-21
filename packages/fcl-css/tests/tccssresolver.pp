@@ -477,6 +477,7 @@ type
     procedure TestRes_Selector_OnlyChild;
     procedure TestRes_Selector_Not;
     procedure TestRes_Selector_NthChild;
+    procedure TestRes_Selector_NthChild2;
     procedure TestRes_Selector_NthLastChild;
     procedure TestRes_Selector_NthChildOf;
     procedure TestRes_Selector_FirstOfType;
@@ -2783,6 +2784,31 @@ begin
   AssertEquals('Div4.Height','',Div4.Height);
   AssertEquals('Div4.Top','3px',Div4.Top);
   AssertEquals('Div4.Width','',Div4.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Selector_NthChild2;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('',Doc.Root);
+
+  Div2:=AddDiv('',Doc.Root);
+
+  Div3:=AddDiv('',Doc.Root);
+
+  Div4:=AddDiv('',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  'div:nth-child(2) { left: 8px; }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Div2.Left','8px',Div2.Left);
+  AssertEquals('Div3.Left','',Div3.Left);
+  AssertEquals('Div4.Left','',Div4.Left);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_NthLastChild;

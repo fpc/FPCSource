@@ -2020,17 +2020,16 @@ begin
   ctkINTEGER:
     begin
     aCall.AddArg(ParseInteger);
-    if (CurrentToken<>ctkIDENTIFIER) then
+    // optional 'n': with it An+B, without it a plain integer B (a=0), e.g. nth-child(2)
+    if (CurrentToken=ctkIDENTIFIER) then
       begin
-      DoWarnExpectedButGot('An+B');
-      exit;
+      if (lowercase(CurrentTokenString)<>'n') then
+        begin
+        DoWarnExpectedButGot('An+B');
+        exit;
+        end;
+      aCall.AddArg(ParseIdentifier);
       end;
-    if (lowercase(CurrentTokenString)<>'n') then
-      begin
-      DoWarnExpectedButGot('An+B');
-      exit;
-      end;
-    aCall.AddArg(ParseIdentifier);
     end;
   else
     DoWarnExpectedButGot('An+B');

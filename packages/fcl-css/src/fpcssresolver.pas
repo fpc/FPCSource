@@ -2680,8 +2680,6 @@ begin
   end;
 
   Result:=CSSSpecificityNoMatch;
-  if Params.Modulo=0 then
-    exit;
   i:=TestNode.GetCSSIndex;
   if Params.HasOf then
   begin
@@ -2705,7 +2703,13 @@ begin
     i:=i+1;
   end;
   dec(i,Params.Start);
-  if i mod Params.Modulo = 0 then
+  if Params.Modulo=0 then
+  begin
+    // plain integer B (a=0): match exactly the B-th sibling, e.g. nth-child(2)
+    if i=0 then
+      Result:=CSSSpecificityClass+FSourceSpecificity;
+  end
+  else if i mod Params.Modulo = 0 then
   begin
     i:=i div Params.Modulo;
     if i>=0 then
