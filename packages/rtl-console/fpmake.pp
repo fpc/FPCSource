@@ -15,8 +15,6 @@ Const
   WinEventOSes = [win32,win64];
   KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
   WASMOSes = [wasip1,wasip1threads];
-  
- 
 
   // all full KVMers have crt too
   CrtOSes      = KVMALL+[WatCom];
@@ -24,8 +22,9 @@ Const
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
+  UtilsOSes    = KVMAll+WASMOSes+[atari,human68k,sinclairql];
 
-  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes+WASMOSes;
+  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes+UtilsOSes;
 
 Var
   P : TPackage;
