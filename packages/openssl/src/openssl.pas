@@ -793,6 +793,12 @@ const
   TLSEXT_TYPE_session_ticket = 35;
   TLSEXT_TYPE_renegotiate = $ff01;
   TLSEXT_TYPE_next_proto_neg = 13172;
+
+  { ALPN / NPN (RFC 7301) — SSL_select_next_proto return codes. The companion
+    SSL_TLSEXT_ERR_* select-callback codes are already defined below (~l.822). }
+  OPENSSL_NPN_NEGOTIATED     = 1;   { SSL_select_next_proto: protocol matched }
+  OPENSSL_NPN_NO_OVERLAP     = 2;   { SSL_select_next_proto: no common protocol }
+
   TLSEXT_NAMETYPE_host_name = 0;
   TLSEXT_STATUSTYPE_ocsp = 1;
   TLSEXT_ECPOINTFORMAT_first = 0;
@@ -1160,6 +1166,13 @@ var
   function SslGetVersion(ssl: PSSL):AnsiString;
   function SslGetPeerCertificate(ssl: PSSL):PX509;
   procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
+  { ALPN (RFC 7301) — Assigned-guarded public wrappers (older libssl may lack these) }
+  function  SslCtxSetAlpnProtos(ctx: PSSL_CTX; protos: PByte; protos_len: cuint): cint;
+  procedure SslCtxSetAlpnSelectCb(ctx: PSSL_CTX; cb: Pointer; arg: Pointer);
+  procedure SslGet0AlpnSelected(ssl: PSSL; data: PPByte; len: pcuint);
+  function  SslSelectNextProto(out_: PPByte; outlen: PByte;
+                               server: PByte; server_len: cuint;
+                               client: PByte; client_len: cuint): cint;
   function SSLGetCurrentCipher(s: PSSL):SslPtr;
   function SSLCipherGetName(c: SslPtr): AnsiString;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
@@ -1688,6 +1701,16 @@ type
   TSslGetVersion = function(ssl: PSSL):PAnsiChar; cdecl;
   TSslGetPeerCertificate = function(ssl: PSSL):PX509; cdecl;
   TSslCtxSetVerify = procedure(ctx: PSSL_CTX; mode: cInt; arg2: SslPtr); cdecl;
+  { ALPN (RFC 7301) — Assigned-guarded; older libssl may lack these }
+  TSslCtxSetAlpnProtos   = function(ctx: PSSL_CTX; protos: PByte; protos_len: cuint): cint; cdecl;
+  TSslCtxSetAlpnSelectCb = procedure(ctx: PSSL_CTX; cb: Pointer; arg: Pointer); cdecl;
+  TSslGet0AlpnSelected   = procedure(ssl: PSSL; data: PPByte; len: pcuint); cdecl;
+  TSslSelectNextProto    = function(out_: PPByte; outlen: PByte;
+                                    server: PByte; server_len: cuint;
+                                    client: PByte; client_len: cuint): cint; cdecl;
+  { Server-side ALPN select callback type (impl lives in the consumer, not here) }
+  TAlpnSelectCb          = function(ssl: PSSL; out_: PPByte; outlen: PByte;
+                                    in_: PByte; inlen: cuint; arg: Pointer): cint; cdecl;
   TSSLGetCurrentCipher = function(s: PSSL):SslPtr; cdecl;
   TSSLCipherGetName = function(c: Sslptr):PAnsiChar; cdecl;
   TSSLCipherGetBits = function(c: SslPtr; alg_bits: PcInt):cInt; cdecl;
@@ -1960,6 +1983,10 @@ var
   _SslGetVersion: TSslGetVersion = nil;
   _SslGetPeerCertificate: TSslGetPeerCertificate = nil;
   _SslCtxSetVerify: TSslCtxSetVerify = nil;
+  _SslCtxSetAlpnProtos: TSslCtxSetAlpnProtos = nil;
+  _SslCtxSetAlpnSelectCb: TSslCtxSetAlpnSelectCb = nil;
+  _SslGet0AlpnSelected: TSslGet0AlpnSelected = nil;
+  _SslSelectNextProto: TSslSelectNextProto = nil;
   _SSLGetCurrentCipher: TSSLGetCurrentCipher = nil;
   _SSLCipherGetName: TSSLCipherGetName = nil;
   _SSLCipherGetBits: TSSLCipherGetBits = nil;
@@ -2682,6 +2709,41 @@ procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback
 begin
   if InitSSLInterface and Assigned(_SslCtxSetVerify) then
     _SslCtxSetVerify(ctx, mode, @arg2);
+end;
+
+function SslCtxSetAlpnProtos(ctx: PSSL_CTX; protos: PByte; protos_len: cuint): cint;
+begin
+  if InitSSLInterface and Assigned(_SslCtxSetAlpnProtos) then
+    Result := _SslCtxSetAlpnProtos(ctx, protos, protos_len)
+  else
+    Result := 1;   { 0 == success for this call (inverted); return non-zero (failure) when unavailable }
+end;
+
+procedure SslCtxSetAlpnSelectCb(ctx: PSSL_CTX; cb: Pointer; arg: Pointer);
+begin
+  if InitSSLInterface and Assigned(_SslCtxSetAlpnSelectCb) then
+    _SslCtxSetAlpnSelectCb(ctx, cb, arg);
+end;
+
+procedure SslGet0AlpnSelected(ssl: PSSL; data: PPByte; len: pcuint);
+begin
+  if InitSSLInterface and Assigned(_SslGet0AlpnSelected) then
+    _SslGet0AlpnSelected(ssl, data, len)
+  else
+  begin
+    if Assigned(data) then data^ := nil;
+    if Assigned(len)  then len^  := 0;   { len = 0 == nothing negotiated }
+  end;
+end;
+
+function SslSelectNextProto(out_: PPByte; outlen: PByte;
+                            server: PByte; server_len: cuint;
+                            client: PByte; client_len: cuint): cint;
+begin
+  if InitSSLInterface and Assigned(_SslSelectNextProto) then
+    Result := _SslSelectNextProto(out_, outlen, server, server_len, client, client_len)
+  else
+    Result := OPENSSL_NPN_NO_OVERLAP;   { 2 == no match when unavailable }
 end;
 
 function SSLGetCurrentCipher(s: PSSL):SslPtr;
@@ -5321,6 +5383,11 @@ begin
   then _SslGetPeerCertificate := GetProcAddr(SSLLibHandle, 'SSL_get1_peer_certificate');
   _SslGetVersion := GetProcAddr(SSLLibHandle, 'SSL_get_version');
   _SslCtxSetVerify := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_verify');
+  { ALPN (RFC 7301) — not fatal if absent; Assigned guards in the wrappers handle older libssl (NFR3) }
+  _SslCtxSetAlpnProtos   := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_alpn_protos');
+  _SslCtxSetAlpnSelectCb := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_alpn_select_cb');
+  _SslGet0AlpnSelected   := GetProcAddr(SSLLibHandle, 'SSL_get0_alpn_selected');
+  _SslSelectNextProto    := GetProcAddr(SSLLibHandle, 'SSL_select_next_proto');
   _SslGetCurrentCipher := GetProcAddr(SSLLibHandle, 'SSL_get_current_cipher');
   _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name');
   _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits');
@@ -5703,6 +5770,10 @@ begin
   _SslGetPeerCertificate := nil;
   _SslGetVersion := nil;
   _SslCtxSetVerify := nil;
+  _SslCtxSetAlpnProtos := nil;
+  _SslCtxSetAlpnSelectCb := nil;
+  _SslGet0AlpnSelected := nil;
+  _SslSelectNextProto := nil;
   _SslGetCurrentCipher := nil;
   _SslCipherGetName := nil;
   _SslCipherGetBits := nil;
