@@ -4026,6 +4026,11 @@ implementation
             exesec:=TExeSection(ExeSectionList[i]);
             if not assigned(exesec) then
               continue;
+            { Disabled sections (e.g. debug sections when stripping) are not
+              removed from ExeSectionList until RemoveDisabledSections runs, and
+              their data is intentionally not loaded, so skip them here. }
+            if exesec.Disabled then
+              continue;
             for j:=0 to exesec.ObjSectionlist.count-1 do
               begin
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
