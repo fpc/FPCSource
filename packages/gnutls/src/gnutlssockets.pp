@@ -50,6 +50,13 @@ Type
     function InitSslKeys: boolean;virtual;
     function GetLastSSLErrorCode: Integer; override;
     function GetLastSSLErrorString: String; override;
+    // Install CertificateData.ALPNProtocols on FSession before the handshake.
+    // Inert (no-op) when the list is empty, so non-ALPN users are unchanged.
+    function InstallALPNProtocols: Boolean; virtual;
+    // Negotiated TLS version/cipher/key-exchange names ('' when unavailable).
+    procedure GetNegotiatedTLSNames(out aVersion, aCipher, aKX: string);
+    // True when the live session meets the RFC 9113 §9.2 TLS floor for h2.
+    function NegotiatedH2TLSFloorMet: Boolean; virtual;
   Public
     Constructor create; override;
     destructor destroy; override;
@@ -57,6 +64,8 @@ Type
     function Connect : Boolean; override;
     function Close : Boolean; override;
     function Accept : Boolean; override;
+    // Negotiated ALPN protocol after a completed handshake; '' when none.
+    function GetSelectedALPNProtocol: string; override;
     function Shutdown(BiDirectional : Boolean): boolean; override;
     function Send(Const Buffer; Count: Integer): Integer; override;
     function Recv(Const Buffer; Count: Integer): Integer; override;
@@ -82,7 +91,27 @@ Type
     function CreateCertificateAndKey: TCertAndKey; override;
   end;
 
+// RFC 9113 §9.2 TLS-floor predicates. Pure decisions over GnuTLS name strings
+// (version 'TLS1.2'/'TLS1.3', cipher 'AES-128-GCM', key-exchange 'ECDHE-RSA'),
+// so they are testable with literals, independent of any session.
+
+// True when the comma-separated ALPN list offers the 'h2' token (exact token
+// match, case/space-insensitive; 'h2c' and 'h2-foo' never match).
+Function ALPNListOffersH2(const aALPNList: string): Boolean;
+// §9.2: TLS >= 1.2. aVersionName is gnutls_protocol_get_name output.
+Function H2TLSVersionAdequate(const aVersionName: string): Boolean;
+// §9.2.2: TLS 1.3 is always adequate; TLS 1.2 requires an AEAD cipher
+// (GCM/CHACHA20/CCM) with an ephemeral key exchange (ECDHE/DHE).
+Function H2CipherAdequate(const aVersionName, aCipherName, aKXName: string): Boolean;
+// Combined §9.2 floor used by the Accept wiring.
+Function H2TLSFloorMet(const aVersionName, aCipherName, aKXName: string): Boolean;
+
 implementation
+
+Const
+  SErrH2InadequateSecurity = 'h2 refused: TLS parameters below RFC 9113 §9.2 floor (version=%s cipher=%s kx=%s)';
+  // gnutls_alpn_flags_t: prefer our (server) protocol order over the client's.
+  GNUTLS_ALPN_SERVER_PRECEDENCE = 1 shl 1;
 
 { TSocketHandler }
 
@@ -91,6 +120,90 @@ Procedure MaybeInitGNUTLS;
 begin
   if not GnuTLSloaded then
      LoadGnuTLS();
+end;
+
+{ --- RFC 9113 §9.2 TLS-floor predicates: pure, session-free --- }
+
+// Parse a GnuTLS 'TLS1.x' version name into major/minor. False for anything
+// that is not a TLS version (SSL3, DTLS, unknown), which the floor rejects.
+Function ParseTLSVersionName(const aVersionName: string; out aMajor, aMinor: Integer): Boolean;
+var
+  v, rest: string;
+  dotPos, code: Integer;
+begin
+  Result := False;
+  aMajor := 0;
+  aMinor := 0;
+  v := UpperCase(Trim(aVersionName));
+  if Copy(v, 1, 3) <> 'TLS' then
+    Exit;                              // SSL3 / DTLS / unknown -> not adequate
+  rest := Copy(v, 4, Length(v));       // '1.2', '1.3', '1.0', ...
+  dotPos := Pos('.', rest);
+  if dotPos > 0 then
+    begin
+    Val(Copy(rest, 1, dotPos - 1), aMajor, code);
+    if code <> 0 then Exit;
+    Val(Copy(rest, dotPos + 1, Length(rest)), aMinor, code);
+    if code <> 0 then Exit;
+    end
+  else
+    begin
+    Val(rest, aMajor, code);
+    if code <> 0 then Exit;
+    end;
+  Result := True;
+end;
+
+Function ALPNListOffersH2(const aALPNList: string): Boolean;
+var
+  i, start, len: Integer;
+begin
+  Result := False;
+  // Hand-rolled comma split (no extra unit dependency): each token is matched
+  // whole, so 'h2c'/'h2-foo' are distinct from the 'h2' token.
+  len := Length(aALPNList);
+  start := 1;
+  for i := 1 to len + 1 do
+    if (i > len) or (aALPNList[i] = ',') then
+      begin
+      if LowerCase(Trim(Copy(aALPNList, start, i - start))) = 'h2' then
+        Exit(True);
+      start := i + 1;
+      end;
+end;
+
+Function H2TLSVersionAdequate(const aVersionName: string): Boolean;
+var
+  major, minor: Integer;
+begin
+  Result := ParseTLSVersionName(aVersionName, major, minor)
+            and ((major > 1) or ((major = 1) and (minor >= 2)));
+end;
+
+Function H2CipherAdequate(const aVersionName, aCipherName, aKXName: string): Boolean;
+var
+  major, minor: Integer;
+  c, k: string;
+  isAEAD, isPFS: Boolean;
+begin
+  // TLS 1.3: every standardized suite is AEAD + forward-secret and GnuTLS reports
+  // no key exchange, so accept any cipher.
+  if ParseTLSVersionName(aVersionName, major, minor)
+     and ((major > 1) or ((major = 1) and (minor >= 3))) then
+    Exit(True);
+  // TLS 1.2: require an AEAD cipher with an ephemeral (forward-secret) key
+  // exchange -- the practical equivalent of the §9.2.2 Appendix-A blocklist.
+  c := UpperCase(aCipherName);
+  k := UpperCase(aKXName);
+  isAEAD := (Pos('GCM', c) > 0) or (Pos('CHACHA20', c) > 0) or (Pos('CCM', c) > 0);
+  isPFS  := (Pos('ECDHE', k) > 0) or (Pos('DHE', k) > 0);
+  Result := isAEAD and isPFS;
+end;
+
+Function H2TLSFloorMet(const aVersionName, aCipherName, aKXName: string): Boolean;
+begin
+  Result := H2TLSVersionAdequate(aVersionName)
+            and H2CipherAdequate(aVersionName, aCipherName, aKXName);
 end;
 
 { TGNUTLSX509Certificate }
@@ -349,6 +462,9 @@ begin
     begin
     // We need it in a field variable, it seems GNUTLS expects it to last?
     FCurrentCypherlist:='NORMAL';
+    // RFC 9113 §9.2: when h2 is offered, forbid TLS < 1.2 at negotiation time.
+    if ALPNListOffersH2(CertificateData.ALPNProtocols) then
+      FCurrentCypherlist:=FCurrentCypherlist+':-VERS-TLS1.1:-VERS-TLS1.0:-VERS-SSL3.0';
     end;
   Result:=FCurrentCypherlist;
 end;
@@ -380,13 +496,23 @@ begin
       end;
   Result:=InitSslKeys;
   if not Result then
+    begin
     DoneSession;
+    Exit;
+    end;
 {
 S:=CertificateData.CipherList;
 FCTX.SetVerify(VO[VerifypeerCert],Nil);
 FCTX.SetDefaultPasswdCb(@HandleSSLPwd);
 FCTX.SetDefaultPasswdCbUserdata(self);
 }
+  // ALPN offer/select; must be installed before the handshake. Inert when empty.
+  Result:=InstallALPNProtocols;
+  if not Result then
+    begin
+    DoneSession;
+    Exit;
+    end;
   gnutls_transport_set_int2(FSession,Socket.Handle,Socket.Handle);
   gnutls_handshake_set_timeout(FSession,GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
 end;
@@ -554,12 +680,129 @@ begin
   Result:=Ret>=0;
 end;
 
+function TGNUTLSSocketHandler.InstallALPNProtocols: Boolean;
+
+var
+  Spec : AnsiString;
+  Toks : array of AnsiString;
+  Datums : array of Tgnutls_datum_t;
+  I,Start,Cnt : Integer;
+
+  procedure AddToken(const aToken: AnsiString);
+  var
+    T : AnsiString;
+  begin
+    T:=Trim(aToken);
+    if T='' then
+      Exit;
+    SetLength(Toks,Cnt+1);
+    Toks[Cnt]:=T;
+    Inc(Cnt);
+  end;
+
+begin
+  Result:=True;
+  Spec:=CertificateData.ALPNProtocols;
+  if Spec='' then
+    Exit;                              // no ALPN: leave the session unchanged
+  if not Assigned(gnutls_alpn_set_protocols) then
+    Exit(False);                       // ALPN requested but unsupported by libgnutls
+  Toks:=Nil;
+  Cnt:=0;
+  Start:=1;
+  for I:=1 to Length(Spec) do
+    if Spec[I]=',' then
+      begin
+      AddToken(Copy(Spec,Start,I-Start));
+      Start:=I+1;
+      end;
+  AddToken(Copy(Spec,Start,Length(Spec)-Start+1));   // trailing token
+  if Cnt=0 then
+    Exit;                              // only empty tokens
+  // One datum per protocol; GnuTLS copies the names, so the locals may go out of
+  // scope after the call. Server precedence so our offer order wins.
+  SetLength(Datums,Cnt);
+  for I:=0 to Cnt-1 do
+    begin
+    Datums[I].data:=PByte(PAnsiChar(Toks[I]));
+    Datums[I].size:=Length(Toks[I]);
+    end;
+  Result:=CheckOK(gnutls_alpn_set_protocols(FSession,@Datums[0],Cnt,GNUTLS_ALPN_SERVER_PRECEDENCE));
+end;
+
+function TGNUTLSSocketHandler.GetSelectedALPNProtocol: string;
+
+var
+  D : Tgnutls_datum_t;
+
+begin
+  Result:='';
+  if (FSession=Nil) or not Assigned(gnutls_alpn_get_selected_protocol) then
+    Exit;
+  D.data:=Nil;
+  D.size:=0;
+  // Datum points into session-owned memory: copy it, never free it.
+  if (gnutls_alpn_get_selected_protocol(FSession,@D)=GNUTLS_E_SUCCESS)
+     and (D.size>0) and (D.data<>Nil) then
+    SetString(Result,PAnsiChar(D.data),D.size);
+end;
+
+procedure TGNUTLSSocketHandler.GetNegotiatedTLSNames(out aVersion, aCipher, aKX: string);
+
+  function NameOf(P : PAnsiChar) : string;
+  begin
+    if P<>Nil then
+      Result:=StrPas(P)
+    else
+      Result:='';
+  end;
+
+begin
+  aVersion:='';
+  aCipher:='';
+  aKX:='';
+  if FSession=Nil then
+    Exit;
+  if Assigned(gnutls_protocol_get_name) and Assigned(gnutls_protocol_get_version) then
+    aVersion:=NameOf(gnutls_protocol_get_name(gnutls_protocol_get_version(FSession)));
+  if Assigned(gnutls_cipher_get_name) and Assigned(gnutls_cipher_get) then
+    aCipher:=NameOf(gnutls_cipher_get_name(gnutls_cipher_get(FSession)));
+  if Assigned(gnutls_kx_get_name) and Assigned(gnutls_kx_get) then
+    aKX:=NameOf(gnutls_kx_get_name(gnutls_kx_get(FSession)));
+end;
+
+function TGNUTLSSocketHandler.NegotiatedH2TLSFloorMet: Boolean;
+
+var
+  Ver,Ciph,KX : string;
+
+begin
+  GetNegotiatedTLSNames(Ver,Ciph,KX);
+  Result:=H2TLSFloorMet(Ver,Ciph,KX);
+end;
+
 function TGNUTLSSocketHandler.Accept: Boolean;
+
+var
+  Ver,Ciph,KX : string;
 
 begin
   Result:=InitSession(True);
   if Result then
     Result:=DoHandShake;
+  // RFC 9113 §9.2: a negotiated h2 connection MUST meet the TLS floor; otherwise
+  // refuse it. Only inspected when h2 was actually negotiated, so plain TLS and
+  // HTTP/1.1-over-TLS connections are never affected.
+  if Result and (GetSelectedALPNProtocol='h2') then
+    begin
+    GetNegotiatedTLSNames(Ver,Ciph,KX);
+    if not H2TLSFloorMet(Ver,Ciph,KX) then
+      begin
+      SetGNUTLSLastErrorString(Format(SErrH2InadequateSecurity,[Ver,Ciph,KX]));
+      DoneSession;
+      Result:=False;
+      end;
+    end;
   SetSSLActive(Result);
 end;
 
