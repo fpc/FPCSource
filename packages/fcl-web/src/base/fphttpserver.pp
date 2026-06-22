@@ -161,6 +161,11 @@ Type
     Property KeepAlive: Boolean read FKeepAlive;
     // Is the current connection upgraded ?
     Property IsUpgraded : Boolean Read FIsUpgraded;
+    { Bytes already read from the socket past the consumed request lines (the residual FBuffer).
+      Used by the HTTP/2 prior-knowledge takeover/hand-off.}
+    Function ResidualBytes : TBytes;
+    // ALPN-negotiated application protocol from the TLS handshake. used by the HTTP/2 TLS ingress takeover/handoff.
+    Function NegotiatedProtocol : String;
   end;
 
   { TFPHTTPConnectionThread }
@@ -358,6 +363,8 @@ Type
     FUseSSL: Boolean;
     FConnectionHandler : TFPHTTPServerConnectionHandler;
     FUpdateHandlers : TUpgradeHandlerList;
+    // HTTP/2 prior-knowledge adopt callback (cannot go through FUpdateHandlers). Set via RegisterHTTP2Handler.
+    FOnAdoptHTTP2 : TUpgradeConnectionEvent;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     procedure DoOnAllowConnect(Sender: TObject; ASocket: TFPSocket; var Allow: Boolean);
     function GetActive: Boolean;
@@ -386,6 +393,15 @@ Type
     procedure DoLog(aMoment: THTTPLogMoment; const Msg: String); overload;
     Procedure DoLog(aMoment : THTTPLogMoment; const Fmt : String; Const Args : Array of const); overload;
     Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // True when an HTTP/2 prior-knowledge adopt callback is registered.
+    Function HasHTTP2Handler : Boolean; inline;
+    // Detect the prior-knowledge preface (Method=PRI, version 2.0) and, when a
+    // handler is registered, fire the adopt callback. Mirrors CheckUpgrade.
+    Function CheckHTTP2PriorKnowledge(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // Similar to CheckHTTP2PriorKnowledge, but triggered by the TLS-ALPN-negotiated
+    // protocol rather than a `PRI` start line, and fired BEFORE any HTTP/1.1
+    // parse — there is no request to pass.
+    Function CheckHTTP2ALPN(aConnection : TFPHTTPConnection) : Boolean;
     // Override this to create Descendent
     Function CreateUpgradeHandlerList : TUpgradeHandlerList; virtual;
     // Override this to create descendent
@@ -451,6 +467,11 @@ Type
     Destructor Destroy; override;
     Function RegisterUpdateHandler(Const aName : string; const OnCheck : THandlesUpgradeEvent; const OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
     Procedure UnRegisterUpdateHandler(Const aName : string);
+    // Register the HTTP/2 prior-knowledge adopt callback. Additive, callback-based
+    // seam (mirrors RegisterUpdateHandler): the server stores the event and never
+    // references any HTTP/2 type.
+    Procedure RegisterHTTP2Handler(const aOnAdopt : TUpgradeConnectionEvent);
+    Procedure UnRegisterHTTP2Handler;
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
@@ -1412,6 +1433,35 @@ begin
    end;
 end;
 
+function TFPCustomHttpServer.HasHTTP2Handler: Boolean;
+begin
+  Result:=Assigned(FOnAdoptHTTP2);
+end;
+
+function TFPCustomHttpServer.CheckHTTP2PriorKnowledge(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
+begin
+  Result:=HasHTTP2Handler;
+  If not Result then
+    Exit;
+  // The canonical prior-knowledge signal: start line 'PRI * HTTP/2.0'.
+  Result:=SameText(aRequest.Method,'PRI') and (aRequest.ProtocolVersion='2.0');
+  If Result then
+    FOnAdoptHTTP2(aConnection,aRequest);
+end;
+
+function TFPCustomHttpServer.CheckHTTP2ALPN(aConnection: TFPHTTPConnection): Boolean;
+begin
+  Result:=HasHTTP2Handler;                    // no handler => unchanged (NFR1)
+  if not Result then
+    Exit;
+  { The TLS handshake (completed during socket accept, before this thread ran) already decided the protocol.
+    When it is 'h2', the wire bytes are an HTTP/2 connection preface.
+    Any other value (including empty string) falls through to the unchanged HTTP/1.1 path (FR16/NFR1). }
+  Result:=(aConnection.NegotiatedProtocol = 'h2');
+  if Result then
+    FOnAdoptHTTP2(aConnection,Nil);           // nil request: no HTTP/1.1 was parsed
+end;
+
 function TFPCustomHttpServer.CreateUpgradeHandlerList: TUpgradeHandlerList;
 begin
   Result:=TUpgradeHandlerList.Create(TUpgradeHandlerItem);
@@ -1577,7 +1627,36 @@ begin
     end;
 end;
 
+procedure TFPCustomHttpServer.RegisterHTTP2Handler(const aOnAdopt: TUpgradeConnectionEvent);
+begin
+  FOnAdoptHTTP2:=aOnAdopt;
+end;
+
+procedure TFPCustomHttpServer.UnRegisterHTTP2Handler;
+begin
+  FOnAdoptHTTP2:=Nil;
+end;
+
 { TFPHTTPConnection }
+
+function TFPHTTPConnection.ResidualBytes: TBytes;
+begin
+  SetLength(Result,Length(FBuffer));
+  if Length(FBuffer)>0 then
+    Move(FBuffer[1],Result[0],Length(FBuffer));   // FBuffer is 1-based, TBytes 0-based
+end;
+
+function TFPHTTPConnection.NegotiatedProtocol: string;
+var
+  H : TSocketHandler;
+begin
+  Result := '';
+  if not Assigned(FSocket) then
+    Exit;
+  H := FSocket.Handler;                         // TSocketStream.Handler (ssockets.pp)
+  if H is TSSLSocketHandler then                // cleartext handler => '' (NFR1)
+    Result := TSSLSocketHandler(H).GetSelectedALPNProtocol;  // virtual (Story 4.4); OpenSSL override returns negotiated
+end;
 
 function TFPHTTPConnection.ReadString : String;
 
@@ -1965,6 +2044,15 @@ Var
 begin
   if IsUpgraded then
     exit;
+  // HTTP/2 over TLS (ALPN, Story 4.6): when the TLS handshake negotiated 'h2',
+  // the bytes on the wire are an HTTP/2 connection preface, NOT an HTTP/1.1
+  // request — adopt the socket BEFORE any HTTP/1.1 parse}
+  if Server.CheckHTTP2ALPN(Self) then
+    begin
+    FSocket:=Nil; // ownership handed to the H2 layer (similar to websocket)
+    FIsUpgraded:=True; // Make sure we don't have a  HTTP/1.1 response / keep-alive / close
+    Exit;
+    end;
   // Read headers.
   Resp:=Nil;
   Req:=ReadRequestHeaders;
@@ -1985,6 +2073,12 @@ begin
     If Req.ContentLength>0 then
       ReadRequestContent(Req);
     Req.InitRequestVars;
+    If Server.CheckHTTP2PriorKnowledge(Self,Req) then
+      begin
+      FSocket:=Nil;  // ownership handed to the H2 layer (similar to websocket)
+      FIsUpgraded:=True; // Make sure we don't have a  HTTP/1.1 response / keep-alive / close
+      Exit;
+      end;
     If Server.CheckUpgrade(Self,Req) then
       begin
       FSocket:=Nil; // Must have been taken over by upgrader
