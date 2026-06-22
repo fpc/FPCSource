@@ -73,7 +73,7 @@ Type
     Function CreateCertGenerator : TX509Certificate; virtual;
     function CreateSelfSignedCertificate: Boolean; virtual;
     // Negotiated ALPN protocol after a completed handshake; '' when nothing negotiated.
-    // Provider-neutral default — non-OpenSSL handlers degrade gracefully (NFR3).
+    // Provider-neutral default — non-OpenSSL handlers degrade gracefully
     Function GetSelectedALPNProtocol : string; virtual;
     Property CertGenerator : TX509Certificate Read FCertGenerator;
     Property SSLActive: Boolean read FSSLActive;

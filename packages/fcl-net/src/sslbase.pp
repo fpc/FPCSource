@@ -72,8 +72,6 @@ Type
     property CipherList: string Index 1 read GetString write SetString;
     Property HostName : String Index 2 read GetString write SetString;
     // Provider-neutral ALPN protocol list, comma-separated (e.g. 'h2,http/1.1'); default ''.
-    // Canonical source consumed by TLS handlers (Story 4.4). Copied by Assign (Index 3, see
-    // StrDataCount), so it survives TSSLSocketHandler.SetCertificateData. No OpenSSL dependency.
     property ALPNProtocols : String Index 3 read GetString write SetString;
     property Certificate : TSSLData Index 0 Read GetSSLData Write SetSSLData;
     property TrustedCertificate : TSSLData Index 1 Read GetSSLData Write SetSSLData;
