@@ -570,7 +570,6 @@ begin
     T.Dependencies.AddUnit('httpdefs');
     T.Dependencies.AddUnit('httpprotocol');
     T.Dependencies.AddUnit('fphttpserver');
-    T.Dependencies.AddUnit('ssockets');
     end;
     T:=P.Targets.AddUnit('fphttpclientpool.pas');
     T.OSes:=SocketsOSes;
