@@ -21,11 +21,10 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs,
+  System.Classes, System.SysUtils, System.Contnrs, System.Console.Ansi,
 {$ELSE}
-  Classes, SysUtils, Contnrs,
+  Classes, SysUtils, Contnrs, FPAnsi,
 {$ENDIF}
-  FPAnsi,
   Markdown.Elements,
   Markdown.Render,
   Markdown.HTMLEntities;
