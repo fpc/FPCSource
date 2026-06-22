@@ -2044,13 +2044,13 @@ Var
 begin
   if IsUpgraded then
     exit;
-  // HTTP/2 over TLS (ALPN, Story 4.6): when the TLS handshake negotiated 'h2',
-  // the bytes on the wire are an HTTP/2 connection preface, NOT an HTTP/1.1
-  // request — adopt the socket BEFORE any HTTP/1.1 parse}
+  { HTTP/2 over TLS (ALPN, Story 4.6): when the TLS handshake negotiated 'h2',
+    the bytes on the wire are an HTTP/2 connection preface, NOT an HTTP/1.1
+    request — adopt the socket BEFORE any HTTP/1.1 parse }
   if Server.CheckHTTP2ALPN(Self) then
     begin
-    FSocket:=Nil; // ownership handed to the H2 layer (similar to websocket)
-    FIsUpgraded:=True; // Make sure we don't have a  HTTP/1.1 response / keep-alive / close
+    FSocket:=Nil; 
+    FIsUpgraded:=True;
     Exit;
     end;
   // Read headers.

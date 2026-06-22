@@ -91,6 +91,13 @@ src/websocket/fpwebsocketserver.pp=namespaced/FpWeb.WebSocket.Server.pp
 src/websocket/fpcustwsserver.pp=namespaced/FpWeb.WebSocket.Custom.Server.pp
 src/websocket/wsupgrader.pp=namespaced/FpWeb.WebSocket.Upgrader.pp
 src/websocket/fpwebsocketclient.pp=namespaced/FpWeb.WebSocket.Client.pp
+src/http2/fphttp2consts.pp=namespaced/FpWeb.Http2.Consts.pp
+{s*:src/http2/}=namespaced/
+{i+:src/http2/}
+src/http2/fphttp2frames.pp=namespaced/FpWeb.Http2.Frames.pp
+src/http2/fphttp2connection.pp=namespaced/FpWeb.Http2.Connection.pp
+src/http2/fphttp2request.pp=namespaced/FpWeb.Http2.Request.pp
+src/http2/fphttp2server.pp=namespaced/FpWeb.Http2.Server.pp
 src/jwt/fpoauth2ini.pp=namespaced/Jwt.Oauth2.Ini.pp
 {s*:src/jwt/}=namespaced/
 {i+:src/jwt/}
