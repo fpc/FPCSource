@@ -340,6 +340,8 @@ type
   public
     Inherits: boolean; // true = the default value is the parent's value
     All: boolean; // true = can be changed by the 'all' attribute
+    AllowUnknownIdentifiers: boolean; // true = the tokenizer stores unknown words as rtkIdentifier
+      // instead of failing, e.g. font-family names, grid line names
     InitialValue: TCSSString;
     CompProps: array of TCSSAttributeDesc; // if this attribute is a shorthand,
       // these are the component properties (longhands + sub-shorthands like border-width)
@@ -613,7 +615,6 @@ type
     FMediaCompare: TCSSMediaCompareEvent;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
-    procedure ResetCurComp; // clear the current token component
     function CurFits(const Params: TCSSCheckAttrParams_Dimension): boolean; // true if the current float component fits
   public
     CurAttrData: TCSSAttributeKeyData;
@@ -630,6 +631,7 @@ type
     FunctionID: TCSSNumericalID;
     Symbol: TCSSToken;
     Identifier: TCSSString; // text payload of rtkIdentifier/rtkString*/rtkHexColor and symbols
+    procedure ResetCurComp; // clear the current token component
     function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     procedure InitParseAttr(const Value: TCSSString); virtual;
@@ -655,7 +657,7 @@ type
     function IsInteger: boolean; // the current component is a unitless number
     function IsIntegerValue(v: Integer): boolean;
     // low level functions to read attribute tokens
-    function Tokenize(const aValue: string; out aData: TBytes): boolean; // false if invalid, see TCSSResTokenKind
+    function Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean = false): boolean; // false if invalid, see TCSSResTokenKind
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
     function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace
     class procedure SkipToEndOfAttribute(var p: PCSSChar);
@@ -1777,7 +1779,7 @@ begin
   if AttrData.Invalid then
     exit;
 
-  if not Tokenize(CurValue,CurTokens) then
+  if not Tokenize(CurValue,CurTokens,Desc.AllowUnknownIdentifiers) then
   begin
     AttrData.Invalid:=true;
     exit;
@@ -1805,7 +1807,7 @@ begin
   CurDesc:=Desc;
   CurValue:=Value;
   ResetCurComp;
-  if not Tokenize(Value,CurTokens) then
+  if not Tokenize(Value,CurTokens,Desc.AllowUnknownIdentifiers) then
     exit(false);
   Result:=ReadNext;
 end;
@@ -2202,7 +2204,7 @@ begin
     SetString(Result,Start,ResValue.EndP-Start);
 end;
 
-function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes): boolean;
+function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean): boolean;
 // Parses a css property value and creates tokens, see TCSSResTokenKind.
 // Returns false if the value is invalid.
 // Note: this does not use TCSSResCompValue and has its own number and
@@ -2418,7 +2420,15 @@ var
     SetString(Name,StartP,Len);
     KeywordID:=CSSRegistry.IndexOfKeyword(Name);
     if KeywordID<=CSSIDNone then
-      exit; // unknown keyword
+    begin
+      if not AllowUnknownIdentifiers then
+        exit; // unknown keyword
+      // store the unknown word as a custom identifier, e.g. a font-family name
+      AddKind(rtkIdentifier);
+      AddDWord(cardinal(Len));
+      AddMem(StartP,Len);
+      exit(true);
+    end;
     AddKind(rtkKeyword);
     AddWord(word(KeywordID));
     Result:=true;
