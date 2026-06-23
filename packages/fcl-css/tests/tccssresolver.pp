@@ -428,10 +428,29 @@ type
   { TTestCSSResolver }
 
   TTestCSSResolver = class(TCustomTestCSSResolver)
+  private
+    procedure CheckTokenize(const Title, aValue, Expected: string);
+    procedure CheckTokenizeInvalid(const Title, aValue: string);
+    procedure CheckRoundtrip(const Title, aValue, Expected: string);
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
     procedure TestRes_ParseAttr_Float;
+
+    // low level tokenizer
+    procedure TestRes_Tokenize_Empty;
+    procedure TestRes_Tokenize_Keyword;
+    procedure TestRes_Tokenize_Identifier;
+    procedure TestRes_Tokenize_Float;
+    procedure TestRes_Tokenize_Whitespace;
+    procedure TestRes_Tokenize_Symbols;
+    procedure TestRes_Tokenize_PlusMinus;
+    procedure TestRes_Tokenize_Function;
+    procedure TestRes_Tokenize_Brackets;
+    procedure TestRes_Tokenize_HexColor;
+    procedure TestRes_Tokenize_Strings;
+    procedure TestRes_Tokenize_Invalid;
+    procedure TestRes_Detokenize;
 
     procedure TestRes_Selector_Universal;
     procedure TestRes_Selector_Type;
@@ -4510,6 +4529,229 @@ begin
   AssertEquals('Span1.left','1px',Span1.Left);
   AssertEquals('Span2.left','',Span2.Left);
   if Div1=nil then ;
+end;
+
+function TokenStreamToStr(Registry: TCSSRegistry; const Data: TBytes): string;
+// Human readable representation of a token stream produced by Tokenize,
+// so tests can compare against an expected string.
+var
+  i: integer;
+
+  function RByte: byte;
+  begin
+    Result:=Data[i];
+    inc(i);
+  end;
+
+  function RWord: word;
+  begin
+    Move(Data[i],Result,2);
+    inc(i,2);
+  end;
+
+  function RDWord: cardinal;
+  begin
+    Move(Data[i],Result,4);
+    inc(i,4);
+  end;
+
+  function RDouble: double;
+  begin
+    Move(Data[i],Result,8);
+    inc(i,8);
+  end;
+
+  function RStr(Count: cardinal): string;
+  begin
+    Result:='';
+    if Count=0 then exit;
+    SetLength(Result,Count);
+    Move(Data[i],Result[1],Count);
+    inc(i,Count);
+  end;
+
+var
+  Kind: TCSSResTokenKind;
+  U: TCSSUnit;
+begin
+  Result:='';
+  i:=0;
+  repeat
+    Kind:=TCSSResTokenKind(RByte);
+    case Kind of
+    rtkEnd: begin Result:=Result+'end'; break; end;
+    rtkWhitespace: Result:=Result+'ws ';
+    rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
+    rtkLParenthesis: Result:=Result+'( ';
+    rtkRParenthesis: Result:=Result+') ';
+    rtkLBracket: Result:=Result+'[ ';
+    rtkRBracket: Result:=Result+'] ';
+    rtkPlus: Result:=Result+'plus ';
+    rtkMinus: Result:=Result+'minus ';
+    rtkFloat:
+      begin
+        U:=TCSSUnit(RByte);
+        Result:=Result+'float('+FloatToCSSStr(RDouble)+CSSUnitNames[U]+') ';
+      end;
+    rtkKeyword: Result:=Result+'kw('+Registry.Keywords[RWord]+') ';
+    rtkFunction: Result:=Result+'func('+Registry.AttrFunctions[RWord]+') ';
+    rtkIdentifier: Result:=Result+'ident('+RStr(RDWord)+') ';
+    rtkStringApos: Result:=Result+'apos('+RStr(RDWord)+') ';
+    rtkStringQuote: Result:=Result+'quote('+RStr(RDWord)+') ';
+    rtkHexColor: Result:=Result+'hex('+RStr(RByte)+') ';
+    else
+      Result:=Result+'?? ';
+      break;
+    end;
+  until false;
+end;
+
+procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);
+var
+  Data: TBytes;
+  Resolver: TCSSBaseResolver;
+begin
+  Resolver:=Doc.CSSResolver;
+  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data));
+  AssertEquals(Title,Expected,TokenStreamToStr(Resolver.CSSRegistry,Data));
+end;
+
+procedure TTestCSSResolver.CheckTokenizeInvalid(const Title, aValue: string);
+var
+  Data: TBytes;
+begin
+  AssertEquals(Title+' invalid',false,Doc.CSSResolver.Tokenize(aValue,Data));
+end;
+
+procedure TTestCSSResolver.CheckRoundtrip(const Title, aValue, Expected: string);
+var
+  Data: TBytes;
+  Resolver: TCSSBaseResolver;
+begin
+  Resolver:=Doc.CSSResolver;
+  AssertEquals(Title+' valid',true,Resolver.Tokenize(aValue,Data));
+  AssertEquals(Title,Expected,Resolver.Detokenize(Data));
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Empty;
+begin
+  CheckTokenize('empty','','end');
+  CheckTokenize('only whitespace','   ','ws end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Keyword;
+begin
+  CheckTokenize('keyword red','red','kw(red) end');
+  CheckTokenize('keyword auto','auto','kw(auto) end');
+  CheckTokenize('keyword inline-block','inline-block','kw(inline-block) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Identifier;
+begin
+  CheckTokenize('custom ident','--my-var','ident(--my-var) end');
+  CheckTokenize('custom ident short','--x','ident(--x) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Float;
+begin
+  CheckTokenize('int','12','float(12) end');
+  CheckTokenize('px','5px','float(5px) end');
+  CheckTokenize('percent','50%','float(50%) end');
+  CheckTokenize('frac','1.5em','float(1.5em) end');
+  CheckTokenize('dot frac','.25','float(0.25) end');
+  CheckTokenize('exponent','2e3','float(2000) end');
+  CheckTokenize('plus number','+7','float(7) end');
+  CheckTokenize('minus number','-3px','float(-3px) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Whitespace;
+begin
+  CheckTokenize('two keywords','red blue','kw(red) ws kw(blue) end');
+  CheckTokenize('collapsed','red    blue','kw(red) ws kw(blue) end');
+  CheckTokenize('leading','  red','ws kw(red) end');
+  CheckTokenize('trailing','red ','kw(red) ws end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Symbols;
+begin
+  CheckTokenize('comma','red,blue','kw(red) sym(,) kw(blue) end');
+  CheckTokenize('colon','red:blue','kw(red) sym(:) kw(blue) end');
+  CheckTokenize('semicolon','red;','kw(red) sym(;) end');
+  CheckTokenize('div','red/blue','kw(red) sym(/) kw(blue) end');
+  CheckTokenize('star','red*blue','kw(red) sym(*) kw(blue) end');
+  CheckTokenize('dot','red.blue','kw(red) sym(.) kw(blue) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_PlusMinus;
+begin
+  CheckTokenize('plus operator','+ red','plus ws kw(red) end');
+  CheckTokenize('minus operator','- red','minus ws kw(red) end');
+  CheckTokenize('plus var','+var(--x)','plus func(var) ident(--x) ) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Function;
+begin
+  CheckTokenize('var','var(--x)','func(var) ident(--x) ) end');
+  CheckTokenize('var fallback','var(--x, red)',
+    'func(var) ident(--x) sym(,) ws kw(red) ) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Brackets;
+begin
+  CheckTokenize('parenthesis','(red)','( kw(red) ) end');
+  CheckTokenize('brackets','[red]','[ kw(red) ] end');
+  CheckTokenize('nested','([red])','( [ kw(red) ] ) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_HexColor;
+begin
+  CheckTokenize('rgb','#fff','hex(fff) end');
+  CheckTokenize('rgba','#abcd','hex(abcd) end');
+  CheckTokenize('rrggbb','#ff0000','hex(ff0000) end');
+  CheckTokenize('rrggbbaa','#11223344','hex(11223344) end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Strings;
+begin
+  CheckTokenize('apos','''hello''','apos(hello) end');
+  CheckTokenize('quote','"hello"','quote(hello) end');
+  CheckTokenize('empty apos','''''','apos() end');
+end;
+
+procedure TTestCSSResolver.TestRes_Tokenize_Invalid;
+begin
+  CheckTokenizeInvalid('unknown keyword','footastic');
+  CheckTokenizeInvalid('unknown function','footastic(1)');
+  CheckTokenizeInvalid('unknown unit','5foo');
+  CheckTokenizeInvalid('unknown symbol','red=blue');
+  CheckTokenizeInvalid('unbalanced open paren','var(--x');
+  CheckTokenizeInvalid('unbalanced close paren','red)');
+  CheckTokenizeInvalid('unbalanced bracket','[red');
+  CheckTokenizeInvalid('mismatched bracket','(red]');
+  CheckTokenizeInvalid('unterminated apos','''hello');
+  CheckTokenizeInvalid('unterminated quote','"hello');
+  CheckTokenizeInvalid('bad hex','#ab');
+end;
+
+procedure TTestCSSResolver.TestRes_Detokenize;
+begin
+  // values that survive tokenize+detokenize unchanged
+  CheckRoundtrip('empty','','');
+  CheckRoundtrip('keyword','red','red');
+  CheckRoundtrip('identifier','--my-var','--my-var');
+  CheckRoundtrip('float','5px','5px');
+  CheckRoundtrip('two keywords','red blue','red blue');
+  CheckRoundtrip('symbols','red,blue','red,blue');
+  CheckRoundtrip('function','var(--x, red)','var(--x, red)');
+  CheckRoundtrip('brackets','([red])','([red])');
+  CheckRoundtrip('hex','#ff0000','#ff0000');
+  CheckRoundtrip('apos','''hello''','''hello''');
+  CheckRoundtrip('quote','"hello"','"hello"');
+  CheckRoundtrip('plus operator','+ red','+ red');
+  // normalizations: whitespace collapses, numbers are normalized
+  CheckRoundtrip('collapsed whitespace','red    blue','red blue');
+  CheckRoundtrip('normalized number','.50','0.5');
+  CheckRoundtrip('normalized exponent','2e3','2000');
 end;
 
 initialization

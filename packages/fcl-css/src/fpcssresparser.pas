@@ -533,6 +533,27 @@ type
     NormValue: TCSSString; // normalized value, stripped of comments and e.g. '0.1' instead of '000.100' or '.1'
   end;
 
+  TCSSResTokenKind = (
+    rtkNone,
+    rtkEnd, // end of value
+    rtkWhitespace, // any amount of whitespace characters
+    rtkSymbol,  // followed by a byte comma, colon, semicolon, dot . , star *, or div /
+    rtkLParenthesis, // (
+    rtkRParenthesis, // )
+    rtkLBracket, // [
+    rtkRBracket, // ]
+    rtkPlus, // plus operator, e.g. '+calc()' or '+ ', a +Number does not generate a rtkPlus
+    rtkMinus, // minus operator, e.g. '-calc()' or '- ', a -Number does not generate a rtkMinus
+    rtkFloat, // followed by a TCSSUnit as byte and a double, the unit can be cuNone
+    rtkKeyword, // followed by the index of the CSSRegistry keyword as word
+    rtkFunction, // followed by the index of the CSSRegistry function as word, this token includes the opening parenthesis
+    rtkIdentifier, // followed by a dword as count, followed by count bytes for the identifier including the leading --
+    rtkStringApos, // followed by a dword as count, followed by count bytes for the string without the enclosing apostrophs
+    rtkStringQuote, // followed by a dword as count, followed by count bytes for the string without the enclosing quotes
+    rtkHexColor // followed by a byte as count, followed by count hex characters
+    );
+  TCSSResTokenKinds = set of TCSSResTokenKind;
+
   TCSSResValueKind = (
     rvkNone, // end of value
     rvkInvalid,
@@ -621,6 +642,8 @@ type
     function GetCompString: TCSSString; overload;
     function GetCompString(const aValue: string; const ResValue: TCSSResCompValue): TCSSString; overload;
     // low level functions to parse attribute components
+    function Tokenize(const aValue: string; out aData: TBytes): boolean; // false if invalid, see TCSSResTokenKind
+    function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
     function ReadComp(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue
     procedure ReadWordID(var aComp: TCSSResCompValue);
     class function ReadValue(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue, not using CSSRegistry
@@ -2318,6 +2341,435 @@ begin
     Result:=aValue
   else
     SetString(Result,Start,ResValue.EndP-Start);
+end;
+
+function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes): boolean;
+// Parses a css property value and creates tokens, see TCSSResTokenKind.
+// Returns false if the value is invalid.
+// Note: this does not use TCSSResCompValue and has its own number and
+// identifier readers, so it can be used independently of the value parser.
+var
+  p, StartP: PCSSChar;
+  DataLen, Len: integer;
+  BracketStack: array of TCSSChar; // expected closing brackets
+  BracketTop: integer;
+
+  procedure AddMem(Src: Pointer; Count: integer);
+  var
+    l, Needed: integer;
+  begin
+    Needed:=DataLen+Count;
+    l:=length(aData);
+    if Needed>l then
+    begin
+      if l=0 then l:=16;
+      while l<Needed do l:=l*2;
+      SetLength(aData,l);
+    end;
+    Move(Src^,aData[DataLen],Count);
+    inc(DataLen,Count);
+  end;
+
+  procedure AddByte(b: byte);
+  var
+    l: integer;
+  begin
+    l:=length(aData);
+    if DataLen>=l then
+    begin
+      if l=0 then l:=16 else l:=l*2;
+      SetLength(aData,l);
+    end;
+    aData[DataLen]:=b;
+    inc(DataLen);
+  end;
+
+  procedure AddKind(Kind: TCSSResTokenKind);
+  begin
+    AddByte(byte(ord(Kind)));
+  end;
+
+  procedure AddWord(w: word);
+  begin
+    AddMem(@w,2);
+  end;
+
+  procedure AddDWord(d: cardinal);
+  begin
+    AddMem(@d,4);
+  end;
+
+  procedure PushBracket(CloseBracket: TCSSChar);
+  begin
+    if BracketTop>=length(BracketStack) then
+      SetLength(BracketStack,BracketTop*2+8);
+    BracketStack[BracketTop]:=CloseBracket;
+    inc(BracketTop);
+  end;
+
+  function ReadNumberToken: boolean;
+  // p is at the start of a number ('+','-','.' or a digit).
+  // On success emits a rtkFloat token and advances p behind the optional unit.
+  var
+    Negative, HasNumber: Boolean;
+    Divisor, d, Value: double;
+    Exponent: Integer;
+    U: TCSSUnit;
+    UnitName: TCSSString;
+  begin
+    Result:=false;
+    Value:=0;
+    if p^='-' then
+    begin
+      Negative:=true;
+      inc(p);
+    end else begin
+      Negative:=false;
+      if p^='+' then
+        inc(p);
+    end;
+    HasNumber:=false;
+    if p^ in Num then
+    begin
+      // read significand
+      HasNumber:=true;
+      repeat
+        Value:=Value*10+ord(p^)-ord('0');
+        if Value>CSSMaxSafeIntDouble then
+          exit; // loosing precision
+        inc(p);
+      until not (p^ in Num);
+    end;
+    if p^='.' then
+    begin
+      // read fraction
+      inc(p);
+      if not (p^ in Num) then exit;
+      Divisor:=1;
+      repeat
+        Divisor:=Divisor*10;
+        Value:=Value*10+ord(p^)-ord('0');
+        if (Divisor>CSSMaxSafeIntDouble) or (Value>CSSMaxSafeIntDouble) then
+          exit; // loosing precision
+        inc(p);
+      until not (p^ in Num);
+      Value:=Value/Divisor;
+    end else if not HasNumber then
+      exit;
+    if Negative then
+      Value:=-Value;
+
+    if (p^ in ['e','E']) and not (p[1] in ['a'..'z']) then
+    begin
+      // read exponent
+      inc(p);
+      if p^='-' then
+      begin
+        Negative:=true;
+        inc(p);
+      end else begin
+        Negative:=false;
+        if p^='+' then
+          inc(p);
+      end;
+      if not (p^ in Num) then exit;
+      Exponent:=0;
+      repeat
+        Exponent:=Exponent*10+ord(p^)-ord('0');
+        if Exponent>2047 then
+          exit; // out of bounds
+        inc(p);
+      until not (p^ in Num);
+      if Exponent>0 then
+      begin
+        if Negative then
+          Exponent:=-Exponent;
+        try
+          d:=Power(10,Exponent);
+          Value:=Value*d;
+        except
+          exit;
+        end;
+      end;
+    end;
+
+    // parse unit
+    U:=cuNone;
+    case p^ of
+    '%':
+      begin
+        inc(p);
+        U:=cuPercent;
+      end;
+    'a'..'z','A'..'Z':
+      begin
+        StartP:=p;
+        while p^ in Alpha do inc(p);
+        SetString(UnitName,StartP,p-StartP);
+        U:=high(TCSSUnit);
+        while (U>cuNone) and (CSSUnitNames[U]<>UnitName) do
+          U:=pred(U);
+        if U=cuNone then
+          exit; // unknown unit
+      end;
+    end;
+
+    AddKind(rtkFloat);
+    AddByte(byte(ord(U)));
+    AddMem(@Value,SizeOf(double));
+    Result:=true;
+  end;
+
+  function ReadWordToken: boolean;
+  // p is at the start of an identifier word (AlIden).
+  // '--xxx'  -> rtkIdentifier
+  // 'name('  -> rtkFunction if the function is known, else invalid
+  // 'name'   -> rtkKeyword if the keyword is known, else invalid
+  var
+    Name: TCSSString;
+    FuncID, KeywordID: TCSSNumericalID;
+  begin
+    Result:=false;
+    StartP:=p;
+    repeat
+      inc(p);
+    until not (p^ in AlNumIden);
+    Len:=p-StartP;
+    if p^='(' then
+    begin
+      // function call, the token includes the opening parenthesis
+      SetString(Name,StartP,Len);
+      FuncID:=CSSRegistry.IndexOfAttrFunction(Name);
+      if FuncID<=CSSIDNone then
+        exit; // unknown function
+      inc(p); // consume '('
+      AddKind(rtkFunction);
+      AddWord(word(FuncID));
+      PushBracket(')');
+      exit(true);
+    end;
+    if (Len>=2) and (StartP[0]='-') and (StartP[1]='-') then
+    begin
+      // custom identifier, e.g. --my-var
+      AddKind(rtkIdentifier);
+      AddDWord(cardinal(Len));
+      AddMem(StartP,Len);
+      exit(true);
+    end;
+    SetString(Name,StartP,Len);
+    KeywordID:=CSSRegistry.IndexOfKeyword(Name);
+    if KeywordID<=CSSIDNone then
+      exit; // unknown keyword
+    AddKind(rtkKeyword);
+    AddWord(word(KeywordID));
+    Result:=true;
+  end;
+
+begin
+  Result:=false;
+  aData:=nil;
+  DataLen:=0;
+  BracketStack:=nil;
+  BracketTop:=0;
+
+  p:=PCSSChar(aValue);
+  if p<>nil then
+    repeat
+      if p^ in Whitespace then
+      begin
+        // any amount of whitespace becomes a single token
+        repeat
+          inc(p);
+        until not (p^ in Whitespace);
+        AddKind(rtkWhitespace);
+      end;
+      case p^ of
+      #0: break;
+      '0'..'9':
+        if not ReadNumberToken then exit;
+      '.':
+        if p[1] in Num then
+        begin
+          if not ReadNumberToken then exit;
+        end else begin
+          AddKind(rtkSymbol);
+          AddByte(byte(ord(p^)));
+          inc(p);
+        end;
+      '+':
+        case p[1] of
+        '0'..'9','.':
+          if not ReadNumberToken then exit;
+        else
+          AddKind(rtkPlus);
+          inc(p);
+        end;
+      '-':
+        case p[1] of
+        '0'..'9','.':
+          if not ReadNumberToken then exit;
+        '-':
+          if not ReadWordToken then exit; // custom identifier --xxx
+        else
+          AddKind(rtkMinus);
+          inc(p);
+        end;
+      'a'..'z','A'..'Z':
+        if not ReadWordToken then exit;
+      ',',':',';','*','/':
+        begin
+          AddKind(rtkSymbol);
+          AddByte(byte(ord(p^)));
+          inc(p);
+        end;
+      '(':
+        begin
+          AddKind(rtkLParenthesis);
+          PushBracket(')');
+          inc(p);
+        end;
+      ')':
+        begin
+          if (BracketTop=0) or (BracketStack[BracketTop-1]<>')') then exit;
+          dec(BracketTop);
+          AddKind(rtkRParenthesis);
+          inc(p);
+        end;
+      '[':
+        begin
+          AddKind(rtkLBracket);
+          PushBracket(']');
+          inc(p);
+        end;
+      ']':
+        begin
+          if (BracketTop=0) or (BracketStack[BracketTop-1]<>']') then exit;
+          dec(BracketTop);
+          AddKind(rtkRBracket);
+          inc(p);
+        end;
+      '#':
+        begin
+          StartP:=p;
+          inc(p);
+          while p^ in Hex do inc(p);
+          Len:=(p-StartP)-1; // number of hex digits
+          case Len of
+          3,4,6,8:
+            begin
+              // #rgb, #rgba, #rrggbb, #rrggbbaa
+              AddKind(rtkHexColor);
+              AddByte(byte(Len));
+              AddMem(StartP+1,Len);
+            end;
+          else
+            exit; // invalid hex color
+          end;
+        end;
+      '''':
+        begin
+          StartP:=p;
+          if not SkipString(p) then exit; // missing end apostroph
+          Len:=(p-StartP)-2; // without enclosing apostrophs
+          AddKind(rtkStringApos);
+          AddDWord(cardinal(Len));
+          AddMem(StartP+1,Len);
+        end;
+      '"':
+        begin
+          StartP:=p;
+          if not SkipString(p) then exit; // missing end quote
+          Len:=(p-StartP)-2; // without enclosing quotes
+          AddKind(rtkStringQuote);
+          AddDWord(cardinal(Len));
+          AddMem(StartP+1,Len);
+        end;
+      else
+        exit; // unknown symbol
+      end;
+    until false;
+
+  // brackets and parenthesis must be balanced
+  if BracketTop>0 then exit;
+
+  AddKind(rtkEnd);
+  SetLength(aData,DataLen);
+  Result:=true;
+end;
+
+function TCSSBaseResolver.Detokenize(const aData: TBytes): TCSSString;
+// Converts a token array created by Tokenize back to a css value.
+var
+  DataLen, i: integer;
+
+  function ReadByte: byte;
+  begin
+    Result:=aData[i];
+    inc(i);
+  end;
+
+  function ReadWord: word;
+  begin
+    Move(aData[i],Result,2);
+    inc(i,2);
+  end;
+
+  function ReadDWord: cardinal;
+  begin
+    Move(aData[i],Result,4);
+    inc(i,4);
+  end;
+
+  function ReadDouble: double;
+  begin
+    Move(aData[i],Result,8);
+    inc(i,8);
+  end;
+
+  function ReadStr(Count: cardinal): TCSSString;
+  begin
+    Result:='';
+    if Count=0 then exit;
+    SetLength(Result,Count);
+    Move(aData[i],Result[1],Count);
+    inc(i,Count);
+  end;
+
+var
+  Kind: TCSSResTokenKind;
+  U: TCSSUnit;
+begin
+  Result:='';
+  DataLen:=length(aData);
+  i:=0;
+  while i<DataLen do
+  begin
+    Kind:=TCSSResTokenKind(ReadByte);
+    case Kind of
+    rtkEnd: break;
+    rtkWhitespace: Result:=Result+' ';
+    rtkSymbol: Result:=Result+TCSSChar(ReadByte);
+    rtkLParenthesis: Result:=Result+'(';
+    rtkRParenthesis: Result:=Result+')';
+    rtkLBracket: Result:=Result+'[';
+    rtkRBracket: Result:=Result+']';
+    rtkPlus: Result:=Result+'+';
+    rtkMinus: Result:=Result+'-';
+    rtkFloat:
+      begin
+        U:=TCSSUnit(ReadByte);
+        Result:=Result+FloatToCSSStr(ReadDouble)+CSSUnitNames[U];
+      end;
+    rtkKeyword: Result:=Result+CSSRegistry.Keywords[ReadWord];
+    rtkFunction: Result:=Result+CSSRegistry.AttrFunctions[ReadWord]+'(';
+    rtkIdentifier: Result:=Result+ReadStr(ReadDWord);
+    rtkStringApos: Result:=Result+''''+ReadStr(ReadDWord)+'''';
+    rtkStringQuote: Result:=Result+'"'+ReadStr(ReadDWord)+'"';
+    rtkHexColor: Result:=Result+'#'+ReadStr(ReadByte);
+    else
+      break;
+    end;
+  end;
 end;
 
 class procedure TCSSBaseResolver.SkipToEndOfAttribute(var p: PCSSChar);
