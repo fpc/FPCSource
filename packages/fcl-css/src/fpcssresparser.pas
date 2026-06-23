@@ -337,7 +337,9 @@ type
     type
       TCheckEvent = function(Resolver: TCSSBaseResolver): boolean of object;
       TSplitShorthandEvent = procedure(Resolver: TCSSBaseResolver;
-           var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray) of object;
+           var AttrIDs: TCSSNumericalIDArray;
+           var Values: TBytesArray
+           ) of object;
   public
     Inherits: boolean; // true = the default value is the parent's value
     All: boolean; // true = can be changed by the 'all' attribute
@@ -349,7 +351,8 @@ type
       // used by the cascade algorithm to delete all overwritten properties
     OnCheck: TCheckEvent; // called by the parser after reading a declaration and there is no var()
       // return false if invalid, so the resolver skips this declaration
-    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(), if any value is empty, the InitialValue is used
+    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(),
+        // if any value is empty, the InitialValue is used
   end;
   TCSSAttributeDescClass = class of TCSSAttributeDesc;
   TCSSAttributeDescArray = array of TCSSAttributeDesc;
@@ -538,7 +541,6 @@ type
 
   TCSSResTokenKind = (
     rtkNone,
-    rtkEnd, // end of value
     rtkWhitespace, // any amount of whitespace characters
     rtkSymbol,  // followed by a byte comma, colon, semicolon, dot . , star *, or div /
     rtkLParenthesis, // (
@@ -655,16 +657,20 @@ type
     function IsLengthOrPercentage(AllowNegative: boolean): boolean; overload;
     function IsSymbol(Token: TCSSToken): boolean; overload;
     function GetCompString: TCSSString; overload;
-    function GetCompTokens: TBytes; // the current token as a self-contained value (with end marker)
+    function GetCompTokens: TBytes; // the current CurTokenStart til CurTokenPos
     function FloatAsString: TCSSString; // the current component as float+unit
     function IsInteger: boolean; // the current component is a unitless number
     function IsIntegerValue(v: Integer): boolean;
     // low level functions to read attribute tokens
     function Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean = false;
       TrimEnclosingSpace: boolean = true): boolean; // false if invalid (e.g. only whitespace), see TCSSResTokenKind
+    function TokenizeKeyword(KW: TCSSNumericalID): TBytes;
+    function TokenizeIdentifier(const anIdentifier: TCSSString): TBytes;
+    function TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
     function DetokenizeOne(aData: PByte): TCSSString; // convert one token back to a css value
-    function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace
+    function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace; rtkNone at end
+    function AtEnd: boolean; // true if there is no current token, i.e. the last ReadNext reached the end of CurTokens
     class procedure SkipToEndOfAttribute(var p: PCSSChar);
     class function SkipString(var p: PCSSChar): boolean;
     class function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
@@ -776,7 +782,6 @@ function CSSTokenByteLen(const Tokens: TBytes; Ofs: integer): integer; // byte s
 function CSSHasVarToken(const Tokens: TBytes): boolean; // true if the tokens contain a var() function call
 function CSSSameTokens(const A, B: TBytes): boolean; // true if both token arrays are byte-identical
 function CSSTokensEmpty(const Tokens: TBytes): boolean; // true if there is no token except whitespace and the end marker
-function CSSTokenizeIdentifier(const Identifier: TCSSString): TBytes;
 
 implementation
 
@@ -852,7 +857,7 @@ begin
   rtkHexColor: Result:=1+1+Tokens[Ofs+1]; // kind + length byte + hex chars
   rtkSymbol: Result:=1+1; // kind + char byte
   else
-    Result:=1; // rtkWhitespace, rtkEnd, brackets, plus, minus
+    Result:=1; // rtkWhitespace, brackets, plus, minus
   end;
 end;
 
@@ -865,7 +870,6 @@ begin
   Ofs:=0;
   while Ofs<Len do
   begin
-    if TCSSResTokenKind(Tokens[Ofs])=rtkEnd then break;
     if TCSSResTokenKind(Tokens[Ofs])=rtkFunction then
     begin
       FuncID:=PWord(@Tokens[Ofs+1])^;
@@ -896,25 +900,10 @@ begin
   begin
     case TCSSResTokenKind(Tokens[Ofs]) of
     rtkWhitespace: inc(Ofs);
-    rtkEnd: break;
     else exit(false);
     end;
   end;
   Result:=true;
-end;
-
-function CSSTokenizeIdentifier(const Identifier: TCSSString): TBytes;
-var
-  l: DWord;
-begin
-  l:=length(Identifier);
-  Result:=nil;
-  if l=0 then exit;
-  SetLength(Result,1+4+l);
-  Result[0]:=ord(rtkIdentifier);
-  PDWord(Result[1])^:=l;
-  if l>0 then
-    Move(Identifier[1],Result[5],l);
 end;
 
 { TCSSRegistry }
@@ -1677,8 +1666,10 @@ begin
     SetLength(KeywordTokens,length(Keywords));
   Result:=KeywordCount;
   Keywords[Result]:=aName;
-  // tokenized form: rtkKeyword + word(id) + rtkEnd
-  KeywordTokens[Result]:=[byte(ord(rtkKeyword)),byte(Result and $FF),byte((Result shr 8) and $FF),byte(ord(rtkEnd))];
+  // tokenized form: rtkKeyword + word(id)
+  SetLength(KeywordTokens[Result],3);
+  KeywordTokens[Result][0]:=ord(rtkKeyword);
+  PWord(@KeywordTokens[Result][1])^:=Result;
   FHashLists[nikKeyword].Add(aName,{%H-}Pointer(Result));
   inc(FKeywordCount);
   ChangeStamp;
@@ -1891,7 +1882,7 @@ begin
       and IsBaseKeyword(KeywordID) then
   begin
     // a base keyword like "inherit" must be the only component
-    if PeekNextTokenKind<>rtkEnd then
+    if PeekNextTokenKind<>rtkNone then
     begin
       CurAttrData.Invalid:=true;
       exit;
@@ -1957,7 +1948,7 @@ begin
     for i:=0 to length(AllowedKeywordIDs)-1 do
       if KeywordID=AllowedKeywordIDs[i] then
       begin
-        if not ReadNext and (TokenKind=rtkEnd) then
+        if not ReadNext then
           exit(true);
       end;
   rtkFunction:
@@ -1994,7 +1985,7 @@ begin
     if not Fits then
       exit(false);
   until not ReadNext;
-  Result:=TokenKind=rtkEnd;
+  Result:=AtEnd;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension
@@ -2021,31 +2012,31 @@ function TCSSBaseResolver.ReadNext: boolean;
 // Reads the next token from CurTokens into the current component fields,
 // skipping whitespace tokens. Returns false at the end of the value.
 
-  function ReadByte: byte;
+  function ReadByte: Byte;
   begin
     Result:=CurTokens[CurTokenPos];
     inc(CurTokenPos);
   end;
 
-  function ReadWord: word;
+  function ReadWord: Word;
   begin
     Result:=PWord(@CurTokens[CurTokenPos])^;
     inc(CurTokenPos,2);
   end;
 
-  function ReadDWord: cardinal;
+  function ReadDWord: DWord;
   begin
     Result:=PDWord(@CurTokens[CurTokenPos])^;
     inc(CurTokenPos,4);
   end;
 
-  function ReadDouble: double;
+  function ReadDouble: Double;
   begin
     Result:=PDouble(@CurTokens[CurTokenPos])^;
     inc(CurTokenPos,8);
   end;
 
-  function ReadStr(Count: cardinal): TCSSString;
+  function ReadStr(Count: DWord): TCSSString;
   begin
     Result:='';
     if Count=0 then exit;
@@ -2072,15 +2063,11 @@ begin
 
   CurTokenStart:=CurTokenPos;
   if CurTokenPos>=Len then
-  begin
-    TokenKind:=rtkEnd;
+    // no more tokens: CurTokenStart=length(CurTokens), see AtEnd
     exit(false);
-  end;
 
   TokenKind:=TCSSResTokenKind(ReadByte);
   case TokenKind of
-  rtkEnd:
-    exit(false);
   rtkFloat:
     begin
       FloatUnit:=TCSSUnit(ReadByte);
@@ -2130,7 +2117,14 @@ begin
   if i<Len then
     Result:=TCSSResTokenKind(CurTokens[i])
   else
-    Result:=rtkEnd;
+    Result:=rtkNone;
+end;
+
+function TCSSBaseResolver.AtEnd: boolean;
+// The current token started at or beyond the end of CurTokens, i.e. the last
+// ReadNext found no token. See CurTokenStart in ReadNext.
+begin
+  Result:=CurTokenStart>=length(CurTokens);
 end;
 
 function TCSSBaseResolver.CurFits(const Params: TCSSCheckAttrParams_Dimension): boolean;
@@ -2285,16 +2279,14 @@ begin
 end;
 
 function TCSSBaseResolver.GetCompTokens: TBytes;
-// returns the bytes of the current token plus an rtkEnd marker, so the result
-// is a self-contained tokenized value (see CurTokenStart/CurTokenPos in ReadNext)
+// returns the bytes of the current token as a self-contained tokenized value
+// (see CurTokenStart/CurTokenPos in ReadNext)
 var
   Len: integer;
 begin
   Len:=CurTokenPos-CurTokenStart;
   if Len<=0 then exit(nil);
   Result:=Copy(CurTokens,CurTokenStart,Len);
-  SetLength(Result,Len+1);
-  Result[Len]:=byte(ord(rtkEnd));
 end;
 
 function TCSSBaseResolver.FloatAsString: TCSSString;
@@ -2692,9 +2684,38 @@ begin
   // brackets and parenthesis must be balanced
   if BracketTop>0 then exit;
 
-  AddKind(rtkEnd);
   SetLength(aData,DataLen);
   Result:=true;
+end;
+
+function TCSSBaseResolver.TokenizeKeyword(KW: TCSSNumericalID): TBytes;
+begin
+  Result:=nil;
+  SetLength(Result,3);
+  Result[0]:=ord(rtkKeyword);
+  PWord(@Result[1])^:=KW;
+end;
+
+function TCSSBaseResolver.TokenizeIdentifier(const anIdentifier: TCSSString): TBytes;
+var
+  l: DWord;
+begin
+  l:=length(anIdentifier);
+  Result:=nil;
+  if l=0 then exit;
+  SetLength(Result,1+4+l);
+  Result[0]:=ord(rtkIdentifier);
+  PDWord(@Result[1])^:=l;
+  Move(anIdentifier[1],Result[5],l);
+end;
+
+function TCSSBaseResolver.TokenizeFloat(const aFloat: double; anUnit: TCSSUnit): TBytes;
+begin
+  Result:=nil;
+  SetLength(Result,10);
+  Result[0]:=ord(rtkFloat);
+  Result[1]:=ord(anUnit);
+  PDouble(@Result[3])^:=aFloat;
 end;
 
 function TCSSBaseResolver.Detokenize(const aData: TBytes): TCSSString;
@@ -2746,7 +2767,6 @@ begin
   begin
     aKind:=TCSSResTokenKind(ReadByte);
     case aKind of
-    rtkEnd: break;
     rtkWhitespace: Result:=Result+' ';
     rtkSymbol: Result:=Result+TCSSChar(ReadByte);
     rtkLParenthesis: Result:=Result+'(';

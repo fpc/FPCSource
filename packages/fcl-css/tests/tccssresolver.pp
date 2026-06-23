@@ -4549,10 +4549,10 @@ var
 begin
   Result:='';
   i:=0;
-  repeat
+  while i<length(Data) do
+  begin
     Kind:=TCSSResTokenKind(RByte);
     case Kind of
-    rtkEnd: begin Result:=Result+'end'; break; end;
     rtkWhitespace: Result:=Result+'ws ';
     rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
     rtkLParenthesis: Result:=Result+'( ';
@@ -4576,7 +4576,8 @@ begin
       Result:=Result+'?? ';
       break;
     end;
-  until false;
+  end;
+  Result:=TrimRight(Result);
 end;
 
 procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);
@@ -4615,82 +4616,82 @@ end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Keyword;
 begin
-  CheckTokenize('keyword red','red','kw(red) end');
-  CheckTokenize('keyword auto','auto','kw(auto) end');
-  CheckTokenize('keyword inline-block','inline-block','kw(inline-block) end');
+  CheckTokenize('keyword red','red','kw(red)');
+  CheckTokenize('keyword auto','auto','kw(auto)');
+  CheckTokenize('keyword inline-block','inline-block','kw(inline-block)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Identifier;
 begin
-  CheckTokenize('custom ident','--my-var','ident(--my-var) end');
-  CheckTokenize('custom ident short','--x','ident(--x) end');
+  CheckTokenize('custom ident','--my-var','ident(--my-var)');
+  CheckTokenize('custom ident short','--x','ident(--x)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Float;
 begin
-  CheckTokenize('int','12','float(12) end');
-  CheckTokenize('px','5px','float(5px) end');
-  CheckTokenize('percent','50%','float(50%) end');
-  CheckTokenize('frac','1.5em','float(1.5em) end');
-  CheckTokenize('dot frac','.25','float(0.25) end');
-  CheckTokenize('exponent','2e3','float(2000) end');
-  CheckTokenize('plus number','+7','float(7) end');
-  CheckTokenize('minus number','-3px','float(-3px) end');
+  CheckTokenize('int','12','float(12)');
+  CheckTokenize('px','5px','float(5px)');
+  CheckTokenize('percent','50%','float(50%)');
+  CheckTokenize('frac','1.5em','float(1.5em)');
+  CheckTokenize('dot frac','.25','float(0.25)');
+  CheckTokenize('exponent','2e3','float(2000)');
+  CheckTokenize('plus number','+7','float(7)');
+  CheckTokenize('minus number','-3px','float(-3px)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Whitespace;
 begin
-  CheckTokenize('two keywords','red blue','kw(red) ws kw(blue) end');
-  CheckTokenize('collapsed','red    blue','kw(red) ws kw(blue) end');
+  CheckTokenize('two keywords','red blue','kw(red) ws kw(blue)');
+  CheckTokenize('collapsed','red    blue','kw(red) ws kw(blue)');
   // leading and trailing whitespace is trimmed (TrimEnclosingSpace=true)
-  CheckTokenize('leading','  red','kw(red) end');
-  CheckTokenize('trailing','red ','kw(red) end');
+  CheckTokenize('leading','  red','kw(red)');
+  CheckTokenize('trailing','red ','kw(red)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Symbols;
 begin
-  CheckTokenize('comma','red,blue','kw(red) sym(,) kw(blue) end');
-  CheckTokenize('colon','red:blue','kw(red) sym(:) kw(blue) end');
-  CheckTokenize('semicolon','red;','kw(red) sym(;) end');
-  CheckTokenize('div','red/blue','kw(red) sym(/) kw(blue) end');
-  CheckTokenize('star','red*blue','kw(red) sym(*) kw(blue) end');
-  CheckTokenize('dot','red.blue','kw(red) sym(.) kw(blue) end');
+  CheckTokenize('comma','red,blue','kw(red) sym(,) kw(blue)');
+  CheckTokenize('colon','red:blue','kw(red) sym(:) kw(blue)');
+  CheckTokenize('semicolon','red;','kw(red) sym(;)');
+  CheckTokenize('div','red/blue','kw(red) sym(/) kw(blue)');
+  CheckTokenize('star','red*blue','kw(red) sym(*) kw(blue)');
+  CheckTokenize('dot','red.blue','kw(red) sym(.) kw(blue)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_PlusMinus;
 begin
-  CheckTokenize('plus operator','+ red','plus ws kw(red) end');
-  CheckTokenize('minus operator','- red','minus ws kw(red) end');
-  CheckTokenize('plus var','+var(--x)','plus func(var) ident(--x) ) end');
+  CheckTokenize('plus operator','+ red','plus ws kw(red)');
+  CheckTokenize('minus operator','- red','minus ws kw(red)');
+  CheckTokenize('plus var','+var(--x)','plus func(var) ident(--x) )');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Function;
 begin
-  CheckTokenize('var','var(--x)','func(var) ident(--x) ) end');
+  CheckTokenize('var','var(--x)','func(var) ident(--x) )');
   CheckTokenize('var fallback','var(--x, red)',
-    'func(var) ident(--x) sym(,) ws kw(red) ) end');
+    'func(var) ident(--x) sym(,) ws kw(red) )');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Brackets;
 begin
-  CheckTokenize('parenthesis','(red)','( kw(red) ) end');
-  CheckTokenize('brackets','[red]','[ kw(red) ] end');
-  CheckTokenize('nested','([red])','( [ kw(red) ] ) end');
+  CheckTokenize('parenthesis','(red)','( kw(red) )');
+  CheckTokenize('brackets','[red]','[ kw(red) ]');
+  CheckTokenize('nested','([red])','( [ kw(red) ] )');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_HexColor;
 begin
-  CheckTokenize('rgb','#fff','hex(fff) end');
-  CheckTokenize('rgba','#abcd','hex(abcd) end');
-  CheckTokenize('rrggbb','#ff0000','hex(ff0000) end');
-  CheckTokenize('rrggbbaa','#11223344','hex(11223344) end');
+  CheckTokenize('rgb','#fff','hex(fff)');
+  CheckTokenize('rgba','#abcd','hex(abcd)');
+  CheckTokenize('rrggbb','#ff0000','hex(ff0000)');
+  CheckTokenize('rrggbbaa','#11223344','hex(11223344)');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Strings;
 begin
-  CheckTokenize('apos','''hello''','apos(hello) end');
-  CheckTokenize('quote','"hello"','quote(hello) end');
-  CheckTokenize('empty apos','''''','apos() end');
+  CheckTokenize('apos','''hello''','apos(hello)');
+  CheckTokenize('quote','"hello"','quote(hello)');
+  CheckTokenize('empty apos','''''','apos()');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Invalid;

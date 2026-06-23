@@ -3263,16 +3263,6 @@ var
   AttrP: PMergedAttribute;
   ReplaceCnt: integer;
 
-  function StripEndToken(const T: TBytes): TBytes;
-  // a value's tokens end with an rtkEnd marker; remove it for splicing into a value
-  var
-    l: integer;
-  begin
-    l:=length(T);
-    if (l>0) and (T[l-1]=ord(rtkEnd)) then dec(l);
-    Result:=Copy(T,0,l);
-  end;
-
   function SubstituteVars(var Tokens: TBytes): boolean;
   // replace all var() calls in Tokens (leftmost first, repeated).
   // Returns false on error (loop limit or syntax error).
@@ -3294,7 +3284,6 @@ var
       while Ofs<Len do
       begin
         k:=TCSSResTokenKind(Tokens[Ofs]);
-        if k=rtkEnd then break;
         if (k=rtkFunction) and (CSSReadTokenWord(Tokens,Ofs+1)=CSSAttrFuncVar) then
         begin
           VarStart:=Ofs;
@@ -3338,7 +3327,6 @@ var
       while Ofs<Len do
       begin
         k:=TCSSResTokenKind(Tokens[Ofs]);
-        if k=rtkEnd then exit(false); // syntax error: missing ')'
         if (k=rtkLParenthesis) or (k=rtkFunction) then
           inc(Depth)
         else if k=rtkRParenthesis then
@@ -3365,7 +3353,7 @@ var
       begin
         if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
         begin
-          Repl:=StripEndToken(FMergedAttributes[Desc.Index].Tokens);
+          Repl:=FMergedAttributes[Desc.Index].Tokens;
           HasRepl:=not CSSTokensEmpty(Repl);
         end;
         if not HasRepl then
@@ -3373,7 +3361,7 @@ var
           aParentNode:=FNode.GetCSSParent;
           if aParentNode<>nil then
           begin
-            Repl:=StripEndToken(aParentNode.GetCSSCustomAttribute(Desc.Index));
+            Repl:=aParentNode.GetCSSCustomAttribute(Desc.Index);
             HasRepl:=not CSSTokensEmpty(Repl);
           end;
         end;
@@ -3434,7 +3422,7 @@ begin
         LHAttrIDs:=[];
         LHValues:=[];
         InitParseAttr(AttrDesc,AttrP^.Tokens);
-        if not (TokenKind in [rtkNone,rtkEnd]) then
+        if not AtEnd then
         begin
           AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
           for i:=0 to length(LHAttrIDs)-1 do
