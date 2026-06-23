@@ -592,6 +592,7 @@ type
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
     DestType: TPasType;
+    HasPointerMath : Boolean;
   end;
 
   { TPasTypeAliasType }
@@ -1698,6 +1699,7 @@ type
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Variable: TPasVariable; // not used by TPasParser
     VarType : TPasType; // For initialized variables
+    IsVarDef : Boolean; // For var i :=
     ImplicitTyped : Boolean;
     Body: TPasImplElement;
     Function Down: boolean; inline;// downto, backward compatibility
