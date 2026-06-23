@@ -935,6 +935,7 @@ begin
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
+  AssertEquals('Var Def',True,F.IsVarDef);
   AssertEquals('Implicitly typed',False,F.ImplicitTyped);
   AssertNotNull('Var type',F.VarType);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
