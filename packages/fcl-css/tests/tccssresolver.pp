@@ -926,13 +926,13 @@ begin
   HasWidth:=false;
   HasColor:=false;
   repeat
-    case Resolver.CurComp.Kind of
-    rvkFloat:
+    case Resolver.TokenKind of
+    rtkFloat:
       if not HasWidth then
-        HasWidth:=Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
-    rvkKeyword:
+        HasWidth:=Resolver.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
+    rtkKeyword:
       if not HasColor then
-        HasColor:=(Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor);
+        HasColor:=(Resolver.KeywordID>=kwFirstColor) and (Resolver.KeywordID<=kwLastColor);
     end;
   until not Resolver.ReadNext;
   Result:=HasWidth or HasColor;
@@ -956,17 +956,17 @@ begin
   aWidth:='';
   aColor:='';
   repeat
-    case Resolver.CurComp.Kind of
-    rvkFloat:
+    case Resolver.TokenKind of
+    rtkFloat:
       if aWidth='' then begin
-        if Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
-          aWidth:=Resolver.CurComp.FloatAsString;
+        if Resolver.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
+          aWidth:=Resolver.FloatAsString;
       end;
-    rvkKeyword:
+    rtkKeyword:
       if aColor='' then
       begin
-        if (Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor) then
-          aColor:=Keywords[Resolver.CurComp.KeywordID];
+        if (Resolver.KeywordID>=kwFirstColor) and (Resolver.KeywordID<=kwLastColor) then
+          aColor:=Keywords[Resolver.KeywordID];
       end;
     end;
   until not Resolver.ReadNext;
@@ -1005,7 +1005,7 @@ var
 begin
   if Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs) then
   begin
-    Value.Value:=Keywords[Resolver.CurComp.KeywordID];
+    Value.Value:=Keywords[Resolver.KeywordID];
   end
   else begin
     Value.Value:='invalid';
@@ -1021,11 +1021,11 @@ var
 begin
   if Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop) then
   begin
-    case Resolver.CurComp.Kind of
-    rvkFloat:
-      Value.Value:=Resolver.CurComp.FloatAsString;
-    rvkKeyword:
-      Value.Value:=Keywords[Resolver.CurComp.KeywordID];
+    case Resolver.TokenKind of
+    rtkFloat:
+      Value.Value:=Resolver.FloatAsString;
+    rtkKeyword:
+      Value.Value:=Keywords[Resolver.KeywordID];
     end;
   end
   else begin
@@ -1042,7 +1042,7 @@ var
 begin
   if Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight) then
   begin
-    Value.Value:=Resolver.CurComp.FloatAsString;
+    Value.Value:=Resolver.FloatAsString;
   end
   else begin
     Value.Value:='invalid';
@@ -1355,8 +1355,7 @@ begin
       AttrDesc:=TDemoCSSAttributeDesc(Desc);
       if AttrDesc.OnCompute<>nil then
       begin
-        Resolver.CurComp.EndP:=PChar(CurValue.Value);
-        Resolver.ReadNext;
+        Resolver.InitParseAttr(CurValue.Value);
         AttrDesc.OnCompute(Resolver,Self,CurValue);
         {$IFDEF VerboseCSSResolver}
         writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');

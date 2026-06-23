@@ -472,19 +472,19 @@ type
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
-    function MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
+    function MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
     function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity; virtual;
     function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
     function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
-    function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndGTMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndPlusMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndTildeMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndCompoundMatches(aList: TCSSListElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndRightAndMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
-    function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorHashIdentifierMatches(aIdentifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSResolvedClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -509,7 +509,7 @@ type
     function GetSiblingCount(aNode: ICSSNode): integer; virtual;
 
     // resolving identifiers
-    function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
+    function ResolveIdentifier(El: TCSSResolvedIdentifierElement; aKind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
 
     // @media caching
     procedure EvalGlobalAtRules; virtual; // evaluate all @media rules once
@@ -524,7 +524,7 @@ type
     procedure AddSiblingSelector(aSelector: TCSSElement; aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
     function SelectorHasSiblingDependency(aSelector: TCSSElement): boolean; virtual; // subject-side
     function SelectorComponentSiblingDep(aComponent: TCSSElement): boolean; virtual;
-    procedure GetSelectorBucketKey(aSelector: TCSSElement; out Kind: TCSSRuleBucketKind;
+    procedure GetSelectorBucketKey(aSelector: TCSSElement; out aKind: TCSSRuleBucketKind;
       out NumID: TCSSNumericalID); virtual;
     function GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
     function GetClassBucket(aClassID: TCSSNumericalID): TCSSRuleBucket;
@@ -1292,18 +1292,18 @@ begin
   end;
 end;
 
-function TCSSResolver.MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement
+function TCSSResolver.MediaSelectorIdentifierMatches(aIdentifier: TCSSResolvedIdentifierElement
   ): TCSSSpecificity;
 var
   KW: TCSSNumericalID;
 begin
   Result:=CSSSpecificityNoMatch;
-  KW:=Identifier.NumericalID;
+  KW:=aIdentifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
   if KW>0 then
-    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',CSSRegistry.Keywords[KW])
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',aIdentifier.Value,' KW=',CSSRegistry.Keywords[KW])
   else
-    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' unknown');
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',aIdentifier.Value,' unknown');
   {$ENDIF}
   if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
     Result:=FSourceSpecificity;
@@ -1824,15 +1824,15 @@ begin
 end;
 
 function TCSSResolver.SelectorIdentifierMatches(
-  Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode;
+  aIdentifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
 var
   TypeID: TCSSNumericalID;
 begin
   Result:=CSSSpecificityNoMatch;
-  TypeID:=Identifier.NumericalID;
+  TypeID:=aIdentifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
-  writeln('TCSSResolver.SelectorIdentifierMatches ',Identifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
+  writeln('TCSSResolver.SelectorIdentifierMatches ',aIdentifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
   {$ENDIF}
   if TypeID=CSSTypeID_Universal then
     // universal selector
@@ -1843,7 +1843,7 @@ begin
   begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
-    Log(etWarning,20240625153922,'Unknown type ',Identifier);
+    Log(etWarning,20240625153922,'Unknown type ',aIdentifier);
     {$ENDIF}
     Result:=CSSSpecificityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
@@ -2069,7 +2069,7 @@ begin
 end;
 
 function TCSSResolver.SelectorHashIdentifierMatches(
-  Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
+  aIdentifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
   OnlySpecificity: boolean): TCSSSpecificity;
 var
   aID: TCSSNumericalID;
@@ -2077,7 +2077,7 @@ begin
   if OnlySpecificity then
     exit(CSSSpecificityIdentifier+FSourceSpecificity);
   Result:=CSSSpecificityNoMatch;
-  aID:=TCSSResolvedHashIdentifierElement(Identifier).NumericalID;
+  aID:=TCSSResolvedHashIdentifierElement(aIdentifier).NumericalID;
   if (aID>=1) and (TestNode.GetCSSID=aID) then
     Result:=CSSSpecificityIdentifier+FSourceSpecificity;
 end;
@@ -3531,7 +3531,7 @@ begin
         LHAttrIDs:=[];
         LHValues:=[];
         InitParseAttr(AttrDesc,AttrP^.Value);
-        if not (CurComp.Kind in [rvkNone,rvkInvalid]) then
+        if not (TokenKind in [rtkNone,rtkEnd]) then
         begin
           AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
           for i:=0 to length(LHAttrIDs)-1 do
@@ -3576,9 +3576,9 @@ begin
   begin
     // set Result.AllValue
     InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],GetDeclarationValue(FMergedAllDecl));
-    if (CurComp.Kind=rvkKeyword) and IsBaseKeyword(CurComp.KeywordID) then
+    if (TokenKind=rtkKeyword) and IsBaseKeyword(KeywordID) then
     begin
-      Result.AllValue:=CurComp.KeywordID;
+      Result.AllValue:=KeywordID;
     end;
   end;
 
@@ -3613,7 +3613,7 @@ begin
 end;
 
 function TCSSResolver.ResolveIdentifier(El: TCSSResolvedIdentifierElement;
-  Kind: TCSSNumericalIDKind): TCSSNumericalID;
+  aKind: TCSSNumericalIDKind): TCSSNumericalID;
 var
   aName: TCSSString;
 begin
@@ -3622,25 +3622,25 @@ begin
   begin
     // not yet resolved
     aName:=El.Name;
-    if Kind in [nikPseudoClass,nikPseudoElement] then
+    if aKind in [nikPseudoClass,nikPseudoElement] then
     begin
       // pseudo attributes and elements are ASCII case insensitive
       System.Delete(aName,1,1);
       aName:=lowercase(aName);
     end;
 
-    Result:=CSSRegistry.IndexOfNamedItem(Kind,aName);
+    Result:=CSSRegistry.IndexOfNamedItem(aKind,aName);
     if Result=CSSIDNone then
     begin
       El.NumericalID:=-1;
-      Log(etWarning,20240625160211,'unknown '+CSSNumericalIDKindNames[Kind]+' "'+aName+'"',El);
+      Log(etWarning,20240625160211,'unknown '+CSSNumericalIDKindNames[aKind]+' "'+aName+'"',El);
     end else begin
       El.NumericalID:=Result;
-      El.Kind:=Kind;
+      El.Kind:=aKind;
     end;
   end else if Result=-1 then
     Result:=CSSIDNone // name not found
-  else if El.Kind<>Kind then
+  else if El.Kind<>aKind then
     raise ECSSResolver.Create('20240701105839');
 end;
 
@@ -3988,7 +3988,7 @@ begin
 end;
 
 procedure TCSSResolver.GetSelectorBucketKey(aSelector: TCSSElement;
-  out Kind: TCSSRuleBucketKind; out NumID: TCSSNumericalID);
+  out aKind: TCSSRuleBucketKind; out NumID: TCSSNumericalID);
 
   procedure Classify(El: TCSSElement; out aKind: TCSSRuleBucketKind;
     out aNumID: TCSSNumericalID);
@@ -4033,7 +4033,7 @@ var
   ChildKind: TCSSRuleBucketKind;
   ChildNum: TCSSNumericalID;
 begin
-  Kind:=rbkOther;
+  aKind:=rbkOther;
   NumID:=CSSIDNone;
 
   // descend combinators to the rightmost selector part
@@ -4074,22 +4074,22 @@ begin
     for i:=0 to aList.ChildCount-1 do
     begin
       Classify(aList.Children[i],ChildKind,ChildNum);
-      if ChildKind>Kind then
+      if ChildKind>aKind then
       begin
-        Kind:=ChildKind;
+        aKind:=ChildKind;
         NumID:=ChildNum;
-        if Kind=rbkID then break; // id is the most distinctive, stop early
+        if aKind=rbkID then break; // id is the most distinctive, stop early
       end;
     end;
   end
   else
-    Classify(aSelector,Kind,NumID);
+    Classify(aSelector,aKind,NumID);
 end;
 
 procedure TCSSResolver.BucketRule(aRule: TCSSRuleElement; SrcSpecificity: TCSSSpecificity);
 var
   i: Integer;
-  Kind: TCSSRuleBucketKind;
+  aKind: TCSSRuleBucketKind;
   NumID: TCSSNumericalID;
   DocIndex: Integer;
 begin
@@ -4112,8 +4112,8 @@ begin
 
   for i:=0 to aRule.SelectorCount-1 do
   begin
-    GetSelectorBucketKey(aRule.Selectors[i],Kind,NumID);
-    case Kind of
+    GetSelectorBucketKey(aRule.Selectors[i],aKind,NumID);
+    case aKind of
     rbkID:    GetIDBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
     rbkClass: GetClassBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);
     rbkType:  GetTypeBucket(NumID).Add(aRule,DocIndex,SrcSpecificity);

@@ -613,15 +613,27 @@ type
     FMediaCompare: TCSSMediaCompareEvent;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
+    procedure ResetCurComp; // clear the current token component
+    function CurFits(const Params: TCSSCheckAttrParams_Dimension): boolean; // true if the current float component fits
   public
     CurAttrData: TCSSAttributeKeyData;
     CurDesc: TCSSAttributeDesc;
-    CurValue: TCSSString;
-    CurComp: TCSSResCompValue;
+    CurValue: TCSSString; // source text (for diagnostics), set by InitParseAttr
+    CurTokens: TBytes; // tokenized value being read, see Tokenize
+    CurTokenPos: integer; // offset in CurTokens of the next token (read by ReadNext)
+    CurTokenStart: integer; // offset in CurTokens where the current token started
+    // current token component, set by ReadNext:
+    TokenKind: TCSSResTokenKind;
+    Float: Double;
+    FloatUnit: TCSSUnit;
+    KeywordID: TCSSNumericalID;
+    FunctionID: TCSSNumericalID;
+    Symbol: TCSSToken;
+    Identifier: TCSSString; // text payload of rtkIdentifier/rtkString*/rtkHexColor and symbols
     function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     procedure InitParseAttr(const Value: TCSSString); virtual;
-    // check whole attribute, skipping invalid values, emit warnings:
+    // check whole attribute:
     function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_Keyword_List(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
@@ -631,7 +643,7 @@ type
     function ReadAttribute_Keyword(out Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function ReadAttribute_Dimension(out Invalid: boolean; const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
     function ReadAttribute_Color(out Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
-    function IsBaseKeyword(KeywordID: TCSSNumericalID): boolean;
+    function IsBaseKeyword(aKeywordID: TCSSNumericalID): boolean;
     function IsKeywordIn(aKeywordID: TCSSNumericalID; const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
     function IsKeywordIn(const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
     function IsLengthOrPercentage(AllowNegative: boolean): boolean; overload;
@@ -639,14 +651,13 @@ type
     function IsSymbol(Token: TCSSToken): boolean; overload;
     function GetCompString: TCSSString; overload;
     function GetCompString(const aValue: string; const ResValue: TCSSResCompValue): TCSSString; overload;
-    // low level functions to parse attribute components
+    function FloatAsString: TCSSString; // the current component as float+unit
+    function IsInteger: boolean; // the current component is a unitless number
+    function IsIntegerValue(v: Integer): boolean;
+    // low level functions to read attribute tokens
     function Tokenize(const aValue: string; out aData: TBytes): boolean; // false if invalid, see TCSSResTokenKind
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
-    function ReadComp(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue
-    procedure ReadWordID(var aComp: TCSSResCompValue);
-    class function ReadValue(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue, not using CSSRegistry
-    class function ReadNumber(var aComp: TCSSResCompValue): boolean;
-    class function ReadIdentifier(var aComp: TCSSResCompValue): boolean;
+    function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace
     class procedure SkipToEndOfAttribute(var p: PCSSChar);
     class function SkipString(var p: PCSSChar): boolean;
     class function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
@@ -1740,43 +1751,46 @@ begin
   FCSSRegistry:=AValue;
 end;
 
+procedure TCSSBaseResolver.ResetCurComp;
+begin
+  CurTokens:=nil;
+  CurTokenPos:=0;
+  CurTokenStart:=0;
+  TokenKind:=rtkNone;
+  Float:=0;
+  FloatUnit:=cuNone;
+  KeywordID:=CSSIDNone;
+  FunctionID:=CSSIDNone;
+  Symbol:=ctkUNKNOWN;
+  Identifier:='';
+end;
+
 function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData
   ): boolean;
-var
-  p: PCSSChar;
-  IsSingleComp: boolean;
 begin
   Result:=false;
   CurAttrData:=AttrData;
   CurDesc:=Desc;
-  CurComp:=Default(TCSSResCompValue);
+  CurValue:=AttrData.Value;
+  ResetCurComp;
 
   if AttrData.Invalid then
+    exit;
+
+  if not Tokenize(CurValue,CurTokens) then
   begin
-    CurComp.Kind:=rvkInvalid;
+    AttrData.Invalid:=true;
     exit;
   end;
-
-  CurValue:=AttrData.Value;
-  CurComp.EndP:=PCSSChar(CurValue);
   if not ReadNext then
     exit;
 
-  // check if the value consists of a single component
-  IsSingleComp:=false;
-  if CurComp.Kind in [rvkKeyword,rvkFloat] then
+  if (CurAttrData<>nil) and (TokenKind=rtkKeyword)
+      and IsBaseKeyword(KeywordID) then
   begin
-    p:=CurComp.EndP;
-    while (p^ in Whitespace) do inc(p);
-    IsSingleComp:=p^=#0;
-  end;
-
-  if (CurAttrData<>nil) and (CurComp.Kind=rvkKeyword)
-      and IsBaseKeyword(CurComp.KeywordID) then
-  begin
-    if not IsSingleComp then
+    // a base keyword like "inherit" must be the only component
+    if PeekNextTokenKind<>rtkEnd then
     begin
-      // "inherit" must be alone
       CurAttrData.Invalid:=true;
       exit;
     end;
@@ -1787,21 +1801,22 @@ end;
 
 function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean;
 begin
-  Result:=false;
   CurAttrData:=nil;
   CurDesc:=Desc;
   CurValue:=Value;
-  CurComp:=Default(TCSSResCompValue);
-  CurComp.EndP:=PCSSChar(CurValue);
+  ResetCurComp;
+  if not Tokenize(Value,CurTokens) then
+    exit(false);
   Result:=ReadNext;
 end;
 
 procedure TCSSBaseResolver.InitParseAttr(const Value: TCSSString);
 begin
+  CurAttrData:=nil;
   CurValue:=Value;
-  CurComp:=Default(TCSSResCompValue);
-  CurComp.EndP:=PCSSChar(CurValue);
-  ReadNext;
+  ResetCurComp;
+  if Tokenize(Value,CurTokens) then
+    ReadNext;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
@@ -1809,16 +1824,16 @@ function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNu
 var
   i: Integer;
 begin
-  case CurComp.Kind of
-  rvkKeyword:
+  case TokenKind of
+  rtkKeyword:
     for i:=0 to length(AllowedKeywordIDs)-1 do
-      if CurComp.KeywordID=AllowedKeywordIDs[i] then
+      if KeywordID=AllowedKeywordIDs[i] then
       begin
-        if not ReadNext and (CurComp.Kind=rvkNone) then
+        if not ReadNext and (TokenKind=rtkEnd) then
           exit(true);
       end;
-  rvkFunction:
-    if CurComp.FunctionID=CSSAttrFuncVar then
+  rtkFunction:
+    if FunctionID=CSSAttrFuncVar then
       // maybe
       exit(true);
   end;
@@ -1834,15 +1849,15 @@ var
 begin
   repeat
     Fits:=false;
-    case CurComp.Kind of
-    rvkKeyword:
+    case TokenKind of
+    rtkKeyword:
       for i:=0 to length(AllowedKeywordIDs)-1 do
-        if CurComp.KeywordID=AllowedKeywordIDs[i] then
+        if KeywordID=AllowedKeywordIDs[i] then
         begin
           Fits:=true;
           break;
         end;
-    rvkFunction:
+    rtkFunction:
       begin
         // todo: check for allowed functions
         Fits:=true;
@@ -1851,7 +1866,7 @@ begin
     if not Fits then
       exit(false);
   until not ReadNext;
-  Result:=CurComp.Kind=rvkNone;
+  Result:=TokenKind=rtkEnd;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension
@@ -1875,8 +1890,132 @@ begin
 end;
 
 function TCSSBaseResolver.ReadNext: boolean;
+// Reads the next token from CurTokens into the current component fields,
+// skipping whitespace tokens. Returns false at the end of the value.
+
+  function ReadByte: byte;
+  begin
+    Result:=CurTokens[CurTokenPos];
+    inc(CurTokenPos);
+  end;
+
+  function ReadWord: word;
+  begin
+    Result:=PWord(@CurTokens[CurTokenPos])^;
+    inc(CurTokenPos,2);
+  end;
+
+  function ReadDWord: cardinal;
+  begin
+    Result:=PDWord(@CurTokens[CurTokenPos])^;
+    inc(CurTokenPos,4);
+  end;
+
+  function ReadDouble: double;
+  begin
+    Result:=PDouble(@CurTokens[CurTokenPos])^;
+    inc(CurTokenPos,8);
+  end;
+
+  function ReadStr(Count: cardinal): TCSSString;
+  begin
+    Result:='';
+    if Count=0 then exit;
+    SetLength(Result,Count);
+    Move(CurTokens[CurTokenPos],Result[1],Count);
+    inc(CurTokenPos,Count);
+  end;
+
+var
+  Len: integer;
 begin
-  Result:=ReadComp(CurComp);
+  // reset the current component
+  Float:=0;
+  FloatUnit:=cuNone;
+  KeywordID:=CSSIDNone;
+  FunctionID:=CSSIDNone;
+  Symbol:=ctkUNKNOWN;
+  Identifier:='';
+
+  Len:=length(CurTokens);
+  // any amount of whitespace is a single token and is skipped here
+  while (CurTokenPos<Len) and (TCSSResTokenKind(CurTokens[CurTokenPos])=rtkWhitespace) do
+    inc(CurTokenPos);
+
+  CurTokenStart:=CurTokenPos;
+  if CurTokenPos>=Len then
+  begin
+    TokenKind:=rtkEnd;
+    exit(false);
+  end;
+
+  TokenKind:=TCSSResTokenKind(ReadByte);
+  case TokenKind of
+  rtkEnd:
+    exit(false);
+  rtkFloat:
+    begin
+      FloatUnit:=TCSSUnit(ReadByte);
+      Float:=ReadDouble;
+    end;
+  rtkKeyword:
+    KeywordID:=ReadWord;
+  rtkFunction:
+    FunctionID:=ReadWord;
+  rtkIdentifier:
+    Identifier:=ReadStr(ReadDWord);
+  rtkStringApos,rtkStringQuote:
+    Identifier:=ReadStr(ReadDWord);
+  rtkHexColor:
+    Identifier:=ReadStr(ReadByte);
+  rtkSymbol:
+    begin
+      Identifier:=TCSSChar(ReadByte);
+      case Identifier[1] of
+      ',': Symbol:=ctkCOMMA;
+      ':': Symbol:=ctkCOLON;
+      ';': Symbol:=ctkSEMICOLON;
+      '.': Symbol:=ctkDOT;
+      '*': Symbol:=ctkSTAR;
+      '/': Symbol:=ctkDIV;
+      else Symbol:=ctkUNKNOWN;
+      end;
+    end;
+  rtkPlus: Symbol:=ctkPLUS;
+  rtkMinus: Symbol:=ctkMINUS;
+  rtkLParenthesis: Symbol:=ctkLPARENTHESIS;
+  rtkRParenthesis: Symbol:=ctkRPARENTHESIS;
+  rtkLBracket: Symbol:=ctkLBRACKET;
+  rtkRBracket: Symbol:=ctkRBRACKET;
+  end;
+  Result:=true;
+end;
+
+function TCSSBaseResolver.PeekNextTokenKind: TCSSResTokenKind;
+var
+  i, Len: integer;
+begin
+  Len:=length(CurTokens);
+  i:=CurTokenPos;
+  while (i<Len) and (TCSSResTokenKind(CurTokens[i])=rtkWhitespace) do
+    inc(i);
+  if i<Len then
+    Result:=TCSSResTokenKind(CurTokens[i])
+  else
+    Result:=rtkEnd;
+end;
+
+function TCSSBaseResolver.CurFits(const Params: TCSSCheckAttrParams_Dimension): boolean;
+begin
+  Result:=false;
+  if TokenKind<>rtkFloat then exit;
+  if FloatUnit in Params.AllowedUnits then
+  begin
+    if (not Params.AllowNegative) and (Float<0) then exit;
+    if (not Params.AllowFrac) and (Frac(Float)>0) then exit;
+    exit(true);
+  end else if (FloatUnit=cuNone) and (Float=0) then
+    exit(true);
 end;
 
 function TCSSBaseResolver.ReadAttribute_Keyword(out Invalid: boolean;
@@ -1886,10 +2025,10 @@ var
 begin
   Invalid:=false;
   repeat
-    case CurComp.Kind of
-    rvkKeyword:
+    case TokenKind of
+    rtkKeyword:
       for i:=0 to length(AllowedKeywordIDs)-1 do
-        if CurComp.KeywordID=AllowedKeywordIDs[i] then
+        if KeywordID=AllowedKeywordIDs[i] then
           exit(true);
     end;
     // todo: warn if invalid
@@ -1905,13 +2044,13 @@ var
 begin
   Invalid:=true;
   repeat
-    case CurComp.Kind of
-    rvkFloat:
-      if Params.Fits(CurComp) then
+    case TokenKind of
+    rtkFloat:
+      if CurFits(Params) then
         exit(true);
-    rvkKeyword:
+    rtkKeyword:
       for i:=0 to length(Params.AllowedKeywordIDs)-1 do
-        if CurComp.KeywordID=Params.AllowedKeywordIDs[i] then
+        if KeywordID=Params.AllowedKeywordIDs[i] then
           exit(true);
     end;
     // todo: warn if invalid
@@ -1927,22 +2066,22 @@ var
 begin
   Invalid:=false;
   repeat
-    case CurComp.Kind of
-    rvkKeyword:
+    case TokenKind of
+    rtkKeyword:
       begin
-        if (CurComp.KeywordID>=CSSRegistry.kwFirstColor)
-            and (CurComp.KeywordID<=CSSRegistry.kwLastColor)
+        if (KeywordID>=CSSRegistry.kwFirstColor)
+            and (KeywordID<=CSSRegistry.kwLastColor)
         then
           exit(true);
         for i:=0 to length(AllowedKeywordIDs)-1 do
-          if CurComp.KeywordID=AllowedKeywordIDs[i] then
+          if KeywordID=AllowedKeywordIDs[i] then
             exit(true);
       end;
-    rvkFunction:
+    rtkFunction:
       begin
         // todo: check for allowed functions
       end;
-    rvkHexColor:
+    rtkHexColor:
       exit(true);
     end;
     // todo: warn if invalid
@@ -1951,338 +2090,9 @@ begin
   Result:=false;
 end;
 
-function TCSSBaseResolver.ReadComp(var aComp: TCSSResCompValue): boolean;
+function TCSSBaseResolver.IsBaseKeyword(aKeywordID: TCSSNumericalID): boolean;
 begin
-  Result:=ReadValue(aComp);
-  ReadWordID(aComp);
-end;
-
-procedure TCSSBaseResolver.ReadWordID(var aComp: TCSSResCompValue);
-var
-  Identifier: TCSSString;
-  p: PCSSChar;
-begin
-  case aComp.Kind of
-  rvkFunctionUnknown:
-    begin
-      p:=aComp.StartP;
-      if not (p^ in AlIden) then exit;
-      repeat
-        inc(p);
-      until not (p^ in AlNumIden);
-      SetString(Identifier,aComp.StartP,p-aComp.StartP);
-      aComp.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
-      if aComp.FunctionID>CSSIDNone then
-        aComp.Kind:=rvkFunction;
-    end;
-  rvkKeywordUnknown:
-    begin
-      SetString(Identifier,aComp.StartP,aComp.EndP-aComp.StartP);
-      aComp.KeywordID:=CSSRegistry.IndexOfKeyword(Identifier);
-      if aComp.KeywordID>CSSIDNone then
-        aComp.Kind:=rvkKeyword;
-    end;
-  end;
-end;
-
-class function TCSSBaseResolver.ReadValue(var aComp: TCSSResCompValue): boolean;
-var
-  c: TCSSChar;
-  p: PCSSChar;
-  l: SizeInt;
-
-  procedure SetSymbol(s: TCSSToken);
-  begin
-    aComp.Kind:=rvkSymbol;
-    aComp.Symbol:=s;
-    aComp.EndP:=p+1;
-  end;
-
-begin
-  Result:=true;
-  aComp.Kind:=rvkNone;
-
-  p:=aComp.EndP;
-  if p=nil then exit(false);
-
-  // skip whitespace
-  while (p^ in Whitespace) do inc(p);
-  aComp.StartP:=p;
-  aComp.EndP:=p;
-
-  c:=p^;
-  case c of
-  #0: exit(false);
-  '0'..'9':
-    if ReadNumber(aComp) then exit;
-  ',':
-    begin
-      SetSymbol(ctkCOMMA);
-      exit;
-    end;
-  ')':
-    begin
-      SetSymbol(ctkRPARENTHESIS);
-      exit;
-    end;
-  '+':
-    case p[1] of
-    '0'..'9','.':
-      if ReadNumber(aComp) then exit;
-    #0,#9,#10,#13,' ':
-      begin
-        SetSymbol(ctkPLUS);
-        exit;
-      end;
-    end;
-  '-':
-    case p[1] of
-    '0'..'9','.':
-      if ReadNumber(aComp) then exit;
-    'a'..'z','A'..'Z','-':
-      if ReadIdentifier(aComp) then exit;
-    #0,#9,#10,#13,' ':
-      begin
-        SetSymbol(ctkMINUS);
-        exit;
-      end;
-    end;
-  '.':
-    case p[1] of
-    '0'..'9':
-      if ReadNumber(aComp) then exit;
-    else
-      SetSymbol(ctkDOT);
-      exit;
-    end;
-  '*':
-    begin
-      if p[1]='=' then
-      begin
-        inc(p);
-        SetSymbol(ctkSTAREQUAL);
-      end else
-        SetSymbol(ctkSTAR);
-      exit;
-    end;
-  '/':
-    begin
-      SetSymbol(ctkDIV);
-      exit;
-    end;
-  ':':
-    begin
-      SetSymbol(ctkCOLON);
-      exit;
-    end;
-  ';':
-    begin
-      SetSymbol(ctkSEMICOLON);
-      exit;
-    end;
-  'a'..'z','A'..'Z':
-    if ReadIdentifier(aComp) then exit;
-  '#':
-    begin
-      inc(p);
-      while p^ in Hex do inc(p);
-      l:=p-aComp.StartP;
-      case l of
-      4,5,7,9:
-        begin
-          // #rgb, #rgba, #rrggbb, #rrggbbaa
-          aComp.Kind:=rvkHexColor;
-          aComp.EndP:=p;
-          exit;
-        end;
-      end;
-    end;
-  '''','"':
-    if SkipString(p) then
-    begin
-      aComp.Kind:=rvkString;
-      aComp.EndP:=p;
-      exit;
-    end;
-  '[':
-    if SkipBrackets(p) then
-    begin
-      aComp.Kind:=rvkBrackets;
-      aComp.EndP:=p;
-      exit;
-    end;
-  '(':
-    if SkipBrackets(p) then
-    begin
-      aComp.Kind:=rvkParenthesis;
-      aComp.EndP:=p;
-      exit;
-    end;
-  end;
-
-  // skip unknown aComp
-  aComp.Kind:=rvkInvalid;
-  repeat
-    if p^ in ValEnd then break;
-    case p^ of
-    '(','[': SkipBrackets(p);
-    '''','"': SkipString(p);
-    else inc(p);
-    end;
-  until false;
-  aComp.EndP:=p;
-  Result:=false;
-end;
-
-class function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
-var
-  Negative, HasNumber: Boolean;
-  Divisor: double;
-  Exponent: Integer;
-  d: Float;
-  U: TCSSUnit;
-  StartP, p: PCSSChar;
-begin
-  Result:=false;
-  aComp.Kind:=rvkInvalid;
-  p:=aComp.StartP;
-
-  // number: 1, 0.2, .3, 4.01, 0.0, +0.0, -0.0, .50, 2e3, -6.7E-2
-  if p^='-' then
-  begin
-    Negative:=true;
-    inc(p);
-  end else begin
-    Negative:=false;
-    if p^='+' then
-      inc(p);
-  end;
-  HasNumber:=false;
-  aComp.Float:=0;
-  if p^ in Num then
-  begin
-    // read significand
-    HasNumber:=true;
-    repeat
-      aComp.Float:=aComp.Float*10+ord(p^)-ord('0');
-      if aComp.Float>CSSMaxSafeIntDouble then
-        exit; // loosing precision
-      inc(p);
-    until not (p^ in Num);
-  end;
-  if p^='.' then
-  begin
-    // read fraction
-    inc(p);
-    if not (p^ in Num) then exit;
-    Divisor:=1;
-    repeat
-      Divisor:=Divisor*10;
-      aComp.Float:=aComp.Float*10+ord(p^)-ord('0');
-      if (Divisor>CSSMaxSafeIntDouble)
-          or (aComp.Float>CSSMaxSafeIntDouble) then
-        exit; // loosing precision
-      inc(p);
-    until not (p^ in Num);
-    aComp.Float:=aComp.Float/Divisor;
-  end else if not HasNumber then
-    exit;
-  if Negative then
-    aComp.Float:=-aComp.Float;
-
-  if (p^ in ['e','E']) and not (p[1] in ['a'..'z']) then
-  begin
-    inc(p);
-    if p^='-' then
-    begin
-      Negative:=true;
-      inc(p);
-    end else begin
-      Negative:=false;
-      if p^='+' then
-        inc(p);
-    end;
-    if not (p^ in Num) then exit;
-    Exponent:=0;
-    repeat
-      inc(p);
-      Exponent:=Exponent*10+ord(p^)-ord('0');
-      if Exponent>2047 then
-        exit; // out of bounds
-    until not (p^ in Num);
-    if Exponent>0 then
-    begin
-      if Negative then
-        Exponent:=-Exponent;
-      try
-        d:=Power(10,Exponent);
-        aComp.Float:=aComp.Float*d;
-      except
-        exit;
-      end;
-    end;
-  end;
-  aComp.Kind:=rvkFloat;
-
-  // parse unit
-  U:=cuNone;
-  case p^ of
-  '%':
-    begin
-      inc(p);
-      U:=cuPercent;
-    end;
-  'a'..'z','A'..'Z':
-    begin
-      StartP:=p;
-      while p^ in Alpha do inc(p);
-      U:=high(TCSSUnit);
-      while (U>cuNone) and not CompareMem(StartP,PChar(CSSUnitNames[U]),length(CSSUnitNames[U])) do
-        U:=pred(U);
-      if U=cuNone then
-        exit; // unknown unit
-    end;
-  end;
-  aComp.FloatUnit:=U;
-  aComp.EndP:=p;
-
-  Result:=true;
-  //writeln('TCSSBaseResolver.ReadNumber "',p,'" Value=',FloatToCSSStr(aComp.Float),' U=',U,' Kind=',aComp.Kind,' Result=',Result);
-end;
-
-class function TCSSBaseResolver.ReadIdentifier(var aComp: TCSSResCompValue): boolean;
-var
-  IsFunc: Boolean;
-  p: PCSSChar;
-begin
-  Result:=false;
-  aComp.Kind:=rvkInvalid;
-  p:=aComp.EndP;
-  if not (p^ in AlIden) then exit;
-  repeat
-    inc(p);
-  until not (p^ in AlNumIden);
-  IsFunc:=p^='(';
-  if IsFunc then
-  begin
-    // function call
-    aComp.Kind:=rvkFunctionUnknown;
-    aComp.BracketOpen:=p;
-    if not SkipBrackets(p) then
-    begin
-      aComp.EndP:=p;
-      exit;
-    end;
-  end else
-    aComp.Kind:=rvkKeywordUnknown;
-  aComp.EndP:=p;
-
-  Result:=true;
-end;
-
-function TCSSBaseResolver.IsBaseKeyword(KeywordID: TCSSNumericalID): boolean;
-begin
-  Result:=(KeywordID>=CSSKeywordInitial) and (KeywordID<=CSSKeywordRevertLayer);
+  Result:=(aKeywordID>=CSSKeywordInitial) and (aKeywordID<=CSSKeywordRevertLayer);
 end;
 
 function TCSSBaseResolver.IsKeywordIn(aKeywordID: TCSSNumericalID;
@@ -2302,8 +2112,8 @@ var
   i: Integer;
 begin
   Result:=false;
-  if CurComp.Kind<>rvkKeyword then exit;
-  aKeywordID:=CurComp.KeywordID;
+  if TokenKind<>rtkKeyword then exit;
+  aKeywordID:=KeywordID;
   for i:=0 to length(KeywordIDs)-1 do
     if KeywordIDs[i]=aKeywordID then
       exit(true);
@@ -2312,14 +2122,14 @@ end;
 function TCSSBaseResolver.IsLengthOrPercentage(AllowNegative: boolean): boolean;
 begin
   Result:=false;
-  case CurComp.Kind of
-  rvkFloat:
-    if CurComp.FloatUnit in cuAllLengthsAndPercent then
+  case TokenKind of
+  rtkFloat:
+    if FloatUnit in cuAllLengthsAndPercent then
     begin
-      if (not AllowNegative) and (CurComp.Float<0) then exit;
+      if (not AllowNegative) and (Float<0) then exit;
       exit(true);
     end
-    else if (CurComp.FloatUnit=cuNone) and (CurComp.Float=0) then
+    else if (FloatUnit=cuNone) and (Float=0) then
       exit(true); // 0 without unit is allowed
   end;
 end;
@@ -2342,20 +2152,40 @@ end;
 
 function TCSSBaseResolver.IsSymbol(Token: TCSSToken): boolean;
 begin
-  Result:=(CurComp.Kind=rvkSymbol) and (CurComp.Symbol=Token);
+  Result:=(Symbol=Token)
+    and (TokenKind in [rtkSymbol,rtkPlus,rtkMinus,
+                  rtkLParenthesis,rtkRParenthesis,rtkLBracket,rtkRBracket]);
 end;
 
 function TCSSBaseResolver.GetCompString: TCSSString;
-var
-  StartP: PCSSChar;
 begin
-  if CurComp.Kind=rvkKeyword then
-    exit(CSSRegistry.Keywords[CurComp.KeywordID]);
-  StartP:=CurComp.StartP;
-  if (StartP=PCSSChar(CurValue)) and (CurComp.EndP-StartP = length(CurValue)) then
-    Result:=CurValue
+  case TokenKind of
+  rtkKeyword: Result:=CSSRegistry.Keywords[KeywordID];
+  rtkFunction: Result:=CSSRegistry.AttrFunctions[FunctionID]+'(';
+  rtkFloat: Result:=FloatAsString;
+  rtkStringApos: Result:=''''+Identifier+'''';
+  rtkStringQuote: Result:='"'+Identifier+'"';
+  rtkHexColor: Result:='#'+Identifier;
   else
-    SetString(Result,StartP,CurComp.EndP-StartP);
+    // rtkIdentifier and symbols carry their text in Identifier
+    Result:=Identifier;
+  end;
+end;
+
+function TCSSBaseResolver.FloatAsString: TCSSString;
+begin
+  Result:=FloatToCSSStr(Float)+CSSUnitNames[FloatUnit];
+end;
+
+function TCSSBaseResolver.IsInteger: boolean;
+begin
+  Result:=(TokenKind=rtkFloat) and (FloatUnit=cuNone);
+end;
+
+function TCSSBaseResolver.IsIntegerValue(v: Integer): boolean;
+begin
+  if (TokenKind<>rtkFloat) or (FloatUnit<>cuNone) then exit(false);
+  Result:=SameValue(Float,v);
 end;
 
 function TCSSBaseResolver.GetCompString(const aValue: string; const ResValue: TCSSResCompValue
@@ -2413,9 +2243,9 @@ var
     inc(DataLen);
   end;
 
-  procedure AddKind(Kind: TCSSResTokenKind);
+  procedure AddKind(aKind: TCSSResTokenKind);
   begin
-    AddByte(byte(ord(Kind)));
+    AddByte(byte(ord(aKind)));
   end;
 
   procedure AddWord(w: word);
@@ -2765,7 +2595,7 @@ var
   end;
 
 var
-  Kind: TCSSResTokenKind;
+  aKind: TCSSResTokenKind;
   U: TCSSUnit;
 begin
   Result:='';
@@ -2773,8 +2603,8 @@ begin
   i:=0;
   while i<DataLen do
   begin
-    Kind:=TCSSResTokenKind(ReadByte);
-    case Kind of
+    aKind:=TCSSResTokenKind(ReadByte);
+    case aKind of
     rtkEnd: break;
     rtkWhitespace: Result:=Result+' ';
     rtkSymbol: Result:=Result+TCSSChar(ReadByte);
