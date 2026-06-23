@@ -4519,7 +4519,7 @@ begin
   if Decl.KeyCount=0 then exit;
   KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
   if KeyData=nil then exit;
-  Result:=KeyData.GetValue;
+  Result:=KeyData.Value;
 end;
 
 procedure TCSSResolver.ClearStyleSheets;

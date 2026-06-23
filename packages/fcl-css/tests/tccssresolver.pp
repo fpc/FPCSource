@@ -4545,19 +4545,19 @@ var
 
   function RWord: word;
   begin
-    Move(Data[i],Result,2);
+    Result:=PWord(@Data[i])^;
     inc(i,2);
   end;
 
-  function RDWord: cardinal;
+  function RDWord: DWord;
   begin
-    Move(Data[i],Result,4);
+    Result:=PDWord(@Data[i])^;
     inc(i,4);
   end;
 
   function RDouble: double;
   begin
-    Move(Data[i],Result,8);
+    Result:=PDouble(@Data[i])^;
     inc(i,8);
   end;
 
