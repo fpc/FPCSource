@@ -118,6 +118,7 @@ type
   TCSSMsgID = int64; // used for message numbers, e.g. error codes
   TCSSNumericalID = integer; // used for IDs of each type and attribute
   TCSSNumericalIDArray = array of TCSSNumericalID;
+  TBytesArray = array of TBytes;
 
   TCSSNumericalIDKind = (
     nikAttribute,
@@ -321,7 +322,7 @@ type
 
   TCSSAttributeKeyData = class(TCSSElementOwnedData)
   public
-    Value: TCSSString;
+    Tokens: TBytes; // tokenized value, see TCSSBaseResolver.Tokenize
     Invalid: boolean; // value is invalid, resolver skips it
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
@@ -336,7 +337,7 @@ type
     type
       TCheckEvent = function(Resolver: TCSSBaseResolver): boolean of object;
       TSplitShorthandEvent = procedure(Resolver: TCSSBaseResolver;
-           var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray) of object;
+           var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray) of object;
   public
     Inherits: boolean; // true = the default value is the parent's value
     All: boolean; // true = can be changed by the 'all' attribute
@@ -414,11 +415,11 @@ type
       aInherits: boolean = false; aAll: boolean = true; aClass: TCSSAttributeDescClass = nil): TCSSAttributeDesc; overload;
     function FindAttribute(const aName: TCSSString): TCSSAttributeDesc; overload;
     function IndexOfAttributeName(const aName: TCSSString): TCSSNumericalID; overload;
-    procedure AddSplitLonghand(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray; AttrID: TCSSNumericalID; const Value: TCSSString); overload;
-    procedure AddSplitLonghandSides(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray;
-      TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Found: TCSSStringArray); overload;
-    procedure AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray;
-      TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID; const Found: TCSSStringArray); overload;
+    procedure AddSplitLonghand(var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray; AttrID: TCSSNumericalID; const Value: TBytes); overload;
+    procedure AddSplitLonghandSides(var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray;
+      TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Found: TBytesArray); overload;
+    procedure AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray;
+      TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID; const Found: TBytesArray); overload;
     property AttributeCount: TCSSNumericalID read FAttributeCount;
   public
     // pseudo classes, e.g. :hover
@@ -456,6 +457,7 @@ type
   public
     // keywords
     Keywords: TCSSStringArray; // Note: Keywords[0] is nil to spot bugs easily
+    KeywordTokens: TBytesArray; // tokenized form of each keyword, see TCSSBaseResolver.Tokenize
     kwFirstColor, kwLastColor, kwTransparent: TCSSNumericalID;
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
@@ -634,6 +636,7 @@ type
     procedure ResetCurComp; // clear the current token component
     function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData): boolean; virtual; // true if parsing can start
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
+    function InitParseAttr(Desc: TCSSAttributeDesc; const Tokens: TBytes): boolean; virtual; // true if parsing can start, reuses already tokenized value
     procedure InitParseAttr(const Value: TCSSString); virtual;
     // check whole attribute:
     function CheckAttribute_Keyword(const Tokens: TBytes): TCSSNumericalID; virtual;
@@ -652,12 +655,15 @@ type
     function IsLengthOrPercentage(AllowNegative: boolean): boolean; overload;
     function IsSymbol(Token: TCSSToken): boolean; overload;
     function GetCompString: TCSSString; overload;
+    function GetCompTokens: TBytes; // the current token as a self-contained value (with end marker)
     function FloatAsString: TCSSString; // the current component as float+unit
     function IsInteger: boolean; // the current component is a unitless number
     function IsIntegerValue(v: Integer): boolean;
     // low level functions to read attribute tokens
-    function Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean = false): boolean; // false if invalid, see TCSSResTokenKind
+    function Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean = false;
+      TrimEnclosingSpace: boolean = true): boolean; // false if invalid (e.g. only whitespace), see TCSSResTokenKind
     function Detokenize(const aData: TBytes): TCSSString; // convert a token array back to a css value
+    function DetokenizeOne(aData: PByte): TCSSString; // convert one token back to a css value
     function PeekNextTokenKind: TCSSResTokenKind; // kind of the next token without consuming, skipping whitespace
     class procedure SkipToEndOfAttribute(var p: PCSSChar);
     class function SkipString(var p: PCSSChar): boolean;
@@ -765,6 +771,13 @@ type
 
 function HasCSSValueVarCall(const s: TCSSString): boolean; // true if a case insensitive "var(" is in s
 
+function CSSReadTokenWord(const Tokens: TBytes; Ofs: integer): word; // read a word payload (e.g. keyword/function id) at Ofs
+function CSSTokenByteLen(const Tokens: TBytes; Ofs: integer): integer; // byte size of the token starting at Ofs, see TCSSResTokenKind
+function CSSHasVarToken(const Tokens: TBytes): boolean; // true if the tokens contain a var() function call
+function CSSSameTokens(const A, B: TBytes): boolean; // true if both token arrays are byte-identical
+function CSSTokensEmpty(const Tokens: TBytes): boolean; // true if there is no token except whitespace and the end marker
+function CSSTokenizeIdentifier(const Identifier: TCSSString): TBytes;
+
 implementation
 
 Const
@@ -815,6 +828,93 @@ begin
       inc(i);
     end;
   Result:=false;
+end;
+
+function CSSReadTokenWord(const Tokens: TBytes; Ofs: integer): word;
+begin
+  Result:=PWord(@Tokens[Ofs])^;
+end;
+
+function CSSTokenByteLen(const Tokens: TBytes; Ofs: integer): integer;
+var
+  Cnt: cardinal;
+begin
+  if (Ofs<0) or (Ofs>=length(Tokens)) then exit(0);
+  case TCSSResTokenKind(Tokens[Ofs]) of
+  rtkFloat: Result:=1+1+SizeOf(double); // kind + unit byte + double
+  rtkKeyword,rtkFunction: Result:=1+2; // kind + word
+  rtkIdentifier,rtkStringApos,rtkStringQuote:
+    begin
+      // kind + dword length + payload
+      Cnt:=PDWord(@Tokens[Ofs+1])^;
+      Result:=1+4+integer(Cnt);
+    end;
+  rtkHexColor: Result:=1+1+Tokens[Ofs+1]; // kind + length byte + hex chars
+  rtkSymbol: Result:=1+1; // kind + char byte
+  else
+    Result:=1; // rtkWhitespace, rtkEnd, brackets, plus, minus
+  end;
+end;
+
+function CSSHasVarToken(const Tokens: TBytes): boolean;
+var
+  Ofs, Len, Step: integer;
+  FuncID: word;
+begin
+  Len:=length(Tokens);
+  Ofs:=0;
+  while Ofs<Len do
+  begin
+    if TCSSResTokenKind(Tokens[Ofs])=rtkEnd then break;
+    if TCSSResTokenKind(Tokens[Ofs])=rtkFunction then
+    begin
+      FuncID:=PWord(@Tokens[Ofs+1])^;
+      if FuncID=CSSAttrFuncVar then exit(true);
+    end;
+    Step:=CSSTokenByteLen(Tokens,Ofs);
+    if Step<=0 then break;
+    inc(Ofs,Step);
+  end;
+  Result:=false;
+end;
+
+function CSSSameTokens(const A, B: TBytes): boolean;
+var
+  l: integer;
+begin
+  l:=length(A);
+  Result:=(l=length(B)) and ((l=0) or (CompareByte(A[0],B[0],l)=0));
+end;
+
+function CSSTokensEmpty(const Tokens: TBytes): boolean;
+var
+  Ofs, Len: integer;
+begin
+  Len:=length(Tokens);
+  Ofs:=0;
+  while Ofs<Len do
+  begin
+    case TCSSResTokenKind(Tokens[Ofs]) of
+    rtkWhitespace: inc(Ofs);
+    rtkEnd: break;
+    else exit(false);
+    end;
+  end;
+  Result:=true;
+end;
+
+function CSSTokenizeIdentifier(const Identifier: TCSSString): TBytes;
+var
+  l: DWord;
+begin
+  l:=length(Identifier);
+  Result:=nil;
+  if l=0 then exit;
+  SetLength(Result,1+4+l);
+  Result[0]:=ord(rtkIdentifier);
+  PDWord(Result[1])^:=l;
+  if l>0 then
+    Move(Identifier[1],Result[5],l);
 end;
 
 { TCSSRegistry }
@@ -1240,15 +1340,15 @@ begin
 end;
 
 procedure TCSSRegistry.AddSplitLonghand(var AttrIDs: TCSSNumericalIDArray;
-  var Values: TCSSStringArray; AttrID: TCSSNumericalID; const Value: TCSSString);
+  var Values: TBytesArray; AttrID: TCSSNumericalID; const Value: TBytes);
 begin
   System.Insert(AttrID,AttrIDs,length(AttrIDs));
   System.Insert(Value,Values,length(Values));
 end;
 
 procedure TCSSRegistry.AddSplitLonghandSides(var AttrIDs: TCSSNumericalIDArray;
-  var Values: TCSSStringArray; TopID, RightID, BottomID, LeftID: TCSSNumericalID;
-  const Found: TCSSStringArray);
+  var Values: TBytesArray; TopID, RightID, BottomID, LeftID: TCSSNumericalID;
+  const Found: TBytesArray);
 begin
   if length(Found)=0 then
     exit; // invalid
@@ -1299,8 +1399,8 @@ begin
 end;
 
 procedure TCSSRegistry.AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray;
-  var Values: TCSSStringArray; TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID;
-  const Found: TCSSStringArray);
+  var Values: TBytesArray; TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID;
+  const Found: TBytesArray);
 begin
   if length(Found)=0 then
     exit; // invalid
@@ -1573,8 +1673,12 @@ begin
     else
       SetLength(Keywords,2*KeywordCount);
   end;
+  if length(KeywordTokens)<length(Keywords) then
+    SetLength(KeywordTokens,length(Keywords));
   Result:=KeywordCount;
   Keywords[Result]:=aName;
+  // tokenized form: rtkKeyword + word(id) + rtkEnd
+  KeywordTokens[Result]:=[byte(ord(rtkKeyword)),byte(Result and $FF),byte((Result shr 8) and $FF),byte(ord(rtkEnd))];
   FHashLists[nikKeyword].Add(aName,{%H-}Pointer(Result));
   inc(FKeywordCount);
   ChangeStamp;
@@ -1772,17 +1876,14 @@ begin
   Result:=false;
   CurAttrData:=AttrData;
   CurDesc:=Desc;
-  CurValue:=AttrData.Value;
   ResetCurComp;
 
   if AttrData.Invalid then
     exit;
 
-  if not Tokenize(CurValue,CurTokens,Desc.AllowUnknownIdentifiers) then
-  begin
-    AttrData.Invalid:=true;
-    exit;
-  end;
+  // the value was already tokenized during parsing, reuse the tokens
+  CurTokens:=AttrData.Tokens;
+  CurValue:=Detokenize(CurTokens); // source text for diagnostics / comp parser fallback
   if not ReadNext then
     exit;
 
@@ -1808,6 +1909,17 @@ begin
   ResetCurComp;
   if not Tokenize(Value,CurTokens,Desc.AllowUnknownIdentifiers) then
     exit(false);
+  Result:=ReadNext;
+end;
+
+function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; const Tokens: TBytes): boolean;
+// reuse an already tokenized value
+begin
+  CurAttrData:=nil;
+  CurDesc:=Desc;
+  ResetCurComp;
+  CurTokens:=Tokens;
+  CurValue:=Detokenize(Tokens); // source text for diagnostics / comp parser fallback
   Result:=ReadNext;
 end;
 
@@ -2172,6 +2284,19 @@ begin
   end;
 end;
 
+function TCSSBaseResolver.GetCompTokens: TBytes;
+// returns the bytes of the current token plus an rtkEnd marker, so the result
+// is a self-contained tokenized value (see CurTokenStart/CurTokenPos in ReadNext)
+var
+  Len: integer;
+begin
+  Len:=CurTokenPos-CurTokenStart;
+  if Len<=0 then exit(nil);
+  Result:=Copy(CurTokens,CurTokenStart,Len);
+  SetLength(Result,Len+1);
+  Result[Len]:=byte(ord(rtkEnd));
+end;
+
 function TCSSBaseResolver.FloatAsString: TCSSString;
 begin
   Result:=FloatToCSSStr(Float)+CSSUnitNames[FloatUnit];
@@ -2188,9 +2313,11 @@ begin
   Result:=SameValue(Float,v);
 end;
 
-function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean): boolean;
+function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean;
+  TrimEnclosingSpace: boolean): boolean;
 // Parses a css property value and creates tokens, see TCSSResTokenKind.
-// Returns false if the value is invalid.
+// Returns false if the value is invalid, e.g. if it consists only of whitespace.
+// When TrimEnclosingSpace is true, leading and trailing whitespace tokens are omitted.
 // Note: this does not use TCSSResCompValue and has its own number and
 // identifier readers, so it can be used independently of the value parser.
 var
@@ -2198,6 +2325,7 @@ var
   DataLen, Len: integer;
   BracketStack: array of TCSSChar; // expected closing brackets
   BracketTop: integer;
+  PendingWhitespace, SawRealToken: boolean;
 
   procedure AddMem(Src: Pointer; Count: integer);
   var
@@ -2383,8 +2511,9 @@ var
     if p^='(' then
     begin
       // function call, the token includes the opening parenthesis
+      // function names are ASCII case-insensitive, e.g. var() = VAR()
       SetString(Name,StartP,Len);
-      FuncID:=CSSRegistry.IndexOfAttrFunction(Name);
+      FuncID:=CSSRegistry.IndexOfAttrFunction(LowerCase(Name));
       if FuncID<=CSSIDNone then
         exit; // unknown function
       inc(p); // consume '('
@@ -2424,6 +2553,8 @@ begin
   DataLen:=0;
   BracketStack:=nil;
   BracketTop:=0;
+  PendingWhitespace:=false;
+  SawRealToken:=false;
 
   p:=PCSSChar(aValue);
   if p<>nil then
@@ -2434,8 +2565,17 @@ begin
         repeat
           inc(p);
         until not (p^ in Whitespace);
-        AddKind(rtkWhitespace);
+        PendingWhitespace:=true;
       end;
+      if p^=#0 then break;
+      if PendingWhitespace then
+      begin
+        PendingWhitespace:=false;
+        // skip leading whitespace when trimming
+        if SawRealToken or not TrimEnclosingSpace then
+          AddKind(rtkWhitespace);
+      end;
+      SawRealToken:=true;
       case p^ of
       #0: break;
       '0'..'9':
@@ -2542,6 +2682,13 @@ begin
       end;
     until false;
 
+  // a value consisting only of whitespace (or empty) is invalid
+  if not SawRealToken then exit;
+
+  // keep a trailing whitespace token unless trimming
+  if PendingWhitespace and not TrimEnclosingSpace then
+    AddKind(rtkWhitespace);
+
   // brackets and parenthesis must be balanced
   if BracketTop>0 then exit;
 
@@ -2622,6 +2769,40 @@ begin
     else
       break;
     end;
+  end;
+end;
+
+function TCSSBaseResolver.DetokenizeOne(aData: PByte): TCSSString;
+
+  function ReadStr(Cnt, Ofs: DWord): TCSSString;
+  begin
+    Result:='';
+    if Cnt=0 then exit;
+    SetString(Result,@aData[Ofs],Cnt);
+  end;
+
+var
+  aKind: TCSSResTokenKind;
+begin
+  aKind:=TCSSResTokenKind(aData^);
+  case aKind of
+  rtkWhitespace: Result:=' ';
+  rtkSymbol: Result:=TCSSChar(aData[1]);
+  rtkLParenthesis: Result:='(';
+  rtkRParenthesis: Result:=')';
+  rtkLBracket: Result:='[';
+  rtkRBracket: Result:=']';
+  rtkPlus: Result:='+';
+  rtkMinus: Result:='-';
+  rtkFloat: Result:=FloatToCSSStr(PDouble(@aData[2])^)+CSSUnitNames[TCSSUnit(aData[1])];
+  rtkKeyword: Result:=CSSRegistry.Keywords[PWord(@aData[1])^];
+  rtkFunction: Result:=CSSRegistry.AttrFunctions[PWord(@aData[1])^]+'(';
+  rtkIdentifier: Result:=ReadStr(PDWord(@aData[1])^,5);
+  rtkStringApos: Result:=''''+ReadStr(PDWord(@aData[1])^,5)+'''';
+  rtkStringQuote: Result:='"'+ReadStr(PDWord(@aData[1])^,5)+'"';
+  rtkHexColor: Result:='#'+ReadStr(aData[1],2);
+  else
+    Result:='';
   end;
 end;
 
@@ -2983,6 +3164,7 @@ var
   AttrData: TCSSAttributeKeyData;
   i, ChildCnt: Integer;
   ValueStr: TCSSString;
+  AllowUnknown, HasVar: boolean;
 begin
   Result:=inherited ParseDeclaration(aIsAt);
   if Result.KeyCount<>1 then
@@ -3018,16 +3200,23 @@ begin
         ValueStr+=', ';
       ValueStr+=Result.Children[i].AsString;
     end;
-    AttrData.Value:=ValueStr;
 
-    if AttrId>=CSSAttributeID_All then
+    // tokenize the value once, for every known attribute (including 'all' and
+    // custom properties). var() values are tokenized too, but cannot be
+    // checked until the var() calls have been substituted.
+    // AttrId<=CSSIDNone means an unknown attribute (already logged); skip it.
+    if AttrId>CSSIDNone then
     begin
       Desc:=Resolver.GetAttributeDesc(AttrId);
-
-      if HasCSSValueVarCall(ValueStr) then
-      begin
-        // cannot be parsed yet
-      end else if AttrId<Resolver.CSSRegistry.AttributeCount then
+      HasVar:=HasCSSValueVarCall(ValueStr);
+      if HasVar or (AttrId>=Resolver.CSSRegistry.AttributeCount) or (Desc=nil) then
+        AllowUnknown:=true // custom property --xxx, or not yet checkable
+      else
+        AllowUnknown:=Desc.AllowUnknownIdentifiers;
+      if not Resolver.Tokenize(ValueStr,AttrData.Tokens,AllowUnknown) then
+        AttrData.Invalid:=true
+      else if (not HasVar) and (AttrId>=CSSAttributeID_All)
+          and (AttrId<Resolver.CSSRegistry.AttributeCount) then
       begin
         if Resolver.InitParseAttr(Desc,AttrData) then
         begin

@@ -153,7 +153,7 @@ type
       Value: TCSSAttributeValue);
     // split shorthands into longhands
     procedure OnSplit_Border(Resolver: TCSSBaseResolver;
-      var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
+      var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray);
   public
 
     const
@@ -264,7 +264,7 @@ type
     function GetCSSClasses: TCSSNumericalIDArray; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
     function GetCSSAttributeID: TCSSString; virtual;
-    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
@@ -949,24 +949,24 @@ begin
 end;
 
 procedure TDemoCSSRegistry.OnSplit_Border(Resolver: TCSSBaseResolver;
-  var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
+  var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray);
 var
-  aWidth, aColor: TCSSString;
+  aWidth, aColor: TBytes;
 begin
-  aWidth:='';
-  aColor:='';
+  aWidth:=nil;
+  aColor:=nil;
   repeat
     case Resolver.TokenKind of
     rtkFloat:
-      if aWidth='' then begin
+      if aWidth=nil then begin
         if Resolver.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
-          aWidth:=Resolver.FloatAsString;
+          aWidth:=Resolver.GetCompTokens;
       end;
     rtkKeyword:
-      if aColor='' then
+      if aColor=nil then
       begin
         if (Resolver.KeywordID>=kwFirstColor) and (Resolver.KeywordID<=kwLastColor) then
-          aColor:=Keywords[Resolver.KeywordID];
+          aColor:=KeywordTokens[Resolver.KeywordID];
       end;
     end;
   until not Resolver.ReadNext;
@@ -1003,14 +1003,7 @@ procedure TDemoCSSRegistry.OnCompute_Direction(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs) then
-  begin
-    Value.Value:=Keywords[Resolver.KeywordID];
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.Invalid:=true;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs);
   if Node=nil then ;
 end;
 
@@ -1019,19 +1012,7 @@ procedure TDemoCSSRegistry.OnCompute_LeftTop(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop) then
-  begin
-    case Resolver.TokenKind of
-    rtkFloat:
-      Value.Value:=Resolver.FloatAsString;
-    rtkKeyword:
-      Value.Value:=Keywords[Resolver.KeywordID];
-    end;
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.Invalid:=true;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop);
   if Node=nil then ;
 end;
 
@@ -1040,14 +1021,7 @@ procedure TDemoCSSRegistry.OnCompute_WidthHeight(Resolver: TCSSResolver;
 var
   Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight) then
-  begin
-    Value.Value:=Resolver.FloatAsString;
-  end
-  else begin
-    Value.Value:='invalid';
-    Value.Invalid:=true;
-  end;
+  Value.Invalid:=not Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight);
   if Node=nil then ;
 end;
 
@@ -1214,7 +1188,7 @@ begin
   AttrDesc:=CSSRegistry.DemoAttrs[DemoAttr];
   i:=Values.IndexOf(AttrDesc.Index);
   if i>=0 then
-    Result:=Values.Values[i].Value
+    Result:=FResolver.Detokenize(Values.Values[i].Tokens)
   else
     Result:='';
 end;
@@ -1338,7 +1312,7 @@ begin
   for i:=0 to length(Values.Values)-1 do begin
     AttrID:=Values.Values[i].AttrID;
     Desc:=Resolver.GetAttributeDesc(AttrID);
-    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Desc.Name,'/',AttrID,':="',Values.Values[i].Value,'"');
+    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Desc.Name,'/',AttrID,':="',Resolver.Detokenize(Values.Values[i].Tokens),'"');
   end;
   {$ENDIF}
   // compute values
@@ -1355,10 +1329,10 @@ begin
       AttrDesc:=TDemoCSSAttributeDesc(Desc);
       if AttrDesc.OnCompute<>nil then
       begin
-        Resolver.InitParseAttr(CurValue.Value);
+        Resolver.InitParseAttr(AttrDesc,CurValue.Tokens);
         AttrDesc.OnCompute(Resolver,Self,CurValue);
         {$IFDEF VerboseCSSResolver}
-        writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
+        writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',Resolver.Detokenize(CurValue.Tokens),'"');
         {$ENDIF}
       end;
     end;
@@ -1516,12 +1490,12 @@ begin
   Result:=Name;
 end;
 
-function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
+function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes;
 var
   i: Integer;
   El: TDemoNode;
 begin
-  Result:='';
+  Result:=nil;
   El:=Self;
   repeat
     if El.Values<>nil then
@@ -1529,8 +1503,8 @@ begin
       i:=El.Values.IndexOf(AttrID);
       if i>=0 then
       begin
-        Result:=El.Values.Values[i].Value;
-        if Result<>'' then exit;
+        Result:=El.Values.Values[i].Tokens;
+        if length(Result)>0 then exit;
       end;
     end;
     El:=El.Parent;
@@ -4634,8 +4608,9 @@ end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Empty;
 begin
-  CheckTokenize('empty','','end');
-  CheckTokenize('only whitespace','   ','ws end');
+  // empty and whitespace-only values are invalid (Tokenize returns false)
+  CheckTokenizeInvalid('empty','');
+  CheckTokenizeInvalid('only whitespace','   ');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Keyword;
@@ -4667,8 +4642,9 @@ procedure TTestCSSResolver.TestRes_Tokenize_Whitespace;
 begin
   CheckTokenize('two keywords','red blue','kw(red) ws kw(blue) end');
   CheckTokenize('collapsed','red    blue','kw(red) ws kw(blue) end');
-  CheckTokenize('leading','  red','ws kw(red) end');
-  CheckTokenize('trailing','red ','kw(red) ws end');
+  // leading and trailing whitespace is trimmed (TrimEnclosingSpace=true)
+  CheckTokenize('leading','  red','kw(red) end');
+  CheckTokenize('trailing','red ','kw(red) end');
 end;
 
 procedure TTestCSSResolver.TestRes_Tokenize_Symbols;
@@ -4735,7 +4711,6 @@ end;
 procedure TTestCSSResolver.TestRes_Detokenize;
 begin
   // values that survive tokenize+detokenize unchanged
-  CheckRoundtrip('empty','','');
   CheckRoundtrip('keyword','red','red');
   CheckRoundtrip('identifier','--my-var','--my-var');
   CheckRoundtrip('float','5px','5px');

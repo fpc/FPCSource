@@ -187,7 +187,7 @@ type
     function GetCSSClasses: TCSSNumericalIDArray; // all class ids of this node
     function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
     function GetCSSAttributeID: TCSSString; // get the 'id' attribute
-    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes; // tokenized computed value
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
@@ -258,7 +258,7 @@ type
   public
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
     Invalid: boolean;
-    Value: TCSSString; // the resolver has substituted all var() calls
+    Tokens: TBytes; // tokenized value, the resolver has substituted all var() calls
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
 
@@ -270,7 +270,7 @@ type
     Values: TCSSAttributeValueArray; // the resolver sorts them ascending for AttrID, shorthands are already replaced with longhands
     procedure SortValues; virtual; // ascending AttrID
     function IndexOf(AttrID: TCSSNumericalID): integer;
-    procedure SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
+    procedure SetComputedValue(AttrID: TCSSNumericalID; const aTokens: TBytes);
     destructor Destroy; override;
   end;
 
@@ -376,7 +376,7 @@ type
         Stamp: Integer; // only valid if equal to FMergedAttributesStamp
         Specificity: TCSSSpecificity;
         DeclEl: TCSSDeclarationElement; // can be nil if set by a shorthand
-        Value: TCSSString;
+        Tokens: TBytes; // tokenized value, see TCSSBaseResolver.Tokenize
         Complete: boolean;
         Prev, Next: TCSSNumericalID; // valid if >0, see below FMergedAttributeFirst
       end;
@@ -882,7 +882,7 @@ begin
   Result:=-1;
 end;
 
-procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
+procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aTokens: TBytes);
 
   procedure AddNew;
   var
@@ -895,7 +895,7 @@ procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aV
     Item:=TCSSAttributeValue.Create;
     Item.AttrID:=AttrID;
     Item.Invalid:=false;
-    Item.Value:=aValue;
+    Item.Tokens:=aTokens;
     System.Insert(Item,Values,i);
   end;
 
@@ -912,7 +912,7 @@ begin
     if i>=0 then
     begin
       Values[i].Invalid:=false;
-      Values[i].Value:=aValue;
+      Values[i].Tokens:=aTokens;
     end else begin
       AddNew;
     end;
@@ -3216,7 +3216,7 @@ begin
     NextAttrID:=FMergedAttributes[AttrID].Next;
     AttrP:=@FMergedAttributes[AttrID];
     AttrDesc:=GetAttributeDesc(AttrID);
-    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specificity,' Value="',AttrP^.Value,'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
+    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specificity,' Value="',Detokenize(AttrP^.Tokens),'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
     inc(Cnt);
     AttrID:=NextAttrID;
   end;
@@ -3229,9 +3229,8 @@ var
   AttrP: PMergedAttribute;
   Key: TCSSElement;
   KeyData: TCSSAttributeKeyData;
-  Value: TCSSString;
 begin
-  // load value strings from css elements
+  // load tokenized values from css elements
   // and remove longhand placeholders set by shorthands
   AttrID:=FMergedAttributeFirst;
   while AttrID>0 do
@@ -3244,13 +3243,11 @@ begin
     else begin
       Key:=AttrP^.DeclEl.Keys[0];
       KeyData:=Key.CustomData as TCSSAttributeKeyData;
-      Value:=KeyData.Value;
-      //writeln('TCSSResolver.LoadMergedValues AttrID=',AttrID,' Decl=',AttrP^.DeclEl.Classname,' Key=',(AttrP^.DeclEl.Keys[0] as TCSSResolvedIdentifierElement).Name,' Value=',Value);
-      AttrP^.Value:=Value;
-      if TCSSResolverParser.IsWhiteSpace(Value) then
+      AttrP^.Tokens:=KeyData.Tokens;
+      if KeyData.Invalid or (length(AttrP^.Tokens)=0) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=not HasCSSValueVarCall(Value);
+        AttrP^.Complete:=not CSSHasVarToken(AttrP^.Tokens);
     end;
     AttrID:=NextAttrID;
   end;
@@ -3258,222 +3255,135 @@ end;
 
 procedure TCSSResolver.SubstituteVarCalls;
 // called after CSS attribute values have been merged by cascade rules
-// before replacing shorthands
+// before replacing shorthands. Operates on the tokenized values.
 const
   ReplaceMax = 10;
 var
   AttrID, NextAttrID: TCSSNumericalID;
   AttrP: PMergedAttribute;
-  p: PCSSChar;
   ReplaceCnt: integer;
 
-  procedure SkipEscape;
-  begin
-    inc(p);
-    if p^>#0 then inc(p);
-  end;
-
-  procedure SkipString;
+  function StripEndToken(const T: TBytes): TBytes;
+  // a value's tokens end with an rtkEnd marker; remove it for splicing into a value
   var
-    c: TCSSChar;
+    l: integer;
   begin
-    c:=p^;
-    repeat
-      inc(p);
-      if p^=#0 then exit;
-      if p^=c then
-      begin
-        inc(p);
-        exit;
-      end;
-    until false;
+    l:=length(T);
+    if (l>0) and (T[l-1]=ord(rtkEnd)) then dec(l);
+    Result:=Copy(T,0,l);
   end;
 
-  procedure SkipIdentifier;
-  begin
-    while p^ in ['-','_','a'..'z','A'..'Z'] do inc(p);
-  end;
-
-  procedure SkipWhiteSpace;
-  begin
-    while p^ in [' ',#9,#10,#13] do inc(p);
-  end;
-
-  function ReplaceVarsInRightString: boolean;
+  function SubstituteVars(var Tokens: TBytes): boolean;
+  // replace all var() calls in Tokens (leftmost first, repeated).
+  // Returns false on error (loop limit or syntax error).
   var
-    OldP, Lvl: integer;
-    VarStartP, NameStartP, NameEndP, ValueStartP, BracketCloseP: PCSSChar;
-    aValue, s: TCSSString;
-    {$IF SIZEOF(CHAR)=2}
-    varname: UnicodeString;
-    {$ELSE}
-    VarName: ShortString;
-    {$ENDIF}
+    Ofs, Len, TokLen, VarStart, AfterClose, NameTokOfs: integer;
+    DefStart, DefEnd, Depth: integer;
+    k: TCSSResTokenKind;
+    VarName: TCSSString;
     Desc: TCSSResCustomAttributeDesc;
     aParentNode: ICSSNode;
+    Repl: TBytes;
+    HasRepl: boolean;
   begin
-    {$IFDEF VerboseCSSVar}
-    writeln('ReplaceVarsInRightString p="',p,'"');
-    {$ENDIF}
-    Result:=true;
     repeat
-      case p^ of
-      #0: break;
-      '"','''': SkipString;
-      '\': SkipEscape;
-      '@','#':
+      // find the leftmost var() function token
+      Len:=length(Tokens);
+      Ofs:=0;
+      VarStart:=-1;
+      while Ofs<Len do
+      begin
+        k:=TCSSResTokenKind(Tokens[Ofs]);
+        if k=rtkEnd then break;
+        if (k=rtkFunction) and (CSSReadTokenWord(Tokens,Ofs+1)=CSSAttrFuncVar) then
         begin
-          inc(p);
-          SkipIdentifier;
+          VarStart:=Ofs;
+          break;
         end;
-      '-':
-        begin
-          inc(p);
-          if (p^ in ['a'..'z','A'..'Z','_','-']) then
-            SkipIdentifier;
-        end;
-      'a'..'z','A'..'Z','_':
-        // the var() function name is ASCII case insensitive
-        if (p^ in ['v','V']) and (p[1] in ['a','A']) and (p[2] in ['r','R'])
-            and (p[3]='(') then
-        begin
-          // var() found
-
-          inc(ReplaceCnt);
-          if ReplaceCnt=ReplaceMax then
-          begin
-            // maybe a loop
-            exit(false);
-          end;
-
-          VarStartP:=p;
-          inc(p,4);
-          SkipWhiteSpace;
-
-          // replace var() in parameter
-          OldP:=p-PCSSChar(AttrP^.Value);
-          if not ReplaceVarsInRightString then
-            exit(false);
-          p:=PCSSChar(AttrP^.Value)+OldP;
-
-          NameStartP:=p;
-          NameEndP:=nil;
-          ValueStartP:=nil;
-          if (p^<>'-') or (p[1]<>'-') then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString invalid VarName (must start with --): ',NameStartP);
-            {$ENDIF}
-            exit(false);
-          end;
-          inc(p,2);
-          while p^ in ['a'..'z','A'..'Z','_','-'] do inc(p);
-          NameEndP:=p;
-          if NameEndP-NameStartP>255 then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString invalid VarName (too long): ',NameStartP);
-            {$ENDIF}
-            exit(false);
-          end;
-          SkipWhiteSpace;
-          if p^=',' then
-          begin
-            inc(p);
-            SkipWhiteSpace;
-            ValueStartP:=p;
-          end;
-
-          // skip to round bracket close
-          Lvl:=1;
-          BracketCloseP:=nil;
-          repeat
-            case p^ of
-            #0:
-              begin
-                // syntax error
-                {$IFDEF VerboseCSSVar}
-                writeln('ReplaceVarsInRightString missing closing bracket: ',NameStartP);
-                {$ENDIF}
-                exit(false);
-              end;
-            '"','''': SkipString;
-            '\': SkipEscape;
-            '(':
-              begin
-                inc(Lvl);
-                inc(p);
-              end;
-            ')':
-              if Lvl=1 then
-              begin
-                BracketCloseP:=p;
-                inc(p);
-                break;
-              end else begin
-                dec(Lvl);
-                inc(p);
-              end;
-            else
-              inc(p);
-            end;
-          until false;
-
-          // fetch value from node
-          SetString(VarName,NameStartP,NameEndP-NameStartP);
-          {$IF SIZEOF(CHAR)=2}
-          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(UTF8Encode(VarName)));
-          {$ELSE}
-          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
-          {$ENDIF}
-          if Desc<>nil then
-          begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString VarName="',VarName,'" AttrID=',Desc.Index);
-            {$ENDIF}
-            if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
-              aValue:=FMergedAttributes[Desc.Index].Value
-            else
-              aValue:='';
-            if aValue='' then
-            begin
-              aParentNode:=FNode.GetCSSParent;
-              if aParentNode<>nil then
-                aValue:=aParentNode.GetCSSCustomAttribute(Desc.Index);
-            end;
-          end else begin
-            {$IFDEF VerboseCSSVar}
-            writeln('ReplaceVarsInRightString VarName="',VarName,'" never declared');
-            {$ENDIF}
-            aValue:='';
-          end;
-
-          if aValue='' then
-          begin
-            // use default value
-            if ValueStartP<>nil then
-              SetString(aValue,ValueStartP,BracketCloseP-ValueStartP);
-          end;
-          {$IFDEF VerboseCSSVar}
-          writeln('ReplaceVarsInRightString VarName="',VarName,'" Value="',aValue,'"');
-          {$ENDIF}
-
-          // replace
-          p:=PCSSChar(AttrP^.Value);
-          OldP:=VarStartP-p;
-          s:=AttrP^.Value;
-          AttrP^.Value:=LeftStr(s,VarStartP-p)+aValue+copy(s,BracketCloseP-p+2,length(s));
-          {$IFDEF VerboseCSSVar}
-          writeln('ReplaceVarsInRightString New AttrP^.Value="',AttrP^.Value,'"');
-          {$ENDIF}
-
-          // continue parsing
-          p:=PCSSChar(AttrP^.Value)+OldP;
-        end else
-          SkipIdentifier;
-      else
-        inc(p);
+        TokLen:=CSSTokenByteLen(Tokens,Ofs);
+        if TokLen<=0 then exit(false);
+        inc(Ofs,TokLen);
       end;
+      if VarStart<0 then exit(true); // no more var() calls
+
+      inc(ReplaceCnt);
+      if ReplaceCnt=ReplaceMax then exit(false); // probably a loop
+
+      // step inside the parenthesis, skip whitespace
+      Ofs:=VarStart+CSSTokenByteLen(Tokens,VarStart);
+      while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+        inc(Ofs);
+      // the first argument must be a custom property name --xxx (rtkIdentifier)
+      if (Ofs>=Len) or (TCSSResTokenKind(Tokens[Ofs])<>rtkIdentifier) then exit(false);
+      NameTokOfs:=Ofs;
+      VarName:=DetokenizeOne(@Tokens[NameTokOfs]);
+      if (length(VarName)<2) or (VarName[1]<>'-') or (VarName[2]<>'-') then exit(false);
+      Ofs:=Ofs+CSSTokenByteLen(Tokens,NameTokOfs);
+      while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+        inc(Ofs);
+
+      // optional default value after a comma
+      DefStart:=-1;
+      DefEnd:=-1;
+      if (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkSymbol) and (Tokens[Ofs+1]=ord(',')) then
+      begin
+        Ofs:=Ofs+CSSTokenByteLen(Tokens,Ofs); // past the comma
+        while (Ofs<Len) and (TCSSResTokenKind(Tokens[Ofs])=rtkWhitespace) do
+          inc(Ofs);
+        DefStart:=Ofs;
+      end;
+
+      // find the matching closing parenthesis
+      Depth:=1;
+      while Ofs<Len do
+      begin
+        k:=TCSSResTokenKind(Tokens[Ofs]);
+        if k=rtkEnd then exit(false); // syntax error: missing ')'
+        if (k=rtkLParenthesis) or (k=rtkFunction) then
+          inc(Depth)
+        else if k=rtkRParenthesis then
+        begin
+          dec(Depth);
+          if Depth=0 then break;
+        end;
+        inc(Ofs,CSSTokenByteLen(Tokens,Ofs));
+      end;
+      if Depth<>0 then exit(false);
+      if DefStart>=0 then
+        DefEnd:=Ofs; // default value tokens are [DefStart, DefEnd)
+      AfterClose:=Ofs+1; // one past the ')'
+
+      // resolve the value of the custom property
+      Repl:=nil;
+      HasRepl:=false;
+      {$IF SIZEOF(CHAR)=2}
+      Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(UTF8Encode(VarName)));
+      {$ELSE}
+      Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
+      {$ENDIF}
+      if Desc<>nil then
+      begin
+        if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
+        begin
+          Repl:=StripEndToken(FMergedAttributes[Desc.Index].Tokens);
+          HasRepl:=not CSSTokensEmpty(Repl);
+        end;
+        if not HasRepl then
+        begin
+          aParentNode:=FNode.GetCSSParent;
+          if aParentNode<>nil then
+          begin
+            Repl:=StripEndToken(aParentNode.GetCSSCustomAttribute(Desc.Index));
+            HasRepl:=not CSSTokensEmpty(Repl);
+          end;
+        end;
+      end;
+      if (not HasRepl) and (DefStart>=0) then
+        // use the default value
+        Repl:=Copy(Tokens,DefStart,DefEnd-DefStart);
+
+      // splice: Tokens[0..VarStart) + Repl + Tokens[AfterClose..end]
+      Tokens:=Concat(Copy(Tokens,0,VarStart),Repl,Copy(Tokens,AfterClose,Len-AfterClose));
     until false;
   end;
 
@@ -3485,20 +3395,13 @@ begin
     AttrP:=@FMergedAttributes[AttrID];
     if not AttrP^.Complete then
     begin
-      // check attribute
-      if HasCSSValueVarCall(AttrP^.Value) then
+      if CSSHasVarToken(AttrP^.Tokens) then
       begin
-        // can have var() calls -> parse
-        p:=PCSSChar(AttrP^.Value);
-        {$IFDEF VerboseCSSVar}
-        writeln('TCSSResolver.SubstituteVarCalls ',GetAttributeDesc(AttrID).Name,': "',AttrP^.Value,'"');
-        {$ENDIF}
         ReplaceCnt:=0;
-        if not ReplaceVarsInRightString then
-          AttrP^.Value:='';
+        if not SubstituteVars(AttrP^.Tokens) then
+          AttrP^.Tokens:=nil;
       end;
-
-      if AttrP^.Value='' then
+      if CSSTokensEmpty(AttrP^.Tokens) then
         RemoveMergedAttribute(AttrID);
     end;
     AttrID:=NextAttrID;
@@ -3512,7 +3415,7 @@ var
   AttrP, SubAttrP: PMergedAttribute;
   AttrDesc, SubAttrDesc: TCSSAttributeDesc;
   LHAttrIDs: TCSSNumericalIDArray;
-  LHValues: TCSSStringArray;
+  LHValues: TBytesArray;
   i: Integer;
 begin
   AttrID:=FMergedAttributeFirst;
@@ -3525,12 +3428,12 @@ begin
     if Assigned(AttrDesc.OnSplitShorthand) then
     begin
       RemoveMergedAttribute(AttrID);
-      if AttrP^.Value>'' then
+      if not CSSTokensEmpty(AttrP^.Tokens) then
       begin
         // replace shorthand with longhands, keep already set longhands
         LHAttrIDs:=[];
         LHValues:=[];
-        InitParseAttr(AttrDesc,AttrP^.Value);
+        InitParseAttr(AttrDesc,AttrP^.Tokens);
         if not (TokenKind in [rtkNone,rtkEnd]) then
         begin
           AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
@@ -3548,9 +3451,11 @@ begin
               // longhand already exists -> keep
             end else begin
               SetMergedAttribute(SubAttrID,AttrP^.Specificity,nil);
-              SubAttrP^.Value:=LHValues[i];
-              if SubAttrP^.Value='' then
-                SubAttrP^.Value:=SubAttrDesc.InitialValue;
+              // the split handler returns tokenized values; fall back to the initial value when empty
+              if not CSSTokensEmpty(LHValues[i]) then
+                SubAttrP^.Tokens:=LHValues[i]
+              else
+                Tokenize(SubAttrDesc.InitialValue,SubAttrP^.Tokens,SubAttrDesc.AllowUnknownIdentifiers);
               SubAttrP^.Complete:=false;
               // Note: if NextAttrID=0 then this was the last shorthand
             end;
@@ -3602,8 +3507,8 @@ begin
     AttrValue:=TCSSAttributeValue.Create;
     Result.Values[Cnt]:=AttrValue;
     AttrValue.AttrID:=AttrID;
-    AttrValue.Value:=AttrP^.Value;
-    //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID,' "',AttrValue.Value,'"');
+    AttrValue.Tokens:=AttrP^.Tokens;
+    //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID);
     AttrID:=AttrP^.Next;
     inc(Cnt);
   end;
@@ -4519,7 +4424,7 @@ begin
   if Decl.KeyCount=0 then exit;
   KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
   if KeyData=nil then exit;
-  Result:=KeyData.Value;
+  Result:=Detokenize(KeyData.Tokens);
 end;
 
 procedure TCSSResolver.ClearStyleSheets;
