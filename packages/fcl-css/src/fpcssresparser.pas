@@ -636,6 +636,7 @@ type
     function InitParseAttr(Desc: TCSSAttributeDesc; const Value: TCSSString): boolean; virtual; // true if parsing can start
     procedure InitParseAttr(const Value: TCSSString); virtual;
     // check whole attribute:
+    function CheckAttribute_Keyword(const Tokens: TBytes): TCSSNumericalID; virtual;
     function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_Keyword_List(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
@@ -649,10 +650,8 @@ type
     function IsKeywordIn(aKeywordID: TCSSNumericalID; const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
     function IsKeywordIn(const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
     function IsLengthOrPercentage(AllowNegative: boolean): boolean; overload;
-    function IsLengthOrPercentage(const ResValue: TCSSResCompValue; AllowNegative: boolean): boolean; overload;
     function IsSymbol(Token: TCSSToken): boolean; overload;
     function GetCompString: TCSSString; overload;
-    function GetCompString(const aValue: string; const ResValue: TCSSResCompValue): TCSSString; overload;
     function FloatAsString: TCSSString; // the current component as float+unit
     function IsInteger: boolean; // the current component is a unitless number
     function IsIntegerValue(v: Integer): boolean;
@@ -1821,6 +1820,21 @@ begin
     ReadNext;
 end;
 
+function TCSSBaseResolver.CheckAttribute_Keyword(const Tokens: TBytes): TCSSNumericalID;
+// If the value is a single keyword, return its ID, otherwise CSSIDNone.
+var
+  p, Len: integer;
+begin
+  Result:=CSSIDNone;
+  if Tokens=nil then exit;
+  Len:=length(Tokens);
+  p:=0;
+  // a leading whitespace token (single byte, no payload) is skipped, see Tokenize
+  if (p<Len) and (Tokens[p]=ord(rtkWhitespace)) then inc(p);
+  if (p>=Len) or (Tokens[p]<>ord(rtkKeyword)) then exit;
+  Result:=PWord(@Tokens[p+1])^;
+end;
+
 function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
   ): boolean;
 var
@@ -2136,22 +2150,6 @@ begin
   end;
 end;
 
-function TCSSBaseResolver.IsLengthOrPercentage(const ResValue: TCSSResCompValue;
-  AllowNegative: boolean): boolean;
-begin
-  Result:=false;
-  case ResValue.Kind of
-  rvkFloat:
-    if ResValue.FloatUnit in cuAllLengthsAndPercent then
-    begin
-      if (not AllowNegative) and (ResValue.Float<0) then exit;
-      exit(true);
-    end
-    else if (ResValue.FloatUnit=cuNone) and (ResValue.Float=0) then
-      exit(true);
-  end;
-end;
-
 function TCSSBaseResolver.IsSymbol(Token: TCSSToken): boolean;
 begin
   Result:=(Symbol=Token)
@@ -2188,20 +2186,6 @@ function TCSSBaseResolver.IsIntegerValue(v: Integer): boolean;
 begin
   if (TokenKind<>rtkFloat) or (FloatUnit<>cuNone) then exit(false);
   Result:=SameValue(Float,v);
-end;
-
-function TCSSBaseResolver.GetCompString(const aValue: string; const ResValue: TCSSResCompValue
-  ): TCSSString;
-var
-  Start: PCSSChar;
-begin
-  if ResValue.Kind=rvkKeyword then
-    exit(CSSRegistry.Keywords[ResValue.KeywordID]);
-  Start:=ResValue.StartP;
-  if (Start=PCSSChar(aValue)) and (ResValue.EndP-Start = length(aValue)) then
-    Result:=aValue
-  else
-    SetString(Result,Start,ResValue.EndP-Start);
 end;
 
 function TCSSBaseResolver.Tokenize(const aValue: string; out aData: TBytes; AllowUnknownIdentifiers: boolean): boolean;
