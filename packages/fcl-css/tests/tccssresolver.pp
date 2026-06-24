@@ -527,6 +527,11 @@ type
 
     // origin
     procedure TestRes_Origin_Id_Class;
+    procedure TestRes_Origin_UserBeatsUserAgent; // user normal beats user-agent normal
+    procedure TestRes_Origin_AuthorBeatsUser; // author normal beats user normal
+    procedure TestRes_Origin_AuthorBeatsUserAgentDespiteSpecificity; // origin trumps selector specificity
+    procedure TestRes_Origin_Important; // !important beats normal; among importants the last origin wins
+    procedure TestRes_Origin_SourceOrderAcrossOrigins; // rules from all origins collected and sorted
 
     // var()
     procedure TestRes_Var_NoDefault;
@@ -615,6 +620,82 @@ begin
     end;
   end;
   Result:=s;
+end;
+
+function TokenStreamToStr(Registry: TCSSRegistry; const Data: TBytes): string;
+// Human readable representation of a token stream produced by Tokenize,
+// so tests can compare against an expected string.
+var
+  i: integer;
+
+  function RByte: byte;
+  begin
+    Result:=Data[i];
+    inc(i);
+  end;
+
+  function RWord: word;
+  begin
+    Result:=PWord(@Data[i])^;
+    inc(i,2);
+  end;
+
+  function RDWord: DWord;
+  begin
+    Result:=PDWord(@Data[i])^;
+    inc(i,4);
+  end;
+
+  function RDouble: double;
+  begin
+    Result:=PDouble(@Data[i])^;
+    inc(i,8);
+  end;
+
+  function RStr(Count: cardinal): string;
+  begin
+    Result:='';
+    if Count=0 then exit;
+    SetLength(Result,Count);
+    Move(Data[i],Result[1],Count);
+    inc(i,Count);
+  end;
+
+var
+  Kind: TCSSResTokenKind;
+  U: TCSSUnit;
+begin
+  Result:='';
+  i:=0;
+  while i<length(Data) do
+  begin
+    Kind:=TCSSResTokenKind(RByte);
+    case Kind of
+    rtkWhitespace: Result:=Result+'ws ';
+    rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
+    rtkLParenthesis: Result:=Result+'( ';
+    rtkRParenthesis: Result:=Result+') ';
+    rtkLBracket: Result:=Result+'[ ';
+    rtkRBracket: Result:=Result+'] ';
+    rtkPlus: Result:=Result+'plus ';
+    rtkMinus: Result:=Result+'minus ';
+    rtkFloat:
+      begin
+        U:=TCSSUnit(RByte);
+        Result:=Result+'float('+FloatToCSSStr(RDouble)+CSSUnitNames[U]+') ';
+      end;
+    rtkKeyword: Result:=Result+'kw('+Registry.Keywords[RWord]+') ';
+    rtkFunction: Result:=Result+'func('+Registry.AttrFunctions[RWord]+') ';
+    rtkIdentifier: Result:=Result+'ident('+RStr(RDWord)+') ';
+    rtkStringApos: Result:=Result+'apos('+RStr(RDWord)+') ';
+    rtkStringQuote: Result:=Result+'quote('+RStr(RDWord)+') ';
+    rtkHexColor: Result:=Result+'hex('+RStr(RByte)+') ';
+    else
+      Result:=Result+'?? ';
+      break;
+    end;
+  end;
+  Result:=TrimRight(Result);
 end;
 
 { TDemoDiv }
@@ -3292,6 +3373,98 @@ begin
   AssertEquals('Div1.Background','green',Div1.Background);
 end;
 
+procedure TTestCSSResolver.TestRes_Origin_UserBeatsUserAgent;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // same selector in user-agent and user origin: the user origin wins for left,
+  // while top (only set by the user-agent sheet) still applies.
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; top: 7px; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 2px; }');
+  ApplyStyle;
+  AssertEquals('Div1.left (user beats user-agent)','2px',Div1.Left);
+  AssertEquals('Div1.top (user-agent only)','7px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_AuthorBeatsUser;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // same selector in user and author origin: the author origin wins for left,
+  // while top (only set by the user sheet) still applies.
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 1px; top: 5px; }');
+  Doc.Style:='div { left: 2px; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (author beats user)','2px',Div1.Left);
+  AssertEquals('Div1.top (user only)','5px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_AuthorBeatsUserAgentDespiteSpecificity;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // origin beats selector specificity: although the user-agent #Div1 selector has
+  // a higher selector specificity than the author div selector, the author origin
+  // base specificity (3000) outweighs the user-agent one (1000).
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','#Div1 { left: 1px; }');
+  Doc.Style:='div { left: 2px; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (author origin beats higher-specificity UA rule)','2px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_Important;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // left: user-agent !important beats author normal (important outweighs any origin).
+  // top: all three origins mark top !important, so the cascade falls back to source
+  // position - the last declaration in document order (author) wins.
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css',
+    '#Div1 { left: 1px !important; top: 1px !important; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { top: 2px !important; }');
+  Doc.Style:='div { left: 9px; top: 3px !important; }'; // author
+  ApplyStyle;
+  AssertEquals('Div1.left (UA important beats author normal)','1px',Div1.Left);
+  AssertEquals('Div1.top (author important wins among importants)','3px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_Origin_SourceOrderAcrossOrigins;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // rules from every origin are gathered (via the rule hashmaps) and then sorted
+  // back into document order. The author origin wins, and within the author origin
+  // the later declaration wins (source position tie-break).
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'ua.css','div { left: 1px; }');
+  Doc.CSSResolver.AddStyleSheet(cssoUser,'user.css','div { left: 2px; }');
+  Doc.Style:='div { left: 3px; }'+'div { left: 4px; }'; // two author rules
+  ApplyStyle;
+  AssertEquals('Div1.left (last author rule wins)','4px',Div1.Left);
+  // matching rules: the auto user-agent type style (div{display}), the extra
+  // user-agent rule, the user rule and both author rules = 5.
+  AssertEquals('rule count across origins',5,length(Div1.Rules.Rules));
+end;
+
 procedure TTestCSSResolver.TestRes_Var_NoDefault;
 var
   Div1: TDemoDiv;
@@ -4502,82 +4675,6 @@ begin
   AssertEquals('Span1.left','1px',Span1.Left);
   AssertEquals('Span2.left','',Span2.Left);
   if Div1=nil then ;
-end;
-
-function TokenStreamToStr(Registry: TCSSRegistry; const Data: TBytes): string;
-// Human readable representation of a token stream produced by Tokenize,
-// so tests can compare against an expected string.
-var
-  i: integer;
-
-  function RByte: byte;
-  begin
-    Result:=Data[i];
-    inc(i);
-  end;
-
-  function RWord: word;
-  begin
-    Result:=PWord(@Data[i])^;
-    inc(i,2);
-  end;
-
-  function RDWord: DWord;
-  begin
-    Result:=PDWord(@Data[i])^;
-    inc(i,4);
-  end;
-
-  function RDouble: double;
-  begin
-    Result:=PDouble(@Data[i])^;
-    inc(i,8);
-  end;
-
-  function RStr(Count: cardinal): string;
-  begin
-    Result:='';
-    if Count=0 then exit;
-    SetLength(Result,Count);
-    Move(Data[i],Result[1],Count);
-    inc(i,Count);
-  end;
-
-var
-  Kind: TCSSResTokenKind;
-  U: TCSSUnit;
-begin
-  Result:='';
-  i:=0;
-  while i<length(Data) do
-  begin
-    Kind:=TCSSResTokenKind(RByte);
-    case Kind of
-    rtkWhitespace: Result:=Result+'ws ';
-    rtkSymbol: Result:=Result+'sym('+Chr(RByte)+') ';
-    rtkLParenthesis: Result:=Result+'( ';
-    rtkRParenthesis: Result:=Result+') ';
-    rtkLBracket: Result:=Result+'[ ';
-    rtkRBracket: Result:=Result+'] ';
-    rtkPlus: Result:=Result+'plus ';
-    rtkMinus: Result:=Result+'minus ';
-    rtkFloat:
-      begin
-        U:=TCSSUnit(RByte);
-        Result:=Result+'float('+FloatToCSSStr(RDouble)+CSSUnitNames[U]+') ';
-      end;
-    rtkKeyword: Result:=Result+'kw('+Registry.Keywords[RWord]+') ';
-    rtkFunction: Result:=Result+'func('+Registry.AttrFunctions[RWord]+') ';
-    rtkIdentifier: Result:=Result+'ident('+RStr(RDWord)+') ';
-    rtkStringApos: Result:=Result+'apos('+RStr(RDWord)+') ';
-    rtkStringQuote: Result:=Result+'quote('+RStr(RDWord)+') ';
-    rtkHexColor: Result:=Result+'hex('+RStr(RByte)+') ';
-    else
-      Result:=Result+'?? ';
-      break;
-    end;
-  end;
-  Result:=TrimRight(Result);
 end;
 
 procedure TTestCSSResolver.CheckTokenize(const Title, aValue, Expected: string);

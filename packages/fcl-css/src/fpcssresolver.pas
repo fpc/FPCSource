@@ -1549,27 +1549,29 @@ var
   RuleArr: TCSSSharedRule;
   Rule: TCSSRuleElement;
   Specificity: TCSSSpecificity;
-  RuleI, RuleJ: PCSSSharedRule;
 begin
   SetLength(FElRules,FElRuleCount); // needed by FindSharedRuleList
 
-  // sort ascending for Specificity
-  for i:=0 to FElRuleCount-2 do
+  // Sort ascending for Specificity, keeping equal-specificity rules in their
+  // original (document) order so the cascade tie-break is "last declaration wins".
+  // FElRules arrives in document order (ComputeRule is called in DocIndex order),
+  // so a STABLE sort is required: a plain selection/bubble sort that swaps on '>'
+  // is not stable and would move the first of an equal-specificity pair behind the
+  // second whenever a lower-specificity rule follows them, reversing source order.
+  // Insertion sort with a strict '>' comparison is stable and cheap for the small
+  // per-element rule counts.
+  for i:=1 to FElRuleCount-1 do
   begin
-    RuleI:=@FElRules[i];
-    for j:=i+1 to FElRuleCount-1 do
+    Rule:=FElRules[i].Rule;
+    Specificity:=FElRules[i].Specificity;
+    j:=i-1;
+    while (j>=0) and (FElRules[j].Specificity>Specificity) do
     begin
-      RuleJ:=@FElRules[j];
-      if RuleI^.Specificity>RuleJ^.Specificity then
-      begin
-        Specificity:=RuleI^.Specificity;
-        RuleI^.Specificity:=RuleJ^.Specificity;
-        RuleJ^.Specificity:=Specificity;
-        Rule:=RuleI^.Rule;
-        RuleI^.Rule:=RuleJ^.Rule;
-        RuleJ^.Rule:=Rule;
-      end;
+      FElRules[j+1]:=FElRules[j];
+      dec(j);
     end;
+    FElRules[j+1].Rule:=Rule;
+    FElRules[j+1].Specificity:=Specificity;
   end;
 
   Result:=FindSharedRuleList(FElRules);
