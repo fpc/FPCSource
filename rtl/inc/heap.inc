@@ -182,24 +182,24 @@ type
   {$if sizeof(pointer) > 4}
     { 64-bit(ish) fixed chunk sizes:        ┌──── step = 16 ────┐┌─── step = 32 ────┐┌──── step = 48 ───┐┌ step 64 ┐ }
     FixedSizes: array[0 .. 15] of uint16 = (16, 32, 48, 64, 80, 96, 128, 160, 192, 224, 272, 320, 368, 416, 480, 544);
-    MinFixedHeaderAndPayload = 16;        { #0  #1  #2  #3  #4  #5  #6   #7   #8   #9   #10  #11  #12  #13  #14  #15 }
-    MaxFixedHeaderAndPayload = 544;
-    SizeMinus1Div16ToIndex: array[0 .. (MaxFixedHeaderAndPayload - 1) div 16] of uint8 =
+    MinFixedChunkSize = 16;               { #0  #1  #2  #3  #4  #5  #6   #7   #8   #9   #10  #11  #12  #13  #14  #15 }
+    MaxFixedChunkSize = 544;
+    SizeMinus1Div16ToIndex: array[0 .. (MaxFixedChunkSize - 1) div 16] of uint8 =
       {  16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512, 528, 544 }
       (   0,  1,  2,  3,  4,  5,   6,   6,   7,   7,   8,   8,   9,   9,  10,  10,  10,  11,  11,  11,  12,  12,  12,  13,  13,  13,  14,  14,  14,  14,  15,  15,  15,  15);
   {$else sizeof(pointer) > 4}
     { 32-bit(ish) fixed chunk sizes:        ┌──── step = 8 ────┐┌ step 16 ─┐┌─ +24 ──┐┌── +32 ──┐ +40  +48  +56  +64 }
     FixedSizes: array[0 .. 16] of uint16 = (8, 16, 24, 32, 40, 48, 64, 80, 96, 120, 144, 176, 208, 248, 296, 352, 416);
-    MinFixedHeaderAndPayload = 8;        { #0  #1  #2  #3  #4  #5  #6  #7  #8   #9  #10  #11  #12  #13  #14  #15  #16 }
-    MaxFixedHeaderAndPayload = 416;
-    SizeMinus1Div8ToIndex: array[0 .. (MaxFixedHeaderAndPayload - 1) div 8] of uint8 =
+    MinFixedChunkSize = 8;               { #0  #1  #2  #3  #4  #5  #6  #7  #8   #9  #10  #11  #12  #13  #14  #15  #16 }
+    MaxFixedChunkSize = 416;
+    SizeMinus1Div8ToIndex: array[0 .. (MaxFixedChunkSize - 1) div 8] of uint8 =
       {   8,  16,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208 }
       (   0,   1,   2,   3,   4,   5,   6,   6,   7,   7,   8,   8,   9,   9,   9,  10,  10,  10,  11,  11,  11,  11,  12,  12,  12,  12,
       { 216, 224, 232, 240, 248, 256, 264, 272, 280, 288, 296, 304, 312, 320, 328, 336, 344, 352, 360, 368, 376, 384, 392, 400, 408, 416 }
          13,  13,  13,  13,  13,  14,  14,  14,  14,  14,  14,  15,  15,  15,  15,  15,  15,  15,  16,  16,  16,  16,  16,  16,  16,  16);
   {$endif sizeof(pointer) > 4}
 
-    class function SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint; static; inline; { sizeMinus1 + 1 ≤ MaxFixedHeaderAndPayload }
+    class function SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint; static; inline; { sizeMinus1 + 1 ≤ MaxFixedChunkSize }
     class function IndexToSize(sizeIndex: SizeUint): SizeUint; static; inline;
 
   const
@@ -208,7 +208,7 @@ type
     MinFixedArenaSize = {$if sizeof(pointer) > 4} 5 * 1024 + 15 * 32 {$else} 4 * 1024 + 5 * 32 {$endif};
     MaxFixedArenaSize = 64 * 1024;
     MaxKeptFixedArenas = 4;
-    MaxOutcomingToFreeBytes = sizeof(pointer) * 1024; { Batch up to this much outgoing frees per thread. }
+    MaxOutgoingToFreeBytes = sizeof(pointer) * 1024; { Batch up to this much outgoing frees per thread. }
 
     { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
       = VarSizeToBinIndex(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2), roundUp := true) or so.
@@ -237,7 +237,7 @@ type
     VarSizeMask = uint32(-VarSizeQuant);
     TrailingSentinelChunkSize = 0; { VarOSChunks end in a permanently used block of size 0 (TrailingSentinelChunkSize). This replaces explicit LastFlag. }
 
-    { Variable chunk sizes, not counting extra MaxFixedHeaderAndPayload added to each of these:
+    { Variable chunk sizes, not counting extra MaxFixedChunkSize added to each of these:
 
       32 sizes in the range +1 ..   1 024 (2^10) rounded up to the multiple of     32 = 2^ 5, + 0,                max =     1 024 =            %100 0000 0000
       32 sizes in the range +1 ..   2 048 (2^11) rounded up to the multiple of     64 = 2^ 6, + 1024,             max =     3 072 =           %1100 0000 0000
@@ -258,10 +258,10 @@ type
     L0BinSize = 32;
 
     { Minimum size of the chunk that can be added to varFree.
-      Medium chunks can be smaller than this, all the way down to MinAnyVarHeaderAndPayload defined later in terms of things it must fit;
+      Medium chunks can be smaller than this, all the way down to MinAnyVarChunkSize defined later in terms of things it must fit;
       they aren’t visible for varFree searches but are visible for merging with freed neighbors. }
-    MinSearchableVarHeaderAndPayload = (MaxFixedHeaderAndPayload + 1 shl FirstVarStepP2 + VarSizeQuant - 1) and -VarSizeQuant;
-    MaxVarHeaderAndPayload = (MaxFixedHeaderAndPayload + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarHeaderAndPayload <> MaxFixedHeaderAndPayload + 1047552} {$error does not match the explanation above :D} {$endif}
+    MinSearchableVarChunkSize = (MaxFixedChunkSize + 1 shl FirstVarStepP2 + VarSizeQuant - 1) and -VarSizeQuant;
+    MaxVarChunkSize = (MaxFixedChunkSize + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarChunkSize <> MaxFixedChunkSize + 1047552} {$error does not match the explanation above :D} {$endif}
 
     class function VarSizeToBinIndex(size: uint32; roundUp: boolean): uint32; static; inline; { roundUp is constant. }
     class function BinIndexToVarSize(binIndex: uint32): uint32; static; inline;
@@ -382,8 +382,8 @@ type
       L1: uint32;
       L0: array[0 .. (VarSizesCount + L0BinSize - 1) div L0BinSize - 1] of uint32;
       bins: array[0 .. VarSizesCount - 1] of pFreeVarChunk;
-      { As an optimization, Add.binIndex can also be a size (will be rounded down), assuming VarSizesCount <= MinSearchableVarHeaderAndPayload. }
-    {$if VarSizesCount > MinSearchableVarHeaderAndPayload} {$error assumption above does not hold} {$endif}
+      { As an optimization, Add.binIndex can also be a size (will be rounded down), assuming VarSizesCount <= MinSearchableVarChunkSize. }
+    {$if VarSizesCount > MinSearchableVarChunkSize} {$error assumption above does not hold} {$endif}
       procedure Add(c: pFreeVarChunk; binIndex: SizeUint);
       procedure Remove(c: pFreeVarChunk);
       function Find(binIndex: SizeUint): pFreeVarChunk;
@@ -419,9 +419,9 @@ type
       allocatedByFullArenas: array[0 .. High(FixedSizes)] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
 
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      { Outcoming to-free requests from this thread, batched to reduce lock & atomic usage at the cost of keeping up to MaxOutcomingToFreeBytes per thread. }
-      outcomingToFree: pFreeChunk;
-      outcomingToFreeBytes: SizeUint;
+      { Outgoing to-free requests from this thread, batched to reduce lock & atomic usage at the cost of keeping up to MaxOutgoingToFreeBytes per thread. }
+      outgoingToFree: pFreeChunk;
+      outgoingToFreeBytes: SizeUint;
     {$endif FPC_HAS_FEATURE_THREADING}
 
     {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
@@ -456,8 +456,8 @@ type
       procedure PushIncomingToFree(first, last: pFreeChunk);
       procedure FlushIncomingToFree;
       procedure FreeToFreeList(tf: pFreeChunk);
-      function PushOutcomingToFree(p: pointer; size: SizeUint): SizeUint;
-      procedure FlushOutcomingToFree; { Must be performed inside gs.lock. }
+      function PushOutgoingToFree(p: pointer; size: SizeUint): SizeUint;
+      procedure FlushOutgoingToFree; { Must be performed inside gs.lock. }
 
       procedure Orphan;
       procedure AdoptArena(arena: pFixedArena);
@@ -564,7 +564,7 @@ type
 
   const
     CommonHeaderSize = sizeof(CommonHeader);
-  {$if MinFixedHeaderAndPayload < CommonHeaderSize + sizeof(FreeChunk)} {$error MinFixedHeaderAndPayload does not fit CommonHeader + FreeChunk.} {$endif}
+  {$if MinFixedChunkSize < CommonHeaderSize + sizeof(FreeChunk)} {$error MinFixedChunkSize does not fit CommonHeader + FreeChunk.} {$endif}
     FixedArenaDataOffset = (PtrUint(@FixedArena(nil^).sizeWithoutTrailingPadding) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
     VarHeaderSize = sizeof(VarHeader);
     FreeVarTailSize = sizeof(FreeVarTail);
@@ -572,7 +572,7 @@ type
   {$ifdef HAS_SYSOSFREE}
     HugeChunkDataOffset = (sizeof(HugeChunk) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
   {$endif HAS_SYSOSFREE}
-    MinAnyVarHeaderAndPayload = (sizeof(VarHeader) + PtrUint(@FreeVarChunk(nil^).sizeWithoutTrailingPadding) + sizeof(FreeVarTail) + VarSizeQuant - 1) and -VarSizeQuant;
+    MinAnyVarChunkSize = (sizeof(VarHeader) + PtrUint(@FreeVarChunk(nil^).sizeWithoutTrailingPadding) + sizeof(FreeVarTail) + VarSizeQuant - 1) and -VarSizeQuant;
   end;
 
   class function HeapInc.SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint;
@@ -592,7 +592,7 @@ type
     { Honestly can’t explain the code, it’s made from and equivalent to https://gitlab.com/freepascal.org/fpc/source/-/blob/6ed0a74f54327e07f33e66ddcc4fb5eb8d808dd8/rtl/inc/heap.inc#L503.
       Basic idea is that size class breakpoints of the form %11..1100_0000_0000 are converted to %11..11 for simple BSR by adding %11_1111_1111 = 1 shl FirstVarRangeP2 - 1,
       but the rest, in particular applying roundUp, is magic that is somehow equivalent to the original but uses 1/3 of its instructions. }
-    inc(size, 1 shl FirstVarRangeP2 - MaxFixedHeaderAndPayload - ord(roundUp));
+    inc(size, 1 shl FirstVarRangeP2 - MaxFixedChunkSize - ord(roundUp));
     binClassIndex := BsrDWord(size or 1); { Off by +FirstVarRangeP2. “or 1” is not required logically, just triggers node_not_zero optimization. }
     result := uint32(uint32(binClassIndex * VarSizesPerClass) + size shr uint32(binClassIndex - (FirstVarRangeP2 - FirstVarStepP2))) - (FirstVarRangeP2 * VarSizesPerClass + 1 shl (FirstVarRangeP2 - FirstVarStepP2) + ord(not roundUp));
   end;
@@ -600,7 +600,7 @@ type
   class function HeapInc.BinIndexToVarSize(binIndex: uint32): uint32;
   begin
     { Same. }
-    result := uint32((1 shl (FirstVarRangeP2 - FirstVarStepP2) + 1 + binIndex mod VarSizesPerClass) shl uint32(binIndex div VarSizesPerClass + FirstVarStepP2)) - (1 shl FirstVarRangeP2 - MaxFixedHeaderAndPayload);
+    result := uint32((1 shl (FirstVarRangeP2 - FirstVarStepP2) + 1 + binIndex mod VarSizesPerClass) shl uint32(binIndex div VarSizesPerClass + FirstVarStepP2)) - (1 shl FirstVarRangeP2 - MaxFixedChunkSize);
   end;
 
   procedure HeapInc.VarFreeMap.Add(c: pFreeVarChunk; binIndex: SizeUint);
@@ -610,7 +610,7 @@ type
     vL0 {$ifdef HEAP_INC_USE_SETS}, vL1 {$endif}: uint32;
   begin
     if binIndex >= VarSizesCount then
-      if binIndex >= MaxVarHeaderAndPayload then { Large sizes go to the last bin, assuming searches never search for more than MaxVarHeaderAndPayload. }
+      if binIndex >= MaxVarChunkSize then { Large sizes go to the last bin, assuming searches never search for more than MaxVarChunkSize. }
         binIndex := VarSizesCount - 1
       else
         binIndex := VarSizeToBinIndex(binIndex, false);
@@ -987,7 +987,7 @@ type
   {$ifdef FPC_HAS_FEATURE_THREADING}
     DumpVarFree(gs.varFree, 'Orphaned varFree');
     DumpToFree(incomingToFree, 'Incoming to-free');
-    DumpToFree(outcomingToFree, 'Outcoming to-free');
+    DumpToFree(outgoingToFree, 'Outgoing to-free');
   {$endif FPC_HAS_FEATURE_THREADING}
     if somethingWrong then
     begin
@@ -1106,7 +1106,7 @@ type
   {$ifdef FPC_HAS_FEATURE_THREADING}
     { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self.
       Due to how FPC code generator works, placing the = branch first saves a register, allowing “arena” register to be volatile.
-      (And also usually saves a taken jump that would otherwise jump over the PushOutcomingToFree branch.) }
+      (And also usually saves a taken jump that would otherwise jump over the PushOutgoingToFree branch.) }
     if not mayBeCrossThread or (pVarOSChunk(pointer(arena) + pVarHeader(arena)[-1].ofsToOs)^.threadState = @self) then
     begin
   {$endif FPC_HAS_FEATURE_THREADING}
@@ -1163,7 +1163,7 @@ type
       end;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     end else
-      result := PushOutcomingToFree(p, pFixedArena(p + SizeInt(int16(pCommonHeader(p - CommonHeaderSize)^.h)) * FixedChunkOffsetDivisor - (FixedArenaDataOffset + CommonHeaderSize - FixedChunkOffsetDivisor))^.chunkSize) - CommonHeaderSize;
+      result := PushOutgoingToFree(p, pFixedArena(p + SizeInt(int16(pCommonHeader(p - CommonHeaderSize)^.h)) * FixedChunkOffsetDivisor - (FixedArenaDataOffset + CommonHeaderSize - FixedChunkOffsetDivisor))^.chunkSize) - CommonHeaderSize;
   {$endif FPC_HAS_FEATURE_THREADING}
   end;
 
@@ -1319,14 +1319,14 @@ type
     { Result will be allocated at the beginning of fv; maybe format the remainder and add it back to varFree. }
     vSize := pVarHeader(fv)[-1].sizeFlags - size; { All fv flags must be 0. }
     { Allow over-allocating arenas by up to MaxArenaOverallocation. }
-    if vSize >= MinAnyVarHeaderAndPayload + (MaxArenaOverallocation and -VarSizeQuant + VarSizeQuant - MinAnyVarHeaderAndPayload) and isArenaMask then
+    if vSize >= MinAnyVarChunkSize + (MaxArenaOverallocation and -VarSizeQuant + VarSizeQuant - MinAnyVarChunkSize) and isArenaMask then
     begin
       tailFv := result + size; { fv (result) = allocated block, tailFv = remainder. }
       pVarHeader(pointer(tailFv) - VarHeaderSize)^.ofsToOs := pVarHeader(result - VarHeaderSize)^.ofsToOs - int32(size);
       pVarHeader(pointer(tailFv) - VarHeaderSize)^.sizeFlags := vSize;
       { Chunk to the right retains its PrevFreeFlag. }
       pFreeVarTail(pointer(tailFv) + vSize - (VarHeaderSize + FreeVarTailSize))^.size := vSize;
-      if vSize >= MinSearchableVarHeaderAndPayload then
+      if vSize >= MinSearchableVarChunkSize then
         varFree.Add(tailFv, vSize);
     end else
     begin
@@ -1358,7 +1358,7 @@ type
   begin
   {$ifdef FPC_HAS_FEATURE_THREADING}
     if pVarOSChunk(p + pVarHeader(p - VarHeaderSize)^.ofsToOs)^.threadState <> @self then
-      exit(PushOutcomingToFree(p, pVarHeader(p - VarHeaderSize)^.sizeFlags and VarSizeMask) - VarHeaderSize);
+      exit(PushOutgoingToFree(p, pVarHeader(p - VarHeaderSize)^.sizeFlags and VarSizeMask) - VarHeaderSize);
   {$endif FPC_HAS_FEATURE_THREADING}
 
     fSizeFlags := pVarHeader(p - VarHeaderSize)^.sizeFlags - UsedFlag;
@@ -1375,7 +1375,7 @@ type
     if nextSizeFlags and UsedFlag = 0 then
     begin
       inc(fSizeFlags, nextSizeFlags); { All next flags must be 0. }
-      if uint32(nextSizeFlags) >= MinSearchableVarHeaderAndPayload then
+      if uint32(nextSizeFlags) >= MinSearchableVarChunkSize then
         varFree.Remove(p + result);
       { Chunk to the right retains its PrevFreeFlag. }
     end;
@@ -1385,7 +1385,7 @@ type
       prevSize := pFreeVarTail(p - (VarHeaderSize + FreeVarTailSize))^.size;
       dec(p, prevSize);
       fSizeFlags := fSizeFlags - PrevIsFreeFlag + prevSize;
-      if uint32(prevSize) >= MinSearchableVarHeaderAndPayload then
+      if uint32(prevSize) >= MinSearchableVarChunkSize then
         varFree.Remove(p);
     end; { fSizeFlags no longer has any flags. }
 
@@ -1429,7 +1429,7 @@ type
   begin
     result := nil;
     if (size > High(int32) and SizeUint(-SysOSAllocQuant)) { Prevents overflow on adding headers and allows uint32(size) to tune for x64. }
-      or (size <= MaxFixedHeaderAndPayload - CommonHeaderSize) { Always downsize to fixed. }
+      or (size <= MaxFixedChunkSize - CommonHeaderSize) { Always downsize to fixed. }
     then
       exit;
 
@@ -1450,9 +1450,9 @@ type
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
 
-    { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
-    size := uint32(uint32(size) + (VarHeaderSize + VarSizeQuant - 1)) and uint32(-VarSizeQuant); { If size ≤ MaxVarHeaderAndPayload, this is redundant, but probably not worse than a jump over the “else” branch. }
-    if uint32(size) <= MaxVarHeaderAndPayload then
+    { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarChunkSize. }
+    size := uint32(uint32(size) + (VarHeaderSize + VarSizeQuant - 1)) and uint32(-VarSizeQuant); { If size ≤ MaxVarChunkSize, this is redundant, but probably not worse than a jump over the “else” branch. }
+    if uint32(size) <= MaxVarChunkSize then
     begin
       binIndex := VarSizeToBinIndex(size, true);
       size := BinIndexToVarSize(binIndex);
@@ -1478,7 +1478,7 @@ type
 
     { Check if there is a better place... }
     maxFv := uint32(arSizeFlags) div 4 * 3;
-    if (uint32(size) <= MaxVarHeaderAndPayload) and (uint32(size) < maxFv) then { Pretest the condition on a “CONSIDERABLY” better fv below, maybe it’s not going to happen no matter what. }
+    if (uint32(size) <= MaxVarChunkSize) and (uint32(size) < maxFv) then { Pretest the condition on a “CONSIDERABLY” better fv below, maybe it’s not going to happen no matter what. }
     begin
       fv := varFree.Find(binIndex);
       if Assigned(fv)
@@ -1519,7 +1519,7 @@ type
       then
       begin
         inc(arSizeFlags, prevSize2 - PrevIsFreeFlag); { Add prevSize back, and remove PrevIsFreeFlag. }
-        if prevSize2 >= MinSearchableVarHeaderAndPayload then
+        if prevSize2 >= MinSearchableVarChunkSize then
           varFree.Remove(ar);
         moveSize := oldpsize;
         if uint32(size) < moveSize then
@@ -1539,13 +1539,13 @@ type
 
     { Remove the free chunk after p. }
     nextSizeFlags2 := pVarHeader(p + oldpsize - VarHeaderSize)^.sizeFlags;
-    if (nextSizeFlags2 and UsedFlag = 0) and (nextSizeFlags2 >= MinSearchableVarHeaderAndPayload) then
+    if (nextSizeFlags2 and UsedFlag = 0) and (nextSizeFlags2 >= MinSearchableVarChunkSize) then
       varFree.Remove(p + oldpsize);
     dec(used, oldpsize);
 
     { Format the free chunk after ar, or its absence. }
     fSize := uint32(arSizeFlags - uint32(size)) and VarSizeMask;
-    if uint32(fSize) >= MinAnyVarHeaderAndPayload then
+    if uint32(fSize) >= MinAnyVarChunkSize then
     begin
       dec(arSizeFlags, uint32(fSize));
       fp := ar + size;
@@ -1554,7 +1554,7 @@ type
       nx := fp + fSize;
       pFreeVarTail(nx - (VarHeaderSize + FreeVarTailSize))^.size := fSize;
       pVarHeader(nx - VarHeaderSize)^.sizeFlags := pVarHeader(nx - VarHeaderSize)^.sizeFlags or PrevIsFreeFlag; { May have had it already. }
-      if uint32(fSize) >= MinSearchableVarHeaderAndPayload then
+      if uint32(fSize) >= MinSearchableVarChunkSize then
         varFree.Add(fp, fSize);
     end else
       pVarHeader(ar + arSizeFlags and VarSizeMask)[-1].sizeFlags := pVarHeader(ar + arSizeFlags and VarSizeMask)[-1].sizeFlags and uint32(not PrevIsFreeFlag); { May not have had it already. }
@@ -1706,15 +1706,15 @@ type
     end;
   end;
 
-  function HeapInc.ThreadState.PushOutcomingToFree(p: pointer; size: SizeUint): SizeUint;
+  function HeapInc.ThreadState.PushOutgoingToFree(p: pointer; size: SizeUint): SizeUint;
   begin
-    inc(outcomingToFreeBytes, size);
-    pFreeChunk(p)^.next := outcomingToFree;
-    outcomingToFree := p;
-    if outcomingToFreeBytes > MaxOutcomingToFreeBytes then
+    inc(outgoingToFreeBytes, size);
+    pFreeChunk(p)^.next := outgoingToFree;
+    outgoingToFree := p;
+    if outgoingToFreeBytes > MaxOutgoingToFreeBytes then
     begin
       EnterCriticalSection(gs.lock);
-      FlushOutcomingToFree;
+      FlushOutgoingToFree;
       LeaveCriticalSection(gs.lock);
       if Assigned(incomingToFree) then { Note it is crucial for certain cases like mass freeing of dead workers data... }
         FlushIncomingToFree;
@@ -1722,31 +1722,31 @@ type
     result := size;
   end;
 
-  procedure HeapInc.ThreadState.FlushOutcomingToFree;
+  procedure HeapInc.ThreadState.FlushOutgoingToFree;
   var
     ts, runTs: pThreadState;
     cur, runFirst, runLast: pFreeChunk;
     vc: pointer;
   begin
-    { Iterate outcomingToFree list, look at threadStates. FlushOutcomingToFree is performed under the lock, so threadStates are stable.
+    { Iterate outgoingToFree list, look at threadStates. FlushOutgoingToFree is performed under the lock, so threadStates are stable.
 
       Collect sequential items with identical threadStates (= runTs) into runFirst / runLast, then push them into runTs^.incomingToFree.
 
       If threadState is nil (thread is orphaned), adopt by itself first; still push into own incomingToFree for simplicity.
 
       As an alternative to detecting only consecutive runs,
-      it might be worth it to aggressively collect all outcomingToFree items having a particular threadState to minimize the amount of PushIncomingToFree calls.
+      it might be worth it to aggressively collect all outgoingToFree items having a particular threadState to minimize the amount of PushIncomingToFree calls.
 
       If not pushing chunks with threadState = @self into own incomingToFree, care must be taken to:
       1) work from other threads (for DoneHeapProcessWide), so SysFreeMem can’t be used as it works with thisTs,
       2) preferably, free these chunks outside the lock. For example, by appending them to “out toFree: pFreeChunk” and requiring the caller to FreeToFreeList(toFree). :\
       Pushing into own incomingToFree does all of that automatically, at the cost of a redundant AtomicExchange. }
 
-    cur := outcomingToFree;
-    outcomingToFree := nil;
-    outcomingToFreeBytes := 0;
+    cur := outgoingToFree;
+    outgoingToFree := nil;
+    outgoingToFreeBytes := 0;
     runTs := nil;
-    repeat { FlushOutcomingToFree is supposedly always prefaced with a check for non-empty outcomingToFree. }
+    repeat { FlushOutgoingToFree is supposedly always prefaced with a check for non-empty outgoingToFree. }
       vc := cur;
       if pCommonHeader(vc - CommonHeaderSize)^.h > CommonHeaderHuge then
         vc := vc - (FixedArenaDataOffset + CommonHeaderSize - FixedChunkOffsetDivisor) + SizeInt(int16(pCommonHeader(vc - CommonHeaderSize)^.h)) * FixedChunkOffsetDivisor;
@@ -1766,7 +1766,7 @@ type
       runLast := cur;
       cur := cur^.next;
     until not Assigned(cur);
-    runTs^.PushIncomingToFree(runFirst, runLast); { There is always an ongoing run at this point, provided that outcomingToFree was initially non-empty. }
+    runTs^.PushIncomingToFree(runFirst, runLast); { There is always an ongoing run at this point, provided that outgoingToFree was initially non-empty. }
   end;
 
   procedure HeapInc.ThreadState.Orphan;
@@ -1775,8 +1775,8 @@ type
   begin
     if gs.lockUse <> 0 then
       EnterCriticalSection(HeapInc.gs.lock);
-    if Assigned(outcomingToFree) then
-      FlushOutcomingToFree; { Presently, might push to own incomingToFree, so must be performed first. }
+    if Assigned(outgoingToFree) then
+      FlushOutgoingToFree; { Presently, might push to own incomingToFree, so must be performed first. }
     if Assigned(incomingToFree) then
       FlushIncomingToFree; { Performing it under gs.lock guarantees there will be no new incomingToFree requests. }
     FreeEmptyArenas; { Has to free all empty arenas, otherwise the chunk that contains only empty arenas can leak. }
@@ -1871,7 +1871,7 @@ type
           AdoptArena(p);
         end;
       end else
-        if uint32(pSize) >= MinSearchableVarHeaderAndPayload then
+        if uint32(pSize) >= MinSearchableVarChunkSize then
         begin
           gs.varFree.Remove(p);
           varFree.Add(p, pFreeVarChunk(p)^.binIndex);
@@ -2321,7 +2321,7 @@ var
   ts: HeapInc.pThreadState;
 begin
   ts := @HeapInc.thisTs;
-  if size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize then
+  if size <= HeapInc.MaxFixedChunkSize - HeapInc.CommonHeaderSize then
   begin
     size := HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1)); { Convert to sizeIndex. }
     exit(ts^.AllocFixed(size));
@@ -2331,7 +2331,7 @@ begin
     ts^.FlushIncomingToFree;
 {$endif}
   if (size < GrowHeapSize2 div 2) { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
-    and (size <= HeapInc.MaxVarHeaderAndPayload - HeapInc.VarHeaderSize) then
+    and (size <= HeapInc.MaxVarChunkSize - HeapInc.VarHeaderSize) then
     result := ts^.AllocVar(size, 0)
   else
     result := ts^.AllocHuge(size);
@@ -2405,7 +2405,7 @@ begin
   h := int16(HeapInc.pCommonHeader(result - HeapInc.CommonHeaderSize)^.h);
   if uint32(h) > HeapInc.CommonHeaderHuge then
   begin
-    if (size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize)
+    if (size <= HeapInc.MaxFixedChunkSize - HeapInc.CommonHeaderSize)
       and (HeapInc.pFixedArena(result - (HeapInc.FixedArenaDataOffset + HeapInc.CommonHeaderSize - HeapInc.FixedChunkOffsetDivisor) + h * HeapInc.FixedChunkOffsetDivisor)^.sizeIndex = uint16(HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1)))) then
       exit;
   end else
@@ -2488,7 +2488,7 @@ begin
   { Just Orphan all threads.
     Careful: for Orphan to work from another thread (one that called DoneHeapProcessWide),
     flushes shouldn’t call SysFreeMem because SysFreeMem works with thisTs instead of @self.
-    (See the comments in FreeToFreeList / FlushOutcomingToFree.)
+    (See the comments in FreeToFreeList / FlushOutgoingToFree.)
 
     This entire thing is just to handle the case of unloading a DLL before terminating the thread that used this DLL
     (https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/1173). }
