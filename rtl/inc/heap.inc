@@ -179,27 +179,36 @@ type
     { Alignment requirement for blocks. All fixed sizes (among other things) are assumed to be divisible. }
     Alignment = 2 * sizeof(pointer);
 
-    { Fixed chunk sizes are:
-      ┌──── step = 16 ────┐┌─── step = 32 ────┐┌──── step = 48 ───┐┌ step 64 ┐
-      16, 32, 48, 64, 80, 96, 128, 160, 192, 224, 272, 320, 368, 416, 480, 544
-      #0  #1  #2  #3  #4  #5  #6   #7   #8   #9   #10  #11  #12  #13  #14  #15 }
-    MinFixedHeaderAndPayload = 16;
+  {$if sizeof(pointer) > 4}
+    { 64-bit(ish) fixed chunk sizes:        ┌──── step = 16 ────┐┌─── step = 32 ────┐┌──── step = 48 ───┐┌ step 64 ┐ }
+    FixedSizes: array[0 .. 15] of uint16 = (16, 32, 48, 64, 80, 96, 128, 160, 192, 224, 272, 320, 368, 416, 480, 544);
+    MinFixedHeaderAndPayload = 16;        { #0  #1  #2  #3  #4  #5  #6   #7   #8   #9   #10  #11  #12  #13  #14  #15 }
     MaxFixedHeaderAndPayload = 544;
-    FixedSizesCount = 16;
-    FixedSizes: array[0 .. FixedSizesCount - 1] of uint16 = (16, 32, 48, 64, 80, 96, 128, 160, 192, 224, 272, 320, 368, 416, 480, 544);
     SizeMinus1Div16ToIndex: array[0 .. (MaxFixedHeaderAndPayload - 1) div 16] of uint8 =
       {  16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512, 528, 544 }
       (   0,  1,  2,  3,  4,  5,   6,   6,   7,   7,   8,   8,   9,   9,  10,  10,  10,  11,  11,  11,  12,  12,  12,  13,  13,  13,  14,  14,  14,  14,  15,  15,  15,  15);
+  {$else sizeof(pointer) > 4}
+    { 32-bit(ish) fixed chunk sizes:        ┌──── step = 8 ────┐┌ step 16 ─┐┌─ +24 ──┐┌── +32 ──┐ +40  +48  +56  +64 }
+    FixedSizes: array[0 .. 16] of uint16 = (8, 16, 24, 32, 40, 48, 64, 80, 96, 120, 144, 176, 208, 248, 296, 352, 416);
+    MinFixedHeaderAndPayload = 8;        { #0  #1  #2  #3  #4  #5  #6  #7  #8   #9  #10  #11  #12  #13  #14  #15  #16 }
+    MaxFixedHeaderAndPayload = 416;
+    SizeMinus1Div8ToIndex: array[0 .. (MaxFixedHeaderAndPayload - 1) div 8] of uint8 =
+      {   8,  16,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208 }
+      (   0,   1,   2,   3,   4,   5,   6,   6,   7,   7,   8,   8,   9,   9,   9,  10,  10,  10,  11,  11,  11,  11,  12,  12,  12,  12,
+      { 216, 224, 232, 240, 248, 256, 264, 272, 280, 288, 296, 304, 312, 320, 328, 336, 344, 352, 360, 368, 376, 384, 392, 400, 408, 416 }
+         13,  13,  13,  13,  13,  14,  14,  14,  14,  14,  14,  15,  15,  15,  15,  15,  15,  15,  16,  16,  16,  16,  16,  16,  16,  16);
+  {$endif sizeof(pointer) > 4}
 
     class function SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint; static; inline; { sizeMinus1 + 1 ≤ MaxFixedHeaderAndPayload }
     class function IndexToSize(sizeIndex: SizeUint): SizeUint; static; inline;
 
   const
     SysOSAllocQuant = 64 * 1024;
-    MinFixedArenaSize = 5 * 1024 + 15 * 32; { Tuned so that first ChooseFixedArenaSize(FixedSizesCount - 1) fits 10 fixed chunks of the maximum size. }
+    { Tuned so that first ChooseFixedArenaSize(High(FixedSizes)) fits 10 fixed chunks of the maximum size. }
+    MinFixedArenaSize = {$if sizeof(pointer) > 4} 5 * 1024 + 15 * 32 {$else} 4 * 1024 + 5 * 32 {$endif};
     MaxFixedArenaSize = 64 * 1024;
     MaxKeptFixedArenas = 4;
-    MaxOutcomingToFreeBytes = 8 * 1024; { Batch up to this much outcoming frees per thread. }
+    MaxOutcomingToFreeBytes = sizeof(pointer) * 1024; { Batch up to this much outgoing frees per thread. }
 
     { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
       = VarSizeToBinIndex(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2), roundUp := true) or so.
@@ -392,7 +401,7 @@ type
 
       { Fixed arenas with at least 1 free chunk (including unformatted space), but not completely empty.
         Fixed arenas that become completely empty are moved to emptyArenas, completely full are... not present in any list. }
-      partialArenas: array[0 .. FixedSizesCount - 1] of pFixedArena;
+      partialArenas: array[0 .. High(FixedSizes)] of pFixedArena;
 
       varOS: pVarOSChunk;
       varFree: VarFreeMap;
@@ -407,7 +416,7 @@ type
 
       { Only to calculate preferable new fixed arena sizes...
         (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
-      allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
+      allocatedByFullArenas: array[0 .. High(FixedSizes)] of uint32; { SizeUint is not obligatory, overflow is tolerable. }
 
     {$ifdef FPC_HAS_FEATURE_THREADING}
       { Outcoming to-free requests from this thread, batched to reduce lock & atomic usage at the cost of keeping up to MaxOutcomingToFreeBytes per thread. }
@@ -568,7 +577,7 @@ type
 
   class function HeapInc.SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint;
   begin
-    result := SizeMinus1Div16ToIndex[sizeMinus1 div 16];
+    result := {$if sizeof(pointer) > 4} SizeMinus1Div16ToIndex[sizeMinus1 div 16] {$else} SizeMinus1Div8ToIndex[sizeMinus1 div 8] {$endif};
   end;
 
   class function HeapInc.IndexToSize(sizeIndex: SizeUint): SizeUint;
@@ -857,7 +866,7 @@ type
       ', maxUsed = ', maxUsed {$ifdef HAS_SYSOSFREE}, ', maxAllocated = ', maxAllocated {$endif});
     needLE := true;
     anything := false;
-    for i := 0 to FixedSizesCount - 1 do
+    for i := 0 to High(FixedSizes) do
     begin
       if not Assigned(partialArenas[i]) and (allocatedByFullArenas[i] = 0) then
         continue;
