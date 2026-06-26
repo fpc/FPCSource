@@ -336,10 +336,20 @@ type
   public
     type
       TCheckEvent = function(Resolver: TCSSBaseResolver): boolean of object;
+
+      TSplitShorthandPart = record
+        AttrIDs: array of TCSSNumericalID;
+        StartPos, EndPos: integer; // token positions into Resolver.CurTokens, see CurTokenStart/CurTokenPos
+      end;
+      PSplitShorthandPart = ^TSplitShorthandPart;
+      TSplitShorthandParts = array of TSplitShorthandPart;
+
       TSplitShorthandEvent = procedure(Resolver: TCSSBaseResolver;
-           var AttrIDs: TCSSNumericalIDArray;
-           var Values: TBytesArray
-           ) of object;
+          var AttrIDs: TCSSNumericalIDArray;
+          var Values: TBytesArray
+          ) of object;
+      TParseShorthandEvent = procedure(Resolver: TCSSBaseResolver;
+          out Parts: TSplitShorthandParts) of object;
   public
     Inherits: boolean; // true = the default value is the parent's value
     All: boolean; // true = can be changed by the 'all' attribute
@@ -353,9 +363,15 @@ type
       // return false if invalid, so the resolver skips this declaration
     OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(),
         // if any value is empty, the InitialValue is used
+    OnParseShorthand: TParseShorthandEvent; // called by the inspector
   end;
   TCSSAttributeDescClass = class of TCSSAttributeDesc;
   TCSSAttributeDescArray = array of TCSSAttributeDesc;
+
+  TCSSShorthandTokenSpan = record
+    StartPos, EndPos: integer; // token positions into Resolver.CurTokens
+  end;
+  TCSSShorthandTokenSpanArray = array of TCSSShorthandTokenSpan;
 
   { TCSSPseudoClassDesc }
 
@@ -424,6 +440,10 @@ type
       TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Found: TBytesArray); overload;
     procedure AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray; var Values: TBytesArray;
       TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID; const Found: TBytesArray); overload;
+    procedure AddSplitShorthandPart(var Parts: TCSSAttributeDesc.TSplitShorthandParts;
+      const AttrIDs: array of TCSSNumericalID; StartPos, EndPos: integer);
+    procedure AddSplitShorthandPartsSides(var Parts: TCSSAttributeDesc.TSplitShorthandParts;
+      TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Spans: TCSSShorthandTokenSpanArray);
     property AttributeCount: TCSSNumericalID read FAttributeCount;
   public
     // pseudo classes, e.g. :hover
@@ -1441,6 +1461,79 @@ begin
       Values[2]:=Found[2];
       Values[3]:=Found[3];
     end;
+  end;
+end;
+
+procedure TCSSRegistry.AddSplitShorthandPart(
+  var Parts: TCSSAttributeDesc.TSplitShorthandParts;
+  const AttrIDs: array of TCSSNumericalID; StartPos, EndPos: integer);
+var
+  i, n: integer;
+begin
+  if length(AttrIDs)=0 then exit;
+  n:=length(Parts);
+  SetLength(Parts,n+1);
+  SetLength(Parts[n].AttrIDs,length(AttrIDs));
+  for i:=0 to high(AttrIDs) do
+    Parts[n].AttrIDs[i]:=AttrIDs[i];
+  Parts[n].StartPos:=StartPos;
+  Parts[n].EndPos:=EndPos;
+end;
+
+procedure TCSSRegistry.AddSplitShorthandPartsSides(
+  var Parts: TCSSAttributeDesc.TSplitShorthandParts;
+  TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Spans: TCSSShorthandTokenSpanArray);
+// Groups the four positional ids by the CSS 1/2/3/4-value rule and emits one Part
+// per span, so each token span lists the longhands it sets. The 1/2/3/4-value
+// distribution matches AddSplitLonghandSides/AddSplitLonghandCorners.
+var
+  Ids: array[0..3] of TCSSNumericalID;
+  SpanIdx: array[0..3] of integer;
+  Group: TCSSNumericalIDArray;
+  k, j: integer;
+begin
+  if length(Spans)=0 then exit;
+  Ids[0]:=TopID;
+  Ids[1]:=RightID;
+  Ids[2]:=BottomID;
+  Ids[3]:=LeftID;
+  case length(Spans) of
+  1:
+    begin
+      SpanIdx[0]:=0;
+      SpanIdx[1]:=0;
+      SpanIdx[2]:=0;
+      SpanIdx[3]:=0;
+    end;
+  2:
+    begin
+      SpanIdx[0]:=0;
+      SpanIdx[1]:=1;
+      SpanIdx[2]:=0;
+      SpanIdx[3]:=1;
+    end;
+  3:
+    begin
+      SpanIdx[0]:=0;
+      SpanIdx[1]:=1;
+      SpanIdx[2]:=2;
+      SpanIdx[3]:=1;
+    end;
+  else
+    begin
+      SpanIdx[0]:=0;
+      SpanIdx[1]:=1;
+      SpanIdx[2]:=2;
+      SpanIdx[3]:=3;
+    end;
+  end;
+  for k:=0 to high(Spans) do
+  begin
+    Group:=nil;
+    for j:=0 to 3 do
+      if SpanIdx[j]=k then
+        Insert(Ids[j],Group,length(Group));
+    AddSplitShorthandPart(Parts,Group,Spans[k].StartPos,Spans[k].EndPos);
   end;
 end;
 
