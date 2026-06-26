@@ -361,6 +361,7 @@ type
 
   TCSSPseudoClassDesc = class(TCSSRegistryNamedItem)
   public
+    BuiltIn: boolean;
   end;
   TCSSPseudoClassDescClass = class of TCSSPseudoClassDesc;
   TCSSPseudoClassDescArray = array of TCSSPseudoClassDesc;
@@ -966,6 +967,17 @@ begin
 end;
 
 procedure TCSSRegistry.Init;
+
+  procedure AddBuiltInPseudoClass(const aName: TCSSString; ExpectedID: TCSSNumericalID);
+  var
+    PC: TCSSPseudoClassDesc;
+  begin
+    PC:=AddPseudoClass(aName);
+    if PC.Index<>ExpectedID then
+      raise ECSSParser.Create('20240623165848');
+    PC.BuiltIn:=true;
+  end;
+
 begin
   // init attributes
   if AddAttribute('id').Index<>CSSAttributeID_ID then
@@ -976,22 +988,14 @@ begin
     raise ECSSParser.Create('20240617191816');
 
   // init pseudo classes
-  if AddPseudoClass('root').Index<>CSSPseudoID_Root then
-    raise ECSSParser.Create('20240623165848');
-  if AddPseudoClass('empty').Index<>CSSPseudoID_Empty then
-    raise ECSSParser.Create('20240623170450');
-  if AddPseudoClass('first-child').Index<>CSSPseudoID_FirstChild then
-    raise ECSSParser.Create('20240623170508');
-  if AddPseudoClass('last-child').Index<>CSSPseudoID_LastChild then
-    raise ECSSParser.Create('20240623170521');
-  if AddPseudoClass('only-child').Index<>CSSPseudoID_OnlyChild then
-    raise ECSSParser.Create('20240623170534');
-  if AddPseudoClass('first-of-type').Index<>CSSPseudoID_FirstOfType then
-    raise ECSSParser.Create('20240623170547');
-  if AddPseudoClass('last-of-type').Index<>CSSPseudoID_LastOfType then
-    raise ECSSParser.Create('20240623170558');
-  if AddPseudoClass('only-of-type').Index<>CSSPseudoID_OnlyOfType then
-    raise ECSSParser.Create('20240623170609');
+  AddBuiltInPseudoClass('root',CSSPseudoID_Root);
+  AddBuiltInPseudoClass('empty',CSSPseudoID_Empty);
+  AddBuiltInPseudoClass('first-child',CSSPseudoID_FirstChild);
+  AddBuiltInPseudoClass('last-child',CSSPseudoID_LastChild);
+  AddBuiltInPseudoClass('only-child',CSSPseudoID_OnlyChild);
+  AddBuiltInPseudoClass('first-of-type',CSSPseudoID_FirstOfType);
+  AddBuiltInPseudoClass('last-of-type',CSSPseudoID_LastOfType);
+  AddBuiltInPseudoClass('only-of-type',CSSPseudoID_OnlyOfType);
 
   // init pseudo elements
   // none by default

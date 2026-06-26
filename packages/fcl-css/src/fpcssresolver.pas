@@ -190,7 +190,7 @@ type
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TBytes; // tokenized computed value
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
-    function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
+    function HasCSSPseudoClass(const aPseudoClassID: TCSSNumericalID): boolean;
   end;
 
 type
@@ -339,8 +339,24 @@ type
         Origin: TCSSOrigin;
         Element: TCSSElement;
         Parsed: boolean;
+        Stamp: integer; // bumped whenever the stylesheet (re)parses, see GetStyleSheetStamp
       end;
       TStyleSheets = array of TStyleSheet;
+
+      // A stable reference to a declaration that survives a reparse (which
+      // replaces the TCSSDeclarationElement instances). See GetDeclarationPath /
+      // FindDeclaration.
+      // Selectors and RuleIndex describe the chain of (possibly nested) rules from
+      // the stylesheet top level (index 0) down to the rule holding the declaration.
+      TCSSDeclarationPath = record
+        Valid: boolean;
+        Origin: TCSSOrigin;
+        SheetName: TCSSString;
+        Selectors: array of TCSSString; // selectors of each rule in the nesting chain
+        PropertyName: TCSSString;       // the declaration's (first) property name
+        RuleIndex: array of integer;    // index of each rule within its parent rule list
+        PropIndex: integer;             // index of the declaration within the innermost rule
+      end;
 
       TLayerElement = record
         Src: TStyleSheet;
@@ -362,6 +378,7 @@ type
     FStringComparison: TCSSResStringComparison;
     FStyleSheets: TStyleSheets;
     FStyleSheetCount: integer;
+    FStyleSheetStamp: integer; // monotonic counter handed out to TStyleSheet.Stamp on change
     function GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
     function GetLogCount: integer;
     function GetLogEntries(Index: integer): TCSSResolverLogEntry;
@@ -598,6 +615,9 @@ type
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
     function IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
     function FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;
+    function GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer; // -1 if no such sheet
+    function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
+    function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
     property Layers: TLayerArray read FLayers;
@@ -4471,6 +4491,8 @@ begin
     Parsed:=false;
     if Element<>nil then
       FreeAndNil(Element);
+    inc(FStyleSheetStamp);
+    Stamp:=FStyleSheetStamp;
   end;
 
   ParseSource(FStyleSheetCount-1);
@@ -4491,6 +4513,8 @@ begin
   FreeAndNil(Sheet.Element);
   Sheet.Parsed:=false;
   Sheet.Source:=NewSource;
+  inc(FStyleSheetStamp);
+  Sheet.Stamp:=FStyleSheetStamp;
 
   ParseSource(Index);
 end;
@@ -4556,6 +4580,231 @@ begin
     Result:=FStyleSheets[i]
   else
     Result:=nil;
+end;
+
+function TCSSResolver.GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
+var
+  i: Integer;
+begin
+  i:=IndexOfStyleSheetWithName(anOrigin,aName);
+  if i>=0 then
+    Result:=FStyleSheets[i].Stamp
+  else
+    Result:=-1;
+end;
+
+// the rule's selectors joined as one string, matching the inspector's display
+function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=0 to Rule.SelectorCount-1 do
+  begin
+    if i>0 then Result:=Result+', ';
+    Result:=Result+Rule.Selectors[i].AsFormattedString;
+  end;
+end;
+
+// the declaration's (first) property name
+function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
+begin
+  if DeclEl.KeyCount>0 then
+    Result:=DeclEl.Keys[0].AsFormattedString
+  else
+    Result:='';
+end;
+
+// scan El's subtree for immediate child rules, descending through non-rule
+// containers (compounds) but never into a rule (its nested rules are a deeper level)
+procedure CSSScanChildRules(El: TCSSElement; var Rules: TCSSRuleElementArray; var Cnt: integer);
+var
+  i: Integer;
+  C: TClass;
+begin
+  if El=nil then exit;
+  if El is TCSSDeclarationElement then exit; // a declaration's children are values, not rules
+  C:=El.ClassType;
+  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  begin
+    if Cnt>=length(Rules) then
+      SetLength(Rules,Cnt*2+8);
+    Rules[Cnt]:=TCSSRuleElement(El);
+    inc(Cnt);
+    exit; // do not descend into the rule
+  end;
+  if El is TCSSChildrenElement then
+    for i:=0 to TCSSChildrenElement(El).ChildCount-1 do
+      CSSScanChildRules(TCSSChildrenElement(El).Children[i],Rules,Cnt);
+end;
+
+// the top-level rules of a stylesheet (Root is a compound of rules, or a single rule)
+function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
+var
+  Cnt: Integer;
+  C: TClass;
+begin
+  Result:=nil;
+  if Root=nil then exit;
+  C:=Root.ClassType;
+  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  begin
+    SetLength(Result,1);
+    Result[0]:=TCSSRuleElement(Root);
+    exit;
+  end;
+  Cnt:=0;
+  if Root is TCSSChildrenElement then
+    CSSScanChildRules(Root,Result,Cnt);
+  SetLength(Result,Cnt);
+end;
+
+// the immediate nested rules of a rule
+function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
+var
+  i: Integer;
+begin
+  Result:=[];
+  SetLength(Result,Rule.NestedRuleCount);
+  for i:=0 to Rule.NestedRuleCount-1 do
+    Result[i]:=Rule.NestedRules[i];
+end;
+
+// locate a rule in a candidate list: by index if its selectors still match (fast
+// path, no rule added/deleted), else scan by selectors, else fall back to the
+// stored index (a selector changed)
+function CSSLocateRule(const Candidates: TCSSRuleElementArray; Idx: integer;
+  const Sel: TCSSString): TCSSRuleElement;
+var
+  i: Integer;
+begin
+  Result:=nil;
+  if (Idx>=0) and (Idx<length(Candidates))
+      and (CSSRuleSelectorsStr(Candidates[Idx])=Sel) then
+    exit(Candidates[Idx]);
+  for i:=0 to length(Candidates)-1 do
+    if CSSRuleSelectorsStr(Candidates[i])=Sel then
+      exit(Candidates[i]);
+  if (Idx>=0) and (Idx<length(Candidates)) then
+    Result:=Candidates[Idx];
+end;
+
+function TCSSResolver.GetDeclarationPath(DeclEl: TCSSDeclarationElement;
+  out Path: TCSSDeclarationPath): boolean;
+var
+  ShIdx, i, Level: Integer;
+  Sheet: TStyleSheet;
+  Root, Node: TCSSElement;
+  Innermost: TCSSRuleElement;
+  Chain: TCSSRuleElementArray; // rule nesting chain, outermost (0) .. innermost
+  ChainCnt: Integer;
+  Candidates: TCSSRuleElementArray;
+begin
+  Result:=false;
+  Path:=Default(TCSSDeclarationPath);
+  if DeclEl=nil then exit;
+  ShIdx:=IndexOfStyleSheetWithElement(DeclEl);
+  if ShIdx<0 then exit; // e.g. an inline style declaration, not in a stylesheet
+  Sheet:=FStyleSheets[ShIdx];
+  Root:=Sheet.Element;
+
+  // collect the chain of enclosing rules, innermost first while walking up
+  Chain:=nil;
+  ChainCnt:=0;
+  Node:=DeclEl.Parent;
+  while Node<>nil do
+  begin
+    if Node is TCSSRuleElement then
+    begin
+      SetLength(Chain,ChainCnt+1);
+      // shift down to insert this (more outer) rule at the front
+      for i:=ChainCnt downto 1 do
+        Chain[i]:=Chain[i-1];
+      Chain[0]:=TCSSRuleElement(Node);
+      inc(ChainCnt);
+    end;
+    if Node=Root then break;
+    Node:=Node.Parent;
+  end;
+  if ChainCnt=0 then exit; // declaration not inside a rule
+  Innermost:=Chain[ChainCnt-1];
+
+  Path.Origin:=Sheet.Origin;
+  Path.SheetName:=Sheet.Name;
+  Path.PropertyName:=CSSDeclPropertyName(DeclEl);
+  SetLength(Path.Selectors,ChainCnt);
+  SetLength(Path.RuleIndex,ChainCnt);
+  for Level:=0 to ChainCnt-1 do
+  begin
+    if Level=0 then
+      Candidates:=CSSGetTopLevelRules(Root)
+    else
+      Candidates:=CSSGetNestedRules(Chain[Level-1]);
+    Path.Selectors[Level]:=CSSRuleSelectorsStr(Chain[Level]);
+    Path.RuleIndex[Level]:=-1;
+    for i:=0 to length(Candidates)-1 do
+      if Candidates[i]=Chain[Level] then
+      begin
+        Path.RuleIndex[Level]:=i;
+        break;
+      end;
+  end;
+
+  Path.PropIndex:=-1;
+  for i:=0 to Innermost.ChildCount-1 do
+    if Innermost.Children[i]=DeclEl then
+    begin
+      Path.PropIndex:=i;
+      break;
+    end;
+
+  Path.Valid:=true;
+  Result:=true;
+end;
+
+function TCSSResolver.FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
+var
+  ShIdx, i, Level: Integer;
+  Sheet: TStyleSheet;
+  Candidates: TCSSRuleElementArray;
+  Rule: TCSSRuleElement;
+  Decl: TCSSDeclarationElement;
+
+  function ChildDecl(aRule: TCSSRuleElement; Idx: integer): TCSSDeclarationElement;
+  begin
+    Result:=nil;
+    if (Idx>=0) and (Idx<aRule.ChildCount) and (aRule.Children[Idx] is TCSSDeclarationElement) then
+      Result:=TCSSDeclarationElement(aRule.Children[Idx]);
+  end;
+
+begin
+  Result:=nil;
+  if (not Path.Valid) or (length(Path.RuleIndex)=0) then exit;
+  ShIdx:=IndexOfStyleSheetWithName(Path.Origin,Path.SheetName);
+  if ShIdx<0 then exit;
+  Sheet:=FStyleSheets[ShIdx];
+
+  // walk the rule nesting chain, locating each level by index/selector
+  Rule:=nil;
+  for Level:=0 to length(Path.RuleIndex)-1 do
+  begin
+    if Level=0 then
+      Candidates:=CSSGetTopLevelRules(Sheet.Element)
+    else
+      Candidates:=CSSGetNestedRules(Rule);
+    Rule:=CSSLocateRule(Candidates,Path.RuleIndex[Level],Path.Selectors[Level]);
+    if Rule=nil then exit;
+  end;
+
+  // locate the declaration: by index, else by name, else index fallback
+  Decl:=ChildDecl(Rule,Path.PropIndex);
+  if (Decl<>nil) and (CSSDeclPropertyName(Decl)=Path.PropertyName) then
+    exit(Decl);
+  for i:=0 to Rule.ChildCount-1 do
+    if (Rule.Children[i] is TCSSDeclarationElement)
+        and (CSSDeclPropertyName(TCSSDeclarationElement(Rule.Children[i]))=Path.PropertyName) then
+      exit(TCSSDeclarationElement(Rule.Children[i]));
+  Result:=ChildDecl(Rule,Path.PropIndex);
 end;
 
 end.
