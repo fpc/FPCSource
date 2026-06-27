@@ -260,6 +260,8 @@ type
   cl_device_exec_capabilities = cl_bitfield;
   cl_command_queue_properties = cl_bitfield;
 
+  Pcl_command_queue_properties = ^cl_command_queue_properties;
+
   cl_context_properties   = intptr_t;
   cl_context_info         = cl_uint;
   cl_command_queue_info   = cl_uint;
@@ -626,7 +628,7 @@ function clGetPlatformInfo(
   param_name   : cl_platform_info;
   value_size   : csize_t;
   value        : Pointer;
-  var size_ret : csize_t
+  size_ret     : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetPlatformInfo';
 
@@ -645,7 +647,7 @@ function clGetDeviceInfo(
   param_name   : cl_device_info;
   value_size   : csize_t;
   value        : Pointer;
-  var size_ret : csize_t
+  size_ret     : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetDeviceInfo';
 
@@ -660,7 +662,7 @@ function clCreateContext(
   devices         : Pcl_device_id;
   notify          : TContextNotify;
   user_data       : Pointer;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_context; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateContext';
 
@@ -669,7 +671,7 @@ function clCreateContextFromType(
   device_type     : cl_device_type;
   notify          : TContextNotify;
   user_data       : Pointer;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_context; extdecl;
   external name 'clCreateContextFromType';
 
@@ -684,7 +686,7 @@ function clGetContextInfo(
   param_name    : cl_context_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetContextInfo';
 
@@ -693,7 +695,7 @@ function clCreateCommandQueue(
   context    : cl_context;
   device     : cl_device_id;
   properties : cl_command_queue_properties;
-  errcode_ret: cl_int
+  errcode_ret: pcl_int
   ): cl_command_queue; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateCommandQueue';
 
@@ -708,7 +710,7 @@ function clGetCommandQueueInfo(
   param_name   : cl_command_queue_info;
   value_size   : csize_t;
   value        : Pointer;
-  var size_ret : csize_t
+  size_ret     : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetCommandQueueInfo';
 
@@ -716,7 +718,7 @@ function clSetCommandQueueProperty(
   command_queue       : cl_command_queue;
   properties          : cl_command_queue_properties;
   enable              : cl_bool;
-  var old_properties  : cl_command_queue_properties
+  old_properties      : pcl_command_queue_properties
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clSetCommandQueueProperty';
 
@@ -726,7 +728,7 @@ function clCreateBuffer(
   flags            : cl_mem_flags;
   size             : csize_t;
   host_ptr         : Pointer;
-  var errcode_ret  : cl_int
+  errcode_ret      : pcl_int
   ): cl_mem; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateBuffer';
 
@@ -738,7 +740,7 @@ function clCreateImage2D(
   image_height    : csize_t;
   image_row_pitch : csize_t;
   host_ptr        : Pointer;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_mem; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateImage2D';
 
@@ -749,10 +751,10 @@ function clCreateImage3D(
   image_width 	    : csize_t;
   image_height      : csize_t;
   image_depth 	    : csize_t;
-  image_row_pitch 	: csize_t;
+  image_row_pitch   : csize_t;
   image_slice_pitch : csize_t;
   host_ptr 		      : Pointer;
-  var errcode_ret		: cl_int
+  errcode_ret       : pcl_int
   ): cl_mem; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateImage3D';
 
@@ -768,7 +770,7 @@ function clGetSupportedImageFormats(
   image_type 		  : cl_mem_object_type;
   num_entries 		: cl_uint;
   image_formats   : Pcl_image_format;
-  var num_formats : cl_uint
+  num_formats     : pcl_uint
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetSupportedImageFormats';
 
@@ -776,8 +778,8 @@ function clGetMemObjectInfo(
   memobj      	: cl_mem;
   param_name    : cl_mem_info;
   value_size    : csize_t;
-  value     	  : Pointer;
-  var size_ret  : csize_t
+  value     	: Pointer;
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetMemObjectInfo';
 
@@ -786,7 +788,7 @@ function clGetImageInfo(
   param_name    : cl_image_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetImageInfo';
 
@@ -796,7 +798,7 @@ function clCreateSampler(
   is_norm_coords  : cl_bool;
   addr_mode       : cl_addressing_mode;
   filter_mode     : cl_filter_mode;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_sampler; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateSampler';
 
@@ -811,7 +813,7 @@ function clGetSamplerInfo(
   param_name   : cl_sampler_info;
   value_size   : csize_t;
   value        : Pointer;
-  var size_ret : csize_t
+  size_ret     : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetSamplerInfo';
 
@@ -821,7 +823,7 @@ function clCreateProgramWithSource(
   count           : cl_uint;
   strings         : PPAnsiChar;
   lengths         : Pcsize_t;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_program; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateProgramWithSource';
 
@@ -835,7 +837,7 @@ function clCreateProgramWithBinary(
   lengths     : Pcsize_t;
   binaries    : PPByte;
   var binary_status: cl_int;
-  var errcode_ret: cl_int
+  errcode_ret: pcl_int
   ): cl_program; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateProgramWithBinary';
 
@@ -868,7 +870,7 @@ function clGetProgramInfo(
   param_name    : cl_program_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetProgramInfo';
 
@@ -878,7 +880,7 @@ function clGetProgramBuildInfo(
   param_name    : cl_program_build_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetProgramBuildInfo';
 
@@ -886,7 +888,7 @@ function clGetProgramBuildInfo(
 function clCreateKernel(
   _program        : cl_program;
   kernel_name     : PAnsiChar;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): cl_kernel; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateKernel';
 
@@ -894,7 +896,7 @@ function clCreateKernelsInProgram(
   _program      : cl_program;
   num_kernels   : cl_uint;
   kernels       : Pcl_kernel;
-  var num_ret   : cl_uint
+  num_ret       : pcl_uint
   ): cl_int; extdecl; external name 'clCreateKernelsInProgram';
 
 function clRetainKernel(kernel: cl_kernel): cl_int; extdecl;
@@ -916,7 +918,7 @@ function clGetKernelInfo(
   param_name    : cl_kernel_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetKernelInfo';
 
@@ -942,7 +944,7 @@ function clGetEventInfo(
   param_name    : cl_event_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetEventInfo';
 
@@ -958,7 +960,7 @@ function clGetEventProfilingInfo(
   param_name    : cl_profiling_info;
   value_size    : csize_t;
   value         : Pointer;
-  var size_ret  : csize_t
+  size_ret      : pcsize_t
   ): cl_int; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clGetEventProfilingInfo';
 
@@ -1088,7 +1090,7 @@ function clEnqueueMapBuffer(
   num_events      : cl_uint;
   events_list     : Pcl_event;
   event           : Pcl_event;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): Pointer; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clEnqueueMapBuffer';
 
@@ -1104,7 +1106,7 @@ function clEnqueueMapImage(
   num_events      : cl_uint;
   events_list     : Pcl_event;
   event           : Pcl_event;
-  var errcode_ret : cl_int
+  errcode_ret     : pcl_int
   ): Pointer; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clEnqueueMapImage';
 
