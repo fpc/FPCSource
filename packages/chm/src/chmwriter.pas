@@ -275,6 +275,8 @@ end;
 { TChmWriter }
 
 procedure TITSFWriter.InitITSFHeader;
+var  SourceDateEpoch: string;
+     dt : TDateTime;
 begin
   with ITSFHeader do begin
     ITSFsig := ITSFFileSig;
@@ -282,7 +284,13 @@ begin
     // we fix endian order when this is written to the stream
     HeaderLength := NToLE(DWord(SizeOf(TITSFHeader) + (SizeOf(TGuid)*2)+ (SizeOf(TITSFHeaderEntry)*2) + SizeOf(TITSFHeaderSuffix)));
     Unknown_1 := NToLE(DWord(1));
-    TimeStamp:= NToBE(MilliSecondOfTheDay(Now)); //bigendian
+    SourceDateEpoch := GetEnvironmentVariable('SOURCE_DATE_EPOCH');
+    if Length(SourceDateEpoch)>0 then
+      dt:=UnixToDateTime(StrToInt64(SourceDateEpoch))
+    else
+      dt:=now;
+
+    TimeStamp:= NToBE(MilliSecondOfTheDay(dt)); //bigendian
     LanguageID := NToLE(DWord($0409)); // English / English_US
   end;
 end;
