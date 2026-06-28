@@ -124,7 +124,9 @@ type
   //   const struct _prop_list_t * properties;
   //   const uint32_t size;  // sizeof(struct _protocol_t)
   //   const uint32_t flags;  // = 0
-  // }
+  //   const char** extendedMethodTypes;
+  //   const char* demangledName;
+  //   const _prop_list_t* classProperties;  // }
 
   // Full definition required by the compiler, do not make opaque!
 *)
@@ -139,6 +141,9 @@ type
     properties: pointer;
     size: cuint32;
     flags: cuint32;
+    extendedMethodTypes: PPansiChar;
+    demangledName: PAnsiChar;
+    classProperties: pointer;
   end;
   pobjc_protocol = ^objc_protocol;
   ppobjc_protocol = ^pobjc_protocol;

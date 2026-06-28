@@ -108,11 +108,18 @@ implementation
          (ds_rtti_table_written,ds_init_table_written,
          { Objective-C related, does not pass here }
          symconst.ds_none,symconst.ds_none,
+         symconst.ds_none,symconst.ds_none,
+         symconst.ds_none,symconst.ds_none,
+         symconst.ds_none,symconst.ds_none,
          symconst.ds_none,symconst.ds_none);
        rttitypenames : array[trttitype] of string =
          ('full','init',
           'objcmeta','objcmetaro',
-          'objcclass','objcclassro');
+          'objcclass','objcclassro',
+          'objcprotocollist','objcprotocolmethodstypelist',
+          'objcinstancemethods','objectclassmethods',
+          'objcprotinstancemethodsopt','objcprotoclassmethodsopt'
+          );
 
     type
        TPropNameListItem = class(TFPHashObject)
