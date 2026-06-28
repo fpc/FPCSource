@@ -805,7 +805,13 @@ end;
 
 Function DaysInAMonth(const AYear, AMonth: Word): Word;
 begin
-  Result:=MonthDays[IsLeapYear(AYear),AMonth];
+  If AMonth<>2 Then
+    Result:=30 Or (AMonth Xor (AMonth shr 3))
+  Else
+    If IsLeapYear(AYear) Then
+      Result:=29
+    Else
+      Result:=28;
 end;
 
 
