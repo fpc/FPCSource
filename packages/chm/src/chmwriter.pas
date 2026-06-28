@@ -961,6 +961,8 @@ var
   Entry: TFileEntryRec;
   TmpStr: String;
   TmpTitle: String;
+  dt : TDateTime;
+  SourceDateEpoch : String;
 const
   VersionStr = 'HHA Version 4.74.8702'; // does this matter?
 begin
@@ -989,7 +991,13 @@ begin
   // 10
   FSection0.WriteWord(NToLE(Word(10)));
   FSection0.WriteWord(NToLE(Word(SizeOf(DWord))));
-  FSection0.WriteDWord(NToLE(MilliSecondOfTheDay(Now)));
+  SourceDateEpoch := GetEnvironmentVariable('SOURCE_DATE_EPOCH');
+  if Length(SourceDateEpoch)>0 then
+    dt:=UnixToDateTime(StrToInt64(SourceDateEpoch))
+  else
+    dt:=now;
+
+  FSection0.WriteDWord(NToLE(MilliSecondOfTheDay(dt)));
   // 9
   FSection0.WriteWord(NToLE(Word(9)));
   FSection0.WriteWord(NToLE(Word(SizeOf(VersionStr)+1)));
