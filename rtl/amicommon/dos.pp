@@ -148,10 +148,10 @@ end;
 
 function IsLeapYear(Source : Word) : Boolean;
 begin
-  if (source Mod 400 = 0) or ((source Mod 4 = 0) and (source Mod 100 <> 0)) then
-    IsLeapYear:=True
-  else
-    IsLeapYear:=False;
+  If Source mod 100<>0 Then
+    IsLeapYear:=(Source mod 4)=0
+  Else
+    IsLeapYear:=(Source mod 16)=0;  { same as (Source mod 400)=0, but better }
 end;
 
 procedure AmigaDateStampToDateTime(var ds: TDateStamp; var dt: DateTime);
