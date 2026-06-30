@@ -131,7 +131,7 @@
   add_pcap(ADirectory+IncludeTrailingPathDelimiter('pcap'));
   add_postgres(ADirectory+IncludeTrailingPathDelimiter('postgres'));
   add_proj4(ADirectory+IncludeTrailingPathDelimiter('proj4'));
-  add_psyq(ADirectory+IncludeTrailingPathDelimiter('psy-q-sdk'));
+  add_psy_q_sdk(ADirectory+IncludeTrailingPathDelimiter('psy-q-sdk'));
   add_ptc(ADirectory+IncludeTrailingPathDelimiter('ptc'));
   add_ptckvm(ADirectory+IncludeTrailingPathDelimiter('ptckvm'));
   add_pthreads(ADirectory+IncludeTrailingPathDelimiter('pthreads'));
@@ -160,7 +160,7 @@
   add_users(ADirectory+IncludeTrailingPathDelimiter('users'));
   add_utmp(ADirectory+IncludeTrailingPathDelimiter('utmp'));
   add_uuid(ADirectory+IncludeTrailingPathDelimiter('uuid'));
-  add_vclcompat(ADirectory+IncludeTrailingPathDelimiter('vcl-compat'));
+  add_vcl_compat(ADirectory+IncludeTrailingPathDelimiter('vcl-compat'));
   add_wasm_job(ADirectory+IncludeTrailingPathDelimiter('wasm-job'));
   add_wasm_oi(ADirectory+IncludeTrailingPathDelimiter('wasm-oi'));
   add_wasm_utils(ADirectory+IncludeTrailingPathDelimiter('wasm-utils'));
