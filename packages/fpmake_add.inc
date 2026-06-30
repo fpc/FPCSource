@@ -149,7 +149,7 @@
   add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_libpipewire(ADirectory+IncludeTrailingPathDelimiter('libpipewire'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
-  add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
+  add_googleapi(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
   add_odata(ADirectory+IncludeTrailingPathDelimiter('odata'));
   add_pastojs(ADirectory+IncludeTrailingPathDelimiter('pastojs'));
   add_libgc(ADirectory+IncludeTrailingPathDelimiter('libgc'));
