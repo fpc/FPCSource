@@ -1882,6 +1882,7 @@ begin
         // write TOCEntry
         Entry.PageBookInfoOffset:= NtoLE(4096 + EntryInfoStream.Position);
         Entry.IncrementedInt  := NtoLE(EntryCount);
+        Entry.TopicsIndex:=0;
         EntryStream.Write(Entry, SizeOf(Entry));
         Inc(EntryCount);
 
@@ -2477,6 +2478,8 @@ begin
     logentry('before append '+inttostr(indexstream.size));
   {$endif}
 
+  mapstream.position:=0;
+  mapstream.WriteWordLE(ListingBlocks);
   AppendBinaryIndexStream(IndexStream,datastream,MapStream,PropertyStream,chw);
   IndexStream.Free;
   PropertyStream.Free;
