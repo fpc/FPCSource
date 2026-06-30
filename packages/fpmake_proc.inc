@@ -76,12 +76,6 @@ begin
 {$include dbus/fpmake.pp}
 end;
 
-procedure add_libmagic(const ADirectory: string);
-begin
-  with Installer do
-{$include libmagic/fpmake.pp}
-end;
-
 procedure add_dts(const ADirectory: string);
 begin
   with Installer do
@@ -106,7 +100,19 @@ begin
 {$include fcl-base/fpmake.pp}
 end;
 
+procedure add_fcl_css(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-css/fpmake.pp}
+end;
+
 {$include fcl-db/fpmake.pp}
+
+procedure add_fcl_ebnf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-ebnf/fpmake.pp}
+end;
 
 procedure add_fcl_extra(const ADirectory: string);
 begin
@@ -114,16 +120,18 @@ begin
 {$include fcl-extra/fpmake.pp}
 end;
 
-procedure add_fcl_hash(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-hash/fpmake.pp}
-end;
-
 procedure add_fcl_fpcunit(const ADirectory: string);
 begin
   with Installer do
 {$include fcl-fpcunit/fpmake.pp}
+end;
+
+{$include fcl-fpterm/fpmake.pp}
+
+procedure add_fcl_hash(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-hash/fpmake.pp}
 end;
 
 procedure add_fcl_image(const ADirectory: string);
@@ -144,10 +152,10 @@ begin
 {$include fcl-json/fpmake.pp}
 end;
 
-procedure add_fcl_syntax(const ADirectory: string);
+procedure add_fcl_jsonschema(const ADirectory: string);
 begin
   with Installer do
-{$include fcl-syntax/fpmake.pp}
+{$include fcl-jsonschema/fpmake.pp}
 end;
 
 procedure add_fcl_md(const ADirectory: string);
@@ -156,16 +164,34 @@ begin
 {$include fcl-md/fpmake.pp}
 end;
 
+procedure add_fcl_mustache(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-mustache/fpmake.pp}
+end;
+
 procedure add_fcl_net(const ADirectory: string);
 begin
   with Installer do
 {$include fcl-net/fpmake.pp}
 end;
 
+procedure add_fcl_openapi(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-openapi/fpmake.pp}
+end;
+
 procedure add_fcl_passrc(const ADirectory: string);
 begin
   with Installer do
 {$include fcl-passrc/fpmake.pp}
+end;
+
+procedure add_fcl_pdf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-pdf/fpmake.pp}
 end;
 
 procedure add_fcl_process(const ADirectory: string);
@@ -178,6 +204,12 @@ procedure add_fcl_registry(const ADirectory: string);
 begin
   with Installer do
 {$include fcl-registry/fpmake.pp}
+end;
+
+procedure add_fcl_report(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-report/fpmake.pp}
 end;
 
 procedure add_fcl_res(const ADirectory: string);
@@ -204,7 +236,19 @@ begin
 {$include fcl-stl/fpmake.pp}
 end;
 
+procedure add_fcl_syntax(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-syntax/fpmake.pp}
+end;
+
 {$include fcl-web/fpmake.pp}
+
+procedure add_fcl_wit(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-wit/fpmake.pp}
+end;
 
 procedure add_fcl_xml(const ADirectory: string);
 begin
@@ -212,16 +256,22 @@ begin
 {$include fcl-xml/fpmake.pp}
 end;
 
-procedure add_fcl_css(const ADirectory: string);
+procedure add_fcl_yaml(const ADirectory: string);
 begin
   with Installer do
-{$include fcl-css/fpmake.pp}
+{$include fcl-yaml/fpmake.pp}
 end;
 
 procedure add_fftw(const ADirectory: string);
 begin
   with Installer do
 {$include fftw/fpmake.pp}
+end;
+
+procedure add_fpalsa(const ADirectory: string);
+begin
+  with Installer do
+{$include fpalsa/fpmake.pp}
 end;
 
 procedure add_fpgtk(const ADirectory: string);
@@ -260,16 +310,12 @@ begin
 {$include ggi/fpmake.pp}
 end;
 
+{$include gitlab/fpmake.pp}
+
 procedure add_gmp(const ADirectory: string);
 begin
   with Installer do
 {$include gmp/fpmake.pp}
-end;
-
-procedure add_libnettle(const ADirectory: string);
-begin
-  with Installer do
-{$include libnettle/fpmake.pp}
 end;
 
 procedure add_gnome1(const ADirectory: string);
@@ -278,10 +324,24 @@ begin
 {$include gnome1/fpmake.pp}
 end;
 
+procedure add_gnutls(const ADirectory: string);
+begin
+  with Installer do
+{$include gnutls/fpmake.pp}
+end;
+
+{$include googleapi/fpmake.pp}
+
 procedure add_graph(const ADirectory: string);
 begin
   with Installer do
 {$include graph/fpmake.pp}
+end;
+
+procedure add_gstreamer(const ADirectory: string);
+begin
+  with Installer do
+{$include gstreamer/fpmake.pp}
 end;
 
 procedure add_gtk1(const ADirectory: string);
@@ -350,6 +410,8 @@ begin
 {$include iconvenc/fpmake.pp}
 end;
 
+{$include ide/fpmake.pp}
+
 procedure add_imagemagick(const ADirectory: string);
 begin
   with Installer do
@@ -386,16 +448,22 @@ begin
 {$include libc/fpmake.pp}
 end;
 
+procedure add_libcups(const ADirectory: string);
+begin
+  with Installer do
+{$include libcups/fpmake.pp}
+end;
+
 procedure add_libcurl(const ADirectory: string);
 begin
   with Installer do
 {$include libcurl/fpmake.pp}
 end;
 
-procedure add_libcups(const ADirectory: string);
+procedure add_libenet(const ADirectory: string);
 begin
   with Installer do
-{$include libcups/fpmake.pp}
+{$include libenet/fpmake.pp}
 end;
 
 procedure add_libffi(const ADirectory: string);
@@ -404,10 +472,22 @@ begin
 {$include libffi/fpmake.pp}
 end;
 
+procedure add_libfontconfig(const ADirectory: string);
+begin
+  with Installer do
+{$include libfontconfig/fpmake.pp}
+end;
+
 procedure add_libgbafpc(const ADirectory: string);
 begin
   with Installer do
 {$include libgbafpc/fpmake.pp}
+end;
+
+procedure add_libgc(const ADirectory: string);
+begin
+  with Installer do
+{$include libgc/fpmake.pp}
 end;
 
 procedure add_libgd(const ADirectory: string);
@@ -416,10 +496,34 @@ begin
 {$include libgd/fpmake.pp}
 end;
 
+procedure add_libjack(const ADirectory: string);
+begin
+  with Installer do
+{$include libjack/fpmake.pp}
+end;
+
+procedure add_libmagic(const ADirectory: string);
+begin
+  with Installer do
+{$include libmagic/fpmake.pp}
+end;
+
+procedure add_libmicrohttpd(const ADirectory: string);
+begin
+  with Installer do
+{$include libmicrohttpd/fpmake.pp}
+end;
+
 procedure add_libndsfpc(const ADirectory: string);
 begin
   with Installer do
 {$include libndsfpc/fpmake.pp}
+end;
+
+procedure add_libnettle(const ADirectory: string);
+begin
+  with Installer do
+{$include libnettle/fpmake.pp}
 end;
 
 procedure add_libogcfpc(const ADirectory: string);
@@ -427,6 +531,14 @@ begin
   with Installer do
 {$include libogcfpc/fpmake.pp}
 end;
+
+procedure add_libpcre(const ADirectory: string);
+begin
+  with Installer do
+{$include libpcre/fpmake.pp}
+end;
+
+{$include libpipewire/fpmake.pp}
 
 procedure add_libpng(const ADirectory: string);
 begin
@@ -446,10 +558,10 @@ begin
 {$include libsee/fpmake.pp}
 end;
 
-procedure add_libusb(const ADirectory: string);
+procedure add_libsndfile(const ADirectory: string);
 begin
   with Installer do
-{$include libusb/fpmake.pp}
+{$include libsndfile/fpmake.pp}
 end;
 
 procedure add_libtar(const ADirectory: string);
@@ -458,15 +570,16 @@ begin
 {$include libtar/fpmake.pp}
 end;
 
+procedure add_libusb(const ADirectory: string);
+begin
+  with Installer do
+{$include libusb/fpmake.pp}
+end;
+
 procedure add_libvlc(const ADirectory: string);
 begin
   with Installer do
 {$include libvlc/fpmake.pp}
-end;
-procedure add_libmicrohttpd(const ADirectory: string);
-begin
-  with Installer do
-{$include libmicrohttpd/fpmake.pp}
 end;
 
 procedure add_libxml(const ADirectory: string);
@@ -535,6 +648,8 @@ begin
 {$include objcrtl/fpmake.pp}
 end;
 
+{$include odata/fpmake.pp}
+
 procedure add_odbc(const ADirectory: string);
 begin
   with Installer do
@@ -559,28 +674,22 @@ begin
 {$include opencl/fpmake.pp}
 end;
 
-procedure add_opengles(const ADirectory: string);
-begin
-  with Installer do
-{$include opengles/fpmake.pp}
-end;
-
 procedure add_opengl(const ADirectory: string);
 begin
   with Installer do
 {$include opengl/fpmake.pp}
 end;
 
+procedure add_opengles(const ADirectory: string);
+begin
+  with Installer do
+{$include opengles/fpmake.pp}
+end;
+
 procedure add_openssl(const ADirectory: string);
 begin
   with Installer do
 {$include openssl/fpmake.pp}
-end;
-
-procedure add_gnutls(const ADirectory: string);
-begin
-  with Installer do
-{$include gnutls/fpmake.pp}
 end;
 
 procedure add_oracle(const ADirectory: string);
@@ -613,6 +722,12 @@ begin
 {$include pasjpeg/fpmake.pp}
 end;
 
+procedure add_pastojs(const ADirectory: string);
+begin
+  with Installer do
+{$include pastojs/fpmake.pp}
+end;
+
 procedure add_paszlib(const ADirectory: string);
 begin
   with Installer do
@@ -637,10 +752,22 @@ begin
 {$include proj4/fpmake.pp}
 end;
 
+procedure add_psy_q_sdk(const ADirectory: string);
+begin
+  with Installer do
+{$include psy-q-sdk/fpmake.pp}
+end;
+
 procedure add_ptc(const ADirectory: string);
 begin
   with Installer do
 {$include ptc/fpmake.pp}
+end;
+
+procedure add_ptckvm(const ADirectory: string);
+begin
+  with Installer do
+{$include ptckvm/fpmake.pp}
 end;
 
 procedure add_pthreads(const ADirectory: string);
@@ -653,6 +780,18 @@ procedure add_pxlib(const ADirectory: string);
 begin
   with Installer do
 {$include pxlib/fpmake.pp}
+end;
+
+procedure add_qlunits(const ADirectory: string);
+begin
+  with Installer do
+{$include qlunits/fpmake.pp}
+end;
+
+procedure add_redis(const ADirectory: string);
+begin
+  with Installer do
+{$include redis/fpmake.pp}
 end;
 
 procedure add_regexpr(const ADirectory: string);
@@ -713,6 +852,8 @@ begin
 {$include tcl/fpmake.pp}
 end;
 
+{$include testinsight/fpmake.pp}
+
 procedure add_tosunits(const ADirectory: string);
 begin
   with Installer do
@@ -761,6 +902,48 @@ begin
 {$include uuid/fpmake.pp}
 end;
 
+procedure add_vcl_compat(const ADirectory: string);
+begin
+  with Installer do
+{$include vcl-compat/fpmake.pp}
+end;
+
+procedure add_wasm_job(const ADirectory: string);
+begin
+  with Installer do
+{$include wasm-job/fpmake.pp}
+end;
+
+procedure add_wasm_oi(const ADirectory: string);
+begin
+  with Installer do
+{$include wasm-oi/fpmake.pp}
+end;
+
+procedure add_wasm_utils(const ADirectory: string);
+begin
+  with Installer do
+{$include wasm-utils/fpmake.pp}
+end;
+
+procedure add_wasmedge(const ADirectory: string);
+begin
+  with Installer do
+{$include wasmedge/fpmake.pp}
+end;
+
+procedure add_wasmtime(const ADirectory: string);
+begin
+  with Installer do
+{$include wasmtime/fpmake.pp}
+end;
+
+procedure add_webidl(const ADirectory: string);
+begin
+  with Installer do
+{$include webidl/fpmake.pp}
+end;
+
 procedure add_winceunits(const ADirectory: string);
 begin
   with Installer do
@@ -797,191 +980,9 @@ begin
 {$include zlib/fpmake.pp}
 end;
 
-procedure add_libenet(const ADirectory: string);
-begin
-  with Installer do
-{$include libenet/fpmake.pp}
-end;
-
-{$include libpipewire/fpmake.pp}
-
 procedure add_zorba(const ADirectory: string);
 begin
   with Installer do
 {$include zorba/fpmake.pp}
 end;
 
-{$include googleapi/fpmake.pp}
-
-procedure add_fcl_pdf(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-pdf/fpmake.pp}
-end;
-
-{$include odata/fpmake.pp}
-
-procedure add_pastojs(const ADirectory: string);
-begin
-  with Installer do
-{$include pastojs/fpmake.pp}
-end;
-
-procedure add_libgc(const ADirectory: string);
-begin
-  with Installer do
-{$include libgc/fpmake.pp}
-end;
-
-procedure add_libfontconfig(const ADirectory: string);
-begin
-  with Installer do
-{$include libfontconfig/fpmake.pp}
-end;
-
-procedure add_fcl_report(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-report/fpmake.pp}
-end;
-
-procedure add_webidl(const ADirectory: string);
-begin
-  with Installer do
-{$include webidl/fpmake.pp}
-end;
-
-procedure add_vclcompat(const ADirectory: string);
-begin
-  with Installer do
-{$include vcl-compat/fpmake.pp}
-end;
-
-procedure add_libpcre(const ADirectory: string);
-begin
-  with Installer do
-{$include libpcre/fpmake.pp}
-end;
-
-
-procedure add_qlunits(const ADirectory: string);
-begin
-  with Installer do
-{$include qlunits/fpmake.pp}
-end;
-
-procedure add_fcl_mustache(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-mustache/fpmake.pp}
-end;
-
-procedure add_wasmtime(const ADirectory: string);
-begin
-  with Installer do
-{$include wasmtime/fpmake.pp}
-end;
-
-procedure add_wasmedge(const ADirectory: string);
-begin
-  with Installer do
-{$include wasmedge/fpmake.pp}
-end;
-
-procedure add_gstreamer(const ADirectory: string);
-begin
-  with Installer do
-{$include gstreamer/fpmake.pp}
-end;
-
-procedure add_wasm_job(const ADirectory: string);
-begin
-  with Installer do
-{$include wasm-job/fpmake.pp}
-end;
-
-procedure add_wasm_utils(const ADirectory: string);
-begin
-  with Installer do
-{$include wasm-utils/fpmake.pp}
-end;
-
-procedure add_wasm_oi(const ADirectory: string);
-begin
-  with Installer do
-  {$include wasm-oi/fpmake.pp}
-end;
-
-{$include testinsight/fpmake.pp}
-
-{$include ide/fpmake.pp}
-{$include gitlab/fpmake.pp}
-
-
-procedure add_fcl_jsonschema(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-jsonschema/fpmake.pp}
-end;
-
-procedure add_fcl_openapi(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-openapi/fpmake.pp}
-end;
-
-procedure add_fcl_wit(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-wit/fpmake.pp}
-end;
-
-procedure add_fcl_ebnf(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-ebnf/fpmake.pp}
-end;
-
-procedure add_fcl_yaml(const ADirectory: string);
-begin
-  with Installer do
-{$include fcl-yaml/fpmake.pp}
-end;
-
-procedure add_ptckvm(const ADirectory: string);
-begin
-  with Installer do
-{$include ptckvm/fpmake.pp}
-end;
-
-{$include fcl-fpterm/fpmake.pp}
-
-procedure add_libjack(const ADirectory: string);
-begin
-  with Installer do
-{$include libjack/fpmake.pp}
-end;
-
-procedure add_libsndfile(const ADirectory: string);
-begin
-  with Installer do
-{$include libsndfile/fpmake.pp}
-end;
-
-procedure add_redis(const ADirectory: string);
-begin
-  with Installer do
-{$include redis/fpmake.pp}
-end;
-
-procedure add_fpalsa(const ADirectory: string);
-begin
-  with Installer do
-{$include fpalsa/fpmake.pp}
-end;
-
-procedure add_psyq(const ADirectory: string);
-begin
-  with Installer do
-{$include psy-q-sdk/fpmake.pp}
-end;
