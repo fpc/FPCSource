@@ -55,7 +55,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../src/base;../../src/http2;../../src/hpack"/>
+      <OtherUnitFiles Value="../../src/base;../../src/http2;../../src/hpack;../../../fcl-md/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
