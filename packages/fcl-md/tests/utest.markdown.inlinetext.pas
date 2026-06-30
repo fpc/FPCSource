@@ -48,6 +48,8 @@ type
   published
     procedure TestSimpleText;
     procedure TestBackslashEscapes;
+    procedure TestBareAmpersand;
+    procedure TestNumericCharacterReference;
     procedure TestCodeSpans;
     procedure TestEmphasisAndStrong;
     procedure TestEmphasisAndStrongInOne;
@@ -123,6 +125,24 @@ begin
   FProcessor.Process(True);
   AssertEquals('Should have one text node for escaped chars', 1, FNodes.Count);
   AssertEquals('Escaped character was not handled correctly', 'This is *not* emphasis.', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestBareAmpersand;
+begin
+  // Regression: a bare '&' with no following ';' must not crash. HandleEntityInner
+  // used to index lEntity[1] on an empty entity name, causing an access violation.
+  SetupProcessor('Concepts & data types');
+  FProcessor.Process(True);
+  AssertEquals('Should have one text node', 1, FNodes.Count);
+  AssertEquals('Bare ampersand should be HTML-escaped', 'Concepts &amp; data types', NodeAsText(0).NodeText);
+end;
+
+procedure TTestInlineTextProcessor.TestNumericCharacterReference;
+begin
+  SetupProcessor('x &#65; y');
+  FProcessor.Process(True);
+  AssertEquals('Should have one text node', 1, FNodes.Count);
+  AssertEquals('Numeric character reference should be decoded', 'x A y', NodeAsText(0).NodeText);
 end;
 
 procedure TTestInlineTextProcessor.DumpNodes;
