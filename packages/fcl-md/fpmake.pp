@@ -3,27 +3,31 @@
 program fpmake;
 
 uses {$ifdef unix}cthreads,{$endif} fpmkunit;
+{$endif ALLPACKAGES}
 
+procedure add_fcl_md(const ADirectory: string);
+
+Const
+  NoAnsiOSes=[freertos,wince,gba,nds,wii,symbian,nativent];
+  NoPdfOSes=[freertos,wince,gba,nds,wii,symbian,nativent];
 Var
   T : TTarget;
   P : TPackage;
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
-
     P:=AddPackage('fcl-md');
     P.ShortName:='fclmd';
-{$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-fpcunit');
     P.Dependencies.Add('fcl-image');
-    P.Dependencies.Add('fcl-pdf');
-    P.Dependencies.Add('rtl-console');
+    if not (Defaults.OS in NoPdfOSes) then
+      P.Dependencies.Add('fcl-pdf');
+    if not (Defaults.OS in NoAnsiOSes) then
+      P.Dependencies.Add('rtl-console');
     P.Dependencies.Add('regexpr');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
@@ -120,7 +124,7 @@ begin
       AddUnit('markdown.render');
       end;
 
-    T:=P.Targets.AddUnit('markdown.pdfrender.pas');
+    T:=P.Targets.AddUnit('markdown.pdfrender.pas',P.OSes-NoPdfOSes);
     with T.Dependencies do
       begin
       AddUnit('markdown.elements');
@@ -128,7 +132,7 @@ begin
       AddUnit('markdown.render');
       end;
 
-    T:=P.Targets.AddUnit('markdown.ansirender.pas');
+    T:=P.Targets.AddUnit('markdown.ansirender.pas',P.OSes-NoAnsiOSes);
     with T.Dependencies do
       begin
       AddUnit('markdown.elements');
@@ -142,10 +146,13 @@ begin
     T:=P.Targets.AddExampleProgram('md2fpdoc.lpr');
     T:=P.Targets.AddExampleProgram('md2pdf.lpr');
     T:=P.Targets.AddExampleProgram('md2ansi.lpr');
+  end;
+end;
 
 {$ifndef ALLPACKAGES}
-    Run;
-    end;
+begin
+  add_fcl_md('');
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}
 
