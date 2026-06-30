@@ -6,7 +6,7 @@ program fpmake;
 uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif}
 
-Procedure Add_OData(ADirectory : string);
+Procedure add_odata(ADirectory : string);
 
   function StdDep(T : TTarget) : TTarget;
   begin
@@ -52,7 +52,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  Add_OData('');
+  add_odata('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
