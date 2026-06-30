@@ -2286,7 +2286,7 @@ type
 
 function GetModuleName:shortstring;
 {$if defined(LINUX) or defined(BSD)}
-{$ifdef DISABLE_DL}
+{$ifndef DISABLE_DL}
 var
   res:integer;
   dli:dl_info;
@@ -2302,11 +2302,11 @@ begin
   else
     GetModuleName:=ParamStr(0);
 end;
-{$else ifdef DISABLE_DL}
+{$else DISABLE_DL}
 begin
   GetModuleName:=ParamStr(0);
 end;
-{$endif ifdef DISABLE_DL}
+{$endif DISABLE_DL}
 {$elseif defined(MSWINDOWS)}
 var
   buf:array[0..260-1] of ansichar;
