@@ -158,11 +158,7 @@ begin
 {$include fcl-jsonschema/fpmake.pp}
 end;
 
-procedure add_fcl_md(const ADirectory: string);
-begin
-  with Installer do
 {$include fcl-md/fpmake.pp}
-end;
 
 procedure add_fcl_mustache(const ADirectory: string);
 begin
