@@ -1196,7 +1196,7 @@ type
 
   function HeapInc.ThreadState.AllocateOSChunk(minSize: SizeUint): pVarOSChunk;
   var
-    query, maxSize {$ifdef HAS_SYSOSFREE}, statv {$endif}: SizeUint;
+    query, maxSize {$ifdef HAS_SYSOSFREE}, prevQuery, statv {$endif}: SizeUint;
   begin
     query := used div 16 + minSize div 2; { Base: 6.25% of the memory used, so if GrowHeapSize2 = 1 Mb, 1 Mb OS allocations start at 16 Mb used. }
     { If GrowHeapSize2 is (large) power of 2, make it reach SysOSAlloc inside gs.huge.Alloc instead. }
@@ -1207,14 +1207,23 @@ type
       query := minSize;
   {$ifdef HAS_SYSOSFREE}
     query := (query + (SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
-    result := SysOSAlloc(query);
-    if not Assigned(result) and (query > minSize) then
-    begin
-      query := minSize;
+    repeat
       result := SysOSAlloc(query);
-    end;
-    if not Assigned(result) then
-      exit(AllocFailed);
+      if Assigned(result) then break;
+      prevQuery := query;
+
+      { Try to gradually decrease query size. }
+      query := (prevQuery div 2 + (SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
+      if (query < prevQuery) and (query >= minSize) then continue;
+
+      { Try quantized minSize. }
+      query := (minSize + (SysOSAllocQuant - 1)) and SizeUint(-SysOSAllocQuant);
+      if query < prevQuery then continue;
+
+      { Last chance: try exactly minSize. }
+      query := minSize;
+      if query >= prevQuery then exit(AllocFailed); { Even minSize was already tried. :( }
+    until false;
     result^.size := query;
     statv := allocated + query;
     allocated := statv;
