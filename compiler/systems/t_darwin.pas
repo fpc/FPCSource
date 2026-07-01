@@ -351,9 +351,9 @@ implementation
            { This does not depend on the target version but on the toolchain
              version, but we only know the former and not the latter }
            if CompareVersionStrings(MacOSXVersionMin,'11.0') >= 0 then
-             result:='-macosx_version_min '+MacOSXVersionMin
+             result:='-macos_version_min '+MacOSXVersionMin
            else
-             result:='-macos_version_min '+MacOSXVersionMin;
+             result:='-macosx_version_min '+MacOSXVersionMin;
           end
         else if iPhoneOSVersionMin<>'' then
           begin
