@@ -108,6 +108,15 @@ type
   TARGBColor = Cardinal;
   TPDFFloat = Single;
 
+  TPDFGoToDestMode = (
+    gdmFixedTop,  // new, corrected behaviour: explicit /XYZ 0 <pageheight> 0 -
+                  // always jumps to the top of the target page, on every viewer
+    gdmLegacy     // original AddInternalLink behaviour: writes the malformed
+                  // '/D[N]' construct used by fcl-pdf before this fix; kept
+                  // only for strict backward compatibility with external
+                  // tools that may depend on the exact previous byte output
+  );
+
   {$IF FPC_FULLVERSION < 30000}
   RawByteString = type AnsiString;
   {$ENDIF}
@@ -864,8 +873,12 @@ type
     procedure CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
     { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
     Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
-    { Define a rectangle that becomes a clickable hotspot, referencing the document page. }
-    Procedure AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const APageIndex: Integer; ABorder: boolean = false);
+    { Define a rectangle that becomes a clickable hotspot, referencing the document page.
+      Uses the corrected destination (jumps to the top of the target page on every viewer). }
+    Procedure AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const APageIndex: Integer; ABorder: boolean = false); overload;
+    { Same as above, but lets the caller pick the destination mode explicitly.
+      Pass gdmLegacy to reproduce the exact pre-fix behaviour for backward compatibility. }
+    Procedure AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const APageIndex: Integer; const ADestMode: TPDFGoToDestMode; ABorder: boolean = false); overload;
     { This returns the paper height, converted to whatever UnitOfMeasure is set too }
     function GetPaperHeight: TPDFFloat;
     Function HasImages : Boolean;
@@ -895,14 +908,18 @@ type
   private
     FTitle: String;
     FPages : TFPList; // not owned
+    FPageTitles: TStringList; // optional per-page bookmark titles
     function GetP(AIndex : Integer): TPDFPage;
     function GetP: Integer;
+    function GetPageTitle(AIndex: Integer): string;
   Public
     Destructor Destroy; override;
     Procedure AddPage(APage : TPDFPage);
+    Procedure SetPageTitle(AIndex: Integer; const ATitle: string);
     Property Title : String Read FTitle Write FTitle;
     Property Pages[AIndex : Integer] : TPDFPage Read GetP;
     Property PageCount : Integer Read GetP;
+    Property PageTitles[AIndex: Integer]: string read GetPageTitle;
   end;
 
 
@@ -1001,6 +1018,8 @@ type
     FURI: string;
     FBorder: boolean;
     FExternalLink: Boolean;
+    FDestPageIndex: Integer;
+    FDestMode: TPDFGoToDestMode;
   public
     constructor Create(const ADocument: TPDFDocument); override; overload;
     constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false;
@@ -1183,6 +1202,9 @@ type
     FZoomValue: string;
     FGlobalXRefs: TFPObjectList; // list of TPDFXRef
     FUnitOfMeasure: TPDFUnitOfMeasure;
+    FPageXRefs: array of Integer; // maps page index (document reading order) -> xref object number of that page
+    FPendingDestArrays: array of TPDFArray;   // GoTo destination arrays awaiting page resolution
+    FPendingDestPageIdx: array of Integer;    // target page index for each pending array, same order
     function GetStdFontCharWidthsArray(const AFontName: string): TPDFFontWidthArray;
     function GetX(AIndex : Integer): TPDFXRef;
     function GetXC: Integer;
@@ -1193,6 +1215,10 @@ type
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
     Procedure SetOptions(aValue : TPDFOptions);
+    procedure RecordPageXRef(const APageIndex, AXRefNum: Integer);
+    function PageXRefOf(const APageIndex: Integer): Integer;
+    procedure AddPendingGoToDest(const AArr: TPDFArray; const APageIndex: Integer);
+    procedure ResolvePendingGoToDestinations;
   protected
     // Create all kinds of things, virtual so they can be overridden to create descendents instead
     function CreatePDFPages: TPDFPages; virtual;
@@ -3027,6 +3053,17 @@ end;
 
 procedure TPDFPage.AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
     const APageIndex: Integer; ABorder: boolean);
+begin
+  // preserves source compatibility for existing calling code: keeps using the
+  // corrected destination (gdmFixedTop), since the pre-fix behaviour did not
+  // reliably work as a GoTo action on any viewer. Call the other overload
+  // with gdmLegacy explicitly if you specifically need the old byte-for-byte
+  // output.
+  AddInternalLink(APosX, APosY, AWidth, AHeight, APageIndex, gdmFixedTop, ABorder);
+end;
+
+procedure TPDFPage.AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
+    const APageIndex: Integer; const ADestMode: TPDFGoToDestMode; ABorder: boolean);
 var
   an: TPDFAnnot;
   p1, p2: TPDFCoord;
@@ -3036,7 +3073,9 @@ begin
   p2.X := AWidth;
   p2.Y := AHeight;
   DoUnitConversion(p2);
-  an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, Format('[%d]', [APageIndex]), ABorder, False);
+  an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, '', ABorder, False);
+  an.FDestPageIndex := APageIndex;
+  an.FDestMode := ADestMode;
   Annots.Add(an);
 end;
 
@@ -3125,6 +3164,7 @@ end;
 destructor TPDFSection.Destroy;
 begin
   FreeAndNil(FPages);
+  FreeAndNil(FPageTitles);
   inherited Destroy;
 end;
 
@@ -3133,6 +3173,29 @@ begin
   if Not Assigned(FPages) then
     FPages:=TFPList.Create;
   FPages.Add(APage);
+end;
+
+procedure TPDFSection.SetPageTitle(AIndex: Integer; const ATitle: string);
+begin
+  if not Assigned(FPageTitles) then
+  begin
+    FPageTitles := TStringList.Create;
+    // pre-fill with empty strings so index access is always valid
+    while FPageTitles.Count <= AIndex do
+      FPageTitles.Add('');
+  end
+  else
+    while FPageTitles.Count <= AIndex do
+      FPageTitles.Add('');
+  FPageTitles[AIndex] := ATitle;
+end;
+
+function TPDFSection.GetPageTitle(AIndex: Integer): string;
+begin
+  if Assigned(FPageTitles) and (AIndex < FPageTitles.Count) then
+    Result := FPageTitles[AIndex]
+  else
+    Result := '';
 end;
 
 { TPDFSectionList }
@@ -4332,7 +4395,7 @@ var
   lUnderlinePos, lUnderlineSize, lStrikeOutPos, lStrikeOutSize: Single;
   a1, b1, c1, d1, a2, b2, c2, d2: Single;
   v : UTF8String;
-
+  
 begin
   inherited Write(AStream);
   WriteString('q' + CRLF, AStream);
@@ -5457,13 +5520,13 @@ var
   IDict: TPDFDictionary;
 
   Procedure DoEntry(aName, aValue : String; NoUnicode: boolean = false);
-
+  
   begin
     if aValue='' then exit;
     if UseUTF16 and not NoUnicode then
       IDict.AddString(aName,utf8decode(aValue))
     else
-      IDict.AddString(aName,aValue);
+      IDict.AddString(aName,aValue);  
   end;
 
 begin
@@ -5692,17 +5755,22 @@ var
   PDict,ADict: TPDFDictionary;
   Arr : TPDFArray;
   PP : TPDFPage;
+  PageXRefNum: integer;
 begin
   // add xref entry
   PP:=Pages[PageNum];
   PDict:=CreateGlobalXRef.Dict;
+  PageXRefNum:=GlobalXRefCount-1; // the page dict's own object number, captured
+                                   // now: CreateAnnotEntries below creates one
+                                   // extra xref object per link annotation on
+                                   // this page, which would otherwise shift
+                                   // GlobalXRefCount-1 away from the page itself
 
   PDict.AddName('Type','Page');
   PDict.AddReference('Parent',Parent);
   ADict:=GlobalXRefs[Parent].Dict;
   (ADict.ValueByName('Count') as TPDFInteger).Inc;
-  (ADict.ValueByName('Kids') as TPDFArray).AddItem(CreateReference(GlobalXRefCount-1));
-
+  (ADict.ValueByName('Kids') as TPDFArray).AddItem(CreateReference(PageXRefNum));
   Arr:=CreateArray;
   Arr.AddItem(CreateInteger(0));
   Arr.AddItem(CreateInteger(0));
@@ -5723,7 +5791,7 @@ begin
   if PP.HasImages then
     ADict.AddElement('XObject', CreateDictionary);
 
-  Result:=GlobalXRefCount-1;
+  Result:=PageXRefNum;
 end;
 
 function TPDFDocument.CreateOutlines: integer;
@@ -6079,6 +6147,56 @@ begin
   ImageDict.AddReference('SMask', lXRef);
 end;
 
+procedure TPDFDocument.RecordPageXRef(const APageIndex, AXRefNum: Integer);
+begin
+  if APageIndex < 0 then
+    Exit;
+  if (APageIndex >= Length(FPageXRefs)) then
+    SetLength(FPageXRefs, APageIndex + 1);
+  FPageXRefs[APageIndex] := AXRefNum;
+end;
+
+function TPDFDocument.PageXRefOf(const APageIndex: Integer): Integer;
+begin
+  Result := -1;
+  if (APageIndex >= 0) and (APageIndex < Length(FPageXRefs)) then
+    Result := FPageXRefs[APageIndex];
+end;
+
+procedure TPDFDocument.AddPendingGoToDest(const AArr: TPDFArray; const APageIndex: Integer);
+var
+  L: Integer;
+begin
+  L := Length(FPendingDestArrays);
+  SetLength(FPendingDestArrays, L + 1);
+  SetLength(FPendingDestPageIdx, L + 1);
+  FPendingDestArrays[L] := AArr;
+  FPendingDestPageIdx[L] := APageIndex;
+end;
+
+procedure TPDFDocument.ResolvePendingGoToDestinations;
+var
+  i, lXRef: Integer;
+  lTop: TPDFFloat;
+  Arr: TPDFArray;
+begin
+  for i := 0 to Length(FPendingDestArrays) - 1 do
+  begin
+    Arr := FPendingDestArrays[i];
+    lXRef := PageXRefOf(FPendingDestPageIdx[i]);
+    if lXRef < 0 then
+      Continue; // target page index was never created; leave Dest array empty rather than crash
+    lTop := Pages[FPendingDestPageIdx[i]].Paper.H;
+    Arr.AddItem(CreateReference(lXRef));
+    Arr.AddItem(CreateName('XYZ', False));
+    Arr.AddItem(CreateInteger(0));
+    Arr.AddItem(CreateFloat(lTop));
+    Arr.AddItem(CreateInteger(0));
+  end;
+  SetLength(FPendingDestArrays, 0);
+  SetLength(FPendingDestPageIdx, 0);
+end;
+
 function TPDFDocument.CreateAnnotEntry(const APageNum, AnnotNum: integer): integer;
 var
   lDict, ADict: TPDFDictionary;
@@ -6127,7 +6245,18 @@ begin
   else
   begin
     ADict.AddName('S', 'GoTo');
-    ADict.AddName('D' + an.FURI, '');
+    if an.FDestMode = gdmLegacy then
+      // reproduce the exact pre-fix output for strict backward compatibility:
+      // writes '/D[N]' where N is the raw page index, with no page object
+      // reference and no explicit view. This does not reliably work as a
+      // GoTo destination on most viewers; kept only on explicit request.
+      ADict.AddName('D' + Format('[%d]', [an.FDestPageIndex]), '')
+    else
+    begin
+      ar := CreateArray;
+      ADict.AddElement('D', ar);
+      AddPendingGoToDest(ar, an.FDestPageIndex);
+    end;
   end;
 
   result := GlobalXRefCount-1;
@@ -6367,6 +6496,7 @@ var
   ADict: TPDFDictionary;
   Arr : TPDFArray;
   S : TPDFSection;
+  GlobalPageIdx: integer;
 
 begin
   Result:=0;
@@ -6393,6 +6523,7 @@ begin
   PrevSect:=0;
   PrevOutLine:=0;
   NextOutLine:=0;
+  GlobalPageIdx:=0;
   for J:=0 to Sections.Count-1 do
     begin
     S:=Sections[J];
@@ -6406,23 +6537,28 @@ begin
     for k:=0 to S.PageCount-1 do
       begin
       with S do
-        NewPage:=CreatePageEntry(Result,K);
+        NewPage:=CreatePageEntry(Result,GlobalPageIdx);
+      RecordPageXRef(GlobalPageIdx, NewPage);
       // add zoom factor to catalog dictionary
       if (j=0) and (k=0) then
         begin
         ADict:=GlobalXRefByName('Catalog').Dict;
         Arr:=ADict.ValueByName('OpenAction') as TPDFArray;
-        Arr.AddItem(CreateReference(GLobalXRefCount-1));
+        Arr.AddItem(CreateReference(NewPage));
         Arr.AddItem(CreateName('XYZ null null '+TPDFObject.FloatStr(StrToInt(FZoomValue) / 100), False));
         end;
-      PageNum:=CreateContentsEntry(k); // pagenum = object number in the pdf file
+      PageNum:=CreateContentsEntry(GlobalPageIdx); // pagenum = object number in the pdf file
       CreatePageStream(S.Pages[k],PageNum);
       if (Sections.Count>1) and (poOutline in Options) then
         begin
-        PageOutLine:=CreateOutlineEntry(ParentOutline,j+1,k+1,S.Title);
+        if S.PageTitles[k] <> '' then
+          PageOutLine:=CreateOutlineEntry(ParentOutline,j+1,-1,S.PageTitles[k])
+        else
+          PageOutLine:=CreateOutlineEntry(ParentOutline,j+1,k+1,S.Title);
         CreateSectionPageOutLine(S,PageOutLine,K,NewPage,ParentOutLine,NextOutLine,PrevOutLine);
         NextOutline:=PageOutLine;
         end;
+      Inc(GlobalPageIdx);
     end;
   end;
   // update count in root parent pages dictionary
@@ -6431,6 +6567,10 @@ begin
   For J:=0 to Sections.Count-1 do
     Inc(Pc,Sections[J].PageCount);
   (ADict.ValueByName('Count') as TPDFInteger).Value:=PC;
+  // now that every page has a known xref object number, resolve all GoTo
+  // destinations created by AddInternalLink (this allows links that point
+  // forward to a page not yet written, e.g. an index page linking ahead)
+  ResolvePendingGoToDestinations;
 end;
 
 procedure TPDFDocument.CreateFontEntries;
