@@ -66,6 +66,7 @@ Type
   Private
     FHTTP2 : Boolean;
     FMarkdown : Boolean;
+    FDirListing : Boolean;
     FH2Handler : TFPHTTP2Handler;
   Protected
     procedure GetValidOptions(out aShort: String; out aLong: TStringDynArray); override;
@@ -157,10 +158,11 @@ end;
 procedure THTTPApplication.GetValidOptions(out aShort: String; out aLong: TStringDynArray);
 begin
   inherited GetValidOptions(aShort, aLong);
-  aShort := aShort + '2M';
-  SetLength(aLong, Length(aLong)+2);
-  aLong[High(aLong)-1] := 'http2';
-  aLong[High(aLong)] := 'markdown';
+  aShort := aShort + '2MD';
+  SetLength(aLong, Length(aLong)+3);
+  aLong[High(aLong)-2] := 'http2';
+  aLong[High(aLong)-1] := 'markdown';
+  aLong[High(aLong)] := 'dir-listing';
 end;
 
 procedure THTTPApplication.ProcessOptions;
@@ -168,6 +170,7 @@ begin
   inherited ProcessOptions;
   FHTTP2 := HasOption('2','http2');
   FMarkdown := HasOption('M','markdown');
+  FDirListing := HasOption('D','dir-listing');
 end;
 
 procedure THTTPApplication.ConfigureServer;
@@ -176,6 +179,8 @@ begin
   // Install the Markdown-aware file module before routes are registered.
   if FMarkdown then
     TSimpleFileModule.DefaultSimpleFileModuleClass:=TMarkdownFileModule;
+  // Generate a directory listing when a directory has no index page.
+  TFPCustomFileModule.AllowDirectoryListing:=FDirListing;
   if not FHTTP2 then
     Exit;
   // Attach an HTTP/2 handler to the embedded server and activate it BEFORE the
@@ -190,6 +195,7 @@ procedure THTTPApplication.WriteOptions;
 begin
   inherited WriteOptions;
   Writeln('-2 --http2            Enable HTTP/2 (cleartext prior-knowledge/h2c, or TLS-ALPN with --ssl).');
+  Writeln('-D --dir-listing      Generate a directory listing when a directory has no index page.');
   Writeln('-M --markdown         Render .md files as HTML. Missing file.html falls back to file.md,');
   Writeln('                      and directories fall back to index.md/README.md.');
 end;
