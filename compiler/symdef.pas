@@ -7544,9 +7544,9 @@ implementation
                         objcmetartti:
                           result:=result+'_OBJC_LABEL_PROTOCOL_$_';
                         objcprotocollist:
-                          result:=result+'__OBJC_$_PROTOCOL_REFS_';
+                          result:='__OBJC_$_PROTOCOL_REFS_';
                         objcprotocolmethodstypelist:
-                          result:=result+'__OBJC_$_PROTOCOL_METHOD_TYPES_';
+                          result:='__OBJC_$_PROTOCOL_METHOD_TYPES_';
                         objcinstancemethods:
                           result:='__OBJC_$_PROTOCOL_INSTANCE_METHODS_';
                         objcclassmethods:

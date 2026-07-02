@@ -429,6 +429,7 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; classdef: tobje
     protodef  : tobjectdef;
     protolist : TFPObjectList;
     tcb       : ttai_typedconstbuilder;
+    def       : tdef;
   begin
     protolist:=classdef.ImplementedInterfaces;;
     if not Assigned(protolist) or
@@ -449,14 +450,11 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; classdef: tobje
           end;
       end;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
     tcb.begin_anonymous_record(internaltypeprefixName[itp_objc_proto_list]+tostr(protolist.Count),
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
       targetinfos[target_info.system]^.alignment.maxCrecordalign);
-
-    { protocol lists are stored in .objc_cat_cls_meth section }
-    protolistsym:=current_asmdata.RefAsmSymbol(classdef.rtti_mangledname(objcprotocollist),AT_DATA);
 
     if (abi=oa_fragile) then
       { From Clang: next, always nil}
@@ -480,9 +478,11 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; classdef: tobje
     if zero_terminator then
       tcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
 
+    def:=tcb.end_anonymous_record;
+    protolistsym:=current_asmdata.DefineAsmSymbol(classdef.rtti_mangledname(objcprotocollist),AB_LOCAL,AT_DATA,def);
     list.concatList(
       tcb.get_final_asmlist(
-        protolistsym,tcb.end_anonymous_record,
+        protolistsym,def,
         sec_objc_cat_cls_meth,'_OBJC_PROTOCOLLIST',sizeof(pint)
       )
     );
@@ -507,7 +507,7 @@ begin
      (items.count=0) then
     exit;
 
-  tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+  tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
   tcb.begin_anonymous_record(
     internaltypeprefixName[itp_objc_cat_methods]+tostr(items.count),
     C_alignment,1,
@@ -1880,6 +1880,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_extmethodtypes(list: tasm
     i     : integer;
     m     : tprocdef;
     lab   : tasmlabel;
+    def,
     ldef  : tdef;
     tcb   : ttai_typedconstbuilder;
   begin
@@ -1890,9 +1891,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_extmethodtypes(list: tasm
         exit;
       end;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
-    extmethsym:=current_asmdata.RefAsmSymbol(prot.rtti_mangledname(objcprotocolmethodstypelist),AT_DATA);
-
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
     tcb.begin_anonymous_record(
       internaltypeprefixName[itp_objc_prot_ext_methods]+tostr(items.count),
       C_alignment,1,
@@ -1904,9 +1903,11 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_extmethodtypes(list: tasm
         objcreatestringpoolentry(objcencodemethod(m),sp_objcvartypes,sec_objc_meth_var_types,lab,ldef);
         tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
       end;
+    def:=tcb.end_anonymous_record;
+    extmethsym:=current_asmdata.DefineAsmSymbol(prot.rtti_mangledname(objcprotocolmethodstypelist),AB_LOCAL,AT_DATA,def);
     list.concatList(
       tcb.get_final_asmlist(
-        extmethsym,tcb.end_anonymous_record,sec_objc_const,'OBJC_PROTOCOL_METHOD_TYPES',sizeof(pint))
+        extmethsym,def,sec_objc_const,'OBJC_PROTOCOL_METHOD_TYPES',sizeof(pint))
     );
     tcb.free;
     tcb:=nil;
