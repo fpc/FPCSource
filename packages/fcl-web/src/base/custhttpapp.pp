@@ -56,6 +56,8 @@ Type
     Property CertificateData;
     Property UseSSL;
     Property StrictASCIIURL;
+    // Connection handling model: none (serial), thread (one per connection) or threadpool.
+    Property ThreadMode;
   end;
 
   { TFCgiHandler }
