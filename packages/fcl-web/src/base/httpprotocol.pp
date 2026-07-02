@@ -260,15 +260,11 @@ begin
     begin
     if Ord(S^) in HTTPAllowed then
       R^:=S^
-    else if (S^=' ') then
-      begin
-      if aSpacesAsPlus then
-        R^:='+'
-      else
-        R^:=' '
-      end
+    else if (S^=' ') and aSpacesAsPlus then
+      R^:='+'
     else
       begin
+      // Not allowed (including a space when spaces are not encoded as +): percent-encode.
       R^:='%';
       H:=HexStr(Ord(S^),2);
       Inc(R);

@@ -289,7 +289,7 @@ begin
     end;
   Result:='&';
   // If not a unicode char, just return the &
-  if (lLen<0) or (lLen>9) or (lEntity[1]<>'#') then
+  if (lLen<1) or (lLen>9) or (lEntity[1]<>'#') then
     exit;
   // Unicode char.
   System.Delete(lEntity,1,1);
