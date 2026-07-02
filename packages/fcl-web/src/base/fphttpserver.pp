@@ -94,6 +94,7 @@ Type
     FIsSocketSetup : Boolean;
     FBuffer : Ansistring;
     FKeepAlive : Boolean;
+    FRequestDataReceived : Boolean; // True once a byte of the current request has been read.
     function GetKeepConnections: Boolean;
     function GetKeepConnectionTimeout: Integer;
     function GetKeepConnectionIdleTimeout: Integer;
@@ -1383,7 +1384,7 @@ begin
   Con.OnRequestError:=@HandleRequestError;
   Con.OnUnexpectedError:=@HandleUnexpectedError;
   If CanLog(hlmConnect) then
-    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID,  HostAddrToStr(Data.RemoteAddress.sin_addr)]);
+    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID,  NetAddrToStr(Data.RemoteAddress.sin_addr)]);
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1667,20 +1668,35 @@ function TFPHTTPConnection.ReadString : String;
 
   begin
     // Do not block indefinitely while reading a request. If a read time-out is
-    // configured and no data arrives within it, the peer has stalled mid-request
-    // (e.g. slowloris). Distinguish this from a genuine read error: CanRead uses
-    // select(), so it is portable and tells us "no data within timeout" without
-    // depending on platform errno values. We log it and close the connection.
+    // configured and no data arrives within it, either the peer never started a
+    // request (an idle/preconnect socket) or it stalled mid-request (slowloris).
+    // CanRead uses select(), so it is portable and tells us "no data within timeout"
+    // without depending on platform errno values. The two cases are handled below.
     if Assigned(Server) and (Server.RequestReadTimeout>0)
        and not FSocket.CanRead(Server.RequestReadTimeout) then
+      begin
+      // Distinguish an idle connection from a stalled request. If not a single byte
+      // of the current request has arrived, the peer opened the connection but sent
+      // nothing - typically a browser speculative/preconnect socket. That is normal:
+      // return with an empty buffer so ReadString yields '' and the caller closes the
+      // connection quietly via the empty-request path. Only a peer that stops *during*
+      // a request (slowloris) is a genuine timeout worth raising and logging.
+      if not FRequestDataReceived then
+        begin
+        FBuffer:='';
+        Exit;
+        end;
       Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
-              [Server.RequestReadTimeout,HostAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+              [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+      end;
     SetLength(FBuffer,ReadBufLen);
     r:=FSocket.Read(FBuffer[1],ReadBufLen);
     If r<0 then
       Raise EHTTPServer.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
+    if (r>0) then
+      FRequestDataReceived:=True;
   end;
 
 Var
@@ -1930,7 +1946,7 @@ begin
       if Assigned(Server) and (Server.RequestReadTimeout>0)
          and not FSocket.CanRead(Server.RequestReadTimeout) then
         Raise EHTTPServerTimeout.CreateFmtHelp(SErrRequestReadTimeout,
-                [Server.RequestReadTimeout,HostAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
+                [Server.RequestReadTimeout,NetAddrToStr(FSocket.RemoteAddress.sin_addr),ConnectionID],408);
       R:=FSocket.Read(S[p],L);
       If R<0 then
         Raise EHTTPServer.Create(SErrReadingSocket);
@@ -1953,6 +1969,9 @@ Var
 
 begin
   Result:=Nil;
+  // A fresh request starts here: no byte received yet. This lets FillBuffer treat a
+  // first-byte read time-out as an idle connection rather than a slowloris stall.
+  FRequestDataReceived:=False;
   StartLine:=ReadString;
   if StartLine='' then
     exit;
@@ -1975,7 +1994,7 @@ begin
         Raise Err;
         end;
     Until (S='');
-    Result.RemoteAddress :=  HostAddrToStr(FSocket.RemoteAddress.sin_addr);
+    Result.RemoteAddress :=  NetAddrToStr(FSocket.RemoteAddress.sin_addr);
     Result.ServerPort := FServer.Port;
   except
     FreeAndNil(Result);
@@ -2008,7 +2027,7 @@ destructor TFPHTTPConnection.Destroy;
 
 begin
   If Assigned(FServer) and FServer.CanLog(hlmDisConnect) then
-    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID, HostAddrToStr(FSocket.RemoteAddress.sin_addr)]);
+    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID, NetAddrToStr(FSocket.RemoteAddress.sin_addr)]);
   FreeAndNil(FSocket);
   Inherited;
 end;
