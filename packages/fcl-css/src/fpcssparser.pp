@@ -1032,7 +1032,12 @@ end;
 function TCSSParser.CreateElement(aClass : TCSSElementClass): TCSSElement;
 
 begin
-  Result:=aClass.Create(CurrentSource,CurrentLine,CurrentPos);
+  // Use the start of the current token, so the element position points at the
+  // first character of the token (e.g. the start of a declaration's attribute name).
+  if Assigned(FScanner) then
+    Result:=aClass.Create(CurrentSource,FScanner.CurTokenRow,FScanner.CurTokenColumn)
+  else
+    Result:=aClass.Create(CurrentSource,CurrentLine,CurrentPos);
 end;
 
 function TCSSParser.ParseIdentifier: TCSSIdentifierElement;

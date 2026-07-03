@@ -134,6 +134,9 @@ type
     Procedure TestNestedAndPlusRule;
     Procedure TestNestedRule_AppendedAndOperator;
     Procedure TestNestedRule_NestedDeclarations;
+    Procedure TestDeclarationSourcePosition;
+    Procedure TestDeclarationValueSourcePosition;
+    Procedure TestDeclarationValueClassSourcePosition;
   end;
 
   { TTestCSSFilesParser }
@@ -1249,6 +1252,67 @@ begin
   AssertEquals('Declaration value count',1,aDecl.ChildCount);
   aIdent:=TCSSIdentifierElement(CheckClass('Declaration value',TCSSIdentifierElement,aDecl.Children[0]));
   AssertEquals('Declaration value','blue',aIdent.Value);
+end;
+
+procedure TTestCSSParser.TestDeclarationSourcePosition;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+begin
+  // The declaration source position must point to the start of the attribute name.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Declaration source row',2,D.SourceRow);
+  AssertEquals('Declaration source col',2,D.SourceCol);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueSourcePosition;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  V : TCSSElement;
+begin
+  // The declaration value source position must point to the start of the value.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertNotNull('Value not nil',V);
+  AssertEquals('Value source row',2,V.SourceRow);
+  AssertEquals('Value source col',15,V.SourceCol);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueClassSourcePosition;
+
+  // Parse 'a{p:<aValue>}' and check that the value element is of the expected
+  // class and its source position points to the start of the value (column 4).
+  procedure CheckValuePos(const aValue: String; aExpectedClass: TCSSElementClass);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    V : TCSSElement;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    V:=D.Children[0];
+    CheckClass('Value class for '+aValue,aExpectedClass,V);
+    AssertEquals('Value source row for '+aValue,1,V.SourceRow);
+    AssertEquals('Value source col for '+aValue,4,V.SourceCol);
+  end;
+
+begin
+  CheckValuePos('b',TCSSIdentifierElement);
+  CheckValuePos('3px',TCSSIntegerElement);
+  CheckValuePos('-.5em',TCSSFloatElement);
+  CheckValuePos('"b"',TCSSStringElement);
+  CheckValuePos('#ABABAB',TCSSHashValueElement);
+  CheckValuePos('url("b.c")',TCSSURLElement);
+  CheckValuePos('U+0400',TCSSUnicodeRangeElement);
 end;
 
 

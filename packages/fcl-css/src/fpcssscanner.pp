@@ -141,6 +141,8 @@ Type
     FSourceFile: TCSSLineReader;
     FSourceFilename: TCSSString;
     FCurRow: Integer;
+    FCurTokenRow: Integer;
+    FCurTokenColumn: Integer;
     FCurToken: TCSSToken;
     FCurTokenString: TCSSString;
     FCurLine: TCSSString;
@@ -184,6 +186,8 @@ Type
     property CurLine: TCSSString read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
+    property CurTokenRow: Integer read FCurTokenRow; // row of the start of the current token
+    property CurTokenColumn: Integer read FCurTokenColumn; // column of the start of the current token
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
     property PreviousToken: TCSSToken read FPreviousToken;
@@ -909,7 +913,11 @@ begin
       exit;
       end;
     end;
-  //CurPos:=TokenStr;
+  FCurTokenRow:=FCurRow;
+  if (TokenStr=Nil) or (Length(CurLine)=0) then
+    FCurTokenColumn:=0
+  else
+    FCurTokenColumn:=TokenStr - PCSSChar(CurLine);
   FCurTokenString := '';
   case TokenStr[0] of
     #0:         // EOL
