@@ -1,15 +1,17 @@
 spec:
   inputs:
-    use_fpc_version:
+    fpc_version:
       description: 'FPC version that should be used for compiling'
       default: '3.2.2'
 ---
+
 
 
 stages:
   - build compiler
   - build
   - test
+
 
 
 # ----------------------------
@@ -31,7 +33,7 @@ stages:
 
 # allows to use inputs in image field
 variables:
-  REQUIRED_FPC_COMPILER_VERSION: $[[ inputs.use_fpc_version ]]
+  REQUIRED_FPC_COMPILER_VERSION: $[[ inputs.fpc_version ]]
 
 # Alpine Linux builds
 .alpine_linux: &alpine_linux_configuration
@@ -49,8 +51,9 @@ variables:
   image: freepascal/fpc:$REQUIRED_FPC_COMPILER_VERSION-jammy-full
 
 
+
 # ----------------------------
-# Setup script section (reusable)
+# Setup script section
 # ----------------------------
 .full_cycle_of_compiler: &full_cycle_of_compiler
   stage: build compiler
@@ -81,11 +84,11 @@ variables:
       MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
       if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
           make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
+          # TODO: package gdbint can't be compiled because musl does not provide libgdb.a
       else
           make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
       fi
     - FPC_SRC=$(pwd)
-    # - FPC_SRC=$(pwd)/lib/fpc/3.3.1/units/*/
     - |
       case "$ARCH" in
           x86_64)
@@ -100,9 +103,6 @@ variables:
               ;;
       esac
     - FPC_COMPILER=$(find $FPC_SRC/compiler/ -name $COMPILER_EXE_NAME)
-    - echo $FPC_COMPILER && ls -l $FPC_COMPILER
-    # - FPC_COMPILER=$(find $FPC_SRC/lib/fpc/ -name ppc*)
-    # - FPC_COMPILER=$(find $(pwd)/lib/fpc/ -name ppc*)
     # run tests
     - cd tests
     - make clean -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
@@ -118,6 +118,7 @@ variables:
       junit: testresult.xml
 
 
+
 # ----------------------------
 # Build compiler section (fail fast before building everything)
 # ----------------------------
@@ -131,6 +132,7 @@ Full Cycle of Compiler on Ubuntu Linux:
   <<: [*full_cycle_of_compiler, *ubuntu_linux_configuration]
 
 
+
 # ----------------------------
 # Build section
 # ----------------------------
@@ -142,6 +144,7 @@ Build FPC on Debian Linux:
 
 Build FPC on Ubuntu Linux:
   <<: [*creating_full_installation, *ubuntu_linux_configuration]
+
 
 
 # ----------------------------
