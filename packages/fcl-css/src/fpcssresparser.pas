@@ -324,6 +324,7 @@ type
   public
     Tokens: TBytes; // tokenized value, see TCSSBaseResolver.Tokenize
     Invalid: boolean; // value is invalid, resolver skips it
+    Disabled: boolean; // resolver skips it as if commented out, see TCSSResolver.DisableDeclaration
   end;
   TCSSAttributeKeyDataClass = class of TCSSAttributeKeyData;
 

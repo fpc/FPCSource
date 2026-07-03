@@ -432,6 +432,9 @@ type
     procedure CheckTokenize(const Title, aValue, Expected: string);
     procedure CheckTokenizeInvalid(const Title, aValue: string);
     procedure CheckRoundtrip(const Title, aValue, Expected: string);
+    // locate a declaration in the author 'test.css' sheet by top-level selector
+    // and property name, e.g. FindAuthorDecl('.bird','left')
+    function FindAuthorDecl(const aSelector, aProp: string): TCSSDeclarationElement;
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
@@ -524,6 +527,12 @@ type
     procedure TestRes_Specificity_Shorthand_ClassClass;
     procedure TestRes_Specificity_Longhand_All_Longhand;
     procedure TestRes_Specificity_Shorthand_All_Shorthand;
+
+    // disable/enable declarations
+    procedure TestRes_Disable_Longhand;
+    procedure TestRes_Disable_Shorthand;
+    procedure TestRes_Disable_All;
+    procedure TestRes_Disable_Restore_AfterReparse;
 
     // origin
     procedure TestRes_Origin_Id_Class;
@@ -3347,6 +3356,143 @@ begin
   AssertEquals('Div1.BorderWidth','',Div1.BorderWidth);
   AssertEquals('Div2.BorderColor','red',Div2.BorderColor);
   AssertEquals('Div2.BorderWidth','8px',Div2.BorderWidth);
+end;
+
+function TTestCSSResolver.FindAuthorDecl(const aSelector, aProp: string
+  ): TCSSDeclarationElement;
+var
+  R: TCSSResolver;
+  ShIdx, i, j: Integer;
+  Rules: TCSSRuleElementArray;
+  Rule: TCSSRuleElement;
+  Decl: TCSSDeclarationElement;
+begin
+  Result:=nil;
+  R:=Doc.CSSResolver;
+  ShIdx:=R.IndexOfStyleSheetWithName(cssoAuthor,'test.css');
+  if ShIdx<0 then exit;
+  Rules:=CSSGetTopLevelRules(R.StyleSheets[ShIdx].Element);
+  for i:=0 to length(Rules)-1 do
+  begin
+    Rule:=Rules[i];
+    if CSSRuleSelectorsStr(Rule)<>aSelector then continue;
+    for j:=0 to Rule.ChildCount-1 do
+      if Rule.Children[j] is TCSSDeclarationElement then
+      begin
+        Decl:=TCSSDeclarationElement(Rule.Children[j]);
+        if CSSDeclPropertyName(Decl)=aProp then
+          exit(Decl);
+      end;
+  end;
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Longhand;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left initial','10px',Div1.Left);
+
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found .bird left decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left disabled','',Div1.Left);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left enabled','10px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Shorthand;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { border: 7px blue; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth initial','7px',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor initial','blue',Div1.BorderColor);
+
+  Decl:=FindAuthorDecl('.bird','border');
+  AssertTrue('found .bird border decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth disabled','',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor disabled','',Div1.BorderColor);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth enabled','7px',Div1.BorderWidth);
+  AssertEquals('Div1.BorderColor enabled','blue',Div1.BorderColor);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_All;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr([
+    '.bird { border-width: 7px; }',
+    '.bird { all: initial; }',
+    '']);
+  ApplyStyle;
+  // 'all: initial' resets border-width (an All attribute)
+  AssertEquals('Div1.BorderWidth initial','',Div1.BorderWidth);
+
+  Decl:=FindAuthorDecl('.bird','all');
+  AssertTrue('found .bird all decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth all disabled','7px',Div1.BorderWidth);
+
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.BorderWidth all enabled','',Div1.BorderWidth);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_Restore_AfterReparse;
+var
+  Div1: TDemoDiv;
+  Decl: TCSSDeclarationElement;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 5px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left initial','10px',Div1.Left);
+
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found .bird left decl',Decl<>nil);
+  Doc.CSSResolver.DisableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left disabled','',Div1.Left);
+
+  // change the source -> reparse replaces all declaration elements;
+  // the disabled state must be restored from the path map
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 8px; }','']);
+  ApplyStyle;
+  AssertEquals('Div1.Left still disabled after reparse','',Div1.Left);
+  AssertEquals('Div1.Top after reparse','8px',Div1.Top);
+
+  // re-enable on the reparsed tree
+  Decl:=FindAuthorDecl('.bird','left');
+  AssertTrue('found reparsed .bird left decl',Decl<>nil);
+  Doc.CSSResolver.EnableDeclaration(Decl);
+  ApplyStyle;
+  AssertEquals('Div1.Left enabled','10px',Div1.Left);
 end;
 
 procedure TTestCSSResolver.TestRes_Origin_Id_Class;

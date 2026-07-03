@@ -432,6 +432,14 @@ type
       end;
       TCSSRuleBucketArray = array of TCSSRuleBucket;
 
+      { TCSSDisabledDecl - a disabled declaration, stored by declaration path so it
+        survives a stylesheet reparse (which replaces the declaration elements) }
+
+      TCSSDisabledDecl = class
+      public
+        Path: TCSSDeclarationPath;
+      end;
+
   protected
     FCustomAttributes: TCSSResCustomAttributeDescArray;
     FCustomAttributeCount: TCSSNumericalID;
@@ -441,6 +449,7 @@ type
     FNode: ICSSNode;
     FLogEntries: TFPObjectList; // list of TCSSResolverLogEntry
     FSharedRuleLists: TAVLTree; // tree of TCSSSharedRuleList sorted for rules
+    FDisabledDecls: TFPHashObjectList; // key = DisabledDeclKey(Path) -> TCSSDisabledDecl (owned)
     FMergedAttributes: TMergedAttributeArray;
     FMergedAttributesStamp: integer;
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
@@ -563,6 +572,9 @@ type
     procedure MergeAttribute(El: TCSSElement; aSpecificity: TCSSSpecificity); virtual;
     procedure SaveSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     procedure LoadSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
+    function DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData; virtual;
+    function DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString; virtual;
+    procedure RestoreDisabledDeclarations(Sheet: TStyleSheet); virtual;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
 
     // var() and shorthands
@@ -621,6 +633,11 @@ type
     function GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer; // -1 if no such sheet
     function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
     function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
+    // disable/enable a single declaration; the resolver then computes values as
+    // if the declaration were commented out. The disabled state is stored by
+    // declaration path and restored after the stylesheet is reparsed.
+    procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
+    procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
     property Layers: TLayerArray read FLayers;
@@ -639,6 +656,11 @@ function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): 
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;
 
+// navigating a parsed stylesheet tree, e.g. for GetDeclarationPath/FindDeclaration
+function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
+function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
+function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
+function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
 
 implementation
 
@@ -699,6 +721,102 @@ var
   List: TCSSSharedRuleList absolute SharedRuleList;
 begin
   Result:=CompareCSSSharedRuleArrays(Arr,List.Rules);
+end;
+
+// the rule's selectors joined as one string, matching the inspector's display
+function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=0 to Rule.SelectorCount-1 do
+  begin
+    if i>0 then Result:=Result+', ';
+    Result:=Result+Rule.Selectors[i].AsFormattedString;
+  end;
+end;
+
+// the declaration's (first) property name
+function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
+begin
+  if DeclEl.KeyCount>0 then
+    Result:=DeclEl.Keys[0].AsFormattedString
+  else
+    Result:='';
+end;
+
+// scan El's subtree for immediate child rules, descending through non-rule
+// containers (compounds) but never into a rule (its nested rules are a deeper level)
+procedure CSSScanChildRules(El: TCSSElement; var Rules: TCSSRuleElementArray; var Cnt: integer);
+var
+  i: Integer;
+  C: TClass;
+begin
+  if El=nil then exit;
+  if El is TCSSDeclarationElement then exit; // a declaration's children are values, not rules
+  C:=El.ClassType;
+  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  begin
+    if Cnt>=length(Rules) then
+      SetLength(Rules,Cnt*2+8);
+    Rules[Cnt]:=TCSSRuleElement(El);
+    inc(Cnt);
+    exit; // do not descend into the rule
+  end;
+  if El is TCSSChildrenElement then
+    for i:=0 to TCSSChildrenElement(El).ChildCount-1 do
+      CSSScanChildRules(TCSSChildrenElement(El).Children[i],Rules,Cnt);
+end;
+
+// the top-level rules of a stylesheet (Root is a compound of rules, or a single rule)
+function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
+var
+  Cnt: Integer;
+  C: TClass;
+begin
+  Result:=nil;
+  if Root=nil then exit;
+  C:=Root.ClassType;
+  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
+  begin
+    SetLength(Result,1);
+    Result[0]:=TCSSRuleElement(Root);
+    exit;
+  end;
+  Cnt:=0;
+  if Root is TCSSChildrenElement then
+    CSSScanChildRules(Root,Result,Cnt);
+  SetLength(Result,Cnt);
+end;
+
+// the immediate nested rules of a rule
+function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
+var
+  i: Integer;
+begin
+  Result:=[];
+  SetLength(Result,Rule.NestedRuleCount);
+  for i:=0 to Rule.NestedRuleCount-1 do
+    Result[i]:=Rule.NestedRules[i];
+end;
+
+// locate a rule in a candidate list: by index if its selectors still match (fast
+// path, no rule added/deleted), else scan by selectors, else fall back to the
+// stored index (a selector changed)
+function CSSLocateRule(const Candidates: TCSSRuleElementArray; Idx: integer;
+  const Sel: TCSSString): TCSSRuleElement;
+var
+  i: Integer;
+begin
+  Result:=nil;
+  if (Idx>=0) and (Idx<length(Candidates))
+      and (CSSRuleSelectorsStr(Candidates[Idx])=Sel) then
+    exit(Candidates[Idx]);
+  for i:=0 to length(Candidates)-1 do
+    if CSSRuleSelectorsStr(Candidates[i])=Sel then
+      exit(Candidates[i]);
+  if (Idx>=0) and (Idx<length(Candidates)) then
+    Result:=Candidates[Idx];
 end;
 
 { TCSSResolverNthChildParams }
@@ -3138,6 +3256,8 @@ begin
     {$ENDIF}
     exit;
   end;
+  if KeyData.Disabled then
+    exit; // declaration disabled by DisableDeclaration, treat as commented out
 
   if AnAttrID=CSSAttributeID_All then
   begin
@@ -3649,6 +3769,7 @@ begin
   inherited;
   FLogEntries:=TFPObjectList.Create(true);
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
+  FDisabledDecls:=TFPHashObjectList.Create(true);
   FCustomAttributeNameToDesc:=TFPHashList.Create;
   FCSSClassNameToID:=TFPHashList.Create;
   FCSSIDNameToIndex:=TFPHashList.Create;
@@ -3671,6 +3792,7 @@ begin
   FreeAndNil(FCSSClassNameToID);
   FreeAndNil(FCustomAttributeNameToDesc);
   FreeAndNil(FSharedRuleLists);
+  FreeAndNil(FDisabledDecls);
   FreeAndNil(FLogEntries);
   inherited Destroy;
 end;
@@ -4470,6 +4592,8 @@ var
 begin
   ClearElements;
 
+  FDisabledDecls.Clear;
+
   // clear stylesheets
   for i:=0 to FStyleSheetCount-1 do
   begin
@@ -4544,6 +4668,10 @@ begin
   Sheet.Stamp:=FStyleSheetStamp;
 
   ParseSource(Index);
+
+  // the reparse replaced all declaration elements with fresh ones (Disabled=false);
+  // re-apply the remembered disabled state
+  RestoreDisabledDeclarations(Sheet);
 end;
 
 
@@ -4618,102 +4746,6 @@ begin
     Result:=FStyleSheets[i].Stamp
   else
     Result:=-1;
-end;
-
-// the rule's selectors joined as one string, matching the inspector's display
-function CSSRuleSelectorsStr(Rule: TCSSRuleElement): TCSSString;
-var
-  i: Integer;
-begin
-  Result:='';
-  for i:=0 to Rule.SelectorCount-1 do
-  begin
-    if i>0 then Result:=Result+', ';
-    Result:=Result+Rule.Selectors[i].AsFormattedString;
-  end;
-end;
-
-// the declaration's (first) property name
-function CSSDeclPropertyName(DeclEl: TCSSDeclarationElement): TCSSString;
-begin
-  if DeclEl.KeyCount>0 then
-    Result:=DeclEl.Keys[0].AsFormattedString
-  else
-    Result:='';
-end;
-
-// scan El's subtree for immediate child rules, descending through non-rule
-// containers (compounds) but never into a rule (its nested rules are a deeper level)
-procedure CSSScanChildRules(El: TCSSElement; var Rules: TCSSRuleElementArray; var Cnt: integer);
-var
-  i: Integer;
-  C: TClass;
-begin
-  if El=nil then exit;
-  if El is TCSSDeclarationElement then exit; // a declaration's children are values, not rules
-  C:=El.ClassType;
-  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
-  begin
-    if Cnt>=length(Rules) then
-      SetLength(Rules,Cnt*2+8);
-    Rules[Cnt]:=TCSSRuleElement(El);
-    inc(Cnt);
-    exit; // do not descend into the rule
-  end;
-  if El is TCSSChildrenElement then
-    for i:=0 to TCSSChildrenElement(El).ChildCount-1 do
-      CSSScanChildRules(TCSSChildrenElement(El).Children[i],Rules,Cnt);
-end;
-
-// the top-level rules of a stylesheet (Root is a compound of rules, or a single rule)
-function CSSGetTopLevelRules(Root: TCSSElement): TCSSRuleElementArray;
-var
-  Cnt: Integer;
-  C: TClass;
-begin
-  Result:=nil;
-  if Root=nil then exit;
-  C:=Root.ClassType;
-  if (C=TCSSRuleElement) or (C=TCSSAtRuleElement) then
-  begin
-    SetLength(Result,1);
-    Result[0]:=TCSSRuleElement(Root);
-    exit;
-  end;
-  Cnt:=0;
-  if Root is TCSSChildrenElement then
-    CSSScanChildRules(Root,Result,Cnt);
-  SetLength(Result,Cnt);
-end;
-
-// the immediate nested rules of a rule
-function CSSGetNestedRules(Rule: TCSSRuleElement): TCSSRuleElementArray;
-var
-  i: Integer;
-begin
-  Result:=[];
-  SetLength(Result,Rule.NestedRuleCount);
-  for i:=0 to Rule.NestedRuleCount-1 do
-    Result[i]:=Rule.NestedRules[i];
-end;
-
-// locate a rule in a candidate list: by index if its selectors still match (fast
-// path, no rule added/deleted), else scan by selectors, else fall back to the
-// stored index (a selector changed)
-function CSSLocateRule(const Candidates: TCSSRuleElementArray; Idx: integer;
-  const Sel: TCSSString): TCSSRuleElement;
-var
-  i: Integer;
-begin
-  Result:=nil;
-  if (Idx>=0) and (Idx<length(Candidates))
-      and (CSSRuleSelectorsStr(Candidates[Idx])=Sel) then
-    exit(Candidates[Idx]);
-  for i:=0 to length(Candidates)-1 do
-    if CSSRuleSelectorsStr(Candidates[i])=Sel then
-      exit(Candidates[i]);
-  if (Idx>=0) and (Idx<length(Candidates)) then
-    Result:=Candidates[Idx];
 end;
 
 function TCSSResolver.GetDeclarationPath(DeclEl: TCSSDeclarationElement;
@@ -4832,6 +4864,105 @@ begin
         and (CSSDeclPropertyName(TCSSDeclarationElement(Rule.Children[i]))=Path.PropertyName) then
       exit(TCSSDeclarationElement(Rule.Children[i]));
   Result:=ChildDecl(Rule,Path.PropIndex);
+end;
+
+function TCSSResolver.DeclKeyData(Decl: TCSSDeclarationElement): TCSSAttributeKeyData;
+var
+  Key: TCSSElement;
+begin
+  Result:=nil;
+  if Decl=nil then exit;
+  if Decl.KeyCount=0 then exit;
+  Key:=Decl.Keys[0];
+  if Key=nil then exit;
+  if Key.CustomData is TCSSAttributeKeyData then
+    Result:=TCSSAttributeKeyData(Key.CustomData);
+end;
+
+function TCSSResolver.DisabledDeclKey(const Path: TCSSDeclarationPath): TCSSString;
+var
+  i: Integer;
+begin
+  // build a unique, reparse-stable key from the declaration path;
+  // #10 is a separator that cannot occur inside a selector token
+  Result:=IntToStr(ord(Path.Origin))+#10+Path.SheetName+#10;
+  Result:=Result+IntToStr(length(Path.Selectors))+#10;
+  for i:=0 to length(Path.Selectors)-1 do
+    Result:=Result+Path.Selectors[i]+#10;
+  for i:=0 to length(Path.RuleIndex)-1 do
+    Result:=Result+IntToStr(Path.RuleIndex[i])+#10;
+  Result:=Result+Path.PropertyName+#10+IntToStr(Path.PropIndex);
+end;
+
+procedure TCSSResolver.DisableDeclaration(Decl: TCSSDeclarationElement);
+var
+  KeyData: TCSSAttributeKeyData;
+  Path: TCSSDeclarationPath;
+  Key: TCSSString;
+  Item: TCSSDisabledDecl;
+begin
+  KeyData:=DeclKeyData(Decl);
+  if KeyData=nil then exit;
+  KeyData.Disabled:=true;
+
+  // remember by path so the disabled state survives a reparse
+  if GetDeclarationPath(Decl,Path) then
+  begin
+    Key:=DisabledDeclKey(Path);
+    if FDisabledDecls.Find(Key)=nil then
+    begin
+      Item:=TCSSDisabledDecl.Create;
+      Item.Path:=Path;
+      FDisabledDecls.Add(Key,Item);
+    end;
+  end;
+
+  // the merged/shared caches were built with this declaration active; drop them
+  // so the next Compute rebuilds through MergeAttribute (where disabled is skipped)
+  ClearMerge;
+  ClearSharedRuleLists;
+end;
+
+procedure TCSSResolver.EnableDeclaration(Decl: TCSSDeclarationElement);
+var
+  KeyData: TCSSAttributeKeyData;
+  Path: TCSSDeclarationPath;
+  Index: Integer;
+begin
+  KeyData:=DeclKeyData(Decl);
+  if KeyData=nil then exit;
+  KeyData.Disabled:=false;
+
+  if GetDeclarationPath(Decl,Path) then
+  begin
+    Index:=FDisabledDecls.FindIndexOf(DisabledDeclKey(Path));
+    if Index>=0 then
+      FDisabledDecls.Delete(Index); // owns the object, frees it
+  end;
+
+  ClearMerge;
+  ClearSharedRuleLists;
+end;
+
+procedure TCSSResolver.RestoreDisabledDeclarations(Sheet: TStyleSheet);
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+  Decl: TCSSDeclarationElement;
+  KeyData: TCSSAttributeKeyData;
+begin
+  if Sheet=nil then exit;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if (Item.Path.Origin<>Sheet.Origin) or (Item.Path.SheetName<>Sheet.Name) then
+      continue;
+    Decl:=FindDeclaration(Item.Path);
+    if Decl=nil then continue;
+    KeyData:=DeclKeyData(Decl);
+    if KeyData<>nil then
+      KeyData.Disabled:=true;
+  end;
 end;
 
 end.
