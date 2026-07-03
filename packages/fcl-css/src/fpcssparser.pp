@@ -1058,7 +1058,10 @@ begin
   // Use the start of the current token, so the element position points at the
   // first character of the token (e.g. the start of a declaration's attribute name).
   if Assigned(FScanner) then
-    Result:=aClass.Create(CurrentSource,FScanner.CurTokenRow,FScanner.CurTokenColumn)
+    begin
+    Result:=aClass.Create(CurrentSource,FScanner.CurTokenRow,FScanner.CurTokenColumn);
+    Result.SourcePos:=FScanner.CurTokenPos;
+    end
   else
     Result:=aClass.Create(CurrentSource,CurrentLine,CurrentPos);
 end;
@@ -1382,7 +1385,7 @@ var
   Un : TCSSUnaryElement;
   Op : TCSSUnaryOperation;
   El: TCSSElement;
-  aRow, aCol : Integer;
+  aRow, aCol, aPos : Integer;
   aFileName : TCSSString;
 
 begin
@@ -1393,6 +1396,7 @@ begin
   // Remember the operator location, so the element position points at the start of the unary value.
   aRow:=FScanner.CurTokenRow;
   aCol:=FScanner.CurTokenColumn;
+  aPos:=FScanner.CurTokenPos;
   aFileName:=CurrentSource;
   GetNextToken;
   if CurrentToken=ctkWHITESPACE then
@@ -1401,6 +1405,7 @@ begin
 
   Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
   Un.SetLocation(aRow,aCol,aFileName);
+  Un.SourcePos:=aPos;
   Un.Operation:=op;
   Un.Right:=El;
   Result:=Un;

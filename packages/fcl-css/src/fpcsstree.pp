@@ -264,6 +264,7 @@ type
     FFileName: TCSSString;
     FParent: TCSSElement;
     FRow: Integer;
+    FSourcePos: Integer;
     function GetAsUnFormattedString: TCSSString;
     function GetAsFormattedString: TCSSString;
   Protected
@@ -282,6 +283,7 @@ type
     Property CustomData : TObject Read FData Write FData;
     Property SourceRow : Integer Read FRow;
     Property SourceCol : Integer Read FCol;
+    Property SourcePos : Integer Read FSourcePos Write FSourcePos; // 0-based stream position
     Property SourceFileName : TCSSString Read FFileName;
     Property AsFormattedString : TCSSString Read GetAsFormattedString;
     Property AsString : TCSSString Read GetAsUnformattedString;
@@ -586,6 +588,14 @@ type
     // Returns the source position right after the last character of the declaration value.
     // If the declaration has no value, the position of the declaration itself is returned.
     Procedure GetValueEndLocation(out aRow, aCol : Integer);
+    // Scans aSource from the value start (see GetValueStartLocation) and returns the
+    // source position right after the value's last significant character. String
+    // literals ('...' / "...") and /* */ comments are skipped, so a ';', '{' or '}'
+    // inside them does not end the value. The value ends before the terminating ';' or
+    // the rule's closing '}' (or at end of source); trailing whitespace and comments are
+    // not part of the value. Returns False (and the value start) if the start location is
+    // not found in aSource.
+    function GetValueEndLocationInSource(const aSource : TCSSString; out aRow, aCol : Integer) : Boolean;
     Property Keys [aIndex : Integer] : TCSSElement Read GetKeys;
     Property KeyCount : Integer Read GetKeyCount;
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
@@ -1065,6 +1075,121 @@ begin
   else
     // Tree not built by the parser: reconstruct the end from the value subtree.
     ElementEndLocation(Children[ChildCount-1],aRow,aCol);
+end;
+
+function TCSSDeclarationElement.GetValueEndLocationInSource(const aSource: TCSSString;
+  out aRow, aCol: Integer): Boolean;
+var
+  Len, i: Integer;
+  Row, Col: Integer;       // scanner position (1-based row, 0-based col) of aSource[i]
+  StartRow, StartCol: Integer;
+  LastRow, LastCol: Integer; // position right after the last significant char seen
+  q: TCSSChar;
+
+  procedure Advance;
+  // consume aSource[i], advancing Row/Col like the scanner: a LF, CR or CRLF ends the
+  // line (Row+1, Col:=0) and is not a column of any line.
+  begin
+    if aSource[i]=#13 then
+      begin
+      inc(i);
+      if (i<=Len) and (aSource[i]=#10) then inc(i);
+      inc(Row);
+      Col:=0;
+      end
+    else if aSource[i]=#10 then
+      begin
+      inc(i);
+      inc(Row);
+      Col:=0;
+      end
+    else
+      begin
+      inc(i);
+      inc(Col);
+      end;
+  end;
+
+begin
+  GetValueStartLocation(StartRow,StartCol);
+  aRow:=StartRow;
+  aCol:=StartCol;
+  Result:=false;
+
+  Len:=length(aSource);
+  Row:=1;
+  Col:=0;
+  i:=1;
+  // walk to the value start
+  while (i<=Len) and not ((Row=StartRow) and (Col=StartCol)) do
+    Advance;
+  if (Row<>StartRow) or (Col<>StartCol) then
+    exit; // start location not in aSource
+
+  Result:=true;
+  LastRow:=Row; // an empty value ends where it starts
+  LastCol:=Col;
+  while i<=Len do
+  begin
+    // comment: skip /* ... */ (not part of the value)
+    if (aSource[i]='/') and (i<Len) and (aSource[i+1]='*') then
+    begin
+      Advance;
+      Advance; // past '/*'
+      while i<=Len do
+        if (aSource[i]='*') and (i<Len) and (aSource[i+1]='/') then
+        begin
+          Advance;
+          Advance; // past '*/'
+          break;
+        end
+        else
+          Advance;
+      continue;
+    end;
+    // a top-level terminator ends the value
+    if aSource[i] in [';','{','}'] then
+      break;
+    // string literal: its content (incl. any ; { }) is part of the value
+    if aSource[i] in ['''','"'] then
+    begin
+      q:=aSource[i];
+      Advance; // opening quote
+      while i<=Len do
+      begin
+        if aSource[i]='\' then
+        begin
+          Advance; // the backslash
+          if i<=Len then Advance; // the escaped char
+          continue;
+        end;
+        if aSource[i]=q then
+        begin
+          Advance; // closing quote
+          break;
+        end;
+        if aSource[i] in [#10,#13] then
+          break; // a newline ends an unterminated string
+        Advance;
+      end;
+      LastRow:=Row;
+      LastCol:=Col;
+      continue;
+    end;
+    // whitespace: consume but do not extend the value
+    if aSource[i] in [#9,#10,#13,' '] then
+    begin
+      Advance;
+      continue;
+    end;
+    // an ordinary significant character
+    Advance;
+    LastRow:=Row;
+    LastCol:=Col;
+  end;
+
+  aRow:=LastRow;
+  aCol:=LastCol;
 end;
 
 function TCSSDeclarationElement.GetAsString(aFormat: Boolean;

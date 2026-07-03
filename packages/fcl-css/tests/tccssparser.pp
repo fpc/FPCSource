@@ -136,6 +136,7 @@ type
     Procedure TestNestedRule_NestedDeclarations;
     Procedure TestDeclarationSourcePosition;
     Procedure TestDeclarationValueSourcePosition;
+    Procedure TestDeclarationValueSourceStreamPos;
     Procedure TestDeclarationValueClassSourcePosition;
     Procedure TestDeclarationValueStartLocation;
     Procedure TestDeclarationValueEndLocation;
@@ -1288,6 +1289,42 @@ begin
   AssertNotNull('Value not nil',V);
   AssertEquals('Value source row',2,V.SourceRow);
   AssertEquals('Value source col',15,V.SourceCol);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueSourceStreamPos;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  V : TCSSElement;
+  LineStart : Integer;
+begin
+  // SourcePos is the 0-based stream position of the start of the element.
+  // On a single line it equals the (0-based) column.
+  R:=ParseRule('a{p:b}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Declaration source pos',2,D.SourcePos); // 'p' is at offset 2
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertEquals('Value source pos',4,V.SourcePos); // 'b' is at offset 4
+
+  // On later lines it accounts for the preceding lines and their line endings.
+  R:=ParseRule('a {'+LineEnding
+              +'  padding-top: 3px;'+LineEnding
+              +'}');
+  LineStart:=Length('a {')+Length(LineEnding); // offset of the start of line 2
+  D:=CheckDeclaration(R,0,'padding-top');
+  AssertEquals('Declaration source pos',LineStart+2,D.SourcePos);
+  AssertEquals('Value count',1,D.ChildCount);
+  V:=D.Children[0];
+  AssertEquals('Value source pos',LineStart+15,V.SourcePos);
+
+  // A unary value points at the operator.
+  R:=ParseRule('a{p:>b}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Unary value count',1,D.ChildCount);
+  V:=D.Children[0];
+  CheckClass('Unary value class',TCSSUnaryElement,V);
+  AssertEquals('Unary value source pos',4,V.SourcePos); // '>' is at offset 4
 end;
 
 procedure TTestCSSParser.TestDeclarationValueClassSourcePosition;

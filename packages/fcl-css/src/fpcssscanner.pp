@@ -95,9 +95,14 @@ Type
   ECSSScanner = Class(ECSSException);
 
   TCSSLineReader = class
+  protected
+    // 0-based byte offset of the next character to be read (i.e. the start of
+    // the line returned by the next ReadLine call).
+    function GetPosition: Integer; virtual; abstract;
   public
     function IsEOF: Boolean; virtual; abstract;
     function ReadLine: TCSSString; virtual; abstract;
+    property Position: Integer read GetPosition;
   end;
 
   { TCSSStreamLineReader }
@@ -108,7 +113,10 @@ Type
     Buffer : Array[0..1024] of Byte;
     FBufPos,
     FBufLen : Integer;
+    FBufStart : Integer; // 0-based stream offset of Buffer[0]
     procedure FillBuffer;
+  protected
+    function GetPosition: Integer; override;
   public
     Constructor Create(AStream : TStream);
     function IsEOF: Boolean; override;
@@ -119,6 +127,9 @@ Type
   private
     FTextFile: Text;
     FileOpened: Boolean;
+    FPosition: Integer; // 0-based offset of the start of the next line
+  protected
+    function GetPosition: Integer; override;
   public
     constructor Create(const AFilename: TCSSString);
     destructor Destroy; override;
@@ -141,8 +152,10 @@ Type
     FSourceFile: TCSSLineReader;
     FSourceFilename: TCSSString;
     FCurRow: Integer;
+    FCurLineStart: Integer; // 0-based stream offset of the start of FCurLine
     FCurTokenRow: Integer;
     FCurTokenColumn: Integer;
+    FCurTokenPos: Integer;
     FCurToken: TCSSToken;
     FCurTokenString: TCSSString;
     FCurLine: TCSSString;
@@ -188,6 +201,7 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurTokenRow: Integer read FCurTokenRow; // row of the start of the current token
     property CurTokenColumn: Integer read FCurTokenColumn; // column of the start of the current token
+    property CurTokenPos: Integer read FCurTokenPos; // 0-based stream position of the start of the current token
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
     property PreviousToken: TCSSToken read FPreviousToken;
@@ -326,9 +340,17 @@ begin
   Result := EOF(FTextFile);
 end;
 
+function TCSSFileLineReader.GetPosition: Integer;
+begin
+  Result:=FPosition;
+end;
+
 function TCSSFileLineReader.ReadLine: TCSSString;
 begin
   ReadLn(FTextFile, Result);
+  // ReadLn strips the line ending, so the exact ending length is unknown here.
+  // Assume the platform line ending; byte-exact positions require the stream reader.
+  Inc(FPosition,Length(Result)+Length(LineEnding));
 end;
 
 constructor TCSSScanner.Create(ALineReader: TCSSLineReader);
@@ -366,6 +388,8 @@ begin
     Result := false;
   end else
   begin
+    // Capture the stream offset before reading, so it points at the line start.
+    FCurLineStart := FSourceFile.Position;
     FCurLine := FSourceFile.ReadLine;
     TokenStr := PCSSChar(CurLine);
     Result := true;
@@ -918,6 +942,7 @@ begin
     FCurTokenColumn:=0
   else
     FCurTokenColumn:=TokenStr - PCSSChar(CurLine);
+  FCurTokenPos:=FCurLineStart+FCurTokenColumn;
   FCurTokenString := '';
   case TokenStr[0] of
     #0:         // EOL
@@ -1086,6 +1111,12 @@ begin
   FStream:=AStream;
   FBufPos:=0;
   FBufLen:=0;
+  FBufStart:=0;
+end;
+
+function TCSSStreamLineReader.GetPosition: Integer;
+begin
+  Result:=FBufStart+FBufPos;
 end;
 
 function TCSSStreamLineReader.IsEOF: Boolean;
@@ -1101,6 +1132,7 @@ end;
 procedure TCSSStreamLineReader.FillBuffer;
 
 begin
+  Inc(FBufStart,FBufLen); // account for the bytes of the buffer we are replacing
   FBufLen:=FStream.Read(Buffer,SizeOf(Buffer)-1);
   Buffer[FBufLen]:=0;
   FBufPos:=0;
