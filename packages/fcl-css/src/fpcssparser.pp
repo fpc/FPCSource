@@ -116,6 +116,7 @@ Type
     CSSIdentifierElementClass: TCSSIdentifierElementClass;
     CSSIntegerElementClass: TCSSIntegerElementClass;
     CSSListElementClass: TCSSListElementClass;
+    CSSParenthesisElementClass: TCSSParenthesisElementClass;
     CSSPseudoClassElementClass: TCSSPseudoClassElementClass;
     CSSRuleElementClass: TCSSRuleElementClass;
     CSSStringElementClass: TCSSStringElementClass;
@@ -379,6 +380,7 @@ begin
   CSSIdentifierElementClass:=TCSSIdentifierElement;
   CSSIntegerElementClass:=TCSSIntegerElement;
   CSSListElementClass:=TCSSListElement;
+  CSSParenthesisElementClass:=TCSSParenthesisElement;
   CSSPseudoClassElementClass:=TCSSPseudoClassElement;
   CSSRuleElementClass:=TCSSRuleElement;
   CSSStringElementClass:=TCSSStringElement;
@@ -1145,33 +1147,35 @@ end;
 function TCSSParser.ParseParenthesis: TCSSElement;
 
 var
+  aParen : TCSSParenthesisElement;
   aList: TCSSElement;
 begin
-  Consume(ctkLPARENTHESIS);
-  if CurrentToken in [ctkEOF, ctkSEMICOLON, ctkRBRACE] then
-    begin
-    FInvalidDeclarationValue:=True;
-    DoWarn(SErrUnexpectedEndOfFile,['(']);
-    Result:=TCSSElement(CreateElement(TCSSElement));
-    exit;
-    end;
-  aList:=ParseComponentValueList;
+  // Create the parenthesis node while the '(' is current, so it points at the opening bracket.
+  aParen:=TCSSParenthesisElement(CreateElement(CSSParenthesisElementClass));
   try
+    Consume(ctkLPARENTHESIS);
+    if CurrentToken in [ctkEOF, ctkSEMICOLON, ctkRBRACE] then
+      begin
+      FInvalidDeclarationValue:=True;
+      DoWarn(SErrUnexpectedEndOfFile,['(']);
+      Result:=aParen;
+      aParen:=nil;
+      exit;
+      end;
+    aList:=ParseComponentValueList;
     if CurrentToken<>ctkRPARENTHESIS then
       begin
       FInvalidDeclarationValue:=True;
       DoWarn(SErrUnexpectedEndOfFile,['(']);
-      Result:=aList;
-      aList:=nil;
       end
     else
-      begin
       GetNextToken;
-      Result:=aList;
-      aList:=nil;
-      end;
+    if Assigned(aList) then
+      aParen.AddChild(aList);
+    Result:=aParen;
+    aParen:=nil;
   finally
-    aList.Free;
+    aParen.Free;
   end;
 end;
 
@@ -1357,18 +1361,25 @@ var
   Un : TCSSUnaryElement;
   Op : TCSSUnaryOperation;
   El: TCSSElement;
+  aRow, aCol : Integer;
+  aFileName : TCSSString;
 
 begin
   Result:=nil;
   if not (CurrentToken in [ctkDOUBLECOLON, ctkMinus, ctkPlus, ctkDiv, ctkGT, ctkTILDE]) then
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,[CurrentTokenString]);
   op:=TokenToUnaryOperation(CurrentToken);
+  // Remember the operator location, so the element position points at the start of the unary value.
+  aRow:=FScanner.CurTokenRow;
+  aCol:=FScanner.CurTokenColumn;
+  aFileName:=CurrentSource;
   GetNextToken;
   if CurrentToken=ctkWHITESPACE then
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,['white space']);
   El:=ParseComponentValue;
 
   Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
+  Un.SetLocation(aRow,aCol,aFileName);
   Un.Operation:=op;
   Un.Right:=El;
   Result:=Un;

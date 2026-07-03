@@ -137,6 +137,8 @@ type
     Procedure TestDeclarationSourcePosition;
     Procedure TestDeclarationValueSourcePosition;
     Procedure TestDeclarationValueClassSourcePosition;
+    Procedure TestDeclarationValueStartLocation;
+    Procedure TestDeclarationParenthesisValue;
   end;
 
   { TTestCSSFilesParser }
@@ -1313,6 +1315,57 @@ begin
   CheckValuePos('#ABABAB',TCSSHashValueElement);
   CheckValuePos('url("b.c")',TCSSURLElement);
   CheckValuePos('U+0400',TCSSUnicodeRangeElement);
+end;
+
+procedure TTestCSSParser.TestDeclarationValueStartLocation;
+
+  // Parse 'a{p:<aValue>}' and check that GetValueStartLocation returns the start
+  // of the value (row 1, column aExpectedCol). The value starts at column 4.
+  procedure CheckStart(const aValue: String; aExpectedClass: TCSSElementClass; aExpectedCol: Integer);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    aRow, aCol : Integer;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    CheckClass('Value class for '+aValue,aExpectedClass,D.Children[0]);
+    D.GetValueStartLocation(aRow,aCol);
+    AssertEquals('Value start row for '+aValue,1,aRow);
+    AssertEquals('Value start col for '+aValue,aExpectedCol,aCol);
+  end;
+
+begin
+  CheckStart('b',TCSSIdentifierElement,4);        // simple identifier
+  CheckStart('calc(1px)',TCSSCallElement,4);      // function call
+  CheckStart('(1 + 2)',TCSSParenthesisElement,4); // parenthesized value: the opening bracket
+  CheckStart('>b',TCSSUnaryElement,4);            // unary: the prefix operator
+end;
+
+procedure TTestCSSParser.TestDeclarationParenthesisValue;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  aParen : TCSSParenthesisElement;
+  aBin : TCSSBinaryElement;
+begin
+  R:=ParseRule('a{p:(1 + 2)}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('Value count',1,D.ChildCount);
+  aParen:=TCSSParenthesisElement(CheckClass('Value',TCSSParenthesisElement,D.Children[0]));
+  // The parenthesis node points at the opening bracket ...
+  AssertEquals('Parenthesis source row',1,aParen.SourceRow);
+  AssertEquals('Parenthesis source col',4,aParen.SourceCol);
+  // ... and wraps the inner expression, which keeps its own position (the operator).
+  AssertEquals('Parenthesis child count',1,aParen.ChildCount);
+  aBin:=TCSSBinaryElement(CheckClass('Inner value',TCSSBinaryElement,aParen.Children[0]));
+  AssertEquals('Inner binary operation',boPlus,aBin.Operation);
+  AssertEquals('Inner binary source col',7,aBin.SourceCol);
+  CheckLiteral('Inner binary left',aBin.Left,1);
+  CheckLiteral('Inner binary right',aBin.Right,2);
+  // The parentheses round-trip through AsString.
+  AssertEquals('AsString','(1 + 2)',aParen.AsString);
 end;
 
 

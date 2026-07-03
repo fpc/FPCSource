@@ -233,7 +233,8 @@ type
     csstArray, // []
     csstURL, // url()
     csstUnicodeRange,
-    csstList);
+    csstList,
+    csstParenthesis); // ( )
 
   TCSSElement = class;
 
@@ -273,6 +274,7 @@ type
   Public
     Constructor Create(const aFileName : TCSSString; aRow,aCol : Integer); virtual;
     destructor Destroy; override;
+    Procedure SetLocation(aRow, aCol : Integer; const aFileName : TCSSString);
     Class function CSSType : TCSSType; virtual;
     function Equals(Obj: TObject): boolean; override;
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
@@ -576,6 +578,9 @@ type
     Destructor Destroy; override;
     Procedure AddKey(aKey : TCSSElement); virtual;
     function Equals(Obj: TObject): boolean; override;
+    // Returns the source position of the start of the declaration value (first child).
+    // If the declaration has no value, the position of the declaration itself is returned.
+    Procedure GetValueStartLocation(out aRow, aCol : Integer);
     Property Keys [aIndex : Integer] : TCSSElement Read GetKeys;
     Property KeyCount : Integer Read GetKeyCount;
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
@@ -592,6 +597,16 @@ type
     Function ExtractElement(aIndex : Integer) : TCSSElement;
   end;
   TCSSListElementClass = class of TCSSListElement;
+
+  { TCSSParenthesisElement - a parenthesized value: ( child ) }
+
+  TCSSParenthesisElement = class(TCSSChildrenElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
+  Public
+    Class function CSSType : TCSSType; override;
+  end;
+  TCSSParenthesisElementClass = class of TCSSParenthesisElement;
 
   { TCSSCompoundElement }
 
@@ -815,6 +830,26 @@ begin
   Result:=FChildren.Extract(aIndex);
 end;
 
+{ TCSSParenthesisElement }
+
+function TCSSParenthesisElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
+
+Var
+  I : integer;
+
+begin
+  Result:='(';
+  For I:=0 to ChildCount-1 do
+    Result:=Result+Children[I].GetAsString(aFormat,aIndent);
+  Result:=Result+')';
+end;
+
+class function TCSSParenthesisElement.CSSType: TCSSType;
+begin
+  Result:=csstParenthesis;
+end;
+
 { TCSSAtRuleElement }
 
 function TCSSAtRuleElement.GetAsString(aFormat: Boolean;
@@ -910,6 +945,61 @@ begin
   if Not Assigned(FKeys) then
     Raise EListError.CreateFmt(SListIndexError,[aIndex]);
   Result:=FKeys[aIndex];
+end;
+
+type
+  { TCSSStartLocationVisitor - finds the topmost-leftmost source location in a subtree }
+  TCSSStartLocationVisitor = class(TCSSTreeVisitor)
+  public
+    HasLoc : Boolean;
+    Row, Col : Integer;
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+procedure TCSSStartLocationVisitor.Visit(obj: TCSSElement);
+begin
+  if obj.SourceRow<=0 then exit; // skip elements without a source location
+  if (not HasLoc)
+      or (obj.SourceRow<Row)
+      or ((obj.SourceRow=Row) and (obj.SourceCol<Col)) then
+    begin
+    HasLoc:=True;
+    Row:=obj.SourceRow;
+    Col:=obj.SourceCol;
+    end;
+end;
+
+procedure TCSSDeclarationElement.GetValueStartLocation(out aRow, aCol: Integer);
+var
+  aValue : TCSSElement;
+  V : TCSSStartLocationVisitor;
+begin
+  if ChildCount=0 then
+    begin
+    // No value: fall back to the declaration position (start of the attribute name).
+    aRow:=SourceRow;
+    aCol:=SourceCol;
+    exit;
+    end;
+  aValue:=Children[0];
+  // The value can be a composite element (e.g. a binary operation) whose own
+  // position is not its leftmost token, so find the leftmost location in the subtree.
+  V:=TCSSStartLocationVisitor.Create;
+  try
+    aValue.Iterate(V);
+    if V.HasLoc then
+      begin
+      aRow:=V.Row;
+      aCol:=V.Col;
+      end
+    else
+      begin
+      aRow:=aValue.SourceRow;
+      aCol:=aValue.SourceCol;
+      end;
+  finally
+    V.Free;
+  end;
 end;
 
 function TCSSDeclarationElement.GetAsString(aFormat: Boolean;
@@ -1791,6 +1881,13 @@ begin
   FFileName:=aFileName;
   FRow:=aRow;
   FCol:=aCol;
+end;
+
+procedure TCSSElement.SetLocation(aRow, aCol: Integer; const aFileName: TCSSString);
+begin
+  FRow:=aRow;
+  FCol:=aCol;
+  FFileName:=aFileName;
 end;
 
 destructor TCSSElement.Destroy;
