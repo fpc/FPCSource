@@ -587,6 +587,9 @@ type
     // Match all sibling/positional selectors against Node (cheap: only the usually-small
     // sibling-selector set is evaluated, not the full bucketed cascade).
     function MatchSiblingSelectors(const Node: ICSSNode): TCSSSiblingMatchList; virtual;
+    // The specificity of aRule for aNode: the best of its selectors, or
+    // CSSSpecificityNoMatch when none matches (e.g. a selectorless inline rule).
+    function GetRuleSpecificity(aRule: TCSSRuleElement; const aNode: ICSSNode): TCSSSpecificity; virtual;
     // attributes
     property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
@@ -1168,6 +1171,30 @@ begin
     ComputeAtRule(TCSSAtRuleElement(El))
   else
     Log(etWarning,20220908150252,'TCSSResolver.ComputeElement: Unknown CSS element',El);
+end;
+
+function TCSSResolver.GetRuleSpecificity(aRule: TCSSRuleElement;
+  const aNode: ICSSNode): TCSSSpecificity;
+var
+  i: Integer;
+  Specificity: TCSSSpecificity;
+  SavedNode: ICSSNode;
+begin
+  Result:=CSSSpecificityNoMatch;
+  if (aRule=nil) or (aNode=nil) then exit;
+  // SelectorMatches uses FNode for the nested/combinator context (see ComputeRule)
+  SavedNode:=FNode;
+  try
+    FNode:=aNode;
+    for i:=0 to aRule.SelectorCount-1 do
+    begin
+      Specificity:=SelectorMatches(aRule.Selectors[i],aNode,false,aRule);
+      if Specificity>Result then
+        Result:=Specificity;
+    end;
+  finally
+    FNode:=SavedNode;
+  end;
 end;
 
 procedure TCSSResolver.ComputeRule(aRule: TCSSRuleElement);
