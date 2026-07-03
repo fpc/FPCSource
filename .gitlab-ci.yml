@@ -84,8 +84,6 @@ variables:
       else
           make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
       fi
-    # extract installer from previous stage
-    - tar -xzf fpc-*$ARCH*.tar.gz
     - FPC_SRC=$(pwd)
     # - FPC_SRC=$(pwd)/lib/fpc/3.3.1/units/*/
     - |
@@ -151,29 +149,12 @@ Build FPC on Ubuntu Linux:
 # ----------------------------
 Run FPC Tests on Alpine Linux:
   <<: [*run_tests, *alpine_linux_configuration]
-  needs:
-    - job: Build FPC on Alpine Linux
-      parallel:
-        matrix:
-          - ARCH: ['$[[ matrix.ARCH ]]']
-            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
-
+  dependencies: []
 
 Run FPC Tests on Debian Linux:
   <<: [*run_tests, *debian_linux_configuration]
-  needs:
-    - job: Build FPC on Debian Linux
-      parallel:
-        matrix:
-          - ARCH: ['$[[ matrix.ARCH ]]']
-            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
-
+  dependencies: []
 
 Run FPC Tests on Ubuntu Linux:
   <<: [*run_tests, *ubuntu_linux_configuration]
-  needs:
-    - job: Build FPC on Ubuntu Linux
-      parallel:
-        matrix:
-          - ARCH: ['$[[ matrix.ARCH ]]']
-            RUNNER_TAG: ['$[[ matrix.RUNNER_TAG ]]']
+  dependencies: []
