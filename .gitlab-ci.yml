@@ -24,7 +24,7 @@ stages:
     matrix:
       - ARCH: x86_64
         # PLATFORM: linux/amd64
-        RUNNER_TAG: saas-linux-small-amd64
+        RUNNER_TAG: saas-linux-medium-amd64
       - ARCH: aarch64
         # PLATFORM: linux/arm64
         RUNNER_TAG: saas-linux-small-arm64
@@ -153,11 +153,14 @@ Build FPC on Ubuntu Linux:
 Run FPC Tests on Alpine Linux:
   <<: [*run_tests, *alpine_linux_configuration]
   dependencies: []
+  timeout: 2h
 
 Run FPC Tests on Debian Linux:
   <<: [*run_tests, *debian_linux_configuration]
   dependencies: []
+  timeout: 2h
 
 Run FPC Tests on Ubuntu Linux:
   <<: [*run_tests, *ubuntu_linux_configuration]
   dependencies: []
+  timeout: 2h
