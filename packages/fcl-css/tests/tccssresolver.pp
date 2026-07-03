@@ -533,6 +533,7 @@ type
     procedure TestRes_Disable_Shorthand;
     procedure TestRes_Disable_All;
     procedure TestRes_Disable_Restore_AfterReparse;
+    procedure TestRes_Disable_QueryMethods;
 
     // origin
     procedure TestRes_Origin_Id_Class;
@@ -3493,6 +3494,82 @@ begin
   Doc.CSSResolver.EnableDeclaration(Decl);
   ApplyStyle;
   AssertEquals('Div1.Left enabled','10px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_Disable_QueryMethods;
+var
+  Div1: TDemoDiv;
+  DeclLeft, DeclTop: TCSSDeclarationElement;
+  R: TCSSResolver;
+  List: TFPList;
+  Paths: TStrings;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('bird');
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 5px; }','']);
+  ApplyStyle;
+  R:=Doc.CSSResolver;
+
+  DeclLeft:=FindAuthorDecl('.bird','left');
+  DeclTop:=FindAuthorDecl('.bird','top');
+  AssertTrue('found left',DeclLeft<>nil);
+  AssertTrue('found top',DeclTop<>nil);
+
+  // nothing disabled yet
+  AssertFalse('left not disabled initially',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count before',0,List.Count);
+  finally
+    List.Free;
+  end;
+
+  // disable left
+  R.DisableDeclaration(DeclLeft);
+  AssertTrue('left disabled after DisableDeclaration',R.IsDeclarationDisabled(DeclLeft));
+  AssertFalse('top still enabled',R.IsDeclarationDisabled(DeclTop));
+
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count',1,List.Count);
+    AssertTrue('disabled element is left',TCSSDeclarationElement(List[0])=DeclLeft);
+  finally
+    List.Free;
+  end;
+
+  Paths:=R.GetDisabledDeclarationPaths;
+  try
+    AssertEquals('paths count',1,Paths.Count);
+    AssertTrue('path object is left',TCSSDeclarationElement(Paths.Objects[0])=DeclLeft);
+    AssertTrue('path string not empty',Paths[0]<>'');
+  finally
+    Paths.Free;
+  end;
+
+  // after a reparse the element is replaced; the query must return the NEW element
+  Doc.Style:=LinesToStr(['.bird { left: 10px; top: 8px; }','']);
+  ApplyStyle;
+  DeclLeft:=FindAuthorDecl('.bird','left');
+  AssertTrue('found reparsed left',DeclLeft<>nil);
+  AssertTrue('left still disabled after reparse',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count after reparse',1,List.Count);
+    AssertTrue('disabled element is reparsed left',TCSSDeclarationElement(List[0])=DeclLeft);
+  finally
+    List.Free;
+  end;
+
+  // enabling clears it
+  R.EnableDeclaration(DeclLeft);
+  AssertFalse('left enabled again',R.IsDeclarationDisabled(DeclLeft));
+  List:=R.GetDisabledDeclarations;
+  try
+    AssertEquals('disabled count after enable',0,List.Count);
+  finally
+    List.Free;
+  end;
 end;
 
 procedure TTestCSSResolver.TestRes_Origin_Id_Class;

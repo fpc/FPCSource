@@ -438,6 +438,7 @@ type
       TCSSDisabledDecl = class
       public
         Path: TCSSDeclarationPath;
+        Decl: TCSSDeclarationElement; // the currently disabled element (updated on reparse)
       end;
 
   protected
@@ -633,11 +634,12 @@ type
     function GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer; // -1 if no such sheet
     function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
     function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
-    // disable/enable a single declaration; the resolver then computes values as
-    // if the declaration were commented out. The disabled state is stored by
-    // declaration path and restored after the stylesheet is reparsed.
+    // disable/enable a single declaration; The disabled state is restored after the stylesheet is reparsed.
     procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
     procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
+    function IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean; virtual;
+    function GetDisabledDeclarations: TFPList; virtual; // TCSSDeclarationElement list, caller frees the list
+    function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
     property Layers: TLayerArray read FLayers;
@@ -4909,12 +4911,14 @@ begin
   if GetDeclarationPath(Decl,Path) then
   begin
     Key:=DisabledDeclKey(Path);
-    if FDisabledDecls.Find(Key)=nil then
+    Item:=TCSSDisabledDecl(FDisabledDecls.Find(Key));
+    if Item=nil then
     begin
       Item:=TCSSDisabledDecl.Create;
       Item.Path:=Path;
       FDisabledDecls.Add(Key,Item);
     end;
+    Item.Decl:=Decl;
   end;
 
   // the merged/shared caches were built with this declaration active; drop them
@@ -4958,10 +4962,46 @@ begin
     if (Item.Path.Origin<>Sheet.Origin) or (Item.Path.SheetName<>Sheet.Name) then
       continue;
     Decl:=FindDeclaration(Item.Path);
+    Item.Decl:=Decl; // the reparse replaced the element; keep the reference current
     if Decl=nil then continue;
     KeyData:=DeclKeyData(Decl);
     if KeyData<>nil then
       KeyData.Disabled:=true;
+  end;
+end;
+
+function TCSSResolver.IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean;
+var
+  KeyData: TCSSAttributeKeyData;
+begin
+  KeyData:=DeclKeyData(Decl);
+  Result:=(KeyData<>nil) and KeyData.Disabled;
+end;
+
+function TCSSResolver.GetDisabledDeclarations: TFPList;
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  Result:=TFPList.Create;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if Item.Decl<>nil then
+      Result.Add(Item.Decl);
+  end;
+end;
+
+function TCSSResolver.GetDisabledDeclarationPaths: TStrings;
+var
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  Result:=TStringList.Create;
+  for i:=0 to FDisabledDecls.Count-1 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    Result.AddObject(DisabledDeclKey(Item.Path),Item.Decl);
   end;
 end;
 
