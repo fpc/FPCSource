@@ -568,6 +568,8 @@ type
     FIsImportant: Boolean;
     FKeys : TCSSElementList;
     FColon: Boolean;
+    FEndRow: Integer;
+    FEndCol: Integer;
     function GetKeyCount: Integer;
     function GetKeys(aIndex : Integer): TCSSElement;
   Protected
@@ -581,10 +583,16 @@ type
     // Returns the source position of the start of the declaration value (first child).
     // If the declaration has no value, the position of the declaration itself is returned.
     Procedure GetValueStartLocation(out aRow, aCol : Integer);
+    // Returns the source position right after the last character of the declaration value.
+    // If the declaration has no value, the position of the declaration itself is returned.
+    Procedure GetValueEndLocation(out aRow, aCol : Integer);
     Property Keys [aIndex : Integer] : TCSSElement Read GetKeys;
     Property KeyCount : Integer Read GetKeyCount;
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
     Property Colon : Boolean Read FColon Write FColon;
+    // Source position right after the last character of the value (set by the parser).
+    Property EndRow : Integer Read FEndRow Write FEndRow;
+    Property EndCol : Integer Read FEndCol Write FEndCol;
   end;
   TCSSDeclarationElementClass = class of TCSSDeclarationElement;
 
@@ -1000,6 +1008,63 @@ begin
   finally
     V.Free;
   end;
+end;
+
+// Returns the source position right after the last character of aValue.
+// Composite values end at the end of their last sub-element, plus a closing
+// bracket for parenthesis/call/array. Leaf values end after their source text.
+procedure ElementEndLocation(aValue : TCSSElement; out aRow, aCol : Integer);
+var
+  Sub : TCSSElement;
+  aChildren : TCSSChildrenElement;
+begin
+  aRow:=aValue.SourceRow;
+  aCol:=aValue.SourceCol;
+  if aValue is TCSSBaseUnaryElement then
+    begin
+    // unary and binary operations end at the end of their right operand
+    Sub:=TCSSBaseUnaryElement(aValue).Right;
+    if Assigned(Sub) then
+      ElementEndLocation(Sub,aRow,aCol)
+    else
+      aCol:=aCol+Length(aValue.AsString);
+    end
+  else if aValue is TCSSChildrenElement then
+    begin
+    aChildren:=TCSSChildrenElement(aValue);
+    if aChildren.ChildCount>0 then
+      begin
+      ElementEndLocation(aChildren.Children[aChildren.ChildCount-1],aRow,aCol);
+      if (aValue is TCSSParenthesisElement)
+          or (aValue is TCSSCallElement)
+          or (aValue is TCSSArrayElement) then
+        Inc(aCol); // closing ')' or ']'
+      end
+    else
+      aCol:=aCol+Length(aValue.AsString);
+    end
+  else
+    // leaf element: ends after its source text
+    aCol:=aCol+Length(aValue.AsString);
+end;
+
+procedure TCSSDeclarationElement.GetValueEndLocation(out aRow, aCol: Integer);
+begin
+  if FEndRow>0 then
+    begin
+    // Exact position stored by the parser.
+    aRow:=FEndRow;
+    aCol:=FEndCol;
+    end
+  else if ChildCount=0 then
+    begin
+    // No value: fall back to the declaration position (start of the attribute name).
+    aRow:=SourceRow;
+    aCol:=SourceCol;
+    end
+  else
+    // Tree not built by the parser: reconstruct the end from the value subtree.
+    ElementEndLocation(Children[ChildCount-1],aRow,aCol);
 end;
 
 function TCSSDeclarationElement.GetAsString(aFormat: Boolean;

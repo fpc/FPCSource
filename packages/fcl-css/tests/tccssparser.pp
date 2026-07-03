@@ -138,6 +138,8 @@ type
     Procedure TestDeclarationValueSourcePosition;
     Procedure TestDeclarationValueClassSourcePosition;
     Procedure TestDeclarationValueStartLocation;
+    Procedure TestDeclarationValueEndLocation;
+    Procedure TestDeclarationValueEndLocationExact;
     Procedure TestDeclarationParenthesisValue;
   end;
 
@@ -1341,6 +1343,66 @@ begin
   CheckStart('calc(1px)',TCSSCallElement,4);      // function call
   CheckStart('(1 + 2)',TCSSParenthesisElement,4); // parenthesized value: the opening bracket
   CheckStart('>b',TCSSUnaryElement,4);            // unary: the prefix operator
+end;
+
+procedure TTestCSSParser.TestDeclarationValueEndLocation;
+
+  // Parse 'a{p:<aValue>}' and check that GetValueEndLocation returns the position
+  // right after the last character of the value.
+  procedure CheckEnd(const aValue: String; aExpectedClass: TCSSElementClass; aExpectedCol: Integer);
+  var
+    R : TCSSRuleElement;
+    D : TCSSDeclarationElement;
+    aRow, aCol : Integer;
+  begin
+    R:=ParseRule('a{p:'+aValue+'}');
+    D:=CheckDeclaration(R,0,'p');
+    AssertEquals('Value count for '+aValue,1,D.ChildCount);
+    CheckClass('Value class for '+aValue,aExpectedClass,D.Children[0]);
+    // The parser stored the exact end location in the EndRow/EndCol properties.
+    AssertEquals('EndRow for '+aValue,1,D.EndRow);
+    AssertEquals('EndCol for '+aValue,aExpectedCol,D.EndCol);
+    // GetValueEndLocation returns the stored position.
+    D.GetValueEndLocation(aRow,aCol);
+    AssertEquals('Value end row for '+aValue,1,aRow);
+    AssertEquals('Value end col for '+aValue,aExpectedCol,aCol);
+  end;
+
+begin
+  // The value starts at column 4; the end column is 4 + length of the value text.
+  CheckEnd('b',TCSSIdentifierElement,5);            // 'b'
+  CheckEnd('3px',TCSSIntegerElement,7);             // '3px'
+  CheckEnd('calc(1px)',TCSSCallElement,13);         // 'calc(1px)'
+  CheckEnd('(1 + 2)',TCSSParenthesisElement,11);    // '(1 + 2)'
+  CheckEnd('>b',TCSSUnaryElement,6);                // '>b'
+end;
+
+procedure TTestCSSParser.TestDeclarationValueEndLocationExact;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+begin
+  // Leading/trailing whitespace: the end excludes the trailing space.
+  //             0123456789
+  R:=ParseRule('a{p:  3px }');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('spaced EndRow',1,D.EndRow);
+  AssertEquals('spaced EndCol',9,D.EndCol); // after 'x' at col 8
+
+  // Non-canonical spacing inside parentheses: the end is the actual ')' position.
+  //             0123456789012
+  R:=ParseRule('a{p:( 1 + 2 )}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertEquals('spaced paren EndRow',1,D.EndRow);
+  AssertEquals('spaced paren EndCol',13,D.EndCol); // after ')' at col 12
+
+  // !important is not part of the value.
+  //             0123456789
+  R:=ParseRule('a{p:3px !important}');
+  D:=CheckDeclaration(R,0,'p');
+  AssertTrue('important flag',D.IsImportant);
+  AssertEquals('important EndRow',1,D.EndRow);
+  AssertEquals('important EndCol',7,D.EndCol); // after 'x' at col 6, excludes !important
 end;
 
 procedure TTestCSSParser.TestDeclarationParenthesisValue;

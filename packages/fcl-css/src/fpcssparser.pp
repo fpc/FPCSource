@@ -46,6 +46,13 @@ Type
     FCurrentTokenString : TCSSString;
     FPeekToken : TCSSToken;
     FPeekTokenString : TCSSString;
+    // end location (row,col right after the last character) of tokens.
+    FCurrentTokenEndRow, FCurrentTokenEndCol : Integer; // current token
+    FPeekTokenEndRow, FPeekTokenEndCol : Integer;       // peeked token
+    // end of the current/previous significant token (skipping whitespace and comments),
+    // used to determine where a value ends without counting trailing whitespace.
+    FCurSigTokenEndRow, FCurSigTokenEndCol : Integer;
+    FPrevSigTokenEndRow, FPrevSigTokenEndCol : Integer;
     FFreeScanner : Boolean;
     FRuleLevel : Integer;
     FInvalidDeclarationValue : Boolean;
@@ -973,6 +980,8 @@ begin
     begin
     FCurrent:=FPeekToken;
     FCurrentTokenString:=FPeekTokenString;
+    FCurrentTokenEndRow:=FPeekTokenEndRow;
+    FCurrentTokenEndCol:=FPeekTokenEndCol;
     FPeekToken:=ctkUNKNOWN;
     FPeekTokenString:='';
     end
@@ -980,6 +989,16 @@ begin
     begin
     FCurrent:=FScanner.FetchToken;
     FCurrentTokenString:=FScanner.CurTokenString;
+    FCurrentTokenEndRow:=FScanner.CurRow;
+    FCurrentTokenEndCol:=FScanner.CurColumn;
+    end;
+  if not (FCurrent in [ctkWhitespace,ctkComment]) then
+    begin
+    // remember the end of the significant token before this one
+    FPrevSigTokenEndRow:=FCurSigTokenEndRow;
+    FPrevSigTokenEndCol:=FCurSigTokenEndCol;
+    FCurSigTokenEndRow:=FCurrentTokenEndRow;
+    FCurSigTokenEndCol:=FCurrentTokenEndCol;
     end;
   Result:=FCurrent;
   {$ifdef VerboseCSSParser}
@@ -997,6 +1016,8 @@ begin
     begin
     FPeekToken:=FScanner.FetchToken;
     FPeekTokenString:=FScanner.CurTokenString;
+    FPeekTokenEndRow:=FScanner.CurRow;
+    FPeekTokenEndCol:=FScanner.CurColumn;
     end;
   {$ifdef VerboseCSSParser}Writeln('PeekNextToken : ',GetEnumName(TypeInfo(TCSSToken),Ord(FPeekToken)), ' As TCSSString: ',FPeekTokenString);{$endif VerboseCSSParser}
   Result:=FPeekToken;
@@ -1845,11 +1866,21 @@ begin
         if aValue=nil then break;
         aList.AddChild(aValue);
         end;
+      // Store the end of the value: the significant token before the current
+      // terminator (';', '}', EOF or !important), skipping trailing whitespace.
+      aDecl.EndRow:=FPrevSigTokenEndRow;
+      aDecl.EndCol:=FPrevSigTokenEndCol;
       if CurrentToken=ctkImportant then
         begin
         GetNextToken;
         aDecl.IsImportant:=True;
         end;
+      end
+    else
+      begin
+      // Store the end of the value.
+      aDecl.EndRow:=FPrevSigTokenEndRow;
+      aDecl.EndCol:=FPrevSigTokenEndCol;
       end;
     if FInvalidDeclarationValue then
       begin
