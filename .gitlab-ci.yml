@@ -84,7 +84,6 @@ variables:
       MUSL_DYNAMIC_LINKER_PATH=$(find /lib/ -name "ld-musl-*.so.*" -print -quit)
       if [ -n "$MUSL_DYNAMIC_LINKER_PATH" ]; then
           make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES" OPT="-FL$MUSL_DYNAMIC_LINKER_PATH"
-          # TODO: package gdbint can't be compiled because musl does not provide libgdb.a
       else
           make all -j $AVAILABLE_CPU_CORES OS_TARGET=linux CPU_TARGET=$ARCH FPMAKEOPT="-T $AVAILABLE_CPU_CORES"
       fi
@@ -154,6 +153,8 @@ Run FPC Tests on Alpine Linux:
   <<: [*run_tests, *alpine_linux_configuration]
   dependencies: []
   timeout: 2h
+  # TODO: package gdbint can't be compiled because musl does not provide libgdb.a
+  allow_failure: true
 
 Run FPC Tests on Debian Linux:
   <<: [*run_tests, *debian_linux_configuration]
