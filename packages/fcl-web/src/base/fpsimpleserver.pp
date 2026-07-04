@@ -211,6 +211,7 @@ Function StrToThreadMode(const aValue : String; aDefault : TThreadMode) : TThrea
 begin
   Case LowerCase(aValue) of
     'none','single','' : Result:=tmNone;
+    'polled','poll' : Result:=tmPolled;
     'thread','threaded' : Result:=tmThread;
     'pool','threadpool' : Result:=tmThreadPool;
   else
@@ -221,7 +222,7 @@ end;
 Function ThreadModeToStr(aMode : TThreadMode) : String;
 
 Const
-  Names : Array[TThreadMode] of String = ('none','thread','threadpool');
+  Names : Array[TThreadMode] of String = ('none','polled','thread','threadpool');
 
 begin
   Result:=Names[aMode];
@@ -648,9 +649,15 @@ begin
   Writeln('                              %GUID% - upload file name location.');
   Writeln('                              %GUID% - upload file name location.');
   Writeln('-s --ssl              Use SSL.');
-  Writeln('-t --thread-mode=MODE Connection handling: none (serial, default), thread (one');
-  Writeln('                      thread per connection) or pool (thread pool). Use thread or');
-  Writeln('                      pool when serving browsers, which open several connections.');
+  Writeln('-t --thread-mode=MODE Connection handling model. MODE is one of:');
+  Writeln('                        none   - Serial, single thread (default). Blocks while');
+  Writeln('                                 reading each connection.');
+  Writeln('                        polled - Single thread, only handles connections that');
+  Writeln('                                 have data waiting; does not block on idle sockets.');
+  Writeln('                        thread - One thread per connection.');
+  Writeln('                        pool   - Thread pool.');
+  Writeln('                      Use polled, thread or pool when serving browsers, which');
+  Writeln('                      open several connections (some of which stay idle).');
   {$IFNDEF VER3_2}
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
   Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
