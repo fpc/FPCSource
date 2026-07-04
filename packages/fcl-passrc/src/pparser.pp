@@ -8632,6 +8632,7 @@ begin
   Parser.ExpectIdentifier;
   Expr:=Parser.CreatePrimitiveExpr(ForLoop,pekIdent,Parser.CurTokenString);
   ForLoop.VariableName:=Expr;
+  ForLoop.IsVarDef:=IsVarDef;
   repeat
     Parser.NextToken;
     case Parser.CurToken of
