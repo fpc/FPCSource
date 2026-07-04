@@ -180,9 +180,10 @@ type
   end;
 
   TTocEntry = record
-    PageBookInfoOffset: DWord;
-    IncrementedInt: DWord; // first is $29A
-    TopicsIndex: DWord; // Index of Entry in #TOPICS file
+    PageBookInfoOffset: DWord; // index to TTocEntrypageBookInfo record.
+    IncrementedInt: DWord;     // first is $29A = 666
+    TopicsOffsetIndex :DWord;  // (nr2) index to topics file entries in tocidx
+    TopicsIndex: DWord;        // Index of Entry in #TOPICS file
   end;
 
   TTopicEntry = record

@@ -1813,7 +1813,6 @@ var
   Entry: TTocEntry;
   EntryInfo: TTOCEntryPageBookInfo;
 
-
   EntryInfoStream,
   EntryTopicOffsetStream,
   EntryStream: TMemoryStream;
@@ -1826,7 +1825,8 @@ var
   MenuItem: TChmSiteMapItem;
   MenuItems: TChmSiteMapItems;
   TopicEntry: TTopicEntry;
-  EntryCount: DWord = $29A;
+  TopicsOffset : DWord;
+  EntryCount: DWord;
   procedure FixParentBookFirstChildOffset(AChildOffset: DWord);
   var
     ParentEntry: TTOCEntryPageBookInfo;
@@ -1850,9 +1850,8 @@ begin
   EntryInfoStream := TMemoryStream.Create;
   EntryTopicOffsetStream := TMemoryStream.Create;
   EntryStream := TMemoryStream.Create;
-
+  EntryCount:=666;
   NextLevelItems := TFPList.Create;
-
   NextLevelItems.Add(ASiteMap.Items);
 
   if NextLevelItems.Count = 0 then
@@ -1888,21 +1887,22 @@ begin
         TopicEntry.Unknown        := 0;
         EntryInfo.TopicsIndexOrStringsOffset := NtoLE(Dword(NextTopicIndex));;
         FTopicsStream.Write(TopicEntry, SizeOf(TopicEntry));
+        TopicsOffset:=EntryTopicOffsetStream.position;
         EntryTopicOffsetStream.WriteDWord(EntryInfo.TopicsIndexOrStringsOffset);
+        // topic offsets multiple here?
 
         // write TOCEntry
         Entry.PageBookInfoOffset:= NtoLE(4096 + EntryInfoStream.Position);
         Entry.IncrementedInt  := NtoLE(EntryCount);
-        Entry.TopicsIndex:=0;
+        Entry.TopicsOffsetIndex:= TopicsOffset;   // absolute or relaltive?
+        Entry.TopicsIndex:=((ftopicsstream.Position) div 16)-1;
         EntryStream.Write(Entry, SizeOf(Entry));
         Inc(EntryCount);
-
       end
       else
       begin
         EntryInfo.TopicsIndexOrStringsOffset := NtoLE(AddString(MenuItem.Text));
       end;
-
 
         // write TOCEntryInfo
 
