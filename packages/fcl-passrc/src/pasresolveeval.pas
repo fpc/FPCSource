@@ -233,6 +233,7 @@ const
   nSymbolXIsNotPortable = 5076; // was 3058
   nSymbolXIsNotImplemented = 5078; // was  3060
   nSymbolXIsExperimental = 5079;  // was 3059
+  nCannotTakeAddrOfBitPackedElement = 3221; // same ID as FPC parser_e_packed_element_no_var_addr
 
 // resourcestring patterns of messages
 resourcestring
@@ -384,6 +385,7 @@ resourcestring
   sCaseStatementNotCovered = 'Case statement does not handle all possible cases';
   sCaseElseUnreachable = 'Case else branch is unreachable - all cases are already handled';
   sAttributeNotAllowedHere = 'Attribute is not allowed here';
+  sCannotTakeAddrOfBitPackedElement = 'The address cannot be taken of bit packed array elements and record fields';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

@@ -8628,6 +8628,7 @@ begin
     if not IsVarDef then
       Parser.UngetToken;
     end;
+  ForLoop.IsVarDef:=isVarDef; // set on every parse path (for var I:=, for var I: T:=, for var I in)
   SrcPos:=Parser.CurTokenPos;
   Parser.ExpectIdentifier;
   Expr:=Parser.CreatePrimitiveExpr(ForLoop,pekIdent,Parser.CurTokenString);

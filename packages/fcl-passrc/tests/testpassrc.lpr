@@ -11,7 +11,7 @@ uses
   tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
   tcexprparser, tcprocfunc, tcpassrcutil, TCGenerics, paswrite, tcPasWriteStatements,
   TCResolver, TCResolveGenerics, TCResolveMultiErrors,
-  TCUseAnalyzer;
+  TCUseAnalyzer, tcnativeresolver;
 
 type
 

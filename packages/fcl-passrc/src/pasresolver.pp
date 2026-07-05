@@ -581,7 +581,13 @@ type
     bfAssert,
     bfNew,
     bfDispose,
-    bfDefault
+    bfDefault,
+    // Const-eval intrinsics for the native target; registered only by
+    // TPasNativeResolver, left unregistered (inert) in the base/pas2js setup.
+    bfSizeOf,
+    bfBitSizeOf,
+    bfTrunc,
+    bfRound
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -619,7 +625,11 @@ const
     'Assert',
     'New',
     'Dispose',
-    'Default'
+    'Default',
+    'SizeOf',
+    'BitSizeOf',
+    'Trunc',
+    'Round'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -969,6 +979,7 @@ type
     CanonicalSet: TPasSetType;
     destructor Destroy; override;
   end;
+  TPasEnumTypeScopeClass = class of TPasEnumTypeScope;
 
   { TPasGenericParamsScope - used during parsing TPasGenericTemplateType(s) }
 
@@ -1534,6 +1545,7 @@ type
     FScopeClass_Class: TPasClassScopeClass;
     FScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass;
     FScopeClass_Module: TPasModuleScopeClass;
+    FScopeClass_EnumType: TPasEnumTypeScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
     FScopeClass_ProcType: TPasProcTypeScopeClass;
     FScopeClass_Record: TPasRecordScopeClass;
@@ -1841,7 +1853,13 @@ type
       Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     procedure OnRangeCheckEl(Sender: TResExprEvaluator; El: TPasElement;
       var MsgType: TMessageType); virtual;
-    function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
+    function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue; virtual;
+    // Native-target const-fold seams: the base returns nil (= not folded) so the
+    // stock behaviour proceeds unchanged; TPasNativeResolver overrides them to
+    // fold a constant-integer cast to a pointer type and to degrade an address-of.
+    function EvalNativePointerCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalValue; virtual;
+    function EvalNativeNamedPointerCast(Params: TParamsExpr): TResEvalValue; virtual;
+    function EvalNativeAddressOf(Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalLengthOfString(ParamResolved: TPasResolverResult;
       Param: TPasExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
   protected
@@ -2212,6 +2230,40 @@ type
       out Line, Column: integer);
     class function GetDbgSourcePosStr(El: TPasElement): string;
     function GetElementSourcePosStr(El: TPasElement): string;
+    // Range/overflow-checked marking, recorded on the element's state-flag set
+    // (TPasElement.States) at parse time from the {$R+}/{$Q+} scanner switches.
+    // Target-agnostic base methods (not native-specific).
+    procedure MarkRangeChecked(El: TPasElement);
+    function IsRangeChecked(El: TPasElement): Boolean;
+    procedure MarkOverflowChecked(El: TPasElement);
+    function IsOverflowChecked(El: TPasElement): Boolean;
+    // Native memory-layout packing directives, captured per type at its
+    // declaration ({$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS}). Base defaults are
+    // pas2js-safe (no packing: get 0, set no-op); TPasNativeResolver overrides
+    // these to store/retrieve the value per element.
+    procedure SetMinEnumSize(El: TPasElement; ASize: Integer); virtual;
+    function GetMinEnumSize(El: TPasElement): Integer; virtual;
+    procedure SetPackSet(El: TPasElement; ASize: Integer); virtual;
+    function GetPackSet(El: TPasElement): Integer; virtual;
+    procedure SetPackRecords(El: TPasElement; ASize: Integer); virtual;
+    function GetPackRecords(El: TPasElement): Integer; virtual;
+    // True when a pointer type permits pointer arithmetic (+/-) and indexing
+    // regardless of the use-site {$POINTERMATH} switch. Base default False
+    // (pas2js has no pointer arithmetic); a native resolver returns True for the
+    // untyped Pointer, a pointer declared under {$POINTERMATH ON}
+    // (pesfPointerMath), or a PChar-family pointer.
+    function IsPointerMathType(El: TPasType): Boolean; virtual;
+    // True when Inc/Dec is permitted on a pointer of type El. Base default False;
+    // a native target allows Inc/Dec on any pointer (switch-independent).
+    function AllowIncDecOnPointer(El: TPasType): Boolean; virtual;
+    // True when Expr accesses a bit-packed ordinal array element / record field
+    // whose byte address cannot be taken. Base default False (pas2js has no
+    // bit-packing); a native resolver computes it from the packed bit width.
+    function IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean; virtual;
+    // Copies the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} pack values from a
+    // generic template element to its specialized element (called from both the
+    // nested-element and the top-level generic-type specialization paths).
+    procedure SpecializePackValues(GenEl, SpecEl: TPasElement);
     procedure SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
       Const Fmt : String; Args : Array of const;
       PosEl: TPasElement);
@@ -2329,6 +2381,10 @@ type
     function IsVariableConst(El, PosEl: TPasElement; RaiseIfConst: boolean): boolean; virtual;
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult;
       PosEl: TPasElement; RaiseIfConst: boolean = true): boolean;
+    // True for a writable string character-index l-value (s[i]) backed by a real
+    // string variable — ComputeArrayParams marks rrfAssignable (not // rrfWritable). 
+    //  Used to admit s[i] as an var/out actual (ReadBufferidiom); 
+    function IsStringCharIndexLValue(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassOrRecordInstance(const ResolvedEl: TPasResolverResult): boolean;
     // utility functions
     function GetResolver(El: TPasElement): TPasResolver;
@@ -2489,6 +2545,7 @@ type
     property ScopeClass_Module: TPasModuleScopeClass read FScopeClass_Module write FScopeClass_Module;
     property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
     property ScopeClass_ProcType: TPasProcTypeScopeClass read FScopeClass_ProcType write FScopeClass_ProcType;
+    property ScopeClass_EnumType: TPasEnumTypeScopeClass read FScopeClass_EnumType write FScopeClass_EnumType;
     property ScopeClass_Record: TPasRecordScopeClass read FScopeClass_Record write FScopeClass_Record;
     property ScopeClass_Section: TPasSectionScopeClass read FScopeClass_Section write FScopeClass_Section;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
@@ -5940,9 +5997,14 @@ begin
     RaiseInternalError(20160922163327); // unknown module
 
   // check all methods have bodies
-  // and all forward classes and pointers are resolved
-  for i:=0 to FPendingForwardProcs.Count-1 do
-    CheckPendingForwardProcs(TPasElement(FPendingForwardProcs[i]));
+  // and all forward classes and pointers are resolved.
+  // Under interface-only resolution the module's implementation section is not
+  // parsed, so an interface routine/method whose body lives there has no
+  // ImplProc; skip the check to avoid a spurious "Forward proc not resolved".
+  // Inert by default (InterfaceOnly=False): the loop runs exactly as before.
+  if not InterfaceOnly then
+    for i:=0 to FPendingForwardProcs.Count-1 do
+      CheckPendingForwardProcs(TPasElement(FPendingForwardProcs[i]));
   FPendingForwardProcs.Clear;
 
   // close all sections
@@ -8028,6 +8090,10 @@ begin
     // check for cycles
     if ResolvedAbs.IdentEl=El then
       RaiseMsg(20171226000703,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+    // an absolute over a bit-packed element needs its byte address, which is illegal
+    if IsBitPackedOrdinalAccess(El.AbsoluteExpr) then
+      RaiseMsg(20260622120100,nCannotTakeAddrOfBitPackedElement,
+        sCannotTakeAddrOfBitPackedElement,[],El.AbsoluteExpr);
     end;
   if El.VarType<>nil then
     EmitTypeHints(El,El.VarType);
@@ -8408,8 +8474,19 @@ begin
           ['published property','"'+VariableModifierNames[m]+'"'],PropEl);
 
   PropType:=nil;
-  MembersType:=PropEl.Parent as TPasMembersType;
-  ClassOrRecScope:=NoNil(MembersType.CustomData) as TPasClassOrRecordScope;
+  // A unit-level (global) property has a section owner, not a class/record; the
+  // members-type / class-or-record scope stay nil and control falls through the
+  // ClassScope=nil new-property path below (GetPropType uses PropEl.VarType).
+  if PropEl.Parent is TPasMembersType then
+    begin
+    MembersType:=TPasMembersType(PropEl.Parent);
+    ClassOrRecScope:=NoNil(MembersType.CustomData) as TPasClassOrRecordScope;
+    end
+  else
+    begin
+    MembersType:=nil;
+    ClassOrRecScope:=nil;
+    end;
   ClassScope:=nil;
   CurClass:=nil;
   if ClassOrRecScope is TPasClassScope then
@@ -11957,7 +12034,8 @@ procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
     if not IsStringIndex then
       begin
       // pointer
-      if not ElHasBoolSwitch(Params,bsPointerMath) then
+      if not (ElHasBoolSwitch(Params,bsPointerMath)
+          or IsPointerMathType(ResolvedValue.LoTypeEl)) then
         exit(false);
       end;
     Result:=true;
@@ -12962,7 +13040,7 @@ begin
     begin
     // anonymous enumtype
     end;
-  EnumScope:=TPasEnumTypeScope(PushScope(El,TPasEnumTypeScope));
+  EnumScope:=TPasEnumTypeScope(PushScope(El,ScopeClass_EnumType));
   // add canonical set
   if El.Parent is TPasSetType then
     begin
@@ -13034,7 +13112,12 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProperty ',GetObjName(El));
   {$ENDIF}
-  if not (GetLocalScope is TPasClassOrRecordScope) then
+  // A property may also be declared at unit scope (a global property backed by
+  // read/write functions, as the RTL uses); its local scope is then a section
+  // scope, not a class/record scope. TPasSectionScope is a TPasIdentifierScope,
+  // so the AddIdentifier/PushScope below accept it unchanged.
+  if not ((GetLocalScope is TPasClassOrRecordScope)
+      or (GetLocalScope is TPasSectionScope)) then
     RaiseInvalidScopeForElement(20160922163520,El);
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
   PushScope(El,TPasPropertyScope);
@@ -13767,7 +13850,8 @@ begin
         else if RightResolved.BaseType=btPointer then
           begin
           if (Bin.OpCode in [eopAdd,eopSubtract])
-              and ElHasBoolSwitch(Bin,bsPointerMath) then
+              and (ElHasBoolSwitch(Bin,bsPointerMath)
+                or IsPointerMathType(RightResolved.LoTypeEl)) then
             begin
             // integer+CanonicalPointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -13781,7 +13865,8 @@ begin
           if RightTypeEl.ClassType=TPasPointerType then
             begin
             if (Bin.OpCode in [eopAdd,eopSubtract])
-                and ElHasBoolSwitch(Bin,bsPointerMath) then
+                and (ElHasBoolSwitch(Bin,bsPointerMath)
+                  or IsPointerMathType(RightTypeEl)) then
               begin
               // integer+TypedPointer
               RightTypeEl:=TPasPointerType(RightTypeEl).DestType;
@@ -13899,7 +13984,8 @@ begin
       if (RightResolved.BaseType in btAllInteger) then
         case Bin.OpCode of
         eopAdd,eopSubtract:
-          if ElHasBoolSwitch(Bin,bsPointerMath) then
+          if (ElHasBoolSwitch(Bin,bsPointerMath)
+              or IsPointerMathType(LeftResolved.LoTypeEl)) then
             begin
             // pointer+integer -> pointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -14228,7 +14314,8 @@ begin
         else if LeftTypeEl.ClassType=TPasPointerType then
           begin
           if (RightResolved.BaseType in btAllInteger)
-              and ElHasBoolSwitch(Bin,bsPointerMath) then
+              and (ElHasBoolSwitch(Bin,bsPointerMath)
+                or IsPointerMathType(LeftTypeEl)) then
             begin
             // TypedPointer+Integer
             SetLeftValueExpr([rrfReadable]);
@@ -16582,7 +16669,11 @@ begin
   writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags,' refConstExt=',refConstExt in Flags);
   {$ENDIF}
   if (Result=nil) and ([refConst,refConstExt]*Flags<>[]) then
-    RaiseConstantExprExp(20170518213616,Expr);
+    begin
+    Result:=EvalNativeAddressOf(Expr,Flags);
+    if Result=nil then
+      RaiseConstantExprExp(20170518213616,Expr);
+    end;
   if Sender=nil then ;
 end;
 
@@ -16673,7 +16764,11 @@ begin
           end
         else
           RaiseNotYetImplemented(20171009223303,Params);
-        end;
+        end
+      else if C=TPasPointerType then
+        // typecast to a named pointer type: base leaves unfolded (nil), a
+        // native resolver may fold a constant integer operand.
+        Result:=EvalNativeNamedPointerCast(Params);
       end;
   pekSet: ;
   end;
@@ -16689,6 +16784,30 @@ begin
       and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
     MsgType:=mtError;
   if Sender=nil then ;
+end;
+
+function TPasResolver.EvalNativePointerCast(Params: TParamsExpr;
+  bt: TResolverBaseType): TResEvalValue;
+begin
+  // Base default: not folded (stock raises). TPasNativeResolver overrides this
+  // to fold a constant integer cast to a pointer base type.
+  Result:=nil;
+end;
+
+function TPasResolver.EvalNativeNamedPointerCast(Params: TParamsExpr): TResEvalValue;
+begin
+  // Base default: not folded (falls through unresolved, as stock does for a
+  // named pointer-type cast). TPasNativeResolver overrides this to fold a
+  // constant integer cast to a named pointer type (e.g. PAnsiChar(1)).
+  Result:=nil;
+end;
+
+function TPasResolver.EvalNativeAddressOf(Expr: TPrimitiveExpr;
+  Flags: TResEvalFlags): TResEvalValue;
+begin
+  // Base default: not folded (stock raises). TPasNativeResolver overrides this
+  // to degrade an address-of (@X) to an opaque pointer value.
+  Result:=nil;
 end;
 
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
@@ -16893,10 +17012,14 @@ begin
         end
       else
         begin
-        {$IFDEF VerbosePasResEval}
-        writeln('TPasResolver.OnExprEvalParams typecast int to ',bt);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170624194308,Params);
+        Result:=EvalNativePointerCast(Params,bt);
+        if Result=nil then
+          begin
+          {$IFDEF VerbosePasResEval}
+          writeln('TPasResolver.OnExprEvalParams typecast int to ',bt);
+          {$ENDIF}
+          RaiseNotYetImplemented(20170624194308,Params);
+          end;
         end;
       end;
     revkBool:
@@ -18555,6 +18678,11 @@ begin
   else
     RaiseNotYetImplemented(20190728134933,GenericEl);
 
+  // A top-level generic type is specialized here, NOT via SpecializeElement, so
+  // propagate the template's pack values onto the specialized type now that its
+  // scope exists (SpecializeRecordType/etc. above created it).
+  SpecializePackValues(GenericEl,SpecEl);
+
   {$IFDEF VerbosePasResolver}
   WriteScopesShort('TPasResolver.SpecializeGenericIntf Finish: '+SpecEl.FullName);
   {$ENDIF}
@@ -18882,6 +19010,18 @@ begin
   // first copy source filename and linenumber needed by error messages
   SpecializePasElementProperties(GenEl,SpecEl);
 
+  (*
+     propagate the {$R+}/{$Q+} state flags from the generic template. 
+    These live on TPasElement.States (always present), so they can be copied up-front. 
+    The {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} values live on the specialized
+    type's scope/resolve-data, which is only created by the type-specific
+    handling below, so they are propagated at the end (see bottom of method). 
+  *)
+  if IsRangeChecked(GenEl) then
+    MarkRangeChecked(SpecEl);
+  if IsOverflowChecked(GenEl) then
+    MarkOverflowChecked(SpecEl);
+
   C:=GenEl.ClassType;
   // expressions
   if C=TPrimitiveExpr then
@@ -19066,6 +19206,13 @@ begin
     RaiseMsg(20210101234958,nSymbolCannotBeExportedFromALibrary,sSymbolCannotBeExportedFromALibrary,[],GenEl)
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
+
+  (*  propagate the {$MINENUMSIZE}/{$PACKSET}/{$PACKRECORDS} packing values now
+     that the specialized type's scope/resolve-data (its storage site) exists.
+     (Nested-element path; top-level generic types are handled in
+     SpecializeGenericIntf, which does not route through here.) 
+  *)
+  SpecializePackValues(GenEl,SpecEl);
 end;
 
 procedure TPasResolver.SpecializePasElementProperties(GenEl, SpecEl: TPasElement
@@ -20512,14 +20659,16 @@ begin
     Result:=cExact
   else if bt=btPointer then
     begin
-    if ElHasBoolSwitch(Expr,bsPointerMath) then
+    if ElHasBoolSwitch(Expr,bsPointerMath)
+        or AllowIncDecOnPointer(ParamResolved.LoTypeEl) then
       Result:=cExact;
     end
   else if bt=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
-        and ElHasBoolSwitch(Expr,bsPointerMath) then
+        and (ElHasBoolSwitch(Expr,bsPointerMath)
+          or AllowIncDecOnPointer(TypeEl)) then
       Result:=cExact
     else if TypeEl.ClassType=TPasRangeType then
       Result:=cExact;
@@ -22437,6 +22586,7 @@ begin
   FScopeClass_Module:=TPasModuleScope;
   FScopeClass_Proc:=TPasProcedureScope;
   FScopeClass_ProcType:=TPasProcTypeScope;
+  FScopeClass_EnumType:=TPasEnumTypeScope;
   FScopeClass_Record:=TPasRecordScope;
   FScopeClass_Section:=TPasSectionScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
@@ -22608,6 +22758,128 @@ begin
     RaiseNotYetImplemented(20160922163544,El);
 
   Result:=El;
+
+  // Record whether this node was parsed while range/overflow checking was
+  // active, so a consumer can emit the check. Captured here because the scanner
+  // switch state is only correct at parse time; a specialization propagates the
+  // flags in SpecializeElement.
+  if (CurrentParser<>nil) and (CurrentParser.Scanner<>nil) then
+    begin
+    if ((El is TPasImplAssign) or (El is TPasImplSimple))
+        and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
+      MarkRangeChecked(El);
+    if (El is TBinaryExpr)
+        and (bsOverflowChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
+      MarkOverflowChecked(El);
+
+    // Capture the active packing directive per type at its declaration. The
+    // Set* seams are no-ops in the base (pas2js-safe); a native resolver stores
+    // them per element.
+    if El is TPasEnumType then
+      SetMinEnumSize(El,
+        StrToIntDef(CurrentParser.Scanner.CurrentValueSwitch[vsMinEnumSize],0))
+    else if El is TPasSetType then
+      SetPackSet(El,
+        StrToIntDef(CurrentParser.Scanner.CurrentValueSwitch[vsPackSet],0))
+    else if El is TPasRecordType then
+      SetPackRecords(El,
+        StrToIntDef(CurrentParser.Scanner.CurrentValueSwitch[vsPackRecords],0));
+
+    // A pointer type declared while {$POINTERMATH ON} permits pointer arithmetic
+    // for the rest of its life, independent of the use-site switch (target-
+    // agnostic parse fact; only a native resolver queries it via IsPointerMathType).
+    if (El is TPasPointerType)
+        and (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
+      Include(El.States,pesfPointerMath);
+    end;
+end;
+
+procedure TPasResolver.MarkRangeChecked(El: TPasElement);
+begin
+  if El<>nil then
+    Include(El.States,pesfRangeChecked);
+end;
+
+function TPasResolver.IsRangeChecked(El: TPasElement): Boolean;
+begin
+  Result:=(El<>nil) and (pesfRangeChecked in El.States);
+end;
+
+procedure TPasResolver.MarkOverflowChecked(El: TPasElement);
+begin
+  if El<>nil then
+    Include(El.States,pesfOverflowChecked);
+end;
+
+function TPasResolver.IsOverflowChecked(El: TPasElement): Boolean;
+begin
+  Result:=(El<>nil) and (pesfOverflowChecked in El.States);
+end;
+
+procedure TPasResolver.SetMinEnumSize(El: TPasElement; ASize: Integer);
+begin
+  // pas2js-safe default: no native packing recorded.
+  if (El=nil) or (ASize=0) then ;
+end;
+
+function TPasResolver.GetMinEnumSize(El: TPasElement): Integer;
+begin
+  Result:=0; // natural size
+  if El=nil then ;
+end;
+
+procedure TPasResolver.SetPackSet(El: TPasElement; ASize: Integer);
+begin
+  if (El=nil) or (ASize=0) then ;
+end;
+
+function TPasResolver.GetPackSet(El: TPasElement): Integer;
+begin
+  Result:=0;
+  if El=nil then ;
+end;
+
+procedure TPasResolver.SetPackRecords(El: TPasElement; ASize: Integer);
+begin
+  if (El=nil) or (ASize=0) then ;
+end;
+
+function TPasResolver.GetPackRecords(El: TPasElement): Integer;
+begin
+  Result:=0;
+  if El=nil then ;
+end;
+
+function TPasResolver.IsPointerMathType(El: TPasType): Boolean;
+begin
+  // pas2js-safe default: no pointer arithmetic. TPasNativeResolver overrides.
+  Result:=False;
+  if El=nil then ;
+end;
+
+function TPasResolver.AllowIncDecOnPointer(El: TPasType): Boolean;
+begin
+  // pas2js-safe default: no pointer Inc/Dec. TPasNativeResolver overrides.
+  Result:=False;
+  if El=nil then ;
+end;
+
+function TPasResolver.IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean;
+begin
+  // pas2js-safe default: no bit-packing. TPasNativeResolver overrides this to
+  // detect a bit-packed ordinal field/element access.
+  Result:=False;
+  if Expr=nil then ;
+end;
+
+procedure TPasResolver.SpecializePackValues(GenEl, SpecEl: TPasElement);
+begin
+  if GetMinEnumSize(GenEl)>0 then
+    SetMinEnumSize(SpecEl,GetMinEnumSize(GenEl));
+  if GetPackSet(GenEl)>0 then
+    SetPackSet(SpecEl,GetPackSet(GenEl));
+  if GetPackRecords(GenEl)>0 then
+    SetPackRecords(SpecEl,GetPackRecords(GenEl));
 end;
 
 function TPasResolver.CreateOwnedElement(AClass: TPTreeElement;
@@ -27149,6 +27421,16 @@ begin
     exit(NotLocked(IdentEl));
 end;
 
+function TPasResolver.IsStringCharIndexLValue(
+  const ResolvedEl: TPasResolverResult): boolean;
+begin
+  Result:=([rrfReadable,rrfAssignable]*ResolvedEl.Flags=[rrfReadable,rrfAssignable])
+    and (ResolvedEl.BaseType in btAllChars)
+    and (ResolvedEl.ExprEl is TParamsExpr)
+    and (TParamsExpr(ResolvedEl.ExprEl).Kind=pekArrayParams)
+    and (ResolvedEl.IdentEl<>nil);
+end;
+
 function TPasResolver.ResolvedElIsClassOrRecordInstance(
   const ResolvedEl: TPasResolverResult): boolean;
 var
@@ -27688,8 +27970,11 @@ begin
   NeedVar:=Param.Access in [argVar, argOut];
   if NeedVar then
     begin
-    // Expr must be a variable
-    if not ResolvedElCanBeVarParam(ExprResolved,Expr) then
+    // Expr must be a variable. An untyped var/out additionally accepts a writable
+    // string char-index l-value (s[i], the Stream.ReadBuffer(s[1],..) idiom):
+    // ComputeArrayParams marks it rrfAssignable (not rrfWritable), 
+    if not ResolvedElCanBeVarParam(ExprResolved,Expr)
+        and not ((Param.ArgType=nil) and IsStringCharIndexLValue(ExprResolved)) then
       begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.CheckParamCompatibility NeedWritable: ',GetResolverResultDbg(ExprResolved));
@@ -27701,6 +27986,14 @@ begin
         else
           RaiseVarExpected(20180430012457,Expr,ExprResolved.IdentEl);
         end;
+      exit;
+      end;
+    // a bit-packed ordinal field/element cannot be passed by reference
+    if IsBitPackedOrdinalAccess(Expr) then
+      begin
+      if RaiseOnError then
+        RaiseMsg(20260622120200,nCannotTakeAddrOfBitPackedElement,
+          sCannotTakeAddrOfBitPackedElement,[],Expr);
       exit;
       end;
     if (Param.ArgType=nil) then
@@ -29596,6 +29889,9 @@ begin
             ResolvedEl.LoTypeEl,ResolvedEl.HiTypeEl,TUnaryExpr(El).Operand,[rrfReadable]);
           exit;
           end
+        else if IsBitPackedOrdinalAccess(TUnaryExpr(El).Operand) then
+          RaiseMsg(20260622120000,nCannotTakeAddrOfBitPackedElement,
+            sCannotTakeAddrOfBitPackedElement,[],TUnaryExpr(El).Operand)
         else if (rrfReadable in ResolvedEl.Flags) and (ResolvedEl.BaseType<>btPointer) then
           begin
           SetResolverValueExpr(ResolvedEl,btPointer,
