@@ -1711,7 +1711,6 @@ type
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Variable: TPasVariable; // not used by TPasParser
     VarType : TPasType; // For initialized variables
-    IsVarDef : Boolean; // For var i :=
     ImplicitTyped : Boolean;
     Body: TPasImplElement;
     Function Down: boolean; inline;// downto, backward compatibility
