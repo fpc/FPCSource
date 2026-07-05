@@ -140,6 +140,16 @@ type
 
   TOnForEachPasElement = procedure(El: TPasElement; arg: pointer) of object;
 
+  { Extensible per-element state recorded during resolution:
+    e.g. whether a statement/expression was parsed while range/overflow checking was active. 
+    Further flags may be added here. }
+  TPasElementStateFlag = (
+    pesfRangeChecked,    // parsed while {$R+} (range checking) was active
+    pesfOverflowChecked, // parsed while {$Q+} (overflow checking) was active
+    pesfPointerMath      // a pointer type declared while {$POINTERMATH ON} was active
+    );
+  TPasElementStateFlags = set of TPasElementStateFlag;
+
   { TPasElement }
 
   TPasElement = class(TPasElementBase)
@@ -161,6 +171,7 @@ type
     SourceLinenumber: Integer;
     SourceEndLinenumber: Integer;
     Visibility: TPasMemberVisibility;
+    States: TPasElementStateFlags; // extensible resolution-time state flags
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); virtual;
     destructor Destroy; override;
     Class Function IsKeyWord(Const S : TPasTreeString) : Boolean;
@@ -173,7 +184,7 @@ type
       const Arg: Pointer); virtual;
     procedure ForEachChildCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer; Child: TPasElement; CheckParent: boolean); virtual;
-    Function SafeName : TPasTreeString; virtual;                // Name but with & prepended if name is a keyword.
+    Function SafeName : TPasTreeString; virtual;        // Name but with & prepended if name is a keyword.
     function FullPath: TPasTreeString;                  // parent's names, until parent is not TPasDeclarations
     function ParentPath: TPasTreeString;                // parent's names
     function FullName: TPasTreeString; virtual;         // FullPath + Name
@@ -1694,6 +1705,7 @@ type
   public
     VariableName : TPasExpr;
     LoopType : TLoopType;
+    IsVarDef : Boolean; // true when the loop variable is declared inline (for var i := ...)
     StartExpr : TPasExpr;
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Variable: TPasVariable; // not used by TPasParser
