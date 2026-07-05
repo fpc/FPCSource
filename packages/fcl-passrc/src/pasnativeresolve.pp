@@ -44,9 +44,7 @@ type
   TPasNativeResolver = class(TPasResolver)
   private
     FTargetPointerSize: Integer;
-    // Target-correct byte size of aType, or -1 when not determinable. 
-    function TypeByteSize(aType: TPasType): Integer;
-    // SizeOf/BitSizeOf/Trunc/Round all take exactly one argument; 
+    // SizeOf/BitSizeOf/Trunc/Round all take exactly one argument;
     function BI_OneParam_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer;
     procedure BI_SizeOf_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -62,6 +60,10 @@ type
     // Registers the FPC compiler-intrinsic type names as base-type aliases
     procedure AddNativeIntrinsicTypes;
   protected
+    // Target-correct byte size of aType in bytes, or -1 when not determinable
+    // (aggregate/opaque/target-dependent float). Uses TargetPointerSize for the
+    // pointer family. A native consumer may query this for {$if sizeof(T)} folds.
+    function TypeByteSize(aType: TPasType): Integer;
     // Folds a constant integer cast to a pointer base type (e.g. pointer(-1) -> -1
     // Non-integer/non-constant operands degrade to nil.
     function EvalNativePointerCast(Params: TParamsExpr;
