@@ -433,7 +433,10 @@ type
   TValueSwitch = (
     vsInterfaces,
     vsDispatchField,
-    vsDispatchStrField
+    vsDispatchStrField,
+    vsMinEnumSize, // {$MINENUMSIZE n} / {$PACKENUM n}: minimum enum storage size
+    vsPackSet,     // {$PACKSET n}: set storage granularity (bytes)
+    vsPackRecords  // {$PACKRECORDS n}: record field alignment (bytes)
     );
   TValueSwitches = set of TValueSwitch;
   TValueSwitchArray = array[TValueSwitch] of TPasScannerString;
@@ -442,7 +445,10 @@ const
   DefaultValueSwitches: array[TValueSwitch] of TPasScannerString = (
      'com', // vsInterfaces
      'Msg', // vsDispatchField
-     'MsgStr' // vsDispatchStrField
+     'MsgStr', // vsDispatchStrField
+     '0', // vsMinEnumSize (0 = natural size)
+     '0', // vsPackSet (0 = natural)
+     '0' // vsPackRecords (0 = natural alignment)
      );
   DefaultMaxIncludeStackDepth = 20;
 
@@ -901,6 +907,7 @@ type
     procedure HandleENDIF(const AParam: TPasScannerString);
     procedure HandleDefine(Param: TPasScannerString); virtual;
     procedure HandleDispatchField(Param: TPasScannerString; vs: TValueSwitch); virtual;
+    procedure HandlePackValue(vs: TValueSwitch; const Param: TPasScannerString); virtual;
     procedure HandleError(Param: TPasScannerString); virtual;
     procedure HandleMessageDirective(Param: TPasScannerString); virtual;
     procedure HandleIncludeFile(Param: TPasScannerString); virtual;
@@ -1280,7 +1287,10 @@ const
   ValueSwitchNames: array[TValueSwitch] of TPasScannerString = (
     'Interfaces', // vsInterfaces
     'DispatchField', // vsDispatchField
-    'DispatchStrField' // vsDispatchStrField
+    'DispatchStrField', // vsDispatchStrField
+    'MinEnumSize', // vsMinEnumSize
+    'PackSet', // vsPackSet
+    'PackRecords' // vsPackRecords
     );
 
 const
@@ -4872,6 +4882,20 @@ begin
   CurrentValueSwitch[vs]:=NewValue;
 end;
 
+procedure TPascalScanner.HandlePackValue(vs: TValueSwitch; const Param: TPasScannerString);
+// {$MINENUMSIZE/$PACKENUM/$PACKSET/$PACKRECORDS n}: n is 1/2/4/8, or
+// "default"/"normal" (-> 0 = natural).
+var
+  S: TPasScannerString;
+begin
+  if not (vs in AllowedValueSwitches) then
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,[ValueSwitchNames[vs]]);
+  S:=Trim(Param);
+  if SameText(S,'DEFAULT') or SameText(S,'NORMAL') then
+    S:='0';
+  CurrentValueSwitch[vs]:=S;
+end;
+
 procedure TPascalScanner.HandleError(Param: TPasScannerString);
 begin
   if po_StopOnErrorDirective in Options then
@@ -5341,6 +5365,12 @@ begin
         HandleDispatchField(Param,vsDispatchField);
       'DISPATCHSTRFIELD':
         HandleDispatchField(Param,vsDispatchStrField);
+      'MINENUMSIZE', 'PACKENUM':
+        HandlePackValue(vsMinEnumSize,Param);
+      'PACKSET':
+        HandlePackValue(vsPackSet,Param);
+      'PACKRECORDS':
+        HandlePackValue(vsPackRecords,Param);
       'ERROR':
         HandleError(Param);
       'HINT':
@@ -5409,9 +5439,7 @@ begin
         DoBoolDirective(bsWriteableConst);
       'ALIGN',
       'CALLING',
-      'INLINE',
-      'PACKRECORDS',
-      'PACKENUM' : ;
+      'INLINE' : ;
       else
         Handled:=false;
       end;
