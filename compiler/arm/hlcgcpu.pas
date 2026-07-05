@@ -255,12 +255,12 @@ implementation
 
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
       if GenerateThumbCode then
         hlcg:=tthumbhlcgcpu.create
       else
-        hlcg:=tarmhlcgcpu.create;
+        hlcg:=tarmhlcgcpu.create(hlcgobjhelpers);
       create_codegen;
     end;
 

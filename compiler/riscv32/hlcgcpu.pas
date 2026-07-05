@@ -36,8 +36,6 @@ interface
     thlcgcpu = class(thlcgriscv)
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -48,7 +46,7 @@ implementation
 
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -57,5 +55,6 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.
 

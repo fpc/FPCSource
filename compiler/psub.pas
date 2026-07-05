@@ -2045,7 +2045,7 @@ implementation
           end
         else
           begin
-            create_hlcodegen;
+            create_hlcodegen(nil);
 
             setup_eh;
 
@@ -2973,7 +2973,7 @@ implementation
                  else
 {$endif cpuhighleveltarget}
                    begin
-                     create_hlcodegen;
+                     create_hlcodegen(nil);
                      hlcg.handle_external_proc(
                        current_asmdata.asmlists[al_procedures],
                        result,

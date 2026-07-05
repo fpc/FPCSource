@@ -1393,7 +1393,7 @@ implementation
     procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
 {$ifndef cpuhighleveltarget}
-        create_hlcodegen;
+        create_hlcodegen(thlcgobjhelpers);
 {$endif}
         do_write_vmts(st,is_global);
 {$ifndef cpuhighleveltarget}

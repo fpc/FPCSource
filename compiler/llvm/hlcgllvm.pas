@@ -33,12 +33,11 @@ uses
   cpubase, hlcgobj, cgbase, cgutils, parabase, tgobj;
 
   type
-
-    { thlcgllvm }
+    thlcgllvmhelpers = class(thlcgobjhelpers)
+      class procedure gen_proc_symbol(list: TAsmList); override;
+    end;
 
     thlcgllvm = class(thlcgobj)
-      constructor create;
-
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
       procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
@@ -107,7 +106,7 @@ uses
       procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
      public
 
-      procedure gen_proc_symbol(list: TAsmList); override;
+
       procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
@@ -182,7 +181,7 @@ implementation
     cgcpu,hlcgcpu;
 
   var
-    create_hlcodegen_cpu: TProcedure = nil;
+    create_hlcodegen_cpu: tcreate_hlcgcodegen = nil;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -194,11 +193,36 @@ implementation
        la_none, la_none);
 
 
-  constructor thlcgllvm.create;
-    begin
-      inherited
+    class procedure thlcgllvmhelpers.gen_proc_symbol(list: TAsmList);
+      var
+        item: TCmdStrListItem;
+        mangledname: TSymStr;
+        asmsym: tasmsymbol;
+      begin
+        if po_external in current_procinfo.procdef.procoptions then
+          exit;
+        item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+        mangledname:=current_procinfo.procdef.mangledname;
+        { predefine the real function name as local/global, so the aliases can
+          refer to the symbol and get the binding correct }
+        if (cs_profile in current_settings.moduleswitches) or
+           (po_global in current_procinfo.procdef.procoptions) then
+          asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef)
+        else
+          asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
+        while assigned(item) do
+          begin
+            if mangledname<>item.Str then
+              list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,asmsym.bind));
+            item:=TCmdStrListItem(item.next);
+          end;
+        list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef.procsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
+        current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
+
+{ ********************************* }
+{ ********************************* }
 
   procedure thlcgllvm.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
     begin
@@ -1493,34 +1517,6 @@ implementation
     end;
 
 
-  procedure thlcgllvm.gen_proc_symbol(list: TAsmList);
-    var
-      item: TCmdStrListItem;
-      mangledname: TSymStr;
-      asmsym: tasmsymbol;
-    begin
-      if po_external in current_procinfo.procdef.procoptions then
-        exit;
-      item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
-      mangledname:=current_procinfo.procdef.mangledname;
-      { predefine the real function name as local/global, so the aliases can
-        refer to the symbol and get the binding correct }
-      if (cs_profile in current_settings.moduleswitches) or
-         (po_global in current_procinfo.procdef.procoptions) then
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef)
-      else
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
-      while assigned(item) do
-        begin
-          if mangledname<>item.Str then
-            list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,asmsym.bind));
-          item:=TCmdStrListItem(item.next);
-        end;
-      list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef.procsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
-      current_procinfo.procdef.procstarttai:=tai(list.last);
-    end;
-
-
   procedure thlcgllvm.handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr);
     begin
       { don't do anything, because at this point we can't know yet for certain
@@ -2282,19 +2278,19 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_llvm;
+  procedure create_hlcodegen_llvm(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
       if not assigned(current_procinfo) or
          not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
           tgobjclass:=ttgllvm;
-          hlcg:=thlcgllvm.create;
+          hlcg:=thlcgllvm.create(thlcgllvmhelpers);
           cgllvm.create_codegen
         end
       else
         begin
           tgobjclass:=orgtgclass;
-          create_hlcodegen_cpu;
+          create_hlcodegen_cpu(thlcgllvmhelpers);
           { todo: handle/remove chlcgobj }
         end;
     end;

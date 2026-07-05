@@ -109,9 +109,9 @@ implementation
 
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgcpu.create;
+      hlcg:=thlcgcpu.create(hlcgobjhelpers);
       create_codegen;
     end;
 

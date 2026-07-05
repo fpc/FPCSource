@@ -51,9 +51,9 @@ implementation
     procinfo,
     cgobj,cgcpu;
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgxtensa.create;
+      hlcg:=thlcgxtensa.create(hlcgobjhelpers);
       create_codegen;
     end;
 

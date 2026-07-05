@@ -283,9 +283,9 @@ implementation
   end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgmips.create;
+      hlcg:=thlcgmips.create(hlcgobjhelpers);
       create_codegen;
     end;
 

@@ -172,9 +172,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgloongarch64.create;
+      hlcg:=thlcgloongarch64.create(hlcgobjhelpers);
       create_codegen;
     end;
 

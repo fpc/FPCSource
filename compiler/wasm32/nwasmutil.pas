@@ -172,7 +172,7 @@ implementation
                   thlcgwasm(hlcg).g_procdef(list,proc,false);
             end;
          end;
-      create_hlcodegen;
+      create_hlcodegen(nil);
       InsertModuleInfo(list,current_module);
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do

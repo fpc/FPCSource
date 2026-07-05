@@ -221,9 +221,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgaarch64.create;
+      hlcg:=thlcgaarch64.create(hlcgobjhelpers);
       create_codegen;
     end;
 

@@ -42,7 +42,7 @@ uses
       fevalstackheight,
       fmaxevalstackheight: longint;
      public
-      constructor create;
+      constructor create; override; overload;
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
@@ -259,6 +259,7 @@ implementation
 
   constructor thlcgjvm.create;
     begin
+      inherited;
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
     end;
@@ -2571,9 +2572,9 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(hlcgobjhelpers: thlcgobjhelpersclass);
     begin
-      hlcg:=thlcgjvm.create;
+      hlcg:=thlcgjvm.create(hlcgobjhelpers);
       create_codegen;
     end;
 
