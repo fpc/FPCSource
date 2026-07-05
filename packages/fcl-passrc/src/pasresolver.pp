@@ -22696,6 +22696,7 @@ begin
       or (AClass=TPasPointerType)
       or (AClass=TPasSetType)
       or (AClass=TPasRangeType)
+      or (AClass=TPasFileType)
       or (AClass=TPasSpecializeType) then
     AddType(TPasType(El))
   else if AClass=TPasArrayType then
@@ -30112,6 +30113,8 @@ begin
     end
   else if ElClass=TPasArrayType then
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasArrayType(El),TPasArrayType(El),[])
+  else if ElClass=TPasFileType then
+    SetResolverIdentifier(ResolvedEl,btFile,El,TPasFileType(El),TPasFileType(El),[])
   else if ElClass=TArrayValues then
     SetResolverValueExpr(ResolvedEl,btArrayLit,nil,nil,TArrayValues(El),[rrfReadable])
   else if ElClass=TRecordValues then
