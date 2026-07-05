@@ -54,10 +54,20 @@ type
     NameExpr, InFileExpr: TPasExpr): TPasModule of object;
   TOnContinueParsing = procedure(Sender: TPasResolver) of object;
 
-  { TTestEnginePasResolver }
+  { TTestResolverPlumbing
 
-  TTestEnginePasResolver = class(TPasResolver)
+    The test-only scaffolding a resolver needs to be driven by the test harness:
+    the scanner/parser/stream-resolver it runs on, the source and filename under
+    test, the OnFindUnit callback, and the parsed module. Held as a separate
+    object (not baked into the resolver class) so that resolver descendants which
+    cannot share a common test-engine ancestor (e.g. a native-target resolver)
+    can each own one and delegate to it, rather than duplicating the plumbing.
+    The owning resolver passes itself to the constructor and is available as
+    Resolver. }
+
+  TTestResolverPlumbing = class
   private
+    FResolver: TPasResolver;
     FFilename: string;
     FModule: TPasModule;
     FOnFindUnit: TOnFindUnit;
@@ -66,6 +76,34 @@ type
     FScanner: TPascalScanner;
     FSource: string;
     procedure SetModule(AValue: TPasModule);
+  public
+    constructor Create(aResolver: TPasResolver);
+    destructor Destroy; override;
+    // Frees the parser/scanner and drops the stream-resolver reference; call
+    // from the owning resolver's destructor before inherited Destroy.
+    procedure ReleaseParserScanner;
+    // Post-step for the resolver's CreateElement override: records the first
+    // module element created.
+    procedure NoteCreatedElement(El: TPasElement; AClass: TPTreeElement);
+    // Body of the resolver's FindUnit override: dispatches to OnFindUnit with
+    // the owning resolver as the source.
+    function DoFindUnit(const AName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule;
+    property Resolver: TPasResolver read FResolver;
+    property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
+    property Filename: string read FFilename write FFilename;
+    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
+    property Scanner: TPascalScanner read FScanner write FScanner;
+    property Parser: TPasParser read FParser write FParser;
+    property Source: string read FSource write FSource;
+    property Module: TPasModule read FModule write SetModule;
+  end;
+
+  { TTestEnginePasResolver }
+
+  TTestEnginePasResolver = class(TPasResolver)
+  private
+    FPlumbing: TTestResolverPlumbing;
   public
     constructor Create;
     destructor Destroy; override;
@@ -76,13 +114,7 @@ type
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
     procedure UsedInterfacesFinished(Section: TPasSection); override;
-    property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
-    property Filename: string read FFilename write FFilename;
-    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
-    property Scanner: TPascalScanner read FScanner write FScanner;
-    property Parser: TPasParser read FParser write FParser;
-    property Source: string read FSource write FSource;
-    property Module: TPasModule read FModule write SetModule;
+    property Plumbing: TTestResolverPlumbing read FPlumbing;
   end;
 
   { TTestResolverMessage }
@@ -118,12 +150,15 @@ type
   Private
     FHub: TPasResolverHub;
     FFirstStatement: TPasImplBlock;
-    FResolvers: TObjectList;// list of TTestEnginePasResolver
-    FResolverEngine: TTestEnginePasResolver;
+    FResolvers: TObjectList;// list of TPasResolver (test engines)
+    FPlumbings: TFPList; // parallel to FResolvers: the TTestResolverPlumbing of each engine
+    FResolverEngine: TPasResolver;
+    FEnginePlumbing: TTestResolverPlumbing; // plumbing of FResolverEngine
     FResolverMsgs: TObjectList; // list of TTestResolverMessage
     FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
     function GetModuleCount: integer;
-    function GetModules(Index: integer): TTestEnginePasResolver;
+    function GetModules(Index: integer): TPasResolver;
+    function GetModulePlumbing(Index: integer): TTestResolverPlumbing;
     function GetMsgCount: integer;
     function GetMsgs(Index: integer): TTestResolverMessage;
     procedure OnPasResolverContinueParsing(Sender: TPasResolver);
@@ -166,24 +201,36 @@ type
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
-    procedure HandleError(CurEngine: TTestEnginePasResolver; E: Exception);
+    procedure HandleError(CurEngine: TPasResolver; E: Exception);
+    // Creates the concrete test engine and returns its plumbing via Plumbing.
+    // Override to plug in a resolver descendant (e.g. a native-target resolver).
+    function CreateResolverEngine(out Plumbing: TTestResolverPlumbing): TPasResolver; virtual;
+    // The plumbing of a given test engine (nil if not one created by this harness).
+    function PlumbingOf(R: TPasResolver): TTestResolverPlumbing;
     property Resolvers : TObjectList Read FResolvers;
   Public
     constructor Create; override;
     destructor Destroy; override;
-    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
-    function AddModule(aFilename: string): TTestEnginePasResolver;
-    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver;
+    function FindModuleWithFilename(aFilename: string): TPasResolver;
+    function AddModule(aFilename: string): TPasResolver;
+    function AddModuleWithSrc(aFilename, Src: string): TPasResolver;
     function AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-      ImplementationSrc: string): TTestEnginePasResolver;
+      ImplementationSrc: string): TPasResolver;
+    // As AddModuleWithIntfImplSrc, but the module is resolved INTERFACE-ONLY: its
+    // engine's InterfaceOnly is set, so the parser skips its implementation
+    // section (models a dependency whose implementation is not analysed).
+    function AddInterfaceOnlyModuleWithIntfImplSrc(aFilename, InterfaceSrc,
+      ImplementationSrc: string): TPasResolver;
     procedure AddSystemUnit(Parts: TSystemUnitParts = []);
     procedure StartProgram(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     procedure StartLibrary(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     procedure StartUnit(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
-    property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
+    property Modules[Index: integer]: TPasResolver read GetModules;
+    property ModulePlumbing[Index: integer]: TTestResolverPlumbing read GetModulePlumbing;
     property ModuleCount: integer read GetModuleCount;
     property Hub: TPasResolverHub read FHub;
-    property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
+    property ResolverEngine: TPasResolver read FResolverEngine;
+    property EnginePlumbing: TTestResolverPlumbing read FEnginePlumbing;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
   end;
@@ -258,6 +305,7 @@ type
     Procedure TestStringElement_MissingArgFail;
     Procedure TestStringElement_IndexNonIntFail;
     Procedure TestStringElement_AsVarArgFail;
+    Procedure TestStringElement_AsUntypedVarArg;
     Procedure TestString_DoubleQuotesFail;
     Procedure TestString_ShortstringType;
     Procedure TestConstStringOperators;
@@ -1069,31 +1117,64 @@ begin
   Result:=s;
 end;
 
-{ TTestEnginePasResolver }
+{ TTestResolverPlumbing }
 
-procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
+procedure TTestResolverPlumbing.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
   FModule:=AValue;
   {$IFDEF CheckPasTreeRefCount}
   if Module<>nil then
-    Module.ChangeRefId('CreateElement','TTestEnginePasResolver.Module');
+    Module.ChangeRefId('CreateElement','TTestResolverPlumbing.Module');
   {$ENDIF}
 end;
+
+constructor TTestResolverPlumbing.Create(aResolver: TPasResolver);
+begin
+  inherited Create;
+  FResolver:=aResolver;
+end;
+
+destructor TTestResolverPlumbing.Destroy;
+begin
+  Module:=nil;
+  inherited Destroy;
+end;
+
+procedure TTestResolverPlumbing.ReleaseParserScanner;
+begin
+  FStreamResolver:=nil;
+  FreeAndNil(FParser);
+  FreeAndNil(FScanner);
+end;
+
+procedure TTestResolverPlumbing.NoteCreatedElement(El: TPasElement;
+  AClass: TPTreeElement);
+begin
+  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
+    Module:=TPasModule(El);
+end;
+
+function TTestResolverPlumbing.DoFindUnit(const AName, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
+begin
+  Result:=FOnFindUnit(FResolver,AName,InFilename,NameExpr,InFileExpr);
+end;
+
+{ TTestEnginePasResolver }
 
 constructor TTestEnginePasResolver.Create;
 begin
   inherited Create;
   StoreSrcColumns:=true;
+  FPlumbing:=TTestResolverPlumbing.Create(Self);
 end;
 
 destructor TTestEnginePasResolver.Destroy;
 begin
-  FStreamResolver:=nil;
-  FreeAndNil(FParser);
-  FreeAndNil(FScanner);
+  FPlumbing.ReleaseParserScanner;
   inherited Destroy;
-  Module:=nil;
+  FreeAndNil(FPlumbing);
 end;
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
@@ -1101,14 +1182,13 @@ function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
 begin
   Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos, TypeParams);
-  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
-    Module:=TPasModule(Result);
+  FPlumbing.NoteCreatedElement(Result,AClass);
 end;
 
 function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
   NameExpr, InFileExpr: TPasExpr): TPasModule;
 begin
-  Result:=OnFindUnit(Self,AName,InFilename,NameExpr,InFileExpr);
+  Result:=FPlumbing.DoFindUnit(AName,InFilename,NameExpr,InFileExpr);
 end;
 
 procedure TTestEnginePasResolver.UsedInterfacesFinished(Section: TPasSection);
@@ -1123,6 +1203,7 @@ end;
 procedure TCustomTestResolver.SetUp;
 begin
   FResolvers:=TObjectList.Create(true);
+  FPlumbings:=TFPList.Create;
   FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
@@ -1142,9 +1223,10 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown ResolverEngine.Clear');
   {$ENDIF}
-  if ResolverEngine.Parser=Parser then
-    ResolverEngine.Parser:=nil;
+  if EnginePlumbing.Parser=Parser then
+    EnginePlumbing.Parser:=nil;
   ResolverEngine.Clear;
+  FreeAndNil(FPlumbings);
   if FResolvers<>nil then
     begin
     {$IFDEF VerbosePasResolverMem}
@@ -1161,6 +1243,7 @@ begin
   {$ENDIF}
   inherited TearDown;
   FResolverEngine:=nil;
+  FEnginePlumbing:=nil;
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown END');
   {$ENDIF}
@@ -1169,6 +1252,7 @@ end;
 procedure TCustomTestResolver.CreateEngine(var TheEngine: TPasTreeContainer);
 begin
   FResolverEngine:=AddModule(MainFilename);
+  FEnginePlumbing:=PlumbingOf(FResolverEngine);
   TheEngine:=ResolverEngine;
 end;
 
@@ -1176,11 +1260,12 @@ procedure TCustomTestResolver.ParseModule;
 var
   Section: TPasSection;
   i: Integer;
-  CurResolver: TTestEnginePasResolver;
+  CurResolver: TPasResolver;
+  CurPlumbing: TTestResolverPlumbing;
   Found: Boolean;
 begin
-  if ResolverEngine.Parser=nil then
-    ResolverEngine.Parser:=Parser;
+  if EnginePlumbing.Parser=nil then
+    EnginePlumbing.Parser:=Parser;
 
   inherited ParseModule;
   repeat
@@ -1188,14 +1273,15 @@ begin
     for i:=0 to ModuleCount-1 do
       begin
       CurResolver:=Modules[i];
-      if CurResolver.Parser=nil then continue;
-      if not CurResolver.Parser.CanParseContinue(Section) then
+      CurPlumbing:=ModulePlumbing[i];
+      if CurPlumbing.Parser=nil then continue;
+      if not CurPlumbing.Parser.CanParseContinue(Section) then
         continue;
       {$IFDEF VerbosePasResolver}
-      writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurResolver.Filename);
+      writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurPlumbing.Filename);
       {$ENDIF}
       Found:=true;
-      CurResolver.Parser.ParseContinue;
+      CurPlumbing.Parser.ParseContinue;
       break;
       end;
   until not Found;
@@ -1203,15 +1289,16 @@ begin
   for i:=0 to ModuleCount-1 do
     begin
     CurResolver:=Modules[i];
-    if CurResolver.Parser=nil then
+    CurPlumbing:=ModulePlumbing[i];
+    if CurPlumbing.Parser=nil then
       begin
       if CurResolver.CurrentParser<>nil then
-        Fail(CurResolver.Filename+' Parser<>CurrentParser Parser="'+GetObjName(CurResolver.Parser)+'" CurrentParser='+GetObjName(CurResolver.CurrentParser));
+        Fail(CurPlumbing.Filename+' Parser<>CurrentParser Parser="'+GetObjName(CurPlumbing.Parser)+'" CurrentParser='+GetObjName(CurResolver.CurrentParser));
       continue;
       end;
-    if CurResolver.Parser.CurModule<>nil then
+    if CurPlumbing.Parser.CurModule<>nil then
       begin
-      Section:=CurResolver.Parser.GetLastSection;
+      Section:=CurPlumbing.Parser.GetLastSection;
       {$IFDEF VerbosePasResolver}
       writeln('TCustomTestResolver.ParseModule module not finished "',GetObjName(CurResolver.RootElement),'" LastSection=',GetObjName(Section)+' PendingUsedIntf='+GetObjName(Section.PendingUsedIntf));
       if (Section<>nil) and (Section.PendingUsedIntf<>nil) then
@@ -2138,7 +2225,7 @@ var
   ok: Boolean;
   FoundRefs: TTestResolverReferenceData;
   i: Integer;
-  CurResolver: TTestEnginePasResolver;
+  CurPlumbing: TTestResolverPlumbing;
 begin
   //writeln('TCustomTestResolver.FindElementsAt START "',aFilename,'" Line=',aLine,' Col=',aStartCol,'-',aEndCol);
   FoundRefs:=Default(TTestResolverReferenceData);
@@ -2153,10 +2240,10 @@ begin
     Module.ForEachCall(@OnFindReference,@FoundRefs);
     for i:=0 to ModuleCount-1 do
       begin
-      CurResolver:=Modules[i];
-      if CurResolver.Module=Module then continue;
-      //writeln('TCustomTestResolver.FindElementsAt ',CurResolver.Filename);
-      CurResolver.Module.ForEachCall(@OnFindReference,@FoundRefs);
+      CurPlumbing:=ModulePlumbing[i];
+      if CurPlumbing.Module=Module then continue;
+      //writeln('TCustomTestResolver.FindElementsAt ',CurPlumbing.Filename);
+      CurPlumbing.Module.ForEachCall(@OnFindReference,@FoundRefs);
       end;
     ok:=true;
   finally
@@ -2246,24 +2333,26 @@ begin
   RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
 end;
 
-procedure TCustomTestResolver.HandleError(CurEngine: TTestEnginePasResolver;
+procedure TCustomTestResolver.HandleError(CurEngine: TPasResolver;
   E: Exception);
 {$IFNDEF NOCONSOLE}
 var
+  Scanner: TPascalScanner;
   ErrFilename: String;
   ErrRow, ErrCol: Integer;
 {$ENDIF}
 begin
   if CurEngine=nil then ;
   {$IFNDEF NOCONSOLE}
-  ErrFilename:=CurEngine.Scanner.CurFilename;
-  ErrRow:=CurEngine.Scanner.CurRow;
-  ErrCol:=CurEngine.Scanner.CurColumn;
+  Scanner:=PlumbingOf(CurEngine).Scanner;
+  ErrFilename:=Scanner.CurFilename;
+  ErrRow:=Scanner.CurRow;
+  ErrCol:=Scanner.CurColumn;
   writeln('ERROR: TCustomTestResolver.HandleError during parsing: '+E.ClassName+':'+E.Message
     +' File='+ErrFilename
     +' LineNo='+IntToStr(ErrRow)
     +' Col='+IntToStr(ErrCol)
-    +' Line="'+CurEngine.Scanner.CurLine+'"'
+    +' Line="'+Scanner.CurLine+'"'
     );
   WriteSources(ErrFilename,ErrRow,ErrCol);
   {$ENDIF}
@@ -2285,41 +2374,44 @@ begin
 end;
 
 function TCustomTestResolver.FindModuleWithFilename(aFilename: string
-  ): TTestEnginePasResolver;
+  ): TPasResolver;
 var
   i: Integer;
 begin
   for i:=0 to ModuleCount-1 do
-    if CompareText(Modules[i].Filename,aFilename)=0 then
+    if CompareText(ModulePlumbing[i].Filename,aFilename)=0 then
       exit(Modules[i]);
   Result:=nil;
 end;
 
-function TCustomTestResolver.AddModule(aFilename: string): TTestEnginePasResolver;
+function TCustomTestResolver.AddModule(aFilename: string): TPasResolver;
+var
+  Plumbing: TTestResolverPlumbing;
 begin
   //writeln('TTestResolver.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
     Fail('TTestResolver.AddModule: file "'+aFilename+'" already exists');
-  Result:=TTestEnginePasResolver.Create;
-  Result.Filename:=aFilename;
+  Result:=CreateResolverEngine(Plumbing);
+  FResolvers.Add(Result);
+  FPlumbings.Add(Plumbing);
+  Plumbing.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers;
-  Result.OnFindUnit:=@OnPasResolverFindUnit;
+  Plumbing.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
   Result.Hub:=Hub;
   Result.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   Result.ExprEvaluator.DefaultSourceCodePage:=CP_UTF8;
-  FResolvers.Add(Result);
 end;
 
 function TCustomTestResolver.AddModuleWithSrc(aFilename, Src: string
-  ): TTestEnginePasResolver;
+  ): TPasResolver;
 begin
   Result:=AddModule(aFilename);
-  Result.Source:=Src;
+  PlumbingOf(Result).Source:=Src;
 end;
 
 function TCustomTestResolver.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-  ImplementationSrc: string): TTestEnginePasResolver;
+  ImplementationSrc: string): TPasResolver;
 var
   Src: String;
 begin
@@ -2334,6 +2426,16 @@ begin
   Src+=ImplementationSrc;
   Src+='end.'+LineEnding;
   Result:=AddModuleWithSrc(aFilename,Src);
+end;
+
+function TCustomTestResolver.AddInterfaceOnlyModuleWithIntfImplSrc(aFilename,
+  InterfaceSrc, ImplementationSrc: string): TPasResolver;
+begin
+  Result:=AddModuleWithIntfImplSrc(aFilename,InterfaceSrc,ImplementationSrc);
+  // Mark the dependency interface-only: the parser will skip its implementation
+  // (TPasTreeContainer.InterfaceOnly, read at pparser ParseDeclarations). Set on
+  // the engine before the module is parsed (it is parsed lazily on first use).
+  Result.InterfaceOnly:=True;
 end;
 
 procedure TCustomTestResolver.AddSystemUnit(Parts: TSystemUnitParts);
@@ -2482,37 +2584,41 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
   const aUnitName, InFilename: String; NameExpr, InFileExpr: TPasExpr
   ): TPasModule;
 
-  function InitUnit(CurEngine: TTestEnginePasResolver): TPasModule;
+  function InitUnit(CurPlumbing: TTestResolverPlumbing): TPasModule;
+  var
+    lModule: TPasModule;
   begin
-    if CurEngine.Module<>nil then
-      Fail('InitUnit '+GetObjName(CurEngine.Module));
-    CurEngine.StreamResolver:=Resolver;
-    //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
-    CurEngine.StreamResolver.AddStream(CurEngine.FileName,
-                                    TStringStream.Create(CurEngine.Source));
-    CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
-    CurEngine.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
-    CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,
-                                        CurEngine.StreamResolver,CurEngine);
-    CurEngine.Parser.Options:=CurEngine.Parser.Options+[po_StopOnUnitInterface];
-    if CompareText(ExtractFileUnitName(CurEngine.Filename),'System')=0 then
-      CurEngine.Parser.ImplicitUses.Clear;
-    CurEngine.Scanner.OpenFile(CurEngine.Filename);
+    if CurPlumbing.Module<>nil then
+      Fail('InitUnit '+GetObjName(CurPlumbing.Module));
+    CurPlumbing.StreamResolver:=Resolver;
+    //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurPlumbing.Source);
+    CurPlumbing.StreamResolver.AddStream(CurPlumbing.FileName,
+                                    TStringStream.Create(CurPlumbing.Source));
+    CurPlumbing.Scanner:=TPascalScanner.Create(CurPlumbing.StreamResolver);
+    CurPlumbing.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
+    CurPlumbing.Parser:=TPasParser.Create(CurPlumbing.Scanner,
+                                        CurPlumbing.StreamResolver,CurPlumbing.Resolver);
+    CurPlumbing.Parser.Options:=CurPlumbing.Parser.Options+[po_StopOnUnitInterface];
+    if CompareText(ExtractFileUnitName(CurPlumbing.Filename),'System')=0 then
+      CurPlumbing.Parser.ImplicitUses.Clear;
+    CurPlumbing.Scanner.OpenFile(CurPlumbing.Filename);
     try
-      CurEngine.Parser.NextToken;
-      CurEngine.Parser.ParseUnit(CurEngine.FModule);
+      CurPlumbing.Parser.NextToken;
+      lModule:=CurPlumbing.Module;
+      CurPlumbing.Parser.ParseUnit(lModule);
+      CurPlumbing.Module:=lModule;
     except
       on E: Exception do
-        HandleError(CurEngine,E);
+        HandleError(CurPlumbing.Resolver,E);
     end;
     //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
-    Result:=CurEngine.Module;
+    Result:=CurPlumbing.Module;
   end;
 
   function FindUnit(const aUnitName: String): TPasModule;
   var
     i: Integer;
-    CurEngine: TTestEnginePasResolver;
+    CurPlumbing: TTestResolverPlumbing;
     CurUnitName: String;
   begin
     {$IFDEF VerboseUnitSearch}
@@ -2521,22 +2627,22 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
     Result:=nil;
     for i:=0 to ModuleCount-1 do
       begin
-      CurEngine:=Modules[i];
-      CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
+      CurPlumbing:=ModulePlumbing[i];
+      CurUnitName:=ExtractFileUnitName(CurPlumbing.Filename);
       {$IFDEF VerboseUnitSearch}
-      writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+      writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurPlumbing.Filename,' ',CurUnitName);
       {$ENDIF}
       if CompareText(aUnitName,CurUnitName)=0 then
         begin
-        Result:=CurEngine.Module;
+        Result:=CurPlumbing.Module;
         {$IFDEF VerboseUnitSearch}
-        writeln('TTestResolver.OnPasResolverFindUnit Found unit "',CurEngine.Filename,'" Module=',GetObjName(Result));
+        writeln('TTestResolver.OnPasResolverFindUnit Found unit "',CurPlumbing.Filename,'" Module=',GetObjName(Result));
         {$ENDIF}
         if Result<>nil then exit;
         {$IFDEF VerboseUnitSearch}
-        writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
+        writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurPlumbing.Filename,'"');
         {$ENDIF}
-        Result:=InitUnit(CurEngine);
+        Result:=InitUnit(CurPlumbing);
         exit;
         end;
       end;
@@ -2544,7 +2650,8 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
 
   function GetResolver(aFilename: string): boolean;
   var
-    CurEngine: TTestEnginePasResolver;
+    CurEngine: TPasResolver;
+    CurPlumbing: TTestResolverPlumbing;
     aModule: TPasModule;
   begin
     {$IFDEF VerbosePasResolver}
@@ -2552,13 +2659,14 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
     {$ENDIF}
     CurEngine:=FindModuleWithFilename(aFilename);
     if CurEngine=nil then exit(false);
-    if CurEngine.Module=nil then
+    CurPlumbing:=PlumbingOf(CurEngine);
+    if CurPlumbing.Module=nil then
       begin
-      aModule:=InitUnit(CurEngine);
+      aModule:=InitUnit(CurPlumbing);
       if aModule=nil then exit(false);
       end
     else
-      aModule:=CurEngine.Module;
+      aModule:=CurPlumbing.Module;
     OnPasResolverFindUnit:=aModule;
     Result:=true;
   end;
@@ -2582,7 +2690,7 @@ begin
     DoDirSeparators(aFilename);
     if FilenameIsAbsolute(aFilename) then
       if GetResolver(aFilename) then exit;
-    aFilename:=ExtractFilePath(ResolverEngine.Filename)+aFilename;
+    aFilename:=ExtractFilePath(EnginePlumbing.Filename)+aFilename;
     if GetResolver(aFilename) then exit;
     SrcResolver.RaiseMsg(20180222004311,100001,'in-file ''%s'' not found',
       [InFilename],InFileExpr);
@@ -2762,9 +2870,36 @@ begin
   {$ENDIF}
 end;
 
-function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
+function TCustomTestResolver.GetModules(Index: integer): TPasResolver;
 begin
-  Result:=TTestEnginePasResolver(FResolvers[Index]);
+  Result:=TPasResolver(FResolvers[Index]);
+end;
+
+function TCustomTestResolver.GetModulePlumbing(Index: integer
+  ): TTestResolverPlumbing;
+begin
+  Result:=TTestResolverPlumbing(FPlumbings[Index]);
+end;
+
+function TCustomTestResolver.CreateResolverEngine(
+  out Plumbing: TTestResolverPlumbing): TPasResolver;
+var
+  lEngine: TTestEnginePasResolver;
+begin
+  lEngine:=TTestEnginePasResolver.Create;
+  Plumbing:=lEngine.Plumbing;
+  Result:=lEngine;
+end;
+
+function TCustomTestResolver.PlumbingOf(R: TPasResolver): TTestResolverPlumbing;
+var
+  i: Integer;
+begin
+  i:=FResolvers.IndexOf(R);
+  if i>=0 then
+    Result:=TTestResolverPlumbing(FPlumbings[i])
+  else
+    Result:=nil;
 end;
 
 function TCustomTestResolver.GetMsgCount: integer;
@@ -2780,14 +2915,16 @@ end;
 procedure TCustomTestResolver.OnPasResolverContinueParsing(Sender: TPasResolver
   );
 var
-  CurEngine: TTestEnginePasResolver;
+  CurEngine: TPasResolver;
+  CurPlumbing: TTestResolverPlumbing;
 begin
-  CurEngine:=Sender as TTestEnginePasResolver;
+  CurEngine:=Sender;
+  CurPlumbing:=PlumbingOf(CurEngine);
   {$IFDEF VerbosePasResolver}
-  writeln('TCustomTestResolver.OnPasResolverContinueParsing "',CurEngine.Module.Name,'"...');
+  writeln('TCustomTestResolver.OnPasResolverContinueParsing "',CurPlumbing.Module.Name,'"...');
   {$ENDIF}
   try
-    CurEngine.Parser.ParseContinue;
+    CurPlumbing.Parser.ParseContinue;
   except
     on E: Exception do
       HandleError(CurEngine,E);
@@ -3729,6 +3866,21 @@ begin
   Add('  DoIt(s[1]);');
   CheckResolverException('Variable identifier expected',
     nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestStringElement_AsUntypedVarArg;
+begin
+  // An UNTYPED var parameter accepts a writable string char-index l-value
+  // (the Stream.ReadBuffer(s[1],..) idiom); resolves without error. Contrast
+  // TestStringElement_AsVarArgFail: a TYPED var param still rejects it.
+  StartProgram(false);
+  Add('procedure DoIt(var x);');
+  Add('begin');
+  Add('end;');
+  Add('var s: string;');
+  Add('begin');
+  Add('  DoIt(s[1]);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestString_DoubleQuotesFail;

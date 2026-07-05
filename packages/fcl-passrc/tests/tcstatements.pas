@@ -918,6 +918,7 @@ begin
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Up loop',False,F.Down);
+  AssertEquals('Not an inline var def',False,F.IsVarDef); // pre-declared loop var
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
   AssertNull('Empty body',F.Body);
@@ -936,6 +937,7 @@ begin
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Implicitly typed',False,F.ImplicitTyped);
+  AssertEquals('Inline var def',True,F.IsVarDef); // typed inline: ImplicitTyped misses it, IsVarDef does not
   AssertNotNull('Var type',F.VarType);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('end value',F.EndExpr,pekNumber,'10');
@@ -955,6 +957,7 @@ begin
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Implicitly typed',True,F.ImplicitTyped);
+  AssertEquals('Inline var def',True,F.IsVarDef);
   AssertNull('Var type',F.VarType);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('end value',F.EndExpr,pekNumber,'10');
@@ -973,6 +976,7 @@ begin
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltIn,F.Looptype);
   AssertEquals('In loop',False,F.Down);
+  AssertEquals('Not an inline var def',False,F.IsVarDef); // pre-declared loop var
   AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
   AssertNull('Loop type',F.EndExpr);
   AssertNull('Empty body',F.Body);
@@ -990,6 +994,7 @@ begin
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltIn,F.Looptype);
   AssertEquals('Implicitly typed',False,F.ImplicitTyped);
+  AssertEquals('Inline var def',True,F.IsVarDef);
   AssertNotNull('Var type',F.VarType);
   AssertEquals('In loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
