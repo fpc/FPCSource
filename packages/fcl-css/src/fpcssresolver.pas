@@ -490,6 +490,10 @@ type
     // Drop every layer entry that belongs to aSheet (used before reparsing it,
     // so a replaced sheet leaves no dangling element pointer in the layers).
     procedure RemoveStyleSheetFromLayers(aSheet: TStyleSheet); virtual;
+    // Move the layer entry of the sheet at Index (which ParseSource appended to
+    // the layer end) to the slot matching the FStyleSheets order, so the cascade
+    // document order follows the array order after a mid-list InsertStyleSheet.
+    procedure OrderStyleSheetInLayer(Index: integer); virtual;
     procedure ClearCustomAttributes; virtual;
 
     // resolving rules
@@ -608,6 +612,13 @@ type
     property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
     function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; override;
     function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; override;
+    // True when the value is not valid for the attribute AttrID, mirroring the parser's
+    // per-declaration value check (see TCSSResolverParser.ReadDeclaration). A value that
+    // cannot be checked - a custom property, an attribute below/at 'all', or a value that
+    // still contains a var() call - is treated as valid. Used by the style inspector to
+    // flag an invalid value live while it is being edited.
+    function IsAttrValueInvalid(AttrID: TCSSNumericalID; const Tokens: TBytes): boolean; overload;
+    function IsAttrValueInvalid(AttrID: TCSSNumericalID; const aValue: TCSSString): boolean; overload;
     function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
     // css class names from selectors, numbered from 1
     function GetCSSClassID(const aCSSClassName: TCSSString): TCSSNumericalID; override;
@@ -627,7 +638,13 @@ type
     // stylesheets
     procedure ClearStyleSheets; virtual;
     function AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
+    function InsertStyleSheet(Index: integer; anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
     procedure ReplaceStyleSheet(Index: integer; const NewSource: TCSSString); virtual;
+    procedure DeleteStyleSheet(Index: integer); virtual;
+    // Force @media rules and rule buckets to be re-evaluated on the next resolve,
+    // even when no stylesheet text changed (e.g. the colour scheme flipped).
+    procedure InvalidateRuleBuckets; virtual;
+    function IndexOfStyleSheet(aSheet: TStyleSheet): integer;
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
     function IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
     function FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;
@@ -4017,6 +4034,13 @@ begin
   BuildRuleBuckets;
 end;
 
+procedure TCSSResolver.InvalidateRuleBuckets;
+begin
+  { Drop the cached @media results and buckets so the next resolve rebuilds them.
+    Needed when the media environment changed but the stylesheet text did not. }
+  ClearRuleBuckets;
+end;
+
 function TCSSResolver.GetTypeBucket(aTypeID: TCSSNumericalID): TCSSRuleBucket;
 begin
   if aTypeID>=length(FBucketType) then
@@ -4490,6 +4514,54 @@ begin
   end;
 end;
 
+function TCSSResolver.IsAttrValueInvalid(AttrID: TCSSNumericalID;
+  const Tokens: TBytes): boolean;
+// Run an already tokenized value through the attribute parser and its OnCheck, exactly
+// as the parser does per declaration. A temporary key data lets InitParseAttr flag a
+// misused base keyword (e.g. "inherit red") as well.
+var
+  Desc: TCSSAttributeDesc;
+  AttrData: TCSSAttributeKeyData;
+begin
+  Result:=false;
+  // only built-in attributes from 'all' upwards are checkable; the ones below 'all' and
+  // the custom properties (>=AttributeCount) accept anything
+  if (AttrID<CSSAttributeID_All) or (AttrID>=CSSRegistry.AttributeCount) then
+    exit;
+  Desc:=GetAttributeDesc(AttrID);
+  if Desc=nil then exit;
+  AttrData:=TCSSAttributeKeyData.Create;
+  try
+    AttrData.Tokens:=Tokens;
+    if InitParseAttr(Desc,AttrData) then
+      if Assigned(Desc.OnCheck) and not Desc.OnCheck(Self) then
+        AttrData.Invalid:=true;
+    Result:=AttrData.Invalid; // InitParseAttr may have flagged it too
+  finally
+    AttrData.Free;
+  end;
+end;
+
+function TCSSResolver.IsAttrValueInvalid(AttrID: TCSSNumericalID;
+  const aValue: TCSSString): boolean;
+// Tokenize aValue as the attribute expects, then check the tokens (see above).
+var
+  Desc: TCSSAttributeDesc;
+  Tokens: TBytes;
+begin
+  Result:=false;
+  if HasCSSValueVarCall(aValue) then
+    exit; // a var() cannot be checked until it is substituted
+  if (AttrID<CSSAttributeID_All) or (AttrID>=CSSRegistry.AttributeCount) then
+    exit;
+  Desc:=GetAttributeDesc(AttrID);
+  if Desc=nil then exit;
+  Tokens:=nil;
+  if not Tokenize(aValue,Tokens,Desc.AllowUnknownIdentifiers) then
+    exit(true); // the value does not even tokenize
+  Result:=IsAttrValueInvalid(AttrID,Tokens);
+end;
+
 function TCSSResolver.GetCSSClassID(const aCSSClassName: TCSSString
   ): TCSSNumericalID;
 var
@@ -4607,6 +4679,12 @@ end;
 
 function TCSSResolver.AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString;
   const aSource: TCSSString): TStyleSheet;
+begin
+  Result:=InsertStyleSheet(FStyleSheetCount,anOrigin,aName,aSource);
+end;
+
+function TCSSResolver.InsertStyleSheet(Index: integer; anOrigin: TCSSOrigin;
+  const aName: TCSSString; const aSource: TCSSString): TStyleSheet;
 var
   Cnt, i: SizeInt;
 begin
@@ -4616,9 +4694,12 @@ begin
     if i>=0 then
     begin
       ReplaceStyleSheet(i,aSource);
-      exit;
+      exit(FStyleSheets[i]);
     end;
   end;
+
+  if (Index<0) or (Index>FStyleSheetCount) then
+    raise ECSSResolver.Create('20260706153000');
 
   Cnt:=length(FStyleSheets);
   if Cnt=FStyleSheetCount then
@@ -4629,12 +4710,14 @@ begin
       Cnt:=Cnt*2;
     SetLength(FStyleSheets,Cnt);
   end;
+
+  // repurpose the pooled object in the tail slot, then open a gap at Index
   Result:=FStyleSheets[FStyleSheetCount];
+  for i:=FStyleSheetCount downto Index+1 do
+    FStyleSheets[i]:=FStyleSheets[i-1];
   if Result=nil then
-  begin
     Result:=TStyleSheet.Create;
-    FStyleSheets[FStyleSheetCount]:=Result;
-  end;
+  FStyleSheets[Index]:=Result;
   inc(FStyleSheetCount);
 
   with Result do begin
@@ -4648,7 +4731,13 @@ begin
     Stamp:=FStyleSheetStamp;
   end;
 
-  ParseSource(FStyleSheetCount-1);
+  ParseSource(Index);
+
+  // ParseSource appended the sheet's element to the end of its layer; when this
+  // is a mid-list insert, move it to the slot matching the array order so the
+  // cascade (document order) respects the requested position.
+  if Index<FStyleSheetCount-1 then
+    OrderStyleSheetInLayer(Index);
 end;
 
 procedure TCSSResolver.ReplaceStyleSheet(Index: integer; const NewSource: TCSSString);
@@ -4676,6 +4765,42 @@ begin
   RestoreDisabledDeclarations(Sheet);
 end;
 
+procedure TCSSResolver.DeleteStyleSheet(Index: integer);
+var
+  Sheet: TStyleSheet;
+  i: Integer;
+  Item: TCSSDisabledDecl;
+begin
+  if (Index<0) or (Index>=FStyleSheetCount) then
+    raise ECSSResolver.Create('20260706120000');
+  Sheet:=FStyleSheets[Index];
+  ClearMerge;
+  ClearSharedRuleLists;
+  { The sheet's element (and all its declaration elements) is about to be freed.
+    Drop it from the layers first, or FindMatchingRules would walk a dangling
+    pointer (a use-after-free). }
+  RemoveStyleSheetFromLayers(Sheet);
+
+  // forget disabled declarations of this sheet; their Decl elements are freed below
+  for i:=FDisabledDecls.Count-1 downto 0 do
+  begin
+    Item:=TCSSDisabledDecl(FDisabledDecls[i]);
+    if (Item.Path.Origin=Sheet.Origin) and (Item.Path.SheetName=Sheet.Name) then
+      FDisabledDecls.Delete(i); // owns the object, frees it
+  end;
+
+  FreeAndNil(Sheet.Element);
+  FreeAndNil(FStyleSheets[Index]);
+
+  // close the gap; the vacated tail slot stays nil for AddStyleSheet to reuse
+  for i:=Index to FStyleSheetCount-2 do
+    FStyleSheets[i]:=FStyleSheets[i+1];
+  FStyleSheets[FStyleSheetCount-1]:=nil;
+  dec(FStyleSheetCount);
+
+  inc(FStyleSheetStamp);
+end;
+
 
 procedure TCSSResolver.RemoveStyleSheetFromLayers(aSheet: TStyleSheet);
 var
@@ -4695,6 +4820,70 @@ begin
         end;
       ElementCount:=d;
     end;
+end;
+
+procedure TCSSResolver.OrderStyleSheetInLayer(Index: integer);
+// ParseSource gives each stylesheet its own anonymous layer, appended at the end
+// of its origin's contiguous run, so the cascade document order is the layer
+// order. After a mid-list InsertStyleSheet, move that fresh layer to the slot
+// matching the FStyleSheets order, so ancestors keep coming before descendants.
+var
+  aSheet: TStyleSheet;
+  El: TCSSElement;
+  l, srcLayer, runStart, destLayer, otherIdx: Integer;
+  Tmp: TLayer;
+begin
+  aSheet:=FStyleSheets[Index];
+  El:=aSheet.Element;
+  if El=nil then exit; // empty stylesheet contributes no layer
+
+  // locate the layer holding this sheet's element
+  srcLayer:=-1;
+  for l:=0 to length(FLayers)-1 do
+    if (FLayers[l].ElementCount>0) and (FLayers[l].Elements[0].Src=aSheet) then
+    begin
+      srcLayer:=l;
+      break;
+    end;
+  if srcLayer<0 then exit;
+
+  // first layer of this origin (origins are sorted, so the run is contiguous)
+  runStart:=0;
+  while (runStart<length(FLayers)) and (FLayers[runStart].Origin<>aSheet.Origin) do
+    inc(runStart);
+
+  // destination = runStart + number of same-origin layers whose sheet precedes Index
+  destLayer:=runStart;
+  for l:=0 to length(FLayers)-1 do
+  begin
+    if (l=srcLayer) or (FLayers[l].Origin<>aSheet.Origin) or (FLayers[l].ElementCount=0) then
+      continue;
+    otherIdx:=IndexOfStyleSheet(FLayers[l].Elements[0].Src);
+    if (otherIdx>=0) and (otherIdx<Index) then
+      inc(destLayer);
+  end;
+
+  if destLayer=srcLayer then exit;
+
+  Tmp:=FLayers[srcLayer];
+  if destLayer<srcLayer then
+  begin
+    for l:=srcLayer downto destLayer+1 do
+      FLayers[l]:=FLayers[l-1];
+  end else begin
+    for l:=srcLayer to destLayer-1 do
+      FLayers[l]:=FLayers[l+1];
+  end;
+  FLayers[destLayer]:=Tmp;
+  FRuleBucketsValid:=false; // document order changed -> rebuild buckets
+end;
+
+function TCSSResolver.IndexOfStyleSheet(aSheet: TStyleSheet): integer;
+begin
+  for Result:=0 to FStyleSheetCount-1 do
+    if FStyleSheets[Result]=aSheet then
+      exit;
+  Result:=-1;
 end;
 
 function TCSSResolver.IndexOfStyleSheetWithElement(El: TCSSElement): integer;

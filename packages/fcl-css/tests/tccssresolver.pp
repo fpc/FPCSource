@@ -543,6 +543,13 @@ type
     procedure TestRes_Origin_Important; // !important beats normal; among importants the last origin wins
     procedure TestRes_Origin_SourceOrderAcrossOrigins; // rules from all origins collected and sorted
 
+    // InsertStyleSheet / DeleteStyleSheet: within one origin the higher index (later
+    // document order) wins the cascade tie-break
+    procedure TestRes_InsertStyleSheet_HigherIndexWins;
+    procedure TestRes_InsertStyleSheet_MidListOrdered; // mid-list insert beats lower, loses to higher index
+    procedure TestRes_DeleteStyleSheet_LowerIndexWinsAfterDelete;
+    procedure TestRes_DeleteStyleSheet_RemovesContribution;
+
     // var()
     procedure TestRes_Var_NoDefault;
     procedure TestRes_Var_Inline_NoDefault;
@@ -3686,6 +3693,108 @@ begin
   // matching rules: the auto user-agent type style (div{display}), the extra
   // user-agent rule, the user rule and both author rules = 5.
   AssertEquals('rule count across origins',5,length(Div1.Rules.Rules));
+end;
+
+procedure TTestCSSResolver.TestRes_InsertStyleSheet_HigherIndexWins;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  // two author sheets, same selector: each sheet is its own anonymous layer within
+  // the author origin, so the tie-break falls to document order = the array index.
+  // The higher index (b.css) wins for left, while top (only in a.css) still applies.
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 5px; }');
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');
+  AssertEquals('StyleSheetCount',2,R.StyleSheetCount);
+  ApplyStyle;
+  AssertEquals('Div1.left (higher index b.css wins)','2px',Div1.Left);
+  AssertEquals('Div1.top (only a.css sets it)','5px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_InsertStyleSheet_MidListOrdered;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 1px; }'); // index 0
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');          // index 1
+  // insert c.css between a.css and b.css: array order becomes a(0), c(1), b(2), and
+  // OrderStyleSheetInLayer must move c's fresh layer into the matching slot so the
+  // cascade document order follows the array. Then c beats a (lower index) but
+  // loses to b (higher index).
+  R.InsertStyleSheet(1,cssoAuthor,'c.css','div { left: 3px; top: 3px; }');
+  AssertEquals('StyleSheetCount',3,R.StyleSheetCount);
+  AssertEquals('sheet[0] is a.css','a.css',R.StyleSheets[0].Name);
+  AssertEquals('sheet[1] is c.css','c.css',R.StyleSheets[1].Name);
+  AssertEquals('sheet[2] is b.css','b.css',R.StyleSheets[2].Name);
+  ApplyStyle;
+  AssertEquals('Div1.left (b.css, highest index, wins)','2px',Div1.Left);
+  AssertEquals('Div1.top (c.css beats a.css)','3px',Div1.Top);
+end;
+
+procedure TTestCSSResolver.TestRes_DeleteStyleSheet_LowerIndexWinsAfterDelete;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  CntBefore: integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; }'); // lower index
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }'); // higher index, wins
+  // ApplyStyle also adds the user-agent type-style sheets and the author test.css,
+  // so query the sheet by name rather than assuming an absolute index/count.
+  ApplyStyle;
+  AssertEquals('Div1.left before delete (b.css wins)','2px',Div1.Left);
+
+  // delete the winning higher-index sheet: the lower-index a.css now wins
+  CntBefore:=R.StyleSheetCount;
+  R.DeleteStyleSheet(R.IndexOfStyleSheetWithName(cssoAuthor,'b.css'));
+  AssertEquals('StyleSheetCount dropped by one',CntBefore-1,R.StyleSheetCount);
+  AssertEquals('b.css is gone',-1,R.IndexOfStyleSheetWithName(cssoAuthor,'b.css'));
+  ApplyStyle;
+  AssertEquals('Div1.left after delete (a.css wins)','1px',Div1.Left);
+end;
+
+procedure TTestCSSResolver.TestRes_DeleteStyleSheet_RemovesContribution;
+var
+  Div1: TDemoDiv;
+  R: TCSSResolver;
+  CntBefore: integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  R:=Doc.CSSResolver;
+  R.AddStyleSheet(cssoAuthor,'a.css','div { left: 1px; top: 1px; }'); // lower index
+  R.AddStyleSheet(cssoAuthor,'b.css','div { left: 2px; }');          // higher index
+  ApplyStyle;
+  AssertEquals('Div1.left before delete','2px',Div1.Left);
+  AssertEquals('Div1.top before delete','1px',Div1.Top);
+
+  // delete lower-index a.css: its declarations no longer contribute, so top (only
+  // a.css set it) becomes empty, while b.css still sets left.
+  CntBefore:=R.StyleSheetCount;
+  R.DeleteStyleSheet(R.IndexOfStyleSheetWithName(cssoAuthor,'a.css'));
+  AssertEquals('StyleSheetCount dropped by one',CntBefore-1,R.StyleSheetCount);
+  AssertEquals('a.css is gone',-1,R.IndexOfStyleSheetWithName(cssoAuthor,'a.css'));
+  ApplyStyle;
+  AssertEquals('Div1.left after delete (b.css remains)','2px',Div1.Left);
+  AssertEquals('Div1.top after delete (a.css gone)','',Div1.Top);
 end;
 
 procedure TTestCSSResolver.TestRes_Var_NoDefault;
