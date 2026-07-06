@@ -4793,6 +4793,7 @@ procedure read_arguments(cmd:TCmdStr);
 
       {$ifdef aarch64}
         def_system_macro('CPUAARCH64');
+        def_system_macro('CPUARM64');
         def_system_macro('CPU64');
         def_system_macro('FPC_CURRENCY_IS_INT64');
         def_system_macro('FPC_COMP_IS_INT64');
