@@ -129,22 +129,25 @@ const
   CSSSpecificityUserAgent = 1000;
   CSSSpecificityUser = 2000;
   CSSSpecificityAuthor = 3000;
-  CSSSpecificityInline = 10000;
+  CSSSpecificityInline = 5000;
+  CSSSpecificityElement = 10000;
   CSSSpecificityImportant = 100000;
 
 type
   TCSSSpecificity = integer; // see CSSSpecificityInvalid..CSSSpecificityImportant
 
   TCSSOrigin = (
-    cssoUserAgent,
-    cssoUser,
-    cssoAuthor
+    cssoUserAgent, // e.g. browser
+    cssoUser,      // e.g. user settings
+    cssoAuthor,    // e.g. stylesheet(s) of a site
+    cssoInline     // e.g. inspector
     );
 const
   CSSOriginToSpecifity: array[TCSSOrigin] of TCSSNumericalID = (
     CSSSpecificityUserAgent,
     CSSSpecificityUser,
-    CSSSpecificityAuthor
+    CSSSpecificityAuthor,
+    CSSSpecificityInline
     );
 
 type
@@ -596,7 +599,7 @@ type
     function GetElPos(El: TCSSElement): TCSSString; virtual;
     function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual; // must be freed by caller
     procedure Compute(Node: ICSSNode;
-      InlineStyle: TCSSRuleElement; // inline style of Node
+      ElementStyle: TCSSRuleElement; // element style of Node
       out Rules: TCSSSharedRuleList {owned by resolver};
       out Values: TCSSAttributeValues;
       out SiblingMatches: TCSSSiblingMatchList // sibling selectors matching Node, for style sharing
@@ -3846,7 +3849,7 @@ begin
   FSharedRuleLists.FreeAndClear;
 end;
 
-procedure TCSSResolver.Compute(Node: ICSSNode; InlineStyle: TCSSRuleElement;
+procedure TCSSResolver.Compute(Node: ICSSNode; ElementStyle: TCSSRuleElement;
   out Rules: TCSSSharedRuleList; out Values: TCSSAttributeValues;
   out SiblingMatches: TCSSSiblingMatchList);
 var
@@ -3865,10 +3868,10 @@ begin
     Rules:=CreateSharedRuleList;
 
     // apply inline attributes
-    if InlineStyle<>nil then
+    if ElementStyle<>nil then
     begin
-      for i:=0 to InlineStyle.ChildCount-1 do
-        MergeAttribute(InlineStyle.Children[i],CSSSpecificityInline);
+      for i:=0 to ElementStyle.ChildCount-1 do
+        MergeAttribute(ElementStyle.Children[i],CSSSpecificityElement);
     end;
 
     LoadMergedValues;
