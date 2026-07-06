@@ -119,11 +119,12 @@ end;
 
 Procedure LogWasmExceptions(aEnable  : boolean; aToConsole : Boolean);
 begin
+  Writeln('LogWasmExceptions(',aEnable,',',aToConsole);
   _LogToConsole:=aToConsole;  
   if aEnable then
     WasmOnException:=@DoLogWasmException
   else  
-    WasmOnException:=@DoLogWasmException
+    WasmOnException:=Nil;
 end;
 
 exports

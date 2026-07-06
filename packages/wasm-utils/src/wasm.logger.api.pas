@@ -45,8 +45,8 @@ procedure __wasm_log(level : TWasmLogLevel; const Module, Fmt : String; const Ar
 implementation
 
 // Part of WASI. 
-procedure __fpc_console_log_utf16( aTextUTF16 : PWideChar; aUTF16Chars : LongInt); external 'wasi' name 'console_log_utf8';
-procedure __fpc_console_log_utf8( aTextUTF16 : PAnsiChar; aUTF8Chars : LongInt); external 'wasi' name 'console_log_utf16';
+procedure __fpc_console_log_utf16(aLevel: longint; aTextUTF16 : PWideChar; aUTF16Chars : LongInt); external 'fpc' name 'console_log_utf16';
+procedure __fpc_console_log_utf8(aLevel: longint; aTextUTF16 : PAnsiChar; aUTF8Chars : LongInt); external 'fpc' name 'console_log_utf8';
 
 procedure __wasm_log(level : TWasmLogLevel; const Module, Msg : String);
 var
@@ -57,9 +57,9 @@ begin
     exit;
   lMsg:='['+Module+'] '+Msg;  
   {$IF SIZEOF(CHAR)=2}    
-  __fpc_console_log_utf16(PWideChar(lMsg),Length(lMsg));
+  __fpc_console_log_utf16(Longint(Level),PWideChar(lMsg),Length(lMsg));
   {$ELSE}
-  __fpc_console_log_utf8(PAnsiChar(lMsg),Length(lMsg));
+  __fpc_console_log_utf8(longint(level),PAnsiChar(lMsg),Length(lMsg));
   {$ENDIF}
   if not Assigned(OnWasmLog) then
     exit;
