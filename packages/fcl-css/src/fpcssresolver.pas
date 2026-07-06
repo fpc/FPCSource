@@ -662,6 +662,10 @@ type
     function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
+    // Bumped whenever the set of stylesheets or any sheet's source actually
+    // changed (Add/Insert/Delete, or Replace with a differing source). Snapshot
+    // and compare to detect a real change without re-parsing.
+    property StyleSheetsStamp: integer read FStyleSheetStamp;
     property Layers: TLayerArray read FLayers;
   public
     // logging
