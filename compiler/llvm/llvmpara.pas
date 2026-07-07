@@ -271,8 +271,7 @@ unit llvmpara;
       paraloc:=result.location;
       if assigned(paraloc^.next) and
          (result.def.typ in [orddef,enumdef,floatdef]) and
-         ((side=callerside) or
-          not(po_assembler in p.procoptions)) then
+         (side=callerside) then
         begin
           if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
             internalerror(2019011901);
@@ -293,8 +292,7 @@ unit llvmpara;
         (a list of parameters and their types), but they correspond more
         closely to parameter locations than to parameters -> add names to the
         locations }
-      if (side=calleeside) and
-         not(po_assembler in p.procoptions) then
+      if (side=calleeside) then
         begin
           add_llvm_callee_paraloc_names(p);
           reduceparalocs(p,side,p.paras);

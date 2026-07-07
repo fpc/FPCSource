@@ -35,7 +35,9 @@ uses
   type
     thlcgllvmhelpers = class(thlcgobjhelpers)
       class procedure gen_proc_symbol(list: TAsmList); override;
-    end;
+      class procedure gen_proc_symbol_internal(list:TAsmList);
+      class procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
+     end;
 
     thlcgllvm = class(thlcgobj)
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
@@ -193,7 +195,7 @@ implementation
        la_none, la_none);
 
 
-    class procedure thlcgllvmhelpers.gen_proc_symbol(list: TAsmList);
+    class procedure thlcgllvmhelpers.gen_proc_symbol_internal(list: TAsmList);
       var
         item: TCmdStrListItem;
         mangledname: TSymStr;
@@ -219,6 +221,65 @@ implementation
         list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef.procsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
         current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
+
+
+    class procedure thlcgllvmhelpers.gen_proc_symbol(list: TAsmList);
+      begin
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          gen_proc_symbol_internal(list);
+      end;
+
+
+    class procedure thlcgllvmhelpers.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+      var
+        asmai, ai, endsymai, next: tai;
+        newcodelist: TAsmList;
+      begin
+        if po_assembler in pd.procoptions then
+          begin
+            if not data.Empty then
+              internalerror(2023111110);
+            { make the assembler body the argument to an inline assembly statement }
+            newcodelist:=TAsmlist.create;
+            newcodelist.concatlist(code);
+            { but hoist the ait_symbol_end for the proc definition
+              into the LLVM asmlist }
+            ai:=tai(newcodelist.first);
+
+            gen_proc_symbol_internal(code);
+            while assigned(ai) do
+              begin
+                { get next now in case ai gets moved to a different list }
+                next:=tai(ai.next);
+                case ai.typ of
+                  ait_symbol_end :
+                    begin
+                      if tai_symbol_end(ai).sym.typ=AT_FUNCTION then
+                        begin
+                          newcodelist.Remove(ai);
+                          endsymai:=ai;
+                        end
+                      else
+                        internalerror(2023111111);
+                      break;
+                    end;
+                  else
+                    ;
+                end;
+                ai:=next;
+              end;
+
+            if not assigned(ai) then
+              internalerror(2023111112);
+
+            asmai:=taillvm.asm_paras(newcodelist,tfplist.create);
+
+            code.Concat(asmai);
+            code.Concat(taillvm.op_none(la_unreachable));
+            code.Concat(endsymai);
+          end;
+        inherited;
+      end;
 
 
 { ********************************* }

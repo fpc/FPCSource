@@ -1703,12 +1703,6 @@ implementation
            not assigned(def.procstarttai) then
           exit;
 
-        { These don't contain a taillvmdecl, they are completely generated
-          in native assembly. If we want to add debug information to these,
-          we have to do it using the regular debug info generation }
-        if po_assembler in def.procoptions then
-          exit;
-
         if df_generic in def.defoptions then
           exit;
 
