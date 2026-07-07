@@ -436,22 +436,37 @@ end;
 
 function genmultidynarrayadd(p: taddnode): tnode;
 var
-  hp,sn : tnode;
+  hp    : tnode;
   arrp  : tarrayconstructornode;
   newstatement : tstatementnode;
   tempnode    : ttempcreatenode;
   para : tcallparanode;
+
+  { store the operand in a reference counted persistent temp so it stays
+    alive until the concat call, then hand the helper a plain pointer to it }
+  function operandref(n: tnode): tnode;
+    var
+      optemp : ttempcreatenode;
+    begin
+      if not is_array_constructor(n.resultdef) then
+        inserttypeconv(n,p.resultdef);
+      optemp:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
+      addstatement(newstatement,optemp);
+      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(optemp),n));
+      addstatement(newstatement,ctempdeletenode.create_normal_temp(optemp));
+      operandref:=ctypeconvnode.create_internal(ctemprefnode.create(optemp),voidpointertype);
+    end;
+
 begin
+  result:=internalstatements(newstatement);
   arrp:=nil;
   hp:=p;
   while assigned(hp) and (hp.nodetype=addn) do
     begin
-      sn:=ctypeconvnode.create_internal(taddnode(hp).right.getcopy,voidpointertype);
-      arrp:=carrayconstructornode.create(sn,arrp);
+      arrp:=carrayconstructornode.create(operandref(taddnode(hp).right.getcopy),arrp);
       hp:=taddnode(hp).left;
     end;
-  sn:=ctypeconvnode.create_internal(hp.getcopy,voidpointertype);
-  arrp:=carrayconstructornode.create(sn,arrp);
+  arrp:=carrayconstructornode.create(operandref(hp.getcopy),arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
@@ -465,15 +480,16 @@ begin
             ccallparanode.create(
               ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype),nil)
           ));
-      result:=ccallnode.createintern(
-                'fpc_dynarray_concat_multi',
-                para
-              );
+      addstatement(newstatement,
+        ccallnode.createintern(
+          'fpc_dynarray_concat_multi',
+          para
+        )
+      );
       include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin
-      result:=internalstatements(newstatement);
       tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a
