@@ -237,6 +237,57 @@ severities or gate limits, then pass it back with `--config`:
 fpsonar analyze src/ --config myrules.json
 ```
 
+### Silencing whole rules or paths (suppressions)
+
+The `// NOSONAR` comment (section 7) silences *one line*. When you want to
+silence findings in bulk — a whole rule, a whole folder, or a rule within a
+folder — add a `suppressions` list to the config file instead:
+
+```json
+{
+  "suppressions": [
+    { "rule": "Naming*" },
+    { "path": "*/legacy/*" },
+    { "rule": "LineTooLong", "path": "*/generated/*.pas" }
+  ]
+}
+```
+
+Each entry has an optional `rule` and an optional `path` (you must give at
+least one). A finding is silenced when **both** patterns match it: its rule
+name matches `rule` **and** its file path matches `path`. A field you leave
+out means "match anything", so the three entries above read as:
+
+- silence every rule whose name starts with `Naming`, anywhere;
+- silence *all* rules under any `legacy/` folder;
+- silence `LineTooLong` only in `.pas` files under a `generated/` folder.
+
+The patterns are **globs**, matched **case-sensitively**:
+
+- `*` matches any run of characters, including `/` (so it spans folders);
+- `?` matches exactly one character;
+- every other character matches itself.
+
+**Suppression vs. disabling a rule.** Turning a rule off with
+`"enabled": false` and suppressing it are *not* the same thing:
+
+- **Disabling** stops the rule from running at all — it produces no findings,
+  anywhere, and can't be scoped. Use it when a rule simply doesn't apply to
+  your project.
+- **Suppressing** lets the rule keep running and then hides only the findings
+  that match your `rule`/`path` globs. Use it when a rule is worth having in
+  general but you want to exempt certain files or folders.
+
+So a suppression can keep a rule on for the whole project *except* where it's
+noise (generated code, third-party sources, a legacy corner) — something
+disabling can't do. And because the rule still runs, suppressed findings are
+not lost: under `--baseline` they are still reported, annotated with their
+suppression source, rather than vanishing.
+
+Unlike `// NOSONAR`, suppressions live in one central file, so use them for
+policy decisions ("we don't lint generated code") rather than one-off
+exceptions.
+
 ---
 
 ## 9. Analyzing a real project (compiler settings)
