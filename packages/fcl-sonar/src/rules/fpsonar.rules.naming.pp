@@ -615,11 +615,12 @@ end;
 
 // Builds an rtAst naming-rule metadata declaring its single tunable 'pattern'
 // regex param. Keeps the registration block flat — no schema DSL.
-function NamingPatternMeta(const aRuleId, aMessageKey: string): TRuleMetadata;
+function NamingPatternMeta(const aRuleId, aMessageKey,
+  aDefaultPattern: string): TRuleMetadata;
 begin
   Result := TRuleMetadata.Make(aRuleId, rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
     True, aMessageKey);
-  Result.AddParam('pattern', rpkRegex);
+  Result.AddParam('pattern', rpkRegex, aDefaultPattern);
 end;
 
 
@@ -628,61 +629,61 @@ function IdentTooShortMeta: TRuleMetadata;
 begin
   Result := TRuleMetadata.Make('IdentifierTooShort', rtAst, rfAst, sevMinor,
     itCodeSmell, cfHigh, True, cKeyIdentifierTooShort);
-  Result.AddParam('minLength', rpkInt);
+  Result.AddParam('minLength', rpkInt, cMinIdentLength);
 end;
 
 
 initialization
   RegisterRule(TRuleClassNaming.Create(NamingPatternMeta('ClassNaming',
-    cKeyClassNaming)));
+    cKeyClassNaming, cPatternClass)));
   RegisterMessage(cKeyClassNaming, SClassNaming);
 
   RegisterRule(TRuleRecordNaming.Create(NamingPatternMeta('RecordNaming',
-    cKeyRecordNaming)));
+    cKeyRecordNaming, cPatternRecord)));
   RegisterMessage(cKeyRecordNaming, SRecordNaming);
 
   RegisterRule(TRuleInterfaceNaming.Create(NamingPatternMeta('InterfaceNaming',
-    cKeyInterfaceNaming)));
+    cKeyInterfaceNaming, cPatternInterface)));
   RegisterMessage(cKeyInterfaceNaming, SInterfaceNaming);
 
   RegisterRule(TRuleEnumNaming.Create(NamingPatternMeta('EnumNaming',
-    cKeyEnumNaming)));
+    cKeyEnumNaming, cPatternEnum)));
   RegisterMessage(cKeyEnumNaming, SEnumNaming);
 
   RegisterRule(TRuleHelperNaming.Create(NamingPatternMeta('HelperNaming',
-    cKeyHelperNaming)));
+    cKeyHelperNaming, cPatternHelper)));
   RegisterMessage(cKeyHelperNaming, SHelperNaming);
 
   RegisterRule(TRulePointerNaming.Create(NamingPatternMeta('PointerNaming',
-    cKeyPointerNaming)));
+    cKeyPointerNaming, cPatternPointer)));
   RegisterMessage(cKeyPointerNaming, SPointerNaming);
 
   RegisterRule(TRuleAttributeNaming.Create(NamingPatternMeta('AttributeNaming',
-    cKeyAttributeNaming)));
+    cKeyAttributeNaming, cPatternAttribute)));
   RegisterMessage(cKeyAttributeNaming, SAttributeNaming);
 
   RegisterRule(TRuleConstantNaming.Create(NamingPatternMeta('ConstantNaming',
-    cKeyConstantNaming)));
+    cKeyConstantNaming, cPatternConst)));
   RegisterMessage(cKeyConstantNaming, SConstantNaming);
 
   RegisterRule(TRuleFieldNaming.Create(NamingPatternMeta('FieldNaming',
-    cKeyFieldNaming)));
+    cKeyFieldNaming, cPatternField)));
   RegisterMessage(cKeyFieldNaming, SFieldNaming);
 
   RegisterRule(TRuleVariableNaming.Create(NamingPatternMeta('VariableNaming',
-    cKeyVariableNaming)));
+    cKeyVariableNaming, cPatternVariable)));
   RegisterMessage(cKeyVariableNaming, SVariableNaming);
 
   RegisterRule(TRuleRoutineNaming.Create(NamingPatternMeta('RoutineNaming',
-    cKeyRoutineNaming)));
+    cKeyRoutineNaming, cPatternRoutine)));
   RegisterMessage(cKeyRoutineNaming, SRoutineNaming);
 
   RegisterRule(TRuleConstructorNaming.Create(NamingPatternMeta(
-    'ConstructorNaming', cKeyConstructorNaming)));
+    'ConstructorNaming', cKeyConstructorNaming, cPatternConstructor)));
   RegisterMessage(cKeyConstructorNaming, SConstructorNaming);
 
   RegisterRule(TRuleUnitNaming.Create(NamingPatternMeta('UnitNaming',
-    cKeyUnitNaming)));
+    cKeyUnitNaming, cPatternUnit)));
   RegisterMessage(cKeyUnitNaming, SUnitNaming);
 
   RegisterRule(TRuleIdentifierTooShort.Create(IdentTooShortMeta));

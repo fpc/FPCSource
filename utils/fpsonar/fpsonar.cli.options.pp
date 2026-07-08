@@ -268,7 +268,8 @@ begin
   if Result.NewCodeMode and Result.MutedMode then
     FlagError(SMutuallyExclusive);
 
-  if (Result.Command <> 'analyze') and (Result.Command <> 'baseline') then
+  if (Result.Command <> 'analyze') and (Result.Command <> 'baseline')
+    and (Result.Command <> 'init-config') then
     Result.ShowHelp := True;
   if Length(lProjectFiles) > 0 then
     Result.ProjectFile := lProjectFiles[0];

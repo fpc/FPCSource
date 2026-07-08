@@ -113,6 +113,11 @@ type
   TRuleParamSpec = record
     Name: string;
     Kind: TRuleParamKind;
+    // The rule's built-in default, rendered as text and interpreted per Kind:
+    // an integer literal (rpkInt), 'true'/'false' (rpkBool), the string/regex
+    // verbatim (rpkString/rpkRegex), or '' for rpkTargets (an empty
+    // disallow-list). Surfaced verbatim by "fpsonar init-config".
+    DefaultValue: string;
   end;
 
   TRuleParamSpecArray = array of TRuleParamSpec;
@@ -143,8 +148,16 @@ type
       aSeverity: TFpSonarSeverity; aCategory: TFpSonarIssueType;
       aConfidence: TFpSonarConfidence; aDefaultEnabled: boolean;
       const aMessageKey: string): TRuleMetadata; static;
-    // Appends one tunable-parameter spec;
-    procedure AddParam(const aName: string; aKind: TRuleParamKind);
+    // Appends one tunable-parameter spec. The overloads record the rule's
+    // built-in default so it can be surfaced in a generated config; the
+    // no-default form is for params with no meaningful scalar default (targets).
+    procedure AddParam(const aName: string; aKind: TRuleParamKind); overload;
+    procedure AddParam(const aName: string; aKind: TRuleParamKind;
+      const aDefault: string); overload;
+    procedure AddParam(const aName: string; aKind: TRuleParamKind;
+      aDefault: integer); overload;
+    procedure AddParam(const aName: string; aKind: TRuleParamKind;
+      aDefault: boolean); overload;
     // The spec for aName in ParamSpecs, or False when the rule declares no such parameter
     function FindParam(const aName: string; out aSpec: TRuleParamSpec): boolean;
     // True iff the metadata is complete: a non-empty RuleId and a non-empty MessageKey
@@ -391,11 +404,36 @@ begin
 end;
 
 
-procedure TRuleMetadata.AddParam(const aName: string; aKind: TRuleParamKind);
+procedure TRuleMetadata.AddParam(const aName: string; aKind: TRuleParamKind;
+  const aDefault: string);
 begin
   SetLength(ParamSpecs, Length(ParamSpecs) + 1);
   ParamSpecs[High(ParamSpecs)].Name := aName;
   ParamSpecs[High(ParamSpecs)].Kind := aKind;
+  ParamSpecs[High(ParamSpecs)].DefaultValue := aDefault;
+end;
+
+
+procedure TRuleMetadata.AddParam(const aName: string; aKind: TRuleParamKind);
+begin
+  AddParam(aName, aKind, '');
+end;
+
+
+procedure TRuleMetadata.AddParam(const aName: string; aKind: TRuleParamKind;
+  aDefault: integer);
+begin
+  AddParam(aName, aKind, IntToStr(aDefault));
+end;
+
+
+procedure TRuleMetadata.AddParam(const aName: string; aKind: TRuleParamKind;
+  aDefault: boolean);
+begin
+  if aDefault then
+    AddParam(aName, aKind, 'true')
+  else
+    AddParam(aName, aKind, 'false');
 end;
 
 

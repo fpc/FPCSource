@@ -1476,11 +1476,11 @@ end;
 
 { Builds an rtAst metric-rule metadata declaring its single integer threshold param. }
 function IntMetricMeta(const aRuleId: string; aSeverity: TFpSonarSeverity;
-  const aMessageKey, aParamName: string): TRuleMetadata;
+  const aMessageKey, aParamName: string; aDefault: integer): TRuleMetadata;
 begin
   Result := TRuleMetadata.Make(aRuleId, rtAst, rfAst, aSeverity, itCodeSmell, cfHigh,
     True, aMessageKey);
-  Result.AddParam(aParamName, rpkInt);
+  Result.AddParam(aParamName, rpkInt, aDefault);
 end;
 
 
@@ -1489,44 +1489,50 @@ function BeginEndRequiredMeta: TRuleMetadata;
 begin
   Result := TRuleMetadata.Make('BeginEndRequired', rtAst, rfAst, sevMinor, itCodeSmell,
     cfHigh, True, cKeyBeginEndRequired);
-  Result.AddParam('allowSingleStatement', rpkBool);
+  Result.AddParam('allowSingleStatement', rpkBool, False);
 end;
 
 
 initialization
   RegisterRule(TRuleCyclomaticComplexity.Create(IntMetricMeta(
-    'CyclomaticComplexity', sevMajor, cKeyCyclomatic, 'maxComplexity')));
+    'CyclomaticComplexity', sevMajor, cKeyCyclomatic, 'maxComplexity',
+    cMaxCyclomatic)));
   RegisterMessage(cKeyCyclomatic, SCyclomaticComplexity);
 
   RegisterRule(TRuleCognitiveComplexity.Create(IntMetricMeta(
-    'CognitiveComplexity', sevMajor, cKeyCognitive, 'maxComplexity')));
+    'CognitiveComplexity', sevMajor, cKeyCognitive, 'maxComplexity',
+    cMaxCognitive)));
   RegisterMessage(cKeyCognitive, SCognitiveComplexity);
 
   RegisterRule(TRuleRoutineTooLarge.Create(IntMetricMeta(
-    'RoutineTooLarge', sevMajor, cKeyRoutineTooLarge, 'maxStatements')));
+    'RoutineTooLarge', sevMajor, cKeyRoutineTooLarge, 'maxStatements',
+    cMaxStatements)));
   RegisterMessage(cKeyRoutineTooLarge, SRoutineTooLarge);
 
   RegisterRule(TRuleRoutineTooDeeplyNested.Create(IntMetricMeta(
-    'RoutineTooDeeplyNested', sevMajor, cKeyRoutineTooDeeplyNested, 'maxDepth')));
+    'RoutineTooDeeplyNested', sevMajor, cKeyRoutineTooDeeplyNested, 'maxDepth',
+    cMaxNestingDepth)));
   RegisterMessage(cKeyRoutineTooDeeplyNested, SRoutineTooDeeplyNested);
 
   // Count rules (sevMinor).
   RegisterRule(TRuleTooManyNestedRoutines.Create(IntMetricMeta(
     'TooManyNestedRoutines', sevMinor, cKeyTooManyNestedRoutines,
-    'maxNestedRoutines')));
+    'maxNestedRoutines', cMaxNestedRoutines)));
   RegisterMessage(cKeyTooManyNestedRoutines, STooManyNestedRoutines);
 
   RegisterRule(TRuleTooManyParameters.Create(IntMetricMeta(
-    'TooManyParameters', sevMinor, cKeyTooManyParameters, 'maxParameters')));
+    'TooManyParameters', sevMinor, cKeyTooManyParameters, 'maxParameters',
+    cMaxParameters)));
   RegisterMessage(cKeyTooManyParameters, STooManyParameters);
 
   RegisterRule(TRuleTooManyVariables.Create(IntMetricMeta(
-    'TooManyVariables', sevMinor, cKeyTooManyVariables, 'maxVariables')));
+    'TooManyVariables', sevMinor, cKeyTooManyVariables, 'maxVariables',
+    cMaxVariables)));
   RegisterMessage(cKeyTooManyVariables, STooManyVariables);
 
   RegisterRule(TRuleTooManyDefaultParameters.Create(IntMetricMeta(
     'TooManyDefaultParameters', sevMinor, cKeyTooManyDefaultParameters,
-    'maxDefaultParameters')));
+    'maxDefaultParameters', cMaxDefaultParameters)));
   RegisterMessage(cKeyTooManyDefaultParameters, STooManyDefaultParameters);
 
   // Statement & control rules

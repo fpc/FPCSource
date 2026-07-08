@@ -546,8 +546,8 @@ end;
 function UnusedImportsMeta: TRuleMetadata;
 begin
   Result := UnusedMeta('RemoveUnusedImports', cKeyUnusedImport);
-  Result.AddParam(cParamFlagOperatorOnly, rpkBool);
-  Result.AddParam(cParamFlagSideEffect, rpkBool);
+  Result.AddParam(cParamFlagOperatorOnly, rpkBool, False);
+  Result.AddParam(cParamFlagSideEffect, rpkBool, False);
 end;
 
 

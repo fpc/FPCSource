@@ -531,7 +531,7 @@ function FileNotTooManyClassesMeta: TRuleMetadata;
 begin
   Result := TRuleMetadata.Make('FileNotTooManyClasses', rtAst, rfAst, sevMinor,
     itCodeSmell, cfHigh, True, cKeyFileNotTooManyClasses);
-  Result.AddParam('maxClasses', rpkInt);
+  Result.AddParam('maxClasses', rpkInt, cMaxClasses);
 end;
 
 

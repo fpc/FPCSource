@@ -130,7 +130,7 @@ initialization
   // formBaseTypes declared AFTER TRuleMetadata.Make (which resets ParamSpecs)
   lMeta := TRuleMetadata.Make('LfmFormFileExists', rtAst, rfAst, sevMinor, itCodeSmell,
     cfMedium, True, cKeyLfmFormFileExists);
-  lMeta.AddParam('formBaseTypes', rpkString);
+  lMeta.AddParam('formBaseTypes', rpkString, cDefaultFormBaseTypes);
   RegisterRule(TRuleLfmFormFileExists.Create(lMeta));
   RegisterMessage(cKeyLfmFormFileExists, SLfmFormFileExists);
 

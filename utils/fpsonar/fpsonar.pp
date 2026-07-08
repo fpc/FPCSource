@@ -57,7 +57,8 @@ type
   private
     FOpts: TFpSonarCliOptions;
     function Analyze: integer;
-    function GetOptions(aOpts: TFpSonarCliOptions): boolean;
+    function EmitConfig: integer;
+    function GetOptions(var aOpts: TFpSonarCliOptions): boolean;
   public
     function CollectArgs: TStringArray;
     function RenderReport(aFormat: TFpSonarOutputFormat;
@@ -109,12 +110,13 @@ type
     lStream.Free;
   end;
 
-  function TFPSonarApplication.GetOptions(aOpts: TFpSonarCliOptions): boolean;
+  function TFPSonarApplication.GetOptions(var aOpts: TFpSonarCliOptions): boolean;
   var
     LOpts: TFpSonarCliOptions;
     LParamError: string;
   begin
     Result := False;
+    LOpts := ParseOptions(CollectArgs);
     // Usage error: report to stderr and exit 2 (NOT the quality-gate code).
     if LOpts.HadError then
     begin
@@ -141,6 +143,7 @@ type
       Exit;
     end;
     aOpts := LOpts;
+    Result := True;
   end;
 
   function TFPSonarApplication.Analyze: integer;
@@ -245,6 +248,26 @@ type
     Result := LGate.ExitCode;
   end;
 
+  { init-config: emit a complete, editable JSON config listing every registered
+    rule with its default enabled state + severity, plus the default gate policy.
+    Honours --output/-o (default: stdout). }
+  function TFPSonarApplication.EmitConfig: integer;
+  var
+    lRules: array of TRuleMetadata;
+    lReport: string;
+    i: integer;
+  begin
+    Result := 0;
+    SetLength(lRules, RuleRegistry.Count);
+    for i := 0 to RuleRegistry.Count - 1 do
+      lRules[i] := RuleRegistry.Rule(i).Metadata;
+    lReport := ConfigTemplateToJSON(DefaultConfig, lRules);
+    if FOpts.OutputFile = '' then
+      Writeln(lReport)
+    else if not WriteReportFile(FOpts.OutputFile, lReport + LineEnding) then
+      Result := 2;
+  end;
+
   procedure TFPSonarApplication.DoRun;
   var
     lCode: integer;
@@ -252,6 +275,11 @@ type
     Terminate;
     if not GetOptions(FOpts) then
       exit;
+    if FOpts.Command = 'init-config' then
+    begin
+      ExitCode := EmitConfig;
+      Exit;
+    end;
     lCode := Analyze;
     if ExitCode <> 2 then
       ExitCode := lCode;

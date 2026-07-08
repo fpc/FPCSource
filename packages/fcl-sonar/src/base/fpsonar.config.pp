@@ -175,6 +175,13 @@ function LoadConfigFromJSON(const aJsonText: string; out aConfig: TFpSonarConfig
 function LoadConfigFromFile(const aPath: string; out aConfig: TFpSonarConfig;
   out aError: string): boolean;
 
+// Builds a complete, human-editable JSON config template: every rule in aRules
+// listed (RuleId-sorted) with its default enabled state and severity, plus the
+// quality-gate and use-tier policy from aConfig and an empty suppressions list.
+// Intended as a starting point the user copies to a file and edits.
+function ConfigTemplateToJSON(const aConfig: TFpSonarConfig;
+  const aRules: array of TRuleMetadata): string;
+
 
 implementation
 
@@ -869,6 +876,111 @@ begin
     end;
   end;
   Result := LoadConfigFromJSON(lText, aConfig, aError);
+end;
+
+
+function ConfigTemplateToJSON(const aConfig: TFpSonarConfig;
+  const aRules: array of TRuleMetadata): string;
+
+  // Adds one param's built-in default to aParams, typed per its declared Kind,
+  // so the emitted value round-trips to exactly the rule's default.
+  procedure EmitParam(aParams: TJSONObject; const aSpec: TRuleParamSpec);
+  begin
+    case aSpec.Kind of
+      rpkInt: aParams.Add(aSpec.Name, StrToIntDef(aSpec.DefaultValue, 0));
+      rpkBool: aParams.Add(aSpec.Name, SameText(aSpec.DefaultValue, 'true'));
+      // An empty disallow-list; the user adds { "name": ... } entries.
+      rpkTargets: aParams.Add(aSpec.Name, TJSONArray.Create);
+    else
+      // rpkString and rpkRegex are both emitted verbatim as a JSON string.
+      aParams.Add(aSpec.Name, aSpec.DefaultValue);
+    end;
+  end;
+
+  // Case-insensitive RuleId insertion sort, so the emitted file is easy to scan.
+  procedure SortByRuleId(var aList: array of TRuleMetadata);
+  var
+    i, j: integer;
+    lTmp: TRuleMetadata;
+  begin
+    for i := 1 to High(aList) do
+    begin
+      lTmp := aList[i];
+      j := i - 1;
+      while (j >= 0) and (CompareText(aList[j].RuleId, lTmp.RuleId) > 0) do
+      begin
+        aList[j + 1] := aList[j];
+        Dec(j);
+      end;
+      aList[j + 1] := lTmp;
+    end;
+  end;
+
+var
+  lRoot, lStamp, lRules, lRule, lParams, lGate, lUseTier: TJSONObject;
+  lSorted: array of TRuleMetadata;
+  i, j: integer;
+begin
+  SetLength(lSorted, Length(aRules));
+  for i := 0 to High(aRules) do
+    lSorted[i] := aRules[i];
+  SortByRuleId(lSorted);
+
+  lRoot := TJSONObject.Create;
+  try
+    // Optional provenance stamp; ignored by the loader.
+    lStamp := TJSONObject.Create;
+    lStamp.Add('config', 'fpsonar-default');
+    lStamp.Add('version', '1');
+    lRoot.Add('_fpsonar', lStamp);
+
+    // One entry per rule: its default enabled state, severity, and — for a rule
+    // that has tunable parameters — a "params" object listing each one at its
+    // built-in default, so the file shows every knob the user can turn.
+    lRules := TJSONObject.Create;
+    for i := 0 to High(lSorted) do
+    begin
+      if lSorted[i].RuleId = '' then
+        Continue;
+      lRule := TJSONObject.Create;
+      lRule.Add('enabled', lSorted[i].DefaultEnabled);
+      lRule.Add('severity', SeverityName(lSorted[i].Severity));
+      if Length(lSorted[i].ParamSpecs) > 0 then
+      begin
+        lParams := TJSONObject.Create;
+        for j := 0 to High(lSorted[i].ParamSpecs) do
+          EmitParam(lParams, lSorted[i].ParamSpecs[j]);
+        lRule.Add('params', lParams);
+      end;
+      lRules.Add(lSorted[i].RuleId, lRule);
+    end;
+    lRoot.Add('rules', lRules);
+
+    // Quality-gate thresholds (-1 = unlimited on that axis).
+    lGate := TJSONObject.Create;
+    lGate.Add('maxBlocker', aConfig.Gate.MaxPerSeverity[sevBlocker]);
+    lGate.Add('maxCritical', aConfig.Gate.MaxPerSeverity[sevCritical]);
+    lGate.Add('maxMajor', aConfig.Gate.MaxPerSeverity[sevMajor]);
+    lGate.Add('maxMinor', aConfig.Gate.MaxPerSeverity[sevMinor]);
+    lGate.Add('maxInfo', aConfig.Gate.MaxPerSeverity[sevInfo]);
+    lGate.Add('maxTotal', aConfig.Gate.MaxTotal);
+    lRoot.Add('gate', lGate);
+
+    // USE-tier reference engine selector.
+    lUseTier := TJSONObject.Create;
+    if aConfig.UseTierResolution = utrPrefer then
+      lUseTier.Add('resolution', 'prefer')
+    else
+      lUseTier.Add('resolution', 'off');
+    lRoot.Add('useTier', lUseTier);
+
+    // No suppression globs by default.
+    lRoot.Add('suppressions', TJSONArray.Create);
+
+    Result := lRoot.FormatJSON;
+  finally
+    lRoot.Free;
+  end;
 end;
 
 

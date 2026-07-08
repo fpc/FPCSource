@@ -218,6 +218,25 @@ defaults are used (all rules on; fail only on blocker/critical).
 
 > There are ready-made examples in the `config/` folder you can copy and edit.
 
+### Generating a starting config
+
+Rather than writing the file from scratch, let fpsonar emit one with **every rule** 
+already listed at its default enabled state and severity — and, for
+rules that have tunable parameters, a `params` block showing each one at its
+built-in default:
+
+```sh
+fpsonar init-config -o myrules.json
+```
+
+(Without `-o` it prints to the screen, so you can pipe or redirect it yourself.)
+Open the file, mark the rules you don't want with `"enabled": false`, adjust any
+severities or gate limits, then pass it back with `--config`:
+
+```sh
+fpsonar analyze src/ --config myrules.json
+```
+
 ---
 
 ## 9. Analyzing a real project (compiler settings)

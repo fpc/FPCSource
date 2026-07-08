@@ -508,7 +508,7 @@ function LineTooLongMeta: TRuleMetadata;
 begin
   Result := TRuleMetadata.Make('LineTooLong', rtLex, rfLineText, sevMinor, itCodeSmell,
     cfHigh, True, cKeyLineLong);
-  Result.AddParam('maxLength', rpkInt);
+  Result.AddParam('maxLength', rpkInt, cMaxLength);
 end;
 
 

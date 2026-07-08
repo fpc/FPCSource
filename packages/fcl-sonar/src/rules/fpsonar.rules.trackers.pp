@@ -562,7 +562,7 @@ begin
   Result := TRuleMetadata.Make('DisallowedIdentifier', rtSem, rfResolver, sevMajor,
     itCodeSmell, cfHigh, True, cKeyDisallowedIdentifier);
   Result.AddParam(cTargetsKey, rpkTargets);
-  Result.AddParam(cMatchUnresolvedKey, rpkBool);
+  Result.AddParam(cMatchUnresolvedKey, rpkBool, False);
 end;
 
 

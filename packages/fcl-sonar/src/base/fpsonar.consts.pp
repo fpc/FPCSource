@@ -51,6 +51,7 @@ resourcestring
   SHelpText =
     'usage: fpsonar analyze [options] <path...>'#10 +
     '       fpsonar baseline [options] [-o <file>] <path...>'#10 +
+    '       fpsonar init-config [-o <file>]'#10 +
     ''#10 +
     'Analyze one or more Object Pascal files, directories, or projects.'#10 +
     ''#10 +
@@ -60,6 +61,10 @@ resourcestring
     '  baseline          write a snapshot of the current effective issue'#10 +
     '                    fingerprints to --output/-o (default: stdout); no'#10 +
     '                    quality gate.'#10 +
+    '  init-config       write a complete JSON config listing every rule with'#10 +
+    '                    its default enabled state + severity, plus the gate'#10 +
+    '                    policy, to --output/-o (default: stdout). Edit it and'#10 +
+    '                    pass it back with --config/-c.'#10 +
     ''#10 +
     'Targets:'#10 +
     '  <path>            a .pas/.pp/.lpr file, a directory (expanded'#10 +
