@@ -28,14 +28,21 @@
   See the header of pasresolver.pp for the general resolver contract.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pasnativeresolve;
+{$ENDIF}
 
 {$i fcl-passrc.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Pascal.Tree, Pascal.ResolveEval, Pascal.Resolver;
+{$ELSE}
 uses
   Classes, SysUtils, PasTree, PasResolveEval, PasResolver;
+{$ENDIF}  
 
 type
 

@@ -1,4 +1,5 @@
 src/pasresolver.pp=namespaced/Pascal.Resolver.pp
+src/pasnativeresolve.pp=namespaced/Pascal.Resolver.Native.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/pparser.pp=namespaced/Pascal.Parser.pp
