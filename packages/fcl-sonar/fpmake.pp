@@ -19,6 +19,11 @@ begin
       P.Author := 'Michael Van Canneyt';
       P.License := 'modified LGPL';
       P.Description := 'Object Pascal static analyzer (linter)';
+
+      P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari,zxspectrum,msxdos,amstradcpc,sinclairql,wasip1,wasip1threads,human68k,ps1,wasip2];
+      if Defaults.CPU=jvm then
+        P.OSes := P.OSes - [java,android];
+
       P.Dependencies.Add('fcl-passrc');
       P.Dependencies.Add('fcl-fpcunit');
       P.Dependencies.Add('fcl-xml');
