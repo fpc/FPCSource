@@ -22,8 +22,13 @@ unit FpSonar.Rules.Imports;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
-  FpSonar.RuleFramework, FpSonar.Resolver, PasTree, FpSonar.Rules.Consts;
+  FpSonar.RuleFramework, FpSonar.Resolver, FpSonar.Rules.Consts;
 
 type
   { Flags an unqualified reference to a shadowable cross-unit symbol. }

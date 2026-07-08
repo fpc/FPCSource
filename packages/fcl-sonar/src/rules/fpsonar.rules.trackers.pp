@@ -23,9 +23,14 @@ unit FpSonar.Rules.Trackers;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Config, FpSonar.Resolver,
-  FpSonar.Traversal, PasTree, FpSonar.Rules.Consts;
+  FpSonar.Traversal, FpSonar.Rules.Consts;
 
 type
   { reports a used unit whose resolved source path matches a disallow-glob. }

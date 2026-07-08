@@ -180,7 +180,12 @@ function SplitSearchPath(const aValue: string): TFpSonarStringArray;
 implementation
 
 uses
-  Classes, SysUtils, DOM, XMLRead, FpSonar.Consts;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, Xml.Dom, Xml.Read,
+{$ELSE}
+  Classes, SysUtils, DOM, XMLRead,
+{$ENDIF}
+  FpSonar.Consts;
 
 function FpSonarBanner: string;
 begin

@@ -23,8 +23,13 @@ unit FpSonar.Rules.Naming;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
-  FpSonar.RuleFramework, FpSonar.Traversal, PasTree, FpSonar.Rules.Consts;
+  FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Rules.Consts;
 
 type
   { Flags a class type whose name fails the configured pattern. }
@@ -147,7 +152,12 @@ type
 implementation
 
 uses
-  SysUtils, regexpr, FpSonar.Config;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Regexpr,
+{$ELSE}
+  SysUtils, regexpr,
+{$ENDIF}
+  FpSonar.Config;
 
 const
   // Per-kind default name patterns. Anchored ^...$, so a successful Exec is a

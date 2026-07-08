@@ -63,7 +63,11 @@ function LoadBaselineFromFile(const aPath: string; out aBaseline: TFpSonarBaseli
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Classes, FpJson.Data, FpJson.Parser;
+{$ELSE}
   SysUtils, Classes, fpjson, jsonparser;
+{$ENDIF}
 
 const
   // The snapshot format version (bumped only on an incompatible layout change);

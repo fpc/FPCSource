@@ -21,7 +21,12 @@ unit FpSonar.Output.Sarif;
 interface
 
 uses
-  SysUtils, fpjson, FpSonar.Types, FpSonar.Output.Utils;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, FpJson.Data,
+{$ELSE}
+  SysUtils, fpjson,
+{$ENDIF}
+  FpSonar.Types, FpSonar.Output.Utils;
 
 const
   // The SARIF 2.1.0 schema URI and the SARIF version string.

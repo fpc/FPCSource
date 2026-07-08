@@ -26,7 +26,12 @@ unit FpSonar.Output.SonarJson;
 interface
 
 uses
-  SysUtils, fpjson, FpSonar.Types, FpSonar.Output.Utils;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, FpJson.Data,
+{$ELSE}
+  SysUtils, fpjson,
+{$ENDIF}
+  FpSonar.Types, FpSonar.Output.Utils;
 
 const
   // The SonarQube-adapter output-format version stamp for sonar-json.

@@ -19,7 +19,12 @@ unit FpSonar.Rules.Parens;
 interface
 
 uses
-  SysUtils, FpSonar.Types, FpSonar.Issues,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils,
+{$ELSE}
+  SysUtils,
+{$ENDIF}
+  FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Ingest, FpSonar.Rules.Consts;
 
 type

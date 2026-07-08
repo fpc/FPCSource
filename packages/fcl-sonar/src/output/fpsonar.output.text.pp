@@ -27,7 +27,12 @@ unit FpSonar.Output.Text;
 interface
 
 uses
-  SysUtils, FpSonar.Types, FpSonar.Output.Utils;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils,
+{$ELSE}
+  SysUtils,
+{$ENDIF}
+  FpSonar.Types, FpSonar.Output.Utils;
 
 const
   // The text-format output version stamp for text reports.

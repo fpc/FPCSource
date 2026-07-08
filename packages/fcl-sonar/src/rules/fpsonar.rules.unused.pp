@@ -23,10 +23,14 @@ unit FpSonar.Rules.Unused;
 interface
 
 uses
-  Classes,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, Pascal.Tree,
+{$ELSE}
+  Classes, PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal,
-  FpSonar.Config, PasTree, FpSonar.Rules.Consts;
+  FpSonar.Config, FpSonar.Rules.Consts;
 
 type
   { reports a routine-local variable not referenced in its routine body. }

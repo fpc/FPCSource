@@ -135,7 +135,11 @@ function BuildRtlSourceConfig(const aConfig: TFpSonarFpcSourceConfig;
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils;
+{$ELSE}
   SysUtils;
+{$ENDIF}
 
 function DefaultFpcSourceConfig: TFpSonarFpcSourceConfig;
 var

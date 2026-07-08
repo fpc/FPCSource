@@ -179,7 +179,11 @@ function LoadConfigFromFile(const aPath: string; out aConfig: TFpSonarConfig;
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Classes, FpJson.Data, FpJson.Parser;
+{$ELSE}
   SysUtils, Classes, fpjson, jsonparser;
+{$ENDIF}
 
 function DefaultConfig: TFpSonarConfig;
 var

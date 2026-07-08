@@ -19,7 +19,11 @@ unit FpSonar.Traversal;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, Pascal.Tree,
+{$ELSE}
   Classes, SysUtils, PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Resolver;
 
 type

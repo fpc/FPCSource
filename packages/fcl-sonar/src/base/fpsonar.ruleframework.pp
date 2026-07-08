@@ -22,7 +22,11 @@ interface
 uses
   FpSonar.Types, FpSonar.Config, FpSonar.Issues, FpSonar.Ingest,
   FpSonar.Resolver, FpSonar.Traversal, FpSonar.SourceFile,
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree;
+{$ELSE}
   PasTree;
+{$ENDIF}
 
 type
   // A read-only view over one analyzed file, handed to every rule.
@@ -159,7 +163,12 @@ function ValidateConfigParams(const aConfig: TFpSonarConfig;
 implementation
 
 uses
-  SysUtils, regexpr, FpSonar.Consts;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Regexpr,
+{$ELSE}
+  SysUtils, regexpr,
+{$ENDIF}
+  FpSonar.Consts;
 
 var
   // The process-wide registry, owned by this unit (freed in finalization).

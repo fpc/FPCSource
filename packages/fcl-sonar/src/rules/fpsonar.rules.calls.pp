@@ -24,9 +24,14 @@ unit FpSonar.Rules.Calls;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Resolver,
-  PasTree, FpSonar.Rules.Consts;
+  FpSonar.Rules.Consts;
 
 type
   { Flags a Format argument whose type mismatches its conversion specifier. }
@@ -180,7 +185,11 @@ type
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils;
+{$ELSE}
   SysUtils;
+{$ENDIF}
 
 const
   // The Format-rule checks also for too many arguments

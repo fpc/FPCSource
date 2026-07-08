@@ -20,7 +20,12 @@ unit FpSonar.Engine;
 interface
 
 uses
-  SysUtils, FpSonar.Types, FpSonar.RuleFramework, FpSonar.Issues, FpSonar.Config,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils,
+{$ELSE}
+  SysUtils,
+{$ENDIF}
+  FpSonar.Types, FpSonar.RuleFramework, FpSonar.Issues, FpSonar.Config,
   FpSonar.SourceFile, FpSonar.Traversal,
   FpSonar.FpcSource;
 

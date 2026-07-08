@@ -24,8 +24,13 @@ unit FpSonar.Ingest;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils,
+  Pascal.Scanner, Pascal.Parser, Pascal.Tree,
+{$ELSE}
   Classes, SysUtils,
   PScanner, PParser, PasTree,
+{$ENDIF}
   FpSonar.Types;
 
 type

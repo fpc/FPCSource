@@ -24,9 +24,14 @@ unit FpSonar.Rules.Control;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Resolver,
-  PasTree, FpSonar.Rules.Consts;
+  FpSonar.Rules.Consts;
 
 type
   { Flags a case over an enum that omits values and has no else. }
@@ -108,7 +113,11 @@ type
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils;
+{$ELSE}
   SysUtils;
+{$ENDIF}
 
 const
   cReportNamesLimit = 5;

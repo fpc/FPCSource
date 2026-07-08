@@ -26,8 +26,13 @@ unit FpSonar.Rules.Structure;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
-  FpSonar.RuleFramework, FpSonar.Traversal, PasTree, FpSonar.Rules.Consts;
+  FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Rules.Consts;
 
 type
   { reports a routine whose cyclomatic complexity exceeds the limit. }
@@ -230,7 +235,12 @@ type
 implementation
 
 uses
-  Classes, SysUtils, FpSonar.Ingest, FpSonar.Config;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils,
+{$ELSE}
+  Classes, SysUtils,
+{$ENDIF}
+  FpSonar.Ingest, FpSonar.Config;
 
 const
   // Thresholds (a routine is flagged strictly when its metric is GREATER THAN

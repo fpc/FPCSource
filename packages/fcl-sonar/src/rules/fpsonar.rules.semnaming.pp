@@ -23,9 +23,14 @@ unit FpSonar.Rules.SemNaming;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Resolver,
-  PasTree, FpSonar.Rules.Consts;
+  FpSonar.Rules.Consts;
 
 type
   { Flags an identifier use-site whose casing diverges from its declaration. }
@@ -49,7 +54,11 @@ type
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Regexpr;
+{$ELSE}
   SysUtils, regexpr;
+{$ENDIF}
 
 const
   // Dotted message keys (rule.<RuleId>.message), seeded in initialization.

@@ -189,7 +189,11 @@ type
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils;
+{$ELSE}
   SysUtils;
+{$ENDIF}
 
 const
   // Hardcoded rule-spec defaults (no per-rule param config yet — see header).

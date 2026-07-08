@@ -19,8 +19,13 @@ unit FpSonar.SourceFile;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils,
+  Pascal.Tree,
+{$ELSE}
   Classes, SysUtils,
   PasTree,
+{$ENDIF}
   FpSonar.Ingest, FpSonar.Types,
   FpSonar.Resolver;
 

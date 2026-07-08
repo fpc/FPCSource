@@ -29,7 +29,11 @@ unit FpSonar.Resolver;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, Pascal.Tree, Pascal.Resolver, Pascal.ResolveEval, Pascal.Resolver.Native,
+{$ELSE}
   Classes, SysUtils, PasTree, pasresolver, pasresolveeval, pasnativeresolve,
+{$ENDIF}
   FpSonar.Ingest, FpSonar.Types,
   FpSonar.PpuStub;
 

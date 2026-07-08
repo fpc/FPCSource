@@ -189,7 +189,11 @@ function SuppressedCount(const aIssues: TFpSonarIssueArray): integer;
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils;
+{$ELSE}
   SysUtils;
+{$ENDIF}
 
   { ===== Fingerprint ===== }
 

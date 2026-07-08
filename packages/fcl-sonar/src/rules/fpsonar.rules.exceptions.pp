@@ -22,9 +22,13 @@ unit FpSonar.Rules.Exceptions;
 interface
 
 uses
-  SysUtils,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, Pascal.Tree,
+{$ELSE}
+  SysUtils, PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
-  FpSonar.RuleFramework, FpSonar.Traversal, PasTree, FpSonar.Rules.Consts;
+  FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Rules.Consts;
 
 type
   { Flags a finally block with no statements. }

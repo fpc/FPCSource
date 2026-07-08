@@ -23,9 +23,14 @@ unit FpSonar.Rules.Refs;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  Pascal.Tree,
+{$ELSE}
+  PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal, FpSonar.Resolver,
-  PasTree, FpSonar.Rules.Consts;
+  FpSonar.Rules.Consts;
 
 type
   { Flags a concrete object assigned/passed to a COM interface. }

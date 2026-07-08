@@ -22,7 +22,12 @@ unit FpSonar.Rules.Forms;
 interface
 
 uses
-  SysUtils, PasTree, FpSonar.RuleFramework, FpSonar.Types,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, Pascal.Tree,
+{$ELSE}
+  SysUtils, PasTree,
+{$ENDIF}
+  FpSonar.RuleFramework, FpSonar.Types,
   FpSonar.Traversal, FpSonar.Issues, FpSonar.Config, FpSonar.Rules.Consts;
 
 type

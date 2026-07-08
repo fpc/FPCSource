@@ -23,10 +23,14 @@ unit FpSonar.Rules.Classes;
 interface
 
 uses
-  SysUtils,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, Pascal.Tree,
+{$ELSE}
+  SysUtils, PasTree,
+{$ENDIF}
   FpSonar.Types, FpSonar.Issues,
   FpSonar.RuleFramework, FpSonar.Traversal,
-  FpSonar.Config, PasTree, FpSonar.Rules.Consts;
+  FpSonar.Config, FpSonar.Rules.Consts;
 
 type
   { Flags a visibility section that is out of ascending order. }

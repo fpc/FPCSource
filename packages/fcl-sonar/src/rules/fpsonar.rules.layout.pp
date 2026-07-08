@@ -71,7 +71,12 @@ type
 implementation
 
 uses
-  SysUtils, FpSonar.Config;
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils,
+{$ELSE}
+  SysUtils,
+{$ENDIF}
+  FpSonar.Config;
 
 const
   // Rule-spec default values.

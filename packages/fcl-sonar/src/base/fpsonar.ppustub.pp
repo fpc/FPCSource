@@ -25,7 +25,11 @@ unit FpSonar.PpuStub;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Classes;
+{$ELSE}
   SysUtils, Classes;
+{$ENDIF}
 
 type
   { In-process ppudump interface-stub generator.
@@ -70,7 +74,11 @@ function HybridRtlSource(const aName, aSyntheticSource: string): string;
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.StrUtils, System.Process, System.Pipes, FpJson.Parser, FpJson.Data;
+{$ELSE}
   StrUtils, Process, Pipes, jsonparser, fpjson;
+{$ENDIF}
 
 type
   // One dumped .ppu interface (owns its parsed JSON tree + the deref/byid maps).
