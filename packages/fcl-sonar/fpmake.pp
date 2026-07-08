@@ -232,7 +232,6 @@ begin
       T.Dependencies.AddUnit('fpsonar.traversal');
       T.Dependencies.AddUnit('fpsonar.config');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
-      Run;
     end;
 end;
 
