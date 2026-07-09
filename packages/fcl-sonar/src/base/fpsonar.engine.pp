@@ -82,7 +82,8 @@ function BuildProjectIndex(const aFiles: array of string; const aMode: string;
   each per-file parse so the project index folds the same names a real-RTL run resolves. }
 function BuildProjectIndex(const aFiles: array of string; const aMode: string;
   const aDefines, aUnitPaths, aIncludePaths: array of string;
-  aRealRtl: boolean; aTargetPointerSize: integer)
+  aRealRtl: boolean; aTargetPointerSize: integer;
+  aDialect: TFpSonarDialect = dlDefault)
   : TFpSonarProjectIndex; overload;
 
 
@@ -153,7 +154,8 @@ end;
 
 function BuildProjectIndex(const aFiles: array of string; const aMode: string;
   const aDefines, aUnitPaths, aIncludePaths: array of string;
-  aRealRtl: boolean; aTargetPointerSize: integer)
+  aRealRtl: boolean; aTargetPointerSize: integer;
+  aDialect: TFpSonarDialect = dlDefault)
 : TFpSonarProjectIndex;
 var
   lSourceFile: TFpSonarSourceFile;
@@ -166,7 +168,7 @@ begin
     lSourceFile := TFpSonarSourceFile.Create;
     try
       lSourceFile.Analyze(aFiles[i], aMode, aDefines, aUnitPaths,
-        aIncludePaths, aRealRtl, aTargetPointerSize);
+        aIncludePaths, aRealRtl, aTargetPointerSize, aDialect);
       if lSourceFile.Module <> nil then
         Result.AddModule(lSourceFile.Module)
       else
@@ -287,7 +289,8 @@ begin
     sees every unit's references when it runs on any one file.
     Owned + freed here }
   lProjectIndex := BuildProjectIndex(lFiles, lMode, lDefines,
-    lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize);
+    lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize,
+    aConfig.Dialect);
   FRuleEngine.ProjectIndex := lProjectIndex;
   // Forward auto-detect ppudump resolution to the dispatcher (per-run).
   FRuleEngine.PpuAutoDetect := FPpuAutoDetect;
@@ -304,7 +307,8 @@ begin
           Break;
       end;
       FRuleEngine.Analyze(lFiles[i], lMode, lDefines,
-        lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize, aCollector);
+        lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize, aCollector,
+        aConfig.Dialect);
     end;
   finally
     FRuleEngine.ProjectIndex := nil;

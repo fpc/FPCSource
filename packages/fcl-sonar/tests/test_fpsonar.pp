@@ -23,6 +23,7 @@ uses
   utstSmokeParse,
   utstScanner,
   utstParser,
+  utstPas2jsDialect,
   utstFaultIsolation,
   utstFpcSource,
   utstPositionFidelity,

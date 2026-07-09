@@ -126,10 +126,12 @@ type
       const aDefines, aUnitPaths, aIncludePaths: array of string;
       const aCollector: TFpSonarIssueCollector); overload;
     // As above, additionally opting the per-unit SEM resolver into the real-RTL-preferred mode
+    // and selecting the source dialect (dlPas2js enables pas2js parsing).
     procedure Analyze(const aFileName, aCompilerMode: string;
       const aDefines, aUnitPaths, aIncludePaths: array of string;
       aRealRtl: boolean; aTargetPointerSize: integer;
-      const aCollector: TFpSonarIssueCollector); overload;
+      const aCollector: TFpSonarIssueCollector;
+      aDialect: TFpSonarDialect = dlDefault); overload;
     // The pure dispatch over an already-analyzed SourceFile, so tests can drive it over a hand-analyzed file.
     procedure Dispatch(aSourceFile: TFpSonarSourceFile;
       const aFileName, aCompilerMode: string;
@@ -472,7 +474,8 @@ end;
 procedure TFpSonarRuleEngine.Analyze(const aFileName, aCompilerMode: string;
   const aDefines, aUnitPaths, aIncludePaths: array of string;
   aRealRtl: boolean; aTargetPointerSize: integer;
-  const aCollector: TFpSonarIssueCollector);
+  const aCollector: TFpSonarIssueCollector;
+  aDialect: TFpSonarDialect = dlDefault);
 var
   lSourceFile: TFpSonarSourceFile;
 begin
@@ -483,7 +486,7 @@ begin
     lSourceFile.PpuAutoDetect := FPpuAutoDetect;
     lSourceFile.PpuCacheDir := FPpuCacheDir;
     lSourceFile.Analyze(aFileName, aCompilerMode, aDefines, aUnitPaths,
-      aIncludePaths, aRealRtl, aTargetPointerSize);
+      aIncludePaths, aRealRtl, aTargetPointerSize, aDialect);
     Dispatch(lSourceFile, aFileName, aCompilerMode, aCollector);
   finally
     lSourceFile.Free;

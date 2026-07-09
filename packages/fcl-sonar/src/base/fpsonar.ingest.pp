@@ -52,7 +52,11 @@ type
   TFpSonarScanner = class
   private
     FTokens: TFpSonarTokenArray;
+    FDialect: TFpSonarDialect;
   public
+    // The source dialect; dlPas2js adds the pas2js parse-relevant modeswitches
+    // to the scan. Set before ScanFile; default dlDefault (byte-identical).
+    property Dialect: TFpSonarDialect read FDialect write FDialect;
     // Scans aFileName under aCompilerMode with the given defines (trivia on),
     // returning every token — including whitespace, line endings and comments —
     // each carrying its start line:col. The result is also kept in Tokens.
@@ -135,7 +139,11 @@ type
   private
     FEngine: TFpSonarParseEngine;
     FModule: TPasModule;
+    FDialect: TFpSonarDialect;
   public
+    // The source dialect; dlPas2js adds the pas2js parse-relevant parser options
+    // + modeswitches. Set before ParseFile; default dlDefault (byte-identical).
+    property Dialect: TFpSonarDialect read FDialect write FDialect;
     destructor Destroy; override;
     // Parses the unit at aFileName under aCompilerMode with the given defines,
     // returning its pastree TPasModule (also available via Module). Raises
@@ -226,11 +234,55 @@ type
 function ParseResolvedKeepAlive(aEngine: TPasTreeContainer;
   const aFileName, aCompilerMode: string;
   const aDefines, aIncludePaths, aImplicitUses: array of string;
-  aCondEvalQuery: TFpSonarCondEvalQuery;
+  aCondEvalQuery: TFpSonarCondEvalQuery; aDialect: TFpSonarDialect;
   aOwned: TFPList; out aModule: TPasModule;
   out aDiag: TFpSonarDiagnostic): boolean;
 
 implementation
+
+const
+  // pas2js parse-relevant PARSER options: the syntax-enabling subset of
+  // fppas2js.po_Pas2js, WITHOUT the four resolver-semantic members
+  // (po_Resolver, po_ResolveStandardTypes, po_StopOnUnitInterface,
+  // po_CheckDirectiveRTTI) — a parse dialect must not switch on full resolution.
+  Pas2jsParserOptions: TPOptions =
+    [po_AsyncProcs, po_ExtConstWithoutExpr, po_AsmWhole];
+  // Mirror of fppas2js.msAllPas2jsModeSwitches MINUS the mode selectors
+  // (msDelphi/msObjfpc — the configured compiler mode owns those). Inlined
+  // literally rather than importing pastojs, which fcl-sonar does not depend on.
+  Pas2jsModeSwitches: TModeSwitches = [
+    msClass, msResult, msRepeatForward, msInitFinal, msOut, msDefaultPara,
+    msProperty, msExcept, msDefaultUnicodestring, msCBlocks,
+    msFunctionReferences, msAnonymousFunctions, msNestedComment, msAutoDeref,
+    msHintDirective, msAdvancedRecords, msExternalClass, msTypeHelpers,
+    msArrayOperators, msPrefixedAttributes, msOmitRTTI, msMultiHelpers,
+    msImplicitFunctionSpec, msMultiLineStrings, msDelphiMultiLineStrings];
+
+// Adds the pas2js parse-relevant modeswitches to aScanner for dlPas2js; a no-op
+// for dlDefault (byte-identical). Uses ReadOnlyModeSwitches (not
+// CurrentModeSwitches) so the switches survive an in-source {$mode} directive:
+// HandleMode recomputes CurrentModeSwitches as (mode + ReadOnly) * Allowed on
+// every {$mode}, and SetReadOnlyModeSwitches also folds them into Allowed +
+// Current at once. This mirrors how pas2js keeps its switches on under
+// {$mode objfpc}. Call AFTER SetCompilerMode.
+procedure ApplyDialectModeSwitches(aScanner: TPascalScanner;
+  aDialect: TFpSonarDialect);
+begin
+  if aDialect = dlPas2js then
+    aScanner.ReadOnlyModeSwitches := aScanner.ReadOnlyModeSwitches +
+      Pas2jsModeSwitches;
+end;
+
+
+// Adds the pas2js parse-relevant parser options to aParser for dlPas2js; a no-op
+// for dlDefault (byte-identical).
+procedure ApplyDialectParserOptions(aParser: TPasParser;
+  aDialect: TFpSonarDialect);
+begin
+  if aDialect = dlPas2js then
+    aParser.Options := aParser.Options + Pas2jsParserOptions;
+end;
+
 
 function IsCommentToken(const aToken: TFpSonarToken): boolean;
 begin
@@ -301,6 +353,7 @@ begin
     lScanner.SkipWhiteSpace := False;
     lScanner.SkipComments := False;
     lScanner.SetCompilerMode(aCompilerMode);
+    ApplyDialectModeSwitches(lScanner, FDialect);
     for i := Low(aDefines) to High(aDefines) do
       if aDefines[i] <> '' then
         lScanner.AddDefine(aDefines[i]);
@@ -406,11 +459,13 @@ begin
     lScanner := TPascalScanner.Create(lResolver);
     lParser := TPasParser.Create(lScanner, lResolver, FEngine);
     lScanner.SetCompilerMode(aCompilerMode);
+    ApplyDialectModeSwitches(lScanner, FDialect);
     for i := Low(aDefines) to High(aDefines) do
       if aDefines[i] <> '' then
         lScanner.AddDefine(aDefines[i]);
     // Enable the global parser prerequisite before opening/parsing.
     lParser.Options := lParser.Options + [po_ArrayRangeExpr];
+    ApplyDialectParserOptions(lParser, FDialect);
     lScanner.OpenFile(aFileName);
     // Raises EParserError on any syntax error -> propagates to the caller.
     lParser.ParseMain(FModule);
@@ -520,7 +575,7 @@ end;
 function ParseResolvedKeepAlive(aEngine: TPasTreeContainer;
   const aFileName, aCompilerMode: string;
   const aDefines, aIncludePaths, aImplicitUses: array of string;
-  aCondEvalQuery: TFpSonarCondEvalQuery;
+  aCondEvalQuery: TFpSonarCondEvalQuery; aDialect: TFpSonarDialect;
   aOwned: TFPList; out aModule: TPasModule;
   out aDiag: TFpSonarDiagnostic): boolean;
 var
@@ -560,10 +615,12 @@ begin
       if aImplicitUses[i] <> '' then
         lParse.FParser.ImplicitUses.Add(aImplicitUses[i]);
     lParse.FScanner.SetCompilerMode(aCompilerMode);
+    ApplyDialectModeSwitches(lParse.FScanner, aDialect);
     for i := Low(aDefines) to High(aDefines) do
       if aDefines[i] <> '' then
         lParse.FScanner.AddDefine(aDefines[i]);
     lParse.FParser.Options := lParse.FParser.Options + [po_ArrayRangeExpr];
+    ApplyDialectParserOptions(lParse.FParser, aDialect);
     // Story 6-6b — real-RTL cond-directive evaluator (opt-in). When the caller
     // supplies a query, wire the scanner's declared()/sizeof() hook to it and
     // enable value-macro mode (bsMacro = -Sm). SetCompilerMode above only ADDS/

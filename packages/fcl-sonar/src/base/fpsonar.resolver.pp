@@ -150,6 +150,7 @@ type
     FCondDirectiveEval: boolean;
     FIntrinsicTargetPointerSize: integer;
     FRealRtlPreferred: boolean;
+    FDialect: TFpSonarDialect;
     FPpuAutoDetect: boolean;
     FPpuCacheDir: string;
     // Config carried for FindUnit (BuildFor copies the open arrays in).
@@ -433,6 +434,9 @@ type
       synthetic fallback.  }
     property RealRtlPreferred: boolean read FRealRtlPreferred
       write FRealRtlPreferred default False;
+    { The source dialect. dlPas2js threads the pas2js parse-relevant switches
+      into every dependency parse. Default dlDefault (byte-identical). }
+    property Dialect: TFpSonarDialect read FDialect write FDialect;
     { Auto-detect ppudump-from-live-.ppu resolution.
       When True, each dependency resolves first against an on-demand, cached stub:
       the host-independent hybrid RTL (synthetic + faithful gap) for SysUtils/Classes,
@@ -964,6 +968,7 @@ begin
   FIntrinsicConstEval := False;
   FIntrinsicTargetPointerSize := SizeOf(Pointer);
   FRealRtlPreferred := False;
+  FDialect := dlDefault;
   FCondDirectiveEval := False;
 end;
 
@@ -1415,8 +1420,8 @@ begin
       lEngine.InterfaceOnly := True;
     // Re-entrant: this runs a nested resolved parse while the outer parse is suspended mid-uses-clause.
     if ParseResolvedKeepAlive(lEngine, aFile, FMode, FDefines, FIncludePaths,
-      ImplicitUsesFor(aDepName), CondEvalQueryFor(lEngine), FParses, lModule,
-      lDiag) and (lModule <> nil) then
+      ImplicitUsesFor(aDepName), CondEvalQueryFor(lEngine), FDialect, FParses,
+      lModule, lDiag) and (lModule <> nil) then
       Result := lModule;
   except
     on E: Exception do
@@ -1510,8 +1515,8 @@ begin
   try
     { The adapter folds a SYNTAX error into aDiag (dkParseError) and returns False }
     Result := ParseResolvedKeepAlive(FTopEngine, aFileName, FMode, FDefines,
-      FIncludePaths, ImplicitUsesFor(''), CondEvalQueryFor(FTopEngine), FParses,
-      lModule, aDiag);
+      FIncludePaths, ImplicitUsesFor(''), CondEvalQueryFor(FTopEngine), FDialect,
+      FParses, lModule, aDiag);
   except
     on E: EPasResolve do
     begin

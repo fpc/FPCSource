@@ -83,9 +83,15 @@ type
 
   TFpSonarIssueArray = array of TFpSonarIssue;
 
+  { The source dialect. dlDefault is the byte-identical FPC path; dlPas2js
+    enables pas2js parse-relevant switches and a .ppu-free, real-source
+    resolution profile. dlDelphi is reserved for a future increment. }
+  TFpSonarDialect = (dlDefault, dlPas2js);
+
   { The config tuple — the single source of truth for an analysis run. }
   TFpSonarAnalysisConfig = record
     Mode: string;                         // compiler mode, e.g. 'OBJFPC'
+    Dialect: TFpSonarDialect;             // source dialect (default dlDefault)
     ModeSwitches: TFpSonarStringArray;    // carried for the resolver (not consumed yet)
     Defines: TFpSonarStringArray;         // user/project -d defines
     UnitSearchPaths: TFpSonarStringArray; // -Fu (carried for the resolver)
@@ -322,6 +328,7 @@ end;
 class function TFpSonarAnalysisConfig.Default: TFpSonarAnalysisConfig; static;
 begin
   Result.Mode := 'OBJFPC';
+  Result.Dialect := dlDefault;
   SetLength(Result.ModeSwitches, 0);
   SetLength(Result.Defines, 0);
   SetLength(Result.UnitSearchPaths, 0);
@@ -358,6 +365,11 @@ function TFpSonarAnalysisConfig.Merge(
 begin
   // Scalars: a non-empty override wins, else keep base (Self).
   Result.Mode := PickScalar(Mode, aOverride.Mode);
+  // Dialect: a non-default override wins, else keep base.
+  if aOverride.Dialect <> dlDefault then
+    Result.Dialect := aOverride.Dialect
+  else
+    Result.Dialect := Dialect;
   Result.TargetCPU := PickScalar(TargetCPU, aOverride.TargetCPU);
   Result.TargetOS := PickScalar(TargetOS, aOverride.TargetOS);
   // Arrays: append override after base (override ADDS to, never erases, base).
@@ -379,6 +391,9 @@ begin
     ' UnitSearchPaths=' + JoinArray(UnitSearchPaths) +
     ' IncludePaths=' + JoinArray(IncludePaths) +
     ' TargetFiles=' + JoinArray(TargetFiles);
+  // Only surfaced for a non-default dialect, so dlDefault stays byte-identical.
+  if Dialect <> dlDefault then
+    Result := Result + ' Dialect=pas2js';
 end;
 
 
@@ -593,6 +608,7 @@ end;
 procedure ClearConfig(out aConfig: TFpSonarAnalysisConfig);
 begin
   aConfig.Mode := '';
+  aConfig.Dialect := dlDefault;
   SetLength(aConfig.ModeSwitches, 0);
   SetLength(aConfig.Defines, 0);
   SetLength(aConfig.UnitSearchPaths, 0);
