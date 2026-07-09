@@ -30,6 +30,10 @@ uses
   FpSonar.FpcSource;
 
 type
+  { Cooperative per-file progress/abort hook }
+  TFpSonarProgressEvent = procedure(const aFile: string; aIndex, aTotal: integer;
+    out aContinue: boolean) of object;
+
   { The config-driven, multi-file orchestrator above TFpSonarRuleEngine. }
   TFpSonarEngine = class
   private
@@ -37,6 +41,7 @@ type
     FRealRtlPreferred: boolean;
     FPpuAutoDetect: boolean;
     FPpuCacheDir: string;
+    FOnProgress: TFpSonarProgressEvent;
     function GetConfig: TFpSonarConfig;
     procedure SetConfig(const aConfig: TFpSonarConfig);
     function GetSuppressionMap: TFpSonarSuppressionMap;
@@ -63,6 +68,8 @@ type
     property PpuAutoDetect: boolean read FPpuAutoDetect write FPpuAutoDetect;
     // Persistent ppudump-stub cache directory (--ppu-cache)
     property PpuCacheDir: string read FPpuCacheDir write FPpuCacheDir;
+    // Optional cooperative progress/abort hook, checked between files 
+    property OnProgress: TFpSonarProgressEvent read FOnProgress write FOnProgress;
   end;
 
 { Parses every file in aFiles once and folds it into a fresh project-wide name-reference index
@@ -228,6 +235,7 @@ var
   lRtl, lMerged: TFpSonarAnalysisConfig;
   lDiag: TFpSonarDiagnostic;
   lPointerSize: integer;
+  lContinue: boolean;
   i: integer;
 begin
   // Copy then sort: never mutate the caller's config; analyze deterministically.
@@ -286,8 +294,18 @@ begin
   FRuleEngine.PpuCacheDir := FPpuCacheDir;
   try
     for i := 0 to High(lFiles) do
+    begin
+      // Cooperative seam: report progress + honour a caller cancel between files. 
+      if Assigned(FOnProgress) then
+      begin
+        lContinue := True;
+        FOnProgress(lFiles[i], i + 1, Length(lFiles), lContinue);
+        if not lContinue then
+          Break;
+      end;
       FRuleEngine.Analyze(lFiles[i], lMode, lDefines,
         lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize, aCollector);
+    end;
   finally
     FRuleEngine.ProjectIndex := nil;
     lProjectIndex.Free;

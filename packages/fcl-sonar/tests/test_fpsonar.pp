@@ -33,6 +33,7 @@ uses
   utstAnalysisConfig,
   utstProjectModel,
   utstEngine,
+  utstProgressAbort,
   utstOutputText,
   utstOutputSarif,
   utstOutputSonarJson,
