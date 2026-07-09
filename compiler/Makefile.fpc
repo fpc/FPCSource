@@ -1291,11 +1291,11 @@ rtlinstall:
 PPUDIR=$(COMPILER_UNITTARGETDIR)
 ALLPPUDIRS:=$(wildcard $(CPU_TARGET)/units/*)
 PPULIST=$(wildcard $(PPUDIR)/*.ppu)
-PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
+PPULOGLIST=$(patsubst %.ppu,%.log-ppu,$(PPULIST))
 
 RTLPPUDIR=../rtl/units/$(TARGETSUFFIX)
 RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
-RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
+RTLPPULOGLIST=$(patsubst %.ppu,%.log-ppu,$(RTLPPULIST))
 
 .PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs testppudump
 
