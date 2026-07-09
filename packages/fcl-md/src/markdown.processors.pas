@@ -893,7 +893,7 @@ begin
   lBlock:=TMarkdownCodeBlock.Create(aParent,aLine.LineNo);
   lBlock.fenced:=true;
   lBlock.lang:=Flang;
-  lBlock.Indent:=aLine.CursorPos;
+  lBlock.Indent:=aLine.CursorPos-1;
   while Not LineEndsBlock(lBlock,PeekLine) do
     begin
     aLine:=NextLine;
