@@ -877,9 +877,8 @@ begin
     Exit;
   // Ending may be preceded by 3 spaces
 
-  Result:=aLine.LeadingWhitespace>=4+lBlock.Indent;
-  if Result then
-    Exit;
+  if aLine.LeadingWhitespace>=4+lBlock.Indent then
+    Exit(False);
   S:=aLine.Remainder.Trim;
   Result:=IsStringOfChar(s) and s.StartsWith(FTerminal);
 end;
