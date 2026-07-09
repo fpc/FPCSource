@@ -35,6 +35,7 @@ resourcestring
   // Command-line usage errors (FpSonar.CLI.Options)
   SMissingValue = 'missing value for %s';
   SUnknownFormat = 'unknown format: %s';
+  SUnknownDialect = 'unknown dialect: %s (expected: default, pas2js)';
   SCannotLoadConfig = 'cannot load config "%s": %s';
   SUnknownOption = 'unknown option: %s';
   SMutuallyExclusive = '--new-code and --baseline are mutually exclusive';
@@ -100,6 +101,12 @@ resourcestring
     '                       cache resolves without re-running ppudump; entries are'#10 +
     '                       keyed by each .ppu''s size+mtime and refreshed when it'#10 +
     '                       changes. No effect under --synthetic-only.'#10 +
+    '  --dialect <name>     source dialect: default (FPC) or pas2js. pas2js enables'#10 +
+    '                       pas2js-only syntax (async, external class, ...) and'#10 +
+    '                       parses the RTL from real source (no .ppu).'#10 +
+    '  --pas2js             shorthand for --dialect pas2js.'#10 +
+    '  --pas2js-src <dir>   add <dir> to the unit search path for pas2js real-source'#10 +
+    '                       resolution (repeatable; e.g. the pas2js packages/rtl).'#10 +
     '  --help, -h           show this help'#10 +
     ''#10 +
     'The -Fu/-Fi/-d/-M flags accept both glued (-FuX) and separated (-Fu X) forms.'#10 +

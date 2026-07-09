@@ -136,7 +136,7 @@ var
   lPmConfig: TFpSonarAnalysisConfig;
   lDiag: TFpSonarDiagnostic;
   i, j: Integer;
-  lArg, lAbs, lExt, lFmt, lCfgPath, lCfgErr: string;
+  lArg, lAbs, lExt, lFmt, lCfgPath, lCfgErr, lDialect: string;
 
   // Records a usage error (first one wins).
   procedure FlagError(const aWhat: string);
@@ -226,6 +226,20 @@ begin
             Result.RealRtlPreferred := True
           else if lArg = '--synthetic-only' then
             Result.SyntheticOnly := True
+          else if lArg = '--pas2js' then
+            lCli.Dialect := dlPas2js
+          else if lArg = '--dialect' then
+            begin
+            lDialect := ConsumeValue('--dialect');
+            if lDialect = 'pas2js' then
+              lCli.Dialect := dlPas2js
+            else if lDialect = 'default' then
+              lCli.Dialect := dlDefault
+            else if lDialect <> '' then
+              FlagError(Format(SUnknownDialect, [lDialect]));
+            end
+          else if lArg = '--pas2js-src' then
+            AddStr(lCli.UnitSearchPaths, ConsumeValue('--pas2js-src'))
           else if lArg = '--ppu-cache' then
             Result.PpuCacheDir := ConsumeValue('--ppu-cache')
           else if Copy(lArg, 1, 12) = '--ppu-cache=' then

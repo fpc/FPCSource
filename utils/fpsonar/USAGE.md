@@ -432,6 +432,9 @@ same cache folder.
 | `--baseline <file>`       | Show all issues but don't let old ones fail the gate.|
 | `--ppu-cache <dir>`       | Keep the standard-unit summaries in `<dir>` and reuse them across runs (faster startup). |
 | `--synthetic-only`        | Don't use your installed FPC; use built-in approximations (repeatable everywhere). |
+| `--dialect <name>`        | `default` (FPC) or `pas2js`. `pas2js` accepts pas2js-only syntax (async, external class, …) and resolves the RTL from real source (pas2js has no `.ppu`). |
+| `--pas2js`                | Shorthand for `--dialect pas2js`.                   |
+| `--pas2js-src <dir>`      | Add `<dir>` to the unit search path for pas2js real-source resolution (repeatable, e.g. the pas2js `packages/rtl`). |
 | `--help`, `-h`            | Show the built-in help.                             |
 
 **Compiler-setting options** (for real projects)
