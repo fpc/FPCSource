@@ -882,11 +882,15 @@ implementation
                  (hp.vardef.size<>0) then
                 begin
                   case hp.varspez of
-                    vs_value,
-                    vs_const:
-                      begin
+                    vs_value:
+                      if not(target_info.system in systems_caller_copy_addr_value_para) then
                         encodedstr:=encodedstr+' readonly dereferenceable('
-                      end;
+                      else
+                        { if the copy got made on the caller side, it can
+                          be modified on the callee side }
+                        encodedstr:=encodedstr+' dereferenceable(';
+                    vs_const:
+                       encodedstr:=encodedstr+' readonly dereferenceable(';
                     vs_var,
                     vs_out:
                       begin
