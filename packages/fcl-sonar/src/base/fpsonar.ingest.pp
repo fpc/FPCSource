@@ -370,6 +370,22 @@ begin
       FTokens[lCount].Col := lScanner.CurTokenPos.Column;
       FTokens[lCount].FileName := lScanner.CurTokenPos.FileName;
       Inc(lCount);
+      { pas2js asm blocks contain literal JavaScript; 
+        the Pascal tokenizer would reject JS-only characters (e.g. '!'). 
+        Do what the parser's po_AsmWhole option does:
+        read the block as non-pascal text until 'end' }
+      if (FDialect = dlPas2js) and (lToken = tkasm) then
+        repeat
+          lToken := lScanner.ReadNonPascalTillEndToken(True);
+          if Length(FTokens) <= lCount then
+            SetLength(FTokens, (lCount + 1) * 2);
+          FTokens[lCount].Kind := lToken;
+          FTokens[lCount].Text := lScanner.CurTokenString;
+          FTokens[lCount].Row := lScanner.CurTokenPos.Row;
+          FTokens[lCount].Col := lScanner.CurTokenPos.Column;
+          FTokens[lCount].FileName := lScanner.CurTokenPos.FileName;
+          Inc(lCount);
+        until (lToken = tkEOF) or (lToken = tkEnd);
     until lToken = tkEOF;
     SetLength(FTokens, lCount);
   finally
