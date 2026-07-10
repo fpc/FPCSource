@@ -442,12 +442,26 @@ var
   tempnode    : ttempcreatenode;
   para : tcallparanode;
 
-  { store the operand in a reference counted persistent temp so it stays
-    alive until the concat call, then hand the helper a plain pointer to it }
+  { operands read from a variable (possibly through fields/elements/derefs)
+    are anchored by that storage: they need no lifetime help and their
+    refcount must stay untouched so fpc_dynarray_concat_multi can still
+    detect refcount=1 and append to the destination in place }
+  function is_stored_operand(n: tnode): boolean;
+    begin
+      while n.nodetype in [subscriptn,vecn,derefn] do
+        n:=tunarynode(n).left;
+      is_stored_operand:=n.nodetype=loadn;
+    end;
+
+  { store any other operand (call result, literal, nested concat) in a
+    reference counted persistent temp so it stays alive until the concat
+    call, then hand the helper a plain pointer to it }
   function operandref(n: tnode): tnode;
     var
       optemp : ttempcreatenode;
     begin
+      if is_stored_operand(n) then
+        exit(ctypeconvnode.create_internal(n,voidpointertype));
       if not is_array_constructor(n.resultdef) then
         inserttypeconv(n,p.resultdef);
       optemp:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
