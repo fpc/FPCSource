@@ -25,6 +25,7 @@ resourcestring
   // Reserved diagnostic catalog templates (folded parse/scan/rule/resolve issues)
   SParseError = 'Parse error: %s';
   SScanError = 'Scan error: %s';
+  SFileNotFound = 'Cannot open source file: %s';
   SRuleError = 'Rule "%s" failed: %s';
   SResolveError = 'Resolution failed: %s';
 

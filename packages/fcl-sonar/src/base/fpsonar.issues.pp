@@ -324,6 +324,13 @@ begin
       lRuleId := 'ResolveError';
       lMessageKey := 'rule.ResolveError.message';
     end;
+    dkFileNotFound:
+    begin
+      // The source file could not be opened — a clear, dedicated RuleId instead
+      // of a bare "Scan error: <path>" with no reason.
+      lRuleId := 'FileNotFound';
+      lMessageKey := 'rule.FileNotFound.message';
+    end;
     else
       // dkParseError (and any future-defaulted kind).
       lRuleId := 'ParseError';

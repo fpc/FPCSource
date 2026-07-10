@@ -28,8 +28,10 @@ type
   { Which tier produced a diagnostic }
   TFpSonarDiagnosticKind = (dkParseError,  // parser-level failures
     dkScanError,   // raw scanner failure
-    dkResolveError
+    dkResolveError,
     // resolution failure (EPasResolve) caught by the tolerant resolver wrapper
+    dkFileNotFound
+    // the source file could not be opened (EFileNotFoundError from the resolver)
     );
 
   { A single structural diagnostic }
@@ -832,5 +834,6 @@ initialization
   // Parse/scan-error catalog seed (reserved RuleIds).
   RegisterMessage('rule.ParseError.message', SParseError);
   RegisterMessage('rule.ScanError.message', SScanError);
+  RegisterMessage('rule.FileNotFound.message', SFileNotFound);
 
 end.

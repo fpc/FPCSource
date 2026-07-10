@@ -410,6 +410,19 @@ begin
   try
     ScanFile(aFileName, aCompilerMode, aDefines);
   except
+    // A missing/unopenable file is the resolver's own EFileNotFoundError — relay
+    // it as a dedicated dkFileNotFound so it reads as "cannot open file", not a
+    // bare "Scan error: <path>". Deferring to the resolver's verdict means a file
+    // the engine CAN open (via its base dir) never trips this.
+    on E: EFileNotFoundError do
+    begin
+      aDiag.FileName := aFileName;
+      aDiag.Row := 0;
+      aDiag.Col := 0;
+      aDiag.Kind := dkFileNotFound;
+      aDiag.Message := aFileName;
+      Result := False;
+    end;
     // Scanner errors carry no typed position — anchor to the file at 0:0 and
     // keep whatever partial token stream ScanFile collected before failing.
     on E: Exception do
@@ -511,6 +524,18 @@ begin
   try
     ParseFile(aFileName, aCompilerMode, aDefines);
   except
+    // A missing/unopenable file (resolver's EFileNotFoundError) — surface it as
+    // dkFileNotFound, matching TryScanFile, rather than a bare "Parse error".
+    // Checked before EParserError: this is not a syntax failure.
+    on E: EFileNotFoundError do
+    begin
+      aDiag.FileName := aFileName;
+      aDiag.Row := 0;
+      aDiag.Col := 0;
+      aDiag.Kind := dkFileNotFound;
+      aDiag.Message := aFileName;
+      Result := False;
+    end;
     // The typed parser failure (scanner errors are re-raised as this one via
     // po_KeepScannerError) — read its position straight from the exception.
     on E: EParserError do

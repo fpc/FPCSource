@@ -29,6 +29,7 @@ type
   TFaultIsolationTest = class(TTestCase)
   published
     procedure BadUnitIsolatedGoodUnitContinues;
+    procedure MissingFileYieldsSingleFileNotFoundDiagnostic;
   end;
 
 
@@ -84,6 +85,37 @@ begin
   finally
     lSource.Free;
     lFix.Free;
+  end;
+end;
+
+
+procedure TFaultIsolationTest.MissingFileYieldsSingleFileNotFoundDiagnostic;
+
+const
+  // A path guaranteed not to exist: the resolver raises EFileNotFoundError.
+  cMissing = '/nonexistent/fpsonar/missing-unit.pas';
+
+var
+  lSource: TFpSonarSourceFile;
+
+begin
+  lSource := TFpSonarSourceFile.Create;
+  try
+    lSource.Analyze(cMissing, 'OBJFPC', ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
+    AssertFalse('missing file does not parse', lSource.ParseSucceeded);
+    // Reported ONCE (the parse is skipped for an unopenable file), NOT the old
+    // scan+parse duplicate.
+    AssertEquals('missing file yields exactly one diagnostic', 1,
+      Length(lSource.Diagnostics));
+    AssertEquals('diagnostic kind is dkFileNotFound', Ord(dkFileNotFound),
+      Ord(lSource.Diagnostics[0].Kind));
+    AssertTrue('diagnostic names the missing file',
+      Pos('missing-unit.pas', lSource.Diagnostics[0].FileName) > 0);
+    // No silent all-clear: the diagnostic must carry a real message.
+    AssertTrue('diagnostic carries a non-empty message',
+      lSource.Diagnostics[0].Message <> '');
+  finally
+    lSource.Free;
   end;
 end;
 

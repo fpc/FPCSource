@@ -206,6 +206,7 @@ procedure TFpSonarSourceFile.Analyze(const aFileName, aCompilerMode: string;
   aDialect: TFpSonarDialect = dlDefault);
 var
   lDiag: TFpSonarDiagnostic;
+  lFileMissing: boolean;
 begin
   // Fresh per-call state
   SetLength(FDiagnostics, 0);
@@ -219,37 +220,48 @@ begin
   FParser.Dialect := aDialect;
 
   // Scan first: the token stream must survive a later parse failure.
+  lFileMissing := False;
   if not FScanner.TryScanFile(aFileName, aCompilerMode, aDefines, lDiag) then
+  begin
     AddDiagnostic(lDiag);
+    lFileMissing := lDiag.Kind = dkFileNotFound;
+  end;
   FTokens := FScanner.Tokens;
 
   // Raw physical lines for the LEX line-text feed.
   ReadLines(aFileName);
 
-  // Parse: on failure Module is left nil and a diagnostic recorded
-  FParseSucceeded := FParser.TryParseFile(aFileName, aCompilerMode, aDefines,
-    lDiag);
-  if not FParseSucceeded then
-    AddDiagnostic(lDiag);
-
-  // build the tolerant SEM resolver ONLY after a successful bare parse
-  if FParseSucceeded then
+  // A file that could not be opened has nothing to parse; the scan already
+  // reported it once (dkFileNotFound), so skip the parse to avoid a duplicate
+  // diagnostic on the same missing file. Other scan errors (e.g. JavaScript in a
+  // pas2js asm block) do NOT skip — the parser often still yields a valid tree.
+  if not lFileMissing then
   begin
-    FResolver := TFpSonarResolver.Create;
-    FResolver.DependencyInterfaceOnly := True;
-    FResolver.IntrinsicConstEval := True;
-    FResolver.CondDirectiveEval := True;
-    // pas2js has no .ppu, so ppudump auto-detect cannot apply — force it off and
-    // rely on real pas2js source (carried on aUnitPaths) + the synthetic floor.
-    FResolver.PpuAutoDetect := FPpuAutoDetect and (aDialect <> dlPas2js);
-    FResolver.PpuCacheDir := FPpuCacheDir;
-    FResolver.Dialect := aDialect;
-    if aTargetPointerSize > 0 then
-      FResolver.IntrinsicTargetPointerSize := aTargetPointerSize;
-    if aRealRtl then
-      FResolver.RealRtlPreferred := True;
-    FResolver.BuildFor(aFileName, aCompilerMode, aDefines, aUnitPaths,
-      aIncludePaths, lDiag);
+    // Parse: on failure Module is left nil and a diagnostic recorded
+    FParseSucceeded := FParser.TryParseFile(aFileName, aCompilerMode, aDefines,
+      lDiag);
+    if not FParseSucceeded then
+      AddDiagnostic(lDiag);
+
+    // build the tolerant SEM resolver ONLY after a successful bare parse
+    if FParseSucceeded then
+    begin
+      FResolver := TFpSonarResolver.Create;
+      FResolver.DependencyInterfaceOnly := True;
+      FResolver.IntrinsicConstEval := True;
+      FResolver.CondDirectiveEval := True;
+      // pas2js has no .ppu, so ppudump auto-detect cannot apply — force it off
+      // and rely on real pas2js source (on aUnitPaths) + the synthetic floor.
+      FResolver.PpuAutoDetect := FPpuAutoDetect and (aDialect <> dlPas2js);
+      FResolver.PpuCacheDir := FPpuCacheDir;
+      FResolver.Dialect := aDialect;
+      if aTargetPointerSize > 0 then
+        FResolver.IntrinsicTargetPointerSize := aTargetPointerSize;
+      if aRealRtl then
+        FResolver.RealRtlPreferred := True;
+      FResolver.BuildFor(aFileName, aCompilerMode, aDefines, aUnitPaths,
+        aIncludePaths, lDiag);
+    end;
   end;
 end;
 
