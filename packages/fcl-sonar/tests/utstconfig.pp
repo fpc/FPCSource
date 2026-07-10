@@ -66,6 +66,10 @@ type
     // matchUnresolvedByName atomic bool; rides the bool path.
     procedure ParsesMatchUnresolvedByNameBool;
     procedure ValidateRejectsNonBoolMatchUnresolved;
+    // ConfigToJSON serializer: round-trip, diff-from-default, full-shape stability.
+    procedure SerializerRoundTripsDiffOverModelledFields;
+    procedure SerializerDiffOfDefaultConfigIsEmpty;
+    procedure SerializerFullShapeByteStable;
   end;
 
 
@@ -682,6 +686,182 @@ begin
   AssertFalse('non-bool matchUnresolvedByName rejected',
     ValidateConfigParams(lCfg, RuleRegistry, lErr));
   AssertTrue('rejection has a message', lErr <> '');
+end;
+
+
+procedure TConfigTest.SerializerRoundTripsDiffOverModelledFields;
+
+var
+  lRules: array of TRuleMetadata;
+  lCfg, lBack: TFpSonarConfig;
+  lJson, lErr: string;
+  lTargets: TFpSonarRuleTargetArray;
+  lSetting: TFpSonarRuleSetting;
+  lParam: TFpSonarRuleParam;
+  lTarget: TFpSonarRuleTarget;
+
+begin
+  // Two rules: Alpha tunes an int + regex + targets; Bravo tunes nothing.
+  SetLength(lRules, 2);
+  lRules[0] := TRuleMetadata.Make('AlphaRule', rtAst, rfAst, sevMinor,
+    itCodeSmell, cfHigh, True, '');
+  lRules[0].AddParam('minLength', rpkInt, 3);
+  lRules[0].AddParam('pattern', rpkRegex, '^[A-Z].*$');
+  lRules[0].AddParam('banned', rpkTargets);
+  lRules[1] := TRuleMetadata.Make('BravoRule', rtAst, rfAst, sevMajor,
+    itCodeSmell, cfHigh, True, '');
+
+  // Edited config: Bravo disabled; Alpha severity->critical, minLength->8,
+  // pattern left at default, one banned target added; a gate tweak; a suppression.
+  lCfg := DefaultConfig;
+  SetLength(lCfg.Rules, 2);
+
+  lSetting.RuleId := 'BravoRule';
+  lSetting.HasEnabled := True;
+  lSetting.Enabled := False;
+  lSetting.HasSeverity := False;
+  lSetting.Severity := sevInfo;
+  SetLength(lSetting.Params, 0);
+  lCfg.Rules[0] := lSetting;
+
+  lSetting.RuleId := 'AlphaRule';
+  lSetting.HasEnabled := False;
+  lSetting.Enabled := False;
+  lSetting.HasSeverity := True;
+  lSetting.Severity := sevCritical;
+  SetLength(lSetting.Params, 2);
+  lParam.Key := 'minLength';
+  lParam.Kind := cpkInt;
+  lParam.IntVal := 8;
+  lParam.StrVal := '';
+  lParam.BoolVal := False;
+  SetLength(lParam.Targets, 0);
+  lSetting.Params[0] := lParam;
+  lParam.Key := 'banned';
+  lParam.Kind := cpkTargets;
+  lParam.IntVal := 0;
+  lTarget.Pattern := 'Foo*';
+  lTarget.Message := 'no foo';
+  lTarget.Severity := sevBlocker;
+  lTarget.HasSeverity := True;
+  SetLength(lParam.Targets, 1);
+  lParam.Targets[0] := lTarget;
+  lSetting.Params[1] := lParam;
+  lCfg.Rules[1] := lSetting;
+
+  lCfg.Gate.MaxPerSeverity[sevMajor] := 5;
+
+  SetLength(lCfg.Suppressions, 1);
+  lCfg.Suppressions[0].RulePattern := 'Naming*';
+  lCfg.Suppressions[0].PathPattern := '';
+
+  lJson := ConfigToJSON(lCfg, lRules, cemDiff);
+  AssertTrue('diff json reloads: ' + lErr,
+    LoadConfigFromJSON(lJson, lBack, lErr));
+
+  // Effective settings survive the round-trip (omitted-at-default keys included).
+  AssertTrue('Alpha stays enabled (default true, no override written)',
+    RuleEnabled(lBack, 'AlphaRule', True));
+  AssertFalse('Bravo disabled', RuleEnabled(lBack, 'BravoRule', True));
+  AssertEquals('Alpha severity critical', Ord(sevCritical),
+    Ord(EffectiveSeverity(lBack, 'AlphaRule', sevMinor)));
+  AssertEquals('Bravo severity falls back to default', Ord(sevMajor),
+    Ord(EffectiveSeverity(lBack, 'BravoRule', sevMajor)));
+  AssertEquals('Alpha minLength 8', 8,
+    RuleParamInt(lBack, 'AlphaRule', 'minLength', 3));
+  AssertEquals('Alpha pattern default (unchanged => omitted => fallback)',
+    '^[A-Z].*$', RuleParamStr(lBack, 'AlphaRule', 'pattern', '^[A-Z].*$'));
+  lTargets := RuleParamTargets(lBack, 'AlphaRule', 'banned');
+  AssertEquals('one banned target', 1, Length(lTargets));
+  AssertEquals('target pattern', 'Foo*', lTargets[0].Pattern);
+  AssertEquals('target message', 'no foo', lTargets[0].Message);
+  AssertTrue('target has severity', lTargets[0].HasSeverity);
+  AssertEquals('target severity blocker', Ord(sevBlocker),
+    Ord(lTargets[0].Severity));
+  AssertEquals('gate major 5', 5, lBack.Gate.MaxPerSeverity[sevMajor]);
+  AssertEquals('one suppression', 1, Length(lBack.Suppressions));
+  AssertEquals('suppression rule', 'Naming*', lBack.Suppressions[0].RulePattern);
+  AssertEquals('suppression path wildcard', '',
+    lBack.Suppressions[0].PathPattern);
+end;
+
+
+procedure TConfigTest.SerializerDiffOfDefaultConfigIsEmpty;
+
+var
+  lRules: array of TRuleMetadata;
+  lBack, lDefault: TFpSonarConfig;
+  lJson, lErr: string;
+  lSev: TFpSonarSeverity;
+
+begin
+  SetLength(lRules, 2);
+  lRules[0] := TRuleMetadata.Make('AlphaRule', rtAst, rfAst, sevMinor,
+    itCodeSmell, cfHigh, True, '');
+  lRules[0].AddParam('minLength', rpkInt, 3);
+  lRules[1] := TRuleMetadata.Make('BravoRule', rtAst, rfAst, sevMajor,
+    itCodeSmell, cfHigh, True, '');
+
+  // Editing nothing writes nothing: rules {}, default gate, no suppressions.
+  lJson := ConfigToJSON(DefaultConfig, lRules, cemDiff);
+  AssertTrue('empty-edit json reloads: ' + lErr,
+    LoadConfigFromJSON(lJson, lBack, lErr));
+  AssertEquals('no rule overrides written', 0, Length(lBack.Rules));
+  AssertEquals('no suppressions written', 0, Length(lBack.Suppressions));
+  lDefault := DefaultConfig;
+  for lSev := Low(TFpSonarSeverity) to High(TFpSonarSeverity) do
+    AssertEquals('gate axis default (' + SeverityName(lSev) + ')',
+      lDefault.Gate.MaxPerSeverity[lSev], lBack.Gate.MaxPerSeverity[lSev]);
+  AssertEquals('gate total default', lDefault.Gate.MaxTotal,
+    lBack.Gate.MaxTotal);
+end;
+
+
+procedure TConfigTest.SerializerFullShapeByteStable;
+
+var
+  lRules: array of TRuleMetadata;
+  lFull, lTemplate, lExpected: string;
+
+begin
+  SetLength(lRules, 1);
+  lRules[0] := TRuleMetadata.Make('R', rtAst, rfAst, sevMajor,
+    itCodeSmell, cfHigh, True, '');
+
+  lExpected :=
+    '{' + LineEnding +
+    '  "_fpsonar" : {' + LineEnding +
+    '    "config" : "fpsonar-default",' + LineEnding +
+    '    "version" : "1"' + LineEnding +
+    '  },' + LineEnding +
+    '  "rules" : {' + LineEnding +
+    '    "R" : {' + LineEnding +
+    '      "enabled" : true,' + LineEnding +
+    '      "severity" : "major"' + LineEnding +
+    '    }' + LineEnding +
+    '  },' + LineEnding +
+    '  "gate" : {' + LineEnding +
+    '    "maxBlocker" : 0,' + LineEnding +
+    '    "maxCritical" : 0,' + LineEnding +
+    '    "maxMajor" : -1,' + LineEnding +
+    '    "maxMinor" : -1,' + LineEnding +
+    '    "maxInfo" : -1,' + LineEnding +
+    '    "maxTotal" : -1' + LineEnding +
+    '  },' + LineEnding +
+    '  "useTier" : {' + LineEnding +
+    '    "resolution" : "off"' + LineEnding +
+    '  },' + LineEnding +
+    '  "suppressions" : [' + LineEnding +
+    '  ]' + LineEnding +
+    '}';
+
+  // cemFull is the complete template shape, byte-for-byte.
+  lFull := ConfigToJSON(DefaultConfig, lRules, cemFull);
+  AssertEquals('cemFull byte-stable format', lExpected, lFull);
+
+  // init-config emits via ConfigTemplateToJSON; it must equal the cemFull shape.
+  lTemplate := ConfigTemplateToJSON(DefaultConfig, lRules);
+  AssertEquals('ConfigTemplateToJSON == cemFull', lFull, lTemplate);
 end;
 
 
