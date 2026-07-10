@@ -644,6 +644,21 @@ begin
 end;
 
 
+{ Anchors each search-path entry against aBaseDir, so a relative '-Fu ../X' 
+  resolves where the compiler resolves it — relative to the project/.cfg dir, 
+  not the process CWD. 
+  Note: Entries with an unexpanded macro ('$...') are left untouched }
+procedure ResolvePathList(const aBaseDir: string;
+  var aList: TFpSonarStringArray);
+var
+  i: integer;
+begin
+  for i := 0 to High(aList) do
+    if (aList[i] <> '') and (Pos('$', aList[i]) = 0) then
+      aList[i] := ResolveAgainst(aBaseDir, aList[i]);
+end;
+
+
 // Returns the 'Value' attribute of the named direct child of aParent, or '' if
 // either the child or the attribute is absent.
 function ChildValue(aParent: TDOMNode; const aName: string): string;
@@ -698,6 +713,10 @@ begin
       ChildValue(lOpts.FindNode('SearchPaths'), 'OtherUnitFiles'));
     aConfig.IncludePaths := SplitSearchPath(
       ChildValue(lOpts.FindNode('SearchPaths'), 'IncludeFiles'));
+    // Anchor relative search paths (e.g. '../X') to the project dir, matching
+    // the target-file resolution — otherwise they'd resolve against the CWD.
+    ResolvePathList(aBaseDir, aConfig.UnitSearchPaths);
+    ResolvePathList(aBaseDir, aConfig.IncludePaths);
     lValue := ChildValue(ChildPath(lOpts, ['Parsing', 'SyntaxOptions']),
       'SyntaxMode');
     if lValue <> '' then
@@ -744,7 +763,7 @@ end;
 
 // Parses an fpc.cfg-style text file: recognises -Fu/-Fi/-d/-M directives, one
 // per line; ignores comments (# / ;) and blanks; unknown directives skipped.
-procedure ParseCfgConfig(const aFileName: string;
+procedure ParseCfgConfig(const aFileName, aBaseDir: string;
   var aConfig: TFpSonarAnalysisConfig);
 var
   lLines: TStringList;
@@ -770,6 +789,9 @@ begin
       else if Copy(lLine, 1, 2) = '-d' then
         AddStr(aConfig.Defines, Trim(Copy(lLine, 3, Length(lLine) - 2)));
     end;
+    // Anchor relative -Fu/-Fi paths to the .cfg's dir, like the .lpi/.lpk path.
+    ResolvePathList(aBaseDir, aConfig.UnitSearchPaths);
+    ResolvePathList(aBaseDir, aConfig.IncludePaths);
   finally
     lLines.Free;
   end;
@@ -812,7 +834,7 @@ begin
     end
     else
       // .cfg / fpc.cfg (or any other extension) => text directive parse.
-      ParseCfgConfig(aFileName, aConfig);
+      ParseCfgConfig(aFileName, lBaseDir, aConfig);
 
     Result := True;
   except

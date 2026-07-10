@@ -35,6 +35,7 @@ type
   published
     procedure ParsesFpcCfgDirectives;
     procedure ParsesLpiProjectFields;
+    procedure LpiRelativeSearchPathsAnchoredToProjectDir;
     procedure MissingFileYieldsDiagnosticNotException;
     procedure MalformedXmlYieldsDiagnosticNotException;
   end;
@@ -109,6 +110,20 @@ const
     '        <Filename Value="oops.pas"',
     '      </Unit0>');
 
+  // A .lpi whose search paths use a '..' relative segment — the real-world case
+  // that regressed in the IDE: it must anchor to the PROJECT dir, not the CWD.
+  cRelPathLpi: array[0..9] of string = (
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<CONFIG>',
+    '  <CompilerOptions>',
+    '    <Version Value="11"/>',
+    '    <SearchPaths>',
+    '      <OtherUnitFiles Value="../CanvasEngine;lib"/>',
+    '      <IncludeFiles Value="../shared/inc"/>',
+    '    </SearchPaths>',
+    '  </CompilerOptions>',
+    '</CONFIG>');
+
 procedure TProjectModelTest.AssertArray(const aMsg: string;
   const aExpected: array of string; const aActual: TFpSonarStringArray);
 
@@ -143,16 +158,20 @@ var
   lModel: TFpSonarProjectModel;
   lCfg: TFpSonarAnalysisConfig;
   lDiag: TFpSonarDiagnostic;
+  lCfgPath, lDir: string;
 
 begin
   lFix := TTempFixtures.Create;
   lModel := TFpSonarProjectModel.Create;
   try
-    AssertTrue('fpc.cfg loads',
-      lModel.TryLoad(lFix.Add('fpcfixture.cfg', cFpcFixture), lCfg, lDiag));
+    lCfgPath := lFix.Add('fpcfixture.cfg', cFpcFixture);
+    AssertTrue('fpc.cfg loads', lModel.TryLoad(lCfgPath, lCfg, lDiag));
+    lDir := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(lCfgPath)));
+    // Absolute -Fu passes through; relative -Fi (./inc) anchors to the .cfg dir.
     AssertArray('unit search paths from -Fu', ['/usr/lib/fpc/units'],
       lCfg.UnitSearchPaths);
-    AssertArray('include paths from -Fi', ['./inc'], lCfg.IncludePaths);
+    AssertArray('include paths from -Fi (anchored)',
+      [ExpandFileName(lDir + 'inc')], lCfg.IncludePaths);
     AssertArray('defines from -d', ['DEBUG', 'FEATURE_X'], lCfg.Defines);
     AssertEquals('mode from -M', 'objfpc', lCfg.Mode);
   finally
@@ -177,14 +196,20 @@ begin
   try
     lLpi := lFix.Add('projfixture.lpi', cProjFixture);
     AssertTrue('.lpi loads', lModel.TryLoad(lLpi, lCfg, lDiag));
-    AssertArray('unit search paths', ['lib', 'src/units'], lCfg.UnitSearchPaths);
-    AssertArray('include paths', ['inc', 'include'], lCfg.IncludePaths);
+    lDir := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(lLpi)));
+    // Relative search paths anchor to the .lpi dir (like the project units),
+    // not the process CWD.
+    AssertArray('unit search paths (anchored)',
+      [ExpandFileName(lDir + 'lib'), ExpandFileName(lDir + 'src/units')],
+      lCfg.UnitSearchPaths);
+    AssertArray('include paths (anchored)',
+      [ExpandFileName(lDir + 'inc'), ExpandFileName(lDir + 'include')],
+      lCfg.IncludePaths);
     AssertEquals('syntax mode', 'Delphi', lCfg.Mode);
     AssertArray('defines from CustomOptions', ['PROJDEF', 'EXTRA'], lCfg.Defines);
 
     // Project units resolved to ABSOLUTE paths relative to the .lpi dir; the
     // IsPartOfProject=False unit (notpartof.pas) is excluded.
-    lDir := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(lLpi)));
     lSmoke := ExpandFileName(lDir + 'smokefixture.pas');
     AssertEquals('two project units (notpartof excluded)', 2,
       Length(lCfg.TargetFiles));
@@ -193,6 +218,40 @@ begin
     AssertTrue('no non-project unit',
       not ArrayContains(lCfg.TargetFiles,
         ExpandFileName(lDir + 'notpartof.pas')));
+  finally
+    lModel.Free;
+    lFix.Free;
+  end;
+end;
+
+
+procedure TProjectModelTest.LpiRelativeSearchPathsAnchoredToProjectDir;
+
+var
+  lFix: TTempFixtures;
+  lModel: TFpSonarProjectModel;
+  lCfg: TFpSonarAnalysisConfig;
+  lDiag: TFpSonarDiagnostic;
+  lLpi, lDir: string;
+
+begin
+  lFix := TTempFixtures.Create;
+  lModel := TFpSonarProjectModel.Create;
+  try
+    lLpi := lFix.Add('relproj.lpi', cRelPathLpi);
+    AssertTrue('.lpi loads', lModel.TryLoad(lLpi, lCfg, lDiag));
+    lDir := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(lLpi)));
+    // '../CanvasEngine' resolves against the PROJECT dir (collapsing '..'), so
+    // it lands beside the project, not under the process CWD.
+    AssertArray('unit search paths anchored to project dir',
+      [ExpandFileName(lDir + '../CanvasEngine'), ExpandFileName(lDir + 'lib')],
+      lCfg.UnitSearchPaths);
+    AssertArray('include paths anchored to project dir',
+      [ExpandFileName(lDir + '../shared/inc')], lCfg.IncludePaths);
+    // The anchored value differs from the OLD CWD-relative resolution (the bug):
+    // lFix.Dir is a fresh temp dir, never the process CWD.
+    AssertTrue('anchored to project dir, not the CWD',
+      lCfg.UnitSearchPaths[0] <> ExpandFileName('../CanvasEngine'));
   finally
     lModel.Free;
     lFix.Free;
