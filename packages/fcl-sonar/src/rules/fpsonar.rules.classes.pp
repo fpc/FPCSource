@@ -532,24 +532,29 @@ begin
   Result := TRuleMetadata.Make('FileNotTooManyClasses', rtAst, rfAst, sevMinor,
     itCodeSmell, cfHigh, True, cKeyFileNotTooManyClasses);
   Result.AddParam('maxClasses', rpkInt, cMaxClasses);
+  Result.Description :=
+    'Flags a unit that declares more classes than the configured maximum.';
 end;
 
 
 initialization
   RegisterRule(TRuleVisibilityAscendingOrder.Create(TRuleMetadata.Make(
     'VisibilityAscendingOrder', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyVisibilityAscendingOrder)));
+    True, cKeyVisibilityAscendingOrder).WithDescription(
+    'Flags a visibility section that is out of ascending (private..published) order.')));
   RegisterMessage(cKeyVisibilityAscendingOrder, SVisibilityAscendingOrder);
 
   RegisterRule(TRuleDeclarationsFollowVisibilityOrder.Create(TRuleMetadata.Make(
     'DeclarationsFollowVisibilityOrder', rtAst, rfAst, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyDeclarationsFollowVisibilityOrder)));
+    cfHigh, True, cKeyDeclarationsFollowVisibilityOrder).WithDescription(
+    'Flags declarations that do not follow the field, then method, then property order.')));
   RegisterMessage(cKeyDeclarationsFollowVisibilityOrder,
     SDeclarationsFollowVisibilityOrder);
 
   RegisterRule(TRuleFieldsNotPublic.Create(TRuleMetadata.Make(
     'FieldsNotPublic', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyFieldsNotPublic)));
+    True, cKeyFieldsNotPublic).WithDescription(
+    'Flags a public field; expose state through a property over a private field instead.')));
   RegisterMessage(cKeyFieldsNotPublic, SFieldsNotPublic);
 
   RegisterRule(TRuleFileNotTooManyClasses.Create(
@@ -558,27 +563,32 @@ initialization
 
   RegisterRule(TRuleInterfaceNotEmpty.Create(TRuleMetadata.Make(
     'InterfaceNotEmpty', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyInterfaceNotEmpty)));
+    True, cKeyInterfaceNotEmpty).WithDescription(
+    'Flags an interface that declares no methods or properties.')));
   RegisterMessage(cKeyInterfaceNotEmpty, SInterfaceNotEmpty);
 
   RegisterRule(TRuleInterfaceUniqueGuid.Create(TRuleMetadata.Make(
     'InterfaceUniqueGuid', rtAst, rfAst, sevMajor, itBug, cfHigh,
-    True, cKeyInterfaceUniqueGuid)));
+    True, cKeyInterfaceUniqueGuid).WithDescription(
+    'Flags an interface without a unique GUID.')));
   RegisterMessage(cKeyInterfaceUniqueGuid, SInterfaceUniqueGuid);
 
   RegisterRule(TRuleConstructorInherited.Create(TRuleMetadata.Make(
     'ConstructorInherited', rtAst, rfAst, sevMajor, itBug, cfHigh,
-    True, cKeyConstructorInherited)));
+    True, cKeyConstructorInherited).WithDescription(
+    'Flags a constructor that does not call its inherited constructor.')));
   RegisterMessage(cKeyConstructorInherited, SConstructorInherited);
 
   RegisterRule(TRuleDestructorInherited.Create(TRuleMetadata.Make(
     'DestructorInherited', rtAst, rfAst, sevMajor, itBug, cfHigh,
-    True, cKeyDestructorInherited)));
+    True, cKeyDestructorInherited).WithDescription(
+    'Flags a destructor that does not call its inherited destructor.')));
   RegisterMessage(cKeyDestructorInherited, SDestructorInherited);
 
   RegisterRule(TRuleTopLevelClassInheritsTObject.Create(TRuleMetadata.Make(
     'TopLevelClassInheritsTObject', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyTopLevelClassInheritsTObject)));
+    True, cKeyTopLevelClassInheritsTObject).WithDescription(
+    'Flags a class that does not explicitly declare an ancestor.')));
   RegisterMessage(cKeyTopLevelClassInheritsTObject, STopLevelClassInheritsTObject);
 
 end.

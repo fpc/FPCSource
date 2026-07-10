@@ -481,51 +481,60 @@ end;
 initialization
   RegisterRule(TRuleExhaustiveCaseStatement.Create(TRuleMetadata.Make(
     'ExhaustiveCaseStatement', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyExhaustiveCaseStatement)));
+    True, cKeyExhaustiveCaseStatement).WithDescription(
+    'Flags a case statement over an enumeration that does not handle every value.')));
   RegisterMessage(cKeyExhaustiveCaseStatement, SExhaustiveCaseStatement);
 
   RegisterRule(TRuleExceptionRaised.Create(TRuleMetadata.Make(
     'ExceptionRaised', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyExceptionRaised)));
+    True, cKeyExceptionRaised).WithDescription(
+    'Flags an exception object that is constructed but never raised.')));
   RegisterMessage(cKeyExceptionRaised, SExceptionRaised);
 
   RegisterRule(TRuleSingleIterationLoop.Create(TRuleMetadata.Make(
     'SingleIterationLoop', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeySingleIterationLoop)));
+    True, cKeySingleIterationLoop).WithDescription(
+    'Flags a loop whose body always exits on the first iteration; use if instead.')));
   RegisterMessage(cKeySingleIterationLoop, SSingleIterationLoop);
 
   RegisterRule(TRuleNoPascalStyleResultAssignment.Create(TRuleMetadata.Make(
     'NoPascalStyleResultAssignment', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyNoPascalStyleResultAssignment)));
+    cfHigh, True, cKeyNoPascalStyleResultAssignment).WithDescription(
+    'Flags a function returning by assigning to its own name; use Result instead.')));
   RegisterMessage(cKeyNoPascalStyleResultAssignment, SNoPascalStyleResultAssignment);
 
   RegisterRule(TRuleRedundantAssignedCheckBeforeFree.Create(TRuleMetadata.Make(
     'RedundantAssignedCheckBeforeFree', rtSem, rfResolver, sevMinor,
-    itCodeSmell, cfHigh, True, cKeyRedundantAssignedCheckBeforeFree)));
+    itCodeSmell, cfHigh, True, cKeyRedundantAssignedCheckBeforeFree).WithDescription(
+    'Flags a redundant Assigned/nil check before Free, which is already nil-safe.')));
   RegisterMessage(cKeyRedundantAssignedCheckBeforeFree,
     SRedundantAssignedCheckBeforeFree);
 
   // LoopBeyondCollectionEnd — Major/Bug (an out-of-bounds access)
   RegisterRule(TRuleLoopBeyondCollectionEnd.Create(TRuleMetadata.Make(
     'LoopBeyondCollectionEnd', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyLoopBeyondCollectionEnd)));
+    True, cKeyLoopBeyondCollectionEnd).WithDescription(
+    'Flags a loop that indexes a collection past its last valid element.')));
   RegisterMessage(cKeyLoopBeyondCollectionEnd, SLoopBeyondCollectionEnd);
 
   // RoutineResultAssigned — Major/Bug (an indeterminate return value)
   RegisterRule(TRuleRoutineResultAssigned.Create(TRuleMetadata.Make(
     'RoutineResultAssigned', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyRoutineResultAssigned)));
+    True, cKeyRoutineResultAssigned).WithDescription(
+    'Flags a function that may return without assigning a result on some path.')));
   RegisterMessage(cKeyRoutineResultAssigned, SRoutineResultAssigned);
 
   // NoCatchRawException / NoRaiseRawException
   RegisterRule(TRuleNoCatchRawException.Create(TRuleMetadata.Make(
     'NoCatchRawException', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoCatchRawException)));
+    True, cKeyNoCatchRawException).WithDescription(
+    'Flags catching the root Exception class, which masks unrelated failures; catch a specific subclass.')));
   RegisterMessage(cKeyNoCatchRawException, SNoCatchRawException);
 
   RegisterRule(TRuleNoRaiseRawException.Create(TRuleMetadata.Make(
     'NoRaiseRawException', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoRaiseRawException)));
+    True, cKeyNoRaiseRawException).WithDescription(
+    'Flags raising the root Exception class; raise a specific subclass instead.')));
   RegisterMessage(cKeyNoRaiseRawException, SNoRaiseRawException);
 
 end.

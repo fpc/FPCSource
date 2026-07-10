@@ -131,17 +131,20 @@ end;
 initialization
   RegisterRule(TRuleNoObjectAsInterface.Create(TRuleMetadata.Make(
     'NoObjectAsInterface', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyNoObjectAsInterface)));
+    True, cKeyNoObjectAsInterface).WithDescription(
+    'Flags assigning an object to a COM interface, which adds reference counting to a manually managed instance.')));
   RegisterMessage(cKeyNoObjectAsInterface, SNoObjectAsInterface);
 
   RegisterRule(TRuleNoNestedRoutineAsProcValue.Create(TRuleMetadata.Make(
     'NoNestedRoutineAsProcValue', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyNoNestedRoutineAsProcValue)));
+    True, cKeyNoNestedRoutineAsProcValue).WithDescription(
+    'Flags storing the address of a nested routine where it can outlive the enclosing stack frame.')));
   RegisterMessage(cKeyNoNestedRoutineAsProcValue, SNoNestedRoutineAsProcValue);
 
   RegisterRule(TRuleNoInlineVarCapturedByAnonMethod.Create(TRuleMetadata.Make(
     'NoInlineVarCapturedByAnonMethod', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyNoInlineVarCapturedByAnonMethod)));
+    True, cKeyNoInlineVarCapturedByAnonMethod).WithDescription(
+    'Flags an anonymous method capturing a variable whose lifetime is narrower than the closure.')));
   RegisterMessage(cKeyNoInlineVarCapturedByAnonMethod, SNoInlineVarCapturedByAnonMethod);
 
 end.

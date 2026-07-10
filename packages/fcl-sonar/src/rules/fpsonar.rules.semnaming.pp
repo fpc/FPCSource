@@ -155,12 +155,14 @@ end;
 initialization
   RegisterRule(TRuleConsistentNameCasing.Create(TRuleMetadata.Make(
     'ConsistentNameCasing', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyConsistentNameCasing)));
+    True, cKeyConsistentNameCasing).WithDescription(
+    'Flags an identifier spelled with different letter casing than its declaration.')));
   RegisterMessage(cKeyConsistentNameCasing, SConsistentNameCasing);
 
   RegisterRule(TRuleDescendantNamingConvention.Create(TRuleMetadata.Make(
     'DescendantNamingConvention', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyDescendantNamingConvention)));
+    True, cKeyDescendantNamingConvention).WithDescription(
+    'Flags a type whose name does not match the convention required by its base type.')));
   RegisterMessage(cKeyDescendantNamingConvention, SDescendantNamingConvention);
 
 end.

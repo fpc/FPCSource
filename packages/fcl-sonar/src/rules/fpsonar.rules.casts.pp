@@ -507,37 +507,49 @@ end;
 initialization
   RegisterRule(TRuleCharToCharPointerCast.Create(TRuleMetadata.Make(
     'CharToCharPointerCast', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyCharToCharPointerCast)));
+    True, cKeyCharToCharPointerCast).WithDescription(
+    'Flags casting a single character to a string pointer, which yields a '
+    + 'pointer to a temporary rather than a string.')));
   RegisterMessage(cKeyCharToCharPointerCast, SCharToCharPointerCast);
 
   RegisterRule(TRuleObjectCastNotInHierarchy.Create(TRuleMetadata.Make(
     'ObjectCastNotInHierarchy', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyObjectCastNotInHierarchy)));
+    True, cKeyObjectCastNotInHierarchy).WithDescription(
+    'Flags a cast between unrelated class types that can never succeed at run '
+    + 'time.')));
   RegisterMessage(cKeyObjectCastNotInHierarchy, SObjectCastNotInHierarchy);
 
   RegisterRule(TRuleRedundantCast.Create(TRuleMetadata.Make(
     'RedundantCast', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyRedundantCast)));
+    True, cKeyRedundantCast).WithDescription(
+    'Flags a cast to a type the operand already has.')));
   RegisterMessage(cKeyRedundantCast, SRedundantCast);
 
   RegisterRule(TRuleObjectCastBeforeFree.Create(TRuleMetadata.Make(
     'ObjectCastBeforeFree', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyObjectCastBeforeFree)));
+    True, cKeyObjectCastBeforeFree).WithDescription(
+    'Flags a redundant cast before Free, which already operates on TObject.')));
   RegisterMessage(cKeyObjectCastBeforeFree, SObjectCastBeforeFree);
 
   RegisterRule(TRuleUnicodeToAnsiCast.Create(TRuleMetadata.Make(
     'UnicodeToAnsiCast', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyUnicodeToAnsiCast)));
+    True, cKeyUnicodeToAnsiCast).WithDescription(
+    'Flags a cast to an ANSI type from a Unicode/wide type, which silently '
+    + 'loses characters.')));
   RegisterMessage(cKeyUnicodeToAnsiCast, SUnicodeToAnsiCast);
 
   RegisterRule(TRulePlatformDependentCast.Create(TRuleMetadata.Make(
     'PlatformDependentCast', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyPlatformDependentCast)));
+    True, cKeyPlatformDependentCast).WithDescription(
+    'Flags a cast between a pointer and a fixed-width integer, which is not '
+    + '64-bit safe; use PtrInt/PtrUInt.')));
   RegisterMessage(cKeyPlatformDependentCast, SPlatformDependentCast);
 
   RegisterRule(TRulePlatformDependentTruncation.Create(TRuleMetadata.Make(
     'PlatformDependentTruncation', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyPlatformDependentTruncation)));
+    True, cKeyPlatformDependentTruncation).WithDescription(
+    'Flags narrowing a wide integer to a fixed-width type, which silently drops '
+    + 'high bits on 64-bit.')));
   RegisterMessage(cKeyPlatformDependentTruncation, SPlatformDependentTruncation);
 
 end.

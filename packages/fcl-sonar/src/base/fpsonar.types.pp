@@ -148,6 +148,9 @@ type
     MessageKey: string;
     Tags: TRuleTagArray;
     Title: string;
+    // A one-line, human-readable explanation of what the rule checks and why.
+    // Surfaced in the IDE config editor and available to SARIF rules[]/docs.
+    Description: string;
     // The tunable parameters this rule reads from its config 'params' object.
     ParamSpecs: TRuleParamSpecArray;
     // Convenience builder. Tags/Title default empty; MessageKey defaults to
@@ -166,6 +169,9 @@ type
       aDefault: integer); overload;
     procedure AddParam(const aName: string; aKind: TRuleParamKind;
       aDefault: boolean); overload;
+    // Sets Description and returns the (value) metadata, for fluent use at
+    // registration: Make(...).WithDescription('...').
+    function WithDescription(const aDescription: string): TRuleMetadata;
     // The spec for aName in ParamSpecs, or False when the rule declares no such parameter
     function FindParam(const aName: string; out aSpec: TRuleParamSpec): boolean;
     // True iff the metadata is complete: a non-empty RuleId and a non-empty MessageKey
@@ -417,7 +423,15 @@ begin
     Result.MessageKey := 'rule.' + aRuleId + '.message';
   SetLength(Result.Tags, 0);
   Result.Title := '';
+  Result.Description := '';
   SetLength(Result.ParamSpecs, 0);
+end;
+
+
+function TRuleMetadata.WithDescription(const aDescription: string): TRuleMetadata;
+begin
+  Result := Self;
+  Result.Description := aDescription;
 end;
 
 

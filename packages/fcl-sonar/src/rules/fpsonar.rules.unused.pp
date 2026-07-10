@@ -548,33 +548,41 @@ begin
   Result := UnusedMeta('RemoveUnusedImports', cKeyUnusedImport);
   Result.AddParam(cParamFlagOperatorOnly, rpkBool, False);
   Result.AddParam(cParamFlagSideEffect, rpkBool, False);
+  Result.Description :=
+    'Flags a unit in the uses clause that is never used.';
 end;
 
 
 initialization
   RegisterRule(TRuleRemoveUnusedLocalVariable.Create(UnusedMeta(
-    'RemoveUnusedLocalVariable', cKeyUnusedLocal)));
+    'RemoveUnusedLocalVariable', cKeyUnusedLocal).WithDescription(
+    'Flags a local variable that is declared but never used.')));
   RegisterMessage(cKeyUnusedLocal, SRemoveUnusedLocalVariable);
 
   RegisterRule(TRuleRemoveUnusedField.Create(UnusedMeta(
-    'RemoveUnusedField', cKeyUnusedField)));
+    'RemoveUnusedField', cKeyUnusedField).WithDescription(
+    'Flags a private field that is never used.')));
   RegisterMessage(cKeyUnusedField, SRemoveUnusedField);
 
   RegisterRule(TRuleRemoveUnusedProperty.Create(UnusedMeta(
-    'RemoveUnusedProperty', cKeyUnusedProperty)));
+    'RemoveUnusedProperty', cKeyUnusedProperty).WithDescription(
+    'Flags a private property that is never used.')));
   RegisterMessage(cKeyUnusedProperty, SRemoveUnusedProperty);
 
   RegisterRule(TRuleRemoveUnusedConstant.Create(UnusedMeta(
-    'RemoveUnusedConstant', cKeyUnusedConstant)));
+    'RemoveUnusedConstant', cKeyUnusedConstant).WithDescription(
+    'Flags a constant that is never used.')));
   RegisterMessage(cKeyUnusedConstant, SRemoveUnusedConstant);
 
   RegisterRule(TRuleRemoveUnusedRoutine.Create(UnusedMeta(
-    'RemoveUnusedRoutine', cKeyUnusedRoutine)));
+    'RemoveUnusedRoutine', cKeyUnusedRoutine).WithDescription(
+    'Flags a private method that is never used.')));
   RegisterMessage(cKeyUnusedRoutine, SRemoveUnusedRoutine);
   RegisterMessage(cKeyUnusedPublicRoutine, SRemoveUnusedRoutinePublic);
 
   RegisterRule(TRuleRemoveUnusedType.Create(UnusedMeta(
-    'RemoveUnusedType', cKeyUnusedType)));
+    'RemoveUnusedType', cKeyUnusedType).WithDescription(
+    'Flags a private type that is never used.')));
   RegisterMessage(cKeyUnusedType, SRemoveUnusedType);
   RegisterMessage(cKeyUnusedPublicType, SRemoveUnusedTypePublic);
 
@@ -582,7 +590,8 @@ initialization
   RegisterMessage(cKeyUnusedImport, SRemoveUnusedImports);
 
   RegisterRule(TRuleRemoveUnusedGlobalVariable.Create(UnusedMeta(
-    'RemoveUnusedGlobalVariable', cKeyUnusedGlobal)));
+    'RemoveUnusedGlobalVariable', cKeyUnusedGlobal).WithDescription(
+    'Flags a global variable that is never used.')));
   RegisterMessage(cKeyUnusedGlobal, SRemoveUnusedGlobalVariable);
 
 end.

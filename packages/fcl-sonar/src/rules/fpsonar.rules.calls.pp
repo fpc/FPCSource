@@ -1286,95 +1286,130 @@ initialization
   // The Format trio
   RegisterRule(TRuleFormatArgumentType.Create(TRuleMetadata.Make(
     'FormatArgumentType', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyFormatArgumentType)));
+    True, cKeyFormatArgumentType).WithDescription(
+    'Flags a Format() argument whose type does not match its conversion '
+    + 'specifier (for example a string passed for %d).')));
   RegisterMessage(cKeyFormatArgumentType, SFormatArgumentType);
 
   RegisterRule(TRuleFormatArgumentCount.Create(TRuleMetadata.Make(
     'FormatArgumentCount', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyFormatArgumentCount)));
+    True, cKeyFormatArgumentCount).WithDescription(
+    'Flags a Format() call whose argument count does not match the number of '
+    + 'conversion specifiers in the format string.')));
   RegisterMessage(cKeyFormatArgumentCount, SFormatArgumentCount);
 
   RegisterRule(TRuleValidFormatString.Create(TRuleMetadata.Make(
     'ValidFormatString', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyValidFormatString)));
+    True, cKeyValidFormatString).WithDescription(
+    'Flags an invalid or malformed conversion specifier in a Format() format '
+    + 'string.')));
   RegisterMessage(cKeyValidFormatString, SValidFormatString);
 
   // the call/constructor rules
   RegisterRule(TRuleFreeAndNilArgument.Create(TRuleMetadata.Make(
     'FreeAndNilArgument', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyFreeAndNilArgument)));
+    True, cKeyFreeAndNilArgument).WithDescription(
+    'Flags FreeAndNil applied to a non-class value; only class instances may be '
+    + 'passed.')));
   RegisterMessage(cKeyFreeAndNilArgument, SFreeAndNilArgument);
 
   RegisterRule(TRuleConstructorOnInstanceVariable.Create(TRuleMetadata.Make(
     'ConstructorOnInstanceVariable', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyConstructorOnInstanceVariable)));
+    True, cKeyConstructorOnInstanceVariable).WithDescription(
+    'Flags a constructor called on an already-allocated instance, which '
+    + 're-initialises it in place instead of creating a new object.')));
   RegisterMessage(cKeyConstructorOnInstanceVariable, SConstructorOnInstanceVariable);
 
   RegisterRule(TRuleStringListDuplicatesNeedsSorted.Create(TRuleMetadata.Make(
     'StringListDuplicatesNeedsSorted', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyStringListDuplicatesNeedsSorted)));
+    cfHigh, True, cKeyStringListDuplicatesNeedsSorted).WithDescription(
+    'Flags a TStringList whose Duplicates property is set but which is never '
+    + 'sorted, so the setting has no effect.')));
   RegisterMessage(cKeyStringListDuplicatesNeedsSorted, SStringListDuplicatesNeedsSorted);
 
   // the override/control rules
   RegisterRule(TRuleDestructorShouldOverrideDestroy.Create(TRuleMetadata.Make(
     'DestructorShouldOverrideDestroy', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyDestructorShouldOverrideDestroy)));
+    True, cKeyDestructorShouldOverrideDestroy).WithDescription(
+    'Flags a destructor not named Destroy and marked override, so it will not '
+    + 'participate in polymorphic destruction.')));
   RegisterMessage(cKeyDestructorShouldOverrideDestroy, SDestructorShouldOverrideDestroy);
 
   RegisterRule(TRuleOverrideOnlyCallsInherited.Create(TRuleMetadata.Make(
     'OverrideOnlyCallsInherited', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyOverrideOnlyCallsInherited)));
+    cfHigh, True, cKeyOverrideOnlyCallsInherited).WithDescription(
+    'Flags an override method that only forwards to the inherited method and '
+    + 'can therefore be removed.')));
   RegisterMessage(cKeyOverrideOnlyCallsInherited, SOverrideOnlyCallsInherited);
 
   RegisterRule(TRuleIfThenNotShortCircuit.Create(TRuleMetadata.Make(
     'IfThenNotShortCircuit', rtSem, rfResolver, sevMajor, itBug, cfHigh,
-    True, cKeyIfThenNotShortCircuit)));
+    True, cKeyIfThenNotShortCircuit).WithDescription(
+    'Flags IfThen usage where both value arguments are always evaluated, so a '
+    + 'condition-guarded expression may be used unsafely.')));
   RegisterMessage(cKeyIfThenNotShortCircuit, SIfThenNotShortCircuit);
 
   // the call/builtin rules
   RegisterRule(TRuleAssertWithoutMessage.Create(TRuleMetadata.Make(
     'AssertWithoutMessage', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyAssertWithoutMessage)));
+    True, cKeyAssertWithoutMessage).WithDescription(
+    'Flags an Assert with no message, so the raised EAssertionFailed carries no '
+    + 'diagnostic text.')));
   RegisterMessage(cKeyAssertWithoutMessage, SAssertWithoutMessage);
 
   RegisterRule(TRuleDefaultFormatSettingsInDateFormat.Create(TRuleMetadata.Make(
     'DefaultFormatSettingsInDateFormat', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyDefaultFormatSettingsInDateFormat)));
+    cfHigh, True, cKeyDefaultFormatSettingsInDateFormat).WithDescription(
+    'Flags date/number formatting that relies on the global '
+    + 'DefaultFormatSettings; pass an explicit TFormatSettings for '
+    + 'locale-independent output.')));
   RegisterMessage(cKeyDefaultFormatSettingsInDateFormat,
     SDefaultFormatSettingsInDateFormat);
 
   RegisterRule(TRuleExplicitDefaultArrayProperty.Create(TRuleMetadata.Make(
     'ExplicitDefaultArrayProperty', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyExplicitDefaultArrayProperty)));
+    cfHigh, True, cKeyExplicitDefaultArrayProperty).WithDescription(
+    'Flags a default array property accessed by name where the [] shorthand is '
+    + 'equivalent and clearer.')));
   RegisterMessage(cKeyExplicitDefaultArrayProperty, SExplicitDefaultArrayProperty);
 
   // the index-access rules
   RegisterRule(TRuleStringFirstCharByIndex.Create(TRuleMetadata.Make(
     'StringFirstCharByIndex', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyStringFirstCharByIndex)));
+    True, cKeyStringFirstCharByIndex).WithDescription(
+    'Flags reading a string first character by index where a clearer '
+    + 'intent-revealing form is preferable.')));
   RegisterMessage(cKeyStringFirstCharByIndex, SStringFirstCharByIndex);
 
   RegisterRule(TRuleTListLastByIndex.Create(TRuleMetadata.Make(
     'TListLastByIndex', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyTListLastByIndex)));
+    True, cKeyTListLastByIndex).WithDescription(
+    'Flags fetching a list last element by index instead of using the '
+    + 'dedicated Last accessor.')));
   RegisterMessage(cKeyTListLastByIndex, STListLastByIndex);
 
   // the redundant-'inherited' rule
   RegisterRule(TRuleRedundantInherited.Create(TRuleMetadata.Make(
     'RedundantInherited', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyRedundantInherited)));
+    True, cKeyRedundantInherited).WithDescription(
+    'Flags an inherited statement that binds to no overridable parent method '
+    + 'and can be removed.')));
   RegisterMessage(cKeyRedundantInherited, SRedundantInherited);
 
   // the implicit-TEncoding.Default rule
   RegisterRule(TRuleImplicitTEncodingDefault.Create(TRuleMetadata.Make(
     'ImplicitTEncodingDefault', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyImplicitTEncodingDefault)));
+    True, cKeyImplicitTEncodingDefault).WithDescription(
+    'Flags an overload that implicitly uses the platform-dependent '
+    + 'TEncoding.Default; specify an explicit encoding.')));
   RegisterMessage(cKeyImplicitTEncodingDefault, SImplicitTEncodingDefault);
 
   // the single-precision math-overload rule
   RegisterRule(TRuleSingleOverloadOfMathFunction.Create(TRuleMetadata.Make(
     'SingleOverloadOfMathFunction', rtSem, rfResolver, sevMinor, itCodeSmell,
-    cfHigh, True, cKeySingleOverloadOfMathFunction)));
+    cfHigh, True, cKeySingleOverloadOfMathFunction).WithDescription(
+    'Flags a math routine bound to its Single-precision overload when a '
+    + 'higher-precision Double/Extended overload is available.')));
   RegisterMessage(cKeySingleOverloadOfMathFunction, SSingleOverloadOfMathFunction);
 
 end.

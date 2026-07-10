@@ -117,12 +117,14 @@ initialization
   // fire only on a resolved fact.
   RegisterRule(TRuleFullyQualifiedImports.Create(TRuleMetadata.Make(
     'FullyQualifiedImports', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyFullyQualifiedImports)));
+    True, cKeyFullyQualifiedImports).WithDescription(
+    'Flags a reference that is ambiguous across units; qualify it with its unit name.')));
   RegisterMessage(cKeyFullyQualifiedImports, SFullyQualifiedImports);
 
   RegisterRule(TRuleMoveImportToImplementation.Create(TRuleMetadata.Make(
     'MoveImportToImplementation', rtSem, rfResolver, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyMoveImportToImplementation)));
+    True, cKeyMoveImportToImplementation).WithDescription(
+    'Flags a unit used only in the implementation that can move to the implementation uses clause.')));
   RegisterMessage(cKeyMoveImportToImplementation, SMoveImportToImplementation);
 
 end.

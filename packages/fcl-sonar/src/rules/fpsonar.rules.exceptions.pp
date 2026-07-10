@@ -220,17 +220,20 @@ end;
 initialization
   RegisterRule(TRuleNoEmptyFinally.Create(TRuleMetadata.Make(
     'NoEmptyFinally', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoEmptyFinally)));
+    True, cKeyNoEmptyFinally).WithDescription(
+    'Flags an empty finally block.')));
   RegisterMessage(cKeyNoEmptyFinally, SNoEmptyFinally);
 
   RegisterRule(TRuleExceptionsNotSwallowed.Create(TRuleMetadata.Make(
     'ExceptionsNotSwallowed', rtAst, rfAst, sevMajor, itBug, cfHigh,
-    True, cKeyExceptionsNotSwallowed)));
+    True, cKeyExceptionsNotSwallowed).WithDescription(
+    'Flags an exception swallowed by an empty except handler.')));
   RegisterMessage(cKeyExceptionsNotSwallowed, SExceptionsNotSwallowed);
 
   RegisterRule(TRuleNoExplicitReRaise.Create(TRuleMetadata.Make(
     'NoExplicitReRaise', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoExplicitReRaise)));
+    True, cKeyNoExplicitReRaise).WithDescription(
+    'Flags re-raising a caught exception by name; use a bare raise instead.')));
   RegisterMessage(cKeyNoExplicitReRaise, SNoExplicitReRaise);
 
 end.

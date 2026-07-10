@@ -1490,49 +1490,59 @@ begin
   Result := TRuleMetadata.Make('BeginEndRequired', rtAst, rfAst, sevMinor, itCodeSmell,
     cfHigh, True, cKeyBeginEndRequired);
   Result.AddParam('allowSingleStatement', rpkBool, False);
+  Result.Description :=
+    'Flags a control-flow body that is a single statement rather than a begin..end block.';
 end;
 
 
 initialization
   RegisterRule(TRuleCyclomaticComplexity.Create(IntMetricMeta(
     'CyclomaticComplexity', sevMajor, cKeyCyclomatic, 'maxComplexity',
-    cMaxCyclomatic)));
+    cMaxCyclomatic).WithDescription(
+    'Flags a routine whose cyclomatic complexity exceeds the configured maximum.')));
   RegisterMessage(cKeyCyclomatic, SCyclomaticComplexity);
 
   RegisterRule(TRuleCognitiveComplexity.Create(IntMetricMeta(
     'CognitiveComplexity', sevMajor, cKeyCognitive, 'maxComplexity',
-    cMaxCognitive)));
+    cMaxCognitive).WithDescription(
+    'Flags a routine whose cognitive complexity exceeds the configured maximum.')));
   RegisterMessage(cKeyCognitive, SCognitiveComplexity);
 
   RegisterRule(TRuleRoutineTooLarge.Create(IntMetricMeta(
     'RoutineTooLarge', sevMajor, cKeyRoutineTooLarge, 'maxStatements',
-    cMaxStatements)));
+    cMaxStatements).WithDescription(
+    'Flags a routine with more statements than the configured maximum.')));
   RegisterMessage(cKeyRoutineTooLarge, SRoutineTooLarge);
 
   RegisterRule(TRuleRoutineTooDeeplyNested.Create(IntMetricMeta(
     'RoutineTooDeeplyNested', sevMajor, cKeyRoutineTooDeeplyNested, 'maxDepth',
-    cMaxNestingDepth)));
+    cMaxNestingDepth).WithDescription(
+    'Flags a routine whose nesting depth exceeds the configured maximum.')));
   RegisterMessage(cKeyRoutineTooDeeplyNested, SRoutineTooDeeplyNested);
 
   // Count rules (sevMinor).
   RegisterRule(TRuleTooManyNestedRoutines.Create(IntMetricMeta(
     'TooManyNestedRoutines', sevMinor, cKeyTooManyNestedRoutines,
-    'maxNestedRoutines', cMaxNestedRoutines)));
+    'maxNestedRoutines', cMaxNestedRoutines).WithDescription(
+    'Flags a routine with more nested routines than the configured maximum.')));
   RegisterMessage(cKeyTooManyNestedRoutines, STooManyNestedRoutines);
 
   RegisterRule(TRuleTooManyParameters.Create(IntMetricMeta(
     'TooManyParameters', sevMinor, cKeyTooManyParameters, 'maxParameters',
-    cMaxParameters)));
+    cMaxParameters).WithDescription(
+    'Flags a routine with more parameters than the configured maximum.')));
   RegisterMessage(cKeyTooManyParameters, STooManyParameters);
 
   RegisterRule(TRuleTooManyVariables.Create(IntMetricMeta(
     'TooManyVariables', sevMinor, cKeyTooManyVariables, 'maxVariables',
-    cMaxVariables)));
+    cMaxVariables).WithDescription(
+    'Flags a routine with more local variables than the configured maximum.')));
   RegisterMessage(cKeyTooManyVariables, STooManyVariables);
 
   RegisterRule(TRuleTooManyDefaultParameters.Create(IntMetricMeta(
     'TooManyDefaultParameters', sevMinor, cKeyTooManyDefaultParameters,
-    'maxDefaultParameters', cMaxDefaultParameters)));
+    'maxDefaultParameters', cMaxDefaultParameters).WithDescription(
+    'Flags a routine with more default parameters than the configured maximum.')));
   RegisterMessage(cKeyTooManyDefaultParameters, STooManyDefaultParameters);
 
   // Statement & control rules
@@ -1541,100 +1551,119 @@ initialization
 
   RegisterRule(TRuleNoGoto.Create(TRuleMetadata.Make(
     'NoGoto', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoGoto)));
+    True, cKeyNoGoto).WithDescription(
+    'Flags goto statements.')));
   RegisterMessage(cKeyNoGoto, SNoGoto);
 
   RegisterRule(TRuleNoWith.Create(TRuleMetadata.Make(
     'NoWith', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoWith)));
+    True, cKeyNoWith).WithDescription(
+    'Flags with statements.')));
   RegisterMessage(cKeyNoWith, SNoWith);
 
   RegisterRule(TRuleNoSelfAssignment.Create(TRuleMetadata.Make(
     'NoSelfAssignment', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoSelfAssignment)));
+    True, cKeyNoSelfAssignment).WithDescription(
+    'Flags a self-assignment, which has no effect.')));
   RegisterMessage(cKeyNoSelfAssignment, SNoSelfAssignment);
 
   RegisterRule(TRuleNoInlineAssembly.Create(TRuleMetadata.Make(
     'NoInlineAssembly', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoInlineAssembly)));
+    True, cKeyNoInlineAssembly).WithDescription(
+    'Flags inline assembly (asm..end) blocks.')));
   RegisterMessage(cKeyNoInlineAssembly, SNoInlineAssembly);
 
   RegisterRule(TRuleCaseAtLeastTwoItems.Create(TRuleMetadata.Make(
     'CaseAtLeastTwoItems', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyCaseAtLeastTwoItems)));
+    True, cKeyCaseAtLeastTwoItems).WithDescription(
+    'Flags a case statement with fewer than two branches.')));
   RegisterMessage(cKeyCaseAtLeastTwoItems, SCaseAtLeastTwoItems);
 
   // Statement, block & emptiness rules.
   RegisterRule(TRuleNoEmptyBlock.Create(TRuleMetadata.Make(
     'NoEmptyBlock', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoEmptyBlock)));
+    True, cKeyNoEmptyBlock).WithDescription(
+    'Flags an empty begin..end block.')));
   RegisterMessage(cKeyNoEmptyBlock, SNoEmptyBlock);
 
   RegisterRule(TRuleRoutineNotEmpty.Create(TRuleMetadata.Make(
     'RoutineNotEmpty', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyRoutineNotEmpty)));
+    True, cKeyRoutineNotEmpty).WithDescription(
+    'Flags a routine with an empty body.')));
   RegisterMessage(cKeyRoutineNotEmpty, SRoutineNotEmpty);
 
   RegisterRule(TRuleUnitNotEmpty.Create(TRuleMetadata.Make(
     'UnitNotEmpty', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyUnitNotEmpty)));
+    True, cKeyUnitNotEmpty).WithDescription(
+    'Flags a unit with no declarations or statements.')));
   RegisterMessage(cKeyUnitNotEmpty, SUnitNotEmpty);
 
   RegisterRule(TRuleRedundantJump.Create(TRuleMetadata.Make(
     'RedundantJump', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyRedundantJump)));
+    True, cKeyRedundantJump).WithDescription(
+    'Flags a redundant jump statement that can be removed.')));
   RegisterMessage(cKeyRedundantJump, SRedundantJump);
 
   RegisterRule(TRuleFunctionReturnTypeRequired.Create(TRuleMetadata.Make(
     'FunctionReturnTypeRequired', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyFunctionReturnTypeRequired)));
+    True, cKeyFunctionReturnTypeRequired).WithDescription(
+    'Flags a function without an explicit result type.')));
   RegisterMessage(cKeyFunctionReturnTypeRequired, SFunctionReturnTypeRequired);
 
   // Statement-expression & legacy-construct rules.
   RegisterRule(TRuleRedundantBooleanLiteral.Create(TRuleMetadata.Make(
     'RedundantBooleanLiteral', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyRedundantBooleanLiteral)));
+    True, cKeyRedundantBooleanLiteral).WithDescription(
+    'Flags a comparison against a boolean literal that can be simplified.')));
   RegisterMessage(cKeyRedundantBooleanLiteral, SRedundantBooleanLiteral);
 
   RegisterRule(TRuleNilCheckViaAssigned.Create(TRuleMetadata.Make(
     'NilCheckViaAssigned', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNilCheckViaAssigned)));
+    True, cKeyNilCheckViaAssigned).WithDescription(
+    'Flags comparing to nil where Assigned() is clearer.')));
   RegisterMessage(cKeyNilCheckViaAssigned, SNilCheckViaAssigned);
 
   RegisterRule(TRuleNoObjectTypes.Create(TRuleMetadata.Make(
     'NoObjectTypes', rtAst, rfAst, sevMajor, itCodeSmell, cfHigh,
-    True, cKeyNoObjectTypes)));
+    True, cKeyNoObjectTypes).WithDescription(
+    'Flags the legacy object type; use class or record instead.')));
   RegisterMessage(cKeyNoObjectTypes, SNoObjectTypes);
 
   RegisterRule(TRuleNoLegacyInitializationSection.Create(TRuleMetadata.Make(
     'NoLegacyInitializationSection', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoLegacyInitializationSection)));
+    True, cKeyNoLegacyInitializationSection).WithDescription(
+    'Flags a legacy begin..end unit body; use an explicit initialization section.')));
   RegisterMessage(cKeyNoLegacyInitializationSection, SNoLegacyInitializationSection);
 
   // Inline-declaration & project-file rules.
   RegisterRule(TRuleInlineConstNoTypeInference.Create(TRuleMetadata.Make(
     'InlineConstNoTypeInference', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyInlineConstNoTypeInference)));
+    True, cKeyInlineConstNoTypeInference).WithDescription(
+    'Flags an inline constant declared without an explicit type.')));
   RegisterMessage(cKeyInlineConstNoTypeInference, SInlineConstNoTypeInference);
 
   RegisterRule(TRuleInlineLoopVarNoTypeInference.Create(TRuleMetadata.Make(
     'InlineLoopVarNoTypeInference', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyInlineLoopVarNoTypeInference)));
+    True, cKeyInlineLoopVarNoTypeInference).WithDescription(
+    'Flags an inline loop variable declared without an explicit type.')));
   RegisterMessage(cKeyInlineLoopVarNoTypeInference, SInlineLoopVarNoTypeInference);
 
   RegisterRule(TRuleInlineVarNoTypeInference.Create(TRuleMetadata.Make(
     'InlineVarNoTypeInference', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyInlineVarNoTypeInference)));
+    True, cKeyInlineVarNoTypeInference).WithDescription(
+    'Flags an inline variable declared without an explicit type.')));
   RegisterMessage(cKeyInlineVarNoTypeInference, SInlineVarNoTypeInference);
 
   RegisterRule(TRuleProjectFileNoRoutines.Create(TRuleMetadata.Make(
     'ProjectFileNoRoutines', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyProjectFileNoRoutines)));
+    True, cKeyProjectFileNoRoutines).WithDescription(
+    'Flags a routine declared in the project file; move it into a unit.')));
   RegisterMessage(cKeyProjectFileNoRoutines, SProjectFileNoRoutines);
 
   RegisterRule(TRuleProjectFileNoVariables.Create(TRuleMetadata.Make(
     'ProjectFileNoVariables', rtAst, rfAst, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyProjectFileNoVariables)));
+    True, cKeyProjectFileNoVariables).WithDescription(
+    'Flags a global variable declared in the project file; move it into a unit.')));
   RegisterMessage(cKeyProjectFileNoVariables, SProjectFileNoVariables);
 
 end.

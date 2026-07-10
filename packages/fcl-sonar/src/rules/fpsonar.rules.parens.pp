@@ -396,12 +396,15 @@ initialization
   lMeta := TRuleMetadata.Make('RemoveRedundantParentheses', rtTok, rfTokenStream,
     sevMinor, itCodeSmell, cfHigh, True, cKeyRemoveRedundantParens);
   lMeta.AddParam(cKeepAroundOperatorsKey, rpkString);
+  lMeta.Description :=
+    'Flags redundant parentheses that can be removed.';
   RegisterRule(TRuleRemoveRedundantParentheses.Create(lMeta));
   RegisterMessage(cKeyRemoveRedundantParens, SRemoveRedundantParentheses);
 
   RegisterRule(TRuleParenthesizeAmbiguousNot.Create(TRuleMetadata.Make(
     'ParenthesizeAmbiguousNot', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyParenthesizeAmbiguousNot)));
+    cfHigh, True, cKeyParenthesizeAmbiguousNot).WithDescription(
+    'Flags an ambiguous not; parenthesize the negated operand.')));
   RegisterMessage(cKeyParenthesizeAmbiguousNot, SParenthesizeAmbiguousNot);
 
 end.

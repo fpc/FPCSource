@@ -635,58 +635,83 @@ end;
 
 initialization
   RegisterRule(TRuleClassNaming.Create(NamingPatternMeta('ClassNaming',
-    cKeyClassNaming, cPatternClass)));
+    cKeyClassNaming, cPatternClass).WithDescription(
+    'Flags class type names that do not match the configured regex '
+    + '(default: a T-prefixed PascalCase name, e.g. TMyClass).')));
   RegisterMessage(cKeyClassNaming, SClassNaming);
 
   RegisterRule(TRuleRecordNaming.Create(NamingPatternMeta('RecordNaming',
-    cKeyRecordNaming, cPatternRecord)));
+    cKeyRecordNaming, cPatternRecord).WithDescription(
+    'Flags record type names that do not match the configured regex '
+    + '(default: a T-prefixed PascalCase name, e.g. TMyRecord).')));
   RegisterMessage(cKeyRecordNaming, SRecordNaming);
 
   RegisterRule(TRuleInterfaceNaming.Create(NamingPatternMeta('InterfaceNaming',
-    cKeyInterfaceNaming, cPatternInterface)));
+    cKeyInterfaceNaming, cPatternInterface).WithDescription(
+    'Flags interface type names that do not match the configured regex '
+    + '(default: an I-prefixed name, e.g. IMyInterface).')));
   RegisterMessage(cKeyInterfaceNaming, SInterfaceNaming);
 
   RegisterRule(TRuleEnumNaming.Create(NamingPatternMeta('EnumNaming',
-    cKeyEnumNaming, cPatternEnum)));
+    cKeyEnumNaming, cPatternEnum).WithDescription(
+    'Flags enumeration type names that do not match the configured regex '
+    + '(default: a T-prefixed name).')));
   RegisterMessage(cKeyEnumNaming, SEnumNaming);
 
   RegisterRule(TRuleHelperNaming.Create(NamingPatternMeta('HelperNaming',
-    cKeyHelperNaming, cPatternHelper)));
+    cKeyHelperNaming, cPatternHelper).WithDescription(
+    'Flags class/record helper type names that do not match the configured '
+    + 'regex (default: T-prefixed with a Helper suffix).')));
   RegisterMessage(cKeyHelperNaming, SHelperNaming);
 
   RegisterRule(TRulePointerNaming.Create(NamingPatternMeta('PointerNaming',
-    cKeyPointerNaming, cPatternPointer)));
+    cKeyPointerNaming, cPatternPointer).WithDescription(
+    'Flags pointer type names that do not match the configured regex '
+    + '(default: a P-prefixed name, e.g. PMyRecord).')));
   RegisterMessage(cKeyPointerNaming, SPointerNaming);
 
   RegisterRule(TRuleAttributeNaming.Create(NamingPatternMeta('AttributeNaming',
-    cKeyAttributeNaming, cPatternAttribute)));
+    cKeyAttributeNaming, cPatternAttribute).WithDescription(
+    'Flags custom attribute class names that do not match the configured regex '
+    + '(default: an Attribute suffix).')));
   RegisterMessage(cKeyAttributeNaming, SAttributeNaming);
 
   RegisterRule(TRuleConstantNaming.Create(NamingPatternMeta('ConstantNaming',
-    cKeyConstantNaming, cPatternConst)));
+    cKeyConstantNaming, cPatternConst).WithDescription(
+    'Flags declared constant names that do not match the configured regex.')));
   RegisterMessage(cKeyConstantNaming, SConstantNaming);
 
   RegisterRule(TRuleFieldNaming.Create(NamingPatternMeta('FieldNaming',
-    cKeyFieldNaming, cPatternField)));
+    cKeyFieldNaming, cPatternField).WithDescription(
+    'Flags class/record field names that do not match the configured regex '
+    + '(default: an F-prefixed name).')));
   RegisterMessage(cKeyFieldNaming, SFieldNaming);
 
   RegisterRule(TRuleVariableNaming.Create(NamingPatternMeta('VariableNaming',
-    cKeyVariableNaming, cPatternVariable)));
+    cKeyVariableNaming, cPatternVariable).WithDescription(
+    'Flags variable names that do not match the configured regex.')));
   RegisterMessage(cKeyVariableNaming, SVariableNaming);
 
   RegisterRule(TRuleRoutineNaming.Create(NamingPatternMeta('RoutineNaming',
-    cKeyRoutineNaming, cPatternRoutine)));
+    cKeyRoutineNaming, cPatternRoutine).WithDescription(
+    'Flags procedure and function names that do not match the configured '
+    + 'regex.')));
   RegisterMessage(cKeyRoutineNaming, SRoutineNaming);
 
   RegisterRule(TRuleConstructorNaming.Create(NamingPatternMeta(
-    'ConstructorNaming', cKeyConstructorNaming, cPatternConstructor)));
+    'ConstructorNaming', cKeyConstructorNaming, cPatternConstructor)
+    .WithDescription('Flags constructor names that do not match the configured '
+    + 'regex (default: a Create-prefixed name).')));
   RegisterMessage(cKeyConstructorNaming, SConstructorNaming);
 
   RegisterRule(TRuleUnitNaming.Create(NamingPatternMeta('UnitNaming',
-    cKeyUnitNaming, cPatternUnit)));
+    cKeyUnitNaming, cPatternUnit).WithDescription(
+    'Flags unit names that do not match the configured regex.')));
   RegisterMessage(cKeyUnitNaming, SUnitNaming);
 
-  RegisterRule(TRuleIdentifierTooShort.Create(IdentTooShortMeta));
+  RegisterRule(TRuleIdentifierTooShort.Create(IdentTooShortMeta.WithDescription(
+    'Flags identifiers shorter than the configured minimum length, so names '
+    + 'convey intent.')));
   RegisterMessage(cKeyIdentifierTooShort, SIdentifierTooShort);
 
 end.

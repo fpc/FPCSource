@@ -563,6 +563,8 @@ begin
     itCodeSmell, cfHigh, True, cKeyDisallowedIdentifier);
   Result.AddParam(cTargetsKey, rpkTargets);
   Result.AddParam(cMatchUnresolvedKey, rpkBool, False);
+  Result.Description :=
+    'Reports use of identifiers matching a configured disallow-list (targets).';
 end;
 
 
@@ -577,38 +579,46 @@ end;
 
 initialization
   RegisterRule(TRuleDisallowedImportByPath.Create(
-    TrackerMeta('DisallowedImportByPath', cKeyDisallowedImportByPath)));
+    TrackerMeta('DisallowedImportByPath', cKeyDisallowedImportByPath).WithDescription(
+    'Reports use of units whose path matches a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedImportByPath, SDisallowedImportByPath);
 
   RegisterRule(TRuleDisallowedConstant.Create(
-    TrackerMeta('DisallowedConstant', cKeyDisallowedConstant)));
+    TrackerMeta('DisallowedConstant', cKeyDisallowedConstant).WithDescription(
+    'Reports use of constants matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedConstant, SDisallowedConstant);
 
   RegisterRule(TRuleDisallowedEnumValue.Create(
-    TrackerMeta('DisallowedEnumValue', cKeyDisallowedEnumValue)));
+    TrackerMeta('DisallowedEnumValue', cKeyDisallowedEnumValue).WithDescription(
+    'Reports use of enum values matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedEnumValue, SDisallowedEnumValue);
 
   RegisterRule(TRuleDisallowedField.Create(
-    TrackerMeta('DisallowedField', cKeyDisallowedField)));
+    TrackerMeta('DisallowedField', cKeyDisallowedField).WithDescription(
+    'Reports use of fields matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedField, SDisallowedField);
 
   RegisterRule(TRuleDisallowedIdentifier.Create(IdentifierMeta));
   RegisterMessage(cKeyDisallowedIdentifier, SDisallowedIdentifier);
 
   RegisterRule(TRuleDisallowedProperty.Create(
-    TrackerMeta('DisallowedProperty', cKeyDisallowedProperty)));
+    TrackerMeta('DisallowedProperty', cKeyDisallowedProperty).WithDescription(
+    'Reports use of properties matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedProperty, SDisallowedProperty);
 
   RegisterRule(TRuleDisallowedRoutine.Create(
-    TrackerMeta('DisallowedRoutine', cKeyDisallowedRoutine)));
+    TrackerMeta('DisallowedRoutine', cKeyDisallowedRoutine).WithDescription(
+    'Reports calls to routines matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedRoutine, SDisallowedRoutine);
 
   RegisterRule(TRuleDisallowedType.Create(
-    TrackerMeta('DisallowedType', cKeyDisallowedType)));
+    TrackerMeta('DisallowedType', cKeyDisallowedType).WithDescription(
+    'Reports use of types matching a configured disallow-list (targets).')));
   RegisterMessage(cKeyDisallowedType, SDisallowedType);
 
   RegisterRule(TRuleTypeAliases.Create(
-    AstTrackerMeta('TrackTypeAliases', cKeyTrackTypeAliases)));
+    AstTrackerMeta('TrackTypeAliases', cKeyTrackTypeAliases).WithDescription(
+    'Reports type aliases matching a configured pattern (targets).')));
   RegisterMessage(cKeyTrackTypeAliases, STrackTypeAliases);
 
 end.

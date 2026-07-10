@@ -509,17 +509,21 @@ begin
   Result := TRuleMetadata.Make('LineTooLong', rtLex, rfLineText, sevMinor, itCodeSmell,
     cfHigh, True, cKeyLineLong);
   Result.AddParam('maxLength', rpkInt, cMaxLength);
+  Result.Description :=
+    'Flags a line longer than the configured maximum length.';
 end;
 
 
 initialization
   RegisterRule(TRuleNoTrailingWhitespace.Create(TRuleMetadata.Make(
     'NoTrailingWhitespace', rtLex, rfLineText, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyTrailing)));
+    True, cKeyTrailing).WithDescription(
+    'Flags trailing whitespace at the end of a line.')));
   RegisterMessage(cKeyTrailing, SNoTrailingWhitespace);
 
   RegisterRule(TRuleNoTabs.Create(TRuleMetadata.Make(
-    'NoTabs', rtLex, rfLineText, sevMinor, itCodeSmell, cfHigh, True, cKeyTabs)));
+    'NoTabs', rtLex, rfLineText, sevMinor, itCodeSmell, cfHigh, True, cKeyTabs).WithDescription(
+    'Flags tab characters; use spaces.')));
   RegisterMessage(cKeyTabs, SNoTabs);
 
   RegisterRule(TRuleLineTooLong.Create(LineTooLongMeta));
@@ -527,12 +531,14 @@ initialization
 
   RegisterRule(TRuleLongNumericLiteralUnderscores.Create(TRuleMetadata.Make(
     'LongNumericLiteralUnderscores', rtLex, rfTokenStream, sevInfo, itCodeSmell,
-    cfHigh, True, cKeyNumUnderscores)));
+    cfHigh, True, cKeyNumUnderscores).WithDescription(
+    'Flags a long numeric literal that should use _ digit separators.')));
   RegisterMessage(cKeyNumUnderscores, SLongNumericLiteralUnderscores);
 
   RegisterRule(TRuleDigitGroupingStandard.Create(TRuleMetadata.Make(
     'DigitGroupingStandard', rtLex, rfTokenStream, sevInfo, itCodeSmell, cfHigh,
-    True, cKeyGrouping)));
+    True, cKeyGrouping).WithDescription(
+    'Flags irregular digit grouping in a numeric literal.')));
   RegisterMessage(cKeyGrouping, SDigitGroupingStandard);
 
 end.

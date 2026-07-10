@@ -1499,115 +1499,137 @@ end;
 initialization
   RegisterRule(TRuleLowercaseKeywords.Create(TRuleMetadata.Make(
     'LowercaseKeywords', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyLowercaseKeywords)));
+    True, cKeyLowercaseKeywords).WithDescription(
+    'Flags a keyword not written in lowercase.')));
   RegisterMessage(cKeyLowercaseKeywords, SLowercaseKeywords);
 
   RegisterRule(TRuleCombineConstSections.Create(TRuleMetadata.Make(
     'CombineConstSections', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyCombineConst)));
+    True, cKeyCombineConst).WithDescription(
+    'Flags a const section that can be merged with the preceding one.')));
   RegisterMessage(cKeyCombineConst, SCombineConstSections);
 
   RegisterRule(TRuleCombineTypeSections.Create(TRuleMetadata.Make(
     'CombineTypeSections', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyCombineType)));
+    True, cKeyCombineType).WithDescription(
+    'Flags a type section that can be merged with the preceding one.')));
   RegisterMessage(cKeyCombineType, SCombineTypeSections);
 
   RegisterRule(TRuleCombineVarSections.Create(TRuleMetadata.Make(
     'CombineVarSections', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyCombineVar)));
+    True, cKeyCombineVar).WithDescription(
+    'Flags a var section that can be merged with the preceding one.')));
   RegisterMessage(cKeyCombineVar, SCombineVarSections);
 
   RegisterRule(TRuleDeclareFieldsIndividually.Create(TRuleMetadata.Make(
     'DeclareFieldsIndividually', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyDeclareFields)));
+    cfHigh, True, cKeyDeclareFields).WithDescription(
+    'Flags multiple fields in one declaration; declare each individually.')));
   RegisterMessage(cKeyDeclareFields, SDeclareFieldsIndividually);
 
   RegisterRule(TRuleDeclareVariablesIndividually.Create(TRuleMetadata.Make(
     'DeclareVariablesIndividually', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyDeclareVariables)));
+    cfHigh, True, cKeyDeclareVariables).WithDescription(
+    'Flags multiple variables in one declaration; declare each individually.')));
   RegisterMessage(cKeyDeclareVariables, SDeclareVariablesIndividually);
 
   RegisterRule(TRuleDeclareParametersIndividually.Create(TRuleMetadata.Make(
     'DeclareParametersIndividually', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyDeclareParameters)));
+    cfHigh, True, cKeyDeclareParameters).WithDescription(
+    'Flags parameters that should be declared in their own group.')));
   RegisterMessage(cKeyDeclareParameters, SDeclareParametersIndividually);
 
   RegisterRule(TRuleNoEmptyParenthesesOnRoutines.Create(TRuleMetadata.Make(
     'NoEmptyParenthesesOnRoutines', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyNoEmptyParens)));
+    cfHigh, True, cKeyNoEmptyParens).WithDescription(
+    'Flags empty parentheses on a routine that can be removed.')));
   RegisterMessage(cKeyNoEmptyParens, SNoEmptyParenthesesOnRoutines);
 
   // Punctuation + directive rules.
   RegisterRule(TRuleNoStraySemicolons.Create(TRuleMetadata.Make(
     'NoStraySemicolons', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoStraySemicolons)));
+    True, cKeyNoStraySemicolons).WithDescription(
+    'Flags a stray semicolon that can be removed.')));
   RegisterMessage(cKeyNoStraySemicolons, SNoStraySemicolons);
 
   RegisterRule(TRuleNoOmittedSemicolons.Create(TRuleMetadata.Make(
     'NoOmittedSemicolons', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoOmittedSemicolons)));
+    True, cKeyNoOmittedSemicolons).WithDescription(
+    'Flags a missing semicolon before a block terminator.')));
   RegisterMessage(cKeyNoOmittedSemicolons, SNoOmittedSemicolons);
 
   RegisterRule(TRuleNoExtraneousCommas.Create(TRuleMetadata.Make(
     'NoExtraneousCommas', rtTok, rfTokenStream, sevMinor, itCodeSmell, cfHigh,
-    True, cKeyNoExtraneousCommas)));
+    True, cKeyNoExtraneousCommas).WithDescription(
+    'Flags an extraneous comma that can be removed.')));
   RegisterMessage(cKeyNoExtraneousCommas, SNoExtraneousCommas);
 
   RegisterRule(TRuleNoDisabledCompilerHints.Create(TRuleMetadata.Make(
     'NoDisabledCompilerHints', rtTok, rfTokenStream, sevMajor, itCodeSmell,
-    cfHigh, True, cKeyNoDisabledHints)));
+    cfHigh, True, cKeyNoDisabledHints).WithDescription(
+    'Flags directives that disable compiler hints.')));
   RegisterMessage(cKeyNoDisabledHints, SNoDisabledCompilerHints);
 
   RegisterRule(TRuleNoDisabledCompilerWarnings.Create(TRuleMetadata.Make(
     'NoDisabledCompilerWarnings', rtTok, rfTokenStream, sevMajor, itCodeSmell,
-    cfHigh, True, cKeyNoDisabledWarnings)));
+    cfHigh, True, cKeyNoDisabledWarnings).WithDescription(
+    'Flags directives that disable compiler warnings.')));
   RegisterMessage(cKeyNoDisabledWarnings, SNoDisabledCompilerWarnings);
 
   RegisterRule(TRuleNoIndentUnitLevelKeywords.Create(TRuleMetadata.Make(
     'NoIndentUnitLevelKeywords', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyNoIndentUnitLevel)));
+    cfHigh, True, cKeyNoIndentUnitLevel).WithDescription(
+    'Flags a unit-level keyword not starting at column 1.')));
   RegisterMessage(cKeyNoIndentUnitLevel, SNoIndentUnitLevelKeywords);
 
   // Layout + tracker rules.
   RegisterRule(TRuleIndentVisibilitySpecifiers.Create(TRuleMetadata.Make(
     'IndentVisibilitySpecifiers', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyIndentVisibility)));
+    cfHigh, True, cKeyIndentVisibility).WithDescription(
+    'Flags a visibility specifier not indented to the type declaration.')));
   RegisterMessage(cKeyIndentVisibility, SIndentVisibilitySpecifiers);
 
   RegisterRule(TRuleNoCommentedOutCode.Create(TRuleMetadata.Make(
     'NoCommentedOutCode', rtTok, rfTokenStream, sevMajor, itCodeSmell, cfMedium,
-    True, cKeyNoCommentedOutCode)));
+    True, cKeyNoCommentedOutCode).WithDescription(
+    'Flags commented-out code that should be removed.')));
   RegisterMessage(cKeyNoCommentedOutCode, SNoCommentedOutCode);
 
   RegisterRule(TRuleTrackNoSonar.Create(TRuleMetadata.Make(
     'TrackNoSonar', rtTok, rfTokenStream, sevInfo, itCodeSmell, cfHigh,
-    True, cKeyTrackNoSonar)));
+    True, cKeyTrackNoSonar).WithDescription(
+    'Reports where a NOSONAR suppression is used (tracking rule).')));
   RegisterMessage(cKeyTrackNoSonar, STrackNoSonar);
 
   RegisterRule(TRuleTrackComments.Create(TRuleMetadata.Make(
     'TrackComments', rtTok, rfTokenStream, sevInfo, itCodeSmell, cfHigh,
-    True, cKeyTrackComments)));
+    True, cKeyTrackComments).WithDescription(
+    'Reports comments matching a configured marker (tracking rule).')));
   RegisterMessage(cKeyTrackComments, STrackComments);
 
   RegisterRule(TRuleTrackStringLiterals.Create(TRuleMetadata.Make(
     'TrackStringLiterals', rtTok, rfTokenStream, sevInfo, itCodeSmell, cfHigh,
-    True, cKeyTrackStringLiterals)));
+    True, cKeyTrackStringLiterals).WithDescription(
+    'Reports string literals matching a configured pattern (tracking rule).')));
   RegisterMessage(cKeyTrackStringLiterals, STrackStringLiterals);
 
   // Visibility/field-section structure rules
   RegisterRule(TRuleCombineVisibilitySections.Create(TRuleMetadata.Make(
     'CombineVisibilitySections', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyCombineVisibilitySections)));
+    cfHigh, True, cKeyCombineVisibilitySections).WithDescription(
+    'Flags a visibility section that can be merged with the preceding one of the same kind.')));
   RegisterMessage(cKeyCombineVisibilitySections, SCombineVisibilitySections);
 
   RegisterRule(TRuleRemoveEmptyVisibilitySection.Create(TRuleMetadata.Make(
     'RemoveEmptyVisibilitySection', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyRemoveEmptyVisibilitySection)));
+    cfHigh, True, cKeyRemoveEmptyVisibilitySection).WithDescription(
+    'Flags an empty visibility section that can be removed.')));
   RegisterMessage(cKeyRemoveEmptyVisibilitySection, SRemoveEmptyVisibilitySection);
 
   RegisterRule(TRuleRemoveEmptyFieldSection.Create(TRuleMetadata.Make(
     'RemoveEmptyFieldSection', rtTok, rfTokenStream, sevMinor, itCodeSmell,
-    cfHigh, True, cKeyRemoveEmptyFieldSection)));
+    cfHigh, True, cKeyRemoveEmptyFieldSection).WithDescription(
+    'Flags an empty field section that can be removed.')));
   RegisterMessage(cKeyRemoveEmptyFieldSection, SRemoveEmptyFieldSection);
 
 end.

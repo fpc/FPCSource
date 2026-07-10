@@ -131,6 +131,8 @@ initialization
   lMeta := TRuleMetadata.Make('LfmFormFileExists', rtAst, rfAst, sevMinor, itCodeSmell,
     cfMedium, True, cKeyLfmFormFileExists);
   lMeta.AddParam('formBaseTypes', rpkString, cDefaultFormBaseTypes);
+  lMeta.Description :=
+    'Flags a form/frame/datamodule unit that has no sibling .lfm file.';
   RegisterRule(TRuleLfmFormFileExists.Create(lMeta));
   RegisterMessage(cKeyLfmFormFileExists, SLfmFormFileExists);
 
