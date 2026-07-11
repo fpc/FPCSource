@@ -30,7 +30,7 @@ unit FpSonar.Issues;
       CollectDiagnostic folds a diagnostic into a reserved ParseError/ScanError/
       ResolveError issue;
     * suppress (was FpSonar.Suppression): the inline-NOSONAR scan + marker map
-      (fed tokens via IsCommentToken), the config-glob matcher, the
+      (fed tokens via IsComment), the config-glob matcher, the
       NoSonarSuppresses/ConfigGlobSuppresses predicates and the pure
       ApplySuppressions filter;
     * classify (was FpSonar.Governance): ClassifySuppressions assigns one active
@@ -39,7 +39,7 @@ unit FpSonar.Issues;
       evaluates.
 
   Interface deps: FpSonar.Types, FpSonar.Config, FpSonar.Baseline and
-  FpSonar.Ingest (its token types + IsCommentToken for marker capture, the only
+  FpSonar.Ingest (its token types + IsComment for marker capture, the only
   token-facing part). Deterministic; single-threaded; LCL-free. }
 
 {$mode objfpc}{$H+}
@@ -566,7 +566,7 @@ var
   lReason: string;
 begin
   for i := 0 to High(aTokens) do
-    if IsCommentToken(aTokens[i]) and
+    if aTokens[i].IsComment and
       FindNoSonar(aTokens[i].Text, lHasReason, lReason) then
     begin
       SetLength(FMarkers, Length(FMarkers) + 1);

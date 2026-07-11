@@ -372,7 +372,7 @@ var
   begin
     Result := False;
     for k := 0 to High(aContext.Tokens) do
-      if IsStringToken(aContext.Tokens[k])
+      if aContext.Tokens[k].IsString
         and (aContext.Tokens[k].Row = aRow) then
       begin
         lSpanStart := aContext.Tokens[k].Col;
@@ -443,7 +443,7 @@ var
   lLine, lLexeme: string;
 begin
   for i := 0 to High(aContext.Tokens) do
-    if IsNumberToken(aContext.Tokens[i]) then
+    if aContext.Tokens[i].IsNumber then
     begin
       lRow := aContext.Tokens[i].Row;
       lCol := aContext.Tokens[i].Col;
@@ -478,7 +478,7 @@ var
   lLine, lLexeme: string;
 begin
   for i := 0 to High(aContext.Tokens) do
-    if IsNumberToken(aContext.Tokens[i]) then
+    if aContext.Tokens[i].IsNumber then
     begin
       lRow := aContext.Tokens[i].Row;
       lCol := aContext.Tokens[i].Col;

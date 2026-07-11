@@ -147,14 +147,14 @@ var
   lBegin, lOther: TFpSonarToken;
 
 begin
-  { IsBeginToken is True only for the `begin` reserved word; another
+  { IsBegin is True only for the `begin` reserved word; another
     keyword (here `interface`) is rejected. The NoLegacyInitializationSection
     rule uses this to tell a legacy begin..end. unit body from an explicit
     initialization section without naming PScanner/tkbegin (chokepoint). }
   lBegin.Kind := tkbegin;
   lOther.Kind := tkinterface;
-  AssertTrue('begin token is classified as a begin token', IsBeginToken(lBegin));
-  AssertFalse('interface keyword is not a begin token', IsBeginToken(lOther));
+  AssertTrue('begin token is classified as a begin token', lBegin.IsBegin);
+  AssertFalse('interface keyword is not a begin token', lOther.IsBegin);
 end;
 
 

@@ -409,7 +409,7 @@ begin
       lFix.Add('ambiguousnot.pas', cAmbiguousNotNoncompliant), cMode, cDefines);
     for i := 0 to High(lToks) do
       begin
-        if IsKeywordToken(lToks[i]) then
+        if lToks[i].IsKeyword then
           begin
             lWord := LowerCase(lToks[i].Text);
             if lWord = 'not' then
@@ -421,11 +421,11 @@ begin
           end
         else
           begin
-            lPunct := TokenPunct(lToks[i]);
+            lPunct := lToks[i].Punct;
             if lPunct = '=' then
               begin AssertEquals('relational ==4', 4, PrecedenceRank(lToks[i])); lSawEq := True; end
             else if (lPunct = '') and (lToks[i].Text <> '')
-              and not IsNumberToken(lToks[i]) and not IsStringToken(lToks[i]) then
+              and not lToks[i].IsNumber and not lToks[i].IsString then
               begin AssertEquals('identifier=0', 0, PrecedenceRank(lToks[i])); lSawIdent := True; end;
           end;
       end;
@@ -434,7 +434,7 @@ begin
       lFix.Add('redundant.pas', cRedundantCompliant), cMode, cDefines);
     for i := 0 to High(lToks) do
       begin
-        lPunct := TokenPunct(lToks[i]);
+        lPunct := lToks[i].Punct;
         if lPunct = '*' then
           begin AssertEquals('multiplying=2', 2, PrecedenceRank(lToks[i])); lSawStar := True; end
         else if lPunct = '+' then

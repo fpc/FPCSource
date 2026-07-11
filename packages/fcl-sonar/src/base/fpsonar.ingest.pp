@@ -20,6 +20,7 @@ unit FpSonar.Ingest;
 }
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -44,6 +45,28 @@ type
     Row: integer;
     Col: integer;
     FileName: string;
+    // The classifier methods below are the SOLE token-kind interface outside this
+    // scanner adapter: downstream consumers (the LEX/TOK rules, suppression, the
+    // NoSonar tracker) call them instead of naming the vendored scanner's token
+    // kinds, so the chokepoint guard stays green.
+    // True iff a comment token.
+    function IsComment: boolean;
+    // True iff a numeric-literal token.
+    function IsNumber: boolean;
+    // True iff a string or char literal token.
+    function IsString: boolean;
+    // True iff a reserved-word/keyword token. Context directives the scanner
+    // returns as identifiers (result, string, out, ...) are NOT keywords.
+    function IsKeyword: boolean;
+    // True iff the 'begin' reserved word (distinguishes a legacy begin..end unit
+    // body from an explicit initialization section, which are AST-identical).
+    function IsBegin: boolean;
+    // True iff trivia: whitespace, line ending, tab or comment.
+    function IsTrivia: boolean;
+    // The literal lexeme of a one-/two-/three-char operator or punctuation token
+    // ('(' ')' ',' ':' ';' ':=' ...), or '' for any other kind. Symbol tokens
+    // carry an empty Text, so the TOK rules compare punctuation via this.
+    function Punct: string;
   end;
 
   TFpSonarTokenArray = array of TFpSonarToken;
@@ -73,49 +96,6 @@ type
     // The token sequence produced by the most recent ScanFile call.
     property Tokens: TFpSonarTokenArray read FTokens;
   end;
-
-// True iff aToken is a comment token. The SOLE comment classifier outside this
-// adapter pair: downstream consumers (suppression, the NoSonar tracker) call
-// this so they never name PScanner/tkComment and the chokepoint guard stays green.
-function IsCommentToken(const aToken: TFpSonarToken): boolean;
-
-// True iff aToken is a numeric literal token. Sibling of IsCommentToken so the
-// LEX numeric rules can anchor on numbers without naming
-// PScanner/tkNumber and tripping the chokepoint guard.
-function IsNumberToken(const aToken: TFpSonarToken): boolean;
-
-// True iff aToken is a string or char literal token. Sibling of IsCommentToken
-// so the NoTabs rule can exclude tabs inside string/char literals
-// without naming PScanner/tkString and tripping the chokepoint guard.
-function IsStringToken(const aToken: TFpSonarToken): boolean;
-
-// True iff aToken is a reserved-word/keyword token (the vendored scanner's
-// contiguous reserved-word range tkabsolute..tkxor). Sibling of IsCommentToken
-// so the TOK rules classify keywords without naming
-// PScanner/tk* and tripping the chokepoint guard. Context directives the
-// scanner returns as identifiers (result, string, out, ...) are NOT keywords.
-function IsKeywordToken(const aToken: TFpSonarToken): boolean;
-
-// True iff aToken is the 'begin' reserved word. Sibling of IsKeywordToken so the
-// NoLegacyInitializationSection rule can tell a legacy 'begin..end.'
-// unit body from an explicit 'initialization' section (the two are
-// AST-indistinguishable) without naming PScanner/tkbegin and tripping the
-// chokepoint guard.
-function IsBeginToken(const aToken: TFpSonarToken): boolean;
-
-// True iff aToken is trivia: whitespace, line ending, tab or comment — the
-// non-significant tokens the trivia-on scanner emits. Sibling of IsCommentToken
-// so the TOK rules (1.11) can build a significant-token view without naming
-// PScanner/tk* and tripping the chokepoint guard.
-function IsTriviaToken(const aToken: TFpSonarToken): boolean;
-
-// The literal lexeme of a one-/two-/three-char operator or punctuation token
-// ('(' ')' ',' ':' ';' '[' ']' '=' '.' ':=' ... ), or '' for any other kind.
-// Symbol tokens carry an EMPTY Text from the scanner (only identifiers, numbers,
-// strings, chars and comments fill it), so the TOK rules (1.11) need this to
-// compare punctuation by lexeme without naming PScanner/tk* and tripping the
-// chokepoint guard.
-function TokenPunct(const aToken: TFpSonarToken): string;
 
 type
   { Container engine: owns every element the parser creates, so its destructor
@@ -284,48 +264,48 @@ begin
 end;
 
 
-function IsCommentToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsComment: boolean;
 begin
-  Result := aToken.Kind = tkComment;
+  Result := Kind = tkComment;
 end;
 
 
-function IsNumberToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsNumber: boolean;
 begin
-  Result := aToken.Kind = tkNumber;
+  Result := Kind = tkNumber;
 end;
 
 
-function IsStringToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsString: boolean;
 begin
-  Result := aToken.Kind in [tkString, tkStringMultiLine, tkChar];
+  Result := Kind in [tkString, tkStringMultiLine, tkChar];
 end;
 
 
-function IsKeywordToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsKeyword: boolean;
 begin
-  Result := aToken.Kind in [tkabsolute..tkxor];
+  Result := Kind in [tkabsolute..tkxor];
 end;
 
 
-function IsBeginToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsBegin: boolean;
 begin
-  Result := aToken.Kind = tkbegin;
+  Result := Kind = tkbegin;
 end;
 
 
-function IsTriviaToken(const aToken: TFpSonarToken): boolean;
+function TFpSonarToken.IsTrivia: boolean;
 begin
-  Result := aToken.Kind in [tkWhitespace, tkComment, tkLineEnding, tkTab];
+  Result := Kind in [tkWhitespace, tkComment, tkLineEnding, tkTab];
 end;
 
 
-function TokenPunct(const aToken: TFpSonarToken): string;
+function TFpSonarToken.Punct: string;
 begin
   // The contiguous one-/two-/three-char symbol block of TToken, before the
   // reserved words; TokenInfos maps each to its source lexeme.
-  if aToken.Kind in [tkBraceOpen..tkDotDotDot] then
-    Result := TokenInfos[aToken.Kind]
+  if Kind in [tkBraceOpen..tkDotDotDot] then
+    Result := TokenInfos[Kind]
   else
     Result := '';
 end;

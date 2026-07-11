@@ -1372,9 +1372,9 @@ begin
     keyword: 'begin' (legacy) or 'initialization' (compliant). }
   for i := 0 to High(aContext.Tokens) do
     if (aContext.Tokens[i].Row = lLine)
-      and not IsTriviaToken(aContext.Tokens[i]) then
+      and not aContext.Tokens[i].IsTrivia then
     begin
-      if IsBeginToken(aContext.Tokens[i]) then
+      if aContext.Tokens[i].IsBegin then
         EmitStmt(FMetadata, aContext, aCollector, lLine, [], 'begin');
       Break;
     end;

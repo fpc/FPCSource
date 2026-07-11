@@ -350,7 +350,7 @@ var
     else if aContext.Tokens[lSig[aPos]].Text <> '' then
       Result := aContext.Tokens[lSig[aPos]].Text
     else
-      Result := TokenPunct(aContext.Tokens[lSig[aPos]]);
+      Result := aContext.Tokens[lSig[aPos]].Punct;
   end;
 
   // Lowercased keyword text of significant token aPos; '' if out of range.
@@ -358,7 +358,7 @@ var
   begin
     if (aPos < 0) or (aPos >= lSigCount) then
       Result := ''
-    else if IsKeywordToken(aContext.Tokens[lSig[aPos]]) then
+    else if aContext.Tokens[lSig[aPos]].IsKeyword then
       Result := LowerCase(aContext.Tokens[lSig[aPos]].Text)
     else
       Result := RawText(aPos);
@@ -372,7 +372,7 @@ var
     Result := False;
     if (aPos < 0) or (aPos >= lSigCount) then
       Exit;
-    if IsKeywordToken(aContext.Tokens[lSig[aPos]]) then
+    if aContext.Tokens[lSig[aPos]].IsKeyword then
       Exit;
     lText := aContext.Tokens[lSig[aPos]].Text;
     if Length(lText) = 0 then
@@ -420,8 +420,8 @@ var
     Result := IsIdent(aPos)
       or (RawText(aPos) = ')') or (RawText(aPos) = ']')
       or (LowText(aPos) = 'end')
-      or IsNumberToken(aContext.Tokens[lSig[aPos]])
-      or IsStringToken(aContext.Tokens[lSig[aPos]]);
+      or aContext.Tokens[lSig[aPos]].IsNumber
+      or aContext.Tokens[lSig[aPos]].IsString;
   end;
 
   // Records a redundant section header (suppressed once broken).
@@ -545,9 +545,9 @@ begin
   lSigCount := 0;
   SetLength(lSig, Length(aContext.Tokens));
   for i := 0 to High(aContext.Tokens) do
-    if (not IsTriviaToken(aContext.Tokens[i]))
+    if (not aContext.Tokens[i].IsTrivia)
       and ((aContext.Tokens[i].Text <> '')
-      or (TokenPunct(aContext.Tokens[i]) <> '')) then
+      or (aContext.Tokens[i].Punct <> '')) then
     begin
       lSig[lSigCount] := i;
       Inc(lSigCount);
@@ -581,7 +581,7 @@ begin
       Break;
     ltx := RawText(i);
     lw := '';
-    if IsKeywordToken(aContext.Tokens[lSig[i]]) then
+    if aContext.Tokens[lSig[i]].IsKeyword then
       lw := LowerCase(aContext.Tokens[lSig[i]].Text);
 
     // detect misindented class/record visibility specifier
@@ -988,7 +988,7 @@ begin
   if aToken.Text <> '' then
     Result := aToken.Text
   else
-    Result := TokenPunct(aToken);
+    Result := aToken.Punct;
 end;
 
 
@@ -1141,7 +1141,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsCommentToken(lTok) then
+    if not lTok.IsComment then
       Continue;
     if not DirectiveParts(lTok.Text, lName, lRest) then
       Continue;
@@ -1188,7 +1188,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsKeywordToken(lTok) then
+    if not lTok.IsKeyword then
       Continue;
     // Keywords are pure ASCII => byte length = column span.
     lLower := LowerCase(lTok.Text);
@@ -1366,7 +1366,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsCommentToken(lTok) then
+    if not lTok.IsComment then
       Continue;
     // Never flag a dollar-directive comment nor a NOSONAR-carrying comment.
     if (Length(lTok.Text) > 0) and (lTok.Text[1] = '$') then
@@ -1399,7 +1399,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsCommentToken(lTok) then
+    if not lTok.IsComment then
       Continue;
     if FindNoSonar(lTok.Text, lHasReason, lReason)
       and ((not cRequireReason) or (not lHasReason)) then
@@ -1423,7 +1423,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsCommentToken(lTok) then
+    if not lTok.IsComment then
       Continue;
     // Skip a dollar-directive comment (not a prose/code comment).
     if (Length(lTok.Text) > 0) and (lTok.Text[1] = '$') then
@@ -1456,7 +1456,7 @@ begin
   for i := 0 to High(aContext.Tokens) do
   begin
     lTok := aContext.Tokens[i];
-    if not IsStringToken(lTok) then
+    if not lTok.IsString then
       Continue;
     if Pos(cStringLiteralPattern, lTok.Text) > 0 then
       aCollector.AddIssue(FMetadata.RuleId, aContext.FileName,

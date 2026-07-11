@@ -80,8 +80,8 @@ begin
   SetLength(Result, Length(aTokens));
   lCount := 0;
   for i := 0 to High(aTokens) do
-    if (not IsTriviaToken(aTokens[i]))
-      and ((aTokens[i].Text <> '') or (TokenPunct(aTokens[i]) <> '')) then
+    if (not aTokens[i].IsTrivia)
+      and ((aTokens[i].Text <> '') or (aTokens[i].Punct <> '')) then
     begin
       Result[lCount] := i;
       Inc(lCount);
@@ -106,7 +106,7 @@ begin
   lSP := 0;
   for k := 0 to High(aSig) do
   begin
-    lPunct := TokenPunct(aTokens[aSig[k]]);
+    lPunct := aTokens[aSig[k]].Punct;
     if lPunct = '(' then
     begin
       lStack[lSP] := k;
@@ -130,10 +130,10 @@ var
   lTok: TFpSonarToken;
 begin
   lTok := aTokens[aSig[k]];
-  if IsKeywordToken(lTok) then
+  if lTok.IsKeyword then
     Exit(False);
-  Result := IsNumberToken(lTok) or IsStringToken(lTok)
-    or ((TokenPunct(lTok) = '') and (lTok.Text <> ''));
+  Result := lTok.IsNumber or lTok.IsString
+    or ((lTok.Punct = '') and (lTok.Text <> ''));
 end;
 
 
@@ -152,7 +152,7 @@ begin
   k := aFirst;
   while k < aLast do
   begin
-    if TokenPunct(aTokens[aSig[k + 1]]) <> '.' then
+    if aTokens[aSig[k + 1]].Punct <> '.' then
       Exit(False);
     if k + 2 > aLast then
       Exit(False);
@@ -177,7 +177,7 @@ begin
   // Postfix construct: a '(' bound to a preceding operand/postfix token.
   if IsAtomSig(aTokens, aSig, k - 1) then
     Exit(False);
-  lPrevPunct := TokenPunct(aTokens[aSig[k - 1]]);
+  lPrevPunct := aTokens[aSig[k - 1]].Punct;
   if (lPrevPunct = ')') or (lPrevPunct = ']') or (lPrevPunct = '^') then
     Exit(False);
   if lPrevPunct = '@' then
@@ -196,7 +196,7 @@ var
   j: integer;
 begin
   j := aMatch[k];
-  Result := (k + 1 <= j - 1) and (TokenPunct(aTokens[aSig[k + 1]]) = '(')
+  Result := (k + 1 <= j - 1) and (aTokens[aSig[k + 1]].Punct = '(')
     and (aMatch[k + 1] = j - 1);
 end;
 
@@ -214,7 +214,7 @@ begin
   { Mark the inner pair of every redundant doubled grouping pair so arm A does
     not also flag it — the outer arm-B finding stands for the whole nest. }
   for k := 0 to High(lSig) do
-    if (TokenPunct(aTokens[lSig[k]]) = '(') and (lMatch[k] >= 0)
+    if (aTokens[lSig[k]].Punct = '(') and (lMatch[k] >= 0)
       and ParenIsGrouping(aTokens, lSig, k)
       and IsDoubledPair(aTokens, lSig, lMatch, k) then
       lConsumed[k + 1] := True;
@@ -223,7 +223,7 @@ begin
   lCount := 0;
   for k := 0 to High(lSig) do
   begin
-    if (TokenPunct(aTokens[lSig[k]]) <> '(') or (lMatch[k] < 0) then
+    if (aTokens[lSig[k]].Punct <> '(') or (lMatch[k] < 0) then
       Continue;
     if lConsumed[k] then
       Continue;
@@ -245,7 +245,7 @@ var
   lPunct, lWord: string;
 begin
   Result := 0;
-  if IsKeywordToken(aToken) then
+  if aToken.IsKeyword then
   begin
     lWord := LowerCase(aToken.Text);
     if lWord = 'not' then
@@ -259,7 +259,7 @@ begin
       Result := 4;
     Exit;
   end;
-  lPunct := TokenPunct(aToken);
+  lPunct := aToken.Punct;
   if (lPunct = '@') or (lPunct = '^') then
     Result := 1
   else if (lPunct = '*') or (lPunct = '/') or (lPunct = '<<')
@@ -281,7 +281,7 @@ var
   lWord, lPunct: string;
 begin
   lTok := aTokens[aSig[k]];
-  if IsKeywordToken(lTok) then
+  if lTok.IsKeyword then
   begin
     lWord := LowerCase(lTok.Text);
     Result := (lWord = 'and') or (lWord = 'or') or (lWord = 'xor')
@@ -290,7 +290,7 @@ begin
       or (lWord = 'in');
     Exit;
   end;
-  lPunct := TokenPunct(lTok);
+  lPunct := lTok.Punct;
   Result := (lPunct = '=') or (lPunct = '<>') or (lPunct = '<')
     or (lPunct = '>') or (lPunct = '<=') or (lPunct = '>=')
     or (lPunct = '+') or (lPunct = '-') or (lPunct = '*') or (lPunct = '/');
@@ -307,29 +307,29 @@ begin
   lCount := 0;
   for k := 0 to High(lSig) do
   begin
-    if not IsKeywordToken(aTokens[lSig[k]]) then
+    if not aTokens[lSig[k]].IsKeyword then
       Continue;
     if LowerCase(aTokens[lSig[k]].Text) <> 'not' then
       Continue;
     if k + 1 > High(lSig) then
       Continue;
     // A parenthesised operand 'not (...)' is already disambiguated.
-    if TokenPunct(aTokens[lSig[k + 1]]) = '(' then
+    if aTokens[lSig[k + 1]].Punct = '(' then
       Continue;
     // The operand must be a non-call atom / dotted chain.
     if not IsAtomSig(aTokens, lSig, k + 1) then
       Continue;
     lOperand := k + 1;
     while (lOperand + 2 <= High(lSig))
-      and (TokenPunct(aTokens[lSig[lOperand + 1]]) = '.')
+      and (aTokens[lSig[lOperand + 1]].Punct = '.')
       and IsAtomSig(aTokens, lSig, lOperand + 2) do
       Inc(lOperand, 2);
     lAfter := lOperand + 1;
     if lAfter > High(lSig) then
       Continue;
     // A call/index right after the operand makes it complex — abstain.
-    if (TokenPunct(aTokens[lSig[lAfter]]) = '(')
-      or (TokenPunct(aTokens[lSig[lAfter]]) = '[') then
+    if (aTokens[lSig[lAfter]].Punct = '(')
+      or (aTokens[lSig[lAfter]].Punct = '[') then
       Continue;
     if IsBinaryOperatorSig(aTokens, lSig, lAfter) then
     begin
