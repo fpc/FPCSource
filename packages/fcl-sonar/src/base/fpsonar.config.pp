@@ -99,6 +99,10 @@ type
     MaxPerSeverity: array[TFpSonarSeverity] of integer;
     // MaxTotal is the MAXIMUM allowed count
     MaxTotal: integer;
+    // Evaluates Self against aIssues' (effective) severities: fails on the first
+    // per-severity axis exceeded (Blocker..Info), else the total. -1 = unlimited
+    // on an axis. The reason names the first exceeded axis.
+    function Evaluate(const aIssues: TFpSonarIssueArray): TFpSonarGateOutcome;
   end;
 
   // A config suppression glob: an issue is suppressed when its RuleId
@@ -178,9 +182,9 @@ implementation
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, FpJson.Data, FpJson.Parser;
+  System.SysUtils, System.Classes, FpJson.Data, FpJson.Parser, FpSonar.Consts;
 {$ELSE}
-  SysUtils, Classes, fpjson, jsonparser;
+  SysUtils, Classes, fpjson, jsonparser, FpSonar.Consts;
 {$ENDIF}
 
 class function TFpSonarConfig.Default: TFpSonarConfig;
@@ -199,6 +203,53 @@ begin
   SetLength(Result.Suppressions, 0);
   // USE tier defaults to the parser-tier name engine.
   Result.UseTierResolution := utrOff;
+end;
+
+
+function TFpSonarGateThresholds.Evaluate(
+  const aIssues: TFpSonarIssueArray): TFpSonarGateOutcome;
+var
+  lCounts: array[TFpSonarSeverity] of integer;
+  lSev: TFpSonarSeverity;
+  lTotal, i: integer;
+
+  // True iff this axis has a limit (>= 0) and the count strictly exceeds it.
+  function Trips(aCount, aMax: integer): boolean;
+  begin
+    Result := (aMax >= 0) and (aCount > aMax);
+  end;
+
+begin
+  Result.Failed := False;
+  Result.ExitCode := 0;
+  Result.Reason := '';
+
+  // One pass: tally per-severity counts + the total.
+  for lSev := Low(TFpSonarSeverity) to High(TFpSonarSeverity) do
+    lCounts[lSev] := 0;
+  for i := 0 to High(aIssues) do
+    Inc(lCounts[aIssues[i].Severity]);
+  lTotal := Length(aIssues);
+
+  // Severities first, in descending severity order (Blocker..Info); the enum is
+  // declared ascending, so iterate High downto Low.
+  for lSev := High(TFpSonarSeverity) downto Low(TFpSonarSeverity) do
+    if Trips(lCounts[lSev], MaxPerSeverity[lSev]) then
+    begin
+      Result.Failed := True;
+      Result.ExitCode := 1;
+      Result.Reason := Format(SGateSeverityExceeded,
+        [lCounts[lSev], SeverityName(lSev), MaxPerSeverity[lSev]]);
+      Exit;
+    end;
+
+  // Total last.
+  if Trips(lTotal, MaxTotal) then
+  begin
+    Result.Failed := True;
+    Result.ExitCode := 1;
+    Result.Reason := Format(SGateTotalExceeded, [lTotal, MaxTotal]);
+  end;
 end;
 
 

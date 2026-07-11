@@ -29,7 +29,7 @@ resourcestring
   SRuleError = 'Rule "%s" failed: %s';
   SResolveError = 'Resolution failed: %s';
 
-  // Quality-gate failure reasons (FpSonar.CLI.QualityGate)
+  // Quality-gate failure reasons (FpSonar.Config: TFpSonarGateThresholds.Evaluate)
   SGateSeverityExceeded = '%d %s issue(s) exceed the configured maximum of %d';
   SGateTotalExceeded = '%d total issue(s) exceed the configured maximum of %d';
 

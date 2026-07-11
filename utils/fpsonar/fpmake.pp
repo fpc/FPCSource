@@ -44,10 +44,8 @@ begin
     P.Options.Add('-S2h');
 
     P.Targets.AddUnit('fpsonar.cli.options.pp');
-    P.Targets.AddUnit('fpsonar.cli.qualitygate.pp');
     T:=P.Targets.AddProgram('fpsonar.pp');
     T.Dependencies.AddUnit('fpsonar.cli.options');
-    T.Dependencies.AddUnit('fpsonar.cli.qualitygate');
 
     end;
 end;

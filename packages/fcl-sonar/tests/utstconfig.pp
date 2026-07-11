@@ -437,7 +437,7 @@ begin
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":20}},' +
     '"ClassNaming":{"params":{"pattern":"^X[A-Za-z0-9]*$"}}}}', lErr));
   AssertTrue('valid params accepted',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
   AssertEquals('no error on valid params', '', lErr);
 end;
 
@@ -452,7 +452,7 @@ begin
   // An unknown param key for a KNOWN rule is a fail-fast error (typo protection).
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"notAKey":1}}}}', lErr));
   AssertFalse('unknown param key rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
   AssertTrue('unknown key has a message', lErr <> '');
 end;
 
@@ -469,7 +469,7 @@ begin
   // the declared kind.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":"big"}}}}', lErr));
   AssertFalse('wrong-typed threshold rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
   AssertTrue('wrong type has a message', lErr <> '');
 end;
 
@@ -484,7 +484,7 @@ begin
   // An uncompilable regex on a known pattern param => fail-fast.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"ClassNaming":{"params":{"pattern":"["}}}}', lErr));
   AssertFalse('uncompilable regex rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
   AssertTrue('bad regex has a message', lErr <> '');
 end;
 
@@ -501,7 +501,7 @@ begin
   // — forward-compat, exactly as enable/severity already behaves.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"SomeFutureRule":{"params":{"whatever":123}}}}', lErr));
   AssertTrue('unknown rule id ignored by validation',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
 end;
 
 
@@ -611,19 +611,19 @@ begin
   AssertTrue('targets cfg loads', lCfg.LoadFromJSON('{"rules":{"DisallowedConstant":{"params":{"targets":' +
     '[{"name":"Foo","severity":"minor"}]}}}}', lErr));
   AssertTrue('valid targets accepted: ' + lErr,
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
 
   // An ARRAY value under an ATOMIC-declared key (CyclomaticComplexity.maxComplexity
   // is rpkInt) is a kind mismatch => fail-fast.
   AssertTrue('array-under-atomic cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":' +
     '[{"name":"x"}]}}}}', lErr));
   AssertFalse('array under atomic key rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
 
   // Conversely an ATOMIC value under the rpkTargets 'targets' key => kind mismatch.
   AssertTrue('atomic-under-targets cfg loads', lCfg.LoadFromJSON('{"rules":{"DisallowedConstant":{"params":{"targets":5}}}}', lErr));
   AssertFalse('atomic under targets key rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
 end;
 
 
@@ -644,7 +644,7 @@ begin
   AssertFalse('absent => default false',
     lCfg.RuleParamBool('DisallowedIdentifier', 'gone', False));
   AssertTrue('valid bool validates against registry',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
 end;
 
 
@@ -660,7 +660,7 @@ begin
   AssertTrue('non-bool cfg loads structurally', lCfg.LoadFromJSON('{"rules":{"DisallowedIdentifier":{"params":{' +
     '"matchUnresolvedByName":"yes"}}}}', lErr));
   AssertFalse('non-bool matchUnresolvedByName rejected',
-    ValidateConfigParams(lCfg, RuleRegistry, lErr));
+    RuleRegistry.ValidateConfig(lCfg, lErr));
   AssertTrue('rejection has a message', lErr <> '');
 end;
 

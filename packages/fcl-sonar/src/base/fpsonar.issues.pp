@@ -31,7 +31,7 @@ unit FpSonar.Issues;
       ResolveError issue;
     * suppress (was FpSonar.Suppression): the inline-NOSONAR scan + marker map
       (fed tokens via IsComment), the config-glob matcher, the
-      NoSonarSuppresses/ConfigGlobSuppresses predicates and the pure
+      Suppresses/ConfigGlobSuppresses predicates and the pure
       ApplySuppressions filter;
     * classify (was FpSonar.Governance): ClassifySuppressions assigns one active
       source per issue by the fixed precedence NOSONAR > config-glob > baseline >
@@ -74,6 +74,12 @@ type
     procedure AddFile(const aFileName: string; const aTokens: TFpSonarTokenArray);
     // True iff a marker exists with that file AND line.
     function IsSuppressed(const aFileName: string; aLine: integer): boolean;
+    // True iff a NOSONAR marker on aIssue's start line suppresses it: Self is a
+    // valid map (nil-safe: a nil map suppresses nothing) AND aIssue is NOT the
+    // TrackNoSonar tracker (exempt, so its own on-line info issue survives) AND a
+    // marker exists on (FileName, StartLine). The single authority for the
+    // NOSONAR predicate (incl. the exemption). Pure; deterministic.
+    function Suppresses(const aIssue: TFpSonarIssue): boolean;
     // The captured markers, read-only, in insertion (token) order.
     property Markers: TFpSonarNoSonarMarkerArray read FMarkers;
   end;
@@ -93,14 +99,6 @@ function FindNoSonar(const aCommentText: string; out aHasReason: boolean;
 // treated as '*' (match anything); '**' is treated the same as '*'. Pure;
 // deterministic — deliberately NOT FPC's Masks/maskutils (version-dependent).
 function GlobMatch(const aPattern, aText: string): boolean;
-
-// True iff a NOSONAR marker on aIssue's start line suppresses it: (aMap <> nil)
-// and aIssue is NOT the TrackNoSonar tracker (which is exempt so its own
-// on-line info issue survives) and aMap has a marker on (FileName, StartLine).
-// The single authority for the NOSONAR predicate (incl. the exemption), so
-// the composition layer never duplicates it. Pure; deterministic.
-function NoSonarSuppresses(const aMap: TFpSonarSuppressionMap;
-  const aIssue: TFpSonarIssue): boolean;
 
 // True iff any glob in aGlobs suppresses aIssue: its rule glob matches RuleId AND
 // its path glob matches FileName (an omitted pattern is a '*' wildcard). The
@@ -368,7 +366,7 @@ begin
     // Copy the whole record (Fingerprint included, untouched), then override
     // ONLY SuppressionSource — order is preserved by the linear copy.
     Result[i] := aIssues[i];
-    if NoSonarSuppresses(aMap, aIssues[i]) then
+    if aMap.Suppresses(aIssues[i]) then
       Result[i].SuppressionSource := ssNoSonar
     else if ConfigGlobSuppresses(aGlobs, aIssues[i]) then
       Result[i].SuppressionSource := ssConfig
@@ -502,14 +500,15 @@ begin
 end;
 
 
-function NoSonarSuppresses(const aMap: TFpSonarSuppressionMap;
-  const aIssue: TFpSonarIssue): boolean;
+function TFpSonarSuppressionMap.Suppresses(const aIssue: TFpSonarIssue): boolean;
 begin
   // A marker on the issue's start line (uniform across all RuleIds), EXCEPT the
-  // NoSonar tracker, which is exempt so its on-line info issue survives the pipeline.
-  Result := (aMap <> nil)
+  // NoSonar tracker, which is exempt so its on-line info issue survives the
+  // pipeline. Nil-safe: a nil map (Self=nil) short-circuits to False before any
+  // field access, so callers need not guard.
+  Result := (Self <> nil)
     and (aIssue.RuleId <> cNoSonarTrackerRuleId)
-    and aMap.IsSuppressed(aIssue.FileName, aIssue.StartLine);
+    and IsSuppressed(aIssue.FileName, aIssue.StartLine);
 end;
 
 
@@ -544,7 +543,7 @@ begin
     // NOSONAR (incl. the exemption) then config globs — via the
     // single-authority predicates so the composition layer cannot drift
     // from this filter.
-    lSuppressed := NoSonarSuppresses(aMap, aIssues[i]);
+    lSuppressed := aMap.Suppresses(aIssues[i]);
     if not lSuppressed then
       lSuppressed := ConfigGlobSuppresses(aGlobs, aIssues[i]);
     if not lSuppressed then

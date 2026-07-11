@@ -333,7 +333,7 @@ begin
   try
     // The declared param means a config setting it validates clean (no exit-2).
     AssertTrue('config validates clean',
-      ValidateConfigParams(KeepAroundConfig('+,-'), RuleRegistry, lError));
+      RuleRegistry.ValidateConfig(KeepAroundConfig('+,-'), lError));
     AssertEquals('no validation error', '', lError);
     RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, KeepAroundConfig('+,-'), lc);
     AssertEquals('behaviour unchanged', 2, CountById(lc, cRedundantId));

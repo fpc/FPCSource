@@ -27,7 +27,6 @@ uses
   FpSonar.Config,
   FpSonar.RuleFramework,
   FpSonar.Baseline,
-  FpSonar.CLI.QualityGate,
   FpSonar.Output.Text,
   FpSonar.Output.Sarif,
   FpSonar.Output.SonarJson,
@@ -136,7 +135,7 @@ type
     end;
 
     // Fail fast on a bad per-rule param
-    if not ValidateConfigParams(LOpts.RuleConfig, RuleRegistry, LParamError) then
+    if not RuleRegistry.ValidateConfig(LOpts.RuleConfig, LParamError) then
     begin
       Writeln(StdErr, Format(SCliError, [LParamError]));
       ExitCode := 2;
@@ -232,9 +231,9 @@ type
 
           // Evaluate the quality gate.
           if FOpts.MutedMode then
-            LGate := EvaluateGate(ActiveIssues(LEffective), FOpts.RuleConfig.Gate)
+            LGate := FOpts.RuleConfig.Gate.Evaluate(ActiveIssues(LEffective))
           else
-            LGate := EvaluateGate(LEffective, FOpts.RuleConfig.Gate);
+            LGate := FOpts.RuleConfig.Gate.Evaluate(LEffective);
           if LGate.Failed then
             Writeln(StdErr, Format(SGateFailedNote, [LGate.Reason]));
         end;

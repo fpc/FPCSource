@@ -85,6 +85,15 @@ type
 
   TFpSonarIssueArray = array of TFpSonarIssue;
 
+  // The result of evaluating a quality gate: whether it failed, the process exit
+  // code (0 pass / 1 fail), and a human reason naming the first exceeded axis.
+  // Produced by TFpSonarGateThresholds.Evaluate (FpSonar.Config).
+  TFpSonarGateOutcome = record
+    Failed: Boolean;
+    ExitCode: Integer;
+    Reason: string;
+  end;
+
   { The source dialect. dlDefault is the byte-identical FPC path; dlPas2js
     enables pas2js parse-relevant switches and a .ppu-free, real-source
     resolution profile. dlDelphi is reserved for a future increment. }
