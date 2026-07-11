@@ -97,7 +97,7 @@ var
 begin
   SetLength(lIssues, 1);
   lIssues[0] := MakeFpIssue('Seed', 'src/seed.pas', 1, aFingerprint);
-  Result := MakeBaseline(lIssues);
+  Result := TFpSonarBaseline.FromIssues(lIssues);
 end;
 
 
@@ -259,7 +259,7 @@ begin
   SetLength(lIssues, 2);
   lIssues[0] := MakeFpIssue('RuleA', 'a.pas', 1, 'fp-a');
   lIssues[1] := MakeFpIssue('RuleB', 'b.pas', 2, 'fp-b');
-  lEmpty := MakeBaseline(nil);
+  lEmpty := TFpSonarBaseline.FromIssues(nil);
 
   lOut := ClassifySuppressions(lIssues, nil, nil, lEmpty);
   AssertEquals('length preserved', 2, Length(lOut));
@@ -283,7 +283,7 @@ begin
   lIssues[2] := MakeFpIssue('RuleC', 'c.pas', 3, 'fp-c');
   SetLength(lGlobs, 1);
   lGlobs[0] := MakeGlob('RuleB', '');
-  lEmpty := MakeBaseline(nil);
+  lEmpty := TFpSonarBaseline.FromIssues(nil);
 
   lActive := ActiveIssues(ClassifySuppressions(lIssues, nil, lGlobs, lEmpty));
   AssertEquals('only the two active issues survive', 2, Length(lActive));

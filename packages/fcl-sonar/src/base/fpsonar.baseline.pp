@@ -15,6 +15,7 @@
 unit FpSonar.Baseline;
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -36,29 +37,23 @@ type
   // fingerprint-deduped set of entries.
   TFpSonarBaseline = record
     Entries: TFpSonarBaselineEntryArray;
+    // Builds a baseline from an issue set: collects each issue's Fingerprint,
+    // then sorts + fingerprint-dedupes the entries.
+    class function FromIssues(const aIssues: TFpSonarIssueArray): TFpSonarBaseline; static;
+    // True iff aFingerprint is present (binary search over the sorted entries).
+    function Contains(const aFingerprint: string): boolean;
+    // A new issue array keeping ONLY issues whose Fingerprint is NOT in Self.
+    function FilterNewCode(const aIssues: TFpSonarIssueArray): TFpSonarIssueArray;
+    // Serializes Self to a deterministic, version-stamped JSON string (sorted,
+    // deduped entries).
+    function ToJSON: string;
+    // Parses a baseline snapshot from JSON text INTO Self (sorted + deduped like
+    // FromIssues). Returns False + aError on malformed input.
+    function LoadFromJSON(const aJsonText: string; out aError: string): boolean;
+    // Reads aPath INTO Self and delegates to LoadFromJSON. A missing/unreadable
+    // file is False + aError.
+    function LoadFromFile(const aPath: string; out aError: string): boolean;
   end;
-
-{ Builds a baseline from an issue set: collects each issue's Fingerprint }
-function MakeBaseline(const aIssues: TFpSonarIssueArray): TFpSonarBaseline;
-
-// True iff aFingerprint is present in aBaseline
-function BaselineContains(const aBaseline: TFpSonarBaseline;
-  const aFingerprint: string): boolean;
-
-// Returns a new issue array keeping ONLY issues whose Fingerprint is NOT in aBaseline.
-function FilterNewCode(const aIssues: TFpSonarIssueArray;
-  const aBaseline: TFpSonarBaseline): TFpSonarIssueArray;
-
-// Serializes aBaseline to a deterministic, version-stamped JSON string: sorted, deduped entries;
-function BaselineToJSON(const aBaseline: TFpSonarBaseline): string;
-
-// Parses a baseline snapshot from JSON text. The result is sorted + deduped like MakeBaseline.
-function LoadBaselineFromJSON(const aJsonText: string;
-  out aBaseline: TFpSonarBaseline; out aError: string): boolean;
-
-// Reads aPath and delegates to LoadBaselineFromJSON. A missing/unreadable file is False + aError.
-function LoadBaselineFromFile(const aPath: string; out aBaseline: TFpSonarBaseline;
-  out aError: string): boolean;
 
 implementation
 
@@ -133,7 +128,7 @@ begin
 end;
 
 
-function MakeBaseline(const aIssues: TFpSonarIssueArray): TFpSonarBaseline;
+class function TFpSonarBaseline.FromIssues(const aIssues: TFpSonarIssueArray): TFpSonarBaseline;
 var
   i: integer;
 begin
@@ -148,18 +143,17 @@ begin
 end;
 
 
-function BaselineContains(const aBaseline: TFpSonarBaseline;
-  const aFingerprint: string): boolean;
+function TFpSonarBaseline.Contains(const aFingerprint: string): boolean;
 var
   lLo, lHi, lMid, lCmp: integer;
 begin
   // Binary search over the sorted, fingerprint-deduped entries.
   lLo := 0;
-  lHi := High(aBaseline.Entries);
+  lHi := High(Entries);
   while lLo <= lHi do
   begin
     lMid := (lLo + lHi) div 2;
-    lCmp := CompareStr(aBaseline.Entries[lMid].Fingerprint, aFingerprint);
+    lCmp := CompareStr(Entries[lMid].Fingerprint, aFingerprint);
     if lCmp = 0 then
     begin
       Result := True;
@@ -174,15 +168,14 @@ begin
 end;
 
 
-function FilterNewCode(const aIssues: TFpSonarIssueArray;
-  const aBaseline: TFpSonarBaseline): TFpSonarIssueArray;
+function TFpSonarBaseline.FilterNewCode(const aIssues: TFpSonarIssueArray): TFpSonarIssueArray;
 var
   i, lCount: integer;
 begin
   SetLength(Result, Length(aIssues));
   lCount := 0;
   for i := 0 to High(aIssues) do
-    if not BaselineContains(aBaseline, aIssues[i].Fingerprint) then
+    if not Contains(aIssues[i].Fingerprint) then
     begin
       Result[lCount] := aIssues[i];
       Inc(lCount);
@@ -191,7 +184,7 @@ begin
 end;
 
 
-function BaselineToJSON(const aBaseline: TFpSonarBaseline): string;
+function TFpSonarBaseline.ToJSON: string;
 var
   lRoot: TJSONObject;
   lStamp: TJSONObject;
@@ -208,13 +201,13 @@ begin
     lRoot.Add('_fpsonar', lStamp);
 
     lIssues := TJSONArray.Create;
-    // Entries are already sorted + deduped by MakeBaseline/LoadBaseline;
-    for i := 0 to High(aBaseline.Entries) do
+    // Entries are already sorted + deduped by FromIssues/LoadFromJSON;
+    for i := 0 to High(Entries) do
     begin
       lEntry := TJSONObject.Create;
-      lEntry.Add('fingerprint', aBaseline.Entries[i].Fingerprint);
-      lEntry.Add('ruleId', aBaseline.Entries[i].RuleId);
-      lEntry.Add('file', aBaseline.Entries[i].FileName);
+      lEntry.Add('fingerprint', Entries[i].Fingerprint);
+      lEntry.Add('ruleId', Entries[i].RuleId);
+      lEntry.Add('file', Entries[i].FileName);
       lIssues.Add(lEntry);
     end;
     lRoot.Add('issues', lIssues);
@@ -226,8 +219,8 @@ begin
 end;
 
 
-function LoadBaselineFromJSON(const aJsonText: string;
-  out aBaseline: TFpSonarBaseline; out aError: string): boolean;
+function TFpSonarBaseline.LoadFromJSON(const aJsonText: string;
+  out aError: string): boolean;
 var
   lData: TJSONData;
   lText: string;
@@ -241,7 +234,7 @@ var
 begin
   Result := False;
   aError := '';
-  SetLength(aBaseline.Entries, 0);
+  SetLength(Self.Entries, 0);
   lData := nil;
   // Strip a leading UTF-8 BOM if present (as in the Config loader).
   lText := aJsonText;
@@ -270,7 +263,7 @@ begin
     if (lIssuesData <> nil) and (lIssuesData is TJSONArray) then
     begin
       lIssues := TJSONArray(lIssuesData);
-      SetLength(aBaseline.Entries, lIssues.Count);
+      SetLength(Self.Entries, lIssues.Count);
       lCount := 0;
       for i := 0 to lIssues.Count - 1 do
       begin
@@ -282,13 +275,13 @@ begin
         lFp := lObj.Find('fingerprint');
         if (lFp = nil) or not (lFp.JSONType = jtString) then
           Continue;
-        aBaseline.Entries[lCount].Fingerprint := lFp.AsString;
-        aBaseline.Entries[lCount].RuleId := lObj.Get('ruleId', '');
-        aBaseline.Entries[lCount].FileName := lObj.Get('file', '');
+        Self.Entries[lCount].Fingerprint := lFp.AsString;
+        Self.Entries[lCount].RuleId := lObj.Get('ruleId', '');
+        Self.Entries[lCount].FileName := lObj.Get('file', '');
         Inc(lCount);
       end;
-      SetLength(aBaseline.Entries, lCount);
-      SortAndDedup(aBaseline.Entries);
+      SetLength(Self.Entries, lCount);
+      SortAndDedup(Self.Entries);
     end;
     Result := True;
   finally
@@ -297,13 +290,13 @@ begin
 end;
 
 
-function LoadBaselineFromFile(const aPath: string;
-  out aBaseline: TFpSonarBaseline; out aError: string): boolean;
+function TFpSonarBaseline.LoadFromFile(const aPath: string;
+  out aError: string): boolean;
 var
   lStream: TFileStream;
   lText: string;
 begin
-  SetLength(aBaseline.Entries, 0);
+  SetLength(Self.Entries, 0);
   aError := '';
   if not FileExists(aPath) then
   begin
@@ -330,7 +323,7 @@ begin
       Exit;
     end;
   end;
-  Result := LoadBaselineFromJSON(lText, aBaseline, aError);
+  Result := Self.LoadFromJSON(lText, aError);
 end;
 
 

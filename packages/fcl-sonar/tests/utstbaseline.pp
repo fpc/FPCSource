@@ -119,16 +119,16 @@ begin
   lIssues[1] := MakeFpIssue('11111111bbbbbbbb', 'RuleB', 'src/b.pas');
   lIssues[2] := MakeFpIssue('22222222cccccccc', 'RuleC', 'src/c.pas');
 
-  lBaseline := MakeBaseline(lIssues);
-  lJson := BaselineToJSON(lBaseline);
-  AssertTrue('round-trip JSON loads', LoadBaselineFromJSON(lJson, lReloaded, lErr));
+  lBaseline := TFpSonarBaseline.FromIssues(lIssues);
+  lJson := lBaseline.ToJSON;
+  AssertTrue('round-trip JSON loads', lReloaded.LoadFromJSON(lJson, lErr));
   AssertEquals('round-trip error is empty', '', lErr);
   AssertEquals('reloaded entry count', 3, Length(lReloaded.Entries));
-  AssertTrue('fp A present after reload', BaselineContains(lReloaded, '00000000aaaaaaaa'));
-  AssertTrue('fp B present after reload', BaselineContains(lReloaded, '11111111bbbbbbbb'));
-  AssertTrue('fp C present after reload', BaselineContains(lReloaded, '22222222cccccccc'));
+  AssertTrue('fp A present after reload', lReloaded.Contains('00000000aaaaaaaa'));
+  AssertTrue('fp B present after reload', lReloaded.Contains('11111111bbbbbbbb'));
+  AssertTrue('fp C present after reload', lReloaded.Contains('22222222cccccccc'));
   AssertFalse('an absent fp is not contained',
-    BaselineContains(lReloaded, 'deadbeefdeadbeef'));
+    lReloaded.Contains('deadbeefdeadbeef'));
 end;
 
 
@@ -147,13 +147,13 @@ begin
   lIssues[2] := MakeFpIssue('ffff000011112222', 'LineTooLong', 'src/zeta.pas');
   lIssues[3] := MakeFpIssue('0a1b2c3d4e5f6071', 'AnotherRule', 'src/alpha.pas');
 
-  lBaseline := MakeBaseline(lIssues);
+  lBaseline := TFpSonarBaseline.FromIssues(lIssues);
   AssertEquals('duplicate fingerprints collapsed', 2, Length(lBaseline.Entries));
   AssertEquals('serialized baseline matches golden', GoldenJSON,
-    BaselineToJSON(lBaseline));
+    lBaseline.ToJSON);
   // Stable across calls (no timestamp / no nondeterminism).
   AssertEquals('two serializations are byte-identical',
-    BaselineToJSON(lBaseline), BaselineToJSON(lBaseline));
+    lBaseline.ToJSON, lBaseline.ToJSON);
 end;
 
 
@@ -172,9 +172,9 @@ begin
   // Baseline holds only the MIDDLE issue's fingerprint.
   SetLength(lBaselineIssues, 1);
   lBaselineIssues[0] := MakeFpIssue('bbbb000000000000', 'RuleB', 'src/b.pas');
-  lBaseline := MakeBaseline(lBaselineIssues);
+  lBaseline := TFpSonarBaseline.FromIssues(lBaselineIssues);
 
-  lNew := FilterNewCode(lAll, lBaseline);
+  lNew := lBaseline.FilterNewCode(lAll);
   AssertEquals('one baselined issue dropped', 2, Length(lNew));
   // Order preserved: A then C.
   AssertEquals('first survivor is A', 'aaaa000000000000', lNew[0].Fingerprint);
@@ -196,16 +196,16 @@ begin
   lAll[1] := MakeFpIssue('2222000000000000', 'RuleB', 'src/b.pas');
 
   // An empty (everything-is-new) baseline from an empty issue set.
-  lEmpty := MakeBaseline(nil);
+  lEmpty := TFpSonarBaseline.FromIssues(nil);
   AssertEquals('empty baseline has no entries', 0, Length(lEmpty.Entries));
-  lNew := FilterNewCode(lAll, lEmpty);
+  lNew := lEmpty.FilterNewCode(lAll);
   AssertEquals('empty baseline keeps everything', 2, Length(lNew));
 
   // An empty baseline parsed from an empty issues array behaves the same.
   AssertTrue('empty-issues JSON loads',
-    LoadBaselineFromJSON('{"issues":[]}', lEmpty, lErr));
+    lEmpty.LoadFromJSON('{"issues":[]}', lErr));
   AssertEquals('keeps all against parsed-empty baseline', 2,
-    Length(FilterNewCode(lAll, lEmpty)));
+    Length(lEmpty.FilterNewCode(lAll)));
 end;
 
 
@@ -225,9 +225,9 @@ begin
 
   SetLength(lBaselineIssues, 1);
   lBaselineIssues[0] := MakeFpIssue('dupe000000000000', 'RuleA', 'src/a.pas');
-  lBaseline := MakeBaseline(lBaselineIssues);
+  lBaseline := TFpSonarBaseline.FromIssues(lBaselineIssues);
 
-  lNew := FilterNewCode(lAll, lBaseline);
+  lNew := lBaseline.FilterNewCode(lAll);
   AssertEquals('both duplicate-fingerprint issues dropped', 1, Length(lNew));
   AssertEquals('the absent-fingerprint issue survives', 'keep000000000000',
     lNew[0].Fingerprint);
@@ -242,7 +242,7 @@ var
 
 begin
   AssertFalse('missing file fails to load',
-    LoadBaselineFromFile('/no/such/baseline-file-5-1.json', lBaseline, lErr));
+    lBaseline.LoadFromFile('/no/such/baseline-file-5-1.json', lErr));
   AssertTrue('missing file yields a non-empty error', lErr <> '');
 end;
 
@@ -255,11 +255,11 @@ var
 
 begin
   AssertFalse('malformed JSON fails to load',
-    LoadBaselineFromJSON('{ not json', lBaseline, lErr));
+    lBaseline.LoadFromJSON('{ not json', lErr));
   AssertTrue('malformed JSON yields a non-empty error', lErr <> '');
   // A non-object root is also a clean failure, never a raise.
   AssertFalse('array root fails to load',
-    LoadBaselineFromJSON('[1,2,3]', lBaseline, lErr));
+    lBaseline.LoadFromJSON('[1,2,3]', lErr));
   AssertTrue('array root yields a non-empty error', lErr <> '');
 end;
 
@@ -274,14 +274,13 @@ var
 begin
   // A well-formed snapshot with zero fingerprints loads OK and means "all new".
   AssertTrue('version-stamped empty snapshot loads',
-    LoadBaselineFromJSON('{"_fpsonar":{"baseline":"1","version":"0.1.0"}}',
-      lBaseline, lErr));
+    lBaseline.LoadFromJSON('{"_fpsonar":{"baseline":"1","version":"0.1.0"}}', lErr));
   AssertEquals('empty snapshot error is empty', '', lErr);
   AssertEquals('empty snapshot has 0 fingerprints', 0, Length(lBaseline.Entries));
 
   SetLength(lAll, 1);
   lAll[0] := MakeFpIssue('aaaa111122223333', 'RuleA', 'src/a.pas');
-  lNew := FilterNewCode(lAll, lBaseline);
+  lNew := lBaseline.FilterNewCode(lAll);
   AssertEquals('everything is new against an empty snapshot', 1, Length(lNew));
 end;
 

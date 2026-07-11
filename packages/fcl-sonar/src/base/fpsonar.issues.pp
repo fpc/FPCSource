@@ -372,7 +372,7 @@ begin
       Result[i].SuppressionSource := ssNoSonar
     else if ConfigGlobSuppresses(aGlobs, aIssues[i]) then
       Result[i].SuppressionSource := ssConfig
-    else if BaselineContains(aBaseline, aIssues[i].Fingerprint) then
+    else if aBaseline.Contains(aIssues[i].Fingerprint) then
       Result[i].SuppressionSource := ssBaseline
     else
       Result[i].SuppressionSource := ssActive;

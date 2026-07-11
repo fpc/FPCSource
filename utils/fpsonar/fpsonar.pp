@@ -178,8 +178,7 @@ type
 
       if (FOpts.Command = 'analyze') and FOpts.MutedMode then
       begin
-        if not LoadBaselineFromFile(FOpts.MutedBaselineFile, LBaseline,
-          LBaselineErr) then
+        if not LBaseline.LoadFromFile(FOpts.MutedBaselineFile, LBaselineErr) then
         begin
           Writeln(StdErr, Format(SCliError, [LBaselineErr]));
           ExitCode := 2;
@@ -195,7 +194,7 @@ type
       if FOpts.Command = 'baseline' then
       begin
         // Snapshot generation:
-        LReport := BaselineToJSON(MakeBaseline(LEffective));
+        LReport := TFpSonarBaseline.FromIssues(LEffective).ToJSON;
         if FOpts.OutputFile = '' then
           Writeln(LReport)
         else if not WriteReportFile(FOpts.OutputFile, LReport + LineEnding) then
@@ -206,13 +205,13 @@ type
         // Basic run
         if FOpts.NewCodeMode then
         begin
-          if not LoadBaselineFromFile(FOpts.BaselineFile, LBaseline, LBaselineErr) then
+          if not LBaseline.LoadFromFile(FOpts.BaselineFile, LBaselineErr) then
           begin
             Writeln(StdErr, Format(SCliError, [LBaselineErr]));
             ExitCode := 2;
           end
           else
-            LEffective := FilterNewCode(LEffective, LBaseline);
+            LEffective := LBaseline.FilterNewCode(LEffective);
         end;
 
         if ExitCode <> 2 then
