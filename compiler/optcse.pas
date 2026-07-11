@@ -124,25 +124,54 @@ unit optcse;
           and  C
           / \
          A   B
-        all expressions of B are available during evaluation of C. However considerung the whole expression,
+        all expressions of B are available during evaluation of C. However considering the whole expression,
         values of B and C might not be available due to short boolean evaluation.
 
-        So recurseintobooleanchain detects such chained and/or expressions and makes sub-expressions of B
-        available during the evaluation of C
+        So recurseintobooleanchain detects such chained and/or expressions and removes sub-expressions of B
+        that are referenced in C
 
-        firstleftend is later used to remove all sub expressions of B and C by storing the expression count
-        in the cse table after handling A
+        firstleftend is later used to remove all sub-expressions of B and C by storing the expression count
+        in the CSE table after handling A
       }
       var
         firstleftend : longint;
+        maybeskipped : TDFASet; { Only valid for the current "collectnodes" invocation }
+
       procedure recurseintobooleanchain(t : tnodetype;n : tnode);
+        var
+          i, rightstart : longint;
         begin
           if (tbinarynode(n).left.nodetype=t) and is_boolean(tbinarynode(n).left.resultdef) then
             recurseintobooleanchain(t,tbinarynode(n).left)
           else
             foreachnodestatic(pm_postprocess,tbinarynode(n).left,@collectnodes2,arg);
-          firstleftend:=min(plists(arg)^.nodelist.count,firstleftend);
-          foreachnodestatic(pm_postprocess,tbinarynode(n).right,@collectnodes2,arg);
+
+          rightstart:=plists(arg)^.nodelist.count;
+          firstleftend:=min(rightstart,firstleftend);
+
+          if doshortbooleval(n) then
+            begin
+              foreachnodestatic(pm_postprocess,tbinarynode(n).right,@collectnodes2,arg);
+
+              { short boolean evaluation might skip the right side of n in nested nodes }
+              for i:=rightstart to plists(arg)^.nodelist.count-1 do
+                DynSetInclude(maybeskipped,i);
+            end
+          else
+            begin
+              { if n does not use short boolean evaluation, its right side is always
+                evaluated, even when an and/or node deeper in the chain used short
+                boolean evaluation and skipped its own right side. Expressions
+                collected from such skipped right sides must therefore not be
+                available while collecting the right side of n }
+              for i:=firstleftend to rightstart-1 do
+                if DynSetIn(maybeskipped,i) then
+                  DynSetExclude(plists(arg)^.avail,i);
+
+              { We can only collect the right nodes after excluding the left
+                side so newer entries don't reference them }
+              foreachnodestatic(pm_postprocess,tbinarynode(n).right,@collectnodes2,arg);
+            end;
         end;
 
       var
@@ -277,12 +306,17 @@ unit optcse;
           the expressions of the right side might not be available due to short boolean
           evaluation, so after handling the right side, mark those expressions
           as unavailable }
-        if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
+        if doshortbooleval(n) and is_boolean(taddnode(n).left.resultdef) then
           begin
+            SetLength(maybeskipped,0);
             firstleftend:=high(longint);
             recurseintobooleanchain(n.nodetype,n);
+
+            { Exclude tge nodes from the chain if there's a chance they'll be skipped }
             for i:=firstleftend to plists(arg)^.nodelist.count-1 do
-              DynSetExclude(plists(arg)^.avail,i);
+              if DynSetIn(maybeskipped,i) then
+                DynSetExclude(plists(arg)^.avail,i);
+
             result:=fen_norecurse_false;
           end;
 {$ifdef cpuhighleveltarget}
