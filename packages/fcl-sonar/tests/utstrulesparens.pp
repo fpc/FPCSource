@@ -233,7 +233,7 @@ var
   lParam: TFpSonarRuleParam;
 
 begin
-  Result := DefaultConfig;
+  Result := TFpSonarConfig.Default;
   lSetting.RuleId := cRedundantId;
   lSetting.HasEnabled := False;
   lSetting.Enabled := True;
@@ -285,7 +285,7 @@ var
 begin
   lc := TFpSonarIssueCollector.Create;
   try
-    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, DefaultConfig, lc);
+    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, TFpSonarConfig.Default, lc);
     AssertEquals('two redundant pairs', 2, CountById(lc, cRedundantId));
     // Arm A: the (a) opening paren at R13 C8.
     AssertEquals('arm A row', 13, lc.Issues[0].StartLine);
@@ -312,7 +312,7 @@ var
 begin
   lc := TFpSonarIssueCollector.Create;
   try
-    RunRuleSrc(NewRemoveRedundantParentheses, 'compliant.pas', cRedundantCompliant, DefaultConfig, lc);
+    RunRuleSrc(NewRemoveRedundantParentheses, 'compliant.pas', cRedundantCompliant, TFpSonarConfig.Default, lc);
     AssertEquals('no redundant findings', 0, CountById(lc, cRedundantId));
   finally
     lc.Free;
@@ -353,7 +353,7 @@ var
 begin
   lc := TFpSonarIssueCollector.Create;
   try
-    RunRuleSrc(NewParenthesizeAmbiguousNot, 'noncompliant.pas', cAmbiguousNotNoncompliant, DefaultConfig, lc);
+    RunRuleSrc(NewParenthesizeAmbiguousNot, 'noncompliant.pas', cAmbiguousNotNoncompliant, TFpSonarConfig.Default, lc);
     AssertEquals('three ambiguous nots', 3, CountById(lc, cAmbiguousNotId));
     AssertEquals('not 1 row', 13, lc.Issues[0].StartLine);
     AssertEquals('not 1 col', 8, lc.Issues[0].StartCol);
@@ -377,7 +377,7 @@ var
 begin
   lc := TFpSonarIssueCollector.Create;
   try
-    RunRuleSrc(NewParenthesizeAmbiguousNot, 'compliant.pas', cAmbiguousNotCompliant, DefaultConfig, lc);
+    RunRuleSrc(NewParenthesizeAmbiguousNot, 'compliant.pas', cAmbiguousNotCompliant, TFpSonarConfig.Default, lc);
     AssertEquals('no ambiguous-not findings', 0, CountById(lc, cAmbiguousNotId));
   finally
     lc.Free;
@@ -464,8 +464,8 @@ begin
   lA := TFpSonarIssueCollector.Create;
   lB := TFpSonarIssueCollector.Create;
   try
-    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, DefaultConfig, lA);
-    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, DefaultConfig, lB);
+    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, TFpSonarConfig.Default, lA);
+    RunRuleSrc(NewRemoveRedundantParentheses, 'noncompliant.pas', cRedundantNoncompliant, TFpSonarConfig.Default, lB);
     AssertEquals('same count', CountById(lA, cRedundantId),
       CountById(lB, cRedundantId));
     AssertEquals('same first row',

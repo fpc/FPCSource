@@ -406,8 +406,8 @@ begin
     MakeSynth(lReg, 'CfgTokOff', rtTok, rfTokenStream, False);  // default-disabled
 
     AssertTrue('config loads',
-      LoadConfigFromJSON('{"rules":{"CfgLexOn":{"enabled":false},' +
-        '"CfgTokOff":{"enabled":true}}}', lConfig, lErr));
+      lConfig.LoadFromJSON('{"rules":{"CfgLexOn":{"enabled":false},' +
+        '"CfgTokOff":{"enabled":true}}}', lErr));
     lEngine.Config := lConfig;
 
     lEngine.Analyze(lFix.Add('smokefixture.pas', cSmokeFixture), cMode,

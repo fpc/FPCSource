@@ -297,7 +297,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternClass);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -322,7 +322,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternRecord);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -345,7 +345,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternInterface);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -369,7 +369,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternEnum);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -392,7 +392,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternHelper);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -417,7 +417,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternPointer);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -440,7 +440,7 @@ var
   lType: TPasType;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternAttribute);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do
@@ -462,7 +462,7 @@ var
   i: integer;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternConst);
   lVals := EnumerateValueDecls(aContext.Module);
   for i := 0 to High(lVals) do
@@ -481,7 +481,7 @@ var
   i: integer;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternField);
   lVals := EnumerateValueDecls(aContext.Module);
   for i := 0 to High(lVals) do
@@ -500,7 +500,7 @@ var
   i: integer;
   lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternVariable);
   lVals := EnumerateValueDecls(aContext.Module);
   for i := 0 to High(lVals) do
@@ -519,7 +519,7 @@ var
   i: integer;
   lName, lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternRoutine);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -542,7 +542,7 @@ var
   i: integer;
   lName, lPat: string;
 begin
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternConstructor);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -567,7 +567,7 @@ begin
     Exit;
   if (aContext.Module is TPasProgram) or (aContext.Module is TPasLibrary) then
     Exit;
-  lPat := RuleParamStr(aContext.Config, FMetadata.RuleId, 'pattern',
+  lPat := aContext.Config.RuleParamStr(FMetadata.RuleId, 'pattern',
     cPatternUnit);
   if (aContext.Module.Name <> '')
     and not MatchesPattern(aContext.Module.Name, lPat) then
@@ -597,7 +597,7 @@ var
 begin
   if aContext.Module = nil then
     Exit;
-  lMin := RuleParamInt(aContext.Config, FMetadata.RuleId, 'minLength',
+  lMin := aContext.Config.RuleParamInt(FMetadata.RuleId, 'minLength',
     cMinIdentLength);
   lTypes := EnumerateTypes(aContext.Module);
   for i := 0 to High(lTypes) do

@@ -51,7 +51,7 @@ type
     OutputFormat: TFpSonarOutputFormat;
     // --output/-o ('' = stdout)
     OutputFile: string;
-    // --config/-c (default DefaultConfig)
+    // --config/-c (default TFpSonarConfig.Default)
     RuleConfig: TFpSonarConfig;
     // --new-code <file> given (default False)
     NewCodeMode: Boolean;
@@ -169,7 +169,7 @@ var
 begin
   Result:=Default(TFpSonarCliOptions);
   Result.OutputFormat := ofText;
-  Result.RuleConfig := DefaultConfig;
+  Result.RuleConfig := TFpSonarConfig.Default;
 
   // --- 1. Parse argv into command / overrides / positionals. ---
   i := 0;
@@ -219,7 +219,7 @@ begin
             begin
             lCfgPath := ConsumeValue('--config');
             if (lCfgPath <> '') and
-              not LoadConfigFromFile(lCfgPath, Result.RuleConfig, lCfgErr) then
+              not Result.RuleConfig.LoadFromFile(lCfgPath, lCfgErr) then
               FlagError(Format(SCannotLoadConfig, [lCfgPath, lCfgErr]));
             end
           else if lArg = '--real-rtl' then
@@ -242,7 +242,7 @@ begin
             AddStr(lCli.UnitSearchPaths, ConsumeValue('--pas2js-src'))
           else if lArg = '--ppu-cache' then
             Result.PpuCacheDir := ConsumeValue('--ppu-cache')
-          else if Copy(lArg, 1, 12) = '--ppu-cache=' then
+          else if Copy(lArg, 12) = '--ppu-cache=' then
             Result.PpuCacheDir := Copy(lArg, 13, Length(lArg) - 12)
           else if lArg = '-d' then
             AddStr(lCli.Defines, ConsumeValue('-d'))

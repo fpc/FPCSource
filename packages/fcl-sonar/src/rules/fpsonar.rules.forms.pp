@@ -102,8 +102,7 @@ var
 begin
   if (aContext.Module = nil) or (aContext.FileName = '') then
     Exit;
-  lBaseTypes := SplitCommaList(RuleParamStr(aContext.Config,
-    FMetadata.RuleId, 'formBaseTypes', cDefaultFormBaseTypes));
+  lBaseTypes := SplitCommaList(aContext.Config.RuleParamStr(FMetadata.RuleId, 'formBaseTypes', cDefaultFormBaseTypes));
   lTypes := EnumerateTypes(aContext.Module);
   lLine := 0;
   for i := 0 to High(lTypes) do

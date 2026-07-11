@@ -174,7 +174,7 @@ type
       if FOpts.HasProjectDiag then
         Writeln(StdErr, Format(SProjectLoadNote, [FOpts.ProjectDiag.Message]));
 
-      LEffective := ApplyRuleConfig(LCollector.Issues, FOpts.RuleConfig);
+      LEffective := FOpts.RuleConfig.ApplyTo(LCollector.Issues);
 
       if (FOpts.Command = 'analyze') and FOpts.MutedMode then
       begin
@@ -261,7 +261,7 @@ type
     SetLength(lRules, RuleRegistry.Count);
     for i := 0 to RuleRegistry.Count - 1 do
       lRules[i] := RuleRegistry.Rule(i).Metadata;
-    lReport := ConfigTemplateToJSON(DefaultConfig, lRules);
+    lReport := TFpSonarConfig.Default.TemplateToJSON(lRules);
     if FOpts.OutputFile = '' then
       Writeln(lReport)
     else if not WriteReportFile(FOpts.OutputFile, lReport + LineEnding) then

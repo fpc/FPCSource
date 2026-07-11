@@ -740,7 +740,7 @@ var
   i: Integer;
 
 begin
-  Result := DefaultConfig;
+  Result := TFpSonarConfig.Default;
   lSetting.RuleId := aRuleId;
   lSetting.HasEnabled := False;
   lSetting.Enabled := True;
@@ -1673,11 +1673,11 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // With NO targets configured (DefaultConfig), every rule emits nothing on its own
+  // With NO targets configured (TFpSonarConfig.Default), every rule emits nothing on its own
   // noncompliant fixture.
   lc := TFpSonarIssueCollector.Create;
   try
-    RunImportSrc(NewDisallowedImportByPath, DefaultConfig, lc);
+    RunImportSrc(NewDisallowedImportByPath, TFpSonarConfig.Default, lc);
     AssertEquals('import unconfigured => 0', 0, CountById(lc, cImportId));
   finally
     lc.Free;
@@ -1685,7 +1685,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedConstant, 'noncompliant.pas', cDisallowedConstantNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('const unconfigured => 0', 0, CountById(lc, cConstId));
   finally
     lc.Free;
@@ -1693,7 +1693,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedEnumValue, 'noncompliant.pas', cDisallowedEnumValueNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('enum unconfigured => 0', 0, CountById(lc, cEnumId));
   finally
     lc.Free;
@@ -1701,7 +1701,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedField, 'noncompliant.pas', cDisallowedFieldNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('field unconfigured => 0', 0, CountById(lc, cFieldId));
   finally
     lc.Free;
@@ -1709,7 +1709,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedIdentifier, 'noncompliant.pas', cDisallowedIdentifierNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('identifier unconfigured => 0', 0, CountById(lc, cIdentId));
   finally
     lc.Free;
@@ -1717,7 +1717,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedProperty, 'noncompliant.pas', cDisallowedPropertyNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('property unconfigured => 0', 0, CountById(lc, cPropId));
   finally
     lc.Free;
@@ -1725,7 +1725,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedRoutine, 'noncompliant.pas', cDisallowedRoutineNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('routine unconfigured => 0', 0, CountById(lc, cRoutineId));
   finally
     lc.Free;
@@ -1733,7 +1733,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedType, 'noncompliant.pas', cDisallowedTypeNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('type unconfigured => 0', 0, CountById(lc, cTypeId));
   finally
     lc.Free;
@@ -1741,7 +1741,7 @@ begin
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewTrackTypeAliases, 'noncompliant.pas', cTrackTypeAliasesNoncompliant,
-      DefaultConfig, lc);
+      TFpSonarConfig.Default, lc);
     AssertEquals('alias unconfigured => 0', 0, CountById(lc, cAliasId));
   finally
     lc.Free;

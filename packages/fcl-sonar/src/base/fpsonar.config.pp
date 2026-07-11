@@ -42,6 +42,7 @@ unit FpSonar.Config;
 *)
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -115,7 +116,7 @@ type
     utrPrefer // the resolution-backed engine
     );
 
-  // How ConfigToJSON renders the ruleset.
+  // How TFpSonarConfig.ToJSON renders the ruleset.
   //  cemFull  — every rule listed at its effective setting (the complete,
   //             human-editable template "init-config" writes).
   //  cemDiff  — only what differs from each rule's metadata default (the
@@ -129,74 +130,48 @@ type
     Suppressions: TFpSonarSuppressionGlobArray;
     // The USE-tier resolution preference. Defaults to utrOff.
     UseTierResolution: TFpSonarUseTierResolution;
+    // The built-in default
+    class function Default: TFpSonarConfig; static;
+    // The effective enable state for aRuleId: an explicit Enabled when the rule
+    // has a setting with HasEnabled, else aDefaultEnabled.
+    function RuleEnabled(const aRuleId: string; aDefaultEnabled: boolean): boolean;
+    // The effective severity for aRuleId: an explicit Severity when the rule
+    // has a setting with HasSeverity, else aDefaultSeverity.
+    function EffectiveSeverity(const aRuleId: string;
+      aDefaultSeverity: TFpSonarSeverity): TFpSonarSeverity;
+    // The typed value of the 'aKey' parameter configured for aRuleId, or aDefault
+    // when the rule has no such param of the matching kind.
+    function RuleParamInt(const aRuleId, aKey: string; aDefault: integer): integer;
+    // As RuleParamInt, for a string-valued parameter (e.g. a naming regex pattern).
+    function RuleParamStr(const aRuleId, aKey, aDefault: string): string;
+    // As RuleParamInt, for a boolean-valued parameter.
+    function RuleParamBool(const aRuleId, aKey: string; aDefault: boolean): boolean;
+    // The configured 'targets' disallow-list for (aRuleId, aKey), or an empty array.
+    function RuleParamTargets(const aRuleId, aKey: string): TFpSonarRuleTargetArray;
+    // A new issue array in the same order, each issue's Severity replaced by EffectiveSeverity.
+    function ApplyTo(const aIssues: TFpSonarIssueArray): TFpSonarIssueArray;
+    // Parses a JSON config text INTO Self, overlaying present keys onto the default config.
+    // Returns False + aError on malformed/invalid input.
+    function LoadFromJSON(const aJsonText: string; out aError: string): boolean;
+    // Reads aPath INTO Self and delegates to LoadFromJSON. A missing/unreadable
+    // file is a False + aError.
+    function LoadFromFile(const aPath: string; out aError: string): boolean;
+    // Serializes Self to fpsonar JSON against the rule set aRules (RuleId-sorted).
+    function ToJSON(const aRules: array of TRuleMetadata;
+      aMode: TFpSonarConfigEmitMode): string;
+    // The complete, human-editable JSON template: 
+    function TemplateToJSON(const aRules: array of TRuleMetadata): string;
+  private
+    // Finds the configured param record for (aRuleId, aKey), or False when absent.
+    function FindConfiguredParam(const aRuleId, aKey: string;
+      out aParam: TFpSonarRuleParam): boolean;
   end;
-
-// The built-in default:
-// no rule overrides (empty Rules => every rule keeps its metadata DefaultEnabled + default severity);
-// Check fails on any Blocker or Critical and is unlimited for Major/Minor/Info and Total.
-function DefaultConfig: TFpSonarConfig;
 
 // The lowercase enum name for a severity (info/minor/major/critical/blocker).
 function SeverityName(aSeverity: TFpSonarSeverity): string;
 
 // Parses a (case-insensitive) severity name; False on an unknown name.
 function SeverityFromName(const aName: string; out aSeverity: TFpSonarSeverity): boolean;
-
-// The effective enable state for aRuleId: an explicit Enabled when the rule
-// has a setting with HasEnabled, else aDefaultEnabled.
-function RuleEnabled(const aConfig: TFpSonarConfig; const aRuleId: string;
-  aDefaultEnabled: boolean): boolean;
-
-// The effective severity for aRuleId: an explicit Severity when the rule
-// has a setting with HasSeverity, else aDefaultSeverity.
-function EffectiveSeverity(const aConfig: TFpSonarConfig; const aRuleId: string;
-  aDefaultSeverity: TFpSonarSeverity): TFpSonarSeverity;
-
-// The typed value of the 'aKey' parameter configured for aRuleId, or aDefault
-// when the rule has no such param of the matching kind.
-function RuleParamInt(const aConfig: TFpSonarConfig; const aRuleId, aKey: string;
-  aDefault: integer): integer;
-
-// As RuleParamInt, for a string-valued parameter (e.g. a naming regex pattern).
-function RuleParamStr(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey, aDefault: string): string;
-
-// As RuleParamInt, for a boolean-valued parameter.
-function RuleParamBool(const aConfig: TFpSonarConfig; const aRuleId, aKey: string;
-  aDefault: boolean): boolean;
-
-// The configured 'targets' disallow-list for (aRuleId, aKey), or an empty array when the rule has no such param.
-function RuleParamTargets(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey: string): TFpSonarRuleTargetArray;
-
-// Returns a new issue array in the same order, each issue's Severity replaced by EffectiveSeverity.
-function ApplyRuleConfig(const aIssues: TFpSonarIssueArray;
-  const aConfig: TFpSonarConfig): TFpSonarIssueArray;
-
-// Parses a JSON config text, overlaying present keys onto DefaultConfig.
-// Returns False + aError on malformed/invalid input.
-function LoadConfigFromJSON(const aJsonText: string; out aConfig: TFpSonarConfig;
-  out aError: string): boolean;
-
-// Reads aPath and delegates to LoadConfigFromJSON. A missing/unreadable file is a False + aError.
-function LoadConfigFromFile(const aPath: string; out aConfig: TFpSonarConfig;
-  out aError: string): boolean;
-
-// Serializes aConfig to fpsonar JSON against the rule set aRules (RuleId-sorted).
-// The gate and use-tier policy are always written in full; suppressions are
-// written verbatim from aConfig (an empty array when there are none). aMode
-// governs the "rules" object — see TFpSonarConfigEmitMode. The output is the
-// exact inverse of LoadConfigFromJSON over the modelled keys, so
-// LoadConfigFromJSON(ConfigToJSON(C, R, cemDiff)) yields C's effective config.
-function ConfigToJSON(const aConfig: TFpSonarConfig;
-  const aRules: array of TRuleMetadata; aMode: TFpSonarConfigEmitMode): string;
-
-// The complete, human-editable JSON config template: every rule listed at its
-// default enabled state and severity, plus the quality-gate and use-tier policy
-// from aConfig and an empty suppressions list. A starting point the user copies
-// to a file and edits. Equivalent to ConfigToJSON(aConfig, aRules, cemFull).
-function ConfigTemplateToJSON(const aConfig: TFpSonarConfig;
-  const aRules: array of TRuleMetadata): string;
 
 
 implementation
@@ -208,7 +183,7 @@ uses
   SysUtils, Classes, fpjson, jsonparser;
 {$ENDIF}
 
-function DefaultConfig: TFpSonarConfig;
+class function TFpSonarConfig.Default: TFpSonarConfig;
 var
   lSev: TFpSonarSeverity;
 begin
@@ -266,51 +241,49 @@ begin
 end;
 
 
-function RuleEnabled(const aConfig: TFpSonarConfig; const aRuleId: string;
+function TFpSonarConfig.RuleEnabled(const aRuleId: string;
   aDefaultEnabled: boolean): boolean;
 var
   i: integer;
 begin
   Result := aDefaultEnabled;
-  for i := 0 to High(aConfig.Rules) do
-    if (aConfig.Rules[i].RuleId = aRuleId) and aConfig.Rules[i].HasEnabled then
+  for i := 0 to High(Rules) do
+    if (Rules[i].RuleId = aRuleId) and Rules[i].HasEnabled then
     begin
-      Result := aConfig.Rules[i].Enabled;
+      Result := Rules[i].Enabled;
       Exit;
     end;
 end;
 
 
-function EffectiveSeverity(const aConfig: TFpSonarConfig; const aRuleId: string;
+function TFpSonarConfig.EffectiveSeverity(const aRuleId: string;
   aDefaultSeverity: TFpSonarSeverity): TFpSonarSeverity;
 var
   i: integer;
 begin
   Result := aDefaultSeverity;
-  for i := 0 to High(aConfig.Rules) do
-    if (aConfig.Rules[i].RuleId = aRuleId) and aConfig.Rules[i].HasSeverity then
+  for i := 0 to High(Rules) do
+    if (Rules[i].RuleId = aRuleId) and Rules[i].HasSeverity then
     begin
-      Result := aConfig.Rules[i].Severity;
+      Result := Rules[i].Severity;
       Exit;
     end;
 end;
 
 
-// Finds the configured param record for (aRuleId, aKey), or False when absent.
-// The shared lookup behind the three typed RuleParam* accessors.
-function FindConfiguredParam(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey: string; out aParam: TFpSonarRuleParam): boolean;
+function TFpSonarConfig.FindConfiguredParam(const aRuleId, aKey: string;
+  out aParam: TFpSonarRuleParam): boolean;
 var
   i, j: integer;
 begin
   Result := False;
-  for i := 0 to High(aConfig.Rules) do
-    if aConfig.Rules[i].RuleId = aRuleId then
+  for i := 0 to High(Rules) do
+    if Rules[i].RuleId = aRuleId then
     begin
-      for j := 0 to High(aConfig.Rules[i].Params) do
-        if aConfig.Rules[i].Params[j].Key = aKey then
+      for j := 0 to High(Rules[i].Params) do
+        if Rules[i].Params[j].Key = aKey then
         begin
-          aParam := aConfig.Rules[i].Params[j];
+          aParam := Rules[i].Params[j];
           Result := True;
           Exit;
         end;
@@ -319,56 +292,53 @@ begin
 end;
 
 
-function RuleParamInt(const aConfig: TFpSonarConfig; const aRuleId, aKey: string;
+function TFpSonarConfig.RuleParamInt(const aRuleId, aKey: string;
   aDefault: integer): integer;
 var
   lParam: TFpSonarRuleParam;
 begin
   Result := aDefault;
-  if FindConfiguredParam(aConfig, aRuleId, aKey, lParam)
+  if FindConfiguredParam(aRuleId, aKey, lParam)
     and (lParam.Kind = cpkInt) then
     Result := lParam.IntVal;
 end;
 
 
-function RuleParamStr(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey, aDefault: string): string;
+function TFpSonarConfig.RuleParamStr(const aRuleId, aKey, aDefault: string): string;
 var
   lParam: TFpSonarRuleParam;
 begin
   Result := aDefault;
-  if FindConfiguredParam(aConfig, aRuleId, aKey, lParam)
+  if FindConfiguredParam(aRuleId, aKey, lParam)
     and (lParam.Kind = cpkStr) then
     Result := lParam.StrVal;
 end;
 
 
-function RuleParamBool(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey: string; aDefault: boolean): boolean;
+function TFpSonarConfig.RuleParamBool(const aRuleId, aKey: string;
+  aDefault: boolean): boolean;
 var
   lParam: TFpSonarRuleParam;
 begin
   Result := aDefault;
-  if FindConfiguredParam(aConfig, aRuleId, aKey, lParam)
+  if FindConfiguredParam(aRuleId, aKey, lParam)
     and (lParam.Kind = cpkBool) then
     Result := lParam.BoolVal;
 end;
 
 
-function RuleParamTargets(const aConfig: TFpSonarConfig;
-  const aRuleId, aKey: string): TFpSonarRuleTargetArray;
+function TFpSonarConfig.RuleParamTargets(const aRuleId, aKey: string): TFpSonarRuleTargetArray;
 var
   lParam: TFpSonarRuleParam;
 begin
   SetLength(Result, 0);
-  if FindConfiguredParam(aConfig, aRuleId, aKey, lParam)
+  if FindConfiguredParam(aRuleId, aKey, lParam)
     and (lParam.Kind = cpkTargets) then
     Result := lParam.Targets;
 end;
 
 
-function ApplyRuleConfig(const aIssues: TFpSonarIssueArray;
-  const aConfig: TFpSonarConfig): TFpSonarIssueArray;
+function TFpSonarConfig.ApplyTo(const aIssues: TFpSonarIssueArray): TFpSonarIssueArray;
 var
   i: integer;
 begin
@@ -378,7 +348,7 @@ begin
     // Copy the whole record (Fingerprint included, untouched), then override
     // only the severity — order is preserved by the linear copy.
     Result[i] := aIssues[i];
-    Result[i].Severity := EffectiveSeverity(aConfig, aIssues[i].RuleId,
+    Result[i].Severity := EffectiveSeverity(aIssues[i].RuleId,
       aIssues[i].Severity);
   end;
 end;
@@ -811,15 +781,15 @@ begin
 end;
 
 
-function LoadConfigFromJSON(const aJsonText: string;
-  out aConfig: TFpSonarConfig; out aError: string): boolean;
+function TFpSonarConfig.LoadFromJSON(const aJsonText: string;
+  out aError: string): boolean;
 var
   lData: TJSONData;
   lText: string;
 begin
   Result := False;
   aError := '';
-  aConfig := DefaultConfig;
+  Self := TFpSonarConfig.Default;
   lData := nil;
   // Strip a leading UTF-8 BOM if present.
   lText := aJsonText;
@@ -842,14 +812,14 @@ begin
       aError := 'config root must be a JSON object';
       Exit;
     end;
-    // Overlay onto DefaultConfig; unknown keys (e.g. _fpsonar, naming) ignored.
-    if not OverlayRules(TJSONObject(lData), aConfig, aError) then
+    // Overlay onto TFpSonarConfig.Default; unknown keys (e.g. _fpsonar, naming) ignored.
+    if not OverlayRules(TJSONObject(lData), Self, aError) then
       Exit;
-    if not OverlayGate(TJSONObject(lData), aConfig, aError) then
+    if not OverlayGate(TJSONObject(lData), Self, aError) then
       Exit;
-    if not OverlaySuppressions(TJSONObject(lData), aConfig, aError) then
+    if not OverlaySuppressions(TJSONObject(lData), Self, aError) then
       Exit;
-    if not OverlayUseTier(TJSONObject(lData), aConfig, aError) then
+    if not OverlayUseTier(TJSONObject(lData), Self, aError) then
       Exit;
     Result := True;
   finally
@@ -858,13 +828,13 @@ begin
 end;
 
 
-function LoadConfigFromFile(const aPath: string;
-  out aConfig: TFpSonarConfig; out aError: string): boolean;
+function TFpSonarConfig.LoadFromFile(const aPath: string;
+  out aError: string): boolean;
 var
   lStream: TFileStream;
   lText: string;
 begin
-  aConfig := DefaultConfig;
+  Self := TFpSonarConfig.Default;
   aError := '';
   if not FileExists(aPath) then
   begin
@@ -891,12 +861,12 @@ begin
       Exit;
     end;
   end;
-  Result := LoadConfigFromJSON(lText, aConfig, aError);
+  Result := Self.LoadFromJSON(lText, aError);
 end;
 
 
-function ConfigToJSON(const aConfig: TFpSonarConfig;
-  const aRules: array of TRuleMetadata; aMode: TFpSonarConfigEmitMode): string;
+function TFpSonarConfig.ToJSON(const aRules: array of TRuleMetadata;
+  aMode: TFpSonarConfigEmitMode): string;
 
   // Case-insensitive RuleId insertion sort, so the emitted file is easy to scan.
   procedure SortByRuleId(var aList: array of TRuleMetadata);
@@ -923,8 +893,8 @@ function ConfigToJSON(const aConfig: TFpSonarConfig;
     i: integer;
   begin
     Result := -1;
-    for i := 0 to High(aConfig.Rules) do
-      if SameText(aConfig.Rules[i].RuleId, aRuleId) then
+    for i := 0 to High(Self.Rules) do
+      if SameText(Self.Rules[i].RuleId, aRuleId) then
         Exit(i);
   end;
 
@@ -937,10 +907,10 @@ function ConfigToJSON(const aConfig: TFpSonarConfig;
     Result := False;
     if aIdx < 0 then
       Exit;
-    for j := 0 to High(aConfig.Rules[aIdx].Params) do
-      if aConfig.Rules[aIdx].Params[j].Key = aKey then
+    for j := 0 to High(Self.Rules[aIdx].Params) do
+      if Self.Rules[aIdx].Params[j].Key = aKey then
       begin
-        aParam := aConfig.Rules[aIdx].Params[j];
+        aParam := Self.Rules[aIdx].Params[j];
         Exit(True);
       end;
   end;
@@ -965,9 +935,8 @@ function ConfigToJSON(const aConfig: TFpSonarConfig;
     end;
   end;
 
-  // Emits parameter aSpec into aParams: cemFull always writes it (the configured
-  // value, else the rule's built-in default); cemDiff writes it only when the
-  // configured value differs from that default.
+  // Emits parameter aSpec into aParams: cemFull always writes it 
+  // cemDiff writes it only when the configured value differs from that default.
   procedure EmitParamValue(aParams: TJSONObject; const aSpec: TRuleParamSpec;
     aIdx: integer);
   var
@@ -1033,14 +1002,14 @@ function ConfigToJSON(const aConfig: TFpSonarConfig;
     lIdx := SettingIndex(aMeta.RuleId);
 
     lEnabled := aMeta.DefaultEnabled;
-    if (lIdx >= 0) and aConfig.Rules[lIdx].HasEnabled then
-      lEnabled := aConfig.Rules[lIdx].Enabled;
+    if (lIdx >= 0) and Self.Rules[lIdx].HasEnabled then
+      lEnabled := Self.Rules[lIdx].Enabled;
     if (aMode = cemFull) or (lEnabled <> aMeta.DefaultEnabled) then
       Result.Add('enabled', lEnabled);
 
     lSev := aMeta.Severity;
-    if (lIdx >= 0) and aConfig.Rules[lIdx].HasSeverity then
-      lSev := aConfig.Rules[lIdx].Severity;
+    if (lIdx >= 0) and Self.Rules[lIdx].HasSeverity then
+      lSev := Self.Rules[lIdx].Severity;
     if (aMode = cemFull) or (lSev <> aMeta.Severity) then
       Result.Add('severity', SeverityName(lSev));
 
@@ -1079,10 +1048,7 @@ begin
     lStamp.Add('version', '1');
     lRoot.Add('_fpsonar', lStamp);
 
-    // One entry per rule. cemFull lists its (effective) enabled state, severity
-    // and every tunable at its configured-or-default value; cemDiff emits only
-    // fields that differ from the rule's metadata default and drops the rule
-    // object entirely when nothing differs.
+    // One entry per rule. 
     lRules := TJSONObject.Create;
     for i := 0 to High(lSorted) do
     begin
@@ -1096,33 +1062,31 @@ begin
 
     // Quality-gate thresholds (-1 = unlimited on that axis).
     lGate := TJSONObject.Create;
-    lGate.Add('maxBlocker', aConfig.Gate.MaxPerSeverity[sevBlocker]);
-    lGate.Add('maxCritical', aConfig.Gate.MaxPerSeverity[sevCritical]);
-    lGate.Add('maxMajor', aConfig.Gate.MaxPerSeverity[sevMajor]);
-    lGate.Add('maxMinor', aConfig.Gate.MaxPerSeverity[sevMinor]);
-    lGate.Add('maxInfo', aConfig.Gate.MaxPerSeverity[sevInfo]);
-    lGate.Add('maxTotal', aConfig.Gate.MaxTotal);
+    lGate.Add('maxBlocker', Self.Gate.MaxPerSeverity[sevBlocker]);
+    lGate.Add('maxCritical', Self.Gate.MaxPerSeverity[sevCritical]);
+    lGate.Add('maxMajor', Self.Gate.MaxPerSeverity[sevMajor]);
+    lGate.Add('maxMinor', Self.Gate.MaxPerSeverity[sevMinor]);
+    lGate.Add('maxInfo', Self.Gate.MaxPerSeverity[sevInfo]);
+    lGate.Add('maxTotal', Self.Gate.MaxTotal);
     lRoot.Add('gate', lGate);
 
     // USE-tier reference engine selector.
     lUseTier := TJSONObject.Create;
-    if aConfig.UseTierResolution = utrPrefer then
+    if Self.UseTierResolution = utrPrefer then
       lUseTier.Add('resolution', 'prefer')
     else
       lUseTier.Add('resolution', 'off');
     lRoot.Add('useTier', lUseTier);
 
-    // Suppression globs, in authored order. The inverse of OverlaySuppressions:
-    // a key is emitted only when its pattern is non-empty (the loader reads an
-    // absent key as the "*" wildcard).
+    // Suppression globs, in authored order.
     lSupps := TJSONArray.Create;
-    for i := 0 to High(aConfig.Suppressions) do
+    for i := 0 to High(Self.Suppressions) do
     begin
       lSupp := TJSONObject.Create;
-      if aConfig.Suppressions[i].RulePattern <> '' then
-        lSupp.Add('rule', aConfig.Suppressions[i].RulePattern);
-      if aConfig.Suppressions[i].PathPattern <> '' then
-        lSupp.Add('path', aConfig.Suppressions[i].PathPattern);
+      if Self.Suppressions[i].RulePattern <> '' then
+        lSupp.Add('rule', Self.Suppressions[i].RulePattern);
+      if Self.Suppressions[i].PathPattern <> '' then
+        lSupp.Add('path', Self.Suppressions[i].PathPattern);
       lSupps.Add(lSupp);
     end;
     lRoot.Add('suppressions', lSupps);
@@ -1134,11 +1098,10 @@ begin
 end;
 
 
-function ConfigTemplateToJSON(const aConfig: TFpSonarConfig;
-  const aRules: array of TRuleMetadata): string;
+function TFpSonarConfig.TemplateToJSON(const aRules: array of TRuleMetadata): string;
 
 begin
-  Result := ConfigToJSON(aConfig, aRules, cemFull);
+  Result := Self.ToJSON(aRules, cemFull);
 end;
 
 

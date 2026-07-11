@@ -79,7 +79,7 @@ var
 
 begin
   // Only Info/Minor/Major issues; default gate (blocker/critical = 0, rest -1).
-  lOutcome := EvaluateGate(MakeIssues(3, 2, 4, 0, 0), DefaultConfig.Gate);
+  lOutcome := EvaluateGate(MakeIssues(3, 2, 4, 0, 0), TFpSonarConfig.Default.Gate);
   AssertFalse('gate passes under thresholds', lOutcome.Failed);
   AssertEquals('exit 0 on pass', 0, lOutcome.ExitCode);
 end;
@@ -92,7 +92,7 @@ var
 
 begin
   // 1 Critical with the default gate (maxCritical = 0) => fail.
-  lOutcome := EvaluateGate(MakeIssues(0, 0, 0, 1, 0), DefaultConfig.Gate);
+  lOutcome := EvaluateGate(MakeIssues(0, 0, 0, 1, 0), TFpSonarConfig.Default.Gate);
   AssertTrue('gate fails on a critical', lOutcome.Failed);
   AssertEquals('exit 1 on fail', 1, lOutcome.ExitCode);
   AssertTrue('reason mentions critical',

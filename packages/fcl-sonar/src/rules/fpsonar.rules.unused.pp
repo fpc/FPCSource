@@ -494,9 +494,9 @@ begin
   // No project context => we cannot resolve imported-unit interfaces
   if (aContext.ProjectIndex = nil) or (aContext.Module = nil) then
     Exit;
-  lFlagOperatorOnly := RuleParamBool(aContext.Config, FMetadata.RuleId,
+  lFlagOperatorOnly := aContext.Config.RuleParamBool(FMetadata.RuleId,
     cParamFlagOperatorOnly, False);
-  lFlagSideEffect := RuleParamBool(aContext.Config, FMetadata.RuleId,
+  lFlagSideEffect := aContext.Config.RuleParamBool(FMetadata.RuleId,
     cParamFlagSideEffect, False);
   lAnalyzer := MakeAnalyzer(aContext);
   try

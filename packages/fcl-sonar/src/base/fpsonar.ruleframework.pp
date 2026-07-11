@@ -138,7 +138,7 @@ type
       const aCollector: TFpSonarIssueCollector);
     // The metadata-completeness check over the wrapped registry.
     function ValidateRegistry: TFpSonarStringArray;
-    // The ruleset/fail policy. Defaults to DefaultConfig;
+    // The ruleset/fail policy. Defaults to TFpSonarConfig.Default;
     property Config: TFpSonarConfig read FConfig write FConfig;
     // The optional NOSONAR suppression map, caller-owned. Default Nil.
     property SuppressionMap: TFpSonarSuppressionMap
@@ -405,7 +405,7 @@ constructor TFpSonarRuleEngine.Create;
 begin
   inherited Create;
   FRegistry := RuleRegistry;
-  FConfig := DefaultConfig;
+  FConfig := TFpSonarConfig.Default;
 end;
 
 
@@ -413,7 +413,7 @@ constructor TFpSonarRuleEngine.CreateWith(aRegistry: TRuleRegistry);
 begin
   inherited Create;
   FRegistry := aRegistry;
-  FConfig := DefaultConfig;
+  FConfig := TFpSonarConfig.Default;
 end;
 
 
@@ -533,7 +533,7 @@ begin
       lRule := FRegistry.Rule(i);
       lMeta := lRule.Metadata;
       if (lMeta.Tier = lTier)
-        and RuleEnabled(FConfig, lMeta.RuleId, lMeta.DefaultEnabled)
+        and FConfig.RuleEnabled(lMeta.RuleId, lMeta.DefaultEnabled)
         and FeedAvailable(lMeta.Feed, lContext) then
         RunRule(lRule, lContext, aCollector);
     end;

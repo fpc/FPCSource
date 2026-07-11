@@ -189,7 +189,7 @@ var
   lPaths: TFpSonarStringArray;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -216,7 +216,7 @@ var
   lName, lModName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -252,7 +252,7 @@ var
   lName, lModName, lEnumName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -320,7 +320,7 @@ var
   lName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -357,7 +357,7 @@ var
   lName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -391,12 +391,12 @@ var
   lByName: boolean;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
     Exit;
-  lByName := RuleParamBool(aContext.Config, FMetadata.RuleId,
+  lByName := aContext.Config.RuleParamBool(FMetadata.RuleId,
     cMatchUnresolvedKey, False);
   if lByName then
   begin
@@ -448,7 +448,7 @@ var
   lName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -483,7 +483,7 @@ var
   lName, lModName: string;
   i, t: integer;
 begin
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if (aContext.Resolver = nil) or (not aContext.Resolver.Succeeded) then
@@ -522,7 +522,7 @@ var
   i, t: integer;
 begin
   // AST-tier: read declarations directly, emit at each alias's own line.
-  lTargets := RuleParamTargets(aContext.Config, FMetadata.RuleId, cTargetsKey);
+  lTargets := aContext.Config.RuleParamTargets(FMetadata.RuleId, cTargetsKey);
   if Length(lTargets) = 0 then
     Exit;
   if aContext.Module = nil then

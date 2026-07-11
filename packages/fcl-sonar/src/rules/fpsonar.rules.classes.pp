@@ -310,7 +310,7 @@ var
 begin
   if aContext.Module = nil then
     Exit;
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxClasses',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxClasses',
     cMaxClasses);
   lCount := 0;
   lTypes := EnumerateTypes(aContext.Module);

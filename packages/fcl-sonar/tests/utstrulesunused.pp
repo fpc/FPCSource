@@ -1286,7 +1286,7 @@ begin
   try
     lc := TFpSonarIssueCollector.Create;
     try
-      RunRuleWithIndex(NewRule(aId), aSubject, lIndex, DefaultConfig, lc);
+      RunRuleWithIndex(NewRule(aId), aSubject, lIndex, TFpSonarConfig.Default, lc);
       // Exactly one finding: the noncompliant candidate. The compliant (used)
       // and the collision-canary candidates in the same project stay silent.
       AssertEquals('one project-scope finding for ' + aId, 1, CountById(lc, aId));
@@ -1423,7 +1423,7 @@ var
 begin
   // With both opt-ins on, the operator-only and side-effect imports are no
   // longer skipped, so imp_operator + imp_sideeffect join imp_unused (3 findings).
-  lConfig := DefaultConfig;
+  lConfig := TFpSonarConfig.Default;
   lSetting.RuleId := cImportId;
   lSetting.HasEnabled := False;
   lSetting.Enabled := False;
@@ -1503,7 +1503,7 @@ begin
   lEngine := TFpSonarRuleEngine.CreateWith(lReg);
   try
     lReg.Register(aRule);
-    lConfig := DefaultConfig;
+    lConfig := TFpSonarConfig.Default;
     lConfig.UseTierResolution := aResolution;
     lEngine.Config := lConfig;
     // Analyze builds the resolver (synthetic engine) on parse success, so a

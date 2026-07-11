@@ -2601,9 +2601,7 @@ var
 begin
   // (a) BeginEndRequired: allowSingleStatement=true suppresses every finding the
   // default behaviour would emit on the noncompliant fixture.
-  AssertTrue('cfg (a) loads', LoadConfigFromJSON(
-    '{"rules":{"BeginEndRequired":{"params":{"allowSingleStatement":true}}}}',
-    lCfg, lErr));
+  AssertTrue('cfg (a) loads', lCfg.LoadFromJSON('{"rules":{"BeginEndRequired":{"params":{"allowSingleStatement":true}}}}', lErr));
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleCfgSrc(NewBeginEndRequired, 'noncompliant.pas', cBeginEndRequiredNoncompliant, lCfg, lc);
@@ -2615,9 +2613,7 @@ begin
 
   // (b) CyclomaticComplexity: a lowered maxComplexity flags the COMPLIANT fixture
   // (which the default limit of 10 leaves clean) — proving the threshold tunes.
-  AssertTrue('cfg (b) loads', LoadConfigFromJSON(
-    '{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":0}}}}',
-    lCfg, lErr));
+  AssertTrue('cfg (b) loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":0}}}}', lErr));
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleCfgSrc(NewCyclomatic, 'compliant.pas', cCyclomaticCompliant, lCfg, lc);

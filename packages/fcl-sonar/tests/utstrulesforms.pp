@@ -209,7 +209,7 @@ var
   lParam: TFpSonarRuleParam;
 
 begin
-  Result := DefaultConfig;
+  Result := TFpSonarConfig.Default;
   lSetting.RuleId := cLfmFormFileExistsId;
   lSetting.HasEnabled := False;
   lSetting.Enabled := True;
@@ -257,7 +257,7 @@ begin
     try
       // No sibling .lfm written => the rule fires.
       RunRuleCfg(NewLfmFormFileExists,
-        lFix.Add('noncompliant.pas', cLfmNoncompliant), DefaultConfig, lc);
+        lFix.Add('noncompliant.pas', cLfmNoncompliant), TFpSonarConfig.Default, lc);
       AssertEquals('one missing-lfm issue', 1, CountById(lc, cLfmFormFileExistsId));
       lIdx := FirstById(lc, cLfmFormFileExistsId);
       AssertEquals('start line', cFormClassLine, lc.Issues[lIdx].StartLine);
@@ -292,7 +292,7 @@ begin
     lFix.Add('compliant.lfm', cLfmCompliantLfm);
     lc := TFpSonarIssueCollector.Create;
     try
-      RunRuleCfg(NewLfmFormFileExists, lPas, DefaultConfig, lc);
+      RunRuleCfg(NewLfmFormFileExists, lPas, TFpSonarConfig.Default, lc);
       AssertEquals('no findings when .lfm present', 0,
         CountById(lc, cLfmFormFileExistsId));
     finally
@@ -318,7 +318,7 @@ begin
     lc := TFpSonarIssueCollector.Create;
     try
       RunRuleCfg(NewLfmFormFileExists,
-        lFix.Add('nonform.pas', cLfmNonform), DefaultConfig, lc);
+        lFix.Add('nonform.pas', cLfmNonform), TFpSonarConfig.Default, lc);
       AssertEquals('non-form unit not flagged', 0,
         CountById(lc, cLfmFormFileExistsId));
     finally
@@ -352,7 +352,7 @@ begin
     AssertEquals('configured base type matched', 1,
       CountById(lCfg, cLfmFormFileExistsId));
 
-    RunRuleCfg(NewLfmFormFileExists, lPas, DefaultConfig, lDef);
+    RunRuleCfg(NewLfmFormFileExists, lPas, TFpSonarConfig.Default, lDef);
     AssertEquals('default list does not match TMyBaseForm', 0,
       CountById(lDef, cLfmFormFileExistsId));
   finally

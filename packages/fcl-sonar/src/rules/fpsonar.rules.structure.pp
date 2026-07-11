@@ -856,7 +856,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lScore, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxComplexity',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxComplexity',
     cMaxCyclomatic);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -877,7 +877,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lScore, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxComplexity',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxComplexity',
     cMaxCognitive);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -898,7 +898,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lCount, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxStatements',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxStatements',
     cMaxStatements);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -919,7 +919,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lDepth, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxDepth',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxDepth',
     cMaxNestingDepth);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -940,7 +940,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lCount, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxNestedRoutines',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxNestedRoutines',
     cMaxNestedRoutines);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -961,7 +961,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lCount, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxParameters',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxParameters',
     cMaxParameters);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -982,7 +982,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lCount, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxVariables',
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxVariables',
     cMaxVariables);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -1003,7 +1003,7 @@ var
   lRoutines: TAstRoutineArray;
   i, lCount, lLimit: integer;
 begin
-  lLimit := RuleParamInt(aContext.Config, FMetadata.RuleId,
+  lLimit := aContext.Config.RuleParamInt(FMetadata.RuleId,
     'maxDefaultParameters', cMaxDefaultParameters);
   lRoutines := EnumerateRoutines(aContext.Module);
   for i := 0 to High(lRoutines) do
@@ -1035,7 +1035,7 @@ begin
   // The 'if cond then Exit;' idiom is settled via config, not a hardcoded
   // verdict. Default False = flag single-statement bodies;
   // allowSingleStatement=true exempts them entirely.
-  if RuleParamBool(aContext.Config, FMetadata.RuleId, 'allowSingleStatement',
+  if aContext.Config.RuleParamBool(FMetadata.RuleId, 'allowSingleStatement',
     False) then
     Exit;
   lStmts := AllStatements(aContext.Module);

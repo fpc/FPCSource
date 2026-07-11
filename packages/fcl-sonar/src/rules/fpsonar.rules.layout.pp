@@ -418,7 +418,7 @@ var
   i, lDisplay, lMax: integer;
   lLine: string;
 begin
-  lMax := RuleParamInt(aContext.Config, FMetadata.RuleId, 'maxLength',
+  lMax := aContext.Config.RuleParamInt(FMetadata.RuleId, 'maxLength',
     cMaxLength);
   for i := 0 to High(aContext.Lines) do
   begin
