@@ -116,7 +116,7 @@ uses
   Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
+  Classes, SysUtils, Types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -651,6 +651,7 @@ type
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
     function IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
     function FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;
+    function FindStyleSheetWithName(const aName: TCSSString; anOrigin: TCSSOrigin = cssoAuthor): TStyleSheet;
     function GetStyleSheetStamp(anOrigin: TCSSOrigin; const aName: TCSSString): integer; // -1 if no such sheet
     function GetDeclarationPath(DeclEl: TCSSDeclarationElement; out Path: TCSSDeclarationPath): boolean;
     function FindDeclaration(const Path: TCSSDeclarationPath): TCSSDeclarationElement;
@@ -4929,6 +4930,18 @@ var
   i: Integer;
 begin
   i:=IndexOfStyleSheetWithElement(El);
+  if i>=0 then
+    Result:=FStyleSheets[i]
+  else
+    Result:=nil;
+end;
+
+function TCSSResolver.FindStyleSheetWithName(const aName: TCSSString; anOrigin: TCSSOrigin
+  ): TStyleSheet;
+var
+  i: Integer;
+begin
+  i:=IndexOfStyleSheetWithName(anOrigin,aName);
   if i>=0 then
     Result:=FStyleSheets[i]
   else

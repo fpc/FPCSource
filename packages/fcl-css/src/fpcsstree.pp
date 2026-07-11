@@ -24,7 +24,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses System.Contnrs, System.RtlConsts, System.SysUtils, System.Classes, System.Math;
 {$ELSE FPC_DOTTEDUNITS}
-uses Contnrs, RtlConsts, SysUtils, Classes, Math;
+uses Contnrs, RTLConsts, SysUtils, Classes, Math;
 {$ENDIF FPC_DOTTEDUNITS}
 
 

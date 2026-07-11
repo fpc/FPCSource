@@ -26,10 +26,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.TypInfo, System.Classes, System.SysUtils, FPCSS.Tree, FPCSS.Scanner;
+  System.TypInfo, System.Classes, System.SysUtils, FpCss.Tree, FpCss.Scanner;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  TypInfo, Classes, SysUtils, fpcsstree, fpcssscanner;
+  TypInfo, Classes, SysUtils, fpCSSTree, fpCSSScanner;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type	
