@@ -17,6 +17,7 @@ unit FpSonar.CLI.Options;
 { argv -> AnalysisConfig translation for the analyze/baseline commands }
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -67,10 +68,9 @@ type
     SyntheticOnly: Boolean;
     // --ppu-cache <dir>: persistent ppudump-stub cache directory ('' = per-run temp only)
     PpuCacheDir: string;
+    // Parses argv (excluding argv[0]) into a TFpSonarCliOptions.
+    class function Parse(const aArgs: array of string): TFpSonarCliOptions; static;
   end;
-
-// Parses argv (excluding argv[0]) into a TFpSonarCliOptions.
-function ParseOptions(const aArgs: array of string): TFpSonarCliOptions;
 
 implementation
 
@@ -126,7 +126,7 @@ begin
 end;
 
 
-function ParseOptions(const aArgs: array of string): TFpSonarCliOptions;
+class function TFpSonarCliOptions.Parse(const aArgs: array of string): TFpSonarCliOptions;
 
 var
   lCli: TFpSonarAnalysisConfig;      // CLI-only overrides (managed fields auto-empty)

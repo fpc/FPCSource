@@ -116,7 +116,7 @@ type
     LParamError: string;
   begin
     Result := False;
-    LOpts := ParseOptions(CollectArgs);
+    LOpts := TFpSonarCliOptions.Parse(CollectArgs);
     // Usage error: report to stderr and exit 2 (NOT the quality-gate code).
     if LOpts.HadError then
     begin
