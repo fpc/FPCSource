@@ -17,6 +17,7 @@ unit FpSonar.FpcSource;
 { FPC source-tree config & path discovery. }
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -38,6 +39,19 @@ type
     IncludeDirTemplates: TFpSonarStringArray;
     // the FPC_HAS_FEATURE_* family to emit
     FeatureDefines: TFpSonarStringArray;
+    // Built-in default: SourceDir empty (discover); host TargetCPU/OS via the
+    // compile-time macros; layout templates + feature defines = the named
+    // constants below.
+    class function Default: TFpSonarFpcSourceConfig; static;
+    // The full RTL define set: EffectiveDefines (OS/CPU/FPC) + the
+    // FPC_HAS_FEATURE_* family + the implicit objpas marker, first-occurrence
+    // de-duplicated.
+    function RtlSourceDefines: TFpSonarStringArray;
+    // Assembles Self's paths + defines into aAnalysis. Returns True iff the
+    // source tree was located (paths populated); on failure returns False with
+    // empty paths + aDiag filled. Defines are still produced.
+    function BuildRtlSourceConfig(out aAnalysis: TFpSonarAnalysisConfig;
+      out aDiag: TFpSonarDiagnostic): boolean;
   end;
 
 const
@@ -97,11 +111,6 @@ const
     '/usr/local/lib/fpc/src'
     );
 
-{ Built-in default config: SourceDir empty (discover);
-  host TargetCPU/OS via the compile-time macros;
-  layout templates + feature defines = the named constants above. }
-function DefaultFpcSourceConfig: TFpSonarFpcSourceConfig;
-
 // True iff aRoot looks like an FPC source tree (rtl/inc/system.inc present).
 function IsFpcSourceTree(const aRoot: string): boolean;
 
@@ -118,19 +127,6 @@ procedure ExpandFpcSourceLayout(const aRoot, aOS, aCPU: string;
   const aUnitTemplates, aIncludeTemplates: TFpSonarStringArray;
   out aUnitPaths, aIncludePaths: TFpSonarStringArray);
 
-{ Produces the full RTL define set:
-  * EffectiveDefines (OS/CPU/FPC, reused from FpSonar.Types)
-  * the FPC_HAS_FEATURE_* family
-  * the implicit objpas marker
-  de-duplicated first-occurrence. }
-function RtlSourceDefines(const aConfig: TFpSonarFpcSourceConfig): TFpSonarStringArray;
-
-{ Assembles the paths + defines into a TFpSonarAnalysisConfig. Returns True iff
-  the source tree was located (paths populated); on failure returns False with
-  empty paths + aDiag filled. Defines are still produced. }
-function BuildRtlSourceConfig(const aConfig: TFpSonarFpcSourceConfig;
-  out aAnalysis: TFpSonarAnalysisConfig; out aDiag: TFpSonarDiagnostic): boolean;
-
 
 implementation
 
@@ -141,7 +137,7 @@ uses
   SysUtils;
 {$ENDIF}
 
-function DefaultFpcSourceConfig: TFpSonarFpcSourceConfig;
+class function TFpSonarFpcSourceConfig.Default: TFpSonarFpcSourceConfig;
 var
   i: integer;
 begin
@@ -313,7 +309,7 @@ begin
 end;
 
 
-function RtlSourceDefines(const aConfig: TFpSonarFpcSourceConfig): TFpSonarStringArray;
+function TFpSonarFpcSourceConfig.RtlSourceDefines: TFpSonarStringArray;
 var
   lAnalysis: TFpSonarAnalysisConfig;
   lBase, lFeatures: TFpSonarStringArray;
@@ -323,13 +319,13 @@ begin
   // 1. OS/CPU/FPC + user defines — reuse EffectiveDefines.
   // An unset TargetCPU/OS keeps the host default rather than clobbering it.
   lAnalysis := TFpSonarAnalysisConfig.Default;
-  lAnalysis.TargetCPU := NonEmptyStr(aConfig.TargetCPU, lAnalysis.TargetCPU);
-  lAnalysis.TargetOS := NonEmptyStr(aConfig.TargetOS, lAnalysis.TargetOS);
+  lAnalysis.TargetCPU := NonEmptyStr(TargetCPU, lAnalysis.TargetCPU);
+  lAnalysis.TargetOS := NonEmptyStr(TargetOS, lAnalysis.TargetOS);
   lBase := lAnalysis.EffectiveDefines;
   for i := 0 to High(lBase) do
     AddUnique(Result, lBase[i]);
   // 2. The FPC_HAS_FEATURE_* family .
-  lFeatures := NonEmptyOr(aConfig.FeatureDefines, cFpcFeatureDefines);
+  lFeatures := NonEmptyOr(FeatureDefines, cFpcFeatureDefines);
   for i := 0 to High(lFeatures) do
     AddUnique(Result, lFeatures[i]);
   // 3. The implicit objpas unit marker.
@@ -337,27 +333,27 @@ begin
 end;
 
 
-function BuildRtlSourceConfig(const aConfig: TFpSonarFpcSourceConfig;
+function TFpSonarFpcSourceConfig.BuildRtlSourceConfig(
   out aAnalysis: TFpSonarAnalysisConfig; out aDiag: TFpSonarDiagnostic): boolean;
 var
   lRoot: string;
 begin
   aAnalysis := TFpSonarAnalysisConfig.Default;
   // Non-empty override wins; an unset target keeps the host default.
-  aAnalysis.TargetCPU := NonEmptyStr(aConfig.TargetCPU, aAnalysis.TargetCPU);
-  aAnalysis.TargetOS := NonEmptyStr(aConfig.TargetOS, aAnalysis.TargetOS);
+  aAnalysis.TargetCPU := NonEmptyStr(TargetCPU, aAnalysis.TargetCPU);
+  aAnalysis.TargetOS := NonEmptyStr(TargetOS, aAnalysis.TargetOS);
   // Defines are produced regardless of whether the source tree is located.
-  aAnalysis.Defines := RtlSourceDefines(aConfig);
+  aAnalysis.Defines := RtlSourceDefines;
   SetLength(aAnalysis.UnitSearchPaths, 0);
   SetLength(aAnalysis.IncludePaths, 0);
-  lRoot := LocateFpcSourceDir(aConfig.SourceDir, aDiag);
+  lRoot := LocateFpcSourceDir(SourceDir, aDiag);
   Result := lRoot <> '';
   if not Result then
     Exit;
   // Empty template overrides fall back to the built-in constant defaults;
   ExpandFpcSourceLayout(lRoot, aAnalysis.TargetOS, aAnalysis.TargetCPU,
-    NonEmptyOr(aConfig.UnitDirTemplates, cFpcUnitDirTemplates),
-    NonEmptyOr(aConfig.IncludeDirTemplates, cFpcIncludeDirTemplates),
+    NonEmptyOr(UnitDirTemplates, cFpcUnitDirTemplates),
+    NonEmptyOr(IncludeDirTemplates, cFpcIncludeDirTemplates),
     aAnalysis.UnitSearchPaths, aAnalysis.IncludePaths);
 end;
 

@@ -190,7 +190,7 @@ var
   lUnits, lIncludes: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   ExpandFpcSourceLayout(FRoot, 'linux', 'x86_64',
     lCfg.UnitDirTemplates, lCfg.IncludeDirTemplates, lUnits, lIncludes);
 
@@ -218,7 +218,7 @@ var
   lUnits, lIncludes: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   // Target arm: rtl/arm and rtl/linux/arm do NOT exist in the synthetic tree, so
   // the per-CPU dirs are omitted (NEVER fabricated).
   ExpandFpcSourceLayout(FRoot, 'linux', 'arm',
@@ -238,7 +238,7 @@ var
   lUnits, lIncludes: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   ExpandFpcSourceLayout('', 'linux', 'x86_64',
     lCfg.UnitDirTemplates, lCfg.IncludeDirTemplates, lUnits, lIncludes);
   AssertEquals('empty root => no unit dirs', 0, Length(lUnits));
@@ -253,10 +253,10 @@ var
   lDefs: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
-  lDefs := RtlSourceDefines(lCfg);
+  lDefs := lCfg.RtlSourceDefines;
   // From EffectiveDefines (reused, not re-derived):
   AssertContains('FPC define', 'FPC', lDefs);
   AssertContains('CPU define', 'CPUX86_64', lDefs);
@@ -278,8 +278,8 @@ var
 
 begin
   // An unconfigured run is byte-identical to the built-in constant default.
-  lCfg := DefaultFpcSourceConfig;
-  lDefs := RtlSourceDefines(lCfg);
+  lCfg := TFpSonarFpcSourceConfig.Default;
+  lDefs := lCfg.RtlSourceDefines;
   for i := Low(cFpcFeatureDefines) to High(cFpcFeatureDefines) do
     AssertContains('default carries built-in feature constant',
       cFpcFeatureDefines[i], lDefs);
@@ -295,12 +295,12 @@ var
   lDefs: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
   SetLength(lCfg.FeatureDefines, 1);
   lCfg.FeatureDefines[0] := 'FPC_HAS_FEATURE_HEAP';
-  lDefs := RtlSourceDefines(lCfg);
+  lDefs := lCfg.RtlSourceDefines;
   // Override replaces the family: only the one feature survives.
   AssertContains('override feature present', 'FPC_HAS_FEATURE_HEAP', lDefs);
   AssertNotContains('non-overridden feature absent',
@@ -321,11 +321,11 @@ var
 begin
   // An EMPTY feature-override array means "use the built-in constant
   // default", NOT "emit no feature defines" (the record's documented seam).
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
   SetLength(lCfg.FeatureDefines, 0);
-  lDefs := RtlSourceDefines(lCfg);
+  lDefs := lCfg.RtlSourceDefines;
   for i := Low(cFpcFeatureDefines) to High(cFpcFeatureDefines) do
     AssertContains('empty feature override falls back to constant',
       cFpcFeatureDefines[i], lDefs);
@@ -342,11 +342,11 @@ var
 begin
   // An unset TargetCPU/OS keeps the host default rather than clobbering it: the
   // define set is element-identical to the fully-defaulted (host) config's.
-  lDefault := RtlSourceDefines(DefaultFpcSourceConfig);
-  lCfg := DefaultFpcSourceConfig;
+  lDefault := TFpSonarFpcSourceConfig.Default.RtlSourceDefines;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := '';
   lCfg.TargetOS := '';
-  lEmpty := RtlSourceDefines(lCfg);
+  lEmpty := lCfg.RtlSourceDefines;
   AssertArray('empty target == host-defaulted target', lDefault, lEmpty);
 end;
 
@@ -361,14 +361,14 @@ var
 begin
   // Empty template overrides fall back to the built-in constants in the assembly
   // entry point, so the full golden layout is still produced.
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.SourceDir := FRoot;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
   SetLength(lCfg.UnitDirTemplates, 0);
   SetLength(lCfg.IncludeDirTemplates, 0);
   AssertTrue('located the valid tree',
-    BuildRtlSourceConfig(lCfg, lAnalysis, lDiag));
+    lCfg.BuildRtlSourceConfig(lAnalysis, lDiag));
   AssertEquals('empty unit templates fall back to built-in',
     4, Length(lAnalysis.UnitSearchPaths));
   AssertEquals('empty include templates fall back to built-in',
@@ -385,7 +385,7 @@ var
   lUnits, lIncludes: TFpSonarStringArray;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   // Override the unit templates to a single existing dir.
   SetLength(lCfg.UnitDirTemplates, 1);
   lCfg.UnitDirTemplates[0] := 'rtl/objpas';
@@ -420,12 +420,12 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.SourceDir := FRoot;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
   AssertTrue('located the valid tree',
-    BuildRtlSourceConfig(lCfg, lAnalysis, lDiag));
+    lCfg.BuildRtlSourceConfig(lAnalysis, lDiag));
   AssertEquals('TargetCPU carried', 'x86_64', lAnalysis.TargetCPU);
   AssertEquals('TargetOS carried', 'linux', lAnalysis.TargetOS);
   AssertEquals('unit search paths populated', 4, Length(lAnalysis.UnitSearchPaths));
@@ -444,12 +444,12 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.SourceDir := IncludeTrailingPathDelimiter(GetTempDir) + 'fpsonar_absent_qq';
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
   AssertFalse('missing tree => not located',
-    BuildRtlSourceConfig(lCfg, lAnalysis, lDiag));
+    lCfg.BuildRtlSourceConfig(lAnalysis, lDiag));
   AssertEquals('no unit paths fabricated', 0, Length(lAnalysis.UnitSearchPaths));
   AssertEquals('no include paths fabricated', 0, Length(lAnalysis.IncludePaths));
   AssertTrue('diagnostic message set', lDiag.Message <> '');
@@ -467,11 +467,11 @@ var
   i: Integer;
 
 begin
-  lCfg := DefaultFpcSourceConfig;
+  lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
-  lA := RtlSourceDefines(lCfg);
-  lB := RtlSourceDefines(lCfg);
+  lA := lCfg.RtlSourceDefines;
+  lB := lCfg.RtlSourceDefines;
   AssertEquals('defines same length across runs', Length(lA), Length(lB));
   for i := 0 to High(lA) do
     AssertEquals('same define at ' + IntToStr(i), lA[i], lB[i]);

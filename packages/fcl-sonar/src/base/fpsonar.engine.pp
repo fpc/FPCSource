@@ -256,12 +256,12 @@ begin
         Defines are produced even when the source tree is not located
         => a missing tree simply degrades to the synthetic fallback per RTL chain name, inside the resolver.
         }
-    lFpcCfg := DefaultFpcSourceConfig;
+    lFpcCfg := TFpSonarFpcSourceConfig.Default;
     if aConfig.TargetCPU <> '' then
       lFpcCfg.TargetCPU := aConfig.TargetCPU;
     if aConfig.TargetOS <> '' then
       lFpcCfg.TargetOS := aConfig.TargetOS;
-    BuildRtlSourceConfig(lFpcCfg, lRtl, lDiag);
+    lFpcCfg.BuildRtlSourceConfig(lRtl, lDiag);
     // Merge the paths + defines only
     lRtl.Mode := '';
     lRtl.TargetCPU := '';
