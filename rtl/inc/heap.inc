@@ -174,6 +174,13 @@ type
   {$define HEAP_INC_USE_SETS} { Potentially better codegen than “or 1 shl” etc. (at least on x86). Can be adapted for big endian, too, but I have no such platform to test. }
 {$endif ENDIAN_LITTLE}
 
+{ Manually optimize away barriers. }
+{$if defined(CPUI386) or defined(CPUX86_64)}
+  {$define HEAP_INC_ATOMICS_GENERATE_BARRIERS} { On x86 and x86-64, atomic operations automatically generate barriers. }
+{$endif}
+
+{$define HEAP_INC_CPU_GENERATES_DEPENDENCY_BARRIERS} { The only CPU in existence where ReadDependencyBarrier is not a no-op is DEC Alpha unsupported by FPC. }
+
   HeapInc = object
   const
     { Alignment requirement for blocks. All fixed sizes (among other things) are assumed to be divisible. }
@@ -1684,7 +1691,7 @@ type
     repeat
       nx := incomingToFree;
       last^.next := nx;
-      WriteBarrier; { Write first after last^.next. }
+    {$ifndef HEAP_INC_ATOMICS_GENERATE_BARRIERS} WriteBarrier; {$endif} { Write first after last^.next. }
     until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (incomingToFree, first, nx) = nx;
   end;
 
@@ -1700,7 +1707,7 @@ type
   begin
     while Assigned(tf) do
     begin
-      ReadDependencyBarrier; { Read tf^.next after tf. }
+    {$ifndef HEAP_INC_CPU_GENERATES_DEPENDENCY_BARRIERS} ReadDependencyBarrier; {$endif} { Read tf^.next after tf. }
       nx := tf^.next;
       { To-free chunk can’t be huge.
         Careful: when orphaning from DoneHeapProcessWide, this function is assumed to work from another thread, so SysFreeMem can’t be used as it works with thisTs.
