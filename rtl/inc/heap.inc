@@ -1809,6 +1809,8 @@ type
     end;
     varOS := nil;
     gs.varFree.Consume(varFree);
+    // Empty so we don't accidentally re-use while doing teardown of thread. 
+    FillChar(partialArenas,SizeOf(partialArenas),0);
     if gs.lockUse <> 0 then
       LeaveCriticalSection(gs.lock);
 
