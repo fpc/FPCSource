@@ -295,7 +295,7 @@ type
 
      { get a start label for an internal data section (at the start of a
        potentially dead-strippable part) }
-     function get_internal_data_section_start_label: tasmlabel; virtual;
+     function get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel; virtual;
      { get a label in the middle of an internal data section (no dead
        stripping) }
      function get_internal_data_section_internal_label: tasmlabel; virtual;
@@ -922,17 +922,17 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_internal_data_section_start_label: tasmlabel;
+   function ttai_typedconstbuilder.get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel;
      begin
        { on Darwin, dead code/data stripping happens based on non-temporary
          labels (any label that doesn't start with "L" -- it doesn't have
          to be global) }
        if compiler.target.info.system in systems_darwin then
-         current_asmdata.getstaticdatalabel(result)
+         AsmData.getstaticdatalabel(result)
        else if compiler.globals.create_smartlink_library then
-         current_asmdata.getglobaldatalabel(result)
+         AsmData.getglobaldatalabel(result)
        else
-         current_asmdata.getlocaldatalabel(result);
+         AsmData.getlocaldatalabel(result);
      end;
 
 
@@ -1336,7 +1336,7 @@ implementation
                  doesn't have to be global) -> add a non-temporary lobel at the
                  start of every kind of subsection created in this builder }
                if compiler.target.info.system in systems_darwin then
-                 l:=get_internal_data_section_start_label;
+                 l:=get_internal_data_section_start_label(list.AsmData);
              end;
            foundsec:=length(finternal_data_section_info);
            setlength(finternal_data_section_info,foundsec+1);
@@ -1345,7 +1345,7 @@ implementation
        if not assigned(finternal_data_asmlist) and
           (cs_create_smart in compiler.globals.current_settings.moduleswitches) then
          begin
-           l:=get_internal_data_section_start_label;
+           l:=get_internal_data_section_start_label(list.AsmData);
            { the internal data list should only be assigned by this routine,
              the first time that an internal data block is started }
            if not assigned(list) or
