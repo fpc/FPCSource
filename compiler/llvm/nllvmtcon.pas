@@ -27,7 +27,7 @@ interface
 
   uses
     cclasses,constexp,globtype,systems,
-    aasmbase,aasmtai,aasmcnst,aasmllvm,
+    aasmbase,aasmdata,aasmtai,aasmcnst,aasmllvm,
     symconst,symbase,symtype,symdef,symsym,
     ngtcon,
     compilerbase;
@@ -90,7 +90,7 @@ interface
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
 
-      function get_internal_data_section_start_label: tasmlabel; override;
+      function get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel; override;
       function get_internal_data_section_internal_label: tasmlabel; override;
 
       procedure do_emit_extended_in_aggregate(p: tai);
@@ -131,7 +131,6 @@ implementation
 
   uses
     verbose,fmodule,globals,
-    aasmdata,
     procinfo,
     cpubase,cpuinfo,llvmbase,llvminfo,
     symtable,llvmdef,defutil,defcmp,
@@ -562,11 +561,11 @@ implementation
     end;
 
 
-  function tllvmtai_typedconstbuilder.get_internal_data_section_start_label: tasmlabel;
+  function tllvmtai_typedconstbuilder.get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel;
     begin
       { let llvm take care of everything by creating internal nameless
         constants }
-      current_asmdata.getlocaldatalabel(result);
+      AsmData.getlocaldatalabel(result);
     end;
 
 
