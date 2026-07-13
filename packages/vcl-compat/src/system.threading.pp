@@ -1442,12 +1442,17 @@ end;
 
 function TWorkStealingQueue.GetCount: Integer;
 begin
-  Result:=FItems.Count;
+  Lock;
+  try
+    Result:=FItems.Count;
+  finally
+    UnLock;
+  end;
 end;
 
 function TWorkStealingQueue.GetIsEmpty: Boolean;
 begin
-  Result:=FItems.Count=0;
+  Result:=GetCount=0;
 end;
 
 procedure TWorkStealingQueue.Lock;
@@ -1458,7 +1463,8 @@ begin
   except
     on E : Exception do
 	  begin
-      {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);{$ENDIF USE_THREADLOG}
+          {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);{$ENDIF USE_THREADLOG}
+          Raise;
 	  end;
   end;
   {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','Leave %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
@@ -2593,7 +2599,25 @@ end;
 
 destructor TThreadPool.TQueueWorkerThread.Destroy;
 begin
-  FreeAndNil(FWorkQueue);
+  if Assigned(ThreadPool) and Assigned(ThreadPool.FQueues) then
+    begin
+    // Make sure the queue is no longer published to stealers, even if an
+    // exceptional exit path skipped UnRegisterWorkerThread (no-op otherwise).
+    ThreadPool.FQueues.Remove(FWorkQueue);
+    // Serialize the destruction with the steal loop: GetWorkItemFromQueues
+    // captures queue references from FQueues.Current and uses them while
+    // holding FQueues' lock. Taking the same lock here guarantees no stealer
+    // is left operating on a freed queue (whose internal critical section
+    // and event are freed with it).
+    ThreadPool.FQueues.Lock;
+    try
+      FreeAndNil(FWorkQueue);
+    finally
+      ThreadPool.FQueues.Unlock;
+    end;
+    end
+  else
+    FreeAndNil(FWorkQueue);
   inherited Destroy;
 end;
 
