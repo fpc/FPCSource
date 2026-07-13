@@ -298,7 +298,7 @@ type
      function get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel; virtual;
      { get a label in the middle of an internal data section (no dead
        stripping) }
-     function get_internal_data_section_internal_label: tasmlabel; virtual;
+     function get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel; virtual;
      { adds a new entry to compiler.current_module.linkorderedsymbols }
      procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); virtual;
 
@@ -936,14 +936,14 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_internal_data_section_internal_label: tasmlabel;
+   function ttai_typedconstbuilder.get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel;
      begin
        if compiler.globals.create_smartlink_library then
          { all labels need to be global in case they're in another object }
-         current_asmdata.getglobaldatalabel(result)
+         AsmData.getglobaldatalabel(result)
        else
          { no special requirement for the label -> just get a local one }
-         current_asmdata.getlocaldatalabel(result);
+         AsmData.getlocaldatalabel(result);
      end;
 
 
@@ -1363,7 +1363,7 @@ implementation
          internalerror(2015032102);
        finternal_data_asmlist:=list;
        if not assigned(l) then
-         l:=get_internal_data_section_internal_label;
+         l:=get_internal_data_section_internal_label(list.AsmData);
        { first section of this kind -> set name }
        if finternal_data_section_info[foundsec].secname='' then
          if secname='' then
