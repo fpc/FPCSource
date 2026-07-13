@@ -273,7 +273,7 @@ type
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
-     procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     procedure finalize_asmlist_add_indirect_sym(AsmData: TAsmData; sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      { prepare finalization (common for the default and overridden versions }
      procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
 
@@ -1057,7 +1057,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(AsmData: TAsmData; sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        ptrdef : tdef;
        symind : tasmsymbol;
@@ -1069,7 +1069,7 @@ implementation
           (sym.typ=AT_DATA) then
          begin
            ptrdef:=cpointerdef.getreusable(def,compiler);
-           symind:=current_asmdata.DefineAsmSymbol(sym.name,AB_INDIRECT,AT_DATA,ptrdef);
+           symind:=AsmData.DefineAsmSymbol(sym.name,AB_INDIRECT,AT_DATA,ptrdef);
            { reuse the section if possible }
            if section=sec_rodata then
              indsecname:=secname
@@ -1077,7 +1077,7 @@ implementation
              indsecname:=lower(symind.name);
            indtcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
            indtcb.emit_tai(tai_const.create_sym_offset(sym,0),ptrdef);
-           current_asmdata.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
+           AsmData.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
              symind,
              ptrdef,
              sec_rodata,
@@ -1172,7 +1172,7 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(asmsym,sym,def,section,secname,alignment,foptions);
-           finalize_asmlist_add_indirect_sym(asmsym,def,section,secname,alignment,foptions);
+           finalize_asmlist_add_indirect_sym(fasmlist.AsmData,asmsym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
