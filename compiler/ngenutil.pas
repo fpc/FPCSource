@@ -970,7 +970,7 @@ implementation
           list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef,_typ));
         end
       else
-        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef,_typ));
+        list.concat(Tai_datablock.create_hidden(list.AsmData,sym.mangledname,size,sym.vardef,_typ));
     end;
 
 

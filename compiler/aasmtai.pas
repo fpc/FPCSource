@@ -718,7 +718,7 @@ interface
           sym       : tasmsymbol;
           size      : asizeint;
           constructor Create(AsmData: TAsmData; const _name: string; _size: asizeint; def: tdef; _typ: Tasmsymtype);
-          constructor Create_hidden(const _name: string; _size: asizeint; def: tdef; _typ: Tasmsymtype);
+          constructor Create_hidden(AsmData: TAsmData; const _name: string; _size: asizeint; def: tdef; _typ: Tasmsymtype);
           constructor Create_global(const _name: string; _size: asizeint; def: tdef; _typ: Tasmsymtype);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1424,7 +1424,7 @@ implementation
          is_global:=false;
       end;
 
-    constructor tai_datablock.Create_hidden(const _name: string; _size: asizeint; def: tdef; _typ:Tasmsymtype);
+    constructor tai_datablock.Create_hidden(AsmData: TAsmData; const _name: string; _size: asizeint; def: tdef; _typ:Tasmsymtype);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1432,7 +1432,7 @@ implementation
           begin
             inherited Create;
             typ:=ait_datablock;
-            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_typ,def);
+            sym:=AsmData.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_typ,def);
             { keep things aligned }
             if _size<=0 then
               _size:=sizeof(aint);
