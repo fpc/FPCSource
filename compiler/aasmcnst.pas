@@ -341,7 +341,7 @@ type
        the anonymous record, and insert the alignment once it's finished }
      procedure mark_anon_aggregate_alignment; virtual; abstract;
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
-     class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
     public
      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean; virtual;
      { get the start/end symbol for a dead stripable vectorized section, such
@@ -1581,7 +1581,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
      var
        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
@@ -1598,13 +1598,13 @@ implementation
              asmtype:=AT_DATA_FORCEINDIRECT
            else
              asmtype:=AT_DATA;
-           result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,asmtype,_compiler.deftypes.voidpointertype);
+           result:=AsmData.DefineAsmSymbol(name,AB_GLOBAL,asmtype,_compiler.deftypes.voidpointertype);
            if tcdssso_register_asmsym in options then
              _compiler.current_module.add_public_asmsym(result);
          end
        else
          begin
-           result:=current_asmdata.RefAsmSymbol(name,AT_DATA,tcdssso_use_indirect in options);
+           result:=AsmData.RefAsmSymbol(name,AT_DATA,tcdssso_use_indirect in options);
            if tcdssso_register_asmsym in options then
              _compiler.current_module.add_extern_asmsym(result);
          end;
@@ -1619,13 +1619,13 @@ implementation
 
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
      begin
-       result:=get_vectorized_dead_strip_section_symbol(basename,st,options,true);
+       result:=get_vectorized_dead_strip_section_symbol(current_asmdata,basename,st,options,true);
      end;
 
 
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
      begin
-       result:=get_vectorized_dead_strip_section_symbol(basename,st,options,false);
+       result:=get_vectorized_dead_strip_section_symbol(current_asmdata,basename,st,options,false);
      end;
 
 
