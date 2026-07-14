@@ -967,7 +967,7 @@ implementation
               list.concat(tai_symbol.Create(list.AsmData.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
               list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
-          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef,_typ));
+          list.concat(Tai_datablock.create_global(list.AsmData,sym.mangledname,size,sym.vardef,_typ));
         end
       else
         list.concat(Tai_datablock.create_hidden(list.AsmData,sym.mangledname,size,sym.vardef,_typ));
@@ -1694,8 +1694,8 @@ implementation
             is separate in the builder }
           maybe_new_object_file(AsmData.asmlists[al_globals]);
           new_section(AsmData.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',compiler.globals.current_settings.alignment.varalignmax);
-          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
-          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(compiler.deftypes.u8inttype,1,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global(AsmData,'__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global(AsmData,'__fpc_stackarea_end',1,carraydef.getreusable(compiler.deftypes.u8inttype,1,compiler),AT_DATA));
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1737,7 +1737,7 @@ implementation
             is separate in the builder }
           maybe_new_object_file(AsmData.asmlists[al_globals]);
           new_section(AsmData.asmlists[al_globals],sec_bss,'__fpc_initialheap',compiler.globals.current_settings.alignment.varalignmax);
-          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create_global(AsmData,'__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }
