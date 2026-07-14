@@ -1584,7 +1584,7 @@ implementation
           if mf_has_resourcestrings in hp.moduleflags then
             begin
               tcb.emit_tai(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(AsmData,'RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
                 compiler.deftypes.voidpointertype
               );
               tcb.emit_tai(Tai_const.Create_sym(
