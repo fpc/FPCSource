@@ -274,7 +274,7 @@ implementation
       if mf_has_resourcestrings in u.moduleflags then
         begin
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(current_asmdata,'RESSTR',u.localsymtable,[]).name);
-          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',u.localsymtable,[]).name);
+          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(current_asmdata,'RESSTR',u.localsymtable,[]).name);
         end;
 
       if not (compiler.target.info.system in systems_indirect_var_imports) then

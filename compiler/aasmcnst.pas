@@ -347,7 +347,7 @@ type
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
      class function get_vectorized_dead_strip_section_symbol_start(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
-     class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_end(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      { returns true if smartlinking of the dead stripable vectorized lists is supported }
      class function is_smartlink_vectorized_dead_strip(target: TReadOnlyCompilerTarget): boolean; virtual;
 
@@ -1129,7 +1129,7 @@ implementation
            { the start and end names are predefined }
            if itemname<>'' then
              internalerror(2015110802);
-           asmsym:=get_vectorized_dead_strip_section_symbol_end(basename,st,dsopts);
+           asmsym:=get_vectorized_dead_strip_section_symbol_end(AsmData,basename,st,dsopts);
            if not customsecname then
              secname:=make_mangledname(basename,st,'3_END');
          end
@@ -1623,9 +1623,9 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
      begin
-       result:=get_vectorized_dead_strip_section_symbol(current_asmdata,basename,st,options,false);
+       result:=get_vectorized_dead_strip_section_symbol(AsmData,basename,st,options,false);
      end;
 
 
