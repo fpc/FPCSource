@@ -1346,7 +1346,7 @@ unit raatt;
                Consume(AS_ID);
                Consume(AS_COMMA);
                symofs:=BuildConstExpression(false,false);
-               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(compiler.deftypes.u8inttype,symofs,compiler),AT_DATA));
+               curList.concat(Tai_datablock.Create(AsmData,commname,symofs,carraydef.getreusable(compiler.deftypes.u8inttype,symofs,compiler),AT_DATA));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;

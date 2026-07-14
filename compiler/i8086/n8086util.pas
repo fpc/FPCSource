@@ -77,7 +77,7 @@ implementation
       while stacksizeleft>0 do
         begin
           stackblock:=min(stacksizeleft,high(aint));
-          AsmData.asmlists[al_globals].concat(tai_datablock.Create('___stackblock'+IntToStr(i),stackblock,carraydef.getreusable(compiler.deftypes.u8inttype,stackblock,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create(AsmData,'___stackblock'+IntToStr(i),stackblock,carraydef.getreusable(compiler.deftypes.u8inttype,stackblock,compiler),AT_DATA));
           dec(stacksizeleft,stackblock);
           inc(i);
         end;
@@ -102,7 +102,7 @@ implementation
       while heapsizeleft>0 do
         begin
           heapblock:=min(heapsizeleft,high(aint));
-          AsmData.asmlists[al_globals].concat(tai_datablock.Create('___heapblock'+IntToStr(i),heapblock,carraydef.getreusable(compiler.deftypes.u8inttype,heapblock,compiler),AT_DATA));
+          AsmData.asmlists[al_globals].concat(tai_datablock.Create(AsmData,'___heapblock'+IntToStr(i),heapblock,carraydef.getreusable(compiler.deftypes.u8inttype,heapblock,compiler),AT_DATA));
           dec(heapsizeleft,heapblock);
           inc(i);
         end;
