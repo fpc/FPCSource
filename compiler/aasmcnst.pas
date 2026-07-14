@@ -278,7 +278,7 @@ type
      procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
 
      { functionality of the above for vectorized dead strippable sections }
-     procedure finalize_vectorized_dead_strip_asmlist(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
+     procedure finalize_vectorized_dead_strip_asmlist(AsmData: TAsmData; sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
      { called by the public emit_tai() routines to actually add the typed
        constant data; the public ones also take care of adding extra padding
@@ -1094,7 +1094,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(AsmData: TAsmData; sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
      var
        asmsym: tasmsymbol;
        secname: TSymStr;
@@ -1139,7 +1139,7 @@ implementation
              asmtype:=AT_DATA_FORCEINDIRECT
            else
              asmtype:=AT_DATA;
-           asmsym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,asmtype,def);
+           asmsym:=AsmData.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,asmtype,def);
            if tcalo_is_public_asm in options then
              compiler.current_module.add_public_asmsym(asmsym);
            if not customsecname then
@@ -1190,7 +1190,7 @@ implementation
      begin
        if not fasmlist_finalized then
          begin
-           finalize_vectorized_dead_strip_asmlist(sym,def,basename,itemname,st,alignment,foptions);
+           finalize_vectorized_dead_strip_asmlist(fasmlist.AsmData,sym,def,basename,itemname,st,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
