@@ -224,7 +224,7 @@ implementation
     if make_global then
       List.concat(Tai_symbol.Createname_global(list.AsmData, labelname, AT_FUNCTION, 0, procdef))
     else
-      List.concat(Tai_symbol.Createname_hidden(labelname, AT_FUNCTION, 0, procdef));
+      List.concat(Tai_symbol.Createname_hidden(list.AsmData, labelname, AT_FUNCTION, 0, procdef));
 
     IsVirtual:=(po_virtualmethod in procdef.procoptions) and
         not is_objectpascal_helper(procdef.struct);

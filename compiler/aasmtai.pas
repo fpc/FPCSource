@@ -637,7 +637,7 @@ interface
           constructor Create_Weak(_sym:tasmsymbol;siz:longint);
           constructor Createname(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
-          constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
+          constructor Createname_hidden(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global_value(const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1544,7 +1544,7 @@ implementation
          is_global:=true;
       end;
 
-    constructor tai_symbol.Createname_hidden(const _name: string; _symtyp: Tasmsymtype; siz: longint; def: tdef);
+    constructor tai_symbol.Createname_hidden(AsmData: TAsmData; const _name: string; _symtyp: Tasmsymtype; siz: longint; def: tdef);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -1552,12 +1552,12 @@ implementation
           begin
             inherited Create;
             typ:=ait_symbol;
-            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_symtyp,def);
+            sym:=AsmData.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_symtyp,def);
             size:=siz;
             is_global:=true;
           end
         else
-          Createname_global(current_asmdata,_name, _symtyp, siz, def);
+          Createname_global(AsmData,_name, _symtyp, siz, def);
       end;
 
 
