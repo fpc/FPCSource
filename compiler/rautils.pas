@@ -1914,14 +1914,14 @@ end;
 {$ifdef i8086}
     { 'DW xx' as well as 'DW OFFSET xx' are just near pointers }
     if constsize=2 then
-      p.concat(Tai_const.Createname_near(sym,l))
+      p.concat(Tai_const.Createname_near(p.AsmData,sym,l))
     else if constsize=4 then
       begin
         if isofs then
           begin
             { 'DD OFFSET xx' is a 32-bit offset; since we don't produce 32-bit
               relocations yet, just do a 16-bit one and set the high word to 0 }
-            p.concat(Tai_const.Createname_near(sym,l));
+            p.concat(Tai_const.Createname_near(p.AsmData,sym,l));
             p.concat(Tai_const.Create_16bit(0));
           end
         else
