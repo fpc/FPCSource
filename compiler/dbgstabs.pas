@@ -1876,7 +1876,7 @@ implementation
       end;
 
 
-        procedure TDebugInfoStabs.referencesections(list: TAsmList);
+    procedure TDebugInfoStabs.referencesections(list: TAsmList);
       var
         hp : tmodule;
         dbgtable : tai_symbol;
