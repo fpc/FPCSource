@@ -775,7 +775,7 @@ interface
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:asizeint);
           constructor Createname_rel(const name, endname: string);
-          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+          constructor Createname(AsmData: TAsmData; const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;symclass: TAsmSymbolClass;_symtyp:Tasmsymtype;ofs:asizeint);
@@ -1891,14 +1891,14 @@ implementation
 
     constructor tai_const.Createname_near(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
-        self.Createname(name,_symtyp,ofs);
+        self.Createname(current_asmdata,name,_symtyp,ofs);
         consttype:=aitconst_ptr;
       end;
 
 
     constructor tai_const.Createname_far(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
-        self.Createname(name,_symtyp,ofs);
+        self.Createname(current_asmdata,name,_symtyp,ofs);
         consttype:=aitconst_farptr;
       end;
 {$endif i8086}
@@ -1991,13 +1991,13 @@ implementation
 
     constructor tai_const.Createname(const name:string;ofs:asizeint);
       begin
-         self.Createname(name,AT_NONE,ofs);
+         self.Createname(current_asmdata,name,AT_NONE,ofs);
       end;
 
 
-    constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+    constructor tai_const.Createname(AsmData: TAsmData; const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
-         self.create_sym_offset(current_asmdata.RefAsmSymbol(name,_symtyp),ofs);
+         self.create_sym_offset(AsmData.RefAsmSymbol(name,_symtyp),ofs);
       end;
 
 

@@ -783,7 +783,7 @@ implementation
                 pd:=tprocdef(AImplIntf.procdefs[i]);
                 hs:=CreateWrapperName(_Class,AImplIntf,i,pd);
                 { create reference }
-                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
+                datatcb.emit_tai(Tai_const.Createname(current_asmdata,hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
               end;
            end
         else
@@ -1048,7 +1048,7 @@ implementation
                if compiler.current_module.moduleid<>vmtpd.owner.moduleid then
                  compiler.current_module.addimportedsym(vmtpd.procsym);
              end;
-           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd,pc_address_only,compiler));
+           tcb.emit_tai(Tai_const.Createname(current_asmdata,procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd,pc_address_only,compiler));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));

@@ -1060,6 +1060,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   // TODO correct type?
                   ftcb.emit_tai(Tai_const.createname(
+                    current_asmdata,
                     tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0),
                     compiler.deftypes.voidpointertype);
                 end
@@ -1952,7 +1953,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      (def.vmt_offset<fieldoffset) then
                     begin
                       ftcb.next_field:=tfieldvarsym(def.vmt_field);
-                      ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+                      ftcb.emit_tai(tai_const.createname(current_asmdata,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
                       objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
                       vmtwritten:=true;
                     end;
@@ -1978,7 +1979,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (def.vmt_offset>=objoffset) then
           begin
             ftcb.next_field:=tfieldvarsym(def.vmt_field);
-            ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+            ftcb.emit_tai(tai_const.createname(current_asmdata,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
             objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
           end;
         ftcb.maybe_end_aggregate(def);

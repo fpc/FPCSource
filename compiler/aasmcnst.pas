@@ -1906,7 +1906,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
+       emit_tai(Tai_const.Createname(current_asmdata,pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
      end;
 
 
@@ -2206,7 +2206,7 @@ implementation
      begin
        { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef,compiler));
+       emit_tai(Tai_const.Createname(current_asmdata,vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef,compiler));
        fqueue_offset:=low(fqueue_offset);
      end;
 

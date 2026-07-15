@@ -1721,7 +1721,7 @@ implementation
                   if procdef = nil then
                     internalerror(201603021)
                   else
-                    tcb.emit_tai(Tai_const.Createname(procdef.mangledname,AT_FUNCTION,0),
+                    tcb.emit_tai(Tai_const.Createname(current_asmdata,procdef.mangledname,AT_FUNCTION,0),
                       cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler));
                 end;
             end;
@@ -1789,7 +1789,7 @@ implementation
                else
                  begin
                    current_asmdata.getlocaldatalabel(oplab);
-                   tcb.emit_tai(Tai_const.Createname(
+                   tcb.emit_tai(Tai_const.Createname(current_asmdata,
                      oplab.name,
                      AT_DATA_FORCEINDIRECT,0),compiler.deftypes.voidpointertype);
                  end;
@@ -2001,7 +2001,7 @@ implementation
               maybe_add_comment(tcb,#9'Parent type info');
               if (oo_has_vmt in def.objectoptions) then
                 tcb.emit_tai(
-                  Tai_const.Createname(def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
+                  Tai_const.Createname(current_asmdata,def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
                   cpointerdef.getreusable(def.vmt_def,compiler))
               else
                 tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);

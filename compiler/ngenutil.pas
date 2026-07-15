@@ -1257,7 +1257,7 @@ implementation
                 begin
                   nameinit:=entry^.initfunc;
                   unitinits.emit_tai(
-                    Tai_const.Createname(nameinit,AT_FUNCTION,0),
+                    Tai_const.Createname(main_asmdata,nameinit,AT_FUNCTION,0),
                     compiler.deftypes.voidcodepointertype);
                 end
               else
@@ -1266,7 +1266,7 @@ implementation
                 begin
                   namefini:=entry^.finifunc;
                   unitinits.emit_tai(
-                    Tai_const.Createname(namefini,AT_FUNCTION,0),
+                    Tai_const.Createname(main_asmdata,namefini,AT_FUNCTION,0),
                     compiler.deftypes.voidcodepointertype);
                 end
               else
