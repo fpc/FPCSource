@@ -1931,7 +1931,7 @@ end;
     else
       internalerror(2018020701);
 {$else i8086}
-    p.concat(Tai_const.Createname(sym,l));
+    p.concat(Tai_const.Createname(p.AsmData,sym,l));
 {$endif i8086}
   end;
 

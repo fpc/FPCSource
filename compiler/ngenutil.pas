@@ -1394,7 +1394,7 @@ implementation
        begin
          tcb:=ttai_typedconstbuilder(arg);
          { address of threadvar }
-         tcb.emit_tai(tai_const.Createname(tstaticvarsym(p).mangledname,0),
+         tcb.emit_tai(tai_const.Createname(current_asmdata,tstaticvarsym(p).mangledname,0),
            cpointerdef.getreusable(
              get_threadvar_record(tstaticvarsym(p).vardef,field1,field2),
              compiler
@@ -1467,7 +1467,7 @@ implementation
          if unitflag in hp.u.moduleflags then
           begin
             tcb.emit_tai(
-              Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0),
+              Tai_const.Createname(AsmData,make_mangledname(prefix,hp.u.globalsymtable,''),0),
               compiler.deftypes.voidcodepointertype);
             inc(count);
           end;
@@ -1477,7 +1477,7 @@ implementation
       if unitflag in compiler.current_module.moduleflags then
        begin
          tcb.emit_tai(
-           Tai_const.Createname(make_mangledname(prefix,compiler.current_module.localsymtable,''),0),
+           Tai_const.Createname(AsmData,make_mangledname(prefix,compiler.current_module.localsymtable,''),0),
            compiler.deftypes.voidcodepointertype);
          inc(count);
        end;
@@ -1624,7 +1624,7 @@ implementation
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
 
           if ResourcesUsed and (compiler.target.res.id<>res_ext) then
-            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),compiler.deftypes.voidpointertype)
+            tcb.emit_tai(Tai_const.Createname(AsmData,'FPC_RESSYMBOL',0),compiler.deftypes.voidpointertype)
           else
             { Nil pointer to resource information }
             tcb.emit_tai(tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);

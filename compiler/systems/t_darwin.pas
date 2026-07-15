@@ -90,14 +90,14 @@ implementation
     procedure texportlibdarwin.setinitname(list: TAsmList; const s: string);
       begin
         new_section(list,sec_init_func,'',sizeof(pint));
-        list.concat(Tai_const.Createname(s,0));
+        list.concat(Tai_const.Createname(list.AsmData,s,0));
       end;
 
 
     procedure texportlibdarwin.setfininame(list: TAsmList; const s: string);
       begin
         new_section(list,sec_term_func,'',sizeof(pint));
-        list.concat(Tai_const.Createname(s,0));
+        list.concat(Tai_const.Createname(list.AsmData,s,0));
       end;
 
 

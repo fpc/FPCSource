@@ -1869,7 +1869,7 @@ implementation
       begin
         prolog:=TAsmList.create(AsmData);
         new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
-        prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
+        prolog.concat(Tai_const.Createname(AsmData,'_ARM_ExceptionHandler', 0));
         prolog.concat(Tai_const.Create_32bit(0));
         prolog.concat(Tai_symbol.Createname_global(AsmData,'FPC_EH_CODE_START',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { dummy function }
@@ -1877,7 +1877,7 @@ implementation
         AsmData.asmlists[al_start].insertList(prolog);
         prolog.Free;
         new_section(AsmData.asmlists[al_end],sec_pdata,'',sizeof(pint));
-        AsmData.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
+        AsmData.asmlists[al_end].concat(Tai_const.Createname(AsmData,'FPC_EH_CODE_START', 0));
         AsmData.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
       end;
 

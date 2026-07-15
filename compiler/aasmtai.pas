@@ -773,7 +773,7 @@ interface
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rel_sym_offset(_typ : taiconst_type; _sym,_endsym : tasmsymbol; _ofs : int64);
           constructor Create_rva_sym(_sym:tasmsymbol);
-          constructor Createname(const name:string;ofs:asizeint);
+          constructor Createname(AsmData: TAsmData;const name:string;ofs:asizeint);
           constructor Createname_rel(const name, endname: string);
           constructor Createname(AsmData: TAsmData; const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
@@ -1877,14 +1877,14 @@ implementation
 
     constructor tai_const.Createname_near(const name:string;ofs:asizeint);
       begin
-        self.Createname(name,ofs);
+        self.Createname(current_asmdata,name,ofs);
         consttype:=aitconst_ptr;
       end;
 
 
     constructor tai_const.Createname_far(const name:string;ofs:asizeint);
       begin
-        self.Createname(name,ofs);
+        self.Createname(current_asmdata,name,ofs);
         consttype:=aitconst_farptr;
       end;
 
@@ -1989,9 +1989,9 @@ implementation
       end;
 
 
-    constructor tai_const.Createname(const name:string;ofs:asizeint);
+    constructor tai_const.Createname(AsmData: TAsmData;const name:string;ofs:asizeint);
       begin
-         self.Createname(current_asmdata,name,AT_NONE,ofs);
+         self.Createname(AsmData,name,AT_NONE,ofs);
       end;
 
 
@@ -2153,7 +2153,7 @@ implementation
 {$ifdef i8086}
     constructor tai_const.Create_seg_name(const name:string);
       begin
-        self.Createname(name,0);
+        self.Createname(current_asmdata,name,0);
         self.consttype:=aitconst_seg;
       end;
 

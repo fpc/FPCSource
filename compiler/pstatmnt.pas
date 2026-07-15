@@ -1321,7 +1321,7 @@ implementation
                         s:=sym.mangledname
                       else
                         s:=sym.name;
-                      ac:=tai_const.Createname(s,w);
+                      ac:=tai_const.Createname(hl.AsmData,s,w);
                       if actype=aitconst_128bit then
                         ac.consttype:=aitconst_ptr
                       else

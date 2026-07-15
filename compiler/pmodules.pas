@@ -2253,7 +2253,7 @@ type
          if assigned(compiler.exportlib) and
             (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
             (mf_has_exports in curr.moduleflags) then
-           curr_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
+           curr_asmdata.asmlists[al_procedures].concat(tai_const.createname(curr_asmdata,make_mangledname('EDATA',curr.localsymtable,''),0));
 
          { all labels must be defined before generating code }
          if compiler.verbose.Errorcount=0 then
@@ -2838,7 +2838,7 @@ type
         if assigned(compiler.exportlib) and
            (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
            (mf_has_exports in curr.moduleflags) then
-          current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
+          current_asmdata.asmlists[al_procedures].concat(tai_const.createname(current_asmdata,make_mangledname('EDATA',curr.localsymtable,''),0));
 
         if (force_init_final or compiler.nodeutils.force_final) and
            (

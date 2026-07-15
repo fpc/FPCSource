@@ -3558,8 +3558,8 @@ implementation
           begin
             If (mf_has_dwarf_debuginfo in hp.moduleflags) and not assigned(hp.package) then
               begin
-                list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
-                list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(list.AsmData,make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(list.AsmData,make_mangledname('DEBUGEND',hp.localsymtable,''),0));
               end;
             hp:=tmodule(hp.next);
           end;

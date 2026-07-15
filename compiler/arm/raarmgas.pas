@@ -774,7 +774,7 @@ Unit raarmgas;
               lab: TAsmLabel;
             begin
               if symname<>'' then
-                newconst:=tai_const.Createname(symname,ofs)
+                newconst:=tai_const.Createname(AsmData,symname,ofs)
               else
                 newconst:=tai_const.Create_32bit(ofs);
 

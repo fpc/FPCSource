@@ -377,7 +377,7 @@ unit cgppc;
         new_section(list.AsmData.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
         list.AsmData.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
         list.AsmData.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        list.AsmData.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
+        list.AsmData.asmlists[al_imports].concat(tai_const.createname(list.AsmData,'dyld_stub_binding_helper',0));
       end;
 
 

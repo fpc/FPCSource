@@ -2213,7 +2213,7 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_label(l: tlabelsym);
      begin
-       emit_tai(Tai_const.Createname(l.mangledname,fqueue_offset),compiler.deftypes.voidcodepointertype);
+       emit_tai(Tai_const.Createname(current_asmdata,l.mangledname,fqueue_offset),compiler.deftypes.voidcodepointertype);
        fqueue_offset:=low(fqueue_offset);
      end;
 
