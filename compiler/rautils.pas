@@ -1997,7 +1997,7 @@ end;
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname_global(s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
+       p.concat(Tai_symbol.Createname_global(p.AsmData,s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
    end;
 
    procedure ConcatLocal(p:TAsmList;const s : string);

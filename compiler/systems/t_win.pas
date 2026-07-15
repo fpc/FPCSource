@@ -531,9 +531,9 @@ implementation
                     { place jump in al_procedures }
                     new_section(AsmData.asmlists[al_imports],sec_code,'',0);
                     if ImportSymbol.Name <> '' then
-                      AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_FUNCTION,0,compiler.deftypes.voidcodepointertype))
+                      AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(AsmData,ImportSymbol.MangledName,AT_FUNCTION,0,compiler.deftypes.voidcodepointertype))
                     else
-                      AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
+                      AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(AsmData,ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0,compiler.deftypes.voidcodepointertype));
                     AsmData.asmlists[al_imports].concat(tai_function_name.create(''));
                   {$if defined(ARM)}
                     reference_reset_symbol(href,l5,0,sizeof(pint),[]);
@@ -585,7 +585,7 @@ implementation
                      AsmData.asmlists[al_imports].concat(Tai_label.Create(l4));
                   end
                 else
-                  AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,compiler.deftypes.voidpointertype));
+                  AsmData.asmlists[al_imports].concat(Tai_symbol.Createname_global(AsmData,ImportSymbol.MangledName,AT_DATA,0,compiler.deftypes.voidpointertype));
                 AsmData.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
                 if compiler.target.info.system in systems_peoptplus then
                   AsmData.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
@@ -814,7 +814,7 @@ implementation
          new_section(AsmData.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         AsmData.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
+         AsmData.asmlists[al_exports].concat(Tai_symbol.Createname_global(AsmData,make_mangledname('EDATA',compiler.current_module.localsymtable,''),AT_METADATA,0,compiler.deftypes.voidpointertype));
          { export flags }
          AsmData.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }

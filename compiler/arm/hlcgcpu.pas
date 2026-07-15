@@ -186,7 +186,7 @@ implementation
         make_global:=true;
 
       if make_global then
-        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
+        list.concat(Tai_symbol.Createname_global(list.AsmData,labelname,AT_FUNCTION,0,procdef))
       else
         list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 

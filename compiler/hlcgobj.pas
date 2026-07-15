@@ -5023,7 +5023,7 @@ implementation
           else
             begin
               if global then
-                list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,compiler.current_procinfo.procdef))
+                list.concat(Tai_symbol.createname_global(list.AsmData,item.str,AT_FUNCTION,0,compiler.current_procinfo.procdef))
               else
                 list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,compiler.current_procinfo.procdef));
               if not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then

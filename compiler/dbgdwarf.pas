@@ -3090,7 +3090,7 @@ implementation
               dbgname:='L'+dbgname;
             new_section(AsmData.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
             if not(compiler.target.info.system in systems_darwin) then
-              AsmData.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
+              AsmData.asmlists[al_start].concat(tai_symbol.Createname_global(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
             else
               AsmData.asmlists[al_start].concat(tai_symbol.Createname(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
 
@@ -3100,7 +3100,7 @@ implementation
               dbgname:='L'+dbgname;
             new_section(AsmData.asmlists[al_end],sec_code,dbgname,0,secorder_end);
             if not(compiler.target.info.system in systems_darwin) then
-              AsmData.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
+              AsmData.asmlists[al_end].concat(tai_symbol.Createname_global(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
             else
               AsmData.asmlists[al_end].concat(tai_symbol.Createname(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
           end;

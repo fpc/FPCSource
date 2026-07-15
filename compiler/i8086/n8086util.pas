@@ -67,7 +67,7 @@ implementation
     begin
       maybe_new_object_file(AsmData.asmlists[al_globals]);
       new_section(AsmData.asmlists[al_globals],sec_stack,'__stack', 16);
-      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global('___stack', AT_DATA, compiler.globals.stacksize, carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize,compiler)));
+      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global(AsmData,'___stack', AT_DATA, compiler.globals.stacksize, carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.stacksize,compiler)));
       { HACK: since tai_datablock's size parameter is aint, which cannot be
         larger than 32767 on i8086, but we'd like to support stack size of
         up to 64kb, we may need to use several tai_datablocks to reserve
@@ -81,7 +81,7 @@ implementation
           dec(stacksizeleft,stackblock);
           inc(i);
         end;
-      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global('___stacktop',AT_DATA,0,compiler.deftypes.voidtype));
+      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global(AsmData,'___stacktop',AT_DATA,0,compiler.deftypes.voidtype));
     end;
 
 
@@ -92,7 +92,7 @@ implementation
     begin
       maybe_new_object_file(AsmData.asmlists[al_globals]);
       new_section(AsmData.asmlists[al_globals],sec_heap,'__heap', 16);
-      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global('___heap', AT_DATA, compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler)));
+      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global(AsmData,'___heap', AT_DATA, compiler.globals.heapsize,carraydef.getreusable(compiler.deftypes.u8inttype,compiler.globals.heapsize,compiler)));
       { HACK: since tai_datablock's size parameter is aint, which cannot be
         larger than 32767 on i8086, but we'd like to support heap size of
         up to 640kb, we may need to use several tai_datablocks to reserve
@@ -106,7 +106,7 @@ implementation
           dec(heapsizeleft,heapblock);
           inc(i);
         end;
-      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global('___heaptop',AT_DATA,0,compiler.deftypes.voidtype));
+      AsmData.asmlists[al_globals].concat(tai_symbol.Createname_global(AsmData,'___heaptop',AT_DATA,0,compiler.deftypes.voidtype));
     end;
 
 
@@ -120,7 +120,7 @@ implementation
 
       maybe_new_object_file(AsmData.asmlists[al_globals]);
       new_section(AsmData.asmlists[al_globals],sec_data,'__fpc_stackplusmaxheap_in_para',sizeof(pint));
-      AsmData.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_stackplusmaxheap_in_para',AT_DATA,4,compiler.deftypes.u32inttype));
+      AsmData.asmlists[al_globals].concat(Tai_symbol.Createname_global(AsmData,'__fpc_stackplusmaxheap_in_para',AT_DATA,4,compiler.deftypes.u32inttype));
       AsmData.asmlists[al_globals].concat(Tai_const.Create_16bit(min($1000,stacksize_para+maxheapsize_para)));
     end;
 

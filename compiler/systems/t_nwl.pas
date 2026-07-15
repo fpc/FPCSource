@@ -229,7 +229,7 @@ begin
 {$ifdef i386}
            { place jump in al_procedures }
            AsmData.asmlists[al_procedures].concat(Tai_align.Create_op(4,$90));
-           AsmData.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0,pd));
+           AsmData.asmlists[al_procedures].concat(Tai_symbol.Createname_global(AsmData,hp2.name^,AT_FUNCTION,0,pd));
            AsmData.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,AsmData.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
            AsmData.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
