@@ -791,7 +791,7 @@ interface
           constructor Create_int_dataptr_unaligned(_value: int64; size: taiconst_type);
 {$endif}
 {$ifdef i8086}
-          constructor Create_seg_name(const name:string);
+          constructor Create_seg_name(AsmData: TAsmData;const name:string);
           constructor Create_dgroup;
           constructor Create_fardataseg;
 {$endif i8086}
@@ -2151,9 +2151,9 @@ implementation
 {$endif avr}
 
 {$ifdef i8086}
-    constructor tai_const.Create_seg_name(const name:string);
+    constructor tai_const.Create_seg_name(AsmData: TAsmData;const name:string);
       begin
-        self.Createname(current_asmdata,name,0);
+        self.Createname(AsmData,name,0);
         self.consttype:=aitconst_seg;
       end;
 

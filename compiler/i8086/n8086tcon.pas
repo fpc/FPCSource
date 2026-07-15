@@ -79,12 +79,12 @@ uses
                       if po_abstractmethod in pd.procoptions then
                         compiler.verbose.Message(type_e_cant_take_address_of_abstract_method)
                       else
-                        ftcb.emit_tai(Tai_const.Create_seg_name(pd.mangledname),compiler.deftypes.u16inttype);
+                        ftcb.emit_tai(Tai_const.Create_seg_name(fdatalist.AsmData,pd.mangledname),compiler.deftypes.u16inttype);
                     end;
                   staticvarsym :
-                    ftcb.emit_tai(Tai_const.Create_seg_name(tstaticvarsym(srsym).mangledname),compiler.deftypes.u16inttype);
+                    ftcb.emit_tai(Tai_const.Create_seg_name(fdatalist.AsmData,tstaticvarsym(srsym).mangledname),compiler.deftypes.u16inttype);
                   labelsym :
-                    ftcb.emit_tai(Tai_const.Create_seg_name(tlabelsym(srsym).mangledname),compiler.deftypes.u16inttype);
+                    ftcb.emit_tai(Tai_const.Create_seg_name(fdatalist.AsmData,tlabelsym(srsym).mangledname),compiler.deftypes.u16inttype);
                   else
                     compiler.verbose.Message(type_e_variable_id_expected);
                 end;

@@ -1134,7 +1134,7 @@ implementation
       begin
         append_block1(DW_AT_segment,3);
         AsmData.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const2u)));
-        AsmData.asmlists[al_dwarf_info].concat(tai_const.Create_seg_name(name));
+        AsmData.asmlists[al_dwarf_info].concat(tai_const.Create_seg_name(AsmData,name));
       end;
 
     procedure TDebugInfoDwarf.append_seg_reg(const segment_register: tregister);
@@ -2186,7 +2186,7 @@ implementation
                 { bits 16..31 of the offset }
                 AsmData.asmlists[al_dwarf_aranges].concat(tai_const.Create_16bit_unaligned(0));
                 { segment }
-                AsmData.asmlists[al_dwarf_aranges].concat(tai_const.Create_seg_name(procentry));
+                AsmData.asmlists[al_dwarf_aranges].concat(tai_const.Create_seg_name(AsmData,procentry));
 {$endif i8086}
                 AsmData.asmlists[al_dwarf_aranges].Concat(
                   tai_const.Create_rel_sym(aitconst_ptr_unaligned,AsmData.RefAsmSymbol(procentry,AT_FUNCTION),procendlabel));
@@ -3759,7 +3759,7 @@ implementation
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
                         asmline.concat(tai_const.create_uleb128bit(3));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_segment));
-                        asmline.concat(tai_const.Create_seg_name(currlabel.Name));
+                        asmline.concat(tai_const.Create_seg_name(AsmData,currlabel.Name));
 {$endif i8086}
                       end
                     else

@@ -3157,7 +3157,7 @@ Unit Rax86int;
                          compiler.verbose.Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
-                       curlist.concat(Tai_const.Create_seg_name(compiler.current_procinfo.procdef.mangledname));
+                       curlist.concat(Tai_const.Create_seg_name(AsmData,compiler.current_procinfo.procdef.mangledname));
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
@@ -3165,7 +3165,7 @@ Unit Rax86int;
                      begin
                        if constsize<2 then
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
-                       curlist.concat(Tai_const.Create_seg_name(asmsym));
+                       curlist.concat(Tai_const.Create_seg_name(AsmData,asmsym));
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
