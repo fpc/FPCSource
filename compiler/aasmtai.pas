@@ -764,7 +764,7 @@ interface
           constructor Create_sym_far(_sym:tasmsymbol);
           constructor Createname_near(const name:string;ofs:asizeint);
           constructor Createname_far(const name:string;ofs:asizeint);
-          constructor Createname_near(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+          constructor Createname_near(AsmData: TAsmData;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Createname_far(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
 {$endif i8086}
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
@@ -1889,9 +1889,9 @@ implementation
       end;
 
 
-    constructor tai_const.Createname_near(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+    constructor tai_const.Createname_near(AsmData: TAsmData;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
-        self.Createname(current_asmdata,name,_symtyp,ofs);
+        self.Createname(AsmData,name,_symtyp,ofs);
         consttype:=aitconst_ptr;
       end;
 
