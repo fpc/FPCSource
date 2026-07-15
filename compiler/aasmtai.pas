@@ -774,7 +774,7 @@ interface
           constructor Create_rel_sym_offset(_typ : taiconst_type; _sym,_endsym : tasmsymbol; _ofs : int64);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(AsmData: TAsmData;const name:string;ofs:asizeint);
-          constructor Createname_rel(const name, endname: string);
+          constructor Createname_rel(AsmData: TAsmData;const name, endname: string);
           constructor Createname(AsmData: TAsmData; const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
@@ -2001,10 +2001,10 @@ implementation
       end;
 
 
-    constructor tai_const.Createname_rel(const name,endname:string);
+    constructor tai_const.Createname_rel(AsmData: TAsmData;const name,endname:string);
       begin
-         self.create_sym_offset(current_asmdata.RefAsmSymbol(name,AT_NONE),0);
-         endsym:=current_asmdata.RefAsmSymbol(endname,AT_NONE)
+         self.create_sym_offset(AsmData.RefAsmSymbol(name,AT_NONE),0);
+         endsym:=AsmData.RefAsmSymbol(endname,AT_NONE)
       end;
 
 
