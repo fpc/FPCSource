@@ -16131,6 +16131,13 @@ unit aoptx86;
                     else if ((taicpu(p).oper[0]^.val=$ff) or (taicpu(p).oper[0]^.val=$ffff) or (taicpu(p).oper[0]^.val=$ffffffff)) and
                       MatchOpType(taicpu(hp1),top_const,top_reg) and
                       (taicpu(p).oper[0]^.val>=taicpu(hp1).oper[0]^.val) and
+{$ifndef x86_64}
+                      (
+                        (taicpu(p).oper[0]^.val <> $ff) or 
+                        { Only EAX, ECX, EDX and EBX have 8-bit counterparts }
+                        (getsupreg(taicpu(hp1).oper[1]^.reg) in [RS_EAX, RS_ECX, RS_EDX, RS_EBX])
+                      ) and
+{$endif x86_64}
                       SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.reg) then
                         { change
                             and  $ff/$ff/$ffff, reg
