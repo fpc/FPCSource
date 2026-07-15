@@ -43,7 +43,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -117,6 +117,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCResolveMultiErrors"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="tcpasdfa.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
