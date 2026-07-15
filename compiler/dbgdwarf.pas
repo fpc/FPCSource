@@ -2457,7 +2457,7 @@ implementation
                         templist.concat(tai_const.create_8bit(3)); { wasm global }
                         templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,TLS_BASE_SYM,TWasmGlobalAsmSymbol,AT_WASM_GLOBAL,0));
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
+                        templist.concat(tai_const.Create_type_name(templist.AsmData,aitconst_ptr_unaligned,sym.mangledname,0));
                         templist.concat(tai_const.create_8bit(ord(DW_OP_plus)));
                         blocksize:=4+2*sizeof(puint);
 {$else wasm}
@@ -2475,7 +2475,7 @@ implementation
                             end;
 {$push}
 {$warn 6018 off}            { Unreachable code due to compile time evaluation }
-                            templist.concat(tai_const.Create_type_name(aitconst_dtpoff,sym.mangledname,0));
+                            templist.concat(tai_const.Create_type_name(templist.AsmData,aitconst_dtpoff,sym.mangledname,0));
                             { so far, aitconst_dtpoff is solely 32 bit }
                             if (sizeof(puint)=8) and (compiler.target.info.endian=endian_little) then
                               templist.concat(tai_const.create_32bit(0));
@@ -2492,7 +2492,7 @@ implementation
                             { This is only a minimal change to at least be able to get a value
                               in only one thread is present PM 2014-11-21, like for stabs format }
                             templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                            templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,
+                            templist.concat(tai_const.Create_type_name(templist.AsmData,aitconst_ptr_unaligned,sym.mangledname,
                               offset+sizeof(pint)));
                             blocksize:=1+sizeof(puint);
                           end;
@@ -2501,7 +2501,7 @@ implementation
                     else
                       begin
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,offset));
+                        templist.concat(tai_const.Create_type_name(templist.AsmData,aitconst_ptr_unaligned,sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
 {$ifdef i8086}
                         segment_sym_name:=sym.mangledname;
@@ -3018,7 +3018,7 @@ implementation
           toasm :
             begin
               templist.concat(tai_const.create_8bit(3));
-              templist.concat(tai_const.create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
+              templist.concat(tai_const.create_type_name(templist.AsmData,aitconst_ptr_unaligned,sym.mangledname,0));
               blocksize:=1+sizeof(puint);
             end;
           tovar:

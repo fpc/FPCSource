@@ -776,7 +776,7 @@ interface
           constructor Createname(AsmData: TAsmData;const name:string;ofs:asizeint);
           constructor Createname_rel(AsmData: TAsmData;const name, endname: string);
           constructor Createname(AsmData: TAsmData; const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
-          constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
+          constructor Create_type_name(AsmData: TAsmData;_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(AsmData: TAsmData;_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;symclass: TAsmSymbolClass;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_nil_codeptr;
@@ -2008,9 +2008,9 @@ implementation
       end;
 
 
-    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
+    constructor tai_const.Create_type_name(AsmData: TAsmData;_typ:taiconst_type;const name:string;ofs:asizeint);
       begin
-         self.Create_type_name(current_asmdata,_typ,name,AT_NONE,ofs);
+         self.Create_type_name(AsmData,_typ,name,AT_NONE,ofs);
       end;
 
 
