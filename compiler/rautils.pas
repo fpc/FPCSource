@@ -1926,7 +1926,7 @@ end;
           end
         else
           { 'DD xx' is a far pointer }
-          p.concat(Tai_const.Createname_far(sym,l));
+          p.concat(Tai_const.Createname_far(p.AsmData,sym,l));
       end
     else
       internalerror(2018020701);
