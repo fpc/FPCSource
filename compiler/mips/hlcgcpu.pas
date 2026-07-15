@@ -291,7 +291,7 @@ implementation
     { Delay slot }
     list.Concat(TAiCpu.Op_none(A_NOP));
 
-    List.concat(Tai_symbol_end.Createname(labelname));
+    List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
   end;
 
 

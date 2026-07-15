@@ -700,7 +700,7 @@ implementation
             list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
         end;
 
-      List.concat(Tai_symbol_end.Createname(labelname));
+      List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

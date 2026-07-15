@@ -1050,7 +1050,7 @@ implementation
        { insert the symbol information before the data }
        fasmlist.insertlist(prelist);
        { end of the symbol }
-       fasmlist.concat(tai_symbol_end.Createname(asmsym.name));
+       fasmlist.concat(tai_symbol_end.Createname(fasmlist.AsmData,asmsym.name));
        { free the temporary list }
        prelist.free;
        prelist := nil;

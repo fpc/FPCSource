@@ -233,7 +233,7 @@ implementation
       tcompiler(compiler).current_procinfo.Free;
       tcompiler(compiler).current_procinfo:=nil;
 
-      list.concat(Tai_symbol_end.Createname(labelname));
+      list.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

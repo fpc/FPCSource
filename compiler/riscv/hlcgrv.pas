@@ -216,7 +216,7 @@ implementation
       tcompiler(compiler).current_procinfo.Free;
       tcompiler(compiler).current_procinfo:=nil;
 
-      list.concat(Tai_symbol_end.Createname(labelname));
+      list.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
   procedure thlcgriscv.g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean);

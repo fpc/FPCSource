@@ -447,7 +447,7 @@ implementation
             list.concat(taicpu.op_sym(A_JMP,S_NO,tcgx86(cg).get_darwin_call_stub(list,procdef.mangledname,false)))
         end;
 
-      List.concat(Tai_symbol_end.Createname(labelname));
+      List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

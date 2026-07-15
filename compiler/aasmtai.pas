@@ -647,7 +647,7 @@ interface
        tai_symbol_end = class(tailineinfo)
           sym : tasmsymbol;
           constructor Create(_sym:tasmsymbol);
-          constructor Createname(const _name : string);
+          constructor Createname(AsmData: TAsmData; const _name : string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1604,11 +1604,11 @@ implementation
       end;
 
 
-    constructor tai_symbol_end.Createname(const _name : string);
+    constructor tai_symbol_end.Createname(AsmData: TAsmData; const _name : string);
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=current_asmdata.GetAsmSymbol(_name);
+         sym:=AsmData.GetAsmSymbol(_name);
          if not assigned(sym) then
            internalerror(2013080301);
       end;

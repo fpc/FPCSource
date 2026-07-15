@@ -215,7 +215,7 @@ implementation
         end
       else
         cg.a_jmp_name(list,procdef.mangledname);
-      list.concat(Tai_symbol_end.Createname(labelname));
+      list.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

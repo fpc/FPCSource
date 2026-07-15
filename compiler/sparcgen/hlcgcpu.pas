@@ -131,7 +131,7 @@ implementation
         end
       else
         a_jmp_external_name(list,procdef.mangledname);
-      List.concat(Tai_symbol_end.Createname(labelname));
+      List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

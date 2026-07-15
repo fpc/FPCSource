@@ -196,7 +196,7 @@ implementation
                 list.concat(taicpu.op_none(A_NOP));
             end;
         end;
-      List.concat(Tai_symbol_end.Createname(labelname));
+      List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 

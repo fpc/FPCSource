@@ -116,7 +116,7 @@ implementation
           list.concat(taicpu.op_ref(A_JMP,S_NO,r));
         end;
 
-      List.concat(Tai_symbol_end.Createname(labelname));
+      List.concat(Tai_symbol_end.Createname(list.AsmData,labelname));
     end;
 
 
