@@ -6703,7 +6703,9 @@ var
   obj: TRttiObject;
   parent: TRttiInterfaceType;
   parentmethodcount: Word;
+  methods: specialize TArray<TRttiMethod>;
 begin
+  { Unlocked fast path }
   if Assigned(fDeclaredMethods) then
     Exit(fDeclaredMethods);
 
@@ -6714,30 +6716,47 @@ begin
   if (methtable^.Count = 0) or (methtable^.RTTICount = $ffff) then
     Exit(Nil);
 
-  parent := GetIntfBaseType;
-  if Assigned(parent) then
-    parentmethodcount := parent.IntfMethodCount
-  else
-    parentmethodcount := 0;
+  { TRttiInterfaceType instances are shared through the GRttiPool cache and
+    this method is reached concurrently without any caller-side lock (the
+    TVirtualInterface thunk and RTTI-based (de)serializers call GetMethods on
+    every invocation). }
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  try
+{$endif}
+    if not Assigned(fDeclaredMethods) then begin
+      parent := GetIntfBaseType;
+      if Assigned(parent) then
+        parentmethodcount := parent.IntfMethodCount
+      else
+        parentmethodcount := 0;
 
-  SetLength(fDeclaredMethods, methtable^.Count);
+      SetLength(methods, methtable^.Count);
 
-  context := TRttiContext.Create(FUsePublishedOnly);
-  method := methtable^.Method[0];
-  count := methtable^.Count;
-  while count > 0 do begin
-    index := methtable^.Count - count;
-    obj := context.GetByHandle(method);
-    if Assigned(obj) then
-      fDeclaredMethods[index] := obj as TRttiMethod
-    else begin
-      fDeclaredMethods[index] := TRttiIntfMethod.Create(Self, method, parentmethodcount + index);
-      context.AddObject(fDeclaredMethods[index]);
+      context := TRttiContext.Create(FUsePublishedOnly);
+      method := methtable^.Method[0];
+      count := methtable^.Count;
+      while count > 0 do begin
+        index := methtable^.Count - count;
+        obj := context.GetByHandle(method);
+        if Assigned(obj) then
+          methods[index] := obj as TRttiMethod
+        else begin
+          methods[index] := TRttiIntfMethod.Create(Self, method, parentmethodcount + index);
+          context.AddObject(methods[index]);
+        end;
+
+        method := method^.Next;
+        Dec(count);
+      end;
+
+      fDeclaredMethods := methods;
     end;
-
-    method := method^.Next;
-    Dec(count);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
   end;
+{$endif}
 
   Result := fDeclaredMethods;
 end;
@@ -8244,17 +8263,33 @@ var
   parentmethods, selfmethods: TRttiMethodArray;
   parent: TRttiType;
 begin
+  { Unlocked fast path: fMethods is only ever published as a fully-built
+    array (under the pool lock below). }
   if Assigned(fMethods) then
     Exit(fMethods);
 
-  selfmethods := GetDeclaredMethods;
+  { TRttiType instances are shared through the GRttiPool cache. 
+    Two concurrent initializers assigning the managed fMethods field race on its
+    reference count and can leave a reader with a dangling array }
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+  try
+{$endif}
+    if not Assigned(fMethods) then begin
+      selfmethods := GetDeclaredMethods;
 
-  parent := GetBaseType;
-  if Assigned(parent) then begin
-    parentmethods := parent.GetMethods;
+      parent := GetBaseType;
+      if Assigned(parent) then begin
+        parentmethods := parent.GetMethods;
+      end;
+
+      fMethods := Concat(selfmethods, parentmethods);
+    end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
   end;
-
-  fMethods := Concat(selfmethods, parentmethods);
+{$endif}
 
   Result := fMethods;
 end;
@@ -8410,8 +8445,9 @@ end;
 
 procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
-  EnsurePool(Self).AddObject(AObject);
+  { Set the flag before publishing the object in the pool}
   AObject.FUsePublishedOnly := UsePublishedOnly;
+  EnsurePool(Self).AddObject(AObject);
 end;
 
 function TRttiContext.GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
