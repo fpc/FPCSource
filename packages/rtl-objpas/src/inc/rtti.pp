@@ -5659,7 +5659,15 @@ begin
   Intf:=aInstance.AsInterface;
   if not Supports(Intf,TRttiInterfaceType(Parent).GUID,InstPtr) then
     raise EInvocationError.Create(SErrInvokeInsufficientRtti);
-  Result:=HandleInvokeHelper(Parent.handle,InstPtr,aArgs);
+  try
+    Result:=HandleInvokeHelper(Parent.handle,InstPtr,aArgs);
+  finally
+    { Supports into an untyped pointer add-referenced the invocation target
+      without a matching release: one leaked reference on the invoked object
+      per incoming dispatch.
+      InstPtr stays valid during the call through the Intf local reference. }
+    IInterface(InstPtr)._Release;
+  end;
 {$ELSE}
   if not IsStatic and aInstance.IsEmpty then
     raise EInvocationError.CreateFmt(SErrInvokeNotStaticNeedsSelf, [Name]);
@@ -8557,6 +8565,10 @@ begin
   if not Supports(TInterfaceThunk(aInstance),(FIntfRTTI as TRttiInterfaceType).GUID,TheIntf) then
     raise EInsufficientRtti.CreateFmt(SErrVirtThunkNotCorrectInterface, [FIntfRTTI.Name]);
   TValue.Make(@TheIntf,FIntfRTTI.Handle,ParamValues[0]);
+  { Supports into an untyped pointer add-referenced the thunk without a
+    matching release, and TValue.Make above took its own properly-managed reference.
+    Balance the Supports reference here. }
+  IInterface(TheIntf)._Release;
   // Convert parameters to TValue
   For I:=1 to aCount do
     begin
