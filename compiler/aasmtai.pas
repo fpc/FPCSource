@@ -638,7 +638,7 @@ interface
           constructor Createname(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_hidden(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
-          constructor Createname_global_value(const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
+          constructor Createname_global_value(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1561,9 +1561,9 @@ implementation
       end;
 
 
-    constructor tai_symbol.createname_global_value(const _name: string;_symtyp: tasmsymtype; siz: longint; val: ptruint;def:tdef);
+    constructor tai_symbol.createname_global_value(AsmData: TAsmData; const _name: string;_symtyp: tasmsymtype; siz: longint; val: ptruint;def:tdef);
       begin
-        Createname_global(current_asmdata,_name,_symtyp,siz,def);
+        Createname_global(AsmData,_name,_symtyp,siz,def);
         value:=val;
         has_value:=true;
       end;

@@ -1184,9 +1184,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
     superclasses := nil;
     { reference symbols for all classes and categories defined in this unit }
     for i:=0 to classdefs.count-1 do
-      list.concat(tai_symbol.Createname_global_value('.objc_class_name_'+tobjectdef(classdefs[i]).objextname^,AT_DATA,0,0,compiler.deftypes.voidpointertype));
+      list.concat(tai_symbol.Createname_global_value(list.AsmData,'.objc_class_name_'+tobjectdef(classdefs[i]).objextname^,AT_DATA,0,0,compiler.deftypes.voidpointertype));
     for i:=0 to catdefs.count-1 do
-      list.concat(tai_symbol.Createname_global_value('.objc_category_name_'+
+      list.concat(tai_symbol.Createname_global_value(list.AsmData,'.objc_category_name_'+
         tobjectdef(catdefs[i]).childof.objextname^+'_'+
         tobjectdef(catdefs[i]).objextname^,AT_DATA,0,0,compiler.deftypes.voidpointertype));
   end;
