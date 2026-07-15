@@ -2009,7 +2009,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname(s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
+       p.concat(Tai_symbol.Createname(p.AsmData,s,AT_LABEL,0,compiler.deftypes.voidcodepointertype));
    end;
 
 

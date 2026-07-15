@@ -635,7 +635,7 @@ interface
           constructor Create(_sym:tasmsymbol;siz:longint);
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
           constructor Create_Weak(_sym:tasmsymbol;siz:longint);
-          constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
+          constructor Createname(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global_value(const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
@@ -1525,11 +1525,11 @@ implementation
       end;
 
 
-    constructor tai_symbol.Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
+    constructor tai_symbol.Createname(AsmData: TAsmData; const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_asmdata.DefineAsmSymbol(_name,AB_LOCAL,_symtyp,def);
+         sym:=AsmData.DefineAsmSymbol(_name,AB_LOCAL,_symtyp,def);
          size:=siz;
          is_global:=false;
       end;

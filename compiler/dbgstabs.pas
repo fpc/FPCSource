@@ -1888,7 +1888,7 @@ implementation
         { make sure the debuginfo doesn't get stripped out }
         if (compiler.target.info.system in systems_darwin) then
           begin
-            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_METADATA,0,compiler.deftypes.voidpointertype);
+            dbgtable:=tai_symbol.createname(AsmData,'DEBUGINFOTABLE',AT_METADATA,0,compiler.deftypes.voidpointertype);
             list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));
             list.concat(dbgtable);
           end;

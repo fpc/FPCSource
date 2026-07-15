@@ -568,7 +568,7 @@ implementation
                                 inc(suffix);
                                 importname:='__imp_'+ImportSymbol.MangledName+'_'+tostr(suffix);
                               end;
-                            AsmData.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4,compiler.deftypes.voidcodepointertype));
+                            AsmData.asmlists[al_imports].concat(tai_symbol.createname(AsmData,importname,AT_FUNCTION,4,compiler.deftypes.voidcodepointertype));
                           end
                         else
                           begin
@@ -579,7 +579,7 @@ implementation
                                 inc(suffix);
                                 importname:='__imp_by_ordinal'+tostr(ImportSymbol.ordnr)+'_'+tostr(suffix);
                               end;
-                            AsmData.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4,compiler.deftypes.voidcodepointertype));
+                            AsmData.asmlists[al_imports].concat(tai_symbol.createname(AsmData,importname,AT_FUNCTION,4,compiler.deftypes.voidcodepointertype));
                           end;
                       end;
                      AsmData.asmlists[al_imports].concat(Tai_label.Create(l4));

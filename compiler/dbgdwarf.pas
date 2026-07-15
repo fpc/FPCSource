@@ -3092,7 +3092,7 @@ implementation
             if not(compiler.target.info.system in systems_darwin) then
               AsmData.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
             else
-              AsmData.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
+              AsmData.asmlists[al_start].concat(tai_symbol.Createname(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
 
             dbgname:=make_mangledname('DEBUGEND',compiler.current_module.localsymtable,'');
             { See above. }
@@ -3102,26 +3102,26 @@ implementation
             if not(compiler.target.info.system in systems_darwin) then
               AsmData.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype))
             else
-              AsmData.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
+              AsmData.asmlists[al_end].concat(tai_symbol.Createname(AsmData,dbgname,AT_METADATA,0,compiler.deftypes.voidpointertype));
           end;
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create(AsmData);
         new_section(templist,sec_debug_abbrev,'',0);
-        templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_abbrevsection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        templist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'debug_abbrevsection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { add any extra stuff which needs to be in the abbrev section, but before    }
         { the actual abbreviations, in between the symbol above and below, i.e. here }
-        templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_abbrev0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        templist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'debug_abbrev0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         AsmData.asmlists[al_start].insertlist(templist);
         templist.free;
 
         { insert .Ldebug_line0 label }
         templist:=TAsmList.create(AsmData);
         new_section(templist,sec_debug_line,'',0);
-        templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_linesection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        templist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'debug_linesection0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         { add any extra stuff which needs to be in the line section, but before  }
         { the actual line info, in between the symbol above and below, i.e. here }
-        templist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        templist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'debug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         AsmData.asmlists[al_start].insertlist(templist);
         templist.free;
         templist := nil;
@@ -3291,14 +3291,14 @@ implementation
           linelist.concat(tai_const.create_8bit(0));
 
         { end of debug line header }
-        linelist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'ehdebug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        linelist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'ehdebug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
         linelist.concat(tai_comment.Create(strpnew('=== header end ===')));
 
         { add line program }
         linelist.concatList(asmline);
 
         { end of debug line table }
-        linelist.concat(tai_symbol.createname(compiler.target._asm.labelprefix+'edebug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        linelist.concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'edebug_line0',AT_METADATA,0,compiler.deftypes.voidpointertype));
 
         flist.free;
         flist := nil;
@@ -3344,7 +3344,7 @@ implementation
 
         { write start labels }
         new_section(AsmData.asmlists[al_dwarf_info],sec_debug_info,'',0);
-        AsmData.asmlists[al_dwarf_info].concat(tai_symbol.createname(compiler.target._asm.labelprefix+'debug_info0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        AsmData.asmlists[al_dwarf_info].concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'debug_info0',AT_METADATA,0,compiler.deftypes.voidpointertype));
 
         { start abbrev section }
         new_section(AsmData.asmlists[al_dwarf_abbrev],sec_debug_abbrev,'',0);
@@ -3499,7 +3499,7 @@ implementation
         finish_children;
 
         { end of debug info table }
-        AsmData.asmlists[al_dwarf_info].concat(tai_symbol.createname(compiler.target._asm.labelprefix+'edebug_info0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+        AsmData.asmlists[al_dwarf_info].concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'edebug_info0',AT_METADATA,0,compiler.deftypes.voidpointertype));
 
         { end of abbrev table }
         AsmData.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
@@ -3520,7 +3520,7 @@ implementation
             { length }
             AsmData.asmlists[al_dwarf_aranges].concat(tai_const.Create_nil_codeptr);
 {$endif i8086}
-            AsmData.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(compiler.target._asm.labelprefix+'earanges0',AT_METADATA,0,compiler.deftypes.voidpointertype));
+            AsmData.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(AsmData,compiler.target._asm.labelprefix+'earanges0',AT_METADATA,0,compiler.deftypes.voidpointertype));
           end;
 
         { reset all def debug states }
