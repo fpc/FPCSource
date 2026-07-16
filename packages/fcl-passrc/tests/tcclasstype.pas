@@ -548,8 +548,6 @@ procedure TTestClassType.TestDirectiveRTTI(Param: string; ExpectedExplicit: bool
   );
 
   procedure Check(const El: string; const Expected, Actual: TPasMembersType.TRTTIVisibilitySections);
-  var
-    s: String;
   begin
     if Expected=Actual then exit;
     Fail(El+' visibility expected '+dbgs(Expected)+', but found '+dbgs(Actual));

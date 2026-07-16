@@ -5501,6 +5501,9 @@ begin
   finally
     S.Free;
   end;
+  if AddArgs then ;
+  if AddModifiers then ;
+  if AddParent then ;
 end;
 
 function TPasOperator.TypeName: TPasTreeString;
@@ -6384,6 +6387,7 @@ end;
 
 constructor TNamedArgExpr.Create(AParent: TPasElement; AName: TPrimitiveExpr; AValue: TPasExpr);
 begin
+  inherited Create(AParent,pekNamedArg,eopNone);
   NameExpr:=aName;
   ValueExpr:=aValue;
 end;
@@ -6391,6 +6395,7 @@ end;
 function TNamedArgExpr.GetDeclaration(full: Boolean): TPasTreeString;
 begin
   Result:=NameExpr.GetDeclaration(True)+':='+ValueExpr.GetDeclaration(True);
+  if full then ;
 end;
 
 procedure TNamedArgExpr.FreeChildren(Prepare: boolean);

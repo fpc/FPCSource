@@ -142,8 +142,8 @@ type
 
   { TTestNativePointerMath
 
-    Native pointer arithmetic matching FPC: under {$POINTERMATH OFF}, the untyped
-    Pointer, a pointer declared under {$POINTERMATH ON}, and a ^(Ansi)Char pointer
+    Native pointer arithmetic matching FPC: under $POINTERMATH OFF, the untyped
+    Pointer, a pointer declared under $POINTERMATH ON, and a ^(Ansi)Char pointer
     permit +/- and indexing; Inc/Dec is allowed on any pointer. A plain typed
     pointer with none of these still requires the switch. }
 
@@ -871,8 +871,6 @@ end;
 procedure TTestNativePacking.TestPackRecordsGenericSpecializeCrossResolver;
 
 var
-  i: Integer;
-  El: TPasElement;
   Spec: TPasSpecializeType;
   Specialized: TPasGenericType;
 
@@ -903,7 +901,7 @@ end;
 
 { TTestNativePointerMath
 
-  Note: the pointer arithmetic sits inside a procedure so that {$POINTERMATH OFF}
+  Note: the pointer arithmetic sits inside a procedure so that $POINTERMATH OFF
   is captured on the procedure scope. The main begin..end of a program resolves
   its bool switches from the module scope, which is snapshotted at the program
   header — before any directive — so an OFF there would have no effect. }

@@ -14455,6 +14455,7 @@ function TPasResolver.TryResolveOperatorOverload(Bin: TBinaryExpr;
   var LeftResolved, RightResolved: TPasResolverResult): Boolean;
 begin
   Result := False;
+  ResolvedEl:=Default(TPasResolverResult);
   if Bin=nil then ;
   if LeftResolved.BaseType=btNone then ;
   if RightResolved.BaseType=btNone then ;
@@ -16792,6 +16793,8 @@ begin
   // Base default: not folded (stock raises). TPasNativeResolver overrides this
   // to fold a constant integer cast to a pointer base type.
   Result:=nil;
+  if Params=nil then ;
+  if bt=btNone then ;
 end;
 
 function TPasResolver.EvalNativeNamedPointerCast(Params: TParamsExpr): TResEvalValue;
@@ -16800,6 +16803,7 @@ begin
   // named pointer-type cast). TPasNativeResolver overrides this to fold a
   // constant integer cast to a named pointer type (e.g. PAnsiChar(1)).
   Result:=nil;
+  if Params=nil then ;
 end;
 
 function TPasResolver.EvalNativeAddressOf(Expr: TPrimitiveExpr;
@@ -16808,6 +16812,8 @@ begin
   // Base default: not folded (stock raises). TPasNativeResolver overrides this
   // to degrade an address-of (@X) to an opaque pointer value.
   Result:=nil;
+  if Expr<>nil then ;
+  if FLags=[] then ;
 end;
 
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
@@ -17332,6 +17338,8 @@ type
     ActualProcType: TPasProcedureType;
   begin
     if ParamLoType = nil then exit;
+    if ParamHiType = nil then ;
+
     // Get the generic base type from the formal specialization
     if not (FormalSpec.DestType is TPasGenericType) then exit;
     GenType := TPasGenericType(FormalSpec.DestType);
@@ -17371,6 +17379,7 @@ type
     //   and actual = @DoCallback with type procedure(string, LongInt)
 
     // Build a mapping from generic's template types to our formal specialization params
+    GenTemplMap:=[];
     SetLength(GenTemplMap, GenTemplList.Count);
     for j := 0 to GenTemplList.Count - 1 do
       GenTemplMap[j] := TPasType(FormalSpec.Params[j]);

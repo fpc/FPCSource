@@ -919,7 +919,7 @@ end;
 procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 
 Var
-  Temp,TempVar : String;
+  Temp: String;
   i : Integer;
 
 begin

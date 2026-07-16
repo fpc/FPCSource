@@ -312,6 +312,7 @@ var
 begin
     FPasWriter.WriteElement(aProgram);
     FTestStream.Seek(0, soBeginning);
+    aString:='';
     setlength(aString, FTestStream.Size);
     FTestStream.ReadBuffer(aString[1], FTestStream.Size);
     AssertEquals(Testname + ': ' + Msg, ExpResult, aString);
