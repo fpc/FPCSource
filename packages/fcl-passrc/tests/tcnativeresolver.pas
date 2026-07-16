@@ -33,6 +33,22 @@ uses
 
 type
 
+  { TDummyPasResolver }
+
+  TDummyPasResolver = class(TPasResolver)
+  public
+    function FindUnit(const AName, InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
+      override;
+  end;
+
+  { TDummyPasNativeResolver }
+
+  TDummyPasNativeResolver = class(TPasNativeResolver)
+  public
+    function FindUnit(const AName, InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
+      override;
+  end;
+
   { TTestNativeResolver }
 
   TTestNativeResolver = class(TTestCase)
@@ -175,6 +191,32 @@ type
 
 implementation
 
+{ TDummyPasResolver }
+
+function TDummyPasResolver.FindUnit(const AName, InFilename: String; NameExpr, InFileExpr: TPasExpr
+  ): TPasModule;
+begin
+  Result:=nil;
+  raise Exception.Create('20260716163809');
+  if AName='' then ;
+  if InFilename='' then ;
+  if NameExpr=nil then ;
+  if InFileExpr=nil then ;
+end;
+
+{ TDummyPasNativeResolver }
+
+function TDummyPasNativeResolver.FindUnit(const AName, InFilename: String; NameExpr,
+  InFileExpr: TPasExpr): TPasModule;
+begin
+  Result:=nil;
+  raise Exception.Create('20260716163907');
+  if AName='' then ;
+  if InFilename='' then ;
+  if NameExpr=nil then ;
+  if InFileExpr=nil then ;
+end;
+
 function TTestNativeResolver.AliasBaseType(R: TPasResolver; const aName: string;
   out bt: TResolverBaseType): boolean;
 
@@ -197,7 +239,7 @@ procedure TTestNativeResolver.TestNativeRegistersConstEvalIntrinsics;
 var
   R: TPasNativeResolver;
 begin
-  R:=TPasNativeResolver.Create;
+  R:=TDummyPasNativeResolver.Create;
   try
     R.AddObjFPCBuiltInIdentifiers;
     AssertNotNull('SizeOf registered',R.BuiltInProcs[bfSizeOf]);
@@ -215,7 +257,7 @@ procedure TTestNativeResolver.TestBaseOmitsConstEvalIntrinsics;
 var
   R: TPasResolver;
 begin
-  R:=TPasResolver.Create;
+  R:=TDummyPasResolver.Create;
   try
     R.AddObjFPCBuiltInIdentifiers;
     AssertNull('SizeOf not registered on base',R.BuiltInProcs[bfSizeOf]);
@@ -234,7 +276,7 @@ var
   R: TPasNativeResolver;
   bt: TResolverBaseType;
 begin
-  R:=TPasNativeResolver.Create;
+  R:=TDummyPasNativeResolver.Create;
   try
     R.AddObjFPCBuiltInIdentifiers;
     AssertTrue('Boolean8 -> btByteBool',AliasBaseType(R,'Boolean8',bt) and (bt=btByteBool));
@@ -255,7 +297,7 @@ var
   R: TPasResolver;
   bt: TResolverBaseType;
 begin
-  R:=TPasResolver.Create;
+  R:=TDummyPasResolver.Create;
   try
     R.AddObjFPCBuiltInIdentifiers;
     AssertFalse('Boolean8 absent on base',AliasBaseType(R,'Boolean8',bt));

@@ -81,23 +81,6 @@ type
     // Degrades an address-of (@X) to an opaque pointer value (revkNil = unknown)
     function EvalNativeAddressOf(Expr: TPrimitiveExpr;
       Flags: TResEvalFlags): TResEvalValue; override;
-    // Native memory-layout packing directives, stored per element
-    procedure SetMinEnumSize(El: TPasElement; ASize: Integer); override;
-    function GetMinEnumSize(El: TPasElement): Integer; override;
-    procedure SetPackSet(El: TPasElement; ASize: Integer); override;
-    function GetPackSet(El: TPasElement): Integer; override;
-    procedure SetPackRecords(El: TPasElement; ASize: Integer); override;
-    function GetPackRecords(El: TPasElement): Integer; override;
-    (* 
-      Native pointer arithmetic: 
-      the untyped Pointer, a pointer declared under {$POINTERMATH ON} (pesfPointerMath), 
-      or a ^(Ansi)Char pointer permits +/- and indexing without the use-site switch. 
-    *)
-    function IsPointerMathType(El: TPasType): Boolean; override;
-    // Native target: Inc/Dec is allowed on any pointer, switch-independent.
-    function AllowIncDecOnPointer(El: TPasType): Boolean; override;
-    // Detects a bit-packed ordinal array element / record field access (an ordinal whose packed bit width is not a whole number of bytes).
-    function IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean; override;
   public
     // Injects the native scope subclasses that carry the packing values.
     constructor Create; reintroduce;
@@ -109,6 +92,23 @@ type
     procedure AddObjFPCBuiltInIdentifiers(
       const TheBaseTypes: TResolveBaseTypes = btAllFPCTypes;
       const TheBaseProcs: TResolverBuiltInProcs = bfAllStandardProcs); override;
+    // Native memory-layout packing directives, stored per element
+    procedure SetMinEnumSize(El: TPasElement; ASize: Integer); override;
+    function GetMinEnumSize(El: TPasElement): Integer; override;
+    procedure SetPackSet(El: TPasElement; ASize: Integer); override;
+    function GetPackSet(El: TPasElement): Integer; override;
+    procedure SetPackRecords(El: TPasElement; ASize: Integer); override;
+    function GetPackRecords(El: TPasElement): Integer; override;
+    (*
+      Native pointer arithmetic:
+      the untyped Pointer, a pointer declared under {$POINTERMATH ON} (pesfPointerMath),
+      or a ^(Ansi)Char pointer permits +/- and indexing without the use-site switch.
+    *)
+    function IsPointerMathType(El: TPasType): Boolean; override;
+    // Native target: Inc/Dec is allowed on any pointer, switch-independent.
+    function AllowIncDecOnPointer(El: TPasType): Boolean; override;
+    // Detects a bit-packed ordinal array element / record field access (an ordinal whose packed bit width is not a whole number of bytes).
+    function IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean; override;
     // The target pointer size in bytes used by SizeOf folds; 0 (default) uses the host SizeOf(Pointer).
     property TargetPointerSize: Integer read FTargetPointerSize write FTargetPointerSize;
   end;
