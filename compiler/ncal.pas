@@ -2175,7 +2175,7 @@ implementation
 
     procedure tcallnode.add_done_statement(n:tnode);
       var
-        lastdonestatement, before_firstpass : tstatementnode;
+        lastdonestatement, beforelast, before_firstpass : tstatementnode;
         was_first_statement : boolean;
       begin
         if not assigned(n) then
@@ -2190,12 +2190,25 @@ implementation
           end;
         lastdonestatement:=laststatement(callcleanupblock);
         was_first_statement:=(lastdonestatement=callcleanupblock.statements);
+        if not was_first_statement then
+          begin
+            beforelast:=tstatementnode(callcleanupblock.statements);
+            while assigned(beforelast) and (beforelast.right<>lastdonestatement) do
+              beforelast:=tstatementnode(beforelast.next);
+            if not assigned(beforelast) then
+              internalerror(2026071701);
+          end;
         { see comments in add_init_statement }
         addstatement(lastdonestatement,n);
         before_firstpass:=lastdonestatement;
         firstpass(tnode(lastdonestatement));
-        if was_first_statement and (lastdonestatement<>before_firstpass) then
-          callcleanupblock.statements:=lastdonestatement;
+        if (lastdonestatement<>before_firstpass) then
+          begin
+            if was_first_statement then
+              callcleanupblock.statements:=lastdonestatement
+            else if assigned(beforelast) then
+              beforelast.right:=lastdonestatement;
+          end;
         { Update expectloc for callcleanupblock }
         callcleanupblock.expectloc:=lastdonestatement.expectloc;
       end;
