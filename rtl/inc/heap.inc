@@ -1246,10 +1246,13 @@ type
   end;
 
   function HeapInc.ThreadState.AllocVar(size: SizeUint; isArenaMask: SizeUint): pointer;
+  const
+    OSChunkTag = 1; { Save a register by sharing fv and osChunk. }
   var
     fv: pFreeVarChunk absolute result;
+    osChunk: pVarOSChunk absolute result; { Tagged with bottom 1 (OSChunkTag) when still need to distinguish from fv. }
     tailFv: pFreeVarChunk;
-    osChunk, osNext: pVarOSChunk;
+    osNext: pVarOSChunk;
     binIndex, vSize, statv, fvSize: SizeUint;
   begin
     { Search varFree for (roughly) smallest chunk ≥ size. }
@@ -1271,7 +1274,6 @@ type
           size := pVarHeader(fv)[-1].sizeFlags; { Use the entire chunk. Flags must be 0. }
           break;
         end;
-        fv := nil;
       end;
 
       { Try reusing empty OS chunk. }
@@ -1279,6 +1281,7 @@ type
       if Assigned(osChunk) and ((VarOSChunkDataOffset + VarHeaderSize {sentinel}) + size <= {$ifdef HAS_SYSOSFREE} osChunk^.size {$else} SizeUint(pVarHugeHeader(osChunk)[-1].size - VarHugeManager.HeaderSize) {$endif}) then
       begin
         freeOS1 := nil;
+        inc(pointer(osChunk), OSChunkTag); { Tag with bottom 1 to distinguish from fv. }
         break;
       end; { osChunk can be nonzero at this point, harmless. }
 
@@ -1306,11 +1309,15 @@ type
 
       osChunk := AllocateOSChunk((VarOSChunkDataOffset + VarHeaderSize {sentinel}) + size);
       if Assigned(osChunk) then
+      begin
+        inc(pointer(osChunk), OSChunkTag); { Tag with bottom 1 to distinguish from fv. }
         break;
+      end;
       exit; { (nil) as fv is nil and mapped to result. }
     until false;
-    if not Assigned(fv) then
+    if PtrUint(osChunk) and OSChunkTag <> 0 then
     begin
+      dec(pointer(osChunk), OSChunkTag);
     {$ifdef FPC_HAS_FEATURE_THREADING}
       osChunk^.threadState := @self;
     {$endif}
@@ -1324,9 +1331,9 @@ type
       varOS := osChunk;
 
       { Format new free var chunk spanning the entire osChunk... }
-      fv := pointer(osChunk) + (VarOSChunkDataOffset + VarHeaderSize);
-      pVarHeader(result - VarHeaderSize)^.ofsToOs := -(VarOSChunkDataOffset + VarHeaderSize);
       fvSize := (uint32({$ifdef HAS_SYSOSFREE} osChunk^.size {$else} pVarHugeHeader(osChunk)[-1].size - VarHugeManager.HeaderSize {$endif}) - (VarOSChunkDataOffset + VarHeaderSize {sentinel})) and VarSizeMask;
+      fv := pointer(osChunk) + (VarOSChunkDataOffset + VarHeaderSize); { Explicitly shares the register with osChunk and result. }
+      pVarHeader(result - VarHeaderSize)^.ofsToOs := -(VarOSChunkDataOffset + VarHeaderSize);
       pVarHeader(result - VarHeaderSize)^.sizeFlags := fvSize;
       { ...and a permanently used sentinel chunk after it. FreeVarTail and sentinel’s ofsToOs are not used so can remain garbage. }
       pVarHeader(result + fvSize - VarHeaderSize)^.sizeFlags := TrailingSentinelChunkSize + UsedFlag + PrevIsFreeFlag;
