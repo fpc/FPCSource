@@ -180,6 +180,40 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
   end;
 
 
+{$ifdef FPC_WASM_THREADS}
+{ Thread-safe reference-count helpers used by the compiler-managed lifetime of
+  AnsiString/UnicodeString/WideString and dynamic arrays (see fpc_ansistr_decr_ref
+  in astrings.inc and fpc_dynarray_* in dynarr.inc), as well as
+  TInterfacedObject.AfterConstruction. Without these, wasm32 falls back to the
+  non-atomic generic versions in generic.inc, so a refcounted value shared and
+  released concurrently by several wasip1threads workers is double-freed, which
+  corrupts the cross-thread heap free list (HeapInc.ThreadState.FreeToFreeList).
+  Gated on IsMultiThread so the single-threaded case keeps the cheap plain
+  inc/dec, mirroring the IsMultithread check the x86/x86_64 backends do. }
+
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
+function declocked(var l : longint) : boolean;
+  begin
+    if IsMultiThread then
+      declocked:=InterlockedDecrement(l)=0
+    else
+      begin
+        Dec(l);
+        declocked:=(l=0);
+      end;
+  end;
+
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
+procedure inclocked(var l : longint);
+  begin
+    if IsMultiThread then
+      InterlockedIncrement(l)
+    else
+      Inc(l);
+  end;
+{$endif FPC_WASM_THREADS}
+
+
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: smallint) : smallint;
 {$else VER3_2}
