@@ -83,8 +83,10 @@ type
     // Scans aFileName under aCompilerMode with the given defines (trivia on),
     // returning every token — including whitespace, line endings and comments —
     // each carrying its start line:col. The result is also kept in Tokens.
+    // aIncludePaths + the unit's own directory resolve {$I} includes.
     function ScanFile(const aFileName: string; const aCompilerMode: string;
-      const aDefines: array of string): TFpSonarTokenArray;
+      const aDefines: array of string;
+      const aIncludePaths: array of string): TFpSonarTokenArray;
     // Non-throwing scan entry for the per-unit fault boundary: wraps ScanFile,
     // converting any failure into aDiag (Kind dkScanError) instead of
     // propagating. Returns True on success (aDiag zeroed); False on failure
@@ -92,7 +94,8 @@ type
     // is the most fault-tolerant tier, so this rarely fires — but the boundary
     // must not crash if it does.
     function TryScanFile(const aFileName: string; const aCompilerMode: string;
-      const aDefines: array of string; out aDiag: TFpSonarDiagnostic): boolean;
+      const aDefines: array of string; const aIncludePaths: array of string;
+      out aDiag: TFpSonarDiagnostic): boolean;
     // The token sequence produced by the most recent ScanFile call.
     property Tokens: TFpSonarTokenArray read FTokens;
   end;
@@ -131,14 +134,16 @@ type
     // the caller). The
     // tree is owned by this object and freed when this parser is freed.
     function ParseFile(const aFileName: string; const aCompilerMode: string;
-      const aDefines: array of string): TPasModule;
+      const aDefines: array of string;
+      const aIncludePaths: array of string): TPasModule;
     // Non-throwing parse entry for the per-unit fault boundary: wraps ParseFile,
     // converting any failure into aDiag instead of propagating. Returns True on
     // success (Module valid, aDiag zeroed); False on failure (Module nil, aDiag
     // describes the failure). The sole reader of EParserError's typed fields, so
     // the diagnostic crossing into core stays free of vendored types.
     function TryParseFile(const aFileName: string; const aCompilerMode: string;
-      const aDefines: array of string; out aDiag: TFpSonarDiagnostic): boolean;
+      const aDefines: array of string; const aIncludePaths: array of string;
+      out aDiag: TFpSonarDiagnostic): boolean;
     // The module parsed by the most recent ParseFile call (nil before that).
     property Module: TPasModule read FModule;
   end;
@@ -312,7 +317,8 @@ end;
 
 
 function TFpSonarScanner.ScanFile(const aFileName: string;
-  const aCompilerMode: string; const aDefines: array of string): TFpSonarTokenArray;
+  const aCompilerMode: string; const aDefines: array of string;
+  const aIncludePaths: array of string): TFpSonarTokenArray;
 var
   lResolver: TFileResolver;
   lScanner: TPascalScanner;
@@ -328,10 +334,19 @@ begin
   lScanner := nil;
   try
     lResolver := TFileResolver.Create;
+    // {$I} resolves relative to the unit's own directory first, then the
+    // configured include paths — without this an in-tree include aborts the scan.
+    lResolver.BaseDirectory := ExtractFilePath(aFileName);
+    for i := Low(aIncludePaths) to High(aIncludePaths) do
+      if aIncludePaths[i] <> '' then
+        lResolver.AddIncludePath(aIncludePaths[i]);
     lScanner := TPascalScanner.Create(lResolver);
     // TRIVIA ON: surface whitespace, line endings and comments as real tokens.
     lScanner.SkipWhiteSpace := False;
     lScanner.SkipComments := False;
+    // Resources hold nothing a linter inspects; skipping {$R} handling keeps a
+    // missing/unsupported resource from aborting the whole unit's scan.
+    lScanner.Options := lScanner.Options + [po_DisableResources];
     lScanner.SetCompilerMode(aCompilerMode);
     ApplyDialectModeSwitches(lScanner, FDialect);
     for i := Low(aDefines) to High(aDefines) do
@@ -378,6 +393,7 @@ end;
 
 function TFpSonarScanner.TryScanFile(const aFileName: string;
   const aCompilerMode: string; const aDefines: array of string;
+  const aIncludePaths: array of string;
   out aDiag: TFpSonarDiagnostic): boolean;
 begin
   // Success contract: zeroed diagnostic. Reset up front for the happy path.
@@ -388,7 +404,7 @@ begin
   aDiag.Message := '';
   Result := True;
   try
-    ScanFile(aFileName, aCompilerMode, aDefines);
+    ScanFile(aFileName, aCompilerMode, aDefines, aIncludePaths);
   except
     // A missing/unopenable file is the resolver's own EFileNotFoundError — relay
     // it as a dedicated dkFileNotFound so it reads as "cannot open file", not a
@@ -446,7 +462,8 @@ end;
 
 
 function TFpSonarParser.ParseFile(const aFileName: string;
-  const aCompilerMode: string; const aDefines: array of string): TPasModule;
+  const aCompilerMode: string; const aDefines: array of string;
+  const aIncludePaths: array of string): TPasModule;
 var
   lResolver: TFileResolver;
   lScanner: TPascalScanner;
@@ -465,16 +482,28 @@ begin
   lParser := nil;
   try
     lResolver := TFileResolver.Create;
+    // {$I} resolves relative to the unit's own directory first, then the
+    // configured include paths — without this an in-tree include aborts the parse.
+    lResolver.BaseDirectory := ExtractFilePath(aFileName);
+    for i := Low(aIncludePaths) to High(aIncludePaths) do
+      if aIncludePaths[i] <> '' then
+        lResolver.AddIncludePath(aIncludePaths[i]);
     lScanner := TPascalScanner.Create(lResolver);
     lParser := TPasParser.Create(lScanner, lResolver, FEngine);
+    // Set the parser Options BEFORE SetCompilerMode. Assigning TPasParser.Options
+    // pushes them into the scanner, whose setter resets CurrentModeSwitches on a
+    // po_delphi transition (PScanner.TPascalScanner.SetOptions) — so doing it after
+    // SetCompilerMode would silently revert the requested mode to plain FPC mode,
+    // breaking every Delphi-only construct (generics, attributes, out, records).
+    // po_DisableResources skips {$R} handling (a linter needs no resources), so a
+    // missing/unsupported resource file cannot abort the parse.
+    lParser.Options := lParser.Options + [po_ArrayRangeExpr, po_DisableResources];
+    ApplyDialectParserOptions(lParser, FDialect);
     lScanner.SetCompilerMode(aCompilerMode);
     ApplyDialectModeSwitches(lScanner, FDialect);
     for i := Low(aDefines) to High(aDefines) do
       if aDefines[i] <> '' then
         lScanner.AddDefine(aDefines[i]);
-    // Enable the global parser prerequisite before opening/parsing.
-    lParser.Options := lParser.Options + [po_ArrayRangeExpr];
-    ApplyDialectParserOptions(lParser, FDialect);
     lScanner.OpenFile(aFileName);
     // Raises EParserError on any syntax error -> propagates to the caller.
     lParser.ParseMain(FModule);
@@ -491,6 +520,7 @@ end;
 
 function TFpSonarParser.TryParseFile(const aFileName: string;
   const aCompilerMode: string; const aDefines: array of string;
+  const aIncludePaths: array of string;
   out aDiag: TFpSonarDiagnostic): boolean;
 begin
   // Success contract: zeroed diagnostic, valid Module. Reset up front so the
@@ -502,7 +532,7 @@ begin
   aDiag.Message := '';
   Result := True;
   try
-    ParseFile(aFileName, aCompilerMode, aDefines);
+    ParseFile(aFileName, aCompilerMode, aDefines, aIncludePaths);
   except
     // A missing/unopenable file (resolver's EFileNotFoundError) — surface it as
     // dkFileNotFound, matching TryScanFile, rather than a bare "Parse error".
@@ -635,13 +665,19 @@ begin
     for i := Low(aImplicitUses) to High(aImplicitUses) do
       if aImplicitUses[i] <> '' then
         lParse.FParser.ImplicitUses.Add(aImplicitUses[i]);
+    // Set the parser Options BEFORE SetCompilerMode: assigning TPasParser.Options
+    // pushes them into the scanner, whose setter resets CurrentModeSwitches on a
+    // po_delphi transition, so setting them afterwards would silently revert the
+    // requested compiler mode to plain FPC mode. po_DisableResources skips {$R}
+    // handling so a missing/unsupported resource cannot abort the parse.
+    lParse.FParser.Options := lParse.FParser.Options +
+      [po_ArrayRangeExpr, po_DisableResources];
+    ApplyDialectParserOptions(lParse.FParser, aDialect);
     lParse.FScanner.SetCompilerMode(aCompilerMode);
     ApplyDialectModeSwitches(lParse.FScanner, aDialect);
     for i := Low(aDefines) to High(aDefines) do
       if aDefines[i] <> '' then
         lParse.FScanner.AddDefine(aDefines[i]);
-    lParse.FParser.Options := lParse.FParser.Options + [po_ArrayRangeExpr];
-    ApplyDialectParserOptions(lParse.FParser, aDialect);
     // Story 6-6b — real-RTL cond-directive evaluator (opt-in). When the caller
     // supplies a query, wire the scanner's declared()/sizeof() hook to it and
     // enable value-macro mode (bsMacro = -Sm). SetCompilerMode above only ADDS/

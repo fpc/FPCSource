@@ -50,7 +50,7 @@ begin
     try
       // Raises EParserError on any syntax error -> reported as a test error.
       lModule := lParser.ParseFile(lPath, 'OBJFPC',
-        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
+        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX'], []);
       AssertNotNull('parser returned a TPasModule', lModule);
       AssertSame('Module property matches returned module', lModule,
         lParser.Module);

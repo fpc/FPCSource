@@ -57,7 +57,7 @@ begin
     try
       Result := lScanner.ScanFile(
         lFix.Add('scannerfixture.pas', cScannerFixture), 'OBJFPC',
-        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
+        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX'], []);
     finally
       lScanner.Free;
     end;

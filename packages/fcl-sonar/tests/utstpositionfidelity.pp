@@ -91,7 +91,7 @@ begin
     lScanner := TFpSonarScanner.Create;
     try
       Result := lScanner.ScanFile(lPath, 'OBJFPC',
-        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
+        ['FPC', 'CPUX86_64', 'UNIX', 'LINUX'], []);
     finally
       lScanner.Free;
     end;

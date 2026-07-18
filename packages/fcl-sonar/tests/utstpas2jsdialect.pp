@@ -109,7 +109,7 @@ begin
     lParser := TFpSonarParser.Create;
     try
       lParser.Dialect := aDialect;
-      Result := lParser.TryParseFile(lPath, 'OBJFPC', cPas2jsDefines, lDiag);
+      Result := lParser.TryParseFile(lPath, 'OBJFPC', cPas2jsDefines, [], lDiag);
     finally
       lParser.Free;
     end;
@@ -161,7 +161,7 @@ begin
     lScanner := TFpSonarScanner.Create;
     try
       lScanner.Dialect := aDialect;
-      Result := lScanner.TryScanFile(lPath, 'OBJFPC', cPas2jsDefines, lDiag);
+      Result := lScanner.TryScanFile(lPath, 'OBJFPC', cPas2jsDefines, [], lDiag);
     finally
       lScanner.Free;
     end;

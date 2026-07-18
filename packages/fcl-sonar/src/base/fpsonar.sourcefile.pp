@@ -221,7 +221,8 @@ begin
 
   // Scan first: the token stream must survive a later parse failure.
   lFileMissing := False;
-  if not FScanner.TryScanFile(aFileName, aCompilerMode, aDefines, lDiag) then
+  if not FScanner.TryScanFile(aFileName, aCompilerMode, aDefines, aIncludePaths,
+    lDiag) then
   begin
     AddDiagnostic(lDiag);
     lFileMissing := lDiag.Kind = dkFileNotFound;
@@ -239,7 +240,7 @@ begin
   begin
     // Parse: on failure Module is left nil and a diagnostic recorded
     FParseSucceeded := FParser.TryParseFile(aFileName, aCompilerMode, aDefines,
-      lDiag);
+      aIncludePaths, lDiag);
     if not FParseSucceeded then
       AddDiagnostic(lDiag);
 

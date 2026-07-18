@@ -3103,9 +3103,13 @@ function TFileResolver.FindIncludeFileName(const AName: String): String;
 
   begin
     Result:='';
-    // search in BaseDirectory (not in mode Delphi)
-    if (BaseDirectory<>'')
-        and ((ModuleDirectory='') or not (Mode in [msDelphi,msDelphiUnicode])) then
+    // search in BaseDirectory. BaseDirectory tracks the directory of the file
+    // that contains the {$I} directive (updated on each include descent), which
+    // is exactly where Delphi resolves an include relative to — so search it in
+    // Delphi mode as well, otherwise a nested include's sibling (a.inc pulling in
+    // b.inc from the same dir) is not found once ModuleDirectory (the root unit's
+    // dir) differs from it.
+    if (BaseDirectory<>'') then
       begin
       Result:=SearchLowUpCase(BaseDirectory+FN);
       if Result<>'' then exit;

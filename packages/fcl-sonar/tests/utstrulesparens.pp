@@ -406,7 +406,7 @@ begin
   lScanner := TFpSonarScanner.Create;
   try
     lToks := lScanner.ScanFile(
-      lFix.Add('ambiguousnot.pas', cAmbiguousNotNoncompliant), cMode, cDefines);
+      lFix.Add('ambiguousnot.pas', cAmbiguousNotNoncompliant), cMode, cDefines, []);
     for i := 0 to High(lToks) do
       begin
         if lToks[i].IsKeyword then
@@ -431,7 +431,7 @@ begin
       end;
 
     lToks := lScanner.ScanFile(
-      lFix.Add('redundant.pas', cRedundantCompliant), cMode, cDefines);
+      lFix.Add('redundant.pas', cRedundantCompliant), cMode, cDefines, []);
     for i := 0 to High(lToks) do
       begin
         lPunct := lToks[i].Punct;
