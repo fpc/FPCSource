@@ -31,6 +31,11 @@ type
     procedure TestGen_ConstraintRecordClassFail;
     procedure TestGen_ConstraintArrayFail;
     procedure TestGen_ConstraintConstructor;
+    procedure TestGen_ConstraintConcreteClassAndInterface;
+    procedure TestGen_ConstraintInterfaceAndConstructor;
+    procedure TestGen_ConstraintClassKeywordAndConcreteFail;
+    procedure TestGen_ConstraintForwardTypeVsRoot;
+    procedure TestGen_ConstraintForwardClassVsSpecificAncestorFail;
     procedure TestGen_ConstraintUnit;
     // ToDo: constraint T:Unit2.specialize TGen<word>
     procedure TestGen_ConstraintSpecialize;
@@ -55,6 +60,11 @@ type
     procedure TestGen_Record_SpecializeSelfInsideFail;
     procedure TestGen_Record_ReferGenericSelfFail;
     procedure TestGen_RecordAnoArray;
+    procedure TestGen_RecordVariantPartSpecialize;
+    procedure TestGen_RecordAnonArrayFieldSpecialize;
+    procedure TestGen_ForwardRefMemberSpecialize;
+    procedure TestGen_NestedHelperForClassConstrainedTemplate;
+    procedure TestGen_NestedHelperForRecordConstrainedTemplate;
     // ToDo: unitname.specialize TBird<word>.specialize TAnt<word>
 
     // generic class
@@ -81,6 +91,8 @@ type
     procedure TestGen_Class_MethodImplTypeParamNameMismatch;
     procedure TestGen_Class_SpecializeSelfInside;
     procedure TestGen_Class_AncestorTFail;
+    procedure TestGen_Class_ClassConstrainedTemplateAncestor;
+    procedure TestGen_Class_DeferredAncestorTransitive;
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
     procedure TestGen_ClassOfSpecializeFail;
@@ -119,15 +131,19 @@ type
 
     // pointer of generic
     procedure TestGen_PointerDirectSpecializeFail;
+    procedure TestGen_PointerGenericAndNonGenericSameName;
+    procedure TestGen_Class_SelfRefDelphiFail;
 
     // ToDo: helpers for generics
     procedure TestGen_HelperForArray;
+    procedure TestGen_HelperForNamedSpecialized;
     // ToDo: default class prop array helper: arr<b>[c]
 
     // generic statements
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
     procedure TestGen_InlineSpecializeExpr;
+    procedure TestGen_ImplicitFuncSpecGroupOverloadDelphi;
     // ToDo: a.b<c>(d)
     // ToDo: with a do b<c>
     procedure TestGen_TryExcept;
@@ -426,6 +442,89 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintConcreteClassAndInterface;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}{$interfaces corba}',
+  'type',
+  '  TObject = class end;',
+  '  IBird = interface end;',
+  '  TAnimal = class end;',
+  '  generic TCage<T: TAnimal, IBird> = class end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintInterfaceAndConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}{$interfaces corba}',
+  'type',
+  '  TObject = class end;',
+  '  IBird = interface end;',
+  '  generic TCage<T: IBird, constructor> = class end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintClassKeywordAndConcreteFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class end;',
+  '  generic TCage<T: class, TAnimal> = class end;',
+  'begin',
+  '']);
+  CheckResolverException('"class" constraint and "TAnimal" constraint cannot be specified together',
+    nConstraintXAndConstraintYCannotBeTogether);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintForwardTypeVsRoot;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}{$interfaces corba}',
+  'type',
+  '  TObject = class end;',
+  '  IInterface = interface end;',
+  '  generic TGenObj<T: TObject> = class end;',
+  '  generic TGenIntf<T: IInterface> = class end;',
+  '  TTest = class;',
+  '  ITest = interface;',
+  '  TGenTTest = specialize TGenObj<TTest>;',
+  '  TGenITest = specialize TGenIntf<ITest>;',
+  '  TTest = class end;',
+  '  ITest = interface end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintForwardClassVsSpecificAncestorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TSomeClass = class end;',
+  '  generic TGen<T: TSomeClass> = class end;',
+  '  TTest = class;',
+  '  TGenTTest = specialize TGen<TTest>;',
+  '  TTest = class(TSomeClass) end;',
+  'begin',
+  '']);
+  CheckResolverException('Incompatible types: got "TTest" expected "TSomeClass"',
+    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintUnit;
@@ -849,6 +948,120 @@ begin
   '  b: specialize TBird<array of word>;',
   'begin',
   '  a:=b;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_NestedHelperForClassConstrainedTemplate;
+// A nested class helper may extend the enclosing generic's type parameter when it
+// is constrained to a class (TFoo<T: class> ... THelper = class helper for T),
+// and specializing TFoo resolves the helper's HelperForType (FPC thlp30).
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TFoo<T: class> = class',
+  '  type',
+  '    THelper = class helper for T',
+  '    end;',
+  '  end;',
+  '  TFooTObject = TFoo<TObject>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_NestedHelperForRecordConstrainedTemplate;
+// A nested record helper may extend the enclosing generic's type parameter when it
+// is constrained to a record (TFoo<T: record> ... THelper = record helper for T;
+// FPC thlp46).
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TFoo<T: record> = class',
+  '  type',
+  '    THelper = record helper for T',
+  '    end;',
+  '  end;',
+  '  TBar = record f: longint; end;',
+  '  TFooTBar = TFoo<TBar>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ForwardRefMemberSpecialize;
+// Specializing a generic whose members forward-reference each other (PItem points
+// to TItem, declared after) requires creating all specialized members first
+// (two-phase SpecializeMembers) so the forward ref resolves via the member list.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TList<T> = class',
+  '  type',
+  '    PItem = ^TItem;',
+  '    TItem = record',
+  '      data: T;',
+  '    end;',
+  '  var',
+  '    head: PItem;',
+  '  end;',
+  'var',
+  '  l: specialize TList<word>;',
+  'begin',
+  '  l:=nil;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordAnonArrayFieldSpecialize;
+// Specializing a generic record whose field is an ANONYMOUS type referencing the
+// template parameter (a: array of T) must structurally clone and specialize it —
+// SpecializeTypeRef previously raised "not yet implemented" for a nameless type.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TRec<T> = record',
+  '    a: array of T;',
+  '    v: T;',
+  '  end;',
+  'var',
+  '  r: specialize TRec<word>;',
+  'begin',
+  '  r.v:=3;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordVariantPartSpecialize;
+// Specializing a generic record with a variant part ("case ... of") must
+// specialize the variant fields too (they live in VariantEl/Variants, not
+// Members) — fcl-passrc previously left SpecializeVariant a stub.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TRec<T> = record',
+  '    case boolean of',
+  '    true: (x: T);',
+  '    false: (y: longint);',
+  '  end;',
+  'var',
+  '  r: specialize TRec<word>;',
+  'begin',
+  '  r.x:=3;',
+  '  r.y:=4;',
   '']);
   ParseProgram;
 end;
@@ -1339,6 +1552,56 @@ begin
   'begin',
   '']);
   CheckResolverException('class type expected, but T found',nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_ClassConstrainedTemplateAncestor;
+// A class may inherit from a class-constrained template parameter (TTest<T:class>=
+// class(T)); its ancestor is unresolved until specialization, so it is deferred and
+// an override of a method living in T does not raise "no method to override" — the
+// check is deferred to specialization (tgeneric116, direct case).
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TTest<T: class> = class(T)',
+  '    function Foo: longint; override;',
+  '  end;',
+  'function TTest.Foo: longint;',
+  'begin',
+  '  Result:=42;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_DeferredAncestorTransitive;
+// tgeneric116 transitive: a further-derived generic whose ancestor is a partial
+// specialization of a class-constrained-template-ancestor class inherits the
+// deferred flag, so its override of a method living in T also defers.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBase = class',
+  '    function Foo: longint; virtual; abstract;',
+  '  end;',
+  '  generic TTest<T: class> = class(T)',
+  '  end;',
+  '  generic TTest2<T: class> = class(specialize TTest<T>)',
+  '    function Foo: longint; override;',
+  '  end;',
+  'function TTest2.Foo: longint;',
+  'begin',
+  '  Result:=42;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_GenAncestor;
@@ -2016,6 +2279,45 @@ begin
   CheckParserException('Expected "Identifier or file"',nParserExpectTokenError);
 end;
 
+procedure TTestResolveGenerics.TestGen_PointerGenericAndNonGenericSameName;
+// A bare ^TTest forward pointer where only generics TTest<> are declared so far
+// and a non-generic TTest is declared later. In Delphi a generic and a
+// non-generic may share a name, so the bare (no <>) reference must defer to a
+// pending ref and resolve to the non-generic TTest declared afterwards, rather
+// than erroring "generic without specialization".
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TTest<T, S> = record end;',
+  '  TTest<T> = record end;',
+  '  PTest = ^TTest;',
+  '  TTest = record end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_SelfRefDelphiFail;
+// A bare (no <>) reference to the enclosing generic from inside its own body is
+// allowed in ObjFPC but FORBIDDEN in Delphi (which requires the full
+// specialization) — it must raise "generics without specialization".
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '    Next: TBird;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Generics without specialization cannot be used as a type for a variable',
+    nGenericsWithoutSpecializationAsType);
+end;
+
 procedure TTestResolveGenerics.TestGen_HelperForArray;
 var
   i : integer;
@@ -2038,7 +2340,36 @@ begin
   '']);
   for I:=0 to Resolvers.Count-1 do
     TTestEnginePasResolver(Resolvers[i]).MaximizeFPCCompatibility:=True;
-  CheckResolverException('helper for specialized generic type is not supported',nXIsNotSupported);
+  CheckResolverException('helper for inline specialized generic type is not supported',nXIsNotSupported);
+end;
+
+procedure TTestResolveGenerics.TestGen_HelperForNamedSpecialized;
+// A helper may extend a NAMED specialized generic (an alias to a specialization),
+// even under MaximizeFPCCompatibility — only an INLINE (anonymous) specialization
+// in the helper-for clause is rejected.
+var
+  i: integer;
+begin
+  StartProgram(false);
+  Add([
+  '{$ModeSwitch typehelpers}',
+  'type',
+  '  generic TArr<T> = array[1..2] of T;',
+  '  TWordArr = specialize TArr<word>;',
+  '  TWordArrHelper = type helper for TWordArr',
+  '    procedure Fly(w: word);',
+  '  end;',
+  'procedure TWordArrHelper.Fly(w: word);',
+  'begin',
+  'end;',
+  'var',
+  '  a: TWordArr;',
+  'begin',
+  '  a.Fly(3);',
+  '']);
+  for I:=0 to Resolvers.Count-1 do
+    TTestEnginePasResolver(Resolvers[i]).MaximizeFPCCompatibility:=True;
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_LocalVar;
@@ -2102,6 +2433,31 @@ begin
   '  b: specialize TBird<word>;',
   'begin',
   '  b.Fly(2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ImplicitFuncSpecGroupOverloadDelphi;
+// In Delphi mode with {$modeswitch implicitfunctionspecialization}, same-named
+// generic procedures form an implicit overload group and do not hide each other,
+// even without an explicit "overload" directive (timpfuncspez35).
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch implicitfunctionspecialization}',
+  'type',
+  '  TObject = class end;',
+  'procedure DoThis<A>(param1: A);',
+  'begin',
+  'end;',
+  'procedure DoThis<A, B>(param1: A; param2: B);',
+  'begin',
+  'end;',
+  'var i, j: longint;',
+  'begin',
+  '  DoThis(i);',
+  '  DoThis(i, j);',
   '']);
   ParseProgram;
 end;

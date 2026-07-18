@@ -501,6 +501,9 @@ type
   Public
     ProgramSection: TProgramSection;
     InputFile,OutPutFile : TPasTreeString;
+    // All program-header parameters in order, e.g. program p(input,output,f) 
+    // needed for ISO mode, which has more parameters;
+    ProgramParameters : Array of TPasTreeString;
     // Note: the begin..end. block is in the InitializationSection
   end;
 
