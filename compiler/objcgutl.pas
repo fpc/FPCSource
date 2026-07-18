@@ -63,15 +63,20 @@ implementation
       catrttidefs: tfpobjectlist;
       classsyms,
       catsyms: tfpobjectlist;
+      procedure gen_objc_protocol_methods_common(
+        list: tasmlist;
+        classdef: tobjectdef;
+        reqinstmlist,optinstmlist,reqclsmlist,optclsmlist: TFPObjectList;
+        out reqinstsym,optinstsym,reqclssym,optclssym: TAsmSymbol);
       procedure gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmsymbol; classmethods, iscategory: Boolean);
-      procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
-      procedure gen_objc_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel);
-      procedure gen_objc_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;const sectname: string; out listsym: TAsmLabel);
+      procedure gen_objc_protocol_list(list:TAsmList; classdef: tobjectdef; zero_terminator: boolean; out protolistsym: TAsmSymbol);
+      procedure gen_objc_cat_methods(list:TAsmList; classdef: tobjectdef; items: TFPObjectList; rttiype: tobjcrttitype; section: tasmsectiontype;const sectname: string; out listsym: TAsmSymbol);
 
       procedure gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);virtual;abstract;
       procedure gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);virtual;abstract;
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);virtual;abstract;
       procedure gen_objc_info_sections(list: tasmlist);virtual;abstract;
+      procedure get_objc_protocol_methods(const protocol: tobjectdef; out reqinstmlist, optinstmlist, reqclsmlist, optclsmlist: TFPObjectList);
      public
       constructor create(_abi: tobjcabi);
       destructor destroy;override;
@@ -83,7 +88,8 @@ implementation
     { Used by by PowerPC/32 and i386 }
     tobjcrttiwriter_fragile = class(tobjcrttiwriter)
      protected
-      function gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmLabel): TAsmLabel;
+      function gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmSymbol): TAsmLabel;
+      procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmSymbol);
       procedure gen_objc_ivars(list: TAsmList; objccls: tobjectdef; out ivarslabel: TAsmLabel);
       procedure gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);override;
       procedure gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);override;
@@ -102,6 +108,8 @@ implementation
 
       procedure gen_objc_class_ro_part(list: TAsmList; objclss: tobjectdef; protolistsym: TAsmSymbol; out classrolabel: TAsmSymbol; metaclass: boolean);
       procedure addclasslist(list: tasmlist; section: tasmsectiontype; const symname: string; classes: tfpobjectlist);
+      procedure gen_objc_protocol_extmethodtypes(list: tasmlist; prot: tobjectdef; items: TFPObjectList; out extmethsym: TAsmSymbol);
+      procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmSymbol; out extmethsym: TAsmSymbol);
 
       procedure gen_objc_ivars(list: TAsmList; objccls: tobjectdef; out ivarslabel: TAsmLabel);
       procedure gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);override;
@@ -374,56 +382,29 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
     tcb.free;
   end;
 
+procedure tobjcrttiwriter.gen_objc_protocol_methods_common(
+  list: tasmlist;
+  classdef: tobjectdef;
+  reqinstmlist,optinstmlist,reqclsmlist,optclsmlist: TFPObjectList;
+  out reqinstsym,optinstsym,reqclssym,optclssym: TAsmSymbol);
+begin
+  if reqinstmlist.Count > 0 then
+    gen_objc_cat_methods(list,classdef,reqinstmlist,objcinstancemethods,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',reqinstsym)
+  else
+    reqinstsym:=nil;
+  if optinstmlist.Count > 0 then
+    gen_objc_cat_methods(list,classdef,optinstmlist,objcprotinstancemethodsopt,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH', optinstsym)
+  else
+    optinstsym:=nil;
 
-{ generate method (and in the future also property) info for protocols }
-procedure tobjcrttiwriter.gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
-  var
-    proc          : tprocdef;
-    reqinstmlist,
-    reqclsmlist,
-    optinstmlist,
-    optclsmlist   : TFPObjectList;
-    i             : ptrint;
-  begin
-    reqinstmlist:=TFPObjectList.Create(false);
-    reqclsmlist:=TFPObjectList.Create(false);
-    optinstmlist:=TFPObjectList.Create(false);
-    optclsmlist:=TFPObjectList.Create(false);
-    for i:=0 to protocol.vmtentries.Count-1 do
-      begin
-        proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
-        if (po_classmethod in proc.procoptions) then
-          if not(po_optional in proc.procoptions) then
-            reqclsmlist.Add(proc)
-          else
-            optclsmlist.Add(proc)
-        else if not(po_optional in proc.procoptions) then
-          reqinstmlist.Add(proc)
-        else
-          optinstmlist.Add(proc);
-      end;
-    if reqinstmlist.Count > 0 then
-      gen_objc_cat_methods(list,reqinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',reqinstsym)
-    else
-      reqinstsym:=nil;
-    if optinstmlist.Count > 0 then
-      gen_objc_cat_methods(list,optinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',optinstsym)
-    else
-      optinstsym:=nil;
-
-    if reqclsmlist.Count>0 then
-      gen_objc_cat_methods(list,reqclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',reqclssym)
-    else
-      reqclssym:=nil;
-    if optclsmlist.Count>0 then
-      gen_objc_cat_methods(list,optclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',optclssym)
-    else
-      optclssym:=nil;
-
-    reqinstmlist.Free;
-    reqclsmlist.Free;
-    optinstmlist.Free;
-    optclsmlist.Free;
+  if reqclsmlist.Count>0 then
+    gen_objc_cat_methods(list, classdef,reqclsmlist,objcclassmethods,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH', reqclssym)
+  else
+    reqclssym:=nil;
+  if optclsmlist.Count>0 then
+    gen_objc_cat_methods(list, classdef,optclsmlist,objcprotclassmethodsopt,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH', optclssym)
+  else
+    optclssym:=nil;
 end;
 
 
@@ -441,13 +422,16 @@ From CLang:
       Protocol *list[1];
   };
 *)
-procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpobjectlist; out protolistsym: tasmlabel);
+procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; classdef: tobjectdef; zero_terminator: boolean; out protolistsym: TAsmSymbol);
   var
     i         : Integer;
     protosym  : TAsmSymbol;
     protodef  : tobjectdef;
+    protolist : TFPObjectList;
     tcb       : ttai_typedconstbuilder;
+    def       : tdef;
   begin
+    protolist:=classdef.ImplementedInterfaces;;
     if not Assigned(protolist) or
        (protolist.Count=0) then
       begin
@@ -466,14 +450,11 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
           end;
       end;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
     tcb.begin_anonymous_record(internaltypeprefixName[itp_objc_proto_list]+tostr(protolist.Count),
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
       targetinfos[target_info.system]^.alignment.maxCrecordalign);
-
-    { protocol lists are stored in .objc_cat_cls_meth section }
-    current_asmdata.getlabel(protolistsym, alt_data);
 
     if (abi=oa_fragile) then
       { From Clang: next, always nil}
@@ -493,9 +474,15 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
           end;
         tcb.emit_tai(tai_const.Create_sym(protosym),voidpointertype);
       end;
+
+    if zero_terminator then
+      tcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
+
+    def:=tcb.end_anonymous_record;
+    protolistsym:=current_asmdata.DefineAsmSymbol(classdef.rtti_mangledname(objcprotocollist),AB_LOCAL,AT_DATA,def);
     list.concatList(
       tcb.get_final_asmlist(
-        protolistsym,tcb.end_anonymous_record,
+        protolistsym,def,
         sec_objc_cat_cls_meth,'_OBJC_PROTOCOLLIST',sizeof(pint)
       )
     );
@@ -506,22 +493,21 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
 
 { Generate rtti for an Objective-C methods (methods without implementation) }
 { items : TFPObjectList of Tprocdef }
-procedure tobjcrttiwriter.gen_objc_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;
-  const sectname: string; out listsym: TAsmLabel);
+procedure tobjcrttiwriter.gen_objc_cat_methods(list:TAsmList; classdef: tobjectdef; items: TFPObjectList; rttiype: tobjcrttitype; section: tasmsectiontype; const sectname: string; out listsym: TAsmSymbol);
 var
-  i     : integer;
-  m     : tprocdef;
-  lab   : tasmlabel;
-  ldef  : tdef;
-  mtype : tdef;
-  tcb   : ttai_typedconstbuilder;
+  i       : integer;
+  m       : tprocdef;
+  lab     : tasmlabel;
+  ldef,
+  mtype,
+  listdef : tdef;
+  tcb     : ttai_typedconstbuilder;
 begin
   if not assigned(items) or
      (items.count=0) then
     exit;
 
-  tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
-  current_asmdata.getlabel(listsym,alt_data);
+  tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
   tcb.begin_anonymous_record(
     internaltypeprefixName[itp_objc_cat_methods]+tostr(items.count),
     C_alignment,1,
@@ -545,11 +531,37 @@ begin
       if (abi=oa_nonfragile) then
         tcb.emit_tai(Tai_const.Create_nil_codeptr,codeptruinttype);
     end;
+  listdef:=tcb.end_anonymous_record;
+  listsym:=current_asmdata.DefineAsmSymbol(classdef.rtti_mangledname(rttiype),AB_LOCAL,AT_DATA,listdef);
   list.concatList(
     tcb.get_final_asmlist(
-      listsym,tcb.end_anonymous_record,section,sectname,sizeof(pint))
+      listsym,listdef,section,sectname,sizeof(pint))
   );
   tcb.free;
+end;
+
+procedure tobjcrttiwriter.get_objc_protocol_methods(const protocol: tobjectdef; out reqinstmlist, optinstmlist, reqclsmlist, optclsmlist: TFPObjectList);
+var
+  i: ptrint;
+  proc: tprocdef;
+begin
+  reqinstmlist:=TFPObjectList.Create(false);
+  reqclsmlist:=TFPObjectList.Create(false);
+  optinstmlist:=TFPObjectList.Create(false);
+  optclsmlist:=TFPObjectList.Create(false);
+  for i:=0 to protocol.vmtentries.Count-1 do
+    begin
+      proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
+      if (po_classmethod in proc.procoptions) then
+        if not(po_optional in proc.procoptions) then
+          reqclsmlist.Add(proc)
+        else
+          optclsmlist.Add(proc)
+      else if not(po_optional in proc.procoptions) then
+        reqinstmlist.Add(proc)
+      else
+        optinstmlist.Add(proc);
+    end;
 end;
 
 
@@ -696,7 +708,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_ivars(list: TAsmList; objccls: tobjec
       struct objc_prop_list	*instance_properties;
     }
 *)
-function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmLabel): TAsmLabel;
+function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmSymbol): TAsmLabel;
   var
     tcb: ttai_typedconstbuilder;
   begin
@@ -730,22 +742,37 @@ function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsy
       Result:=nil;
   end;
 
+{ generate method (and in the future also property) info for protocols }
+procedure tobjcrttiwriter_fragile.gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmSymbol);
+  var
+    reqinstmlist,
+    reqclsmlist,
+    optinstmlist,
+    optclsmlist   : TFPObjectList;
+begin
+    get_objc_protocol_methods(protocol,reqinstmlist,optinstmlist,reqclsmlist,optclsmlist);
+    gen_objc_protocol_methods_common(list,protocol,reqinstmlist,optinstmlist,reqclsmlist,optclsmlist,reqinstsym,optinstsym,reqclssym,optclssym);
+    reqinstmlist.Free;
+    reqclsmlist.Free;
+    optinstmlist.Free;
+    optclsmlist.Free;
+end;
 
 { Generate rtti for an Objective-C protocol  }
 procedure tobjcrttiwriter_fragile.gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);
   var
     namesym     : TAsmLabel;
     namedef     : tdef;
-    protolist   : TAsmLabel;
+    protolist,
     reqinstsym,
     optinstsym,
     reqclssym,
-    optclssym,
+    optclssym   : TAsmSymbol;
     protoext,
     lbl          : TAsmLabel;
     tcb          : ttai_typedconstbuilder;
   begin
-    gen_objc_protocol_list(list,protocol.ImplementedInterfaces,protolist);
+    gen_objc_protocol_list(list,protocol,false,protolist);
     gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym);
     protoext:=gen_objc_protocol_ext(list,optinstsym,optclssym);
 
@@ -799,8 +826,8 @@ From Clang:
 procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);
   var
     catstrsym,
-    clsstrsym,
-    protolistsym  : TAsmLabel;
+    clsstrsym     : TAsmLabel;
+    protolistsym,
     instmthdlist,
     clsmthdlist,
     catsym        : TAsmSymbol;
@@ -820,7 +847,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objc
     gen_objc_methods(list,objccat,clsmthdlist,true,true);
 
     { generate implemented protocols list }
-    gen_objc_protocol_list(list,objccat.ImplementedInterfaces,protolistsym);
+    gen_objc_protocol_list(list,objccat,false,protolistsym);
 
     { category declaration section }
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
@@ -888,7 +915,8 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     root          : tobjectdef;
     metasym,
     mthdlist,
-    clssym        : TAsmSymbol;
+    clssym,
+    protolistsym  : TAsmSymbol;
     superStrDef,
     classStrDef,
     metaisaStrDef,
@@ -897,8 +925,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     superStrSym,
     classStrSym,
     metaisaStrSym,
-    ivarslist,
-    protolistsym  : TAsmLabel;
+    ivarslist     : TAsmLabel;
     hiddenflag    : cardinal;
     tcb           : ttai_typedconstbuilder;
 
@@ -907,7 +934,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     gen_objc_methods(list,objclss,mthdlist,true,false);
 
     { generate implemented protocols list }
-    gen_objc_protocol_list(list,objclss.ImplementedInterfaces,protolistsym);
+    gen_objc_protocol_list(list,objclss,false,protolistsym);
 
     { register necessary names }
     { 1) the superclass }
@@ -1324,19 +1351,20 @@ From Clang:
 procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol: tobjectdef; out protocollabel: tasmsymbol);
   var
     lbl,
-    listsym       : TAsmSymbol;
+    listsym,
+    protolist     : TAsmSymbol;
     namedef       : tdef;
-    namesym,
-    protolist     : TAsmLabel;
+    namesym       : TAsmLabel;
     reqinstsym,
     reqclssym,
     optinstsym,
-    optclssym     : TAsmLabel;
+    optclssym,
+    extmethodssym : TAsmSymbol;
     prottype      : tdef;
     tcb           : ttai_typedconstbuilder;
   begin
-    gen_objc_protocol_list(list,protocol.ImplementedInterfaces,protolist);
-    gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym);
+    gen_objc_protocol_list(list,protocol,true,protolist);
+    gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym,extmethodssym);
 
     { label for the protocol needs to be
         a) in a coalesced section (so multiple definitions of the same protocol
@@ -1372,6 +1400,12 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     tcb.emit_ord_const(prottype.size,u32inttype);
     { flags }
     tcb.emit_ord_const(0,u32inttype);
+    { extendedMethodTypes }
+    ConcatSymOrNil(tcb,extmethodssym,voidpointertype);
+    { demangledName (unknown, always seems nil) }
+    tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+    { classProperties -- todo }
+    tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
     tcb.maybe_end_aggregate(prottype);
     list.concatList(
       tcb.get_final_asmlist(
@@ -1408,8 +1442,8 @@ From Clang:
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);
   var
-    catstrsym,
-    protolistsym  : TAsmLabel;
+    catstrsym     : TAsmLabel;
+    protolistsym,
     instmthdlist,
     clsmthdlist,
     clssym,
@@ -1429,7 +1463,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; o
     gen_objc_methods(list,objccat,clsmthdlist,true,true);
 
     { generate implemented protocols list }
-    gen_objc_protocol_list(list,objccat.ImplementedInterfaces,protolistsym);
+    gen_objc_protocol_list(list,objccat,true,protolistsym);
 
     { category declaration section }
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
@@ -1445,6 +1479,11 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; o
     ConcatSymOrNil(tcb,protolistsym,voidpointertype);
     { properties, not yet supported }
     tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+    tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+    { size }
+    tcb.emit_tai(Tai_const.Create_32bit(64),s32inttype);
+    { padding }
+    tcb.emit_tai(Tai_const.Create_32bit(0),s32inttype);
     catdef:=tcb.end_anonymous_record;
     catsym:=current_asmdata.DefineAsmSymbol(objccat.rtti_mangledname(objcclassrtti),AB_LOCAL,AT_DATA,catdef);
     list.concatList(
@@ -1694,8 +1733,8 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     metasym,
     clssym,
     metarosym,
-    rosym         : TAsmSymbol;
-    protolistsym  : TAsmLabel;
+    rosym,
+    protolistsym  : TAsmSymbol;
     vis           : TAsmsymbind;
     isatcb,
     metatcb       : ttai_typedconstbuilder;
@@ -1749,7 +1788,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     metaisaSym:=current_asmdata.RefAsmSymbol(root.rtti_mangledname(objcmetartti),AT_DATA);
 
     { 4) the implemented protocols (same for metaclass and regular class) }
-    gen_objc_protocol_list(list,objclss.ImplementedInterfaces,protolistsym);
+    gen_objc_protocol_list(list,objclss,true,protolistsym);
 
     { 5) the read-only parts of the class definitions }
     gen_objc_class_ro_part(list,objclss,protolistsym,metarosym,true);
@@ -1835,6 +1874,69 @@ procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasms
       )
     );
   end;
+
+procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_extmethodtypes(list: tasmlist; prot: tobjectdef; items: TFPObjectList; out extmethsym: TAsmSymbol);
+  var
+    i     : integer;
+    m     : tprocdef;
+    lab   : tasmlabel;
+    def,
+    ldef  : tdef;
+    tcb   : ttai_typedconstbuilder;
+  begin
+    if not assigned(items) or
+       (items.count=0) then
+      begin
+        extmethsym:=nil;
+        exit;
+      end;
+
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb.begin_anonymous_record(
+      internaltypeprefixName[itp_objc_prot_ext_methods]+tostr(items.count),
+      C_alignment,1,
+      targetinfos[target_info.system]^.alignment.recordalignmin,
+      targetinfos[target_info.system]^.alignment.maxCrecordalign);
+    for i:=0 to items.Count-1 do
+      begin
+        m:=tprocdef(items[i]);
+        objcreatestringpoolentry(objcencodemethod(m),sp_objcvartypes,sec_objc_meth_var_types,lab,ldef);
+        tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
+      end;
+    def:=tcb.end_anonymous_record;
+    extmethsym:=current_asmdata.DefineAsmSymbol(prot.rtti_mangledname(objcprotocolmethodstypelist),AB_LOCAL,AT_DATA,def);
+    list.concatList(
+      tcb.get_final_asmlist(
+        extmethsym,def,sec_objc_const,'OBJC_PROTOCOL_METHOD_TYPES',sizeof(pint))
+    );
+    tcb.free;
+    tcb:=nil;
+  end;
+
+procedure tobjcrttiwriter_nonfragile.gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmSymbol; out extmethsym: TAsmSymbol);
+  var
+    reqinstmlist,
+    reqclsmlist,
+    optinstmlist,
+    optclsmlist,
+    allmethods: TFPObjectList;
+begin
+    get_objc_protocol_methods(protocol,reqinstmlist,optinstmlist,reqclsmlist,optclsmlist);
+    gen_objc_protocol_methods_common(list,protocol,reqinstmlist,optinstmlist,reqclsmlist,optclsmlist,reqinstsym,optinstsym,reqclssym,optclssym);
+    // extended method list = list of all method signatures in order (and only signatures)
+    allmethods:=TFPObjectList.Create(false);
+    allmethods.ConcatListCopy(reqinstmlist);
+    allmethods.ConcatListCopy(reqclsmlist);
+    allmethods.ConcatListCopy(optinstmlist);
+    allmethods.ConcatListCopy(optclsmlist);
+    gen_objc_protocol_extmethodtypes(list,protocol,allmethods,extmethsym);
+
+    reqinstmlist.Free;
+    reqclsmlist.Free;
+    optinstmlist.Free;
+    optclsmlist.Free;
+    allmethods.Free;
+end;
 
 
 procedure tobjcrttiwriter_nonfragile.gen_objc_info_sections(list: tasmlist);
