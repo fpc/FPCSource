@@ -336,6 +336,13 @@ type
     Procedure TestEnumSet_AnonymousEnumtypeName;
     Procedure TestEnumSet_Const;
     Procedure TestProc_AddrConstInit;
+    Procedure TestSet_TypecastFromInt;
+    Procedure TestProgramHeaderParameters;
+    Procedure TestRTTIDirectiveInvalidFail;
+    Procedure TestForInMultiDimArrayFlatten;
+    Procedure TestResourcestringInTypedConst;
+    Procedure TestResourcestringInTypedConstArray;
+    Procedure TestResourcestringInTypedCompoundFail;
     Procedure TestSet_IntRange_Const;
     Procedure TestSet_Byte_Const;
     Procedure TestEnumRange;
@@ -4539,6 +4546,79 @@ begin
   'procedure Foo; begin end;',
   'const P: TProc = @Foo;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedConst;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo = ''foo'';','const Bar: string = Foo;','begin','']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedConstArray;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo=''foo''; Baz=''baz'';','const Arr: array[0..1] of string = (Foo, Baz);','begin','']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringInTypedCompoundFail;
+begin
+  StartProgram(false);
+  Add(['Resourcestring Foo = ''foo'';','const Bar: string = ''Pre''+Foo;','begin','']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestForInMultiDimArrayFlatten;
+begin
+  StartProgram(false);
+  Add([
+  'var a: array[0..1,0..1] of longint; x, s: longint;',
+  'begin',
+  '  s:=0;',
+  '  for x in a do s:=s+x;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRTTIDirectiveInvalidFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$RTTI EXPLICIT METHODS([nonsense])}',
+  'begin',
+  '']);
+  // po_CheckDirectiveRTTI (now in po_Resolver) validates the $RTTI directive.
+  CheckParserException('Invalid parameters for compiler directive %s',
+    PParser.nErrInvalidParamsForDirectiveX);
+end;
+
+procedure TTestResolver.TestProgramHeaderParameters;
+begin
+  Parser.ImplicitUses.Clear;
+  Add([
+  'program afile(input,output,data);',
+  'begin',
+  '']);
+  ParseProgram;
+  AssertEquals('InputFile','input',TPasProgram(Module).InputFile);
+  AssertEquals('OutputFile','output',TPasProgram(Module).OutputFile);
+  AssertEquals('ProgramParameters count',3,Length(TPasProgram(Module).ProgramParameters));
+  AssertEquals('param[0]','input',TPasProgram(Module).ProgramParameters[0]);
+  AssertEquals('param[2]','data',TPasProgram(Module).ProgramParameters[2]);
+end;
+
+procedure TTestResolver.TestSet_TypecastFromInt;
+begin
+  StartProgram(false);
+  Add([
+  'type TByteSet = set of 0..7;',
+  'var s: TByteSet; l: longint;',
+  'begin',
+  '  l:=5;',
+  '  s:=TByteSet(l);',
   '']);
   ParseProgram;
 end;

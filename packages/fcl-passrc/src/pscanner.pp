@@ -743,7 +743,9 @@ type
     po_AsmPascalComments,    // Allow pascal comments/directives in asm blocks
     po_AllowMem,             // Allow use of meml, mem, memw arrays
     po_WarnResourceNotFound, // Do not raise error if resource not found.
-    po_CheckDirectiveRTTI    // parse $RTTI directive and error on invalid
+    po_CheckDirectiveRTTI,   // parse $RTTI directive and error on invalid
+    po_AllowPointerToSpecialize, // allow ^specialize Type<Params> inline-specialized pointer types
+    po_StrictClassHelperMode // "class helper" requires msClass (real-FPC: reject it in fpc/tp mode)
     );
   TPOptions = set of TPOption;
 

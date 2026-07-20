@@ -109,6 +109,8 @@ type
     procedure TestFoldBitSizeOfByte;
     procedure TestFoldTrunc;
     procedure TestFoldRound;
+    procedure TestResolveStringCopy;
+    procedure TestEnumAssignedOrdinal;
     procedure TestFoldPointerCast;
     procedure TestFoldNamedPointerCast;
     procedure TestAddressOfDegradesToUnknown;
@@ -162,6 +164,12 @@ type
     Pointer, a pointer declared under $POINTERMATH ON, and a ^(Ansi)Char pointer
     permit +/- and indexing; Inc/Dec is allowed on any pointer. A plain typed
     pointer with none of these still requires the switch. }
+
+  TTestNativeProcChecks = class(TCustomNativeTestResolver)
+  published
+    procedure TestCDeclVarArgsNeedExternal;
+    procedure TestNoStackFrameNeedsAssembler;
+  end;
 
   TTestNativePointerMath = class(TCustomNativeTestResolver)
   published
@@ -246,6 +254,7 @@ begin
     AssertNotNull('BitSizeOf registered',R.BuiltInProcs[bfBitSizeOf]);
     AssertNotNull('Trunc registered',R.BuiltInProcs[bfTrunc]);
     AssertNotNull('Round registered',R.BuiltInProcs[bfRound]);
+    AssertNotNull('Copy(string) registered',R.BuiltInProcs[bfCopyString]);
   finally
     R.Free;
   end;
@@ -264,6 +273,7 @@ begin
     AssertNull('BitSizeOf not registered on base',R.BuiltInProcs[bfBitSizeOf]);
     AssertNull('Trunc not registered on base',R.BuiltInProcs[bfTrunc]);
     AssertNull('Round not registered on base',R.BuiltInProcs[bfRound]);
+    AssertNull('Copy(string) not registered on base',R.BuiltInProcs[bfCopyString]);
   finally
     R.Free;
   end;
@@ -389,6 +399,48 @@ begin
   Fail('const '+aName+' not found');
 end;
 
+
+procedure TTestNativeResolverFold.TestResolveStringCopy;
+// The native resolver accepts Copy(string,start,count) -> string (base rejects it).
+begin
+  StartProgram(false);
+  Add([
+  'var s, r: string;',
+  'begin',
+  '  s:=''hello''; r:=Copy(s,1,3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestNativeResolverFold.TestEnumAssignedOrdinal;
+// Native uses the ASSIGNED-value ordinal model: type e=(a,b:=8) -> Ord(b)=8
+// (base/pas2js index model would give 1).
+var
+  V: TResEvalValue;
+begin
+  StartProgram(false);
+  Add([
+  'type TEnum = (eA, eB:=8, eC);',
+  'const',
+  '  c = ord(eB);',
+  '  d = ord(eC);',
+  'begin',
+  '']);
+  ParseProgram;
+  V:=EvalNamedConst('c');
+  try
+    AssertNotNull('ord(eB) folds',V);
+    AssertEquals('ord(eB)=8 (assigned)',8,TResEvalInt(V).Int);
+  finally
+    ReleaseEvalValue(V);
+  end;
+  V:=EvalNamedConst('d');
+  try
+    AssertEquals('ord(eC)=9 (assigned+1)',9,TResEvalInt(V).Int);
+  finally
+    ReleaseEvalValue(V);
+  end;
+end;
 
 function TTestNativeResolverFold.FoldProgramConst(const aExpr: string
   ): TResEvalValue;
@@ -1120,6 +1172,28 @@ begin
 end;
 
 
+procedure TTestNativeProcChecks.TestCDeclVarArgsNeedExternal;
+begin
+  // NATIVE: a cdecl routine with "array of const" is variadic -> must be external.
+  StartProgram(true,[supTVarRec]);
+  Add('procedure Foo(args: array of const); cdecl;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sVarArgsNeedCDeclAndExternal,nVarArgsNeedCDeclAndExternal);
+end;
+
+procedure TTestNativeProcChecks.TestNoStackFrameNeedsAssembler;
+begin
+  // NATIVE: nostackframe requires assembler.
+  StartProgram(false);
+  Add('procedure Foo; nostackframe;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sNoStackFrameWithoutAssembler,nNoStackFrameWithoutAssembler);
+end;
+
 initialization
   RegisterTest(TTestNativeResolver);
   RegisterTest(TTestNativeResolverFold);
@@ -1127,4 +1201,5 @@ initialization
   RegisterTest(TTestNativePacking);
   RegisterTest(TTestNativePointerMath);
   RegisterTest(TTestNativeBitPacked);
+  RegisterTest(TTestNativeProcChecks);
 end.

@@ -156,7 +156,9 @@ const
     'po_AsmPascalComments',
     'AllowMem',
     'WarnResourceNotFound',
-    'CheckDirectiveRTTI');
+    'CheckDirectiveRTTI',
+    'AllowPointerToSpecialize',
+    'StrictClassHelperMode');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
