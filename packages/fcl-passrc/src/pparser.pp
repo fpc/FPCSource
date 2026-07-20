@@ -7450,6 +7450,8 @@ var
   Ot : TOperatorType;
   IsTokenBased: Boolean;
   j, i: Integer;
+  OpTemplates: TFPList;
+  OpNamePart: TProcedureNamePart;
 
 begin
   OperatorTypeName:='';
@@ -7469,10 +7471,25 @@ begin
         begin
         OT:=TPasOperator.NameToOperatorType(CurTokenString);
         OperatorTypeName:=CurTokenString;
-        // Case Class operator TMyRecord.+
+        // Case Class operator TMyRecord.+  or  TMyRecord<T>.Implicit
         if (OT=otUnknown) then
           begin
           NextToken;
+          // Generic operator implementation header: TMyRecord<T>.Op
+          // Read the type parameters into NameParts so they reach the element,
+          // mirroring what ExpectProcName does for generic method bodies.
+          if CurToken=tkLessThan then
+            begin
+            NameParts:=TProcedureNameParts.Create;
+            OpNamePart:=TProcedureNamePart.Create;
+            NameParts.Add(OpNamePart);
+            OpNamePart.Name:=OperatorTypeName;
+            UngetToken;
+            OpTemplates:=TFPList.Create;
+            OpNamePart.Templates:=OpTemplates;
+            ReadGenericArguments(OpTemplates,Parent);
+            NextToken;
+            end;
           if CurToken<>tkDot then
             ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[OperatorTypeName]);
           NextToken;
@@ -7481,6 +7498,13 @@ begin
             OT:=TPasOperator.TokenToOperatorType(CurTokenText)
           else
             OT:=TPasOperator.NameToOperatorType(CurTokenString);
+          // Second name part = the operator's canonical name (generic impl only).
+          if NameParts<>nil then
+            begin
+            OpNamePart:=TProcedureNamePart.Create;
+            NameParts.Add(OpNamePart);
+            OpNamePart.Name:=OperatorNames[OT];
+            end;
           end
         else
           OperatorTypeName:='';

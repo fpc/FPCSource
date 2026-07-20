@@ -45,6 +45,9 @@ Type
     Procedure TestGenericMethod_Program;
     Procedure TestGenericMethod_OverloadDelphi;
 
+    // generic class operator
+    Procedure TestGenericOperator_ImplHeaderDelphi;
+
     // const generic parameters
     Procedure TestConstGeneric_Basic;
     Procedure TestConstGeneric_MultiParam;
@@ -431,6 +434,25 @@ begin
   '    Fly<word>();',
   '    Fly<longint>(13);',
   '  end;',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestGenericOperator_ImplHeaderDelphi;
+begin
+  // A generic record's class-operator implementation header
+  // "class operator TBox<T>.Implicit" must parse (it used to raise
+  // "Unknown operator type" because the <T> after the type name was not read).
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBox<T> = record',
+  '    class operator Implicit(const b: TBox<T>): T;',
+  '  end;',
+  'class operator TBox<T>.Implicit(const b: TBox<T>): T;',
+  'begin',
+  'end;',
+  'begin',
   '']);
   ParseModule;
 end;

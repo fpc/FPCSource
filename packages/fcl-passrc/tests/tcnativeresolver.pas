@@ -114,6 +114,7 @@ type
     procedure TestFoldPointerCast;
     procedure TestFoldNamedPointerCast;
     procedure TestAddressOfDegradesToUnknown;
+    procedure TestGenericClassOperatorResultOverload;
   end;
 
   { TTestElementStateFlags
@@ -608,6 +609,33 @@ begin
   finally
     ReleaseEvalValue(V);
   end;
+end;
+
+procedure TTestNativeResolverFold.TestGenericClassOperatorResultOverload;
+// GitLab #40256: a generic record may declare two conversion operators
+// (Implicit/Explicit) that differ only by their result type. The generic
+// operator implementation header "class operator TBox<T>.Implicit" must parse,
+// and the two Implicit operators must not collide as a "Duplicate identifier"
+// (conversion operators overload on the result type). Accepted by the native
+// resolver (and real FPC); the base resolver cannot declare it.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBox<T> = record',
+  '    class operator Implicit(const b: TBox<T>): string;',
+  '    class operator Implicit(const b: TBox<T>): longint;',
+  '  end;',
+  'class operator TBox<T>.Implicit(const b: TBox<T>): string;',
+  'begin',
+  'end;',
+  'class operator TBox<T>.Implicit(const b: TBox<T>): longint;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 

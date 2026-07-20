@@ -20662,6 +20662,15 @@ begin
   // specialize props
   SpecializePasElementProperties(GenImplProc,SpecImplProc);
   AddProcedure(SpecImplProc,nil);
+  // This path specializes the implementation proc via SpecializeProcedure
+  // directly (not SpecializeElement->SpecializeOperator), so an operator's
+  // OperatorType/TokenBased must be copied here too, otherwise the specialized
+  // operator impl body keeps OperatorType=otUnknown.
+  if GenImplProc is TPasOperator then
+    begin
+    TPasOperator(SpecImplProc).OperatorType:=TPasOperator(GenImplProc).OperatorType;
+    TPasOperator(SpecImplProc).TokenBased:=TPasOperator(GenImplProc).TokenBased;
+    end;
   SpecializeProcedure(GenImplProc,SpecImplProc,SpecializedItem);
   finally
     FInSpecialize:=SavedInSpecialize;
@@ -20852,7 +20861,13 @@ begin
     AddProcedureBody(TProcedureBody(SpecEl));
     SpecializeProcedureBody(TProcedureBody(GenEl),TProcedureBody(SpecEl));
     end
-  else if C=TPasOperator then
+  else if C.InheritsFrom(TPasOperator) then
+    // TPasOperator and its descendant TPasClassOperator: must run
+    // SpecializeOperator so the specialized copy keeps its OperatorType
+    // (otImplicit/otExplicit/...). Matching only C=TPasOperator let a
+    // `class operator` fall through to the plain-procedure branch below,
+    // leaving OperatorType=otUnknown so implicit/explicit conversions on a
+    // specialized generic record were not found.
     begin
     AddProcedure(TPasOperator(SpecEl),nil);
     SpecializeOperator(TPasOperator(GenEl),TPasOperator(SpecEl));
@@ -27954,6 +27969,7 @@ function TPasResolver.CheckProcOverloadCompatibility(Proc1, Proc2: TPasProcedure
 var
   ProcArgs1, ProcArgs2, TemplTypes1, TemplTypes2: TFPList;
   i, Comp: Integer;
+  ResultResolved1, ResultResolved2: TPasResolverResult;
 begin
   Result:=false;
 
@@ -27987,6 +28003,20 @@ begin
     {$ENDIF}
     Comp:=CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i]));
     if Comp>cExact then
+      exit;
+    end;
+  // Conversion operators (Implicit/Explicit) overload on their result type in
+  // addition to their arguments: two of them with matching arguments but
+  // different result types are distinct overloads, not a duplicate.
+  if (Proc1 is TPasOperator) and (Proc2 is TPasOperator)
+      and (TPasOperator(Proc1).OperatorType=TPasOperator(Proc2).OperatorType)
+      and (TPasOperator(Proc1).OperatorType in [otImplicit,otExplicit])
+      and (Proc1.ProcType is TPasFunctionType)
+      and (Proc2.ProcType is TPasFunctionType) then
+    begin
+    ComputeElement(TPasFunctionType(Proc1.ProcType).ResultEl.ResultType,ResultResolved1,[rcType]);
+    ComputeElement(TPasFunctionType(Proc2.ProcType).ResultEl.ResultType,ResultResolved2,[rcType]);
+    if ResultResolved1.LoTypeEl<>ResultResolved2.LoTypeEl then
       exit;
     end;
   Result:=true;
