@@ -1,4 +1,4 @@
-{
+ {
     This file is part of the Free Component Library
 
     Pascal resolver
@@ -5272,7 +5272,8 @@ begin
   // The argument must be a variant (the expensive check).
   ComputeElement(TPasExpr(Params.Params[0]), ExprRes, []);
   {$IFNDEF PAS2JS}
-  if ExprRes.BaseType <> btVariant then Exit  {$ENDIF}
+  if ExprRes.BaseType <> btVariant then Exit;
+  {$ENDIF}
   // Get param base types
   if (ParamA.ArgType = nil) and (ParamA.Access in [argVar, argOut]) then
     BTA := btUntyped
