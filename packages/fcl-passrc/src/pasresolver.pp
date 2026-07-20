@@ -5235,7 +5235,9 @@ var
       btByte: Result := 8;
       btWord: Result := 16;
       btLongWord: Result := 32;
+      {$IFDEF HasInt64}
       btQWord: Result := 64;
+      {$ENDIF}
     else Result := 0;
     end;
   end;
@@ -5246,7 +5248,9 @@ var
       btShortInt: Result := 8;
       btSmallInt: Result := 16;
       btLongint: Result := 32;
+      {$IFDEF HasInt64}
       btInt64: Result := 64;
+      {$ENDIF}
     else Result := 0;
     end;
   end;
@@ -5267,7 +5271,8 @@ begin
   ParamB := TPasArgument(ProcB.ProcType.Args[0]);
   // The argument must be a variant (the expensive check).
   ComputeElement(TPasExpr(Params.Params[0]), ExprRes, []);
-  if ExprRes.BaseType <> btVariant then Exit;
+  {$IFNDEF PAS2JS}
+  if ExprRes.BaseType <> btVariant then Exit  {$ENDIF}
   // Get param base types
   if (ParamA.ArgType = nil) and (ParamA.Access in [argVar, argOut]) then
     BTA := btUntyped
@@ -5303,12 +5308,12 @@ begin
     Exit(True);
   // Rule 3: Untyped var/out vs numeric types (tiers 1-5) -> ambiguous.
   if (BTA = btUntyped) and (BTB in [btByte, btShortInt, btWord, btSmallInt,
-      btLongWord, btLongint, btSingle, btDouble, btCurrency, btComp, btExtended,
-      btBoolean, btByteBool, btWordBool, btLongBool, btQWordBool]) then
+      btLongWord, btLongint, btSingle, btDouble, btCurrency,{$IFDEF HasInt64} btComp,{$ENDIF} btExtended,
+      btBoolean, btByteBool, btWordBool, btLongBool {$IFDEF HasInt64}, btQWordBool{$endif}]) then
     Exit(True);
   if (BTB = btUntyped) and (BTA in [btByte, btShortInt, btWord, btSmallInt,
-      btLongWord, btLongint, btSingle, btDouble, btCurrency, btComp, btExtended,
-      btBoolean, btByteBool, btWordBool, btLongBool, btQWordBool]) then
+      btLongWord, btLongint, btSingle, btDouble, btCurrency,{$IFDEF HasInt64} btComp,{$ENDIF} btExtended,
+      btBoolean, btByteBool, btWordBool, btLongBool {$IFDEF HasInt64}, btQWordBool{$ENDIF}]) then
     Exit(True);
 end;
 
@@ -8398,10 +8403,10 @@ begin
             {$ifdef FPC_HAS_CPSTRING}
             btAnsiString:
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
-            {$endif}
             btShortString:
               // native ShortString/OpenString: elements are AnsiChar (0..$ff)
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
+            {$ENDIF}              
             btUnicodeString:
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
             end;
@@ -8633,6 +8638,7 @@ begin
     if (Value<>nil)
         and not (bsLongStrings in CurrentParser.Scanner.CurrentBoolSwitches) then
       begin
+      {$IFNDEF PAS2JS}
       if ((Value.Kind=revkString) and (Length(TResEvalString(Value).S)>255))
           or ((Value.Kind=revkUnicodeString) and (Length(TResEvalUTF16(Value).S)>255)) then
         begin
@@ -8640,6 +8646,7 @@ begin
         RaiseMsg(20260623120000,nRangeCheckError,
           'string exceeds the maximum length of 255 chars',[],El.Expr);
         end;
+      {$ENDIF}  
       end;
     ReleaseEvalValue(Value);
     end;
@@ -9100,8 +9107,10 @@ begin
   if (PropEl.Visibility=visPublished) and (PropType<>nil) then
     begin
     ComputeElement(PropType,PropTypeResolved,[rcType]);
+    {$IFNDEF PAS2JS}
     if PropTypeResolved.BaseType in [btFile,btText] then
       RaiseMsg(20260622100001,nSymbolCannotBePublished,sSymbolCannotBePublished,[],PropEl);
+    {$ENDIF}
     end;
   IndexVal:=nil;
   try
@@ -12091,14 +12100,18 @@ procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
       else if V<=High(Word) then Result:=btWord
       else if V<=High(LongInt) then Result:=btLongint
       else if V<=TMaxPrecInt(High(LongWord)) then Result:=btLongWord
+      {$IFNDEF PAS2JS}
       else Result:=btInt64;
+      {$ENDIF}
       end
     else
       begin
       if V>=Low(ShortInt) then Result:=btShortInt
       else if V>=Low(SmallInt) then Result:=btSmallInt
       else if V>=Low(LongInt) then Result:=btLongint
+      {$IFNDEF PAS2JS}
       else Result:=btInt64;
+      {$ENDIF}
       end;
   end;
 
@@ -12327,7 +12340,7 @@ begin
     if (LeftResolved.BaseType in btAllIntrinsicTypes)
         or (LeftResolved.BaseType=btContext)
         or (LeftResolved.BaseType=btPointer)
-        or (LeftResolved.BaseType=btVariant)
+        {$IFNDEF PAS2JS} or (LeftResolved.BaseType=btVariant){$ENDIF}
         or (LeftResolved.BaseType=btCustom) then
       begin
       LHiTypeEl:=LeftResolved.HiTypeEl;
@@ -12347,14 +12360,18 @@ begin
       // helper lookup only — no codegen blast radius; inert for pas2js (no
       // btShortString base type).
       if (LeftResolved.BaseType=btString)
-          and (FBaseTypes[btShortString]<>nil)
+          {$IFDEF FPC_HAS_CPSTRING}and (FBaseTypes[btShortString]<>nil){$ENDIF}
           and (CurrentParser<>nil)
           and not (bsLongStrings in CurrentParser.Scanner.CurrentBoolSwitches)
           and ( ((Left is TPrimitiveExpr)
                   and (TPrimitiveExpr(Left).Kind in [pekString,pekStringMultiLine]))
                 or (LeftResolved.IdentEl is TPasType) ) then
         begin
-        LitBt:=btShortString;
+        {$IFDEF FPC_HAS_CPSTRING}
+        LitBt:=btShortString; 
+        {$ELSE}
+        litBt:=btUnicodeString;
+        {$ENDIF}
         // A string literal containing a wide codepoint (>255) cannot be a
         // ShortString; FPC types it UnicodeString (tthlp4: 'Uni'#1234.Test binds
         // the UnicodeString helper, not ShortString). The evaluated constant kind
@@ -12392,7 +12409,9 @@ begin
             LitBt:=btNone;
             case LitVal.Kind of
             revkInt: LitBt:=LitIntBaseType(TResEvalInt(LitVal).Int);
+            {$IFDEF HasInt64}
             revkUInt: LitBt:=btQWord;
+            {$ENDIF}
             end;
             if (LitBt<>btNone) and (FBaseTypes[LitBt]<>nil)
                 and (FBaseTypes[LitBt]<>LHiTypeEl) then
@@ -14961,6 +14980,7 @@ begin
             if RightResolved.BaseType in btAllFloats then
               // use right type for result
               SetRightValueExpr([rrfReadable])
+            {$IFDEF HasInt64}  
             else if (Bin.OpCode in [eopAdd,eopSubtract,eopMultiply,eopDiv,eopMod,eopAnd,eopOr,eopXor])
                 and (LeftResolved.BaseType<>RightResolved.BaseType)
                 and not ((LeftResolved.BaseType in [btInt64,btQWord,btComp])
@@ -14973,6 +14993,7 @@ begin
               // would overflow to a 65-bit result for a mixed 64-bit pair
               // (qword+int64) — no wider type exists, so keep left-type there.
               SetBaseType(GetCombinedInt(LeftResolved,RightResolved,Bin))
+            {$ENDIF}  
             else
               // use left type for result
               SetLeftValueExpr([rrfReadable]);
@@ -15527,6 +15548,7 @@ begin
             end;
           // Pointer - Pointer (incl. PChar): the difference in elements (PtrInt).
           // Always allowed for two pointers, independent of {$POINTERMATH}.
+          {$IFNDEF PAS2JS}
           if (Bin.OpCode=eopSubtract)
               and ((RightResolved.BaseType=btPointer)
                 or ((RightResolved.BaseType=btContext)
@@ -15535,6 +15557,7 @@ begin
             SetBaseType(btInt64);
             exit;
             end;
+          {$ENDIF}  
           end;
         end;
     end;
@@ -15921,7 +15944,7 @@ const
     Result := True; // default: allow
 
     // Records, variants: always allowed
-    if IsRecord(LBT, LEl) or (LBT = btVariant) then
+    if IsRecord(LBT, LEl){$IFNDEF PAS2JS} or (LBT = btVariant) {$ENDIF} then
       exit(True);
 
     // Enum left
@@ -16831,6 +16854,9 @@ begin
       exit;
       end;
     end
+  {$IFDEF PAS2JS}  
+  ;
+  {$ELSE}
   else if ResolvedEl.BaseType in [btFile,btText] then
     begin
     // ISO/Standard-Pascal file buffer variable: f^ is the file's component
@@ -16847,6 +16873,7 @@ begin
       end;
     exit;
     end;
+  {$ENDIF}  
   RaiseMsg(20180422191139,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
     [OpcodeStrings[eopDeref],GetResolverResultDescription(ResolvedEl)],El);
 end;
@@ -18180,7 +18207,11 @@ begin
         // to the ansistring value; the declared codepage is applied by codegen
         // from z's type (an FPC_ANSISTR_TO_ANSISTR conversion), so the fold need
         // only produce the string constant.
+        {$IFDEF FPC_HAS_CPSTRING}
         Result:=EvalBaseTypeCast(Params,btAnsiString);
+        {$ELSE}
+        Result:=EvalBaseTypeCast(Params,btUnicodeString);
+        {$ENDIF}
       end;
   pekSet: ;
   end;
@@ -19216,9 +19247,13 @@ type
         // element type as ShortString — a string constant's natural type — not
         // AnsiString (FPC, timpfuncspez12). Inert for targets without ShortString.
         if (ExprResolved.SubType in btAllStrings) and AllStringLiterals(Expr)
-            and (BaseTypes[btShortString]<>nil) then
+            {$IFDEF FPC_HAS_CPSTRING}and (BaseTypes[btShortString]<>nil) {$ENDIF} then
           begin
+          {$IFDEF FPC_HAS_CPSTRING}
           ElemLo:=BaseTypes[btShortString];
+          {$ELSE}
+          ElemLo:=BaseTypes[btUnicodeString];
+          {$ENDIF}
           ElemHi:=ElemLo;
           end;
         if ArgType.ClassType = TPasArrayType then
@@ -28486,7 +28521,7 @@ begin
     {$endif}
     else if RValue.Kind in [revkNil,revkBool] then
       // simple type check is enough
-    else if LeftResolved.BaseType in btAllFloats+[btComp] then
+    {$IFNDEF PAS2JS} else if LeftResolved.BaseType in btAllFloats+[btComp] then {$ENDIF}
       // simple type check is enough
       // ToDo: warn if precision loss
     else if LeftResolved.BaseType in btAllChars then
@@ -28621,6 +28656,7 @@ begin
          LHS,prtcoAssignFromTempl,ErrorEl);
       exit;
       end;
+    {$IFNDEF PAS2JS}
     if (LBT=btVariant) xor (RBT=btVariant) then
       begin
       // Variant is assignment-compatible with any simple/string value in either
@@ -28630,7 +28666,9 @@ begin
       Result:=cCompatible;
       exit;
       end
-    else if LHS.LoTypeEl=nil then
+    else 
+    {$ENDIF}
+    if LHS.LoTypeEl=nil then
       begin
       if LBT=btUntyped then
         begin
@@ -29358,13 +29396,15 @@ begin
       end;
     RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],RErrorEl);
     end;
-
+    
+  {$IFNDEF PAS2JS}
   if (GetActualBaseType(LHS.BaseType)=btVariant)
       or (GetActualBaseType(RHS.BaseType)=btVariant) then
     // A Variant compares against any simple/string operand; the comparison is
     // resolved at runtime (the non-variant side is coerced to a variant).
     exit(cCompatible);
-
+  {$ENDIF}
+  
   if IsGenericTemplType(LHS) then
     begin
     // TemplateVar = x
@@ -32700,8 +32740,10 @@ begin
     end
   else if ElClass=TPasArrayType then
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasArrayType(El),TPasArrayType(El),[])
+  {$IFNDEF PAS2JS}
   else if ElClass=TPasFileType then
     SetResolverIdentifier(ResolvedEl,btFile,El,TPasFileType(El),TPasFileType(El),[])
+  {$ENDIF}  
   else if ElClass=TArrayValues then
     SetResolverValueExpr(ResolvedEl,btArrayLit,nil,nil,TArrayValues(El),[rrfReadable])
   else if ElClass=TRecordValues then
