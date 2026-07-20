@@ -8428,6 +8428,7 @@ end;
 class operator TRttiContext.Initialize(var self: TRttiContext);
 begin
   self.FPoolIndex := -1;
+  self.FUsePublishedOnly := DefaultUsePublishedOnly;
 end;
 
 class operator TRttiContext.Finalize(var self: TRttiContext);
