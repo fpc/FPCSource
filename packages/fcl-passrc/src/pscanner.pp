@@ -774,6 +774,11 @@ type
   TResourceHandler = Procedure (Sender : TObject; const aFileName : String; aOptions : TStrings) of object;
 
   TPasScannerTokenPos = {$ifdef UsePChar}PAnsiChar{$else}integer{$endif};
+  TPasDirectiveState = record
+    BoolSwitches: TBoolSwitches;
+    ModeSwitches: TModeSwitches;
+    ValueSwitches: TValueSwitchArray;
+  end;
 
   TPascalScanner = class
   private
@@ -802,11 +807,7 @@ type
     FCurrentModeSwitches: TModeSwitches;
     FCurrentValueSwitches: TValueSwitchArray;
     // {$push}/{$pop} saved directive state (bool/mode/value switches)
-    FDirectiveStateStack: array of record
-      BoolSwitches: TBoolSwitches;
-      ModeSwitches: TModeSwitches;
-      ValueSwitches: TValueSwitchArray;
-    end;
+    FDirectiveStateStack: array of TPasDirectiveState;
     FCurtokenEscaped: Boolean;
     FCurTokenPos: TPasSourcePos;
     FLastMsg: String;
