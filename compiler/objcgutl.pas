@@ -38,7 +38,7 @@ type
   TObjCCodeGenUtils = class
   private
     FCompiler: TCompilerBase;
-    procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
+    procedure objcreatestringpoolentryintern(AsmData: TAsmData; p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -168,7 +168,7 @@ function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
                        Pool section helpers
 *******************************************************************}
 
-procedure TObjCCodeGenUtils.objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
+procedure TObjCCodeGenUtils.objcreatestringpoolentryintern(AsmData: TAsmData; p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
   var
     entry  : PHashSetItem;
     strlab : tasmlabel;
@@ -221,7 +221,7 @@ procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(ctx:tpassgeneratecodeco
     if not assigned(entry^.Data) then
       begin
         { no, add the string to the associated strings section }
-        objcreatestringpoolentryintern(pchar(entry^.key),entry^.keylength,stringpool,stringsec,strlab,strdef);
+        objcreatestringpoolentryintern(ctx.CurrAsmList.AsmData,pchar(entry^.key),entry^.keylength,stringpool,stringsec,strlab,strdef);
 
         { and now finish the reference }
         ctx.CurrAsmList.AsmData.getlabel(reflab,alt_data);
@@ -255,7 +255,7 @@ procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(ctx:tpassgeneratecodeco
 
 procedure tobjcrttiwriter.objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
   begin
-    compiler.objcgutl.objcreatestringpoolentryintern(@s[1],length(s),pooltype,stringsec,sym,def);
+    compiler.objcgutl.objcreatestringpoolentryintern(FAsmData,@s[1],length(s),pooltype,stringsec,sym,def);
   end;
 
 
