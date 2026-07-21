@@ -2705,6 +2705,7 @@ type
         init_procinfo,
         main_procinfo : tcgprocinfo;
         force_init_final : boolean;
+        curr_asmdata: TAsmData;
 
       begin
         result:=true;
@@ -2713,6 +2714,7 @@ type
         finalize_procinfo:=nil;
 
         compiler.set_current_module(curr);
+        curr_asmdata:=TAsmData(curr.asmdata);
 
         { All units are read, now give them a number }
         curr.updatemaps;
@@ -2822,7 +2824,7 @@ type
 
         { Generate VMTs }
         if compiler.verbose.Errorcount=0 then
-          write_vmts(current_asmdata,curr.localsymtable,false);
+          write_vmts(curr_asmdata,curr.localsymtable,false);
 
         { add implementations for synthetic method declarations added by
           the compiler }
@@ -2838,7 +2840,7 @@ type
         if assigned(compiler.exportlib) and
            (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
            (mf_has_exports in curr.moduleflags) then
-          current_asmdata.asmlists[al_procedures].concat(tai_const.createname(current_asmdata,make_mangledname('EDATA',curr.localsymtable,''),0));
+          curr_asmdata.asmlists[al_procedures].concat(tai_const.createname(curr_asmdata,make_mangledname('EDATA',curr.localsymtable,''),0));
 
         if (force_init_final or compiler.nodeutils.force_final) and
            (
@@ -2849,7 +2851,7 @@ type
             { first release the not used finalize procinfo }
             if assigned(finalize_procinfo) then
               begin
-                release_proc_symbol(current_asmdata,finalize_procinfo.procdef);
+                release_proc_symbol(curr_asmdata,finalize_procinfo.procdef);
                 release_main_proc(curr,finalize_procinfo);
               end;
             finalize_procinfo:=gen_implicit_initfinal(curr,mf_finalize,curr.localsymtable);
