@@ -74,6 +74,7 @@ implementation
      private
       FCompiler: TCompilerBase;
       function objcfindprotocolentry(const p: shortstring): TAsmSymbol;
+      function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
      protected
       FAsmData: TAsmData;
       fabi: tobjcabi;
@@ -155,7 +156,7 @@ function tobjcrttiwriter.objcfindprotocolentry(const p: shortstring): TAsmSymbol
   end;
 
 
-function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
+function tobjcrttiwriter.objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
   var
     item  : PHashSetItem;
   begin
