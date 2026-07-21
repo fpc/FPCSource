@@ -63,7 +63,7 @@ interface
         procedure write_common_rtti_data(tcb:ttai_typedconstbuilder;def:tdef;rt:trttitype);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
         procedure write_attribute_data(tcb: ttai_typedconstbuilder;attr_list:trtti_attribute_list);
-        procedure write_child_rtti_data(def:tdef;rt:trttitype);
+        procedure write_child_rtti_data(AsmData:TAsmData;def:tdef;rt:trttitype);
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
         procedure write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
@@ -2563,18 +2563,18 @@ implementation
       end;
     end;
 
-    procedure TRTTIWriter.write_child_rtti_data(def:tdef;rt:trttitype);
+    procedure TRTTIWriter.write_child_rtti_data(AsmData:TAsmData;def:tdef;rt:trttitype);
       begin
         case def.typ of
           enumdef :
             if assigned(tenumdef(def).basedef) then
-              write_rtti(current_asmdata,tenumdef(def).basedef,rt);
+              write_rtti(AsmData,tenumdef(def).basedef,rt);
           setdef :
-            write_rtti(current_asmdata,tsetdef(def).elementdef,rt);
+            write_rtti(AsmData,tsetdef(def).elementdef,rt);
           arraydef :
             begin
-              write_rtti(current_asmdata,tarraydef(def).rangedef,rt);
-              write_rtti(current_asmdata,tarraydef(def).elementdef,rt);
+              write_rtti(AsmData,tarraydef(def).rangedef,rt);
+              write_rtti(AsmData,tarraydef(def).elementdef,rt);
             end;
           recorddef :
             begin
@@ -2583,18 +2583,18 @@ implementation
               if (rt=fullrtti) then
                 begin
                   include(def.defstates,ds_init_table_used);
-                  write_rtti(current_asmdata,def, initrtti);
+                  write_rtti(AsmData,def, initrtti);
                 end;
-              fields_write_rtti(current_asmdata,trecorddef(def).symtable,rt);
+              fields_write_rtti(AsmData,trecorddef(def).symtable,rt);
             end;
           objectdef :
             begin
               if assigned(tobjectdef(def).childof) then
-                write_rtti(current_asmdata,tobjectdef(def).childof,rt);
+                write_rtti(AsmData,tobjectdef(def).childof,rt);
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
-                fields_write_rtti(current_asmdata,tobjectdef(def).symtable,rt)
+                fields_write_rtti(AsmData,tobjectdef(def).symtable,rt)
               else
-                published_write_rtti(current_asmdata,tobjectdef(def),rt);
+                published_write_rtti(AsmData,tobjectdef(def),rt);
 
               if (rt=fullrtti) then
                 begin
@@ -2603,19 +2603,19 @@ implementation
                   if (tobjectdef(def).objecttype=odt_object) then
                     begin
                       include(def.defstates,ds_init_table_used);
-                      write_rtti(current_asmdata,def,initrtti);
+                      write_rtti(AsmData,def,initrtti);
                     end;
                   if (is_interface(def) or is_dispinterface(def))
                       and (oo_can_have_published in tobjectdef(def).objectoptions) then
-                    methods_write_rtti(current_asmdata,tobjectdef(def).symtable,rt,[vis_published],true);
+                    methods_write_rtti(AsmData,tobjectdef(def).symtable,rt,[vis_published],true);
                 end;
             end;
           classrefdef,
           pointerdef:
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
-              write_rtti(current_asmdata,tabstractpointerdef(def).pointeddef,rt);
+              write_rtti(AsmData,tabstractpointerdef(def).pointeddef,rt);
           procvardef:
-            params_write_rtti(current_asmdata,tabstractprocdef(def),rt,false);
+            params_write_rtti(AsmData,tabstractprocdef(def),rt,false);
           else
             ;
         end;
@@ -2676,7 +2676,7 @@ implementation
         include(def.defstates,rttidefstate[rt]);
 
         { write first all dependencies }
-        write_child_rtti_data(def,rt);
+        write_child_rtti_data(AsmData,def,rt);
         { write rtti data }
         tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
         s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
