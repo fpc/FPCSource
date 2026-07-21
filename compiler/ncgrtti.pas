@@ -2678,7 +2678,7 @@ implementation
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+        tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
         s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
 
         maybe_add_comment(tcb,'RTTI: begin Type '+def.GetTypeName+' ('+rttitypenames[rt]+')');
@@ -2690,8 +2690,8 @@ implementation
         write_rtti_data(tcb,def,rt);
         rttidef:=tcb.end_anonymous_record;
         maybe_add_comment(tcb,'RTTI: end Type '+def.GetTypeName+' ('+rttitypenames[rt]+')');
-        rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA_NOINDIRECT,rttidef);
-        current_asmdata.AsmLists[al_rtti].concatList(
+        rttilab:=AsmData.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA_NOINDIRECT,rttidef);
+        AsmData.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,min(compiler.target.info.alignment.maxCrecordalign,SizeOf(QWord))));
         tcb.free;
         tcb := nil;
