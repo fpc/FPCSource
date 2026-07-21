@@ -274,7 +274,7 @@ type
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
-     procedure finalize_asmlist_add_indirect_sym(AsmData: TAsmData; sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      { prepare finalization (common for the default and overridden versions }
      procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
 
@@ -1065,7 +1065,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(AsmData: TAsmData; sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        ptrdef : tdef;
        symind : tasmsymbol;
@@ -1180,7 +1180,7 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(asmsym,sym,def,section,secname,alignment,foptions);
-           finalize_asmlist_add_indirect_sym(fasmlist.AsmData,asmsym,def,section,secname,alignment,foptions);
+           finalize_asmlist_add_indirect_sym(asmsym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
