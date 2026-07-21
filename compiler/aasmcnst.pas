@@ -296,10 +296,10 @@ type
 
      { get a start label for an internal data section (at the start of a
        potentially dead-strippable part) }
-     function get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel; virtual;
+     function get_internal_data_section_start_label(AAsmData: TAsmData): tasmlabel; virtual;
      { get a label in the middle of an internal data section (no dead
        stripping) }
-     function get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel; virtual;
+     function get_internal_data_section_internal_label(AAsmData: TAsmData): tasmlabel; virtual;
      { adds a new entry to compiler.current_module.linkorderedsymbols }
      procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); virtual;
 
@@ -930,28 +930,28 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel;
+   function ttai_typedconstbuilder.get_internal_data_section_start_label(AAsmData: TAsmData): tasmlabel;
      begin
        { on Darwin, dead code/data stripping happens based on non-temporary
          labels (any label that doesn't start with "L" -- it doesn't have
          to be global) }
        if compiler.target.info.system in systems_darwin then
-         AsmData.getstaticdatalabel(result)
+         AAsmData.getstaticdatalabel(result)
        else if compiler.globals.create_smartlink_library then
-         AsmData.getglobaldatalabel(result)
+         AAsmData.getglobaldatalabel(result)
        else
-         AsmData.getlocaldatalabel(result);
+         AAsmData.getlocaldatalabel(result);
      end;
 
 
-   function ttai_typedconstbuilder.get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel;
+   function ttai_typedconstbuilder.get_internal_data_section_internal_label(AAsmData: TAsmData): tasmlabel;
      begin
        if compiler.globals.create_smartlink_library then
          { all labels need to be global in case they're in another object }
-         AsmData.getglobaldatalabel(result)
+         AAsmData.getglobaldatalabel(result)
        else
          { no special requirement for the label -> just get a local one }
-         AsmData.getlocaldatalabel(result);
+         AAsmData.getlocaldatalabel(result);
      end;
 
 

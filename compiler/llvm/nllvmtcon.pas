@@ -90,8 +90,8 @@ interface
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
 
-      function get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel; override;
-      function get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel; override;
+      function get_internal_data_section_start_label(AAsmData: TAsmData): tasmlabel; override;
+      function get_internal_data_section_internal_label(AAsmData: TAsmData): tasmlabel; override;
 
       procedure do_emit_extended_in_aggregate(p: tai);
 
@@ -561,17 +561,17 @@ implementation
     end;
 
 
-  function tllvmtai_typedconstbuilder.get_internal_data_section_start_label(AsmData: TAsmData): tasmlabel;
+  function tllvmtai_typedconstbuilder.get_internal_data_section_start_label(AAsmData: TAsmData): tasmlabel;
     begin
       { let llvm take care of everything by creating internal nameless
         constants }
-      AsmData.getlocaldatalabel(result);
+      AAsmData.getlocaldatalabel(result);
     end;
 
 
-  function tllvmtai_typedconstbuilder.get_internal_data_section_internal_label(AsmData: TAsmData): tasmlabel;
+  function tllvmtai_typedconstbuilder.get_internal_data_section_internal_label(AAsmData: TAsmData): tasmlabel;
     begin
-      AsmData.getlocaldatalabel(result);
+      AAsmData.getlocaldatalabel(result);
     end;
 
 
