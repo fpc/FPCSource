@@ -608,7 +608,7 @@ implementation
           tcb.emit_tai(tai_const.create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
           begin
-            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_rtti],sec_rodata,'',datatcb,tbllbl);
+            tcb.start_internal_data_builder(tcb.AsmData.AsmLists[al_rtti],sec_rodata,'',datatcb,tbllbl);
 
             datatcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
