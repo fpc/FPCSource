@@ -1358,7 +1358,7 @@ implementation
       end;
 
 
-    procedure do_write_vmts(st:tsymtable;is_global:boolean);
+    procedure do_write_vmts(asmdata:TAsmData;st:tsymtable;is_global:boolean);
       var
         i : longint;
         def : tdef;
@@ -1371,7 +1371,7 @@ implementation
             def:=tdef(st.DefList[i]);
             case def.typ of
               recorddef :
-                do_write_vmts(trecorddef(def).symtable,is_global);
+                do_write_vmts(asmdata,trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip generics and forward defs }
@@ -1380,13 +1380,13 @@ implementation
                     continue;
                   if tobjectdef(def).is_unique_objpasdef then
                     continue;
-                  do_write_vmts(tobjectdef(def).symtable,is_global);
+                  do_write_vmts(asmdata,tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
                       vmtwriter:=CVMTWriter.create(tobjectdef(def));
                       if is_interface(tobjectdef(def)) then
-                        vmtwriter.writeinterfaceids(current_asmdata.AsmLists[al_globals]);
+                        vmtwriter.writeinterfaceids(asmdata.AsmLists[al_globals]);
                       if (oo_has_vmt in tobjectdef(def).objectoptions) then
                         vmtwriter.writevmt;
                       vmtwriter.free;
@@ -1394,15 +1394,15 @@ implementation
                       include(def.defstates,ds_vmt_written);
                     end;
                   if is_class(def) then
-                    gen_intf_wrapper(current_asmdata.asmlists[al_procedures],tobjectdef(def));
+                    gen_intf_wrapper(asmdata.asmlists[al_procedures],tobjectdef(def));
                 end;
               procdef :
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    do_write_vmts(tprocdef(def).localst,false);
+                    do_write_vmts(asmdata,tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    do_write_vmts(tprocdef(def).parast,false);
+                    do_write_vmts(asmdata,tprocdef(def).parast,false);
                 end;
               else
                 ;
@@ -1417,7 +1417,7 @@ implementation
 {$ifndef cpuhighleveltarget}
         create_hlcodegen(compiler);
 {$endif}
-        do_write_vmts(st,is_global);
+        do_write_vmts(asmdata,st,is_global);
 {$ifndef cpuhighleveltarget}
         destroy_hlcodegen(compiler);
 {$endif}
