@@ -42,8 +42,8 @@ interface
      public
       procedure InsertObjectInfo(AsmData: TAsmData); override;
       procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
-      procedure RegisterModuleInitFunction(pd: tprocdef); override;
-      procedure RegisterModuleFiniFunction(pd: tprocdef); override;
+      procedure RegisterModuleInitFunction(AsmData: TAsmData; pd: tprocdef); override;
+      procedure RegisterModuleFiniFunction(AsmData: TAsmData; pd: tprocdef); override;
     end;
 
 
@@ -414,13 +414,13 @@ implementation
     end;
 
 
-  procedure tllvmnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+  procedure tllvmnodeutils.RegisterModuleInitFunction(AsmData: TAsmData; pd: tprocdef);
     begin
       compiler.current_module.llvminitprocs.add(pd);
     end;
 
 
-  procedure tllvmnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+  procedure tllvmnodeutils.RegisterModuleFiniFunction(AsmData: TAsmData; pd: tprocdef);
     begin
       compiler.current_module.llvmfiniprocs.add(pd);
     end;
