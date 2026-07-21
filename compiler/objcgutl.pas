@@ -146,9 +146,9 @@ function tobjcrttiwriter.objcfindprotocolentry(const p: shortstring): TAsmSymbol
     item  : PHashSetItem;
   begin
     result:=nil;
-    if not assigned(current_asmdata.ConstPools[sp_objcprotocolrefs]) then
+    if not assigned(FAsmData.ConstPools[sp_objcprotocolrefs]) then
       exit;
-    item:=current_asmdata.constpools[sp_objcprotocolrefs].Find(@p[1], length(p));
+    item:=FAsmData.constpools[sp_objcprotocolrefs].Find(@p[1], length(p));
     if not assigned(item) then
       exit;
     result:=TAsmSymbol(item^.Data);
