@@ -2914,8 +2914,13 @@ type
     procedure TModulesParser.proc_library_header(curr: tmodule);
       var
         program_name : ansistring;
+        curr_asmdata: TAsmData;
 
       begin
+        if curr.asmdata<>current_asmdata then
+          internalerror(2026072102);
+        curr_asmdata:=TAsmData(curr.asmdata);
+
         parser.pbase.consume(_LIBRARY);
         program_name:=current_scanner.orgpattern;
         parser.pbase.consume(_ID);
@@ -2927,7 +2932,7 @@ type
          end;
         curr.setmodulename(program_name);
         curr.islibrary:=true;
-        compiler.exportlib.preparelib(current_asmdata,program_name);
+        compiler.exportlib.preparelib(curr_asmdata,program_name);
 
         if tf_library_needs_pic in compiler.target.info.flags then
          begin
