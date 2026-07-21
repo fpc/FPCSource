@@ -319,13 +319,13 @@ implementation
             else
               callsite_table_data.concat(tai_comment.Create(strpnew('Call site '+tostr(CurrentCallSiteNumber)+', no action')));
 {$endif debug_eh}
-            callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,current_asmdata.AsmCFI.get_frame_start,callsitelaststart));
-            current_asmdata.getlabel(callsiteend,alt_eh_end);
+            callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,list.AsmData.AsmCFI.get_frame_start,callsitelaststart));
+            list.AsmData.getlabel(callsiteend,alt_eh_end);
             list.concat(tai_label.create(callsiteend));
             callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,callsitelaststart,callsiteend));
             { landing pad? }
             if assigned(CurrentLandingPad.landingpad) then
-              callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,current_asmdata.AsmCFI.get_frame_start,CurrentLandingPad.landingpad))
+              callsite_table_data.concat(tai_const.create_rel_sym(aitconst_uleb128bit,list.AsmData.AsmCFI.get_frame_start,CurrentLandingPad.landingpad))
             else
               callsite_table_data.concat(tai_const.Create_uleb128bit(0));
             { action number set? if yes, concat }
@@ -343,12 +343,12 @@ implementation
                 list.concat(tai_comment.Create(strpnew('New call site '+tostr(CurrentCallSiteNumber)+', no action')));
 {$endif debug_eh}
               end;
-            current_asmdata.getlabel(callsitelaststart,alt_eh_begin);
+            list.AsmData.getlabel(callsitelaststart,alt_eh_begin);
             list.concat(tai_label.create(callsitelaststart));
           end
         else
           begin
-            current_asmdata.getlabel(entrycallsitestart,alt_eh_begin);
+            list.AsmData.getlabel(entrycallsitestart,alt_eh_begin);
             callsitelaststart:=entrycallsitestart
           end;
 
