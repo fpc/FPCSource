@@ -78,7 +78,7 @@ interface
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
        procedure WriteAsmList(asmdata: TAsmData);override;
-       Function  DoAssemble:boolean;override;
+       Function  DoAssemble(asmdata: TAsmData):boolean;override;
      end;
 
 
@@ -691,11 +691,11 @@ implementation
         writer.AsmLn;
       end;
 
-    function TWasaTextAssembler.DoAssemble: boolean;
+    function TWasaTextAssembler.DoAssemble(asmdata: TAsmData): boolean;
     var
       t : tcmdstr;
       begin
-        Result:=inherited DoAssemble;
+        Result:=inherited;
         // the tool updates the symbol flags, so the linker
         // is capable of producing an executable
         if Result then

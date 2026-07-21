@@ -1588,7 +1588,7 @@ implementation
                   if not(writer.ClearIfEmpty) then
                    begin
                      writer.AsmClose;
-                     DoAssemble;
+                     DoAssemble(p.AsmData);
                      writer.AsmCreate(p.AsmData,tai_cutobject(hp).place);
                    end;
                 { avoid empty files }

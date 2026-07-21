@@ -41,7 +41,7 @@ interface
       TPPCMPWAssembler = class(TExternalAssembler)
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
-        Function  DoAssemble:boolean;override;
+        Function  DoAssemble(asmdata: TAsmData):boolean;override;
         procedure WriteExternals(asmdata: TAsmData);
         procedure WriteAsmFileHeader;
       private
@@ -1195,9 +1195,9 @@ interface
      end;
 
 
-    function TPPCMPWAssembler.DoAssemble : boolean;
+    function TPPCMPWAssembler.DoAssemble(asmdata: TAsmData) : boolean;
     begin
-      DoAssemble:=Inherited DoAssemble;
+      DoAssemble:=Inherited;
     end;
 
     procedure TPPCMPWAssembler.WriteAsmFileHeader;

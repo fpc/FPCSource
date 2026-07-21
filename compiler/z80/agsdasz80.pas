@@ -813,7 +813,7 @@ unit agsdasz80;
                        end;
                      WriteGroups;}
                      writer.AsmClose;
-                     DoAssemble;
+                     DoAssemble(p.AsmData);
                      writer.AsmCreate(p.AsmData,tai_cutobject(hp).place);
                      {ResetSectionsList;
                      WriteHeader;}

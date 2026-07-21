@@ -192,7 +192,7 @@ interface
            if the assembling of the file failed.}
         Function  CallAssembler(const command:string; const para:TCmdStr):Boolean;
 
-        Function  DoAssemble:boolean;virtual;
+        Function  DoAssemble(asmdata: TAsmData):boolean;virtual;
 
         {# This routine should be overridden for each assembler, it is used
            to actually write the abstract assembler stream to file.}
@@ -948,7 +948,7 @@ Implementation
       end;
 
 
-    Function TExternalAssembler.DoAssemble:boolean;
+    Function TExternalAssembler.DoAssemble(asmdata: TAsmData):boolean;
       begin
         result:=true;
         if DoPipe then
@@ -1416,7 +1416,7 @@ Implementation
         WriteAsmList(asmdata);
         writer.AsmClose;
         if not(writer.ioerror) then
-          DoAssemble;
+          DoAssemble(asmdata);
       end;
 
 

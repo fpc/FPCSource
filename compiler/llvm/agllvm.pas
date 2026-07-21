@@ -84,7 +84,7 @@ interface
       TLLVMClangAssember=class(TLLVMAssember)
       public
        function MakeCmdLine: TCmdStr; override;
-       function DoAssemble: boolean; override;
+       function DoAssemble(asmdata: TAsmData): boolean; override;
        function RerunAssembler: boolean; override;
       protected
        function DoPipe: boolean; override;
@@ -1763,7 +1763,7 @@ implementation
       end;
 
 
-    function TLLVMClangAssember.DoAssemble: boolean;
+    function TLLVMClangAssember.DoAssemble(asmdata: TAsmData): boolean;
       begin
         fnextpass:=0;
         result:=inherited;

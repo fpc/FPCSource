@@ -45,7 +45,7 @@ interface
         function comp2str(d : bestreal) : string;
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
-        Function  DoAssemble:boolean;override;
+        Function  DoAssemble(asmdata: TAsmData):boolean;override;
         procedure WriteExternals(asmdata: TAsmData);
       end;
 
@@ -937,7 +937,7 @@ implementation
                     writer.AsmLn;
                     writer.AsmWriteLn(#9'END');
                     writer.AsmClose;
-                    DoAssemble;
+                    DoAssemble(p.AsmData);
                     writer.AsmCreate(p.AsmData,tai_cutobject(hp).place);
                   end;
                { avoid empty files }
@@ -1052,11 +1052,11 @@ implementation
       end;
 
 
-    function tx86intelassembler.DoAssemble : boolean;
+    function tx86intelassembler.DoAssemble(asmdata: TAsmData) : boolean;
     var
       masmobjfn : string;
     begin
-      DoAssemble:=Inherited DoAssemble;
+      Result:=Inherited;
       { masm does not seem to recognize specific extensions and uses .obj always PM }
       if (asminfo^.id in [as_i386_masm,as_i386_wasm]) then
         begin
