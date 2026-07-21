@@ -47,7 +47,7 @@ interface
         addcomments : boolean;
         function GetParaManager: TParaManager; inline;
         procedure fields_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype);
-        procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
+        procedure params_write_rtti(AsmData:TAsmData;def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
@@ -756,7 +756,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
+    procedure TRTTIWriter.params_write_rtti(AsmData:TAsmData;def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
       var
         i   : longint;
         sym : tparavarsym;
@@ -767,9 +767,9 @@ implementation
             if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
               begin
                 if is_open_array(sym.vardef) or is_array_of_const(sym.vardef) then
-                  write_rtti(current_asmdata,tarraydef(sym.vardef).elementdef,rt)
+                  write_rtti(AsmData,tarraydef(sym.vardef).elementdef,rt)
                 else
-                  write_rtti(current_asmdata,sym.vardef,rt);
+                  write_rtti(AsmData,sym.vardef,rt);
               end;
           end;
       end;
@@ -789,7 +789,7 @@ implementation
                 begin
                   def:=tabstractprocdef(sym.procdeflist[j]);
                   write_rtti(current_asmdata,def.returndef,rt);
-                  params_write_rtti(def,rt,allow_hidden);
+                  params_write_rtti(current_asmdata,def,rt,allow_hidden);
                 end;
             end;
       end;
@@ -2615,7 +2615,7 @@ implementation
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(current_asmdata,tabstractpointerdef(def).pointeddef,rt);
           procvardef:
-            params_write_rtti(tabstractprocdef(def),rt,false);
+            params_write_rtti(current_asmdata,tabstractprocdef(def),rt,false);
           else
             ;
         end;
