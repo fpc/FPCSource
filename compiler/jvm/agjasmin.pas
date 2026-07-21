@@ -74,7 +74,7 @@ interface
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean;acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr;override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr;override;
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
@@ -632,7 +632,7 @@ implementation
       end;
 
 
-   function TJasminAssembler.MakeCmdLine: TCmdStr;
+   function TJasminAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
      const
        jasminjarname = 'jasmin.jar';
      var

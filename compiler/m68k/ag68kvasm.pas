@@ -40,7 +40,7 @@ unit ag68kvasm;
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
     end;
 
   implementation
@@ -93,7 +93,7 @@ unit ag68kvasm;
         end;
       end;
 
-    function tm68kvasm.MakeCmdLine: TCmdStr;
+    function tm68kvasm.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       var
         objtype: string;
       begin

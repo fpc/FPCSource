@@ -30,12 +30,12 @@ interface
     uses
       cpubase,systemstypes,systems,compilerbase,
       globtype,cgutils,
-      aasmtai,assemble,aggas;
+      aasmdata,aasmtai,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(asmdata: TAsmData): TCmdStr; override;
       end;
 
       Tx86AppleGNUAssembler=class(TAppleGNUassembler)
@@ -83,11 +83,11 @@ interface
         InstrWriter := Tx86InstrWriter.create(self);
       end;
 
-    function TX86ATTAssembler.MakeCmdLine: TCmdStr;
+    function TX86ATTAssembler.MakeCmdLine(asmdata: TAsmData): TCmdStr;
       var
         FormatName : string;
       begin
-        result:=Inherited MakeCmdLine;
+        result:=Inherited;
 {$ifdef i386}
         case compiler.target.info.system of
           system_i386_go32v2:

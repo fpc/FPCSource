@@ -34,7 +34,7 @@ interface
     type
       Tm68kGNUAssembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine : TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData) : TCmdStr; override;
       end;
 
     type
@@ -43,7 +43,7 @@ interface
           function sectionattrs(atype:TAsmSectiontype):string; override;
         public
           constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-          function MakeCmdLine : TCmdStr; override;
+          function MakeCmdLine(AsmData:TAsmData) : TCmdStr; override;
       end;
 
 
@@ -85,9 +85,9 @@ interface
      InstrWriter := Tm68kInstrWriter.create(self);
    end;
 
- function Tm68kGNUAssembler.MakeCmdLine: TCmdStr;
+ function Tm68kGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
    begin
-     result:=inherited MakeCmdLine;
+     result:=inherited;
      Replace(result,'$ARCH',GasMachineArg);
    end;
 
@@ -102,9 +102,9 @@ interface
      InstrWriter := Tm68kInstrWriter.create(self);
    end;
 
- function Tm68kAoutGNUAssembler.MakeCmdLine: TCmdStr;
+ function Tm68kAoutGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
    begin
-     result:=inherited MakeCmdLine;
+     result:=inherited;
      Replace(result,'$ARCH',GasMachineArg);
    end;
 

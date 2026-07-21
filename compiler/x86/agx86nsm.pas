@@ -80,7 +80,7 @@ interface
         procedure WriteExternals(asmdata: TAsmData);
         procedure WriteSmartExternals;
         procedure WriteHeader;
-        function  MakeCmdLine: TCmdStr;override;
+        function  MakeCmdLine(asmdata: TAsmData): TCmdStr;override;
       end;
 
 
@@ -1432,11 +1432,11 @@ interface
 {$endif EXTDEBUG}
    end;
 
-    function TX86NasmAssembler.MakeCmdLine: TCmdStr;
+    function TX86NasmAssembler.MakeCmdLine(asmdata: TAsmData): TCmdStr;
       var
         FormatName : string;
       begin
-        result:=Inherited MakeCmdLine;
+        result:=Inherited;
 {$ifdef i8086}
         case compiler.target.info.system of
           system_i8086_msdos,

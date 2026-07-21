@@ -46,7 +46,7 @@ unit agz80asm;
       public
         procedure WriteTree(p : TAsmList;asmlisttype:TAsmListType); override;
         procedure WriteAsmList(asmdata: TAsmData);override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(asmdata: TAsmData): TCmdStr; override;
       end;
 
   implementation
@@ -421,9 +421,9 @@ unit agz80asm;
       end;
 
 
-    function TZ80AsmAssembler.MakeCmdLine: TCmdStr;
+    function TZ80AsmAssembler.MakeCmdLine(asmdata: TAsmData): TCmdStr;
       begin
-        result := {'-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+}inherited MakeCmdLine;
+        result := {'-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+}inherited;
       end;
 
 

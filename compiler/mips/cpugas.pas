@@ -27,7 +27,7 @@ unit cpugas;
 
     uses
       cpubase, aasmbase, globtype, systemstypes, systems,
-      aasmtai, aasmcpu, assemble, aggas,
+      aasmdata, aasmtai, aasmcpu, assemble, aggas,
       compilerbase;
 
     type
@@ -35,7 +35,7 @@ unit cpugas;
         nomacro, noreorder, noat : boolean;
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         {# Constructs the command line for calling the assembler }
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
 
@@ -120,9 +120,9 @@ unit cpugas;
         noat:=false;
       end;
 
-    function TMIPSGNUAssembler.MakeCmdLine: TCmdStr;
+    function TMIPSGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-         result := Inherited MakeCmdLine;
+         result := Inherited;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+gas_abitype(compiler.target.info.abi));
          { float selection }

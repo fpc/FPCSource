@@ -30,7 +30,7 @@ unit agcpugas;
 
     uses
        globtype,systemstypes,systems,
-       aasmtai,
+       aasmdata,aasmtai,
        assemble,aggas,
        cpubase,cpuinfo,
        compilerbase;
@@ -42,7 +42,7 @@ unit agcpugas;
 
       TXtensaGNUAssembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       end;
 
   implementation
@@ -65,9 +65,9 @@ unit agcpugas;
       end;
 
 
-    function TXtensaGNUAssembler.MakeCmdLine: TCmdStr;
+    function TXtensaGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
 	{ Released FreeRTOS binutils do not support -EB/-EL options }
         if compiler.target.info.system=system_xtensa_freertos then
           Replace(result,'$SHORTENDIAN','')

@@ -40,7 +40,7 @@ unit agarmvasm;
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
     end;
 
   implementation
@@ -107,7 +107,7 @@ unit agarmvasm;
         '',
         '');
 
-    function TARMVASM.MakeCmdLine: TCmdStr;
+    function TARMVASM.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       var
         objtype: string;
       begin

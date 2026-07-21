@@ -35,7 +35,7 @@ interface
       TGasSPARC=class(TGnuAssembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         {# Constructs the command line for calling the assembler }
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       end;
 
      TSPARCInstrWriter=class(TCPUInstrWriter)
@@ -63,9 +63,9 @@ implementation
       end;
 
 
-    function TGasSPARC.MakeCmdLine: TCmdStr;
+    function TGasSPARC.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-         result := Inherited MakeCmdLine;
+         result := Inherited;
 
          { ARCH selection }
          // Note for casual readers: gas (GNU as) uses -Av7, -Av8, -Av9 etc. on SPARC,

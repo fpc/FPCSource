@@ -30,7 +30,7 @@ unit agarmgas;
 
     uses
        globtype,systemstypes,systems,
-       aasmtai,
+       aasmdata,aasmtai,
        assemble,aggas,
        cpubase,cpuinfo,
        compilerbase;
@@ -38,7 +38,7 @@ unit agarmgas;
     type
       TARMGNUAssembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
 
@@ -50,7 +50,7 @@ unit agarmgas;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
 
@@ -104,9 +104,9 @@ unit agarmgas;
       end;
 
 
-    function TArmGNUAssembler.MakeCmdLine: TCmdStr;
+    function TArmGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
         case compiler.globals.current_settings.fputype of
           fpu_soft:
             result:='-mfpu=softvfp '+result;
@@ -174,9 +174,9 @@ unit agarmgas;
       end;
 
 
-    function TArmAppleGNUAssembler.MakeCmdLine: TCmdStr;
+    function TArmAppleGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
 	if (asminfo^.id in [as_clang_gas,as_clang_asdarwin]) then
           begin
             if fputypestrllvm[compiler.globals.current_settings.fputype] <> '' then

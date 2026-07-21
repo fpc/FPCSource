@@ -204,7 +204,7 @@ interface
         procedure WriteAsmList(asmdata: TAsmData);virtual;
 
         {# Constructs the command line for calling the assembler }
-        function MakeCmdLine: TCmdStr; virtual;
+        function MakeCmdLine(asmdata: TAsmData): TCmdStr; virtual;
       public
         Constructor Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase); override; final;
         Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); virtual;
@@ -676,8 +676,8 @@ Implementation
              compiler.verbose.Message1(exec_i_assembling_pipe,owner.AsmFileName);
            if compiler.verbose.checkverbosity(V_Executable) then
              compiler.verbose.comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
-               owner.MakeCmdLine+'"');
-           POpen(outfile,maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine,'W');
+               owner.MakeCmdLine(AsmData)+'"');
+           POpen(outfile,maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine(AsmData),'W');
          end
         else
 {$endif}
@@ -965,7 +965,7 @@ Implementation
          end;
 
         repeat
-          result:=CallAssembler(FindAssembler,MakeCmdLine)
+          result:=CallAssembler(FindAssembler,MakeCmdLine(asmdata))
         until not(result) or not RerunAssembler;
         if result then
           writer.RemoveAsm
@@ -974,7 +974,7 @@ Implementation
       end;
 
 
-    function TExternalAssembler.MakeCmdLine: TCmdStr;
+    function TExternalAssembler.MakeCmdLine(asmdata: TAsmData): TCmdStr;
 
       function section_high_bound:longint;
         var
@@ -982,7 +982,7 @@ Implementation
         begin
           result:=0;
           for alt:=low(tasmlisttype) to high(tasmlisttype) do
-            result:=result+current_asmdata.asmlists[alt].section_count;
+            result:=result+asmdata.asmlists[alt].section_count;
         end;
 
       const

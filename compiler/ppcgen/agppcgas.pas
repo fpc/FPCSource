@@ -50,13 +50,13 @@ unit agppcgas;
 
     TPPCGNUAssembler=class(TGNUassembler)
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
     TPPCAppleGNUAssembler=class(TAppleGNUassembler)
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
@@ -427,9 +427,9 @@ unit agppcgas;
       end;
 
 
-    function TPPCGNUAssembler.MakeCmdLine: TCmdStr;
+    function TPPCGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result := inherited MakeCmdLine;
+        result := inherited;
 {$ifdef cpu64bitaddr}
         Replace(result,'$ARCH','-a64')
 {$else cpu64bitaddr}
@@ -467,9 +467,9 @@ unit agppcgas;
       end;
 
 
-    function TPPCAppleGNUAssembler.MakeCmdLine: TCmdStr;
+    function TPPCAppleGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result := inherited MakeCmdLine;
+        result := inherited;
 {$ifdef cpu64bitaddr}
         Replace(result,'$ARCH','ppc64')
 {$else cpu64bitaddr}

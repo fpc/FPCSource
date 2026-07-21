@@ -65,7 +65,7 @@ interface
         procedure WriteUnalignedIntConst(hp: tai_const);
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
        public
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(asmdata: TAsmData): TCmdStr; override;
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
@@ -191,9 +191,9 @@ implementation
       end;
 
 
-    function TGNUAssembler.MakeCmdLine: TCmdStr;
+    function TGNUAssembler.MakeCmdLine(asmdata: TAsmData): TCmdStr;
       begin
-        result := inherited MakeCmdLine;
+        result := inherited;
         // MWE: disabled again. It generates dwarf info for the generated .s
         //      files as well. This conflicts with the info we generate
         // if compiler.target.dbg.id = dbg_dwarf then

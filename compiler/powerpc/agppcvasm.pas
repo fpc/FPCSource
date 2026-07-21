@@ -40,7 +40,7 @@ unit agppcvasm;
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
@@ -84,7 +84,7 @@ unit agppcvasm;
         end;
       end;
 
-    function tppcvasm.MakeCmdLine: TCmdStr;
+    function tppcvasm.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       var
         objtype: string;
       begin

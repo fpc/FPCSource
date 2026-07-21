@@ -41,7 +41,7 @@ unit agavrgas;
 
       TAVRGNUAssembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-       function MakeCmdLine: TCmdStr; override;
+       function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       end;
 
      TAVRInstrWriter=class(TCPUInstrWriter)
@@ -199,9 +199,9 @@ unit agavrgas;
     end;
 
 
-    function TAVRGNUAssembler.MakeCmdLine: TCmdStr;
+    function TAVRGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result := '-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+inherited MakeCmdLine;
+        result := '-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+inherited;
       end;
 
 

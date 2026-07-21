@@ -42,12 +42,12 @@ unit agcpugas;
 
       TAArch64Assembler=class(TGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       end;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
       end;
 
       TAArch64ClangGASAssembler=class(TAArch64Assembler)
@@ -56,7 +56,7 @@ unit agcpugas;
       protected
         function sectionflags(secflags:TSectionFlags):string;override;
       public
-        function MakeCmdLine: TCmdStr; override;
+        function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
         procedure WriteAsmList(asmdata: TAsmData); override;
       end;
 
@@ -159,9 +159,9 @@ unit agcpugas;
         InstrWriter := TAArch64InstrWriter.create(self);
       end;
 
-    function TAArch64Assembler.MakeCmdLine: TCmdStr;
+    function TAArch64Assembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
         if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
           Replace(result,'$MARCHOPT',GetmarchStr)
         else
@@ -179,9 +179,9 @@ unit agcpugas;
       end;
 
 
-    function TAArch64AppleAssembler.MakeCmdLine: TCmdStr;
+    function TAArch64AppleAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
         if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
           Replace(result,'$MARCHOPT',GetmarchStr)
         else
@@ -192,9 +192,9 @@ unit agcpugas;
 {                      CLang AArch64 Assembler writer                        }
 {****************************************************************************}
 
-    function TAArch64ClangGASAssembler.MakeCmdLine: TCmdStr;
+    function TAArch64ClangGASAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       begin
-        result:=inherited MakeCmdLine;
+        result:=inherited;
       end;
 
     procedure TAArch64ClangGASAssembler.TransformSEHDirectives(list:TAsmList);

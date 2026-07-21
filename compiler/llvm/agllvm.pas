@@ -83,7 +83,7 @@ interface
 
       TLLVMClangAssember=class(TLLVMAssember)
       public
-       function MakeCmdLine: TCmdStr; override;
+       function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
        function DoAssemble(asmdata: TAsmData): boolean; override;
        function RerunAssembler: boolean; override;
       protected
@@ -1692,7 +1692,7 @@ implementation
 {                               clang Assember                               }
 {****************************************************************************}
 
-    function TLLVMClangAssember.MakeCmdLine: TCmdStr;
+    function TLLVMClangAssember.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       var
         wpostr,
         optstr: TCmdStr;

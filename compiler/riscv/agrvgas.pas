@@ -50,7 +50,7 @@ unit agrvgas;
 
     TRVGNUAssembler=class(TGNUassembler)
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
-      function MakeCmdLine: TCmdStr; override;
+      function MakeCmdLine(AsmData:TAsmData): TCmdStr; override;
     end;
 
   implementation
@@ -246,7 +246,7 @@ unit agrvgas;
       end;
 
 
-    function TRVGNUAssembler.MakeCmdLine: TCmdStr;
+    function TRVGNUAssembler.MakeCmdLine(AsmData:TAsmData): TCmdStr;
       const
         arch_str: array[boolean,tcputype] of string[26] = (
 {$ifdef RISCV32}
@@ -259,7 +259,7 @@ unit agrvgas;
 {$endif RISCV64}
         );
       begin
-        result := inherited MakeCmdLine;
+        result := inherited;
         Replace(result,'$ARCH',arch_str[compiler.globals.current_settings.fputype=fpu_fd,compiler.globals.current_settings.cputype]);
 {$ifdef RISCV32}
       case compiler.target.info.abi of
