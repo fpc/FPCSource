@@ -99,7 +99,7 @@ interface
       TVMTWriterClass = class of TVMTWriter;
 
     { generate VMTs }
-    procedure write_vmts(st:tsymtable;is_global:boolean);
+    procedure write_vmts(asmdata:TAsmData;st:tsymtable;is_global:boolean);
 
   var
     CVMTWriter: TVMTWriterClass = TVMTWriter;
@@ -1410,7 +1410,7 @@ implementation
           end;
       end;
 
-    procedure write_vmts(st:tsymtable;is_global:boolean);
+    procedure write_vmts(asmdata:TAsmData;st:tsymtable;is_global:boolean);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin

@@ -1677,8 +1677,8 @@ type
          { Generate VMTs }
          if compiler.verbose.Errorcount=0 then
            begin
-             write_vmts(module.globalsymtable,true);
-             write_vmts(module.localsymtable,false);
+             write_vmts(curr_asmdata,module.globalsymtable,true);
+             write_vmts(curr_asmdata,module.localsymtable,false);
            end;
 
          { add implementations for synthetic method declarations added by
@@ -2822,7 +2822,7 @@ type
 
         { Generate VMTs }
         if compiler.verbose.Errorcount=0 then
-          write_vmts(curr.localsymtable,false);
+          write_vmts(current_asmdata,curr.localsymtable,false);
 
         { add implementations for synthetic method declarations added by
           the compiler }
