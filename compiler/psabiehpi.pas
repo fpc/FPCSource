@@ -417,10 +417,10 @@ implementation
 {$ifdef debug_eh}
             gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
  {$endif debug_eh}
-            current_asmdata.getlabel(LSDALabel,alt_data);
+            ctx.CurrAsmList.AsmData.getlabel(LSDALabel,alt_data);
 
-            current_asmdata.getlabel(callsitetablestart,alt_data);
-            current_asmdata.getlabel(callsitetableend,alt_data);
+            ctx.CurrAsmList.AsmData.getlabel(callsitetablestart,alt_data);
+            ctx.CurrAsmList.AsmData.getlabel(callsitetableend,alt_data);
 
             callsite_table_data.concat(tai_label.create(callsitetablestart));
             tcompiler(compiler).CreateExceptionStateHandler(tpsabiehexceptionstatehandler);
