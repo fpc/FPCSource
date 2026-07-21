@@ -51,7 +51,7 @@ interface
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure methods_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
-        procedure published_write_rtti(def : tobjectdef;rt:trttitype);
+        procedure published_write_rtti(AsmData:TAsmData;def : tobjectdef;rt:trttitype);
         procedure properties_write_rtti_data(tcb:ttai_typedconstbuilder;propnamelist:TFPHashObjectList;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
@@ -905,7 +905,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.published_write_rtti(def : tobjectdef;rt:trttitype);
+    procedure TRTTIWriter.published_write_rtti(AsmData:TAsmData;def : tobjectdef;rt:trttitype);
       var
         i   : longint;
         st : tsymtable;
@@ -919,9 +919,9 @@ implementation
               begin
                 case tsym(sym).typ of
                   propertysym:
-                    write_rtti(current_asmdata,tpropertysym(sym).propdef,rt);
+                    write_rtti(AsmData,tpropertysym(sym).propdef,rt);
                   fieldvarsym:
-                    write_rtti(current_asmdata,tfieldvarsym(sym).vardef,rt);
+                    write_rtti(AsmData,tfieldvarsym(sym).vardef,rt);
                   else
                     ;
                 end;
@@ -2594,7 +2594,7 @@ implementation
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
                 fields_write_rtti(current_asmdata,tobjectdef(def).symtable,rt)
               else
-                published_write_rtti(tobjectdef(def),rt);
+                published_write_rtti(current_asmdata,tobjectdef(def),rt);
 
               if (rt=fullrtti) then
                 begin
