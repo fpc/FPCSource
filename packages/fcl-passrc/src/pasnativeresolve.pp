@@ -15,15 +15,15 @@
 {
   TPasNativeResolver descends from TPasResolver and adds the resolver semantics
   that apply to native Object Pascal compilation targets but not to the pas2js
-  (JavaScript) target. This wasy the base TPasResolver stays pas2js-clean and 
+  (JavaScript) target. This way the base TPasResolver stays pas2js-clean and
   a native consumer opts in by instantiating this class instead:
 
   * compile-time evaluation of the size/truncation intrinsics
-    SizeOf, BitSizeOf, Trunc, Round 
+    SizeOf, BitSizeOf, Trunc, Round
     (registered via AddBuiltInProc, so they are absent from the base setup);
   * the FPC compiler-intrinsic type names Boolean8/16/32/64, OleVariant and
     TypedFile, added as aliases of existing base types.
-  * More to come...   
+  * More to come...
 
   See the header of pasresolver.pp for the general resolver contract.
 
