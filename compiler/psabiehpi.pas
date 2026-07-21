@@ -552,10 +552,10 @@ implementation
         action: TPSABIEHAction;
       begin
         exceptstate.oldflowcontrol:=flowcontrol;
-        current_asmdata.getjumplabel(exceptstate.exceptionlabel);
+        list.AsmData.getjumplabel(exceptstate.exceptionlabel);
         if exceptframekind<>tek_except then
           begin
-            current_asmdata.getjumplabel(exceptstate.finallycodelabel);
+            list.AsmData.getjumplabel(exceptstate.finallycodelabel);
             action:=TPSABIEHAction.Create(exceptstate.finallycodelabel);
           end
         else
