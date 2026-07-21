@@ -46,6 +46,7 @@ interface
         FCompiler: TCompilerBase;
         function GetParaManager: TParaManager; inline;
       protected
+        FAsmData: TAsmData;
         _Class : tobjectdef;
         { message tables }
         root : pprocdeftree;
@@ -89,7 +90,7 @@ interface
         property Compiler: TCompilerBase read FCompiler;
         property ParaManager: TParaManager read GetParaManager;
       public
-        constructor create(c:tobjectdef); virtual;
+        constructor create(AAsmData:TAsmData;c:tobjectdef); virtual;
         { write the VMT to al_globals }
         procedure writevmt;
         procedure writeinterfaceids(list: TAsmList);
@@ -126,9 +127,10 @@ implementation
                                 TVMTWriter
 *****************************************************************************}
 
-    constructor TVMTWriter.create(c:tobjectdef);
+    constructor TVMTWriter.create(AAsmData:TAsmData;c:tobjectdef);
       begin
         inherited Create;
+        FAsmData:=AAsmData;
         FCompiler:=c.compiler;
         _Class:=c;
       end;
@@ -1384,7 +1386,7 @@ implementation
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
-                      vmtwriter:=CVMTWriter.create(tobjectdef(def));
+                      vmtwriter:=CVMTWriter.create(asmdata,tobjectdef(def));
                       if is_interface(tobjectdef(def)) then
                         vmtwriter.writeinterfaceids(asmdata.AsmLists[al_globals]);
                       if (oo_has_vmt in tobjectdef(def).objectoptions) then
