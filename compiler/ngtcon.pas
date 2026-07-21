@@ -104,7 +104,7 @@ interface
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
-        constructor create(sym: tstaticvarsym;acompiler: TCompilerBase);virtual;
+        constructor create(AsmData: TAsmData; sym: tstaticvarsym;acompiler: TCompilerBase);virtual;
         destructor Destroy; override;
         procedure parse_into_asmlist;
         { the asmlist containing the definition of the parsed entity and another
@@ -479,12 +479,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
 
-    constructor tasmlisttypedconstbuilder.create(sym: tstaticvarsym;acompiler: TCompilerBase);
+    constructor tasmlisttypedconstbuilder.create(AsmData: TAsmData; sym: tstaticvarsym;acompiler: TCompilerBase);
       begin
-        inherited;
+        inherited create(sym,acompiler);
         fsym:=sym;
-        ftcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
-        fdatalist:=tasmlist.create(current_asmdata);
+        ftcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+        fdatalist:=tasmlist.create(AsmData);
         curoffset:=0;
       end;
 

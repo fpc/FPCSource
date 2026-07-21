@@ -103,7 +103,7 @@ implementation
         if not(compiler.target.info.system in systems_typed_constants_node_init) then
           begin
             maybe_new_object_file(list);
-            tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym,compiler);
+            tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(list.AsmData,sym,compiler);
             tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
           end
         else
