@@ -73,6 +73,7 @@ implementation
     tobjcrttiwriter = class
      private
       FCompiler: TCompilerBase;
+      function objcfindprotocolentry(const p: shortstring): TAsmSymbol;
      protected
       FAsmData: TAsmData;
       fabi: tobjcabi;
@@ -140,7 +141,7 @@ implementation
                     Protocol declaration helpers
 *******************************************************************}
 
-function objcfindprotocolentry(const p: shortstring): TAsmSymbol;
+function tobjcrttiwriter.objcfindprotocolentry(const p: shortstring): TAsmSymbol;
   var
     item  : PHashSetItem;
   begin
