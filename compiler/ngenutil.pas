@@ -159,7 +159,7 @@ interface
       procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
 
       procedure RegisterModuleInitFunction(AsmData: TAsmData; pd: tprocdef); virtual;
-      procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
+      procedure RegisterModuleFiniFunction(AsmData: TAsmData; pd: tprocdef); virtual;
 
      strict protected
       procedure add_main_procdef_paras(pd: tdef); virtual;
@@ -1790,9 +1790,9 @@ implementation
     end;
 
 
-  procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+  procedure tnodeutils.RegisterModuleFiniFunction(AsmData: TAsmData; pd: tprocdef);
     begin
-      compiler.exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+      compiler.exportlib.setfininame(AsmData.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 

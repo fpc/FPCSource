@@ -2867,7 +2867,7 @@ type
          { Place in "pure assembler" list so that the llvm assembler writer
            directly emits the generated directives }
          if (islibrary) then
-           compiler.nodeutils.RegisterModuleFiniFunction(search_system_proc('fpc_lib_exit'));
+           compiler.nodeutils.RegisterModuleFiniFunction(curr_asmdata,search_system_proc('fpc_lib_exit'));
 
         { all labels must be defined before generating code }
         if compiler.verbose.Errorcount=0 then
