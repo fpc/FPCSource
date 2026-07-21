@@ -1582,7 +1582,7 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint),[]);
         case rttidatatype of
           rdt_normal:
-            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label(rttidef,rttitype,indirect);
+            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label(ctx.CurrAsmList.AsmData,rttidef,rttitype,indirect);
           rdt_ord2str:
             location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,indirect);
           rdt_str2ord:

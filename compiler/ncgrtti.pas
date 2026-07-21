@@ -81,7 +81,7 @@ interface
         procedure write_rtti(AsmData:TAsmData;def:tdef;rt:trttitype);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
-        function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        function  get_rtti_label(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         property Compiler: TCompilerBase read FCompiler;
@@ -226,9 +226,9 @@ implementation
                               TRTTIWriter
 ***************************************************************************}
 
-    function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+    function TRTTIWriter.get_rtti_label(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=ref_rtti(current_asmdata,def,rt,indirect,'');
+        result:=ref_rtti(AsmData,def,rt,indirect,'');
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
@@ -878,9 +878,9 @@ implementation
             tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),compiler.deftypes.sizeuinttype);
             { FieldType: PPTypeInfo }
             if is_objc_class_or_protocol(fldsym.vardef) then
-              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(compiler.deftypes.voidpointertype,fullrtti,true)),compiler.deftypes.voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(tcb.AsmData,compiler.deftypes.voidpointertype,fullrtti,true)),compiler.deftypes.voidpointertype)
             else
-              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),compiler.deftypes.voidpointertype);
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(tcb.AsmData,fldsym.vardef,fullrtti,true)),compiler.deftypes.voidpointertype);
             { FieldVisibility }
             tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),compiler.deftypes.u8inttype);
             { Name }
@@ -1604,9 +1604,9 @@ implementation
                tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),compiler.deftypes.sizeuinttype);
                { last dimension element type }
                if is_objc_class_or_protocol(curdef.elementdef) then
-                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(compiler.deftypes.voidpointertype,rt,true)),compiler.deftypes.voidpointertype)
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(tcb.AsmData,compiler.deftypes.voidpointertype,rt,true)),compiler.deftypes.voidpointertype)
                else
-                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),compiler.deftypes.voidpointertype);
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(tcb.AsmData,curdef.elementdef,rt,true)),compiler.deftypes.voidpointertype);
                { dimension count }
                tcb.emit_ord_const(dimcount,compiler.deftypes.u8inttype);
                finaldef:=def;
@@ -1774,7 +1774,7 @@ implementation
            else
              { we use a direct reference as the init RTTI is always in the same
                unit as the full RTTI }
-             tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),compiler.deftypes.voidpointertype);
+             tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(tcb.AsmData,def,initrtti,false)),compiler.deftypes.voidpointertype);
 
            tcb.emit_ord_const(def.size,compiler.deftypes.u32inttype);
 
@@ -1945,7 +1945,7 @@ implementation
               tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
             else
               if (def.objecttype=odt_object) then
-                tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),compiler.deftypes.voidpointertype)
+                tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(tcb.AsmData,def,initrtti,false)),compiler.deftypes.voidpointertype)
               else
                 internalerror(2017011801);
 
@@ -2637,7 +2637,7 @@ implementation
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
           tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
         else
-          tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,rt,true)),compiler.deftypes.voidpointertype);
+          tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(tcb.AsmData,def,rt,true)),compiler.deftypes.voidpointertype);
       end;
 
 
