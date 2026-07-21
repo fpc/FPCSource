@@ -1808,8 +1808,8 @@ type
          maybeloadvariantsunit(module);
 
          { generate rtti/init tables }
-         write_persistent_type_info(compiler,module.globalsymtable,true);
-         write_persistent_type_info(compiler,module.localsymtable,false);
+         write_persistent_type_info(curr_asmdata,compiler,module.globalsymtable,true);
+         write_persistent_type_info(curr_asmdata,compiler,module.localsymtable,false);
 
          { Tables }
          compiler.nodeutils.InsertThreadvars(curr_asmdata);
@@ -2608,7 +2608,7 @@ type
         compiler.nodeutils.InsertThreadvars(current_asmdata);
 
         { generate rtti/init tables }
-        write_persistent_type_info(compiler,curr.localsymtable,false);
+        write_persistent_type_info(current_asmdata,compiler,curr.localsymtable,false);
 
         { if an Objective-C module, generate rtti and module info }
         compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(current_asmdata,nil,curr.localsymtable);
