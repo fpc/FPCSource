@@ -1094,7 +1094,7 @@ implementation
             paramdef : tdef;
             i : longint;
           begin
-              tcb.start_internal_data_builder(current_asmdata.AsmLists[al_rtti],sec_rodata,'',paramtcb,paramlbl);
+              tcb.start_internal_data_builder(tcb.AsmData.AsmLists[al_rtti],sec_rodata,'',paramtcb,paramlbl);
 
               paramtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                 targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -1229,11 +1229,11 @@ implementation
                     visbyte:=byte(visibility_to_rtti_flags(sym.visibility));
                     tcb.emit_ord_const(visByte,compiler.deftypes.u8inttype);
                     { create separate constant builder }
-                    current_asmdata.getglobaldatalabel(tbllab);
-                    tbltcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+                    tcb.AsmData.getglobaldatalabel(tbllab);
+                    tbltcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
                     { write TPropInfo record }
                     tbldef:=write_propinfo_data(tbltcb,tpropertysym(sym));
-                    current_asmdata.asmlists[al_rtti].concatlist(
+                    tcb.AsmData.asmlists[al_rtti].concatlist(
                       tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,compiler.globals.const_align(sizeof(pint)))
                     );
                     tbltcb.free;
