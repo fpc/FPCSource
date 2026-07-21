@@ -1695,14 +1695,14 @@ implementation
 
         procedure recorddef_rtti(def:trecorddef);
 
-          procedure write_record_operators(rttilab:tasmlabel);
+          procedure write_record_operators(AsmData: TAsmData;rttilab:tasmlabel);
           var
             rttidef: tdef;
             tcb: ttai_typedconstbuilder;
             mop: tmanagementoperator;
             procdef: tprocdef;
           begin
-            tcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_make_dead_strippable],compiler);
+            tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable],compiler);
 
             tcb.begin_anonymous_record(
               '',
@@ -1808,7 +1808,7 @@ implementation
 
            { write pointers to operators if needed }
            if (rt=initrtti) and (trecordsymtable(def.symtable).managementoperators<>[]) then
-             write_record_operators(oplab);
+             write_record_operators(tcb.AsmData,oplab);
         end;
 
 
