@@ -2220,9 +2220,9 @@ implementation
           end
         else
           begin
-            current_asmdata.getglobaldatalabel(arglab);
+            tcb.AsmData.getglobaldatalabel(arglab);
 
-            argtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+            argtcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2246,7 +2246,7 @@ implementation
 
             argdef:=argtcb.end_anonymous_record;
 
-            current_asmdata.asmlists[al_rtti].concatlist(
+            tcb.AsmData.asmlists[al_rtti].concatlist(
               argtcb.get_final_asmlist(arglab,argdef,sec_rodata,arglab.name,compiler.globals.const_align(sizeof(pint)))
             );
 
@@ -2279,9 +2279,9 @@ implementation
         end;
 
       { first write the attribute list as a separate table }
-      current_asmdata.getglobaldatalabel(tbllab);
+      tcb.AsmData.getglobaldatalabel(tbllab);
 
-      tbltcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+      tbltcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
       tbltcb.begin_anonymous_record(
         internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
@@ -2308,7 +2308,7 @@ implementation
         end;
       tbldef:=tbltcb.end_anonymous_record;
 
-      current_asmdata.asmlists[al_rtti].concatlist(
+      tcb.AsmData.asmlists[al_rtti].concatlist(
         tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,compiler.globals.const_align(sizeof(pint)))
       );
 
