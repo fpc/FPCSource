@@ -729,7 +729,7 @@ implementation
                         otherunit;
                 { add "catch exceptiontype" clause to the landing pad }
                 rttidef:=cpointerdef.getreusable(excepttype.vmt_def);
-                rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
+                rttisym:=list.AsmData.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
               end;
           end;
 *)
@@ -739,7 +739,7 @@ implementation
 {$if defined(i386) or defined(x86_64)}
             typeindex:=(compiler.current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(excepttype);
 {$endif}
-            current_asmdata.getjumplabel(catchstartlab);
+            list.AsmData.getjumplabel(catchstartlab);
 {$if defined(i386)}
             hlcg.a_cmp_const_reg_label (list,compiler.deftypes.osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
 {$elseif defined(x86_64)}
