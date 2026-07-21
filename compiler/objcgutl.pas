@@ -160,7 +160,7 @@ function tobjcrttiwriter.objcaddprotocolentry(const p: shortstring; ref: TAsmSym
   var
     item  : PHashSetItem;
   begin
-    item:=current_asmdata.constpools[sp_objcprotocolrefs].FindOrAdd(@p[1], length(p));
+    item:=FAsmData.constpools[sp_objcprotocolrefs].FindOrAdd(@p[1], length(p));
     Result:=(item^.Data=nil);
     if Result then
       item^.Data:=ref;
