@@ -61,7 +61,8 @@ implementation
     aasmcnst,
     symconst,symsym,symtable,
     ngenutil,
-    verbose;
+    verbose,
+    pass_2_context;
 
   type
     tobjcabi = (oa_fragile, oa_nonfragile);
@@ -223,14 +224,14 @@ procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(ctx:tpassgeneratecodeco
         objcreatestringpoolentryintern(pchar(entry^.key),entry^.keylength,stringpool,stringsec,strlab,strdef);
 
         { and now finish the reference }
-        current_asmdata.getlabel(reflab,alt_data);
+        ctx.CurrAsmList.AsmData.getlabel(reflab,alt_data);
         entry^.Data:=reflab;
 
         { add a pointer to the string in the string references section }
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_new_section,tcalo_no_dead_strip],compiler);
+        tcb:=ctai_typedconstbuilder.create(ctx.CurrAsmList.AsmData,[tcalo_is_lab,tcalo_new_section,tcalo_no_dead_strip],compiler);
 
         tcb.emit_tai(Tai_const.Create_sym(strlab),strdef);
-        current_asmdata.asmlists[al_objc_pools].concatList(
+        ctx.CurrAsmList.AsmData.asmlists[al_objc_pools].concatList(
           tcb.get_final_asmlist(reflab,strdef,refsec,reflab.name,sizeof(pint))
           );
         tcb.free;
@@ -246,7 +247,7 @@ procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(ctx:tpassgeneratecodeco
             move(entry^.key^,_classname[1],entry^.keylength);
             { no way to express this in LLVM either, they also just emit
               module level assembly for it }
-            current_asmdata.asmlists[al_pure_assembler].concat(tai_directive.Create(asd_lazy_reference,'.objc_class_name_'+_classname));
+            ctx.CurrAsmList.AsmData.asmlists[al_pure_assembler].concat(tai_directive.Create(asd_lazy_reference,'.objc_class_name_'+_classname));
           end;
       end;
   end;
