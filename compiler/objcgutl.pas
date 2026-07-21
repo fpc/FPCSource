@@ -45,7 +45,7 @@ type
     procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
     procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
 
-    procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
+    procedure MaybeGenerateObjectiveCImageInfo(AsmData: TAsmData; globalst, localst: tsymtable);
   end;
 
 
@@ -1962,7 +1962,7 @@ constructor tobjcrttiwriter_nonfragile.create(AAsmData:TAsmData;ACompiler: TComp
                  RTTI generation -- Main function
 *******************************************************************}
 
-procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
+procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(AsmData: TAsmData; globalst, localst: tsymtable);
   var
     objcrttiwriter: tobjcrttiwriter;
   begin
@@ -1971,12 +1971,12 @@ procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: 
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }
         if not(compiler.target.info.system in systems_objc_nfabi) then
-          objcrttiwriter:=tobjcrttiwriter_fragile.create(current_asmdata,compiler)
+          objcrttiwriter:=tobjcrttiwriter_fragile.create(AsmData,compiler)
         else
-          objcrttiwriter:=tobjcrttiwriter_nonfragile.create(current_asmdata,compiler);
-        objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],globalst);
-        objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],localst);
-        objcrttiwriter.gen_objc_info_sections(current_asmdata.asmlists[al_objc_data]);
+          objcrttiwriter:=tobjcrttiwriter_nonfragile.create(AsmData,compiler);
+        objcrttiwriter.gen_objc_rtti_sections(AsmData.asmlists[al_objc_data],globalst);
+        objcrttiwriter.gen_objc_rtti_sections(AsmData.asmlists[al_objc_data],localst);
+        objcrttiwriter.gen_objc_info_sections(AsmData.asmlists[al_objc_data]);
         objcrttiwriter.free;
         objcrttiwriter := nil;
       end;
