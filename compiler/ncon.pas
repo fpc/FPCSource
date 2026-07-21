@@ -1225,7 +1225,7 @@ implementation
             internalerror(2019070801);
           st_ansistring:
             begin
-              labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
+              labofs:=tcb.emit_ansistring_const(tcb.AsmData.asmlists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,compiler.deftypes.charpointertype);
               result:=compiler.deftypes.voidpointertype.size;
             end;
@@ -1233,7 +1233,7 @@ implementation
           st_unicodestring:
             begin
               winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in compiler.target.info.flags);
-              labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],valuews,tstringdef(resultdef).encoding,winlikewidestring);
+              labofs:=tcb.emit_unicodestring_const(tcb.AsmData.asmlists[al_typedconsts],valuews,tstringdef(resultdef).encoding,winlikewidestring);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,compiler.deftypes.widecharpointertype);
               result:=compiler.deftypes.voidpointertype.size;
             end;
