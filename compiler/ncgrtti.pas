@@ -82,7 +82,7 @@ interface
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         function  get_rtti_label(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
-        function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        function  get_rtti_label_ord2str(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         property Compiler: TCompilerBase read FCompiler;
       end;
@@ -231,9 +231,9 @@ implementation
         result:=ref_rtti(AsmData,def,rt,indirect,'');
       end;
 
-    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+    function TRTTIWriter.get_rtti_label_ord2str(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=ref_rtti(current_asmdata,def,rt,indirect,'_o2s');
+        result:=ref_rtti(AsmData,def,rt,indirect,'_o2s');
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;

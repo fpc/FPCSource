@@ -1584,7 +1584,7 @@ implementation
           rdt_normal:
             location.reference.symbol:=compiler.RTTIWriter.get_rtti_label(ctx.CurrAsmList.AsmData,rttidef,rttitype,indirect);
           rdt_ord2str:
-            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,indirect);
+            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_ord2str(ctx.CurrAsmList.AsmData,rttidef,rttitype,indirect);
           rdt_str2ord:
             location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,indirect);
         end;
