@@ -1394,7 +1394,7 @@ implementation
        begin
          tcb:=ttai_typedconstbuilder(arg);
          { address of threadvar }
-         tcb.emit_tai(tai_const.Createname(current_asmdata,tstaticvarsym(p).mangledname,0),
+         tcb.emit_tai(tai_const.Createname(tcb.AsmData,tstaticvarsym(p).mangledname,0),
            cpointerdef.getreusable(
              get_threadvar_record(tstaticvarsym(p).vardef,field1,field2),
              compiler
