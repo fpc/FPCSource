@@ -306,7 +306,7 @@ type
      property curagginfo: taggregateinformation read getcurragginfo;
      property Compiler: TCompilerBase read FCompiler;
     public
-     constructor create(const options: ttcasmlistoptions; ACompiler: TCompilerBase); virtual;
+     constructor create(AsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase); virtual;
      destructor destroy; override;
 
     public
@@ -1075,7 +1075,7 @@ implementation
              indsecname:=secname
            else
              indsecname:=lower(symind.name);
-           indtcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
+           indtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_new_section,tcalo_make_dead_strippable],compiler);
            indtcb.emit_tai(tai_const.create_sym_offset(sym,0),ptrdef);
            AsmData.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
              symind,
@@ -1270,11 +1270,11 @@ implementation
      end;
 
 
-   constructor ttai_typedconstbuilder.create(const options: ttcasmlistoptions; ACompiler: TCompilerBase);
+   constructor ttai_typedconstbuilder.create(AsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase);
      begin
        inherited create;
        FCompiler:=ACompiler;
-       fasmlist:=tasmlist.create(current_asmdata);
+       fasmlist:=tasmlist.create(AsmData);
        foptions:=options;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);
@@ -1374,7 +1374,7 @@ implementation
        else if (secname<>'') and
                (finternal_data_section_info[foundsec].secname<>secname) then
          internalerror(2015032401);
-       tcb:=ttai_typedconstbuilderclass(classtype).create(options,compiler);
+       tcb:=ttai_typedconstbuilderclass(classtype).create(list.AsmData,options,compiler);
      end;
 
 
@@ -1951,7 +1951,7 @@ implementation
 
            { we start a new constbuilder as we don't know whether we're called
              from inside an internal constbuilder }
-           strtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+           strtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
 
            strtcb.maybe_begin_aggregate(datadef);
            { l+1: include length byte; true: add terminating #0 }

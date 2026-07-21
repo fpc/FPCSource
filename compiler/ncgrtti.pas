@@ -463,7 +463,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(loclab);
 
-            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+            loctcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -1230,7 +1230,7 @@ implementation
                     tcb.emit_ord_const(visByte,compiler.deftypes.u8inttype);
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
-                    tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+                    tbltcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
                     { write TPropInfo record }
                     tbldef:=write_propinfo_data(tbltcb,tpropertysym(sym));
                     current_asmdata.asmlists[al_rtti].concatlist(
@@ -1702,7 +1702,7 @@ implementation
             mop: tmanagementoperator;
             procdef: tprocdef;
           begin
-            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable],compiler);
+            tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable],compiler);
 
             tcb.begin_anonymous_record(
               '',
@@ -2222,7 +2222,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(arglab);
 
-            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+            argtcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2281,7 +2281,7 @@ implementation
       { first write the attribute list as a separate table }
       current_asmdata.getglobaldatalabel(tbllab);
 
-      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+      tbltcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
       tbltcb.begin_anonymous_record(
         internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
@@ -2401,7 +2401,7 @@ implementation
             end;
           { write rtti data; make sure that the alignment matches the corresponding data structure
             in the code that uses it (if alignment is required). }
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { use TConstPtrUInt packrecords to ensure good alignment }
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2478,7 +2478,7 @@ implementation
           tabledef: tdef;
         begin
           { write rtti data }
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { begin of Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2678,7 +2678,7 @@ implementation
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
-        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
         s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
 
         maybe_add_comment(tcb,'RTTI: begin Type '+def.GetTypeName+' ('+rttitypenames[rt]+')');

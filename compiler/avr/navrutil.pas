@@ -146,7 +146,7 @@ implementation
 
       notename:='AVR'#0;
       strtable:=#0+lower(embedded_controllers[compiler.globals.current_settings.controllertype].controllertypestr)+#0#0;
-      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
+      tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_no_dead_strip],compiler);
       defu32:=corddef.create(u32bit,0,$FFFFFFFF,false,compiler);
       tcb.maybe_begin_aggregate(defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(length(notename)),defu32);

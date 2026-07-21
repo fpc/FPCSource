@@ -133,7 +133,7 @@ implementation
               end;
           { emit uniques }
           prevasmsym:=nil;
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
+          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_new_section],compiler);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
           useddef:=carraydef.getreusable(compiler.deftypes.voidpointertype,uniquesyms,compiler);
           tcb.maybe_begin_aggregate(useddef);
@@ -183,7 +183,7 @@ implementation
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
           include(itemdef.defoptions,df_llvm_no_typename);
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
+          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_new_section],compiler);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
           arraydef:=carraydef.getreusable(itemdef,procdefs.Count,compiler);
           tcb.maybe_begin_aggregate(arraydef);

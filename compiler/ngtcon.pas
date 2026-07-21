@@ -483,7 +483,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         inherited;
         fsym:=sym;
-        ftcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+        ftcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
         fdatalist:=tasmlist.create(current_asmdata);
         curoffset:=0;
       end;
@@ -934,7 +934,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      { create a tcb for the string data (it's placed in a separate
                        asmlist) }
                      ftcb.start_internal_data_builder(fdatalist,sec_rodata,'',datatcb,ll);
-                     datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+                     datatcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                      pw:=tstringconstnode(node).valuews;
                      { include terminating #0 }
                      datadef:=carraydef.getreusable(compiler.deftypes.cwidechartype,tstringconstnode(node).len+1,compiler);
