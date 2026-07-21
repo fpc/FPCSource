@@ -50,7 +50,7 @@ interface
         procedure params_write_rtti(AsmData:TAsmData;def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure methods_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
-        procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
+        procedure write_rtti_extrasyms(AsmData:TAsmData;def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(AsmData:TAsmData;def : tobjectdef;rt:trttitype);
         procedure properties_write_rtti_data(tcb:ttai_typedconstbuilder;propnamelist:TFPHashObjectList;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
@@ -2349,7 +2349,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
+    procedure TRTTIWriter.write_rtti_extrasyms(AsmData:TAsmData;def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
 
         type Penumsym = ^Tenumsym;
 
@@ -2401,7 +2401,7 @@ implementation
             end;
           { write rtti data; make sure that the alignment matches the corresponding data structure
             in the code that uses it (if alignment is required). }
-          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+          tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { use TConstPtrUInt packrecords to ensure good alignment }
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2455,8 +2455,8 @@ implementation
             tcb.end_anonymous_record;
 
             tabledef:=tcb.end_anonymous_record;
-            rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
-            current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
+            rttilab:=AsmData.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
+            AsmData.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
               rttilab,tabledef,sec_rodata,
               rttilab.name,sizeof(PInt)));
             tcb.free;
@@ -2478,7 +2478,7 @@ implementation
           tabledef: tdef;
         begin
           { write rtti data }
-          tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
+          tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { begin of Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -2502,8 +2502,8 @@ implementation
             end;
           tcb.end_anonymous_record;
           tabledef:=tcb.end_anonymous_record;
-          rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
-          current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
+          rttilab:=AsmData.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
+          AsmData.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
             rttilab,tabledef,sec_rodata,
             rttilab.name,sizeof(PInt)));
           tcb.free;
@@ -2699,7 +2699,7 @@ implementation
         compiler.current_module.add_public_asmsym(rttilab);
 
         { write additional data }
-        write_rtti_extrasyms(def,rt,rttilab);
+        write_rtti_extrasyms(AsmData,def,rt,rttilab);
       end;
 
     procedure TRTTIWriter.maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string);
