@@ -2531,12 +2531,17 @@ type
       var
         sysinitmod, hp,hp2 : tmodule;
         resources_used : boolean;
+        curr_asmdata: TAsmData;
 
       begin
         sysinitmod:=nil;
         hp:=nil;
         hp2:=nil;
         resources_used:=false;
+
+        if curr.asmdata<>current_asmdata then
+          internalerror(2026072101);
+        curr_asmdata:=TAsmData(curr.asmdata);
 
   {$ifdef DEBUG_NODE_XML}
         if IsLibrary then
@@ -2602,47 +2607,47 @@ type
         { Insert .pdata section for arm-wince.
           It is needed for exception handling. }
         if compiler.target.info.system in [system_arm_wince] then
-          InsertPData(current_asmdata);
+          InsertPData(curr_asmdata);
   {$endif arm}
 
-        compiler.nodeutils.InsertThreadvars(current_asmdata);
+        compiler.nodeutils.InsertThreadvars(curr_asmdata);
 
         { generate rtti/init tables }
-        write_persistent_type_info(current_asmdata,compiler,curr.localsymtable,false);
+        write_persistent_type_info(curr_asmdata,compiler,curr.localsymtable,false);
 
         { if an Objective-C module, generate rtti and module info }
-        compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(current_asmdata,nil,curr.localsymtable);
+        compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(curr_asmdata,nil,curr.localsymtable);
 
         { generate debuginfo }
         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           current_debuginfo.inserttypeinfo;
 
         if islibrary or (compiler.target.info.system in systems_unit_program_exports) then
-          compiler.exportlib.generatelib(current_asmdata);
+          compiler.exportlib.generatelib(curr_asmdata);
 
         { Reference all DEBUGINFO sections from the main .fpc section }
         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
-          current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
+          current_debuginfo.referencesections(curr_asmdata.asmlists[al_procedures]);
 
         { Resource strings }
         GenerateResourceStrings(compiler);
 
         { Windows widestring needing initialization }
-        compiler.nodeutils.InsertWideInits(current_asmdata);
+        compiler.nodeutils.InsertWideInits(curr_asmdata);
 
         { Resourcestring references (const foo:string=someresourcestring) }
-        compiler.nodeutils.InsertResStrInits(current_asmdata);
+        compiler.nodeutils.InsertResStrInits(curr_asmdata);
 
         { insert Tables and StackLength }
         compiler.nodeutils.InsertInitFinalTable(curr);
-        compiler.nodeutils.InsertThreadvarTablesTable(current_asmdata);
-        compiler.nodeutils.InsertResourceTablesTable(current_asmdata);
-        compiler.nodeutils.InsertWideInitsTablesTable(current_asmdata);
-        compiler.nodeutils.InsertResStrTablesTable(current_asmdata);
-        compiler.nodeutils.InsertMemorySizes(current_asmdata);
+        compiler.nodeutils.InsertThreadvarTablesTable(curr_asmdata);
+        compiler.nodeutils.InsertResourceTablesTable(curr_asmdata);
+        compiler.nodeutils.InsertWideInitsTablesTable(curr_asmdata);
+        compiler.nodeutils.InsertResStrTablesTable(curr_asmdata);
+        compiler.nodeutils.InsertMemorySizes(curr_asmdata);
 
         { Insert symbol to resource info }
-        compiler.nodeutils.InsertResourceInfo(current_asmdata,resources_used);
+        compiler.nodeutils.InsertResourceInfo(curr_asmdata,resources_used);
 
         { create callframe info }
         create_dwarf_frame(curr);
@@ -2653,7 +2658,7 @@ type
 
         { generate imports }
         if curr.ImportLibraryList.Count>0 then
-          compiler.importlib.generatelib(current_asmdata);
+          compiler.importlib.generatelib(curr_asmdata);
 
         { insert own objectfile }
         insertobjectfile(curr);
