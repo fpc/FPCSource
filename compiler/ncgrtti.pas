@@ -1702,7 +1702,7 @@ implementation
             mop: tmanagementoperator;
             procdef: tprocdef;
           begin
-            tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable],compiler);
+            tcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_make_dead_strippable],compiler);
 
             tcb.begin_anonymous_record(
               '',
@@ -1721,14 +1721,14 @@ implementation
                   if procdef = nil then
                     internalerror(201603021)
                   else
-                    tcb.emit_tai(Tai_const.Createname(current_asmdata,procdef.mangledname,AT_FUNCTION,0),
+                    tcb.emit_tai(Tai_const.Createname(tcb.AsmData,procdef.mangledname,AT_FUNCTION,0),
                       cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler));
                 end;
             end;
 
             rttidef := tcb.end_anonymous_record;
 
-            current_asmdata.AsmLists[al_rtti].concatList(
+            tcb.AsmData.AsmLists[al_rtti].concatList(
               tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,
               sizeof(PInt)));
             tcb.free;
@@ -1788,8 +1788,8 @@ implementation
                  tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype)
                else
                  begin
-                   current_asmdata.getlocaldatalabel(oplab);
-                   tcb.emit_tai(Tai_const.Createname(current_asmdata,
+                   tcb.AsmData.getlocaldatalabel(oplab);
+                   tcb.emit_tai(Tai_const.Createname(tcb.AsmData,
                      oplab.name,
                      AT_DATA_FORCEINDIRECT,0),compiler.deftypes.voidpointertype);
                  end;
@@ -2001,7 +2001,7 @@ implementation
               maybe_add_comment(tcb,#9'Parent type info');
               if (oo_has_vmt in def.objectoptions) then
                 tcb.emit_tai(
-                  Tai_const.Createname(current_asmdata,def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
+                  Tai_const.Createname(tcb.AsmData,def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
                   cpointerdef.getreusable(def.vmt_def,compiler))
               else
                 tcb.emit_tai(Tai_const.Create_nil_dataptr,compiler.deftypes.voidpointertype);
