@@ -455,15 +455,15 @@ implementation
           end;
 
         { do we have such a paraloc already in the pool? }
-        pool:=current_asmdata.ConstPools[sp_paraloc];
+        pool:=tcb.AsmData.ConstPools[sp_paraloc];
 
         entry:=pool.FindOrAdd(@locs[0],length(locs)*sizeof(trttiparaloc));
 
         if not assigned(entry^.Data) then
           begin
-            current_asmdata.getglobaldatalabel(loclab);
+            tcb.AsmData.getglobaldatalabel(loclab);
 
-            loctcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
+            loctcb:=ctai_typedconstbuilder.create(tcb.AsmData,[tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
@@ -481,7 +481,7 @@ implementation
               end;
             datadef:=loctcb.end_anonymous_record;
 
-            current_asmdata.asmlists[al_typedconsts].concatList(
+            tcb.AsmData.asmlists[al_typedconsts].concatList(
               loctcb.get_final_asmlist(loclab,datadef,sec_rodata_norel,loclab.name,compiler.globals.const_align(sizeof(pint)))
             );
 
