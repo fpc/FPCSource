@@ -134,12 +134,12 @@ implementation
                  if (compiler.target.info.system in systems_objc_nfabi) then
                    begin
                      { find/add necessary classref/classname pool entries }
-                     compiler.objcgutl.objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
+                     compiler.objcgutl.objcfinishclassrefnfpoolentry(ctx,entry,tobjectdef(left.resultdef));
                    end
                  else
                    begin
                      { find/add necessary classref/classname pool entries }
-                     compiler.objcgutl.objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
+                     compiler.objcgutl.objcfinishstringrefpoolentry(ctx,entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,compiler.deftypes.objc_idtype.alignment,[]);
                  ctx.hlcg.a_load_ref_reg(ctx.CurrAsmList,compiler.deftypes.objc_idtype,compiler.deftypes.objc_idtype,href,location.register);

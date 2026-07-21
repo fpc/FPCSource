@@ -31,7 +31,8 @@ interface
     cclasses,
     compilerbase,
     aasmbase,aasmdata,
-    symbase,symdef,symtype;
+    symbase,symdef,symtype,
+    node;
 
 type
   TObjCCodeGenUtils = class
@@ -42,8 +43,8 @@ type
   public
     constructor Create(ACompiler: TCompilerBase);
 
-    procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
-    procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
+    procedure objcfinishstringrefpoolentry(ctx:tpassgeneratecodecontext;entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
+    procedure objcfinishclassrefnfpoolentry(ctx:tpassgeneratecodecontext;entry: phashsetitem; classdef: tobjectdef);
 
     procedure MaybeGenerateObjectiveCImageInfo(AsmData: TAsmData; globalst, localst: tsymtable);
   end;
@@ -207,7 +208,7 @@ constructor TObjCCodeGenUtils.Create(ACompiler: TCompilerBase);
   end;
 
 
-procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
+procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(ctx:tpassgeneratecodecontext;entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
   var
     reflab,
     strlab : tasmlabel;
@@ -257,7 +258,7 @@ procedure tobjcrttiwriter.objcreatestringpoolentry(const s: string; pooltype: tc
   end;
 
 
-procedure TObjCCodeGenUtils.objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
+procedure TObjCCodeGenUtils.objcfinishclassrefnfpoolentry(ctx:tpassgeneratecodecontext;entry: phashsetitem; classdef: tobjectdef);
   var
     reflab: TAsmLabel;
     classym: TasmSymbol;
