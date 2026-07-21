@@ -694,7 +694,7 @@ implementation
 
         AsmFileName:=obj.jvm_full_typename(false);
         AsmFileName:=Path+FixFileName(AsmFileName)+compiler.target.info.asmext;
-        writer.AsmCreate(cut_normal);
+        writer.AsmCreate(current_asmdata,cut_normal);
       end;
 
 

@@ -136,7 +136,7 @@ interface
         {# Write a new line to the assembler file }
         Procedure AsmLn; virtual;
 
-        procedure AsmCreate(Aplace:tcutplace);
+        procedure AsmCreate(AsmData: TAsmData; Aplace:tcutplace);
         procedure AsmClose;
 
         property ioerror: boolean read fioerror;
@@ -638,7 +638,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssemblerOutputFile.AsmCreate(Aplace:tcutplace);
+    procedure TExternalAssemblerOutputFile.AsmCreate(AsmData: TAsmData; Aplace:tcutplace);
 {$ifdef hasamiga}
       var
         tempFileName: TPathStr;
@@ -1408,7 +1408,7 @@ Implementation
 
     procedure TExternalAssembler.MakeObject(asmdata: TAsmData);
       begin
-        writer.AsmCreate(cut_normal);
+        writer.AsmCreate(asmdata,cut_normal);
         FillChar(lastfileinfo, sizeof(lastfileinfo), 0);
         lastfileinfo.line := -1;
         lastinfile := nil;

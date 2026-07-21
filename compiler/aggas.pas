@@ -1589,7 +1589,7 @@ implementation
                    begin
                      writer.AsmClose;
                      DoAssemble;
-                     writer.AsmCreate(tai_cutobject(hp).place);
+                     writer.AsmCreate(p.AsmData,tai_cutobject(hp).place);
                    end;
                 { avoid empty files }
                   while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
