@@ -2779,7 +2779,7 @@ type
            if not(compiler.target.info.system in systems_darwin) then
              initpd:=main_procinfo.procdef;
 
-           compiler.nodeutils.RegisterModuleInitFunction(initpd);
+           compiler.nodeutils.RegisterModuleInitFunction(curr_asmdata,initpd);
          end
         else if (compiler.target.info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
           begin

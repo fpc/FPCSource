@@ -158,7 +158,7 @@ interface
         also for the linker }
       procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
 
-      procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
+      procedure RegisterModuleInitFunction(AsmData: TAsmData; pd: tprocdef); virtual;
       procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
 
      strict protected
@@ -1782,11 +1782,11 @@ implementation
     end;
 
 
-  procedure tnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+  procedure tnodeutils.RegisterModuleInitFunction(AsmData: TAsmData; pd: tprocdef);
     begin
       { setinitname may generate a new section -> don't add to the
         current list, because we assume this remains a text section }
-      compiler.exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+      compiler.exportlib.setinitname(AsmData.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 
