@@ -219,6 +219,7 @@ type
      caggregateinformation: taggregateinformationclass;
     private
      FCompiler: TCompilerBase;
+     function GetAsmData: TAsmData; inline;
      function getcurragginfo: taggregateinformation;
      procedure set_next_field(AValue: tfieldvarsym);
      procedure set_next_field_name(const AValue: TIDString);
@@ -329,6 +330,7 @@ type
        code and data pointer in case of a complex procvardef) }
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
 
+     property AsmData: TAsmData read GetAsmData;
     protected
      procedure maybe_emit_tail_padding(def: tdef); virtual;
      function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
@@ -341,13 +343,13 @@ type
        the anonymous record, and insert the alignment once it's finished }
      procedure mark_anon_aggregate_alignment; virtual; abstract;
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
-     class function get_vectorized_dead_strip_section_symbol(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
     public
      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TReadOnlyCompilerTarget; out secname: TSymStr): boolean; virtual;
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
-     class function get_vectorized_dead_strip_section_symbol_start(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
-     class function get_vectorized_dead_strip_section_symbol_end(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_start(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
+     class function get_vectorized_dead_strip_section_symbol_end(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      { returns true if smartlinking of the dead stripable vectorized lists is supported }
      class function is_smartlink_vectorized_dead_strip(target: TReadOnlyCompilerTarget): boolean; virtual;
 
@@ -873,6 +875,12 @@ implementation
          result:=taggregateinformation(faggregateinformation[faggregateinformation.count-1])
        else
          result:=nil;
+     end;
+
+
+   function ttai_typedconstbuilder.GetAsmData: TAsmData; inline;
+     begin
+       result:=fasmlist.AsmData;
      end;
 
 
@@ -1581,7 +1589,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
      var
        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
@@ -1598,13 +1606,13 @@ implementation
              asmtype:=AT_DATA_FORCEINDIRECT
            else
              asmtype:=AT_DATA;
-           result:=AsmData.DefineAsmSymbol(name,AB_GLOBAL,asmtype,_compiler.deftypes.voidpointertype);
+           result:=AAsmData.DefineAsmSymbol(name,AB_GLOBAL,asmtype,_compiler.deftypes.voidpointertype);
            if tcdssso_register_asmsym in options then
              _compiler.current_module.add_public_asmsym(result);
          end
        else
          begin
-           result:=AsmData.RefAsmSymbol(name,AT_DATA,tcdssso_use_indirect in options);
+           result:=AAsmData.RefAsmSymbol(name,AT_DATA,tcdssso_use_indirect in options);
            if tcdssso_register_asmsym in options then
              _compiler.current_module.add_extern_asmsym(result);
          end;
@@ -1617,15 +1625,15 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
      begin
-       result:=get_vectorized_dead_strip_section_symbol(AsmData,basename,st,options,true);
+       result:=get_vectorized_dead_strip_section_symbol(AAsmData,basename,st,options,true);
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(AsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(AAsmData: TAsmData; const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol;
      begin
-       result:=get_vectorized_dead_strip_section_symbol(AsmData,basename,st,options,false);
+       result:=get_vectorized_dead_strip_section_symbol(AAsmData,basename,st,options,false);
      end;
 
 
