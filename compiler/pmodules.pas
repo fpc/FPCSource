@@ -3027,8 +3027,13 @@ type
          i : Longint;
          feature : tfeature;
          load_ok : boolean;
+         curr_asmdata: TAsmData;
 
       begin
+         if curr.asmdata<>current_asmdata then
+           internalerror(2026072103);
+         curr_asmdata:=TAsmData(curr.asmdata);
+
          result:=true;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
@@ -3086,7 +3091,7 @@ type
          else
            begin
              if (compiler.target.info.system in systems_unit_program_exports) then
-               compiler.exportlib.preparelib(current_asmdata,curr.realmodulename^);
+               compiler.exportlib.preparelib(curr_asmdata,curr.realmodulename^);
 
              { setup things using the switches }
              setupglobalswitches;
