@@ -307,7 +307,7 @@ type
      property curagginfo: taggregateinformation read getcurragginfo;
      property Compiler: TCompilerBase read FCompiler;
     public
-     constructor create(AsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase); virtual;
+     constructor create(AAsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase); virtual;
      destructor destroy; override;
 
     public
@@ -1278,11 +1278,11 @@ implementation
      end;
 
 
-   constructor ttai_typedconstbuilder.create(AsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase);
+   constructor ttai_typedconstbuilder.create(AAsmData: TAsmData; const options: ttcasmlistoptions; ACompiler: TCompilerBase);
      begin
        inherited create;
        FCompiler:=ACompiler;
-       fasmlist:=tasmlist.create(AsmData);
+       fasmlist:=tasmlist.create(AAsmData);
        foptions:=options;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);
