@@ -269,15 +269,15 @@ procedure TObjCCodeGenUtils.objcfinishclassrefnfpoolentry(ctx:tpassgeneratecodec
     if not assigned(entry^.Data) then
       begin
         { no, add the classref to the sec_objc_cls_refs section }
-        current_asmdata.getlabel(reflab,alt_data);
+        ctx.CurrAsmList.AsmData.getlabel(reflab,alt_data);
         entry^.Data:=reflab;
 
         { add a pointer to the class }
-        classym:=current_asmdata.RefAsmSymbol(classdef.rtti_mangledname(objcclassrtti),AT_DATA);
+        classym:=ctx.CurrAsmList.AsmData.RefAsmSymbol(classdef.rtti_mangledname(objcclassrtti),AT_DATA);
 
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_new_section],compiler);
+        tcb:=ctai_typedconstbuilder.create(ctx.CurrAsmList.AsmData,[tcalo_is_lab,tcalo_new_section],compiler);
         tcb.emit_tai(Tai_const.Create_sym(classym),compiler.deftypes.voidpointertype);
-        current_asmdata.asmlists[al_objc_pools].concatList(
+        ctx.CurrAsmList.AsmData.asmlists[al_objc_pools].concatList(
           tcb.get_final_asmlist(reflab,compiler.deftypes.voidpointertype,sec_objc_cls_refs,reflab.name,sizeof(pint))
         );
         tcb.free;
