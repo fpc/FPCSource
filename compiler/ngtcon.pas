@@ -560,9 +560,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                ((tcsym.owner.symtablelevel<=main_program_level) or
                 (current_old_block_type=bt_const)) then
               begin
-                current_asmdata.ResStrInits.Concat(
+                fdatalist.AsmData.ResStrInits.Concat(
                   TTCInitItem.Create(tcsym,curoffset,
-                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA),compiler.deftypes.charpointertype)
+                  fdatalist.AsmData.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA),compiler.deftypes.charpointertype)
                 );
                 Include(tcsym.varoptions,vo_force_finalize);
               end;
@@ -631,7 +631,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                          begin
                            if ll.ofs<>0 then
                              internalerror(2012051704);
-                           current_asmdata.WideInits.Concat(
+                           fdatalist.AsmData.WideInits.Concat(
                               TTCInitItem.Create(tcsym,curoffset,ll.lab,compiler.deftypes.widecharpointertype)
                            );
                            ll.lab:=nil;
@@ -780,7 +780,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if not def_is_related(tobjectdef(tclassrefdef(node.resultdef).pointeddef),tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
-              ftcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)),def);
+              ftcb.emit_tai(Tai_const.Create_sym(fdatalist.AsmData.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)),def);
             end;
            niln:
              ftcb.emit_tai(Tai_const.Create_sym(nil),def);
@@ -934,7 +934,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      { create a tcb for the string data (it's placed in a separate
                        asmlist) }
                      ftcb.start_internal_data_builder(fdatalist,sec_rodata,'',datatcb,ll);
-                     datatcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
+                     datatcb:=ctai_typedconstbuilder.create(fdatalist.AsmData,[tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                      pw:=tstringconstnode(node).valuews;
                      { include terminating #0 }
                      datadef:=carraydef.getreusable(compiler.deftypes.cwidechartype,tstringconstnode(node).len+1,compiler);
@@ -1060,7 +1060,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   // TODO correct type?
                   ftcb.emit_tai(Tai_const.createname(
-                    current_asmdata,
+                    fdatalist.AsmData,
                     tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0),
                     compiler.deftypes.voidpointertype);
                 end
@@ -1223,14 +1223,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             if (compiler.target.dbg.id=dbg_stabx) and
                (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
-               not assigned(current_asmdata.GetAsmSymbol(fsym.name)) then
+               not assigned(fdatalist.AsmData.GetAsmSymbol(fsym.name)) then
               addstabx:=true;
-            asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA,tcsym.vardef)
+            asmsym:=fdatalist.AsmData.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA,tcsym.vardef)
           end
         else if tf_supports_hidden_symbols in compiler.target.info.flags then
-          asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,tcsym.vardef)
+          asmsym:=fdatalist.AsmData.DefineAsmSymbol(fsym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,tcsym.vardef)
         else
-          asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_LOCAL,AT_DATA,tcsym.vardef);
+          asmsym:=fdatalist.AsmData.DefineAsmSymbol(fsym.mangledname,AB_LOCAL,AT_DATA,tcsym.vardef);
         if vo_has_section in fsym.varoptions then
           begin
             sec:=sec_user;
@@ -1252,7 +1252,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { see same code in ncgutil.insertbssdata }
             reslist.insert(tai_directive.Create(asd_reference,fsym.name));
-            reslist.insert(tai_symbol.Create(current_asmdata.DefineAsmSymbol(fsym.name,AB_LOCAL,AT_DATA,tcsym.vardef),0));
+            reslist.insert(tai_symbol.Create(fdatalist.AsmData.DefineAsmSymbol(fsym.name,AB_LOCAL,AT_DATA,tcsym.vardef),0));
           end;
         datalist:=fdatalist;
       end;
@@ -1599,7 +1599,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       internalerror(2021122301);
                     selfdef:=tclassrefdef(selfdef).pointeddef;
                     ftcb.emit_tai(Tai_const.Create_sym(
-                      current_asmdata.RefAsmSymbol(tobjectdef(selfdef).vmt_mangledname,AT_DATA)),
+                      fdatalist.AsmData.RefAsmSymbol(tobjectdef(selfdef).vmt_mangledname,AT_DATA)),
                       compiler.deftypes.voidpointertype);
                   end
                 else
@@ -1953,7 +1953,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      (def.vmt_offset<fieldoffset) then
                     begin
                       ftcb.next_field:=tfieldvarsym(def.vmt_field);
-                      ftcb.emit_tai(tai_const.createname(current_asmdata,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+                      ftcb.emit_tai(tai_const.createname(fdatalist.AsmData,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
                       objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
                       vmtwritten:=true;
                     end;
@@ -1979,7 +1979,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (def.vmt_offset>=objoffset) then
           begin
             ftcb.next_field:=tfieldvarsym(def.vmt_field);
-            ftcb.emit_tai(tai_const.createname(current_asmdata,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+            ftcb.emit_tai(tai_const.createname(fdatalist.AsmData,def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
             objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
           end;
         ftcb.maybe_end_aggregate(def);
