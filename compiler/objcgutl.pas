@@ -72,6 +72,7 @@ implementation
      private
       FCompiler: TCompilerBase;
      protected
+      FAsmData: TAsmData;
       fabi: tobjcabi;
       classdefs,
       catdefs: tfpobjectlist;
@@ -92,7 +93,7 @@ implementation
       procedure gen_objc_info_sections(list: tasmlist);virtual;abstract;
       property Compiler: TCompilerBase read FCompiler;
      public
-      constructor create(_abi: tobjcabi;acompiler: TCompilerBase);
+      constructor create(AAsmData:TAsmData;_abi: tobjcabi;acompiler: TCompilerBase);
       destructor destroy;override;
       procedure gen_objc_rtti_sections(list:TAsmList; st:TSymtable);
       property abi: tobjcabi read fabi;
@@ -109,7 +110,7 @@ implementation
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);override;
       procedure gen_objc_info_sections(list: tasmlist);override;
      public
-      constructor create(ACompiler: TCompilerBase);
+      constructor create(AAsmData:TAsmData;ACompiler: TCompilerBase);
     end;
 
 
@@ -128,7 +129,7 @@ implementation
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);override;
       procedure gen_objc_info_sections(list: tasmlist);override;
      public
-      constructor create(ACompiler: TCompilerBase);
+      constructor create(AAsmData:TAsmData;ACompiler: TCompilerBase);
     end;
 
 
@@ -629,8 +630,9 @@ procedure tobjcrttiwriter.gen_objc_rtti_sections(list:TAsmList; st:TSymtable);
   end;
 
 
-constructor tobjcrttiwriter.create(_abi: tobjcabi;acompiler: TCompilerBase);
+constructor tobjcrttiwriter.create(AAsmData:TAsmData;_abi: tobjcabi;acompiler: TCompilerBase);
   begin
+    FAsmData:=AAsmData;
     FCompiler:=ACompiler;
     fabi:=_abi;
     classdefs:=tfpobjectlist.create(false);
@@ -1192,9 +1194,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
   end;
 
 
-constructor tobjcrttiwriter_fragile.create(ACompiler: TCompilerBase);
+constructor tobjcrttiwriter_fragile.create(AAsmData:TAsmData;ACompiler: TCompilerBase);
   begin
-    inherited create(oa_fragile,ACompiler);
+    inherited create(AAsmData,oa_fragile,ACompiler);
   end;
 
 
@@ -1950,9 +1952,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_info_sections(list: tasmlist);
   end;
 
 
-constructor tobjcrttiwriter_nonfragile.create(ACompiler: TCompilerBase);
+constructor tobjcrttiwriter_nonfragile.create(AAsmData:TAsmData;ACompiler: TCompilerBase);
   begin
-    inherited create(oa_nonfragile,ACompiler);
+    inherited create(AAsmData,oa_nonfragile,ACompiler);
   end;
 
 
@@ -1969,9 +1971,9 @@ procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: 
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }
         if not(compiler.target.info.system in systems_objc_nfabi) then
-          objcrttiwriter:=tobjcrttiwriter_fragile.create(compiler)
+          objcrttiwriter:=tobjcrttiwriter_fragile.create(current_asmdata,compiler)
         else
-          objcrttiwriter:=tobjcrttiwriter_nonfragile.create(compiler);
+          objcrttiwriter:=tobjcrttiwriter_nonfragile.create(current_asmdata,compiler);
         objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],globalst);
         objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],localst);
         objcrttiwriter.gen_objc_info_sections(current_asmdata.asmlists[al_objc_data]);
