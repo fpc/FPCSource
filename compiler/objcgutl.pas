@@ -175,22 +175,22 @@ procedure TObjCCodeGenUtils.objcreatestringpoolentryintern(AsmData: TAsmData; p:
     pool   : THashSet;
     tcb    : ttai_typedconstbuilder;
   begin
-    pool := current_asmdata.constpools[pooltype];
+    pool := AsmData.constpools[pooltype];
 
     entry:=pool.FindOrAdd(p,len);
     if not assigned(entry^.data) then
       begin
         { create new entry }
-        current_asmdata.getlabel(strlab,alt_data);
+        AsmData.getlabel(strlab,alt_data);
         entry^.Data:=strlab;
 
         { Make sure strlab has a reference }
         strlab.increfs;
 
         { add the string to the appropriate section }
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_is_lab,tcalo_new_section],compiler);
+        tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_is_lab,tcalo_new_section],compiler);
         def:=tcb.emit_pchar_const(pchar(entry^.key),entry^.keylength);
-        current_asmdata.asmlists[al_objc_pools].concatList(
+        AsmData.asmlists[al_objc_pools].concatList(
           tcb.get_final_asmlist(strlab,def,stringsec,strlab.name,1)
         );
         tcb.free;
