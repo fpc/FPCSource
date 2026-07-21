@@ -187,7 +187,7 @@ uses
       begin
         resstrdef:=search_system_type('TRESOURCESTRINGRECORD').typedef;
 
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
+        tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
         { Write unitname entry }
         tcb.maybe_begin_aggregate(resstrdef);
         namelab:=tcb.emit_ansistring_const(AsmData.asmlists[al_const],@compiler.current_module.localsymtable.name^[1],length(compiler.current_module.localsymtable.name^),getansistringcodepage);
@@ -207,7 +207,7 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_vectorized_dead_strip_item,tcalo_data_force_indirect],compiler);
+            tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_vectorized_dead_strip_item,tcalo_data_force_indirect],compiler);
             valuelab.lab:=nil;
             valuelab.ofs:=0;
             charlen:=R.Len;
@@ -254,7 +254,7 @@ uses
             tcb.free;
             tcb := nil;
           end;
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
+        tcb:=ctai_typedconstbuilder.create(AsmData,[tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
           default_settings.packrecords,sizeof(pint),
           targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
