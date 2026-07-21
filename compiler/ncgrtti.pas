@@ -78,7 +78,7 @@ interface
         property ParaManager: TParaManager read GetParaManager;
       public
         constructor create(ACompiler: TCompilerBase);
-        procedure write_rtti(def:tdef;rt:trttitype);
+        procedure write_rtti(AsmData:TAsmData;def:tdef;rt:trttitype);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
@@ -206,7 +206,7 @@ implementation
                ) or
                is_managed_type(def) or
                (ds_init_table_used in def.defstates) then
-              compiler.RTTIWriter.write_rtti(def,initrtti);
+              compiler.RTTIWriter.write_rtti(AsmData,def,initrtti);
             { RTTI }
             if not(df_internal in def.defoptions) and
                (
@@ -217,7 +217,7 @@ implementation
                 ) or
                 (ds_rtti_table_used in def.defstates)
                ) then
-              compiler.RTTIWriter.write_rtti(def,fullrtti);
+              compiler.RTTIWriter.write_rtti(AsmData,def,fullrtti);
           end;
       end;
 
@@ -745,7 +745,7 @@ implementation
                 (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
-              write_rtti(tfieldvarsym(sym).vardef,rt);
+              write_rtti(current_asmdata,tfieldvarsym(sym).vardef,rt);
           end;
       end;
 
@@ -767,9 +767,9 @@ implementation
             if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
               begin
                 if is_open_array(sym.vardef) or is_array_of_const(sym.vardef) then
-                  write_rtti(tarraydef(sym.vardef).elementdef,rt)
+                  write_rtti(current_asmdata,tarraydef(sym.vardef).elementdef,rt)
                 else
-                  write_rtti(sym.vardef,rt);
+                  write_rtti(current_asmdata,sym.vardef,rt);
               end;
           end;
       end;
@@ -788,7 +788,7 @@ implementation
               for j:=0 to sym.procdeflist.count-1 do
                 begin
                   def:=tabstractprocdef(sym.procdeflist[j]);
-                  write_rtti(def.returndef,rt);
+                  write_rtti(current_asmdata,def.returndef,rt);
                   params_write_rtti(def,rt,allow_hidden);
                 end;
             end;
@@ -919,9 +919,9 @@ implementation
               begin
                 case tsym(sym).typ of
                   propertysym:
-                    write_rtti(tpropertysym(sym).propdef,rt);
+                    write_rtti(current_asmdata,tpropertysym(sym).propdef,rt);
                   fieldvarsym:
-                    write_rtti(tfieldvarsym(sym).vardef,rt);
+                    write_rtti(current_asmdata,tfieldvarsym(sym).vardef,rt);
                   else
                     ;
                 end;
@@ -2568,13 +2568,13 @@ implementation
         case def.typ of
           enumdef :
             if assigned(tenumdef(def).basedef) then
-              write_rtti(tenumdef(def).basedef,rt);
+              write_rtti(current_asmdata,tenumdef(def).basedef,rt);
           setdef :
-            write_rtti(tsetdef(def).elementdef,rt);
+            write_rtti(current_asmdata,tsetdef(def).elementdef,rt);
           arraydef :
             begin
-              write_rtti(tarraydef(def).rangedef,rt);
-              write_rtti(tarraydef(def).elementdef,rt);
+              write_rtti(current_asmdata,tarraydef(def).rangedef,rt);
+              write_rtti(current_asmdata,tarraydef(def).elementdef,rt);
             end;
           recorddef :
             begin
@@ -2583,14 +2583,14 @@ implementation
               if (rt=fullrtti) then
                 begin
                   include(def.defstates,ds_init_table_used);
-                  write_rtti(def, initrtti);
+                  write_rtti(current_asmdata,def, initrtti);
                 end;
               fields_write_rtti(trecorddef(def).symtable,rt);
             end;
           objectdef :
             begin
               if assigned(tobjectdef(def).childof) then
-                write_rtti(tobjectdef(def).childof,rt);
+                write_rtti(current_asmdata,tobjectdef(def).childof,rt);
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
                 fields_write_rtti(tobjectdef(def).symtable,rt)
               else
@@ -2603,7 +2603,7 @@ implementation
                   if (tobjectdef(def).objecttype=odt_object) then
                     begin
                       include(def.defstates,ds_init_table_used);
-                      write_rtti(def,initrtti);
+                      write_rtti(current_asmdata,def,initrtti);
                     end;
                   if (is_interface(def) or is_dispinterface(def))
                       and (oo_can_have_published in tobjectdef(def).objectoptions) then
@@ -2613,7 +2613,7 @@ implementation
           classrefdef,
           pointerdef:
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
-              write_rtti(tabstractpointerdef(def).pointeddef,rt);
+              write_rtti(current_asmdata,tabstractpointerdef(def).pointeddef,rt);
           procvardef:
             params_write_rtti(tabstractprocdef(def),rt,false);
           else
@@ -2651,7 +2651,7 @@ implementation
           compiler.current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
 
-    procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
+    procedure TRTTIWriter.write_rtti(AsmData:TAsmData;def:tdef;rt:trttitype);
 
       var
         tcb: ttai_typedconstbuilder;
