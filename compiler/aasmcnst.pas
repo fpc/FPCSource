@@ -1501,7 +1501,7 @@ implementation
              name starts with compiler.target._asm.labelprefix in case it's AB_LOCAL,
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
-           startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
+           startlab:=tasmlabel.create(fasmlist.AsmData.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
          end;
        { sanity check }
        if result.ofs<>string_symofs then
@@ -1770,7 +1770,7 @@ implementation
                datatcb.emit_tai(Tai_label.Create(result.lab),compiler.deftypes.widecharpointertype);
                { allocate a separate label for the start of the data (see
                  emit_string_const_common() for explanation) }
-               startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
+               startlab:=tasmlabel.create(fasmlist.AsmData.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
              end
            else
              internalerror(2015031502);
@@ -1834,7 +1834,7 @@ implementation
              name starts with compiler.target._asm.labelprefix in case it's AB_LOCAL,
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
-           startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);
+           startlab:=tasmlabel.create(fasmlist.AsmData.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);
          end;
        { sanity check }
        if result.ofs<>dynarray_symofs then
@@ -1906,7 +1906,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(current_asmdata,pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
+       emit_tai(Tai_const.Createname(fasmlist.AsmData,pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
      end;
 
 
@@ -1936,14 +1936,14 @@ implementation
        datadef : tdef;
        strtcb : ttai_typedconstbuilder;
      begin
-       pool:=current_asmdata.ConstPools[sp_shortstr];
+       pool:=fasmlist.AsmData.ConstPools[sp_shortstr];
 
        entry:=pool.FindOrAdd(@str[1],length(str));
 
        { :-(, we must generate a new entry }
        if not assigned(entry^.Data) then
          begin
-           current_asmdata.getglobaldatalabel(strlab);
+           fasmlist.AsmData.getglobaldatalabel(strlab);
 
            { include length and terminating zero for quick conversion to pchar }
            l:=length(str);
@@ -1958,7 +1958,7 @@ implementation
            strtcb.emit_tai(Tai_string.Create_Data(@str[0],l+1,true),datadef);
            strtcb.maybe_end_aggregate(datadef);
 
-           current_asmdata.asmlists[al_typedconsts].concatList(
+           fasmlist.AsmData.asmlists[al_typedconsts].concatList(
              strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,compiler.globals.const_align(sizeof(pint)))
            );
            strtcb.free;
@@ -2206,14 +2206,14 @@ implementation
      begin
        { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(current_asmdata,vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef,compiler));
+       emit_tai(Tai_const.Createname(fasmlist.AsmData,vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef,compiler));
        fqueue_offset:=low(fqueue_offset);
      end;
 
 
    procedure ttai_typedconstbuilder.queue_emit_label(l: tlabelsym);
      begin
-       emit_tai(Tai_const.Createname(current_asmdata,l.mangledname,fqueue_offset),compiler.deftypes.voidcodepointertype);
+       emit_tai(Tai_const.Createname(fasmlist.AsmData,l.mangledname,fqueue_offset),compiler.deftypes.voidcodepointertype);
        fqueue_offset:=low(fqueue_offset);
      end;
 
@@ -2233,7 +2233,7 @@ implementation
            begin
              resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);
              queue_subscriptn_multiple_by_name(resourcestrrec,['CURRENTVALUE']);
-             queue_emit_asmsym(current_asmdata.RefAsmSymbol(
+             queue_emit_asmsym(fasmlist.AsmData.RefAsmSymbol(
                make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),resourcestrrec
              );
            end;
