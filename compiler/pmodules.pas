@@ -2955,9 +2955,15 @@ type
         var
           program_name : ansistring;
           paramnum : integer;
+          curr_asmdata: TAsmData;
 
         begin
           sc:=nil;
+
+          if curr.asmdata<>current_asmdata then
+            internalerror(2026072103);
+          curr_asmdata:=TAsmData(curr.asmdata);
+
           parser.pbase.consume(_PROGRAM);
           program_name:=current_scanner.orgpattern;
           parser.pbase.consume(_ID);
@@ -2969,7 +2975,7 @@ type
             end;
           curr.setmodulename(program_name);
           if (compiler.target.info.system in systems_unit_program_exports) then
-            compiler.exportlib.preparelib(current_asmdata,program_name);
+            compiler.exportlib.preparelib(curr_asmdata,program_name);
           if current_scanner.token=_LKLAMMER then
             begin
                parser.pbase.consume(_LKLAMMER);
