@@ -174,7 +174,7 @@ implementation
                  { add the parsed value }
                 list.concatlist(reslist);
                 { and pointed data, if any }
-                current_asmdata.asmlists[al_const].concatlist(datalist);
+                list.AsmData.asmlists[al_const].concatlist(datalist);
                 { the (empty) lists themselves are freed by tcbuilder }
               end
             else
