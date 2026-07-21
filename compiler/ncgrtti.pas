@@ -46,7 +46,7 @@ interface
         { write comments ? }
         addcomments : boolean;
         function GetParaManager: TParaManager; inline;
-        procedure fields_write_rtti(st:tsymtable;rt:trttitype);
+        procedure fields_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype);
         procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
@@ -732,7 +732,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.fields_write_rtti(st:tsymtable;rt:trttitype);
+    procedure TRTTIWriter.fields_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype);
       var
         i   : longint;
         sym : tsym;
@@ -745,7 +745,7 @@ implementation
                 (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
-              write_rtti(current_asmdata,tfieldvarsym(sym).vardef,rt);
+              write_rtti(AsmData,tfieldvarsym(sym).vardef,rt);
           end;
       end;
 
@@ -2585,14 +2585,14 @@ implementation
                   include(def.defstates,ds_init_table_used);
                   write_rtti(current_asmdata,def, initrtti);
                 end;
-              fields_write_rtti(trecorddef(def).symtable,rt);
+              fields_write_rtti(current_asmdata,trecorddef(def).symtable,rt);
             end;
           objectdef :
             begin
               if assigned(tobjectdef(def).childof) then
                 write_rtti(current_asmdata,tobjectdef(def).childof,rt);
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
-                fields_write_rtti(tobjectdef(def).symtable,rt)
+                fields_write_rtti(current_asmdata,tobjectdef(def).symtable,rt)
               else
                 published_write_rtti(tobjectdef(def),rt);
 
