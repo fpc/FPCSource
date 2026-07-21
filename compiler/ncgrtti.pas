@@ -58,7 +58,7 @@ interface
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;def:tabstractrecorddef;visibilities:tvisibilities);
         { only use a direct reference if the referenced type can *only* reside
           in the same unit as the current one }
-        function ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
+        function ref_rtti(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
         procedure write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
         procedure write_common_rtti_data(tcb:ttai_typedconstbuilder;def:tdef;rt:trttitype);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
@@ -228,17 +228,17 @@ implementation
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=ref_rtti(def,rt,indirect,'');
+        result:=ref_rtti(current_asmdata,def,rt,indirect,'');
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=ref_rtti(def,rt,indirect,'_o2s');
+        result:=ref_rtti(current_asmdata,def,rt,indirect,'_o2s');
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=ref_rtti(def,rt,indirect,'_s2o');
+        result:=ref_rtti(current_asmdata,def,rt,indirect,'_s2o');
       end;
 
     procedure TRTTIWriter.write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
@@ -2641,12 +2641,12 @@ implementation
       end;
 
 
-    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
+    function TRTTIWriter.ref_rtti(AsmData:TAsmData;def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
       var
         s : tsymstr;
       begin
         s:=def.rtti_mangledname(rt)+suffix;
-        result:=current_asmdata.RefAsmSymbol(s,AT_DATA,indirect);
+        result:=AsmData.RefAsmSymbol(s,AT_DATA,indirect);
         if def.owner.moduleid<>compiler.current_module.moduleid then
           compiler.current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
