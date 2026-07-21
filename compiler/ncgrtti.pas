@@ -49,7 +49,7 @@ interface
         procedure fields_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype);
         procedure params_write_rtti(AsmData:TAsmData;def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
-        procedure methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
+        procedure methods_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(def : tobjectdef;rt:trttitype);
         procedure properties_write_rtti_data(tcb:ttai_typedconstbuilder;propnamelist:TFPHashObjectList;st:tsymtable;extended_rtti:boolean;visibilities:tvisibilities);
@@ -775,7 +775,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
+    procedure TRTTIWriter.methods_write_rtti(AsmData:TAsmData;st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
       var
         i,j : longint;
         sym : tprocsym;
@@ -788,8 +788,8 @@ implementation
               for j:=0 to sym.procdeflist.count-1 do
                 begin
                   def:=tabstractprocdef(sym.procdeflist[j]);
-                  write_rtti(current_asmdata,def.returndef,rt);
-                  params_write_rtti(current_asmdata,def,rt,allow_hidden);
+                  write_rtti(AsmData,def.returndef,rt);
+                  params_write_rtti(AsmData,def,rt,allow_hidden);
                 end;
             end;
       end;
@@ -2607,7 +2607,7 @@ implementation
                     end;
                   if (is_interface(def) or is_dispinterface(def))
                       and (oo_can_have_published in tobjectdef(def).objectoptions) then
-                    methods_write_rtti(tobjectdef(def).symtable,rt,[vis_published],true);
+                    methods_write_rtti(current_asmdata,tobjectdef(def).symtable,rt,[vis_published],true);
                 end;
             end;
           classrefdef,
