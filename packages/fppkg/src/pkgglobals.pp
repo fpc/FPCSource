@@ -404,8 +404,9 @@ begin
     S.Commandline:=ACompiler+' '+AOptions;
     S.ShowWindow:=swoHIDE;
     S.Options:=[poUsePipes];
-    S.execute;
+    S.Execute;
     Count:=s.output.read(buf,BufSize);
+    S.WaitOnExit;
   finally
     S.Free;
   end;
