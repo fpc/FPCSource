@@ -36,7 +36,7 @@ type
   private
     FCompiler: TCompilerBase;
     procedure procexport(AsmData: TAsmData; const s : string);
-    procedure varexport(const s : string);
+    procedure varexport(AsmData: TAsmData; const s : string);
     procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
     procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
     procedure exportname(const s:tsymstr);
@@ -86,14 +86,14 @@ implementation
     end;
 
 
-  procedure TPackageUtils.varexport(const s : string);
+  procedure TPackageUtils.varexport(AsmData: TAsmData; const s : string);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportvar(current_asmdata,hp);
+      compiler.exportlib.exportvar(AsmData,hp);
     end;
 
 
@@ -147,7 +147,7 @@ implementation
           end;
         staticvarsym:
           begin
-            varexport(tsym(sym).mangledname);
+            varexport(current_asmdata,tsym(sym).mangledname);
           end;
         else
           ;
@@ -229,7 +229,7 @@ implementation
         constsym:
           begin
             if tconstsym(sym).consttyp=constresourcestring then
-              varexport(make_mangledname('RESSTR',tsym(sym).owner,tsym(sym).name));
+              varexport(current_asmdata,make_mangledname('RESSTR',tsym(sym).owner,tsym(sym).name));
           end;
         typesym:
           begin
@@ -243,7 +243,7 @@ implementation
           begin
             if publiconly and ([vo_is_public,vo_has_global_ref]*tstaticvarsym(sym).varoptions=[]) then
               exit;
-            varexport(tsym(sym).mangledname);
+            varexport(current_asmdata,tsym(sym).mangledname);
           end;
         absolutevarsym:
           ;
@@ -271,11 +271,11 @@ implementation
       if mf_finalize in u.moduleflags then
         procexport(current_asmdata,make_mangledname('FINALIZE$',u.globalsymtable,''));
       if mf_threadvars in u.moduleflags then
-        varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
+        varexport(current_asmdata,make_mangledname('THREADVARLIST',u.globalsymtable,''));
       if mf_has_resourcestrings in u.moduleflags then
         begin
-          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(current_asmdata,'RESSTR',u.localsymtable,[]).name);
-          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(current_asmdata,'RESSTR',u.localsymtable,[]).name);
+          varexport(current_asmdata,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start(current_asmdata,'RESSTR',u.localsymtable,[]).name);
+          varexport(current_asmdata,ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end(current_asmdata,'RESSTR',u.localsymtable,[]).name);
         end;
 
       if not (compiler.target.info.system in systems_indirect_var_imports) then
@@ -283,7 +283,7 @@ implementation
           begin
             sym:=tasmsymbol(u.publicasmsyms[i]);
             if sym.bind=AB_INDIRECT then
-              varexport(sym.name);
+              varexport(current_asmdata,sym.name);
           end;
     end;
 
