@@ -28,13 +28,14 @@ interface
 
   uses
     globtype,fmodule,fpkg,link,cstreams,cclasses,compilerbase,
+    aasmdata,
     symbase,symtype,symsym,symdef;
 
 type
   TPackageUtils = class
   private
     FCompiler: TCompilerBase;
-    procedure procexport(const s : string);
+    procedure procexport(AsmData: TAsmData; const s : string);
     procedure varexport(const s : string);
     procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
     procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
@@ -62,7 +63,7 @@ implementation
     systemstypes,systems,compiler,
     cutils,
     globals,verbose,
-    aasmbase,aasmdata,aasmcnst,
+    aasmbase,aasmcnst,
     symconst,symtable,
     psub,pdecsub,
     ppu,entfile,fpcp,
@@ -74,14 +75,14 @@ implementation
     end;
 
 
-  procedure TPackageUtils.procexport(const s : string);
+  procedure TPackageUtils.procexport(AsmData: TAsmData; const s : string);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      compiler.exportlib.exportprocedure(current_asmdata,hp);
+      compiler.exportlib.exportprocedure(AsmData,hp);
     end;
 
 
@@ -266,9 +267,9 @@ implementation
 
       { create special exports }
       if mf_init in u.moduleflags then
-        procexport(make_mangledname('INIT$',u.globalsymtable,''));
+        procexport(current_asmdata,make_mangledname('INIT$',u.globalsymtable,''));
       if mf_finalize in u.moduleflags then
-        procexport(make_mangledname('FINALIZE$',u.globalsymtable,''));
+        procexport(current_asmdata,make_mangledname('FINALIZE$',u.globalsymtable,''));
       if mf_threadvars in u.moduleflags then
         varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
       if mf_has_resourcestrings in u.moduleflags then
