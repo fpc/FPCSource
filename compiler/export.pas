@@ -74,7 +74,7 @@ type
       procedure setinitname(list: TAsmList; const s: string); virtual;
       procedure setfininame(list: TAsmList; const s: string); virtual;
 
-      procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+      procedure exportprocsym(AsmData: TAsmData; sym: tsym; const s : string; index: longint; options: texportoptions);
       procedure exportvarsym(AsmData: TAsmData; sym: tsym; const s : string; index: longint; options: texportoptions);
       { to export symbols not directly related to a tsym (e.g., the Objective-C
         rtti) }
@@ -105,7 +105,7 @@ var
                            TExported_procedure
 ****************************************************************************}
 
-procedure texportlib.exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+procedure texportlib.exportprocsym(AsmData: TAsmData; sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
@@ -114,7 +114,7 @@ procedure texportlib.exportprocsym(sym: tsym; const s : string; index: longint; 
     hp.sym:=sym;
     hp.options:=options+[eo_name];
     hp.index:=index;
-    exportprocedure(current_asmdata,hp);
+    exportprocedure(AsmData,hp);
   end;
 
 
@@ -142,14 +142,14 @@ procedure texportlib.exportname(AsmData: TAsmData; const s : string; options: te
     var
       item: TCmdStrListItem;
     begin
-      exportprocsym(sym,pd.mangledname,0,options);
+      exportprocsym(current_asmdata,sym,pd.mangledname,0,options);
       { walk through all aliases }
       item:=TCmdStrListItem(pd.aliasnames.first);
       while assigned(item) do
         begin
           { avoid duplicate entries, sometimes aliasnames contains the mangledname }
           if item.str<>pd.mangledname then
-            exportprocsym(sym,item.str,0,options);
+            exportprocsym(current_asmdata,sym,item.str,0,options);
           item:=TCmdStrListItem(item.next);
         end;
     end;

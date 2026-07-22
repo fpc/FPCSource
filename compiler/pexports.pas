@@ -277,7 +277,7 @@ implementation
                              else
                                hpname:=orgs;
 
-                           compiler.exportlib.exportprocsym(srsym,hpname,index,options);
+                           compiler.exportlib.exportprocsym(current_asmdata,srsym,hpname,index,options);
                          end
                       end;
                     staticvarsym:
