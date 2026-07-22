@@ -81,7 +81,7 @@ type
       procedure exportname(AsmData: TAsmData; const s : string; options: texportoptions);
 
       procedure exportallprocdefnames(AsmData: TAsmData; sym: tprocsym; pd: tprocdef; options: texportoptions);
-      procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
+      procedure exportallprocsymnames(AsmData: TAsmData; ps: tprocsym; options: texportoptions);
 
       property initname: string read finitname;
       property fininame: string read ffininame;
@@ -155,12 +155,12 @@ procedure texportlib.exportname(AsmData: TAsmData; const s : string; options: te
     end;
 
 
-  procedure texportlib.exportallprocsymnames(ps: tprocsym; options: texportoptions);
+  procedure texportlib.exportallprocsymnames(AsmData: TAsmData; ps: tprocsym; options: texportoptions);
     var
       i: longint;
     begin
       for i:= 0 to ps.ProcdefList.Count-1 do
-        exportallprocdefnames(current_asmdata,ps,tprocdef(ps.ProcdefList[i]),options);
+        exportallprocdefnames(AsmData,ps,tprocdef(ps.ProcdefList[i]),options);
     end;
 
 

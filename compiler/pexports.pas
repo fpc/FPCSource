@@ -256,7 +256,7 @@ implementation
                        { the parent unit is used in that)                }
                        if (options*[eo_name,eo_index]=[]) and
                           (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
-                         compiler.exportlib.exportallprocsymnames(tprocsym(srsym),options)
+                         compiler.exportlib.exportallprocsymnames(current_asmdata,tprocsym(srsym),options)
                        else
                          begin
                            { there's a name or an index -> export only one name   }
