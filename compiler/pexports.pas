@@ -66,7 +66,9 @@ implementation
        { obj-c }
        objcutil,
        { link }
-       gendef,export
+       gendef,export,
+       { asm }
+       aasmdata
        ;
 
     type
@@ -286,7 +288,7 @@ implementation
                             hpname:=srsym.mangledname
                           else
                             hpname:=orgs;
-                        compiler.exportlib.exportvarsym(srsym,hpname,index,options);
+                        compiler.exportlib.exportvarsym(current_asmdata,srsym,hpname,index,options);
                       end;
                     typesym:
                       begin
