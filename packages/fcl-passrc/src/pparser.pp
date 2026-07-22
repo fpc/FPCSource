@@ -7576,7 +7576,11 @@ begin
               otNegative : OperatorType:=otMinus;
             else
             end;
-            Name:=OperatorNames[OperatorType];
+            { Do not reset Name to the bare operator name here: 
+              for a generic operator implementation header (TFoo<T>.+) 
+              that would drop the "TFoo." class prefix that the specialization 
+              machinery needs to build the specialized impl-proc name. 
+              CorrectName already rebuilds the name from the existing prefix. }
             TPasOperator(Result).CorrectName;
             end;
           end;

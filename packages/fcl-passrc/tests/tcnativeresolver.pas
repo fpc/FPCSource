@@ -115,6 +115,7 @@ type
     procedure TestFoldNamedPointerCast;
     procedure TestAddressOfDegradesToUnknown;
     procedure TestGenericClassOperatorResultOverload;
+    procedure TestGenericRecordTokenOperatorSpecialize;
     procedure TestStrOnGenericTypeParam;
     procedure TestValOnGenericTypeParam;
   end;
@@ -636,6 +637,35 @@ begin
   'begin',
   'end;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestNativeResolverFold.TestGenericRecordTokenOperatorSpecialize;
+// GitLab #31184: a generic record with an overloaded TOKEN operator (+),
+// applied on a specialization. Specializing the operator's implementation used
+// to raise "not yet implemented" because the impl-proc name "TArr<T>.+" lost its
+// "TArr." class prefix during the unary-vs-binary (+ = positive vs add) name
+// correction, so the specialized impl-proc name could not be built. Accepted by
+// the native resolver (and real FPC); the base resolver cannot declare the
+// self-referential operator argument.
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TArr<T> = record',
+  '    v: T;',
+  '    class operator +(const a,b: TArr<T>): TArr<T>;',
+  '  end;',
+  'class operator TArr<T>.+(const a,b: TArr<T>): TArr<T>;',
+  'begin',
+  '  Result.v:=a.v+b.v;',
+  'end;',
+  'var',
+  '  a: TArr<word>;',
+  'begin',
+  '  if a.v=0 then ;',
   '']);
   ParseProgram;
 end;
