@@ -317,6 +317,7 @@ Var
   res      : cint;
   FoundName,
   PName    : String;
+  SysCurrentDir: String;
 
 begin
   If (poUsePipes in Options) then
@@ -346,6 +347,13 @@ begin
           else
             raise EProcess.CreateFmt(SErrNoSuchProgram,[PName]);
         end;
+
+        // convert FCurrentDirectory codepage before fpFork, otherwise risk of deadlock with
+        // other thread also converting strings
+        if (FCurrentDirectory<>'') then
+          SysCurrentDir:=ToSingleByteFileSystemEncodedFileName(FCurrentDirectory)
+        else
+          SysCurrentDir:='';
 
 {$if (defined(DARWIN) or defined(SUNOS))}
         { can't use vfork in case the child has to be
@@ -382,10 +390,10 @@ begin
         else
           begin
             { We're in the child }
-            if (FCurrentDirectory<>'') then
+            if (SysCurrentDir<>'') then
                begin
 {$push}{$i-}
-                 ChDir(FCurrentDirectory);
+                 ChDir(SysCurrentDir);
                  { exit if the requested working directory does not exist (can
                    use DirectoryExists, that would not be atomic; cannot change
                    before forking because that would also change the CWD of the
