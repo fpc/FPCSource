@@ -68,7 +68,7 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
       begin
         ptrdef:=cpointerdef.getreusable(def,compiler);
         symind:=DefineAsmSymbol(s,AB_INDIRECT,AT_DATA,ptrdef);
-        tcb:=ctai_typedconstbuilder.create(current_asmdata,[tcalo_make_dead_strippable,tcalo_new_section],compiler);
+        tcb:=ctai_typedconstbuilder.create(self,[tcalo_make_dead_strippable,tcalo_new_section],compiler);
         tcb.emit_tai(Tai_const.Create_sym_offset(result,0),ptrdef);
         AsmLists[al_indirectglobals].concatlist(tcb.get_final_asmlist(
           symind,ptrdef,
