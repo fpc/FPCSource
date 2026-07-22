@@ -23204,6 +23204,13 @@ begin
     C:=ParamResolved.LoTypeEl.ClassType;
     if (C=TPasEnumType) or (C=TPasRangeType) then
       Result:=cExact
+    else if C=TPasGenericTemplateType then
+      // Inside a generic, a value whose type is a type parameter: the concrete
+      // type (and thus whether Str accepts it) is only known after
+      // specialization, so accept it here and let the specialized body be
+      // re-checked. Otherwise Str(fieldOfTypeT,...) failed to compile even
+      // though the specialization uses e.g. integer.
+      Result:=cExact
     end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170319220517,ArgNo,Param,ParamResolved,'boolean, integer, enum value',RaiseOnError));
@@ -23403,6 +23410,11 @@ begin
       begin
       C:=ParamResolved.LoTypeEl.ClassType;
       if (C=TPasEnumType) or (C=TPasRangeType) then
+        Result:=cExact
+      else if C=TPasGenericTemplateType then
+        // Inside a generic, a value whose type is a type parameter: the concrete
+        // type (and thus whether Val accepts it) is only known after
+        // specialization, so accept it here and re-check the specialized body.
         Result:=cExact;
       end;
     end;
@@ -30510,7 +30522,11 @@ begin
         if Result<>cIncompatible then exit;
         end;
       end;
-    if IsGenericTemplType(ParamResolved) then
+    // A var/out argument whose type is a generic type parameter cannot be
+    // exact-matched against the parameter type yet: the concrete type is only
+    // known after specialization, so defer the check (e.g. Val(s, ResultOfT,
+    // code) inside a generic). Symmetric with the parameter-side template case.
+    if IsGenericTemplType(ParamResolved) or IsGenericTemplType(ExprResolved) then
       exit(cGenericExact);
 
     // Allow out Pointer := any typed pointer (like FPC's GetMem)

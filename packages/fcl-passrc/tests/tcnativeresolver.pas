@@ -115,6 +115,8 @@ type
     procedure TestFoldNamedPointerCast;
     procedure TestAddressOfDegradesToUnknown;
     procedure TestGenericClassOperatorResultOverload;
+    procedure TestStrOnGenericTypeParam;
+    procedure TestValOnGenericTypeParam;
   end;
 
   { TTestElementStateFlags
@@ -632,6 +634,52 @@ begin
   'end;',
   'class operator TBox<T>.Implicit(const b: TBox<T>): longint;',
   'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestNativeResolverFold.TestStrOnGenericTypeParam;
+// Str(v,s) on a value whose type is a generic type parameter must be accepted:
+// the concrete type is only known after specialization, so the check is
+// deferred. It used to fail in the generic body with
+// "Incompatible type for arg no. 1: Got T, expected boolean, integer, enum".
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBox<T> = record',
+  '    Value: T;',
+  '    function S: string;',
+  '  end;',
+  'function TBox<T>.S: string;',
+  'begin',
+  '  Str(Value, Result);',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestNativeResolverFold.TestValOnGenericTypeParam;
+// Val(s, v, code) where v (a var/out argument) has a generic type-parameter
+// type must be accepted: the concrete type is only known after specialization,
+// so the "var param must match exactly" check is deferred. It used to fail in
+// the generic body with "Incompatible type ... Var param must match exactly".
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBox<T> = record',
+  '    function Parse(const s: string): T;',
+  '  end;',
+  'function TBox<T>.Parse(const s: string): T;',
+  'var code: longint;',
+  'begin',
+  '  Val(s, Result, code);',
   'end;',
   'begin',
   '']);
