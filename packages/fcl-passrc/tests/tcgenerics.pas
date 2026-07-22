@@ -48,6 +48,9 @@ Type
     // generic class operator
     Procedure TestGenericOperator_ImplHeaderDelphi;
 
+    // empty nested type section in a (generic) class
+    Procedure TestEmptyLocalTypeSection;
+
     // const generic parameters
     Procedure TestConstGeneric_Basic;
     Procedure TestConstGeneric_MultiParam;
@@ -450,6 +453,27 @@ begin
   '    class operator Implicit(const b: TBox<T>): T;',
   '  end;',
   'class operator TBox<T>.Implicit(const b: TBox<T>): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestEmptyLocalTypeSection;
+begin
+  // An empty nested "type" section in a class (all type members absent),
+  // followed by another visibility specifier, must parse — the parser used to
+  // try to read the visibility keyword as a type declaration (#41518).
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TGen<X> = class',
+  '  public type',
+  '  public',
+  '    procedure p;',
+  '  end;',
+  'procedure TGen.p;',
   'begin',
   'end;',
   'begin',

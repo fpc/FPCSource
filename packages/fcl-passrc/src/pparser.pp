@@ -8045,6 +8045,7 @@ procedure TPasParser.ParseMembersLocalTypes(AType: TPasMembersType;
 Var
   T : TPasType;
   Done : Boolean;
+  TmpVis : TPasMemberVisibility;
 begin
   Done:=False;
   //Writeln('Parsing local types');
@@ -8061,6 +8062,17 @@ begin
         and (AType.GenericTemplateTypes.Count>0) then
       ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,
                ['generic type','a generic type']);
+    // FPC allows an empty type section.
+    if ((CurToken=tkIdentifier) and (not CurTokenEscaped)
+        and (SameText(CurTokenString,'strict')
+             or IsVisibility(LowerCase(CurTokenString),TmpVis,
+                  (AType is TPasClassType) and (TPasClassType(AType).ObjKind=okObjcProtocol))))
+       or not (CurToken in [tkIdentifier,tkGeneric,tkSquaredBraceOpen]) then
+      begin
+      UngetToken;
+      Done:=True;
+      break;
+      end;
     T:=ParseTypeDecl(AType);
     T.Visibility:=AVisibility;
     AType.Members.Add(t);
@@ -8437,6 +8449,7 @@ procedure TPasParser.DoParseClassType(AType: TPasClassType);
 var
   s: String;
   Expr: TPasExpr;
+  IsEmptyModifiedClass: Boolean;
 begin
   if (CurToken=tkIdentifier) and (AType.ObjKind in [okClass,okObject]) then
     begin
@@ -8447,8 +8460,11 @@ begin
       NextToken;
       end;
     end;
-  // Parse ancestor list
-  AType.IsForward:=(CurToken=tkSemiColon);
+  // Parse ancestor list.
+  // A bare "TFoo = class;" is a forward declaration. "TFoo = class abstract;"
+  // (or "class sealed;") has a modifier and is a complete but empty class, not a forward 
+  AType.IsForward:=(CurToken=tkSemiColon) and (AType.Modifiers.Count=0);
+  IsEmptyModifiedClass:=(CurToken=tkSemiColon) and (AType.Modifiers.Count>0);
   if (CurToken=tkBraceOpen) then
     begin
     // read ancestor and interfaces
@@ -8476,7 +8492,7 @@ begin
     AType.HelperForType:=ParseTypeReference(AType,false,Expr);
     end;
   Engine.FinishScope(stAncestors,AType);
-  if AType.IsShortDefinition or AType.IsForward then
+  if AType.IsShortDefinition or AType.IsForward or IsEmptyModifiedClass then
     UngetToken
   else
     begin
