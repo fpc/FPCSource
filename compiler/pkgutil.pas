@@ -118,7 +118,7 @@ implementation
                 )
               ) then
             begin
-              compiler.exportlib.exportallprocdefnames(tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
+              compiler.exportlib.exportallprocdefnames(current_asmdata,tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
             end;
         end;
     end;

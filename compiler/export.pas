@@ -80,7 +80,7 @@ type
         rtti) }
       procedure exportname(AsmData: TAsmData; const s : string; options: texportoptions);
 
-      procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+      procedure exportallprocdefnames(AsmData: TAsmData; sym: tprocsym; pd: tprocdef; options: texportoptions);
       procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
 
       property initname: string read finitname;
@@ -138,18 +138,18 @@ procedure texportlib.exportname(AsmData: TAsmData; const s : string; options: te
   end;
 
 
-  procedure texportlib.exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+  procedure texportlib.exportallprocdefnames(AsmData: TAsmData; sym: tprocsym; pd: tprocdef; options: texportoptions);
     var
       item: TCmdStrListItem;
     begin
-      exportprocsym(current_asmdata,sym,pd.mangledname,0,options);
+      exportprocsym(AsmData,sym,pd.mangledname,0,options);
       { walk through all aliases }
       item:=TCmdStrListItem(pd.aliasnames.first);
       while assigned(item) do
         begin
           { avoid duplicate entries, sometimes aliasnames contains the mangledname }
           if item.str<>pd.mangledname then
-            exportprocsym(current_asmdata,sym,item.str,0,options);
+            exportprocsym(AsmData,sym,item.str,0,options);
           item:=TCmdStrListItem(item.next);
         end;
     end;
@@ -160,7 +160,7 @@ procedure texportlib.exportname(AsmData: TAsmData; const s : string; options: te
       i: longint;
     begin
       for i:= 0 to ps.ProcdefList.Count-1 do
-        exportallprocdefnames(ps,tprocdef(ps.ProcdefList[i]),options);
+        exportallprocdefnames(current_asmdata,ps,tprocdef(ps.ProcdefList[i]),options);
     end;
 
 
