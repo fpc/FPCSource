@@ -78,7 +78,7 @@ type
       procedure exportvarsym(AsmData: TAsmData; sym: tsym; const s : string; index: longint; options: texportoptions);
       { to export symbols not directly related to a tsym (e.g., the Objective-C
         rtti) }
-      procedure exportname(const s : string; options: texportoptions);
+      procedure exportname(AsmData: TAsmData; const s : string; options: texportoptions);
 
       procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
       procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
@@ -132,9 +132,9 @@ procedure texportlib.exportvarsym(AsmData: TAsmData; sym: tsym; const s : string
   end;
 
 
-procedure texportlib.exportname(const s : string; options: texportoptions);
+procedure texportlib.exportname(AsmData: TAsmData; const s : string; options: texportoptions);
   begin
-    exportvarsym(current_asmdata,nil,s,0,options);
+    exportvarsym(AsmData,nil,s,0,options);
   end;
 
 
