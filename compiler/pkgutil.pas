@@ -37,7 +37,7 @@ type
     FCompiler: TCompilerBase;
     procedure procexport(AsmData: TAsmData; const s : string);
     procedure varexport(AsmData: TAsmData; const s : string);
-    procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
+    procedure exportprocsym(AsmData: TAsmData; sym:tprocsym;symtable:tsymtable);
     procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
     procedure exportname(const s:tsymstr);
     procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
@@ -97,7 +97,7 @@ implementation
     end;
 
 
-  procedure TPackageUtils.exportprocsym(sym:tprocsym;symtable:tsymtable);
+  procedure TPackageUtils.exportprocsym(AsmData: TAsmData; sym:tprocsym;symtable:tsymtable);
     var
       i : longint;
       pd : tprocdef;
@@ -119,7 +119,7 @@ implementation
                 )
               ) then
             begin
-              compiler.exportlib.exportallprocdefnames(current_asmdata,tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
+              compiler.exportlib.exportallprocdefnames(AsmData,tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
             end;
         end;
     end;
@@ -143,7 +143,7 @@ implementation
             { don't export methods of interfaces }
             if is_interface(tdef(tabstractrecordsymtable(arg).defowner)) then
               exit;
-            exportprocsym(tprocsym(sym),tsymtable(arg));
+            exportprocsym(current_asmdata,tprocsym(sym),tsymtable(arg));
           end;
         staticvarsym:
           begin
@@ -237,7 +237,7 @@ implementation
           end;
         procsym:
           begin
-            exportprocsym(tprocsym(sym),tsymtable(arg));
+            exportprocsym(current_asmdata,tprocsym(sym),tsymtable(arg));
           end;
         staticvarsym:
           begin
