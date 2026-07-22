@@ -2525,6 +2525,7 @@ type
     function GetTypeParameterCount(aType: TPasGenericType): integer;
     function GetGenericConstraintKeyword(El: TPasElement): TToken;
     function HasClassConstraint(TemplType: TPasGenericTemplateType): Boolean;
+    function HasClassTypeConstraint(TemplType: TPasGenericTemplateType): Boolean;
     function HasRecordConstraint(TemplType: TPasGenericTemplateType): Boolean;
     function GetGenericConstraintErrorEl(ConstraintEl, TemplType: TPasElement): TPasElement;
     function GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
@@ -9725,9 +9726,12 @@ begin
     begin
     // A class may inherit from a class-constrained generic template type parameter
     // (TTest<T: class> = class(T)); its ancestor is unresolved until specialization,
-    // so defer ancestor resolution and mark the scope deferred (tgeneric116).
+    // so defer ancestor resolution and mark the scope deferred (tgeneric116). The
+    // constraint may be the "class" keyword or a concrete class type
+    // (T: TBase = class(T)); both guarantee T is a class after specialization (#36843).
     if (AncestorType.ClassType=TPasGenericTemplateType)
-        and HasClassConstraint(TPasGenericTemplateType(AncestorType)) then
+        and (HasClassConstraint(TPasGenericTemplateType(AncestorType))
+             or HasClassTypeConstraint(TPasGenericTemplateType(AncestorType))) then
       begin
       AncestorClassEl:=nil;
       IsDeferredAncestor:=true;
@@ -33765,6 +33769,28 @@ begin
   for i:=0 to length(TemplType.Constraints)-1 do
     if GetGenericConstraintKeyword(TemplType.Constraints[i])=tkclass then
       exit(true);
+end;
+
+
+function TPasResolver.HasClassTypeConstraint(
+  TemplType: TPasGenericTemplateType): Boolean;
+// True if the generic template type is constrained to a concrete class type
+// (T: TSomeClass). Such a T is guaranteed to be a class after specialization,
+// so it may be used as an ancestor (class(T)) just like a "class"-keyword
+// constraint.
+var
+  i: Integer;
+  TypeRes: TPasResolverResult;
+begin
+  Result:=false;
+  for i:=0 to length(TemplType.Constraints)-1 do
+    if TemplType.Constraints[i] is TPasType then
+      begin
+      ComputeElement(TPasType(TemplType.Constraints[i]),TypeRes,[rcType]);
+      if (TypeRes.LoTypeEl is TPasClassType)
+          and (TPasClassType(TypeRes.LoTypeEl).ObjKind=okClass) then
+        exit(true);
+      end;
 end;
 
 function TPasResolver.HasRecordConstraint(

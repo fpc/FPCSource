@@ -91,6 +91,7 @@ type
     procedure TestGen_Class_MethodImplTypeParamNameMismatch;
     procedure TestGen_Class_SpecializeSelfInside;
     procedure TestGen_Class_AncestorTFail;
+    procedure TestGen_Class_AncestorTClassConstraint;
     procedure TestGen_Class_ClassConstrainedTemplateAncestor;
     procedure TestGen_Class_DeferredAncestorTransitive;
     procedure TestGen_Class_GenAncestor;
@@ -1540,6 +1541,27 @@ end;
 
 procedure TTestResolveGenerics.TestGen_Class_AncestorTFail;
 begin
+  // An UNCONSTRAINED type parameter cannot be used as an ancestor: it is not
+  // guaranteed to be a class. (A class/class-type constrained T is allowed and
+  // deferred to specialization — see TestGen_Class_AncestorTClassConstraint.)
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TFish<T> = class(T)',
+  '    v: T;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('class type expected, but T found',nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AncestorTClassConstraint;
+begin
+  // A class inheriting from a type parameter constrained to a concrete class
+  // type (T: TBird) is valid: T is guaranteed to be a class after
+  // specialization, so ancestor resolution is deferred (GitLab #36843).
   StartProgram(false);
   Add([
   '{$mode objfpc}',
@@ -1549,9 +1571,10 @@ begin
   '  generic TFish<T: TBird> = class(T)',
   '    v: T;',
   '  end;',
+  '  TSpec = specialize TFish<TBird>;',
   'begin',
   '']);
-  CheckResolverException('class type expected, but T found',nXExpectedButYFound);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_ClassConstrainedTemplateAncestor;
