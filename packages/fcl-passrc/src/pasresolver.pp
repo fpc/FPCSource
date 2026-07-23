@@ -1263,6 +1263,10 @@ type
   TPasDotClassScope = Class(TPasDotClassOrRecordScope)
   public
     IsClassOf: boolean; // true if aClassOf.
+    {  Non-nil when this dot scope was pushed for a generic type parameter.
+       a constructor called through it (T.Create) returns a T instance, 
+       so member access on the result resolves via T's constraints. }
+    TemplType: TPasGenericTemplateType;
   end;
 
   { TPasInheritedScope - used for inherited; and inherited Name() }
@@ -1862,6 +1866,8 @@ type
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: TMaxPrecInt;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
       Args: array of const; PosEl: TPasElement); virtual;
+    // Create the constant-expression evaluator. Allows a descendant to return a subclass.
+    function CreateExprEvaluator: TResExprEvaluator; virtual;
     function OnExprEvalIdentifier(Sender: TResExprEvaluator;
       Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function OnExprEvalParams(Sender: TResExprEvaluator;
@@ -1869,8 +1875,7 @@ type
     procedure OnRangeCheckEl(Sender: TResExprEvaluator; El: TPasElement;
       var MsgType: TMessageType); virtual;
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue; virtual;
-    // Native-target const-fold seams: the base returns nil (= not folded) so the
-    // stock behaviour proceeds unchanged; TPasNativeResolver overrides them to
+    // Virtual: the base returns nil (= not folded). TPasNativeResolver overrides them to
     // fold a constant-integer cast to a pointer type and to degrade an address-of.
     function EvalNativePointerCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalValue; virtual;
     function EvalNativeNamedPointerCast(Params: TParamsExpr): TResEvalValue; virtual;
@@ -17943,6 +17948,12 @@ begin
   if Sender=nil then ;
 end;
 
+function TPasResolver.CreateExprEvaluator: TResExprEvaluator;
+begin
+  Result:=TResExprEvaluator.Create;
+end;
+
+
 function TPasResolver.OnExprEvalIdentifier(Sender: TResExprEvaluator;
   Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue;
 var
@@ -19850,10 +19861,14 @@ var
         Last:=TPRSpecializedItem(SpecializedItems[i]).SpecializedEl;
       end;
     LastIndex:=List.IndexOf(Last);
-    if (LastIndex<0) then
-      if GenericEl is TPasProcedure then
-      else
-        RaiseNotYetImplemented(20200725093218,El);
+    { LastIndex<0 means the reference element is not (yet) in the target list.
+      This happens for an indirectly recursive generic type whose own generic
+      declaration is not yet in the list when the first specialization is
+      created — e.g.
+      Wrapper<t1,t2> = record 
+        f: ^Wrapper<t2,t1> 
+      end. 
+    }
     i:=List.Count-1;
     while i>LastIndex do
       begin
@@ -24502,7 +24517,7 @@ begin
   FScopeClass_Record:=TPasRecordScope;
   FScopeClass_Section:=TPasSectionScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
-  fExprEvaluator:=TResExprEvaluator.Create;
+  fExprEvaluator:=CreateExprEvaluator;
   fExprEvaluator.OnLog:=@OnExprEvalLog;
   fExprEvaluator.OnEvalIdentifier:=@OnExprEvalIdentifier;
   fExprEvaluator.OnEvalParams:=@OnExprEvalParams;
@@ -25587,6 +25602,11 @@ begin
         TypeEl:=NoNil(TPasDotHelperScope(StartScope).Element) as TPasType
       else
         RaiseInternalError(20170131150855,GetObjName(StartScope));
+      // A constructor reached through a generic type-parameter dot scope
+      // (T.Create) constructs a T, not TObject — so member access on the result
+      // resolves via T's constraints, e.g. T.Create.kek where T:...,IIntf (#41356).
+      if (C=TPasDotClassScope) and (TPasDotClassScope(StartScope).TemplType<>nil) then
+        TypeEl:=TPasDotClassScope(StartScope).TemplType;
       if TypeEl<>nil then
         TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl
       else
@@ -26723,17 +26743,23 @@ function TPasResolver.PushTemplateDotScope(TemplType: TPasGenericTemplateType;
     tkrecord: ;
     tkclass, tkconstructor:
       begin
-      if Result<>nil then
-        RaiseNotYetImplemented(20190831005217,TemplType);
-
       if not FindSystemClassTypeAndConstructor('system','tobject',aClass,aConstructor,ErrorEl) then
         RaiseIdentifierNotFound(20190831002421,'system.TObject.Create()',ErrorEl);
-      DotClassScope:=TPasDotClassScope.Create;
-      Result:=DotClassScope;
-      PushScope(Result);
-      DotClassScope.Owner:=Self;
-      DotClassScope.ClassRecScope:=aClass.CustomData as TPasClassScope;
-      Result.GroupScope:=CreateGroupScope(aClass,false);
+      if Result=nil then
+        begin
+        DotClassScope:=TPasDotClassScope.Create;
+        Result:=DotClassScope;
+        PushScope(Result);
+        DotClassScope.Owner:=Self;
+        DotClassScope.ClassRecScope:=aClass.CustomData as TPasClassScope;
+        DotClassScope.TemplType:=TemplType;
+        Result.GroupScope:=CreateGroupScope(aClass,false);
+        end
+      else
+        // Another constraint (e.g. an interface type) already pushed a scope;
+        // the "class"/"constructor" keyword just means T is also a class, so add
+        // TObject's members (Create etc.) to that group scope instead of failing.
+        GroupScope_AddTypeAndAncestors(Result.GroupScope,aClass,false);
       end;
     else
       if not (ConEl is TPasType) then
@@ -26761,6 +26787,7 @@ function TPasResolver.PushTemplateDotScope(TemplType: TPasGenericTemplateType;
           PushScope(Result);
           DotClassScope.Owner:=Self;
           DotClassScope.ClassRecScope:=MemberType.CustomData as TPasClassScope;
+          DotClassScope.TemplType:=TemplType;
           Result.GroupScope:=CreateGroupScope(ResolvedEl.HiTypeEl,false);
           end
         else
@@ -33362,7 +33389,10 @@ begin
   else if (TypeEl is TPasClassType) and (TPasClassType(TypeEl).ObjKind = okObject) then
     SetResolverValueExpr(Result,btBoolean,FBaseTypes[btBoolean],
       FBaseTypes[btBoolean],Expr,[rrfReadable])
-  else if TypeEl is TPasMembersType then
+  else if (TypeEl is TPasMembersType) or (TypeEl is TPasGenericTemplateType) then
+    { A class/record instance, or a generic type-parameter instance:
+      T.Create yields a readable T value, not the type T, 
+      so member access on the  result is instance member access. }
     SetResolverValueExpr(Result,btContext,TypeEl,TypeEl,Expr,[rrfReadable])
   else
     begin

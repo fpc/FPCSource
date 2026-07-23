@@ -39,6 +39,7 @@ type
     procedure TestGen_ConstraintUnit;
     // ToDo: constraint T:Unit2.specialize TGen<word>
     procedure TestGen_ConstraintSpecialize;
+    procedure TestGen_ConstraintInterfaceAndClassMember;
     procedure TestGen_ConstraintTSpecializeWithT;
     procedure TestGen_ConstraintTSpecializeAsTFail; // TBird<T; U: T<word>>  and no T<>
     procedure TestGen_ConstraintTSpecializeWithTFail; // TBird<T: TAnt<T>>
@@ -575,6 +576,32 @@ begin
   '  f: TFireAnt;',
   'begin',
   '  a.o:=f;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintInterfaceAndClassMember;
+begin
+  // A type parameter constrained by an interface AND `class` (T: IThing, class)
+  // must allow accessing the interface's members on a T-typed value. This used
+  // to raise "not yet implemented" when PushConstraintScope combined an
+  // interface-type constraint with the `class` keyword. (#36794)
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IThing = interface',
+  '    function GetData: longint;',
+  '  end;',
+  '  generic TTest<T: IThing, class> = class',
+  '    d: T;',
+  '    function Run: longint;',
+  '  end;',
+  'function TTest.Run: longint;',
+  'begin',
+  '  Result:=d.GetData;',
+  'end;',
+  'begin',
   '']);
   ParseProgram;
 end;
