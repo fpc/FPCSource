@@ -887,8 +887,9 @@ implementation
                         encodedstr:=encodedstr+' readonly dereferenceable('
                       else
                         { if the copy got made on the caller side, it can
-                          be modified on the callee side }
-                        encodedstr:=encodedstr+' dereferenceable(';
+                          be modified on the callee side (but it can't alias
+                          anything else, since it's a unique copy) }
+                        encodedstr:=encodedstr+' noalias dereferenceable(';
                     vs_const:
                        encodedstr:=encodedstr+' readonly dereferenceable(';
                     vs_var,
