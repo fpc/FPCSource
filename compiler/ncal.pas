@@ -2190,6 +2190,7 @@ implementation
           end;
         lastdonestatement:=laststatement(callcleanupblock);
         was_first_statement:=(lastdonestatement=callcleanupblock.statements);
+        beforelast:=nil;
         if not was_first_statement then
           begin
             beforelast:=tstatementnode(callcleanupblock.statements);
