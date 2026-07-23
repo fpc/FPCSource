@@ -2302,7 +2302,7 @@ implementation
           begin
             if not assigned(result) then
               result:=internalstatements(newstatement);
-            cnodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
+            cnodeutils.load_parentfpstruct_nested_funcret(ressym,resdef,newstatement);
           end;
         if assigned(result) then
           begin
