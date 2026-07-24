@@ -2319,6 +2319,11 @@ type
     // should keep the narrower type if the wider fully contains it (timpfuncspez13).
     // Base default False (pristine upstream: widen to a common base type).
     function PreferNarrowerInferredInteger: Boolean; virtual;
+    // True when a generic (parameterized) method may be declared with published
+    // visibility. Base default False (pristine upstream rejects it — see
+    // sXMethodsCannotHaveTypeParams). Delphi accepts it, so a native/FPC target
+    // overrides to allow it (GitLab #41410).
+    function AllowGenericPublishedMethod: Boolean; virtual;
     function IsPointerMathType(El: TPasType): Boolean; virtual;
     // True when Inc/Dec is permitted on a pointer of type El. Base default False;
     // a native target allows Inc/Dec on any pointer (switch-independent).
@@ -7557,7 +7562,8 @@ begin
       if Proc.IsOverride then
         RaiseMsg(20191016174218,nXMethodsCannotHaveTypeParams,
           sXMethodsCannotHaveTypeParams,['override'],El);
-      if not (Proc.Visibility in [visDefault,visPrivate,visStrictPrivate,visProtected,visStrictProtected,visPublic]) then
+      if not ((Proc.Visibility in [visDefault,visPrivate,visStrictPrivate,visProtected,visStrictProtected,visPublic])
+           or ((Proc.Visibility=visPublished) and AllowGenericPublishedMethod)) then
         RaiseMsg(20191016174327,nXMethodsCannotHaveTypeParams,
           sXMethodsCannotHaveTypeParams,[VisibilityNames[Proc.Visibility]],El);
       end;
@@ -7884,8 +7890,14 @@ begin
             (Proc.GetModule.InterfaceSection.CustomData) as TPasIdentifierScope,true);
         // An implementation that omits the parameter list (0 args) matches its
         // forward/interface declaration by name — adopt its arguments (treg1).
+        // A GENERIC proc's empty value-argument list is NOT an omission (its
+        // parameters are type parameters), so it must not be matched by name to a
+        // non-generic forward — that would pair e.g. `generic procedure proc<T>`
+        // with a separate `procedure proc` and wrongly report they differ. Such a
+        // generic proc is a distinct overload; leave DeclProc nil (GitLab #40819).
         if (DeclProc=nil) and (Proc.ProcType.Args.Count=0)
-            and (Proc.ProcType is TPasProcedureType) then
+            and (Proc.ProcType is TPasProcedureType)
+            and (GetProcTemplateTypes(Proc)=nil) then
           begin
           DeclProc:=FindSoleUnimplementedForward(ProcName,ParentScope,Proc);
           if (DeclProc=nil) and (Proc.Parent.ClassType=TImplementationSection) then
@@ -11656,6 +11668,33 @@ begin
       TemplTypes:=GetProcTemplateTypes(Proc);
       if (TemplTypes<>nil) then
         begin
+        // A generic function's own name used as its RESULT variable (FuncName:=...,
+        // or FuncName on the rhs / as an argument) is NOT an implicit specialization:
+        // redirect it to the result element before attempting inference, exactly as
+        // the non-generic cases below do (GitLab #41370). Only a BARE name is the
+        // result variable — FuncName(args) is a real recursive call that must still
+        // infer, so exclude the callee (Value) of a parameter list; @FuncName is a
+        // reference, excluded by ExprIsAddrTarget.
+        if (Proc.ProcType is TPasFunctionType)
+            and (El.ClassType=TPrimitiveExpr)
+            and not ExprIsAddrTarget(El)
+            and not ((El.Parent is TParamsExpr) and (TParamsExpr(El.Parent).Value=El)) then
+          begin
+          ParentEl:=El;
+          while (ParentEl<>nil) and not (ParentEl is TPasProcedure) do
+            ParentEl:=ParentEl.Parent;
+          // Compare BASE names (strip any "<...>" specialization suffix): inside the
+          // SPECIALIZED body the enclosing function is e.g. "Add<System.Integer>"
+          // while the resolved identifier is still the template "Add".
+          if (ParentEl<>nil) and (ParentEl is TPasFunction)
+              and SameText(
+                Copy(TPasFunction(ParentEl).Name,1,Pos('<',TPasFunction(ParentEl).Name+'<')-1),
+                Copy(Proc.Name,1,Pos('<',Proc.Name+'<')-1)) then
+            begin
+            Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
+            exit;
+            end;
+          end;
         // implicit function specialization without bracket
         {$IFDEF VerbosePasResolver}
         DeclEl:=El;
@@ -24833,6 +24872,14 @@ begin
   // Default fcl-passrc policy (pristine upstream): widen two integer inferences to
   // a common base type. A native/FPC target overrides to keep the narrower one
   // when the wider fully contains it (timpfuncspez13).
+  Result:=False;
+end;
+
+function TPasResolver.AllowGenericPublishedMethod: Boolean;
+begin
+  // Default fcl-passrc policy: reject a generic method with published visibility
+  // (sXMethodsCannotHaveTypeParams). Delphi accepts it; a native/FPC target
+  // overrides to allow it (GitLab #41410).
   Result:=False;
 end;
 

@@ -2813,6 +2813,7 @@ var
   ProcType: TProcType;
   ProcExpr: TProcedureExpr;
   AllowKWAsSubIdent : Boolean;
+  OldEndExpr: set of TToken;
 
 begin
   Result:=nil;
@@ -2909,7 +2910,21 @@ begin
         Last:=Params;
         end
       else
-        Last:=DoParseExpression(AParent);
+        begin
+        { Inside a parenthesized sub-expression the generic-closing tokens ('>','>>') 
+          that an outer context may have added to FEndExprTokenExtra are not
+          terminators — a '>' here is an ordinary comparison, delimited by the
+          matching ')'. 
+          Clearing them lets e.g. 'TFoo<(1>2)>' parse the inner 1>2 (GitLab #41154); 
+          the set is restored for the closing generic '>'. }
+        OldEndExpr:=FEndExprTokenExtra;
+        FEndExprTokenExtra:=FEndExprTokenExtra-[tkGreaterThan,tkshr];
+        try
+          Last:=DoParseExpression(AParent);
+        finally
+          FEndExprTokenExtra:=OldEndExpr;
+        end;
+        end;
       if not Assigned(Last) then
         ParseExcSyntaxError;
       if (CurToken<>tkBraceClose) then
@@ -4859,9 +4874,14 @@ begin
     NextToken;
     case CurToken of
       tkNumber, tkString, tkChar, tktrue, tkfalse, tknil,
-      tkSquaredBraceOpen, tkMinus, tkPlus, tknot:
+      tkSquaredBraceOpen, tkBraceOpen, tkMinus, tkPlus, tknot:
         begin
-        // Const generic argument - parse as expression
+        { Const generic argument - parse as expression. A leading '(' (tkBraceOpen)
+          opens a parenthesized const value such as (1=2) or (2+3): 
+          a type neverstarts with '(', so this is unambiguously a const-generic argument. 
+          Inside the () a '<'/'>' is an ordinary comparison, which is why the
+          parenthesized forms (1<2)/(1>2) parse here where the bare ones cannot (GitLab #41154)
+        }
         OldExtra:=FEndExprTokenExtra;
         FEndExprTokenExtra:=FEndExprTokenExtra+[tkGreaterThan,tkshr];
         try
