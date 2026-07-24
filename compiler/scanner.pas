@@ -2614,7 +2614,10 @@ type
                  mac.is_c_macro:=true;
                  current_scanner.readchar;
                  current_scanner.skipspace;
-               end;
+               end
+             else
+               { $definec always defines a text-substitution (C-style) macro }
+               mac.is_c_macro:=true;
 
              { key words are never substituted }
              if is_keyword(hs) then
