@@ -862,7 +862,7 @@ begin
         end;
 
     // Debugging units
-    T:=P.Targets.AddUnit('exeinfo.pp', AllWindowsOSes - AllWebAssemblyOSes);
+    T:=P.Targets.AddUnit('exeinfo.pp', AllOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('objpas');
@@ -873,12 +873,12 @@ begin
         begin
           AddUnit('system');
         end;
-    T:=P.Targets.AddUnit('lineinfo.pp', AllWindowsOSes - AllWebAssemblyOSes);
+    T:=P.Targets.AddUnit('lineinfo.pp', AllOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('exeinfo');
         end;
-    T:=P.Targets.AddUnit('lnfodwrf.pp', AllWindowsOSes - AllWebAssemblyOSes);
+    T:=P.Targets.AddUnit('lnfodwrf.pp', AllOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('exeinfo');
