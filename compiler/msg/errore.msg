@@ -1729,7 +1729,7 @@ parser_w_aligned_useless=03376_W_Aligned is useless here.
 %
 # Type Checking
 #
-# 04134 is the last used one
+# 04135 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2191,6 +2191,9 @@ type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly referenc
 % WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
 type_e_ordinal_or_pointer_expr_expected=04134_E_Ordinal or pointer expression expected
 % The expression must be of an ordinal or pointer type.
+type_e_interface_has_no_name=04135_E_Interface type $1 has no valid name
+% When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
+% as-operator) must have a valid name.
 %
 % \end{description}
 #
