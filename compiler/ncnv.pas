@@ -1819,7 +1819,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidstr) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              CGMessage1(type_e_interface_has_no_name,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end
