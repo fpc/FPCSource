@@ -4842,7 +4842,7 @@ Var
   function IdentifierSpecializeArgIsConst: Boolean;
   // CurToken is a tkIdentifier beginning a specialize argument. Returns True when
   // the identifier (possibly starting a const expression like "Base + 3") is bound
-  // by the resolver to a const/enum VALUE — a const-generic argument, not a type.
+  // by the resolver to a const/enum VALUE - a const-generic argument, not a type.
   // A '.' (dotted name) or '<' (nested generic) marks a type → False → ParseType.
   var
     Name: string;
@@ -4855,6 +4855,14 @@ Var
       begin
       UngetToken; // dotted name / nested generic — let ParseType handle it
       exit;
+      end;
+    if CurToken=tkBraceOpen then
+      begin
+      { Identifier(...) - a function-call const expression such as High(N),
+        Succ(3) or SizeOf(T), or a typecast: 
+        always a value in a specialize argument, never a type. }
+      UngetToken; // back to the identifier for DoParseExpression
+      exit(True);
       end;
     UngetToken; // back to the identifier
     if Engine=nil then exit;
