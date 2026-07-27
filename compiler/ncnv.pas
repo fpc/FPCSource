@@ -4994,6 +4994,8 @@ implementation
                       begin
                         if assigned(tobjectdef(right.resultdef).iidstr) then
                           begin
+                            if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                              CGMessage1(type_e_interface_has_no_name,tobjectdef(right.resultdef).typename);
                             hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
                             tstringconstnode(hp).changestringtype(cshortstringtype);
                             right.free;
