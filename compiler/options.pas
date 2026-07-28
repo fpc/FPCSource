@@ -373,8 +373,8 @@ const
       begin
         Write(xmloutput,'      <ostarget shortname="',targetinfos[target]^.shortname,'" name="',targetinfos[target]^.name,'"');
         if tf_under_development in targetinfos[target]^.flags then
-          Write(' experimental="1"');
-        WriteLn('/>');
+          Write(xmloutput,' experimental="1"');
+        WriteLn(xmloutput,'/>');
       end;
     WriteLn(xmloutput,'    </ostargets>');
   end;
