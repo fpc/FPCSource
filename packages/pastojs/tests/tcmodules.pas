@@ -458,6 +458,7 @@ type
     Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
+    Procedure TestAsmBlock_UTF8;
     Procedure TestAsmPas_Impl; // ToDo
     Procedure TestTryFinally;
     Procedure TestTryExcept;
@@ -9675,6 +9676,32 @@ begin
     'if (vI===2){ vI=3; }',
     ';',
     '$mod.vI = 4;'
+    ]));
+end;
+
+procedure TTestModule.TestAsmBlock_UTF8;
+const
+  // UTF-8 bytes of the two chinese characters U+5927 U+77F3, written as byte
+  // literals, so this test does not depend on the encoding of this file
+  cUTF8 = #$E5#$A4#$A7#$E7#$9F#$B3;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  'begin',
+  '  s:='''+cUTF8+''';',
+  '  asm',
+  '    s = "'+cUTF8+'"',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestAsmBlock_UTF8',
+    LinesToStr([ // statements
+    'this.s = "";'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.s = "'+cUTF8+'";',
+    's = "'+cUTF8+'";'
     ]));
 end;
 

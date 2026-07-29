@@ -10916,7 +10916,14 @@ begin
         BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
         TDotContext(AContext).JS:=BracketExpr;
         BracketExpr.MExpr:=AContext.JSElement;
-        Result:=CreateLiteralCustomValue(El,TJSString(copy(Name,2,length(Name)-2)));
+        Result:=CreateLiteralCustomValue(El,
+          {$IFDEF FPC_HAS_CPSTRING}
+          // the tree stores UTF-8, decode explicitly, not via system codepage
+          UTF8Decode(copy(Name,2,length(Name)-2))
+          {$ELSE}
+          TJSString(copy(Name,2,length(Name)-2))
+          {$ENDIF}
+          );
         BracketExpr.Name:=Result;
         exit;
         end;
@@ -18346,7 +18353,14 @@ begin
     if StartLine>0 then
       Col:=1;
     L:=TJSLiteral.Create(Line+StartLine,Col,El.SourceFilename);
+    {$IFDEF FPC_HAS_CPSTRING}
+    // Note: the source is always UTF-8 (see TPas2jsCachedFile.Load), so decode
+    // explicitly. A plain TJSString(s) would use the system codepage, mangling
+    // non ASCII characters on non UTF-8 systems.
+    L.Value.CustomValue:=UTF8Decode(s);
+    {$ELSE}
     L.Value.CustomValue:=TJSString(s);
+    {$ENDIF}
     Result:=L;
     if Pos(';',s)>0 then
       begin
