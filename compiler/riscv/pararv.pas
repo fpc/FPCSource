@@ -70,6 +70,16 @@ implementation
       cpubase,
       procinfo,cpupi;
 
+    { Highest integer argument register for the active ABI: a5 (x15) for the
+      16-register E variants (ilp32e / lp64e), a7 (x17) otherwise. }
+    function rv_max_int_param_reg: tsuperregister;
+      begin
+        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+          rv_max_int_param_reg:=RS_X15
+        else
+          rv_max_int_param_reg:=RS_X17;
+      end;
+
     function getparaloc(p : tdef) : tcgloc;
       begin
          case p.typ of
@@ -132,7 +142,10 @@ implementation
 
     function trvparamanager.get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset;
       begin
-        result:=[RS_X0..RS_X31]-[RS_X2,RS_X8..RS_X9,RS_X18..RS_X27];
+        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+          result:=[RS_X0..RS_X15]-[RS_X2,RS_X8,RS_X9]
+        else
+          result:=[RS_X0..RS_X31]-[RS_X2,RS_X8..RS_X9,RS_X18..RS_X27];
       end;
 
 
@@ -146,9 +159,13 @@ implementation
 
     function trvparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        saved_regs: tcpuregisterarray = (RS_X2,RS_X8,RS_X9,RS_X18,RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X26,RS_X26,RS_X27);
+        saved_regs: tcpuregisterarray = (RS_X2,RS_X8,RS_X9,RS_X18,RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27);
+        saved_regs_16: tcpuregisterarray = (RS_X2,RS_X8,RS_X9);
       begin
-        result:=saved_regs;
+        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+          result:=saved_regs_16
+        else
+          result:=saved_regs;
       end;
 
 
@@ -184,7 +201,7 @@ implementation
          begin
            size:=def_cgsize(pdef);
            def:=pdef;
-           if (nr<=8) then
+           if (nr<=8) and (RS_X10+nr-1<=rv_max_int_param_reg) then
              begin
                if nr=0 then
                  internalerror(2024121501);
@@ -468,7 +485,7 @@ implementation
         if isVararg and
            (paralen > sizeof(AInt)) and
            (loc = LOC_REGISTER) and
-           (nextintreg <= RS_X17) and
+           (nextintreg <= rv_max_int_param_reg) and
            odd(nextintreg) then
           inc(nextintreg);
 
@@ -478,7 +495,7 @@ implementation
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
           if (loc = LOC_REGISTER) and
-             (nextintreg <= RS_X17) and
+             (nextintreg <= rv_max_int_param_reg) and
              not forceintmem then
             begin
               paraloc^.loc := loc;
