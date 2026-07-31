@@ -2247,6 +2247,11 @@ type
     function GetSelfScope(El: TPasElement): TPasProcedureScope;
     procedure AddHelper(Helper: TPasClassType; var List: TPRHelperEntryArray);
     procedure AddActiveHelper(Helper: TPasClassType); virtual;
+    // True if a type helper declared for HelperForType applies to a value of type
+    // HiType. Base: an exact (alias-resolved) type match. A backend may widen this,
+    // e.g. to let the Double helper serve Extended values when the two share one
+    // machine type.
+    function MatchHelperForType(HelperForType, HiType: TPasType): boolean; virtual;
     // log and messages
     class function MangleSourceLineNumber(Line, Column: integer): integer;
     class procedure UnmangleSourceLineNumber(LineNumber: integer;
@@ -2328,6 +2333,14 @@ type
     // True when Inc/Dec is permitted on a pointer of type El. Base default False;
     // a native target allows Inc/Dec on any pointer (switch-independent).
     function AllowIncDecOnPointer(El: TPasType): Boolean; virtual;
+    // True when Inc/Dec is permitted on a non-integer ordinal (char, boolean,
+    // enum). Base default False (fcl-passrc/pas2js accept only integers); a native
+    // target allows any ordinal, like the real FPC compiler (Inc(charVar)).
+    function AllowIncDecOnOrdinal(bt: TResolverBaseType; El: TPasType): Boolean; virtual;
+    // True when Include/Exclude is permitted on a set whose element is a base
+    // ordinal (char/int/boolean), not just an enum/subrange. Base default False;
+    // a native target allows it, like the real FPC compiler (Include(charSet,c)).
+    function AllowInExcludeNonEnumSet: Boolean; virtual;
     // True when Expr accesses a bit-packed ordinal array element / record field
     // whose byte address cannot be taken. Base default False (pas2js has no
     // bit-packing); a native resolver computes it from the packed bit width.
@@ -3133,12 +3146,22 @@ end;
 function ProcHasGroupOverload(Proc: TPasProcedure): boolean;
 var
   Data: TObject;
+  ProcScope: TPasProcedureScope;
 begin
   if Proc.IsOverload then
     exit(true);
   Data:=Proc.CustomData;
-  Result:=(Data is TPasProcedureScope)
-    and (ppsfIsGroupOverload in TPasProcedureScope(Data).Flags);
+  if not (Data is TPasProcedureScope) then
+    exit(false);
+  ProcScope:=TPasProcedureScope(Data);
+  if ppsfIsGroupOverload in ProcScope.Flags then
+    exit(true);
+  // An override inherits the overload-group status of the method it overrides:
+  // TUTF7Encoding.Create (override) is part of TMBCSEncoding's overloaded Create
+  // group, so "inherited Create(cp)" still finds the ancestor Create(Integer).
+  if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
+    exit(ProcHasGroupOverload(ProcScope.OverriddenProc));
+  Result:=false;
 end;
 
 procedure ClearHelperList(var List: TPRHelperEntryArray);
@@ -5343,6 +5366,54 @@ var
   Templates: TFPList;
   MinArgs: Integer;
   InvokeProcType: TPasProcedureType;
+  SrcFam, ElFam, FoundFam: Integer;
+  ElBase, FoundBase: TResolverBaseType;
+
+  function BTStrFamily(bt: TResolverBaseType): Integer;
+  // -1 = ansi-family string/char, +1 = unicode-family, 0 = neither
+  begin
+    case GetActualBaseType(bt) of
+    btAnsiString,btShortString,btRawByteString,btAnsiChar: Result:=-1;
+    btUnicodeString,btWideString,btWideChar: Result:=1;
+    else Result:=0;
+    end;
+  end;
+
+  function ExprStrFamily(E: TPasExpr): Integer;
+  var R: TPasResolverResult;
+  begin
+    Result:=0;
+    if E=nil then exit;
+    ComputeElement(E,R,[]);
+    Result:=BTStrFamily(R.BaseType);
+  end;
+
+  function FirstParamFamily(P: TPasElement): Integer;
+  var R: TPasResolverResult;
+  begin
+    Result:=0;
+    if (P is TPasProcedure)
+        and (TPasProcedure(P).ProcType.Args.Count>0)
+        and (TPasArgument(TPasProcedure(P).ProcType.Args[0]).ArgType<>nil) then
+      begin
+      ComputeElement(TPasArgument(TPasProcedure(P).ProcType.Args[0]).ArgType,R,[rcType]);
+      Result:=BTStrFamily(R.BaseType);
+      end;
+  end;
+
+  function FirstParamStrBase(P: TPasElement): TResolverBaseType;
+  var R: TPasResolverResult;
+  begin
+    Result:=btNone;
+    if (P is TPasProcedure)
+        and (TPasProcedure(P).ProcType.Args.Count>0)
+        and (TPasArgument(TPasProcedure(P).ProcType.Args[0]).ArgType<>nil) then
+      begin
+      ComputeElement(TPasArgument(TPasProcedure(P).ProcType.Args[0]).ArgType,R,[rcType]);
+      Result:=GetActualBaseType(R.BaseType);
+      end;
+  end;
+
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindCallElements START --------- ',GetObjName(El),' at ',GetElementSourcePosStr(El));
@@ -5654,6 +5725,121 @@ begin
       or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)
           and ((Distance>=cIntToFloatConversion)=(Data^.Distance>=cIntToFloatConversion))) then
     begin
+    { A class/record/helper member hides an equally-good unit-level global:
+      the member is in a closer scope, so FPC picks it without ambiguity. 
+      E.g. inside TStringHelper.Contains, an unqualified LowerCase
+      resolves to the helper's own static LowerCase over the identically-signed
+      global LowerCase. Only fires when exactly one candidate is a member. }
+    if ((El.Parent is TPasClassType) or (El.Parent is TPasRecordType))
+        <> ((Data^.Found.Parent is TPasClassType) or (Data^.Found.Parent is TPasRecordType)) then
+      begin
+      if (Data^.Found.Parent is TPasClassType) or (Data^.Found.Parent is TPasRecordType) then
+        exit  // keep the member already found; ignore the outer global
+      else
+        begin
+        // El (member) supersedes the global found first
+        Data^.Found:=El;
+        Data^.ElScope:=ElScope;
+        Data^.StartScope:=StartScope;
+        Data^.Distance:=Distance;
+        Data^.Count:=1;
+        if Data^.List<>nil then
+          begin
+          Data^.List.Clear;
+          Data^.List.Add(El);
+          end;
+        exit;
+        end;
+      end;
+    // String-family tie-break: when the first argument is a string/char, prefer the
+    // candidate whose first PARAMETER is the SAME family (ansi vs unicode) over one
+    // of the OPPOSITE family. Verified vs ppcx64: StringReplace(ShortString, AnsiChar,
+    // AnsiChar, ..) picks the AnsiString overload over the UnicodeString;WideChar one
+    // (the same-family primary-string match dominates the char args' cross-width
+    // advantage). Only fires when the two candidates' first params are opposite
+    // families and the source arg is a known family — narrow, does not disturb ties
+    // within one family.
+    if (Data^.Params<>nil) and (length(Data^.Params.Params)>0) then
+      begin
+      SrcFam:=ExprStrFamily(Data^.Params.Params[0]);
+      if SrcFam<>0 then
+        begin
+        ElFam:=FirstParamFamily(El);
+        FoundFam:=FirstParamFamily(Data^.Found);
+        if (FoundFam=SrcFam) and (ElFam=-SrcFam) then
+          exit  // keep Found (matches source family); ignore El (opposite family)
+        else if (ElFam=SrcFam) and (FoundFam=-SrcFam) then
+          begin
+          // El matches the source family; supersede the opposite-family Found
+          Data^.Found:=El;
+          Data^.ElScope:=ElScope;
+          Data^.StartScope:=StartScope;
+          Data^.Distance:=Distance;
+          Data^.Count:=1;
+          if Data^.List<>nil then
+            begin
+            Data^.List.Clear;
+            Data^.List.Add(El);
+            end;
+          exit;
+          end;
+        end;
+      // A ShortString and an AnsiString/RawByteString overload tie: FPC prefers
+      // the AnsiString one (ShortString is legacy). E.g. two Pos overloads over a
+      // char concatenation or a LowerCase result. Independent of the source
+      // family so it also fires when the source type is indeterminate.
+      ElBase:=FirstParamStrBase(El);
+      FoundBase:=FirstParamStrBase(Data^.Found);
+      if (FoundBase in [btAnsiString,btRawByteString]) and (ElBase=btShortString) then
+        exit  // keep the AnsiString candidate; ignore the ShortString one
+      else if (ElBase in [btAnsiString,btRawByteString]) and (FoundBase=btShortString) then
+        begin
+        // El is the AnsiString candidate; supersede the ShortString Found
+        Data^.Found:=El;
+        Data^.ElScope:=ElScope;
+        Data^.StartScope:=StartScope;
+        Data^.Distance:=Distance;
+        Data^.Count:=1;
+        if Data^.List<>nil then
+          begin
+          Data^.List.Clear;
+          Data^.List.Add(El);
+          end;
+        exit;
+        end;
+      end;
+    // Unit-scope hiding: when two equally exact candidates come from different
+    // units, a declaration in the unit being compiled (RootElement) hides an
+    // identical-signature one from a used unit -- FPC's normal scope hiding, not
+    // ambiguity. E.g. sysutils redeclares StrPas(PAnsiChar):string over the
+    // system unit's StrPas(PAnsiChar):shortstring; inside sysutils the local one
+    // wins. Only fires at the exact/alias tie level and when exactly one
+    // candidate lives in the root module, so genuine same-unit overload ties are
+    // still reported as ambiguous.
+    if (Data^.Distance<=cAliasExact) and (RootElement<>nil)
+        and (El is TPasProcedure) and (Data^.Found is TPasProcedure) then
+      begin
+      if (El.GetModule=RootElement)<>(Data^.Found.GetModule=RootElement) then
+        begin
+        if Data^.Found.GetModule=RootElement then
+          exit  // keep the local (root-module) candidate; ignore the used-unit one
+        else
+          begin
+          // El is in the root module; it supersedes the used-unit candidate
+          Data^.Found:=El;
+          Data^.ElScope:=ElScope;
+          Data^.StartScope:=StartScope;
+          Data^.Distance:=Distance;
+          Data^.Count:=1;
+          if Data^.List<>nil then
+            begin
+            Data^.List.Clear;
+            Data^.List.Add(El);
+            end;
+          exit;
+          end;
+        end;
+      end;
     // found another similar compatible one -> collect
     // Note: cLossyConversion is better than cIntToFloatConversion, not similar
     {$IFDEF VerbosePasResolver}
@@ -7612,7 +7798,7 @@ begin
       for pm in Proc.Modifiers do
         if not (pm in [pmVirtual, pmDynamic, pmOverride,
                        pmOverload, pmMessage, pmReintroduce,
-                       pmExternal, pmDispId,
+                       pmExternal, pmWeakExternal, pmDispId,
                        pmfar]) then
           RaiseMsg(20170216151616,nInvalidXModifierY,
             sInvalidXModifierY,[GetElementTypeName(Proc),'external, '+ModifierNames[pm]],Proc);
@@ -8426,7 +8612,10 @@ begin
               // native ShortString/OpenString: elements are AnsiChar (0..$ff)
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
             {$ENDIF}              
-            btUnicodeString:
+            btUnicodeString,btWideString:
+              // both are 2-byte char strings; for-in yields WideChar (0..$ffff).
+              // btWideString was previously omitted -> "cannot find enumerator for
+              // the type WideString" (unix sysutils TStringHelper on WideString).
               InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
             end;
             end;
@@ -10686,10 +10875,13 @@ begin
     end
   else
     begin
-    // implementation proc must not add modifiers, except "assembler" and "public"
-    // "external" (an external impl completes an interface/forward declaration)
-    // may be added by the implementation proc.
-    NewImplProcMods:=ImplProc.Modifiers-DeclProc.Modifiers-[pmAssembler,pmPublic,pmExternal];
+    // implementation proc must not add modifiers, except "assembler", "public",
+    // "external" (an external impl completes an interface/forward declaration), and
+    // "inline" — FPC tolerates an implementation repeating/adding `inline` even when
+    // the interface declaration omits it (it is only a hint). The unix sysutils
+    // TOrdinalHelper declares ToBinString without inline but its shared macro
+    // implementation (syshelpo.inc) has `inline`.
+    NewImplProcMods:=ImplProc.Modifiers-DeclProc.Modifiers-[pmAssembler,pmPublic,pmExternal,pmInline];
     if NewImplProcMods<>[] then
       for pm in NewImplProcMods do
         RaiseMsg(20200518182445,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
@@ -11731,6 +11923,9 @@ begin
           Ref.Declaration:=TPasFunctionType(Proc.ProcType).ResultEl;
           exit;
           end;
+        // Overloaded case: FindFirstEl may have picked a same-named overload whose
+        // body does NOT enclose El, so El.HasParent fails; the general Case 4 below
+        // walks the parent chain to the actual enclosing function and redirects.
         end;
       // Case 2: Field access — "FuncName.field := value"
       // When function name is the left side of a sub-ident expression inside its
@@ -11797,6 +11992,41 @@ begin
           begin
           Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
           exit;
+          end;
+        end;
+      { Case 5: Overloaded self-reference. FindFirstEl may have selected a
+        same-named overload whose body does NOT enclose El (e.g. a 0-arg
+        overload picked while we are inside the multi-arg overload's body).
+        Inside a function's own body a bare use of that name is the result
+        variable of the enclosing function, not a call to the other overload,
+        so redirect to the enclosing function's result. This covers both
+         "FuncName:=" and a bare read (e.g. "if FuncName then"), and works even
+        when the found overload is parameterless (Cases 3/4 skip those).
+        Checked for "El is NOT inside the found Proc's body": in the non-overloaded
+        self-reference case El.HasParent(ImplProc) is true and the paths above
+        already handled it, so this block only fires for the wrong-overload pick. }
+      if (Proc.ProcType is TPasFunctionType)
+          and (El.ClassType=TPrimitiveExpr)
+          and not ExprIsAddrTarget(El)
+          and not ((El.Parent is TParamsExpr) and (TParamsExpr(El.Parent).Value=El)) then
+        begin
+        ProcScope:=Proc.CustomData as TPasProcedureScope;
+        ImplProc:=ProcScope.ImplProc;
+        if ImplProc=nil then
+          ImplProc:=Proc;
+        if not El.HasParent(ImplProc) then
+          begin
+          ParentEl:=El.Parent;
+          while (ParentEl<>nil) do
+            begin
+            if (ParentEl is TPasFunction)
+                and SameText(TPasFunction(ParentEl).Name, Proc.Name) then
+              begin
+              Ref.Declaration:=TPasFunctionType(TPasFunction(ParentEl).ProcType).ResultEl;
+              exit;
+              end;
+            ParentEl:=ParentEl.Parent;
+            end;
           end;
         end;
       // When a proc requiring params is used as a function argument
@@ -14935,6 +15165,23 @@ procedure TPasResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
       RightResolved.LoTypeEl,RightResolved.HiTypeEl,Bin,Flags);
   end;
 
+  function RightIsCharPointer: Boolean;
+  // A pointer to a char type (PAnsiChar/PWideChar/PUnicodeChar) concatenates with a
+  // string as a null-terminated string operand: 
+  // accept `s := s + PChar`
+  var
+    SubRes: TPasResolverResult;
+  begin
+    Result := False;
+    if (RightResolved.BaseType=btContext)
+        and (RightResolved.LoTypeEl is TPasPointerType)
+        and (TPasPointerType(RightResolved.LoTypeEl).DestType<>nil) then
+      begin
+      ComputeElement(TPasPointerType(RightResolved.LoTypeEl).DestType,SubRes,[rcType]);
+      Result := SubRes.BaseType in btAllChars;
+      end;
+  end;
+
   procedure UnwrapConstParam(var R: TPasResolverResult);
   // A TYPED const generic parameter (`const I: SomeType`) has a KNOWN type, so an
   // operator on it can be decided at the generic definition rather than deferred to
@@ -15143,7 +15390,8 @@ begin
       begin
       if (RightResolved.BaseType in btAllStringAndChars)
           or ((RightResolved.BaseType=btContext) and (RightResolved.LoTypeEl<>nil)
-              and (RightResolved.LoTypeEl.ClassType=TPasArrayType)) then
+              and (RightResolved.LoTypeEl.ClassType=TPasArrayType))
+          or RightIsCharPointer then
         case Bin.OpCode of
         eopNone:
           if (Bin.Kind=pekRange) and (LeftResolved.BaseType in btAllStringAndChars) then
@@ -15157,10 +15405,12 @@ begin
             exit;
             end;
         eopAdd:
-          // a char-array operand concatenates like a string (result = left string)
+          // a char-array or char-pointer operand concatenates like a string
+          // (result = left string)
           if (RightResolved.BaseType in btAllStringAndChars)
               or ((RightResolved.BaseType=btContext) and (RightResolved.LoTypeEl<>nil)
-                  and (RightResolved.LoTypeEl.ClassType=TPasArrayType)) then
+                  and (RightResolved.LoTypeEl.ClassType=TPasArrayType))
+              or RightIsCharPointer then
             if ComputeAddStringRes(LeftResolved,RightResolved,Bin,ResolvedEl) then
               exit;
         eopLessThan,
@@ -15243,7 +15493,28 @@ begin
           SetBaseType(btBoolean);
           exit;
           end;
-        end;
+        {$IFNDEF PAS2JS}
+        eopSubtract:
+          begin
+          // untyped Pointer - untyped Pointer -> byte difference (PtrInt).
+          SetBaseType(btInt64);
+          exit;
+          end;
+        {$ENDIF}
+        end
+      {$IFNDEF PAS2JS}
+      else if (Bin.OpCode=eopSubtract)
+          and (RightResolved.BaseType=btContext)
+          and (RightResolved.LoTypeEl is TPasPointerType) then
+        begin
+        (* An untyped-pointer left operand (e.g. @arrayElem or @rec.field, whose
+          address result carries btPointer) minus a typed pointer: the element
+          difference. Allowed for any two pointers, independent of {$POINTERMATH} *)
+        SetBaseType(btInt64);
+        exit;
+        end
+      {$ENDIF}
+      ;
       end;
     end
   else if LeftResolved.BaseType=btContext then
@@ -16195,9 +16466,11 @@ begin
       exit;
     end;
   {$endif}
-  btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,{$endif}btUnicodeString:
+  btString,{$ifdef FPC_HAS_CPSTRING}btAnsiString,btRawByteString,{$endif}btWideString,btUnicodeString:
     begin
-      // string + x => string
+      // string + x => string. RawByteString and WideString were previously omitted,
+      // so `RawByteString + RawByteString` (unix RTL path building a search dirlist)
+      // wrongly reported "operator not overloaded".
       SetLeftValueExpr([rrfReadable]);
       exit;
     end;
@@ -16638,7 +16911,17 @@ procedure TPasResolver.ComputeTypeCast(ToLoType, ToHiType: TPasType;
     IdentEl: TPasElement;
   begin
     IdentEl:=ParamResolved.IdentEl;
-    if IdentEl=nil then exit(false);
+    if IdentEl=nil then
+      begin
+      // A cast whose operand is an l-value without a named identifier — a pointer
+      // dereference (p^) or a pointer/array index (p[i]) — is still a var context,
+      // so the cast stays a writable l-value. ex:  cardinal(pointer(x)^):=n ;
+      Result:= ((ParamResolved.ExprEl is TUnaryExpr)
+                  and (TUnaryExpr(ParamResolved.ExprEl).OpCode=eopDeref))
+            or ((ParamResolved.ExprEl is TParamsExpr)
+                  and (TParamsExpr(ParamResolved.ExprEl).Kind=pekArrayParams));
+      exit;
+      end;
     if [rcConstant,rcType]*Flags<>[] then
       Result:=(IdentEl.ClassType=TPasConst) and (TPasConst(IdentEl).IsConst)
     else
@@ -16652,6 +16935,7 @@ var
   KeepWriteFlags: Boolean;
   bt: TResolverBaseType;
   Expr: TPasExpr;
+  OperandIsLValueExpr: Boolean;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ComputeFuncParams START ToLoType=',GetObjName(ToLoType),' ',BoolToStr(ToLoType<>ToHiType,'ToHiType='+GetObjName(ToHiType),''),' ',GetResolverResultDbg(ParamResolved));
@@ -16667,7 +16951,16 @@ begin
     ResolvedEl.IdentEl:=ParamResolved.IdentEl;
 
     WriteFlags:=ParamResolved.Flags*[rrfWritable,rrfAssignable];
-    if (WriteFlags<>[]) and ParamIsVar then
+    // A dereference/index l-value operand (p^, p[i]) is writable by nature even
+    // though the untyped-Pointer deref carries no rrfWritable flag; give the cast
+    // its writability so cardinal(pointer(x)^):=n stays an l-value.
+    OperandIsLValueExpr:=((ParamResolved.ExprEl is TUnaryExpr)
+                            and (TUnaryExpr(ParamResolved.ExprEl).OpCode=eopDeref))
+                      or ((ParamResolved.ExprEl is TParamsExpr)
+                            and (TParamsExpr(ParamResolved.ExprEl).Kind=pekArrayParams));
+    if (WriteFlags=[]) and OperandIsLValueExpr then
+      WriteFlags:=[rrfWritable];
+    if (WriteFlags<>[]) and (ParamIsVar or OperandIsLValueExpr) then
       begin
       KeepWriteFlags:=false;
       // Param is writable -> check if typecast keeps this
@@ -16678,13 +16971,26 @@ begin
         or (ParamResolved.BaseType in [btString,btUnicodeString,btWideString])
         or (ParamResolved.LoTypeEl=nil) // untyped
         or (ParamResolved.LoTypeEl.ClassType=TPasClassType)
+        or (ParamResolved.LoTypeEl is TPasProcedureType) // Pointer(ProcVar):= — the unix
+                                                          // sigaction idiom
+                                                          // pointer(act.sa_handler):=...
+        or (ParamResolved.LoTypeEl is TPasPointerType)   // Pointer(TypedPtrVar):=
         or IsDynArray(ParamResolved.LoTypeEl)
         then
           // e.g. pointer(ObjVar)
           KeepWriteFlags:=true;
         end
+      else if (ParamResolved.LoTypeEl=nil) then
+        // untyped var reinterpreted as a base type as a writable l-value, e.g.
+        // Currency(untypedOut):=.. in sysutils' InternalTextToFloat, where Value
+        // is an "out" untyped parameter (mirrors the custom-type branch below).
+        KeepWriteFlags:=true
       else if IsSameType(ToLoType,ParamResolved.LoTypeEl,prraNone) then
         // e.g. Byte(TAliasByte)
+        KeepWriteFlags:=true
+      else if OperandIsLValueExpr then
+        // a pointer-deref/index l-value reinterpreted as a base type, e.g.
+        // cardinal(pointer(x)^):=n in the RTL's StrAlloc.
         KeepWriteFlags:=true;
       if KeepWriteFlags then
         ResolvedEl.Flags:=ResolvedEl.Flags+WriteFlags;
@@ -16748,6 +17054,19 @@ begin
             and (ParamResolved.LoTypeEl.ClassType=TPasRecordType) then
           // typecast record
           KeepWriteFlags:=true
+        else if (ToLoType.ClassType=TPasRecordType)
+            and (ParamResolved.BaseType in [btFile,btText]) then
+          // typecast a file variable to its control record: TextRec(F):=... in the
+          // unix RTL. A file IS its record under the hood, so the cast stays an
+          // l-value (mirrors the record->record case above).
+          KeepWriteFlags:=true
+        else if (ToLoType.ClassType=TPasRecordType)
+            and (ParamResolved.BaseType in (btAllInteger+btAllChars+btAllBooleans+btAllFloats)) then
+          // typecast a scalar variable to a (same-size) record as a writable
+          // l-value — sysutils' bit/nibble overlays write through it, e.g.
+          // TByteOverlay(aByte).AsNibble[i]:=v (PutNibble), and the float overlays
+          // TDoubleRec(aDouble).Frac:=..
+          KeepWriteFlags:=true
         else if (ToLoType.ClassType=TPasArrayType)
             and (ParamResolved.LoTypeEl.ClassType=TPasArrayType)
             and IsDynArray(ToLoType)
@@ -16757,6 +17076,15 @@ begin
         else if (ToLoType.ClassType=TPasPointerType)
             and (ParamResolved.LoTypeEl is TPasPointerType) then
           // typecast typed pointer to typed pointer, e.g. PByte(PIntegerVar)
+          KeepWriteFlags:=true
+        else if (ResolvedEl.BaseType=btPointer)
+            and ((ParamResolved.LoTypeEl is TPasProcedureType)
+              or (ParamResolved.LoTypeEl is TPasClassType)
+              or (ParamResolved.LoTypeEl is TPasPointerType)) then
+          // typecast a pointer-sized reference variable (procvar/class/typed
+          // pointer) to the untyped Pointer as an l-value — reinterprets the
+          // variable's storage. FPC allows this (unix RTL: the
+          // `pointer(act.sa_handler):=pointer(SIG_DFL)` sigaction idiom).
           KeepWriteFlags:=true;
         end
       else
@@ -18724,6 +19052,12 @@ begin
       else
         RaiseNotYetImplemented(20170624193436,Params);
       end;
+    revkNil:
+      // nil cast to an ordinal is the null address = 0 (e.g. HModule(nil)); to a
+      // pointer/other type it is not const-folded here (Result stays nil so the
+      // code generator emits it).
+      if bt in btAllInteger then
+        Result:=TResEvalInt.CreateValue(0);
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
@@ -22249,6 +22583,17 @@ begin
       else
         // static array
         Result:=cExact;
+      end
+    else if (ParamResolved.LoTypeEl is TPasPointerType)
+        and (TPasPointerType(ParamResolved.LoTypeEl).DestType<>nil)
+        and (rrfReadable in ParamResolved.Flags) then
+      begin
+      // Length(PChar)/Length(PWideChar): the strlen of the null-terminated data.
+      // FPC accepts this (verified vs real ppcx64); the unix sysutils path uses it
+      // (fina.inc: Length(PathPChar)).
+      ComputeElement(TPasPointerType(ParamResolved.LoTypeEl).DestType,ParamResolved,[rcType]);
+      if ParamResolved.BaseType in btAllChars then
+        Result:=cExact;
       end;
     end;
   if Result=cIncompatible then
@@ -22386,11 +22731,12 @@ function TPasResolver.BI_InExclude_OnGetCallCompatibility(
 var
   Params: TParamsExpr;
   Param0, Param1: TPasExpr;
-  Param0Resolved, Param1Resolved: TPasResolverResult;
+  Param0Resolved, Param1Resolved, ElResolved: TPasResolverResult;
   EnumType: TPasEnumType;
   C: TClass;
   LoTypeEl: TPasType;
   RgType: TPasRangeType;
+  OrdSetOK: Boolean;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,2,RaiseOnError) then
     exit(cIncompatible);
@@ -22405,6 +22751,7 @@ begin
 
   EnumType:=nil;
   RgType:=nil;
+  OrdSetOK:=false;
   if ([rrfReadable,rrfWritable]*Param0Resolved.Flags=[rrfReadable,rrfWritable])
       and (Param0Resolved.IdentEl<>nil) then
     begin
@@ -22433,11 +22780,23 @@ begin
           RgType:=TPasRangeType(LoTypeEl);
           ComputeElement(RgType.RangeExpr.Left,Param0Resolved,[]);
           Result:=CheckAssignResCompatibility(Param0Resolved,Param1Resolved,Param1,RaiseOnError);
+          end
+        else if AllowInExcludeNonEnumSet then
+          begin
+          // set of a base ordinal (char/int/boolean), e.g. Include(charSet,c) on
+          // sysutils' TSysCharSet. Accept if the value assigns to the element type.
+          ComputeElement(LoTypeEl,ElResolved,[]);
+          if GetActualBaseType(ElResolved.BaseType) in (btAllChars+btAllInteger+btAllBooleans) then
+            begin
+            Result:=CheckAssignResCompatibility(ElResolved,Param1Resolved,Param1,RaiseOnError);
+            if Result<>cIncompatible then
+              OrdSetOK:=true;
+            end;
           end;
         end;
       end;
     end;
-  if (EnumType=nil) and (RgType=nil) then
+  if (EnumType=nil) and (RgType=nil) and (not OrdSetOK) then
     begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnGetCallCompatibility_InExclude ',GetResolverResultDbg(Param0Resolved));
@@ -22598,6 +22957,11 @@ begin
     bt:=ParamResolved.SubType;
   if bt in btAllInteger then
     Result:=cExact
+  else if (bt in (btAllChars+btAllBooleans))
+      and AllowIncDecOnOrdinal(bt,ParamResolved.LoTypeEl) then
+    // Inc/Dec on a char or boolean, like the real FPC compiler (Inc(charVar) in
+    // sysutils' float-rounding). Native targets only.
+    Result:=cExact
   else if bt=btPointer then
     begin
     if ElHasBoolSwitch(Expr,bsPointerMath)
@@ -22612,6 +22976,10 @@ begin
           or AllowIncDecOnPointer(TypeEl)) then
       Result:=cExact
     else if TypeEl.ClassType=TPasRangeType then
+      Result:=cExact
+    else if (TypeEl.ClassType=TPasEnumType)
+        and AllowIncDecOnOrdinal(bt,TypeEl) then
+      // Inc/Dec on an enum value (native targets only).
       Result:=cExact;
     end;
   if Result=cIncompatible then
@@ -24911,6 +25279,19 @@ begin
   if El=nil then ;
 end;
 
+function TPasResolver.AllowIncDecOnOrdinal(bt: TResolverBaseType; El: TPasType): Boolean;
+begin
+  // pas2js-safe default: only integers. TPasNativeResolver overrides.
+  Result:=False;
+  if (bt=btNone) and (El=nil) then ;
+end;
+
+function TPasResolver.AllowInExcludeNonEnumSet: Boolean;
+begin
+  // pas2js-safe default: only enum/subrange sets. TPasNativeResolver overrides.
+  Result:=False;
+end;
+
 function TPasResolver.IsBitPackedOrdinalAccess(Expr: TPasExpr): boolean;
 begin
   // pas2js-safe default: no bit-packing. TPasNativeResolver overrides this to
@@ -26497,6 +26878,12 @@ begin
   end;
 end;
 
+function TPasResolver.MatchHelperForType(HelperForType, HiType: TPasType): boolean;
+begin
+  Result:=IsSameType(HelperForType,HiType,prraNone);
+end;
+
+
 procedure TPasResolver.GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope;
   HiType: TPasType; WithTopHelpers: boolean);
 var
@@ -26539,7 +26926,7 @@ begin
         begin
         Entry:=FActiveHelpers[i];
         HelperForType:=Entry.HelperForType;
-        if IsSameType(HelperForType,HiType,prraNone) then
+        if MatchHelperForType(HelperForType,HiType) then
           begin
           // A nested helper whose visibility does not permit access from here
           // is not in scope (FPC: tchlp18..21).
@@ -27806,7 +28193,11 @@ begin
         exit(cIncompatible);
         end;
       end;
-    if Result<cTypeConversion then
+    // Accumulate per-argument distances so a candidate needing FEWER/cheaper
+    // conversions ranks below one needing more. Sum across the whole
+    // type-conversion band (up to cLossyConversion) rather than capping at the
+    // FIRST cTypeConversion
+    if Result<cLossyConversion then
       inc(Result,ParamCompatibility)
     else
       Result:=Max(Result,ParamCompatibility);
@@ -28289,6 +28680,16 @@ begin
   else if IsGenericTemplType(Arg2Resolved) then
     exit(cGenericExact);
 
+  {$ifdef FPC_HAS_CPSTRING}
+  // Two refcounted AnsiString-family element types (AnsiString, RawByteString and
+  // codepage variants such as UTF8String) differ only in their static codepage
+  // treat them as the same element type for array/element compatibility, so e.g. an
+  if (Arg1Resolved.BaseType in [btAnsiString,btRawByteString])
+      and (Arg2Resolved.BaseType in [btAnsiString,btRawByteString])
+      and (Arg1Resolved.BaseType<>Arg2Resolved.BaseType) then
+    exit(cAliasExact);
+  {$endif}
+
   if (Arg1Resolved.BaseType<>Arg2Resolved.BaseType)
       or (Arg1Resolved.LoTypeEl=nil)
       or (Arg2Resolved.LoTypeEl=nil) then
@@ -28310,6 +28711,22 @@ begin
     begin
     if IsSameType(Arg1Resolved.LoTypeEl,Arg2Resolved.LoTypeEl,prraNone) then
       exit(cExact);
+    end;
+
+  // Two file types with matching element type are the same signature. Each `File`
+  // keyword builds a fresh anonymous TPasFileType (ElType=nil), so an untyped-file
+  // parameter in an interface would otherwise never match its implementation body
+  if (Arg1Resolved.BaseType=btFile) and (Arg2Resolved.BaseType=btFile)
+      and (Arg1Resolved.LoTypeEl is TPasFileType)
+      and (Arg2Resolved.LoTypeEl is TPasFileType) then
+    begin
+    if (TPasFileType(Arg1Resolved.LoTypeEl).ElType=nil)
+        and (TPasFileType(Arg2Resolved.LoTypeEl).ElType=nil) then
+      exit(cExact)   // both untyped `File`
+    else if (TPasFileType(Arg1Resolved.LoTypeEl).ElType<>nil)
+        and (TPasFileType(Arg2Resolved.LoTypeEl).ElType<>nil) then
+      exit(CheckElTypeCompatibility(TPasFileType(Arg1Resolved.LoTypeEl).ElType,
+                                    TPasFileType(Arg2Resolved.LoTypeEl).ElType,ResolveAlias));
     end;
 
   if Arg1Resolved.BaseType=btContext then
@@ -30479,6 +30896,10 @@ function TPasResolver.CheckParamCompatibility(Expr: TPasExpr;
 var
   ExprResolved, ParamResolved: TPasResolverResult;
   NeedVar: Boolean;
+  ArgRef: TResolvedReference;
+  SelfProc: TPasProcedure;
+  EnclEl: TPasElement;
+  PtDestRes, ExDestRes: TPasResolverResult;
 
   function ArraySliceFitsOpenArray: boolean;
   // arr[a..b] passed to an open-array parameter is an FPC array-slice: it
@@ -30548,9 +30969,40 @@ begin
     if (Param.ArgType=nil) and (rrfReadable in ExprResolved.Flags)
         and (Expr is TUnaryExpr) and (TUnaryExpr(Expr).OpCode=eopAddress) then
       exit(cExact);
+    // A parameterless function's own name, used inside its body and passed to this
+    // var/out parameter (e.g. FpGetcwd in SetCodePage(FpGetcwd,...)), denotes the
+    // Result variable, not a recursive call
+    if not ResolvedElCanBeVarParam(ExprResolved,Expr)
+        and (Expr is TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)
+        and (Expr.CustomData is TResolvedReference)
+        and not ExprIsAddrTarget(Expr) then
+      begin
+      ArgRef:=TResolvedReference(Expr.CustomData);
+      if (ArgRef.Declaration is TPasProcedure)
+          and (TPasProcedure(ArgRef.Declaration).ProcType is TPasFunctionType) then
+        begin
+        SelfProc:=TPasProcedure(ArgRef.Declaration);
+        EnclEl:=Expr;
+        while (EnclEl<>nil) and not (EnclEl is TPasProcedure) do
+          EnclEl:=EnclEl.Parent;
+        // Compare BASE names (strip any "<...>" specialization suffix) so this works
+        // inside a specialized generic function body too.
+        if (EnclEl is TPasFunction)
+            and SameText(
+              Copy(TPasFunction(EnclEl).Name,1,Pos('<',TPasFunction(EnclEl).Name+'<')-1),
+              Copy(SelfProc.Name,1,Pos('<',SelfProc.Name+'<')-1)) then
+          begin
+          ArgRef.Declaration:=TPasFunctionType(TPasFunction(EnclEl).ProcType).ResultEl;
+          if SetReferenceFlags then
+            ComputeElement(Expr,ExprResolved,[rcSetReferenceFlags])
+          else
+            ComputeElement(Expr,ExprResolved,[]);
+          end;
+        end;
+      end;
     // Expr must be a variable. An untyped var/out additionally accepts a writable
     // string char-index l-value (s[i], the Stream.ReadBuffer(s[1],..) idiom):
-    // ComputeArrayParams marks it rrfAssignable (not rrfWritable), 
+    // ComputeArrayParams marks it rrfAssignable (not rrfWritable),
     if not ResolvedElCanBeVarParam(ExprResolved,Expr)
         and not ((Param.ArgType=nil) and IsStringCharIndexLValue(ExprResolved)) then
       begin
@@ -30575,9 +31027,28 @@ begin
       exit;
       end;
     if (Param.ArgType=nil) then
-      exit(cExact); // untyped argument
+      // Untyped var/out parameter: a catch-all that accepts any writable l-value,
+      // but ranked BELOW an exact typed match so an overload with a specific
+      // parameter type wins the tie 
+      exit(cCompatible); // untyped argument
     if GetActualBaseType(ParamResolved.BaseType)=GetActualBaseType(ExprResolved.BaseType) then
       begin
+      // Two `File`/`Text` types with matching element type are the same type for a
+      // var/out param.
+      if (ParamResolved.BaseType in [btFile,btText])
+          and (ExprResolved.BaseType in [btFile,btText])
+          and (ParamResolved.LoTypeEl is TPasFileType)
+          and (ExprResolved.LoTypeEl is TPasFileType) then
+        begin
+        if (TPasFileType(ParamResolved.LoTypeEl).ElType=nil)
+            and (TPasFileType(ExprResolved.LoTypeEl).ElType=nil) then
+          exit(cExact)   // both untyped `File`/`Text`
+        else if (TPasFileType(ParamResolved.LoTypeEl).ElType<>nil)
+            and (TPasFileType(ExprResolved.LoTypeEl).ElType<>nil)
+            and IsSameType(TPasFileType(ParamResolved.LoTypeEl).ElType,
+                           TPasFileType(ExprResolved.LoTypeEl).ElType,prraNone) then
+          exit(cExact);  // `file of T` with matching T
+        end;
       if msDelphi in CurrentParser.CurrentModeswitches then
         begin
         // Delphi allows passing alias, but not type alias to a var arg
@@ -30600,6 +31071,22 @@ begin
         if Result<>cIncompatible then exit;
         end;
       end;
+    // Two named pointer types whose target is the SAME simple base type are the
+    // same type for a var/out param, even though they are distinct TPasPointerType
+    // instances -- e.g. passing a PChar (^Char) to a var PAnsiChar (^AnsiChar)
+    // parameter. 
+    if (ParamResolved.LoTypeEl is TPasPointerType)
+        and (ExprResolved.LoTypeEl is TPasPointerType)
+        and (TPasPointerType(ParamResolved.LoTypeEl).DestType<>nil)
+        and (TPasPointerType(ExprResolved.LoTypeEl).DestType<>nil) then
+      begin
+      ComputeElement(TPasPointerType(ParamResolved.LoTypeEl).DestType,PtDestRes,[]);
+      ComputeElement(TPasPointerType(ExprResolved.LoTypeEl).DestType,ExDestRes,[]);
+      if (GetActualBaseType(PtDestRes.BaseType)=GetActualBaseType(ExDestRes.BaseType))
+          and (GetActualBaseType(PtDestRes.BaseType) in
+               (btAllChars+btAllInteger+btAllFloats+btAllBooleans)) then
+        exit(cAliasExact);
+      end;
     // A var/out argument whose type is a generic type parameter cannot be
     // exact-matched against the parameter type yet: the concrete type is only
     // known after specialization, so defer the check (e.g. Val(s, ResultOfT,
@@ -30607,10 +31094,9 @@ begin
     if IsGenericTemplType(ParamResolved) or IsGenericTemplType(ExprResolved) then
       exit(cGenericExact);
 
-    // Allow out Pointer := any typed pointer (like FPC's GetMem)
-    // Note: only 'out' params, not 'var' — FPC requires exact type match for var Pointer
+    // A formal untyped `Pointer` var/out parameter accepts ANY typed pointer.
     if (ParamResolved.BaseType=btPointer)
-        and (Param.Access = argOut)
+        and (Param.Access in [argOut, argVar])
         and ((ExprResolved.BaseType=btPointer)
             or ((ExprResolved.BaseType=btContext)
                 and (ExprResolved.LoTypeEl is TPasPointerType))) then
@@ -30626,6 +31112,14 @@ begin
 
   Result:=CheckParamResCompatibility(Expr,ExprResolved,ParamResolved,ParamNo,
                                      RaiseOnError,SetReferenceFlags);
+  (* An address-of expression (@x) yields an untyped pointer in the default {$T-}  mode; 
+     freely compatible with any pointer-typed value  parameter — not a cTypeConversion-priced conversion. *)
+  if (Result>=cTypeConversion) and (Result<cIncompatible)
+      and (Expr is TUnaryExpr) and (TUnaryExpr(Expr).OpCode=eopAddress)
+      and ((ParamResolved.BaseType=btPointer)
+           or ((ParamResolved.BaseType=btContext)
+               and (ParamResolved.LoTypeEl is TPasPointerType))) then
+    Result:=cCompatible;
 end;
 
 function TPasResolver.CheckParamResCompatibility(Expr: TPasExpr;
@@ -30640,6 +31134,16 @@ begin
     UseAssignError:=true;
 
   Result:=CheckAssignResCompatibility(ParamResolved,ExprResolved,Expr,UseAssignError);
+  { A Boolean argument passed by value to a two-value (boolean-like) enum parameter
+    maps its ordinal (False=0/True=1) onto the enum's two members. FPC's RTL relies
+    on this: TGuidHelper.Create(const Data; DataEndian: TEndian) }
+  if (Result=cIncompatible)
+      and (ExprResolved.BaseType in btAllBooleans)
+      and (rrfReadable in ExprResolved.Flags)
+      and (ParamResolved.BaseType=btContext)
+      and (ParamResolved.LoTypeEl is TPasEnumType)
+      and (TPasEnumType(ParamResolved.LoTypeEl).Values.Count=2) then
+    Result:=cCompatible;
   if (Result=cIncompatible) and RaiseOnError then
     RaiseIncompatibleTypeRes(20170216152454,nIncompatibleTypeArgNo,
       [IntToStr(ParamNo+1)],ExprResolved,ParamResolved,Expr);
@@ -31652,6 +32156,7 @@ var
   ConToken: TToken;
   ConEl: TPasElement;
   ToClassType, FromClassType: TPasClassType;
+  PtrDestResolved: TPasResolverResult;
 begin
   Result:=cIncompatible;
   ToTypeEl:=ToResolved.LoTypeEl;
@@ -31683,6 +32188,8 @@ begin
             Result:=cCompatible
           else if FromResolved.BaseType=btPointer then
             Result:=cCompatible // pointer to integer (e.g. PtrUInt(p), Int64(p))
+          else if FromResolved.BaseType=btNil then
+            Result:=cCompatible // nil to integer -> 0 (e.g. HModule(nil))
           else if FromResolved.BaseType=btContext then
             begin
             FromTypeEl:=FromResolved.LoTypeEl;
@@ -31734,7 +32241,17 @@ begin
             Result:=cCompatible
           else if (FromResolved.BaseType=btPointer)
               and (ToTypeBaseType in btAllStringPointer) then
-            Result:=cExact;
+            Result:=cExact
+          else if (FromResolved.BaseType=btContext)
+              and (FromResolved.LoTypeEl is TPasPointerType) then
+            begin
+            { A typed char pointer (PAnsiChar/PWideChar) can be typecast to ANY
+              string type: it builds a string from the null-terminated data. }
+            ComputeElement(TPasPointerType(FromResolved.LoTypeEl).DestType,
+                           PtrDestResolved,[rcType]);
+            if PtrDestResolved.BaseType in btAllChars then
+              Result:=cCompatible;
+            end;
           end
         else if ToTypeBaseType=btPointer then
           begin
@@ -31932,7 +32449,14 @@ begin
           // typecast record to record
           Result:=cExact;
           end;
-        end;
+        end
+      else if FromResolved.BaseType in [btFile,btText] then
+        { A Text/File variable IS its control record under the hood; 
+          allow to reinterprete it as that record }
+        Result:=cExact
+      else if FromResolved.BaseType in (btAllInteger+btAllChars+btAllBooleans+btAllFloats) then
+        { A scalar reinterpreted as a (same-size) record should be allowed }
+        Result:=cCompatible;
       end
     else if (C=TPasEnumType)
         or (C=TPasRangeType) then
@@ -31953,7 +32477,11 @@ begin
         begin
         if FromResolved.LoTypeEl.ClassType=TPasArrayType then
           Result:=CheckTypeCastArray(TPasArrayType(FromResolved.LoTypeEl),
-            TPasArrayType(ToTypeEl),ErrorEl,RaiseOnError);
+            TPasArrayType(ToTypeEl),ErrorEl,RaiseOnError)
+        else if FromResolved.LoTypeEl.ClassType=TPasGenericTemplateType then
+          { T -> array[0..sizeof(T)-1] of byte: a same-size byte reinterpret whose
+            concrete size is only known after specialization }
+          Result:=cCompatible;
         end
       else if FromResolved.BaseType=btPointer then
         begin
@@ -32715,8 +33243,12 @@ begin
     // e.g. 'var a:b' -> compute b, use a as IdentEl
     if TPasConst(El).VarType<>nil then
       begin
-      // typed const
-      if (not TPasConst(El).IsConst) and ([rcConstant,rcType]*Flags<>[]) then
+      {  typed const
+         A typed constant (IsConst=false) is a writable initialised variable, 
+         so it is rejected only where a compile-time constant value is required
+         (rcConstant) - exactly like a TPasVariable above. 
+         It must NOT be rejected for rcType alone: SizeOf(typedConst) legitimately asks for its type. }
+      if (not TPasConst(El).IsConst) and (rcConstant in Flags) then
         RaiseConstantExprExp(20170216152739,StartEl);
       ComputeElement(TPasConst(El).VarType,ResolvedEl,Flags+[rcType],StartEl);
       ResolvedEl.IdentEl:=El;
