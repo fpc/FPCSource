@@ -5305,7 +5305,9 @@ end;
 
 function TPasProcedure.IsExternal: Boolean;
 begin
-  Result:=pmExternal in FModifiers;
+  // A weakexternal routine is external too (just weak linkage); it needs no body,
+  // e.g. Linux's `statx(...): cint; cdecl; weakexternal name 'statx';`.
+  Result:=(pmExternal in FModifiers) or (pmWeakExternal in FModifiers);
 end;
 
 function TPasProcedure.IsOverload: Boolean;

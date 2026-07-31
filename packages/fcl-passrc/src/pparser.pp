@@ -6066,8 +6066,10 @@ begin
   if pm<>pmPublic then
     AddModifier;
   Case pm of
-  pmExternal:
+  pmExternal,pmWeakExternal:
     begin
+    // weakexternal takes the same [libname] [name X] [index X] clause as external
+    // (e.g. Linux's statx: `cdecl; weakexternal name 'statx';`).
     NextToken;
     if CurToken in [tkChar,tkString,tkStringMultiLine,tkIdentifier] then
       begin
