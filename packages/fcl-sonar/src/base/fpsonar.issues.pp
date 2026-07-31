@@ -14,33 +14,6 @@
  **********************************************************************}
 unit FpSonar.Issues;
 
-{ Issue post-processing: everything that happens to an issue after a rule emits
-  it, merged from the former FpSonar.Fingerprint, FpSonar.IssueCollector,
-  FpSonar.Suppression and FpSonar.Governance (previously FpSonar.Utils). The
-  per-issue pipeline is fingerprint -> collect -> suppress -> classify:
-
-    * fingerprint (was FpSonar.Fingerprint): the line-independent
-      FNV1a64hex(ruleId #31 path #31 normalize(snippet)), 16-char hex, inline
-      FNV-1a-64. Carries no line number; normalize() collapses whitespace/CRLF,
-      keeps case. Immutability contract: any change invalidates every committed
-      baseline (the golden-value test guards it);
-    * collect (was FpSonar.IssueCollector): TFpSonarIssueCollector, the sole
-      emission chokepoint — every rule emits via AddIssue, which fingerprints
-      from the caller-supplied snippet and stores in insertion order;
-      CollectDiagnostic folds a diagnostic into a reserved ParseError/ScanError/
-      ResolveError issue;
-    * suppress (was FpSonar.Suppression): the inline-NOSONAR scan + marker map
-      (fed tokens via IsComment), the config-glob matcher, the
-      Suppresses/ConfigGlobSuppresses predicates and the pure
-      ApplySuppressions filter;
-    * classify (was FpSonar.Governance): ClassifySuppressions assigns one active
-      source per issue by the fixed precedence NOSONAR > config-glob > baseline >
-      active (mute-in-place, not a drop); ActiveIssues is the hard-drop the gate
-      evaluates.
-
-  Interface deps: FpSonar.Types, FpSonar.Config, FpSonar.Baseline and
-  FpSonar.Ingest (its token types + IsComment for marker capture, the only
-  token-facing part). Deterministic; single-threaded; LCL-free. }
 
 {$mode objfpc}{$H+}
 
@@ -68,36 +41,31 @@ type
   private
     FMarkers: TFpSonarNoSonarMarkerArray;
   public
-    // Scans aTokens for comment tokens carrying a NOSONAR marker and records one
-    // marker per hit, keyed by aFileName (the SAME string the engine threads as
-    // the issue FileName, NOT token.FileName, so map keys and issue keys match).
+    // Scans aTokens for comment tokens carrying a NOSONAR marker and records
+    // one marker per hit, keyed by aFileName (the same string the engine
+    // threads as the issue FileName, not token.FileName).
     procedure AddFile(const aFileName: string; const aTokens: TFpSonarTokenArray);
     // True iff a marker exists with that file AND line.
     function IsSuppressed(const aFileName: string; aLine: integer): boolean;
     // True iff a NOSONAR marker on aIssue's start line suppresses it: Self is a
-    // valid map (nil-safe: a nil map suppresses nothing) AND aIssue is NOT the
-    // TrackNoSonar tracker (exempt, so its own on-line info issue survives) AND a
-    // marker exists on (FileName, StartLine). The single authority for the
-    // NOSONAR predicate (incl. the exemption). Pure; deterministic.
+    // valid map (nil-safe: a nil map suppresses nothing), aIssue is not the
+    // exempt TrackNoSonar tracker, and a marker exists on (FileName, StartLine).
     function Suppresses(const aIssue: TFpSonarIssue): boolean;
     // The captured markers, read-only, in insertion (token) order.
     property Markers: TFpSonarNoSonarMarkerArray read FMarkers;
   end;
 
-// True iff aCommentText contains the upper-case marker token NOSONAR (matched
-// CASE-SENSITIVELY). aReason is the trimmed text after the marker (and after an
-// optional leading ':'); aHasReason := aReason <> ''. Pure; deterministic.
-// aCommentText is expected to be the scanner's comment .Text (delimiters // { }
-// (* *) already stripped — see FpSonar.Ingest) so no closing delimiter leaks
-// into the reason; this is how AddFile and the TrackNoSonar consumer feed it.
+// True iff aCommentText contains the marker token NOSONAR (case-sensitive).
+// aReason is the trimmed text after the marker (and after an optional leading
+// ':'); aHasReason := aReason <> ''. aCommentText is expected to be the
+// scanner's comment .Text, with the delimiters already stripped.
 function FindNoSonar(const aCommentText: string; out aHasReason: boolean;
   out aReason: string): boolean;
 
 // A tiny self-contained glob matcher: '*' matches any run of zero-or-more
-// characters (INCLUDING path separators), '?' matches exactly one character,
-// every other character matches literally. CASE-SENSITIVE. An EMPTY pattern is
-// treated as '*' (match anything); '**' is treated the same as '*'. Pure;
-// deterministic — deliberately NOT FPC's Masks/maskutils (version-dependent).
+// characters (including path separators), '?' matches exactly one character,
+// every other character matches literally. Case-sensitive. An empty pattern is
+// treated as '*', and '**' the same as '*'.
 function GlobMatch(const aPattern, aText: string): boolean;
 
 // True iff any glob in aGlobs suppresses aIssue: its rule glob matches RuleId AND
@@ -231,8 +199,7 @@ var
   lHash: uint64;
   i: integer;
 begin
-  // The US separator (#31) cannot occur in identifiers/paths/normalized code,
-  // so the three fields are unambiguously delimited.
+  // The US separator (#31) cannot occur in identifiers/paths/normalized code.
   lInput := UTF8Encode(aRuleId + #31 + aPath + #31 + NormalizeSnippet(aSnippet));
   lHash := cOffsetBasis;
   for i := 1 to Length(lInput) do
@@ -335,10 +302,9 @@ begin
       lMessageKey := 'rule.ParseError.message';
   end;
 
-  // A parse/scan failure is certain: cfHigh, sevMajor, itCodeSmell (recommended
-  // values within the fixed taxonomy). Range = the 1-based diagnostic position
-  // (0 preserved when the failure carried none). Snippet = the position-stripped
-  // message so the fingerprint stays line-independent.
+  // A parse/scan failure is certain: cfHigh, sevMajor, itCodeSmell. Range = the
+  // 1-based diagnostic position (0 preserved when the failure carried none).
+  // Snippet = the position-stripped message.
   AddIssue(lRuleId, aDiag.FileName, aDiag.Row, aDiag.Col, aDiag.Row, aDiag.Col,
     sevMajor, itCodeSmell, cfHigh, lMessageKey, [aDiag.Message],
     StripPositionPhrase(aDiag.Message));
@@ -502,10 +468,8 @@ end;
 
 function TFpSonarSuppressionMap.Suppresses(const aIssue: TFpSonarIssue): boolean;
 begin
-  // A marker on the issue's start line (uniform across all RuleIds), EXCEPT the
-  // NoSonar tracker, which is exempt so its on-line info issue survives the
-  // pipeline. Nil-safe: a nil map (Self=nil) short-circuits to False before any
-  // field access, so callers need not guard.
+  // A marker on the issue's start line, except the NoSonar tracker, which is
+  // exempt. Nil-safe: a nil map short-circuits to False.
   Result := (Self <> nil)
     and (aIssue.RuleId <> cNoSonarTrackerRuleId)
     and IsSuppressed(aIssue.FileName, aIssue.StartLine);

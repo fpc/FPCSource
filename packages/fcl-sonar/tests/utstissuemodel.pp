@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstIssueModel;
 
-{ Issue model, collector chokepoint, message catalog and the diagnostics. }
 
 {$mode objfpc}{$H+}
 
@@ -89,8 +88,7 @@ begin
     AssertEquals('order[1]', 'TOK002', lCollector.Issues[1].RuleId);
     AssertEquals('order[2]', 'AST003', lCollector.Issues[2].RuleId);
 
-    // Every issue carries a non-empty fingerprint equal to ComputeFingerprint
-    // of its own inputs (the collector is the sole computer of it).
+    // Every issue carries the ComputeFingerprint of its own inputs.
     AssertTrue('issue[0] fingerprint non-empty',
       lCollector.Issues[0].Fingerprint <> '');
     AssertEquals('issue[0] fingerprint matches inputs',
@@ -134,8 +132,7 @@ var
   lIssue: TFpSonarIssue;
 
 begin
-  // A parse failure at the source-file boundary produces it (position embedded in the
-  // message, mirroring passrc's EParserError text).
+  // A parse failure at the source-file boundary produces it.
   lDiag.FileName := 'src/faultbad.pas';
   lDiag.Row := 13;
   lDiag.Col := 10;
@@ -167,9 +164,8 @@ begin
     AssertTrue('folded issue has a non-empty fingerprint',
       lIssue.Fingerprint <> '');
 
-    // Line-independence of the fold: the SAME failure text at a
-    // different line/col yields the SAME fingerprint, because the snippet is the
-    // position-stripped message.
+    // Line-independence: the same text at another line/col yields the same
+    // fingerprint.
     lDiag.Row := 99;
     lDiag.Col := 1;
     lDiag.Message := 'Identifier expected in file src/faultbad.pas at line 99 column 1';
@@ -190,10 +186,7 @@ var
   lIssue: TFpSonarIssue;
 
 begin
-  // The scan-error half of the fold (dkScanError => reserved 'ScanError' RuleId
-  // + 'rule.ScanError.message'). The scanner adapter emits dkScanError, so this
-  // is a reachable path the engine will feed — assert it independently
-  // of the parse-error path so the ScanError mapping cannot regress silently.
+  // The scan-error half of the fold: dkScanError => RuleId 'ScanError'.
   lDiag.FileName := 'src/badtokens.pas';
   lDiag.Row := 7;
   lDiag.Col := 4;

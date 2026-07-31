@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstAnalysisConfig;
 
-{ AnalysisConfig tuple tests. }
 
 {$mode objfpc}{$H+}
 

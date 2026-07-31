@@ -14,11 +14,6 @@
  **********************************************************************}
 unit FpSonar.PpuStub;
 
-{ In-process ppudump interface-stub generator:
-  drives ppudump over a version-matched FPC .ppu (from the installed FPC)
-  and the cross-unit refs it needs, synthesizing compact interface stubs
-  the resolver binds against, cached by InterfaceCRC with a per-dependency
-  synthetic fallback. You can opt out by specifying --synthetic-only. }
 
 {$mode objfpc}{$H+}
 
@@ -367,10 +362,8 @@ begin
   while i <= lLen do
   begin
     lTok := '';
-      { Only quote a bare NaN/Inf/Infinity that sits in a JSON VALUE position —
-        i.e. immediately after a ':' (possibly signed). This mirrors the Python's
-        `:\s*-?(NaN|Inf|Infinity)\b` anchor and never corrupts string contents
-        (inside a JSON string the preceding significant char is never a bare ':'). }
+      { Only quote a bare NaN/Inf/Infinity that sits in a JSON value position,
+        i.e. immediately after a ':' (possibly signed). }
     if (lPrevSig = ':') and (aText[i] in ['N', 'I', '-']) then
     begin
       if WordAt('-Infinity', i) then lTok := '-Infinity'
@@ -451,11 +444,9 @@ begin
     lProc.Options := [poUsePipes, poNoConsole];
     try
       lProc.Execute;
-      { Drain BOTH pipes while the child runs. poUsePipes also pipes stderr, and
-        ppudump can write to it; leaving stderr unread risks a DEADLOCK (the child
-        blocks writing a full stderr pipe while we block reading stdout). We keep
-        stdout (the JSON) and discard stderr; polling NumBytesAvailable keeps
-        either read from stalling the other pipe. }
+      { Drain both pipes while the child runs: poUsePipes also pipes stderr,
+        and leaving it unread risks a deadlock. Keep stdout (the JSON) and
+        discard stderr. }
       while lProc.Running do
         if not (DrainAvailable(lProc.Output, lStream)
           or DrainAvailable(lProc.Stderr, nil)) then
@@ -2335,10 +2326,7 @@ begin
       lEmitted := TStringList.Create;
       lEmitted.Sorted := True;
       lEmitted.Duplicates := dupIgnore;
-      // The header stamp is the host toolchain version (the ppudump whose
-      // dump we parsed is this same toolchain — DiscoverPpuUnitDirs picks the
-      // {$I %FPCVERSION%} unit dir); NOT a hardcoded '3.3.1' that would misstate
-      // the version in a stub generated on any other host (faithful header).
+      // The header stamp is the host toolchain version.
       aSource := EmitUnitBody(lPpu, aCanonical, {$I %FPCVERSION%}, lEmitted);
       lStable := (lAllowed <> nil) and (lEmitted.CommaText = lAllowed.CommaText);
       if lStable then

@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstProgressAbort;
 
-{ TFpSonarEngine.OnProgress tests }
 
 {$mode objfpc}{$H+}
 
@@ -26,8 +25,7 @@ uses
   UtstFixtures, UtstCoreFixtures;
 
 type
-  { A synthetic LEX rule emitting one sentinel issue per file, so a test can
-    count how many files were actually analyzed. }
+  { A synthetic LEX rule emitting one sentinel issue per file. }
   TSynthProgressRule = class(TRuleBase)
   public
     procedure Apply(const aContext: TRuleContext;
@@ -41,8 +39,8 @@ type
     FSeenIndex: array of Integer;
     FSeenTotal: array of Integer;
     FCancelAfter: Integer; // 0 = never cancel; else cancel before file > k
-    // The OnProgress handler under test: records each call and, when
-    // FCancelAfter > 0, requests a clean cancel once index exceeds it.
+    // Records each call and requests a cancel once the index exceeds
+    // FCancelAfter.
     procedure RecordProgress(const aFile: string; aIndex, aTotal: Integer;
       out aContinue: Boolean);
     function MakeConfig(const aFiles: array of string): TFpSonarAnalysisConfig;
@@ -123,7 +121,7 @@ begin
 end;
 
 
-// Adds three clean fixtures named so their SORTED order is a < b < c 
+// Adds three clean fixtures whose sorted order is a < b < c.
 function TProgressAbortTest.AddThree(aFix: TTempFixtures;
   out aA, aB, aC: string): TFpSonarAnalysisConfig;
 
@@ -204,16 +202,13 @@ begin
     SetLength(FSeenFiles, 0);
     SetLength(FSeenIndex, 0);
     SetLength(FSeenTotal, 0);
-    { Cancel BEFORE the 3rd file: files 1 and 2 get analyzed, then the boundary
-      check on index 3 requests a clean cancel. }
+    { Cancel before the 3rd file: files 1 and 2 get analyzed. }
     FCancelAfter := 2;
 
     lConfig := AddThree(lFix, lA, lB, lC);
     lEngine.OnProgress := @Self.RecordProgress;
     lEngine.Run(lConfig, lCollector);
 
-    { The onprogress was consulted at file 3's boundary (so 3 calls), but only the
-      first two files were analyzed before the cancel took effect.}
     AssertEquals('consulted at every boundary up to the cancel', 3,
       Length(FSeenFiles));
     AssertEquals('exactly k files analyzed', 2, CountSynth(lCollector));
@@ -250,7 +245,7 @@ begin
     RegisterSynth(lReg);
     lConfig := AddThree(lFix, lA, lB, lC);
 
-    // Baseline: no callback assigned (the default, today's behaviour).
+    // No callback assigned (the default).
     lEngine.OnProgress := nil;
     lEngine.Run(lConfig, lBaseline);
 

@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstQualityGate;
 
-{ Quality-gate evaluation tests (TFpSonarGateThresholds.Evaluate) }
 
 {$mode objfpc}{$H+}
 
@@ -42,8 +41,7 @@ type
 
 implementation
 
-// Builds an issue array with the requested per-severity counts (in severity
-// order). Severity is the only field the gate reads.
+// Builds an issue array with the requested per-severity counts.
 function TQualityGateTest.MakeIssues(aInfo, aMinor, aMajor, aCritical,
   aBlocker: Integer): TFpSonarIssueArray;
 
@@ -170,8 +168,7 @@ var
   lOutcome: TFpSonarGateOutcome;
 
 begin
-  // Critical axis AND total both exceeded; severity order precedes total, so the
-  // reason must name critical, not total.
+  // Critical axis and total both exceeded; severity order precedes total.
   for lSev := Low(TFpSonarSeverity) to High(TFpSonarSeverity) do
     lGate.MaxPerSeverity[lSev] := -1;
   lGate.MaxPerSeverity[sevCritical] := 0;

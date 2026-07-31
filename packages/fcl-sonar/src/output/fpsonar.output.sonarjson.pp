@@ -15,10 +15,6 @@
 unit FpSonar.Output.SonarJson;
 
 (* The SonarQube generic-issue-import JSON adapter (--format sonar-json).  Emits:
-    {
-      "issues": [ { engineId, ruleId, severity, type, primaryLocation } ],
-      "_fpsonar": { "format": "sonarqube-generic", "version": <stamp> }
-    }
   *)
 
 {$mode objfpc}{$H+}

@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Trackers;
 
-{ Config-driven TRACKER rules:
-  disallow-list checks: disallowed identifier / constant / enum / field /
-  property / routine / type / import-by-path, tracked type aliases }
 
 {$mode objfpc}{$H+}
 

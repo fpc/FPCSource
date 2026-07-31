@@ -38,6 +38,7 @@ type
     FParser: TFpSonarParser;
     FResolver: TFpSonarResolver;
     FTokens: TFpSonarTokenArray;
+    FDefines: TFpSonarDefineSet;
     FLines: TFpSonarStringArray;
     FDiagnostics: TFpSonarDiagnosticArray;
     FParseSucceeded: boolean;
@@ -63,6 +64,8 @@ type
       aDialect: TFpSonarDialect = dlDefault); overload;
     // The token stream from the last Analyze (survives a failed parse).
     property Tokens: TFpSonarTokenArray read FTokens;
+    // The define set the last Analyze's scan ended with.
+    property Defines: TFpSonarDefineSet read FDefines;
     // The raw physical lines from the last Analyze
     property Lines: TFpSonarStringArray read FLines;
     // The parsed AST from the last Analyze, or nil if the parse failed.
@@ -228,14 +231,13 @@ begin
     lFileMissing := lDiag.Kind = dkFileNotFound;
   end;
   FTokens := FScanner.Tokens;
+  FDefines := FScanner.Defines;
 
   // Raw physical lines for the LEX line-text feed.
   ReadLines(aFileName);
 
   // A file that could not be opened has nothing to parse; the scan already
-  // reported it once (dkFileNotFound), so skip the parse to avoid a duplicate
-  // diagnostic on the same missing file. Other scan errors (e.g. JavaScript in a
-  // pas2js asm block) do NOT skip — the parser often still yields a valid tree.
+  // reported it once (dkFileNotFound).
   if not lFileMissing then
   begin
     // Parse: on failure Module is left nil and a diagnostic recorded

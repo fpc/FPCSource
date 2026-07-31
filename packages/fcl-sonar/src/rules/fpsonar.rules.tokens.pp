@@ -14,11 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Tokens;
 
-{ TOK-tier rules (rtTok / rfTokenStream) over the positioned, token stream:
-  keyword casing, section combining, one-declaration-per-line,  punctuation
-  semicolon comma hygiene, disabled hint/warning directives, indentation,
-  commented-out code, and the NOSONAR / comment / string-literal trackers.
-}
 
 {$mode objfpc}{$H+}
 
@@ -609,10 +604,9 @@ begin
         AddVisibilitySpec(lSig[i]);
     end;
 
-      { detect visibility/field-section structure
-        A parallel branch to the misindent detection above
-        Tracks, per open type body, the running visibility section
-        and any open var/class-var field section }
+      { Detect visibility/field-section structure: track, per open type body,
+        the running visibility section and any open var/class-var field
+        section. }
     if (lParen = 0) and (lBrack = 0)
       and (lStack[High(lStack)].Kind = fkType) then
     begin

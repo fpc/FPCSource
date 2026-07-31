@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesTokens;
 
-{ The TOK declaration/keyword rules. }
 
 {$mode objfpc}{$H+}
 
@@ -29,20 +28,18 @@ type
   { TOK declaration/keyword rule position + registration tests. }
   TRulesTokensTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
-    // As RunRule, but the fixture source is supplied inline (one array element
-    // per source line) and materialised to a temp dir for the run.
+    // As RunRule, but the fixture source is supplied inline and materialised to
+    // a temp dir for the run.
     procedure RunRuleSrc(aRule: TRuleBase; const aName: string;
       const aSrc: array of string; const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewLowercaseKeywords: TRuleBase;
     function NewCombineConst: TRuleBase;
     function NewCombineType: TRuleBase;
@@ -120,8 +117,8 @@ const
   cRemoveEmptyVisibilityId = 'RemoveEmptyVisibilitySection';
   cRemoveEmptyFieldId = 'RemoveEmptyFieldSection';
 
-  // Embedded token-rule fixtures (Approach A rollout): line i+1 == [i].
-  // In-line tabs and trailing spaces are preserved verbatim inside the literals.
+  // Embedded token-rule fixtures: line i+1 == [i]. In-line tabs and trailing
+  // spaces are preserved verbatim inside the literals.
 
   cCombineConstSectionsNoncompliant: array[0..11] of string = (
     'unit Noncompliant;',
@@ -1999,8 +1996,8 @@ end;
 procedure TRulesTokensTest.RulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered all 8 TOK rules into the GLOBAL
-  // registry (this is what the CLI process runs).
+  // The production initialization registered all 8 TOK rules into the global
+  // registry.
   AssertTrue('LowercaseKeywords registered',
     RuleRegistry.FindById(cLowercaseId) <> nil);
   AssertTrue('CombineConstSections registered',

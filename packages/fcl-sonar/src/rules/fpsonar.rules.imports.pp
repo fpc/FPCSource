@@ -14,8 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Imports;
 
-{ Uses-clause SEM rules (rtSem / rfResolver): fully-qualify a shadowable
-  import; move an implementation-only unit out of the interface uses. }
 
 {$mode objfpc}{$H+}
 

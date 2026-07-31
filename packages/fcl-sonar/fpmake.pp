@@ -48,6 +48,8 @@ begin
       T := P.Targets.AddUnit('fpsonar.fpcsource.pp');
       T.Dependencies.AddUnit('fpsonar.types');
 
+      P.Targets.AddUnit('fpsonar.namespacemap.pp');
+
       T := P.Targets.AddUnit('fpsonar.ingest.pp');
       T.Dependencies.AddUnit('fpsonar.types');
 
@@ -64,6 +66,14 @@ begin
       T.Dependencies.AddUnit('fpsonar.types');
       T.Dependencies.AddUnit('fpsonar.ppustub');
       T.Dependencies.AddUnit('fpsonar.consts');
+
+      T := P.Targets.AddUnit('fpsonar.useanalysis.pp');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+
+      T := P.Targets.AddUnit('fpsonar.dataflow.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.traversal');
 
       T := P.Targets.AddUnit('fpsonar.traversal.pp');
       T.Dependencies.AddUnit('fpsonar.types');
@@ -133,10 +143,43 @@ begin
       T.Dependencies.AddUnit('fpsonar.issues');
       T.Dependencies.AddUnit('fpsonar.ruleframework');
       T.Dependencies.AddUnit('fpsonar.traversal');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.config');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.concurrency.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.dataflow');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.condcomp.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
       T.Dependencies.AddUnit('fpsonar.config');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
 
       T := P.Targets.AddUnit('fpsonar.rules.control.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.traversal');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.dataflow');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.dataflow.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.dataflow');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.eval.pp');
       T.Dependencies.AddUnit('fpsonar.types');
       T.Dependencies.AddUnit('fpsonar.issues');
       T.Dependencies.AddUnit('fpsonar.ruleframework');
@@ -159,6 +202,25 @@ begin
       T.Dependencies.AddUnit('fpsonar.config');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
 
+      T := P.Targets.AddUnit('fpsonar.rules.fpcstyle.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.namespacemap');
+      T.Dependencies.AddUnit('fpsonar.ingest');
+      T.Dependencies.AddUnit('fpsonar.traversal');
+      T.Dependencies.AddUnit('fpsonar.config');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.generics.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.config');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
       T := P.Targets.AddUnit('fpsonar.rules.imports.pp');
       T.Dependencies.AddUnit('fpsonar.types');
       T.Dependencies.AddUnit('fpsonar.issues');
@@ -172,6 +234,15 @@ begin
       T.Dependencies.AddUnit('fpsonar.ruleframework');
       T.Dependencies.AddUnit('fpsonar.ingest');
       T.Dependencies.AddUnit('fpsonar.config');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
+      T := P.Targets.AddUnit('fpsonar.rules.lifetime.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.traversal');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.dataflow');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
 
       T := P.Targets.AddUnit('fpsonar.rules.naming.pp');
@@ -214,6 +285,14 @@ begin
       T.Dependencies.AddUnit('fpsonar.config');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
 
+      T := P.Targets.AddUnit('fpsonar.rules.strings.pp');
+      T.Dependencies.AddUnit('fpsonar.types');
+      T.Dependencies.AddUnit('fpsonar.issues');
+      T.Dependencies.AddUnit('fpsonar.ruleframework');
+      T.Dependencies.AddUnit('fpsonar.traversal');
+      T.Dependencies.AddUnit('fpsonar.resolver');
+      T.Dependencies.AddUnit('fpsonar.rules.consts');
+
       T := P.Targets.AddUnit('fpsonar.rules.tokens.pp');
       T.Dependencies.AddUnit('fpsonar.types');
       T.Dependencies.AddUnit('fpsonar.issues');
@@ -236,6 +315,7 @@ begin
       T.Dependencies.AddUnit('fpsonar.ruleframework');
       T.Dependencies.AddUnit('fpsonar.traversal');
       T.Dependencies.AddUnit('fpsonar.config');
+      T.Dependencies.AddUnit('fpsonar.useanalysis');
       T.Dependencies.AddUnit('fpsonar.rules.consts');
     end;
 end;

@@ -35,6 +35,8 @@ type
     CompilerMode: string;
     // Tokens survive a failed parse.
     Tokens: TFpSonarTokenArray;
+    // The define set the scan ended with; uncaptured when the scan failed.
+    Defines: TFpSonarDefineSet;
     // Lines are the raw physical lines, 1-based to the rule (Lines[0] = source line 1),
     Lines: TFpSonarStringArray;
     // Module is nil when the parse failed;
@@ -485,7 +487,7 @@ begin
   // The engine owns the SourceFile it creates and frees it here.
   lSourceFile := TFpSonarSourceFile.Create;
   try
-    // Story 6-18 — forward auto-detect ppudump resolution into the per-unit boundary.
+    // Forward auto-detect ppudump resolution into the per-unit boundary.
     lSourceFile.PpuAutoDetect := FPpuAutoDetect;
     lSourceFile.PpuCacheDir := FPpuCacheDir;
     lSourceFile.Analyze(aFileName, aCompilerMode, aDefines, aUnitPaths,
@@ -515,6 +517,7 @@ begin
   lContext.FileName := aFileName;
   lContext.CompilerMode := aCompilerMode;
   lContext.Tokens := aSourceFile.Tokens;
+  lContext.Defines := aSourceFile.Defines;
   lContext.Lines := aSourceFile.Lines;
   lContext.Module := aSourceFile.Module;
   lContext.ParseSucceeded := aSourceFile.ParseSucceeded;

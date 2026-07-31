@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstOutputText;
 
-{ The human-readable text output adapter. }
 
 {$mode objfpc}{$H+}
 
@@ -43,9 +42,7 @@ type
 
 implementation
 
-// Two synthetic issues: a positioned Minor CodeSmell and a position-less Major
-// (the kind of ParseError a live run can fold). Fingerprint is set by hand
-// (TFpSonarIssue.Make leaves it empty; the text adapter ignores it anyway).
+// Two synthetic issues: a positioned Minor CodeSmell and a position-less Major.
 function TOutputTextTest.SyntheticIssues: TFpSonarIssueArray;
 
 begin
@@ -118,7 +115,7 @@ var
 
 begin
   lOut := FormatText(SyntheticIssues);
-  // Documented rule: an absent position renders as the path alone (no :line:col).
+  // An absent position renders as the path alone.
   AssertTrue('absent-position issue renders path alone',
     Pos('src/bad.pas: major ParseError: Parse error: boom', lOut) > 0);
   AssertTrue('no spurious :0 position suffix',
@@ -155,8 +152,7 @@ var
   lOut: string;
 
 begin
-  // The all-active default set stays byte-identical to the pre-suppression output: no
-  // [suppressed: ...] annotation and the plain 'N issue(s).' footer (no clause).
+  // The all-active default set: no [suppressed: ...] annotation, plain footer.
   lOut := FormatText(SyntheticIssues);
   AssertTrue('no suppression annotation on active issues',
     Pos('[suppressed:', lOut) = 0);

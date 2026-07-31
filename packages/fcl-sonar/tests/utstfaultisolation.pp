@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstFaultIsolation;
 
-{ Per-unit fault-isolation test. }
 
 {$mode objfpc}{$H+}
 
@@ -49,14 +48,13 @@ var
 
 begin
   lFix := TTempFixtures.Create;
-  // One boundary instance, reused across the loop — each Analyze is isolated.
+  // One boundary instance, reused across the loop.
   lSource := TFpSonarSourceFile.Create;
   try
     lFiles[0] := lFix.Add('faultbad.pas', cFaultBad);
     lFiles[1] := lFix.Add('smokefixture.pas', cSmokeFixture);
     for i := Low(lFiles) to High(lFiles) do
-      // The whole point: a bad unit must not raise out of the boundary, so the
-      // loop reaches the good unit and completes.
+      // A bad unit must not raise out of the boundary.
       lSource.Analyze(lFiles[i], 'OBJFPC', ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
 
     // After the loop the boundary holds the LAST (good) file's result.
@@ -65,7 +63,6 @@ begin
     AssertEquals('good unit has no diagnostics', 0,
       Length(lSource.Diagnostics));
 
-    // Re-run the bad unit on its own to assert its isolated diagnostic.
     lSource.Analyze(lFiles[0], 'OBJFPC', ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
     AssertFalse('bad unit does not parse', lSource.ParseSucceeded);
     AssertNull('bad unit yields no Module', lSource.Module);
@@ -79,7 +76,6 @@ begin
       lSource.Diagnostics[0].Row);
     AssertEquals('diagnostic col is the deliberate error column', cBadErrorCol,
       lSource.Diagnostics[0].Col);
-    // No silent all-clear: the diagnostic must carry a real message.
     AssertTrue('diagnostic carries a non-empty message',
       lSource.Diagnostics[0].Message <> '');
   finally
@@ -103,15 +99,12 @@ begin
   try
     lSource.Analyze(cMissing, 'OBJFPC', ['FPC', 'CPUX86_64', 'UNIX', 'LINUX']);
     AssertFalse('missing file does not parse', lSource.ParseSucceeded);
-    // Reported ONCE (the parse is skipped for an unopenable file), NOT the old
-    // scan+parse duplicate.
     AssertEquals('missing file yields exactly one diagnostic', 1,
       Length(lSource.Diagnostics));
     AssertEquals('diagnostic kind is dkFileNotFound', Ord(dkFileNotFound),
       Ord(lSource.Diagnostics[0].Kind));
     AssertTrue('diagnostic names the missing file',
       Pos('missing-unit.pas', lSource.Diagnostics[0].FileName) > 0);
-    // No silent all-clear: the diagnostic must carry a real message.
     AssertTrue('diagnostic carries a non-empty message',
       lSource.Diagnostics[0].Message <> '');
   finally

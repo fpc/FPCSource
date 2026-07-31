@@ -76,6 +76,62 @@ resourcestring
   SConstructorInherited = 'Constructor %s does not call inherited';
   SDestructorInherited = 'Destructor %s does not call inherited';
   STopLevelClassInheritsTObject = 'Class %s should explicitly declare an ancestor';
+  SMethodHidesVirtualWithoutOverride =
+    'Method %s hides a virtual ancestor method and is not declared override';
+  SOverrideChangesDefaultParameterValue =
+    'Override %s changes an inherited default parameter value';
+  SAbstractMethodCalledDirectly = 'Abstract method %s is called directly';
+  SInstantiatesClassWithAbstractMethods =
+    'Class %s is instantiated but has an unimplemented abstract method';
+  SInterfaceWithoutGuidUsedDynamically =
+    'Interface %s is queried dynamically but declares no GUID';
+  SSupportsResultIgnored = 'Result of %s is discarded';
+  SClassHelperHidesAncestorMethod =
+    'Class helper method %s hides a method of the extended type';
+  SAssignedOnNonReference = 'Argument %s of Assigned is not a reference type';
+  SPublicFieldAndPropertyForSameStorage =
+    'Field %s is public and also exposed by a property';
+  SPropertyAccessorVisibilityWiderThanProperty =
+    'Property %s has an accessor with wider visibility';
+  SPropertyGetterWithSideEffect = 'Getter of property %s writes to a field';
+  SConstructorNotVirtualInPolymorphicHierarchy =
+    'Constructor %s is not virtual and a descendant declares its own';
+  SInheritedCreateNotFirstStatement =
+    'Constructor %s does not call inherited first';
+  SInheritedDestroyNotLastStatement =
+    'Destructor %s does not call inherited last';
+  SComparingClassReferencesWithEquals =
+    'Class %s is compared by reference identity';
+
+  // FpSonar.Rules.Concurrency
+  SGlobalWrittenFromThreadRoutine =
+    'Global %s is written in a thread routine with no critical section held';
+  SSynchronizeWithLockHeld = '%s is called while critical section %s is held';
+  SCriticalSectionNotInitialized =
+    'Critical section %s is used without InitCriticalSection';
+  SThreadvarInitialization =
+    'Threadvar %s is never assigned outside unit initialization';
+  SVclAccessOffMainThread = 'UI member %s is accessed in thread routine %s';
+
+  // FpSonar.Rules.CondComp
+  SEmptyConditionalBranch = 'Conditional branch on %s is empty';
+  SNegatedConditionalWithEmptyElse =
+    'Negated conditional on %s has an empty else branch';
+  SHardcodedPathSeparator =
+    'Path separator %s is hardcoded in a concatenation';
+  SHardcodedLineEnding = 'Line ending %s is hardcoded';
+  SPackedRecordFieldAlignmentAssumption =
+    'Size of non-packed record %s is used as an I/O byte count';
+  SAbsoluteVariableOverlay =
+    'Variable %s overlays %s of a different declared size';
+  SPointerSizedDatumTruncatedByByteCount =
+    'Size of fixed-width type %s is used as the byte count of a pointer-sized '
+    + 'datum';
+  SUnknownConditionalSymbol =
+    'Conditional symbol %s is neither defined for this analysis nor a known '
+    + 'FPC or target symbol';
+  SConditionalBranchNeverCompiled =
+    'Branch guarded by %s is never compiled under the configured defines';
 
   // FpSonar.Rules.Control
   SExhaustiveCaseStatement = 'case statement does not handle all enumerated values: %s';
@@ -92,14 +148,116 @@ resourcestring
     'Catching the root Exception class masks unrelated failures; catch a specific subclass';
   SNoRaiseRawException =
     'Raising the root Exception class is too generic; raise a specific subclass';
+  SIdenticalBranches = 'Then and else branches are identical for condition %s';
+  SDuplicateConditionInChain = 'Condition %s is repeated in the same if/else if chain';
+  SDuplicateCaseLabel = 'Case label %s is used more than once';
+  SSelfComparison = 'Operand %s is compared with itself using %s';
+  SEmptyThenWithFollowingStatement =
+    'Empty then branch on condition %s leaves the next statement unconditional';
+  SMixedBooleanAndRelational = 'Boolean operator %s and comparison %s are mixed without parentheses';
+  SBitwiseOnBooleanOperands = 'Operator %s mixes boolean and integer operands, or bit-tests an integer as a condition';
+  SAssignmentInsteadOfComparison = 'Named argument %s assigns with := inside a call argument list';
+  SConditionWithSideEffect = 'Call to %s modifies an argument in a short-circuited operand';
+  SRedundantElseAfterExit = 'Else branch is redundant because the then branch ends with %s';
+  SCollapsibleNestedIf = 'Nested if on condition %s can be merged with the enclosing condition';
+  SNegatedConditionWithElse = 'Condition %s is negated while the if has an else branch';
+  SSwitchOnBooleanExpression = 'Case selector %s is a Boolean expression';
+  SLoopConditionNeverChanges =
+    'No variable of loop condition %s is written in the loop body';
+  SUnreachableCode = 'Statement cannot be reached';
+
+  // FpSonar.Rules.DataFlow
+  SUninitializedVariable = 'Variable %s is read before it is assigned a value';
+  SDeadStore = 'Value assigned to %s is overwritten before it is read';
+  SUninitializedVariableStrict =
+    'Variable %s is not assigned on every path reaching this read';
+  SSelfAssignedNeverUsed =
+    'Variable %s is assigned a value derived from itself that is never read';
+  SResultOverwrittenBeforeExit =
+    'Value assigned to %s is overwritten before the function returns';
+
+  // FpSonar.Rules.Eval
+  SDivisionByZeroConstant = 'Divisor of the %s operation is a constant zero';
+  SConstantConditionAlwaysTrueOrFalse =
+    'Condition of the %s statement is always %s';
+  SComparisonAlwaysTrueForType = 'Comparison of %s against %s is always %s';
+  SConstantOutOfRangeForTarget = 'Constant %s is outside the range of %s';
+  SConstantOverflowInExpression =
+    'Result of the constant %s operation overflows the integer range';
+  SShiftCountExceedsWidth = 'Shift count %s exceeds the width of %s';
+  SSetElementOutOfRange =
+    'Set constructor holds an element outside the range of %s';
+  SEnumOrdinalOutOfRange =
+    'Ordinal %s is outside the range of enumeration %s';
+  SArrayIndexConstantOutOfBounds =
+    'Array index %s is outside the bounds of %s';
+  SSizeOfOnReferenceType =
+    'SizeOf of reference type %s yields the pointer size';
+  SMoveFillCharSizeMismatch =
+    'Byte count passed to %s uses %s, which is not the size of the data in bytes';
+  SFloatEqualityComparison =
+    'Exact equality comparison on floating-point type %s';
+  SIntegerDivisionAssignedToFloat =
+    'Integer division assigned to floating-point type %s discards the remainder';
+  SMixedSignedUnsignedComparison =
+    'Comparison mixes signed %s with unsigned %s of the same width';
 
   // FpSonar.Rules.Exceptions
   SNoEmptyFinally = 'finally block is empty';
   SExceptionsNotSwallowed = 'Exception is swallowed by an empty except handler';
   SNoExplicitReRaise = 'Use a bare raise instead of re-raising %s';
+  SExitInsideFinally = 'exit in a finally block discards the in-flight exception';
+  SRaiseInsideFinally = 'raise in a finally block replaces the in-flight exception';
+  SHandlerOrderShadowsDerived = 'Handler for %s is unreachable because an earlier handler catches %s';
+  STryFinallyAcquireOutsideTry = 'Resource %s is acquired inside the try block that releases it';
+  SExceptionClassNotDerivedFromException = 'Raised class %s does not descend from Exception';
+  SEmptyTryBody = 'try block is empty, so its handler guards nothing';
+  SRaiseInDestructor = 'Unguarded raise in destructor %s can abort destruction';
+  SAssertUsedForControlFlow = 'Assert argument calls %s, which is removed under {$C-}';
 
   // FpSonar.Rules.Forms
   SLfmFormFileExists = 'This form/frame/datamodule unit has no sibling .lfm file.';
+
+  // FpSonar.Rules.FpcStyle
+  SDottedUnitsBranchesInconsistent =
+    'Unit %s is listed in only one FPC_DOTTEDUNITS branch';
+  SMissingDottedUnitsGuard = 'Uses clause has no FPC_DOTTEDUNITS guard';
+  SDottedUnitAliasMismatch =
+    'Unit %s is not aliased as %s in the FPC_DOTTEDUNITS branch';
+  SUnitFileNameCaseMismatch =
+    'File name %s is not the lowercase form of unit name %s';
+  SMissingModeDirective = 'Module %s has no {$mode} directive';
+  SMissingCopyrightHeader =
+    'Module %s has no COPYING.FPC reference in its leading comment';
+  SDeprecatedSymbolUsed = 'Symbol %s is deprecated';
+  SPlatformSymbolUsedInPortableUnit =
+    'Symbol %s is platform-specific and this unit is not marked platform';
+  SExperimentalSymbolUsed = 'Symbol %s is experimental';
+  SPublicMethodUndocumented =
+    'Method %s has no preceding documentation comment';
+  SPublicPropertyUndocumented =
+    'Property %s has no preceding documentation comment';
+  SInterfaceUsesTooBroad =
+    'Interface uses clause names %s, which no interface declaration references';
+  SIOResultNotChecked =
+    'Call to %s under {$I-} is not followed by an IOResult check';
+
+  // FpSonar.Rules.Generics
+  SGenericConstraintUnused =
+    'Generic parameter %s declares a constraint the generic never relies on';
+  SSpecializationOfUnconstrainedGeneric =
+    'Specialization of %s constrains no type parameter';
+  SNestedGenericSpecializationDepth =
+    'Specialization of %s nests %s levels; the maximum allowed is %s';
+  SAnonymousMethodCapturesLoopVariable =
+    'Anonymous method captures loop variable %s, which the loop reuses on '
+    + 'every iteration';
+  SAnonymousMethodCapturesSelf =
+    'Anonymous method in %s captures Self, so it is only valid while the '
+    + 'instance lives';
+  SAttributeOnNonRttiMember =
+    'Attribute on %s, which no RTTI reaches because the member is not '
+    + 'published';
 
   // FpSonar.Rules.Imports
   SFullyQualifiedImports =
@@ -114,6 +272,25 @@ resourcestring
   SLongNumericLiteralUnderscores =
     'Numeric literal with %s digits should use _ separators';
   SDigitGroupingStandard = 'Irregular digit grouping in numeric literal';
+
+  // FpSonar.Rules.Lifetime
+  SFreeOnInterfaceReference = 'Free applied to a reference of interface type %s';
+  SSelfDestroyedInMethod = 'Method %s frees Self outside a destructor';
+  SNewDisposeMismatch = 'Pointer %s is allocated with %s and released with %s';
+  SOwnedFieldNotFreedInDestructor = 'Field %s is created in a constructor but not released in %s';
+  SCreateWithoutTryFinally = 'Instance %s is created and released without a protecting try..finally';
+  SExceptionObjectFreedInHandler = 'Exception object %s is freed inside the handler that caught it';
+  SRaisedExceptionInstanceReused = 'Exception instance %s is referenced after it is raised';
+  SLoopVariableUsedAfterLoop = 'Loop variable %s is read after its loop has ended';
+  SLoopVariableModifiedInBody = 'Loop variable %s is assigned inside its own loop body';
+  SLeakOnEarlyExit = 'Instance %s is not released on this exit path';
+  SStreamNotProtected = 'Stream %s is created without a protecting try..finally';
+  SUseAfterFree = 'Reference %s is read after it is released on this path';
+  SDoubleFree = 'Reference %s is released again with no intervening assignment';
+  SFreeNotFreeAndNilOnField = 'Field %s is freed without being nilled and is read afterwards';
+  SGetMemWithoutFreeMem = 'Pointer %s is allocated and never released in this routine';
+  SObjectCreatedInLoopNotFreed = 'Instance %s is created in a loop that does not release it';
+  SUnbalancedPair = '%s is acquired without a matching %s in a finally';
 
   // FpSonar.Rules.Naming
   SClassNaming = 'Class name "%s" does not match the required pattern "%s"';
@@ -185,6 +362,31 @@ resourcestring
   SProjectFileNoVariables =
     'Move global variable %s out of the project file into a unit';
 
+  // FpSonar.Rules.Strings
+  SPCharOfTemporaryString =
+    'Cast to %s points into a temporary string freed at the end of the statement';
+  SImplicitStringConversionWithDataLoss =
+    'Implicit conversion from %s to %s loses characters';
+  SLengthUsedAsByteCount = 'Length of %s counts characters, not the bytes %s expects';
+  SCopyWithZeroIndex =
+    'Copy of a %s starts at index 0, but string indices start at 1';
+  SPosResultComparedToZeroBased =
+    'Result of %s is compared to %s, but it returns 0 when the substring is absent';
+  SShortStringTruncation =
+    'Constant assigned to %s is longer than the %s characters it holds';
+  SCharComparedToString =
+    'A %s is compared to a string constant of %s characters, which is never equal';
+  SRawByteStringCodePageMix =
+    'RawByteString %s is mixed with a code page %s string and no conversion is written';
+  SStringConcatInLoop =
+    'String %s is rebuilt by concatenation on every iteration of the enclosing loop';
+  SStrToIntWithoutGuard =
+    'StrToInt on %s raises when the text is not an integer, and no handler guards the call';
+  SWideStringOnNonWindows =
+    'Declaration %s is a WideString, which is a COM BSTR only on Windows';
+  SSetLengthWithoutFill =
+    '%s is indexed after SetLength with no intervening write';
+
   // FpSonar.Rules.Tokens
   SLowercaseKeywords = 'Keyword should be lowercase: write %s';
   SCombineConstSections = 'Combine this const section with the previous one';
@@ -233,6 +435,18 @@ resourcestring
   SRemoveUnusedTypePublic = 'Public type "%s" is never used anywhere in the project';
   SRemoveUnusedImports = 'Unit "%s" is in the uses clause but never used';
   SRemoveUnusedGlobalVariable = 'Global variable "%s" is never used';
+  SRemoveUnusedParameter = 'Parameter "%s" is never used in the routine body';
+  SParameterAssignedButNeverUsed =
+    'Value parameter "%s" is assigned but its value is never used';
+  SUnusedExceptionVariable = 'Exception variable "%s" is never used in the handler';
+  SUnusedLabel = 'Label "%s" is declared but no goto targets it';
+  SUnusedGenericParameter =
+    'Generic type parameter "%s" is never used in the generic body';
+  SUnusedUnitInInterface = 'Unit "%s" is used only in the implementation '
+    + 'section but imported in the interface';
+  SPrivateMemberOnlyUsedByOneMethod =
+    'Private member "%s" is referenced by only one method';
+  SWriteOnlyVariable = 'Variable "%s" is written but never read';
 
 
 implementation

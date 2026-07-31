@@ -14,9 +14,6 @@
  **********************************************************************}
 unit utstRulesUnused;
 
-{ The six USE-tier intra-unit unused-declaration rules:
-  RemoveUnusedLocalVariable, RemoveUnusedField, RemoveUnusedProperty,
-  RemoveUnusedConstant, RemoveUnusedRoutine, RemoveUnusedType. }
 
 {$mode objfpc}{$H+}
 
@@ -42,9 +39,9 @@ type
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts NewRule fires exactly once at aDeclLine, column 1, with arg
-    // [aName]; and zero on BOTH the compliant AND canary fixtures (the safe-
-    // direction guard). Fixtures supplied inline, materialised to a temp dir.
+    // Asserts NewRule fires once at aDeclLine, column 1, with arg [aName]; and
+    // zero on both the compliant and canary fixtures (the safe- direction
+    // guard). Fixtures supplied inline, materialised to a temp dir.
     procedure CheckUnusedRuleSrc(aRuleClass: TRuleBaseClassFactory;
       const aId: string; aDeclLine: Integer; const aName: string;
       const aNoncompliant, aCompliant, aCanary: array of string);
@@ -64,16 +61,31 @@ type
     function HasArg(const aCollector: TFpSonarIssueCollector;
       const aId, aArg: string): Boolean;
     // Materialises the six imp_*.pas fixtures of the RemoveUnusedImports
-    // synthetic project into aTmp and returns their paths (imp_user first). The
-    // embedded-fixture (Approach A) pilot: cross-unit resolution finds the used
-    // units as siblings in aTmp.Dir, so no on-disk tests/rules/ dir is needed.
+    // synthetic project into aTmp and returns their paths (imp_user first).
     function WriteImportsProject(aTmp: TTempFixtures): TStringArray;
     // Runs aRule over aFixture with useTier.resolution = aResolution threaded
-    // into the engine config (mirrors RunRule, plus the config set), so the
-    // resolution-backed oracle is selected when utrPrefer + the file resolved.
+    // into the engine config (mirrors RunRule, plus the config set).
     procedure RunRuleResolved(aRule: TRuleBase; const aFixture: string;
       aResolution: TFpSonarUseTierResolution;
       const aCollector: TFpSonarIssueCollector);
+    // TFpSonarConfig.Default with aRuleId enabled and resolution preferred.
+    function EnabledConfig(const aRuleId: string): TFpSonarConfig;
+    // Runs aRule enabled under utrPrefer, withholding resolution when aWithhold.
+    procedure RunRule(aRule: TRuleBase; const aFixture: string;
+      aWithhold: boolean; const aCollector: TFpSonarIssueCollector); overload;
+    // How often aId fires on aSource under utrPrefer, resolution optionally withheld.
+    function PreferredCount(const aId: string; const aSource: array of string;
+      aWithhold: boolean): Integer;
+    // Asserts aId fires once at aDeclLine, column 1, with arg [aName] on
+    // aNoncompliant and zero on aCompliant, both under utrPrefer.
+    procedure CheckNewRule(const aId: string; aDeclLine: Integer;
+      const aName: string; const aNoncompliant, aCompliant: array of string);
+    // Runs aId over aSubject with an index built from aFiles.
+    function IndexedCount(const aId: string; const aFiles: array of string;
+      const aSubject: string): Integer;
+    // Asserts aId fires once at aDeclLine, column 1, with arg [aName].
+    procedure CheckIndexedRule(const aId: string; const aFiles: array of string;
+      const aSubject: string; aDeclLine: Integer; const aName: string);
   published
     procedure ResolutionPrecisionIncrement;
     procedure ResolutionMonotonic;
@@ -91,6 +103,17 @@ type
     procedure UnusedImportsProjectScope;
     procedure UnusedImportsOptInFlags;
     procedure RulesSelfRegisterGlobally;
+    procedure RemoveUnusedParameterPositions;
+    procedure ParameterAssignedButNeverUsedPositions;
+    procedure UnusedExceptionVariablePositions;
+    procedure UnusedLabelPositions;
+    procedure UnusedGenericParameterPositions;
+    procedure UnusedUnitInInterfacePositions;
+    procedure PrivateMemberOnlyUsedByOneMethodPositions;
+    procedure WriteOnlyVariablePositions;
+    procedure NewRulesDegradeWithoutResolver;
+    procedure NewRulesSilentOnUnresolvedOperand;
+    procedure NewRulesIndirectUseChannels;
   end;
 
 
@@ -108,11 +131,18 @@ const
   cTypeId = 'RemoveUnusedType';
   cImportId = 'RemoveUnusedImports';
   cGlobalId = 'RemoveUnusedGlobalVariable';
+  cParamId = 'RemoveUnusedParameter';
+  cParamAssignedId = 'ParameterAssignedButNeverUsed';
+  cExceptVarId = 'UnusedExceptionVariable';
+  cLabelId = 'UnusedLabel';
+  cGenericParamId = 'UnusedGenericParameter';
+  cIfaceUnitId = 'UnusedUnitInInterface';
+  cOneMethodId = 'PrivateMemberOnlyUsedByOneMethod';
+  cWriteOnlyId = 'WriteOnlyVariable';
 
-  // Embedded RemoveUnusedImports cross-unit fixtures (Approach A pilot): the
-  // subject imp_user imports six units; only imp_unused is referenced nowhere
-  // (its uses-clause line 8 => the sole finding). Written as siblings so the
-  // resolver's base-directory resolution binds them. Line i+1 == [i].
+  // Embedded RemoveUnusedImports cross-unit fixtures: imp_user imports six
+  // units and only imp_unused is referenced nowhere (uses-clause line 8).
+  // Written as siblings. Line i+1 == [i].
   cImpUser: array[0..22] of string = (
     'unit imp_user;',
     '{$mode objfpc}{$H+}',
@@ -216,7 +246,7 @@ const
     '',
     'end.');
 
-  // Embedded RemoveUnused* fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded RemoveUnused* fixtures: line i+1 == [i].
 
   cLocalNoncompliant: array[0..14] of string = (
     'unit noncompliant;',
@@ -1002,6 +1032,676 @@ const
     '',
     'end.');
 
+  // Self-contained fixtures (no uses clause); line i+1 == [i].
+
+  cParamNoncompliant: array[0..18] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    '',
+    'implementation',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    'var',
+    '  lTotal: Integer;',
+    'begin',
+    '  lTotal := aUsed;',
+    '  if lTotal > 0 then',
+    '    lTotal := 0;',
+    'end;',
+    '',
+    'end.');
+
+  cParamCompliant: array[0..18] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    '',
+    'implementation',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    'var',
+    '  lTotal: Integer;',
+    'begin',
+    '  lTotal := aUsed + aDead;',
+    '  if lTotal > 0 then',
+    '    lTotal := 0;',
+    'end;',
+    '',
+    'end.');
+
+  // The override/dispatch chain fixes both signatures (matrix row 14).
+  cParamOverride: array[0..32] of string = (
+    'unit chain;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TBase = class(TObject)',
+    '  public',
+    '    procedure Handle(aDead: Integer); virtual;',
+    '    procedure Notify(var aMsg: Integer); message 1;',
+    '  end;',
+    '',
+    '  TChild = class(TBase)',
+    '  public',
+    '    procedure Handle(aDead: Integer); override;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TBase.Handle(aDead: Integer);',
+    'begin',
+    '  aDead := 1;',
+    'end;',
+    '',
+    'procedure TBase.Notify(var aMsg: Integer);',
+    'begin',
+    'end;',
+    '',
+    'procedure TChild.Handle(aDead: Integer);',
+    'begin',
+    'end;',
+    '',
+    'end.');
+
+  // A published method of an {$M+} class is RTTI-reachable (matrix row 15).
+  cParamPublished: array[0..18] of string = (
+    'unit rttiobj;',
+    '{$mode objfpc}{$H+}',
+    '{$M+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorker = class(TObject)',
+    '  published',
+    '    procedure Handle(aDead: Integer);',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TWorker.Handle(aDead: Integer);',
+    'begin',
+    'end;',
+    '',
+    'end.');
+
+  // The routine's address is taken into a procedural variable (matrix row 18).
+  cParamProcVar: array[0..26] of string = (
+    'unit procvar;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorkProc = procedure(aA, aB: Integer);',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    '',
+    'implementation',
+    '',
+    'var',
+    '  GProc: TWorkProc;',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    'var',
+    '  lTotal: Integer;',
+    'begin',
+    '  lTotal := aUsed;',
+    '  if lTotal > 0 then',
+    '    lTotal := 0;',
+    'end;',
+    '',
+    'initialization',
+    '  GProc := @DoWork;',
+    'end.');
+
+  cAssignedNoncompliant: array[0..19] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Helper(aSpare: Integer);',
+    'begin',
+    '  aSpare := 7;',
+    'end;',
+    '',
+    'procedure Drive;',
+    'begin',
+    '  Helper(1);',
+    'end;',
+    '',
+    'end.');
+
+  cAssignedCompliant: array[0..24] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Helper(aSpare: Integer);',
+    'var',
+    '  lKeep: Integer;',
+    'begin',
+    '  aSpare := 7;',
+    '  lKeep := aSpare;',
+    '  if lKeep > 0 then',
+    '    lKeep := 0;',
+    'end;',
+    '',
+    'procedure Drive;',
+    'begin',
+    '  Helper(1);',
+    'end;',
+    '',
+    'end.');
+
+  cExceptVarNoncompliant: array[0..28] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TFailure = class(TObject)',
+    '  end;',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lFlag: Integer;',
+    'begin',
+    '  lFlag := 0;',
+    '  try',
+    '    lFlag := 1;',
+    '  except',
+    '    on E: TFailure do',
+    '      lFlag := 2;',
+    '  end;',
+    '  if lFlag > 0 then',
+    '    lFlag := 0;',
+    'end;',
+    '',
+    'end.');
+
+  cExceptVarCompliant: array[0..29] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TFailure = class(TObject)',
+    '  end;',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lFlag: Integer;',
+    'begin',
+    '  lFlag := 0;',
+    '  try',
+    '    lFlag := 1;',
+    '  except',
+    '    on E: TFailure do',
+    '      if E <> nil then',
+    '        lFlag := 2;',
+    '  end;',
+    '  if lFlag > 0 then',
+    '    lFlag := 0;',
+    'end;',
+    '',
+    'end.');
+
+  // A bare re-raise is a use of the handler variable (matrix row 16).
+  cExceptVarReRaise: array[0..31] of string = (
+    'unit reraise;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TFailure = class(TObject)',
+    '  end;',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lFlag: Integer;',
+    'begin',
+    '  lFlag := 0;',
+    '  try',
+    '    lFlag := 1;',
+    '  except',
+    '    on E: TFailure do',
+    '      begin',
+    '        lFlag := 2;',
+    '        raise;',
+    '      end;',
+    '  end;',
+    '  if lFlag > 0 then',
+    '    lFlag := 0;',
+    'end;',
+    '',
+    'end.');
+
+  cLabelNoncompliant: array[0..21] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '{$goto on}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'label',
+    '  lSkip;',
+    'var',
+    '  lFlag: Integer;',
+    'begin',
+    '  lFlag := 0;',
+    '  if lFlag > 0 then',
+    '    lFlag := 1;',
+    'end;',
+    '',
+    'end.');
+
+  // The goto sits two constructs deep, so a shallow walk would miss it.
+  cLabelCompliant: array[0..29] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '{$goto on}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'label',
+    '  lSkip;',
+    'var',
+    '  lFlag: Integer;',
+    'begin',
+    '  lFlag := 0;',
+    '  if lFlag = 0 then',
+    '  begin',
+    '    try',
+    '      goto lSkip;',
+    '    finally',
+    '      lFlag := 2;',
+    '    end;',
+    '  end;',
+    'lSkip:',
+    '  lFlag := 3;',
+    'end;',
+    '',
+    'end.');
+
+  cGenericNoncompliant: array[0..13] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  generic TBox<T, U> = class',
+    '  private',
+    '    FValue: T;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'end.');
+
+  cGenericCompliant: array[0..14] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  generic TBox<T, U> = class',
+    '  private',
+    '    FValue: T;',
+    '    FOther: U;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'end.');
+
+  // U is named only inside a specialize of a nested generic (matrix row 17).
+  cGenericSpecialize: array[0..19] of string = (
+    'unit spec;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  generic TInner<X> = class',
+    '  private',
+    '    FItem: X;',
+    '  end;',
+    '',
+    '  generic TBox<T, U> = class',
+    '  private',
+    '    FValue: T;',
+    '    FPair: specialize TInner<U>;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'end.');
+
+  cIfaceUnitDep: array[0..11] of string = (
+    'unit uui_dep;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TDepThing = class(TObject)',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'end.');
+
+  cIfaceUnitUser: array[0..19] of string = (
+    'unit uui_user;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'uses',
+    '  uui_dep;',
+    '',
+    'implementation',
+    '',
+    'procedure Consume;',
+    'var',
+    '  lThing: TDepThing;',
+    'begin',
+    '  lThing := nil;',
+    '  if lThing = nil then',
+    '    lThing := nil;',
+    'end;',
+    '',
+    'end.');
+
+  cIfaceUnitUserCompliant: array[0..16] of string = (
+    'unit uui_user;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'uses',
+    '  uui_dep;',
+    '',
+    'procedure Take(aThing: TDepThing);',
+    '',
+    'implementation',
+    '',
+    'procedure Take(aThing: TDepThing);',
+    'begin',
+    'end;',
+    '',
+    'end.');
+
+  cOneMethodNoncompliant: array[0..25] of string = (
+    'unit pmo_nc;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorker = class(TObject)',
+    '  private',
+    '    FCounter: Integer;',
+    '  public',
+    '    procedure Bump;',
+    '    procedure Reset;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TWorker.Bump;',
+    'begin',
+    '  FCounter := FCounter + 1;',
+    'end;',
+    '',
+    'procedure TWorker.Reset;',
+    'begin',
+    'end;',
+    '',
+    'end.');
+
+  cOneMethodCompliant: array[0..26] of string = (
+    'unit pmo_c;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorker = class(TObject)',
+    '  private',
+    '    FCounter: Integer;',
+    '  public',
+    '    procedure Bump;',
+    '    procedure Reset;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TWorker.Bump;',
+    'begin',
+    '  FCounter := FCounter + 1;',
+    'end;',
+    '',
+    'procedure TWorker.Reset;',
+    'begin',
+    '  FCounter := 0;',
+    'end;',
+    '',
+    'end.');
+
+  // The member is a property accessor (matrix row 19).
+  cOneMethodAccessor: array[0..21] of string = (
+    'unit pmo_ac;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorker = class(TObject)',
+    '  private',
+    '    FCounter: Integer;',
+    '  public',
+    '    procedure Bump;',
+    '    property Counter: Integer read FCounter write FCounter;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TWorker.Bump;',
+    'begin',
+    '  FCounter := 0;',
+    'end;',
+    '',
+    'end.');
+
+  // The member is RTTI-reachable rather than private (matrix row 15).
+  cOneMethodPublished: array[0..20] of string = (
+    'unit pmo_pb;',
+    '{$mode objfpc}{$H+}',
+    '{$M+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  TWorker = class(TObject)',
+    '  published',
+    '    FLink: TObject;',
+    '    procedure Bump;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TWorker.Bump;',
+    'begin',
+    '  FLink := nil;',
+    'end;',
+    '',
+    'end.');
+
+  cWriteOnlyNoncompliant: array[0..17] of string = (
+    'unit noncompliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lDead: Integer;',
+    'begin',
+    '  lDead := 1;',
+    '  lDead := 2;',
+    'end;',
+    '',
+    'end.');
+
+  cWriteOnlyCompliant: array[0..18] of string = (
+    'unit compliant;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lDead: Integer;',
+    'begin',
+    '  lDead := 1;',
+    '  if lDead > 0 then',
+    '    lDead := 2;',
+    'end;',
+    '',
+    'end.');
+
+  // A var-parameter operand and an address-of both count as reads (row 20).
+  cWriteOnlyIndirect: array[0..31] of string = (
+    'unit indirect;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'type',
+    '  PInt = ^Integer;',
+    '',
+    'procedure Drive;',
+    '',
+    'implementation',
+    '',
+    'procedure Take(var aSlot: Integer);',
+    'begin',
+    '  aSlot := 1;',
+    'end;',
+    '',
+    'procedure Drive;',
+    'var',
+    '  lByRef: Integer;',
+    '  lAddr: Integer;',
+    '  lPtr: PInt;',
+    'begin',
+    '  lByRef := 0;',
+    '  Take(lByRef);',
+    '  lAddr := 0;',
+    '  lPtr := @lAddr;',
+    '  if lPtr = nil then',
+    '    lPtr := nil;',
+    'end;',
+    '',
+    'end.');
+
+  { A written uses entry makes the closure interface-only, so all four
+    analyzer-backed rules are silent on it (matrix row 11). }
+  cIncompleteClosure: array[0..36] of string = (
+    'unit incomplete;',
+    '{$mode objfpc}{$H+}',
+    '',
+    'interface',
+    '',
+    'uses',
+    '  SysUtils;',
+    '',
+    'type',
+    '  TFailure = class(TObject)',
+    '  end;',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    '',
+    'implementation',
+    '',
+    'procedure Helper(aSpare: Integer);',
+    'begin',
+    '  aSpare := 7;',
+    'end;',
+    '',
+    'procedure DoWork(aUsed, aDead: Integer);',
+    'var',
+    '  lDead: Integer;',
+    'begin',
+    '  Helper(aUsed);',
+    '  lDead := 1;',
+    '  lDead := 2;',
+    '  try',
+    '    lDead := 3;',
+    '  except',
+    '    on E: TFailure do',
+    '      lDead := 4;',
+    '  end;',
+    'end;',
+    '',
+    'end.');
+
 procedure TRulesUnusedTest.RunRule(aRule: TRuleBase; const aFixture: string;
   const aCollector: TFpSonarIssueCollector);
 
@@ -1058,6 +1758,14 @@ function TRulesUnusedTest.NewRule(const aId: string): TRuleBase;
 var
   lMeta: TRuleMetadata;
 
+  // Rule metadata: ship-disabled, per-rule severity and confidence.
+  function NewMeta(aSeverity: TFpSonarSeverity;
+    aConfidence: TFpSonarConfidence): TRuleMetadata;
+  begin
+    Result := TRuleMetadata.Make(aId, rtUse, rfAst, aSeverity, itCodeSmell,
+      aConfidence, False, '');
+  end;
+
 begin
   // Metadata mirrors the unit's self-registration (rtUse / rfAst / Minor /
   // CodeSmell / cfHigh); empty key defaults to rule.<RuleId>.message.
@@ -1077,6 +1785,24 @@ begin
     Result := TRuleRemoveUnusedType.Create(lMeta)
   else if aId = cGlobalId then
     Result := TRuleRemoveUnusedGlobalVariable.Create(lMeta)
+  else if aId = cParamId then
+    Result := TRuleRemoveUnusedParameter.Create(NewMeta(sevMinor, cfMedium))
+  else if aId = cParamAssignedId then
+    Result := TRuleParameterAssignedButNeverUsed.Create(
+      NewMeta(sevMinor, cfMedium))
+  else if aId = cExceptVarId then
+    Result := TRuleUnusedExceptionVariable.Create(NewMeta(sevMinor, cfHigh))
+  else if aId = cLabelId then
+    Result := TRuleUnusedLabel.Create(NewMeta(sevMinor, cfMedium))
+  else if aId = cGenericParamId then
+    Result := TRuleUnusedGenericParameter.Create(NewMeta(sevMinor, cfMedium))
+  else if aId = cIfaceUnitId then
+    Result := TRuleUnusedUnitInInterface.Create(NewMeta(sevMinor, cfMedium))
+  else if aId = cOneMethodId then
+    Result := TRulePrivateMemberOnlyUsedByOneMethod.Create(
+      NewMeta(sevInfo, cfLow))
+  else if aId = cWriteOnlyId then
+    Result := TRuleWriteOnlyVariable.Create(NewMeta(sevMinor, cfMedium))
   else
     begin
       // RemoveUnusedImports declares the two opt-in params (so a config setting
@@ -1100,8 +1826,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at the declaration line, column 1 (AST
-    // nodes carry no column), carrying [offending name] as the single arg.
+    // Noncompliant: one issue at the declaration line, column 1, carrying
+    // [offending name] as the single arg.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRuleClass(aId), lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -1395,11 +2121,10 @@ var
   lProj: TStringArray;
 
 begin
-  // imp_user imports six units: imp_used (referenced => used), imp_unused
-  // (referenced nowhere => the only finding), imp_collision (its export name is
-  // referenced as a LOCAL => collision canary, kept), imp_operator (operator-only
-  // => default skip) and imp_sideeffect (init/final => default skip). The unused
-  // import sits on its own uses-clause line (8).
+  // imp_user imports six units: imp_used (referenced), imp_unused (referenced
+  // nowhere, the only finding), imp_collision (its export name referenced as a
+  // local), imp_operator (operator-only) and imp_sideeffect (init/final). The
+  // unused import sits on its own uses-clause line (8).
   lTmp := TTempFixtures.Create;
   try
     lProj := WriteImportsProject(lTmp);
@@ -1422,7 +2147,7 @@ var
 
 begin
   // With both opt-ins on, the operator-only and side-effect imports are no
-  // longer skipped, so imp_operator + imp_sideeffect join imp_unused (3 findings).
+  // longer skipped.
   lConfig := TFpSonarConfig.Default;
   lSetting.RuleId := cImportId;
   lSetting.HasEnabled := False;
@@ -1468,8 +2193,8 @@ end;
 procedure TRulesUnusedTest.RulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered all six USE rules into the GLOBAL
-  // registry (this is what the CLI process runs).
+  // The production initialization registered all six USE rules into the global
+  // registry.
   AssertTrue('RemoveUnusedLocalVariable registered',
     RuleRegistry.FindById(cLocalId) <> nil);
   AssertTrue('RemoveUnusedField registered',
@@ -1486,6 +2211,39 @@ begin
     RuleRegistry.FindById(cImportId) <> nil);
   AssertTrue('RemoveUnusedGlobalVariable registered',
     RuleRegistry.FindById(cGlobalId) <> nil);
+
+  // The eight rules, every one of them shipping disabled.
+  AssertTrue(cParamId + ' registered', RuleRegistry.FindById(cParamId) <> nil);
+  AssertTrue(cParamAssignedId + ' registered',
+    RuleRegistry.FindById(cParamAssignedId) <> nil);
+  AssertTrue(cExceptVarId + ' registered',
+    RuleRegistry.FindById(cExceptVarId) <> nil);
+  AssertTrue(cLabelId + ' registered', RuleRegistry.FindById(cLabelId) <> nil);
+  AssertTrue(cGenericParamId + ' registered',
+    RuleRegistry.FindById(cGenericParamId) <> nil);
+  AssertTrue(cIfaceUnitId + ' registered',
+    RuleRegistry.FindById(cIfaceUnitId) <> nil);
+  AssertTrue(cOneMethodId + ' registered',
+    RuleRegistry.FindById(cOneMethodId) <> nil);
+  AssertTrue(cWriteOnlyId + ' registered',
+    RuleRegistry.FindById(cWriteOnlyId) <> nil);
+
+  AssertFalse(cParamId + ' ships disabled',
+    RuleRegistry.FindById(cParamId).Metadata.DefaultEnabled);
+  AssertFalse(cParamAssignedId + ' ships disabled',
+    RuleRegistry.FindById(cParamAssignedId).Metadata.DefaultEnabled);
+  AssertFalse(cExceptVarId + ' ships disabled',
+    RuleRegistry.FindById(cExceptVarId).Metadata.DefaultEnabled);
+  AssertFalse(cLabelId + ' ships disabled',
+    RuleRegistry.FindById(cLabelId).Metadata.DefaultEnabled);
+  AssertFalse(cGenericParamId + ' ships disabled',
+    RuleRegistry.FindById(cGenericParamId).Metadata.DefaultEnabled);
+  AssertFalse(cIfaceUnitId + ' ships disabled',
+    RuleRegistry.FindById(cIfaceUnitId).Metadata.DefaultEnabled);
+  AssertFalse(cOneMethodId + ' ships disabled',
+    RuleRegistry.FindById(cOneMethodId).Metadata.DefaultEnabled);
+  AssertFalse(cWriteOnlyId + ' ships disabled',
+    RuleRegistry.FindById(cWriteOnlyId).Metadata.DefaultEnabled);
 end;
 
 
@@ -1506,8 +2264,7 @@ begin
     lConfig := TFpSonarConfig.Default;
     lConfig.UseTierResolution := aResolution;
     lEngine.Config := lConfig;
-    // Analyze builds the resolver (synthetic engine) on parse success, so a
-    // fully-self-contained fixture resolves with no host RTL.
+    // Analyze builds the resolver (synthetic engine) on parse success.
     lEngine.Analyze(aFixture, cMode, cDefines, aCollector);
   finally
     lEngine.Free;
@@ -1545,7 +2302,8 @@ begin
     lc := TFpSonarIssueCollector.Create;
     try
       RunRuleResolved(NewRule(cRoutineId), lFile, utrPrefer, lc);
-      AssertEquals('prefer adds the resolution-only finding', 1,
+      // Also TThing.Used, dead because AnalyzeModule never roots its caller Drive.
+      AssertEquals('prefer adds the resolution-only finding', 2,
         CountById(lc, cRoutineId));
       AssertEquals('finding at the private method line', 17,
         lc.Issues[FirstById(lc, cRoutineId)].StartLine);
@@ -1571,9 +2329,7 @@ begin
   lFix := TTempFixtures.Create;
   try
     lFile := lFix.Add('resplain.pas', cRoutineResPlain);
-    // resplain: a plainly-unused private method Dead (line 15), NO collision, so the
-    // name engine already flags it. The resolution engine must NEVER suppress a
-    // name-engine finding (name-unused ⊆ resolution-unused) — it appears under BOTH.
+    // resplain: a plainly-unused private method Dead (line 15), NO collision.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRuleResolved(NewRule(cRoutineId), lFile, utrOff, lc);
@@ -1588,7 +2344,8 @@ begin
     lc := TFpSonarIssueCollector.Create;
     try
       RunRuleResolved(NewRule(cRoutineId), lFile, utrPrefer, lc);
-      AssertEquals('prefer never suppresses the name finding', 1,
+      // Also TThing.Used, dead because AnalyzeModule never roots its caller Drive.
+      AssertEquals('prefer never suppresses the name finding', 2,
         CountById(lc, cRoutineId));
       AssertEquals('still at its declaration line', 15,
         lc.Issues[FirstById(lc, cRoutineId)].StartLine);
@@ -1609,9 +2366,7 @@ var
 
 begin
   // resdegrade: the collision shape, but the body references an undeclared
-  // identifier, so the resolver fails (Succeeded=False) while the bare AST parses.
-  // The factory must select the name engine, which abstains on the collision — so
-  // NO resolution-only finding may appear even under prefer (per-unit degrade).
+  // identifier.
   lFix := TTempFixtures.Create;
   try
     lc := TFpSonarIssueCollector.Create;
@@ -1625,6 +2380,398 @@ begin
     end;
   finally
     lFix.Free;
+  end;
+end;
+
+
+function TRulesUnusedTest.EnabledConfig(
+  const aRuleId: string): TFpSonarConfig;
+
+begin
+  // These rules all ship disabled, so the dispatcher needs the opt-in.
+  Result := TFpSonarConfig.Default;
+  SetLength(Result.Rules, 0);
+  SetLength(Result.Rules, 1);
+  Result.Rules[0].RuleId := aRuleId;
+  Result.Rules[0].HasEnabled := True;
+  Result.Rules[0].Enabled := True;
+  Result.UseTierResolution := utrPrefer;
+end;
+
+
+procedure TRulesUnusedTest.RunRule(aRule: TRuleBase; const aFixture: string;
+  aWithhold: boolean; const aCollector: TFpSonarIssueCollector);
+
+var
+  lReg: TRuleRegistry;
+  lEngine: TFpSonarRuleEngine;
+
+begin
+  lReg := TRuleRegistry.Create;
+  lEngine := TFpSonarRuleEngine.CreateWith(lReg);
+  try
+    lEngine.Config := EnabledConfig(aRule.Metadata.RuleId);
+    lReg.Register(aRule);
+    // aRealRtl puts objpas in every implicit uses chain; it is absent from the
+    // synthetic registry.
+    if aWithhold then
+      lEngine.Analyze(aFixture, cMode, cDefines, [], [], True, SizeOf(Pointer),
+        aCollector)
+    else
+      lEngine.Analyze(aFixture, cMode, cDefines, aCollector);
+  finally
+    lEngine.Free;
+    lReg.Free;
+  end;
+end;
+
+
+function TRulesUnusedTest.PreferredCount(const aId: string;
+  const aSource: array of string; aWithhold: boolean): Integer;
+
+var
+  lFix: TTempFixtures;
+  lc: TFpSonarIssueCollector;
+
+begin
+  lFix := TTempFixtures.Create;
+  try
+    lc := TFpSonarIssueCollector.Create;
+    try
+      RunRule(NewRule(aId), lFix.Add('probe.pas', aSource), aWithhold, lc);
+      Result := CountById(lc, aId);
+    finally
+      lc.Free;
+    end;
+  finally
+    lFix.Free;
+  end;
+end;
+
+
+procedure TRulesUnusedTest.CheckNewRule(const aId: string; aDeclLine: Integer;
+  const aName: string; const aNoncompliant, aCompliant: array of string);
+
+var
+  lc: TFpSonarIssueCollector;
+  lFix: TTempFixtures;
+  k: Integer;
+
+begin
+  lFix := TTempFixtures.Create;
+  try
+    lc := TFpSonarIssueCollector.Create;
+    try
+      RunRule(NewRule(aId), lFix.Add('noncompliant.pas', aNoncompliant),
+        False, lc);
+      AssertEquals('one issue for ' + aId, 1, CountById(lc, aId));
+      k := FirstById(lc, aId);
+      AssertEquals('start line', aDeclLine, lc.Issues[k].StartLine);
+      AssertEquals('start col', 1, lc.Issues[k].StartCol);
+      AssertEquals('end line', aDeclLine, lc.Issues[k].EndLine);
+      AssertEquals('end col', 1, lc.Issues[k].EndCol);
+      AssertEquals('key is the dotted rule key', 'rule.' + aId + '.message',
+        lc.Issues[k].MessageKey);
+      AssertEquals('one message arg', 1, Length(lc.Issues[k].MessageArgs));
+      AssertEquals('arg 0 is the offending name', aName,
+        lc.Issues[k].MessageArgs[0]);
+    finally
+      lc.Free;
+    end;
+
+    lc := TFpSonarIssueCollector.Create;
+    try
+      RunRule(NewRule(aId), lFix.Add('compliant.pas', aCompliant), False, lc);
+      AssertEquals('compliant => zero for ' + aId, 0, CountById(lc, aId));
+    finally
+      lc.Free;
+    end;
+  finally
+    lFix.Free;
+  end;
+end;
+
+
+function TRulesUnusedTest.IndexedCount(const aId: string;
+  const aFiles: array of string; const aSubject: string): Integer;
+
+var
+  lIndex: TFpSonarProjectIndex;
+  lc: TFpSonarIssueCollector;
+
+begin
+  lIndex := BuildIndex(aFiles);
+  try
+    lc := TFpSonarIssueCollector.Create;
+    try
+      RunRuleWithIndex(NewRule(aId), aSubject, lIndex, EnabledConfig(aId), lc);
+      Result := CountById(lc, aId);
+    finally
+      lc.Free;
+    end;
+  finally
+    lIndex.Free;
+  end;
+end;
+
+
+procedure TRulesUnusedTest.CheckIndexedRule(const aId: string;
+  const aFiles: array of string; const aSubject: string; aDeclLine: Integer;
+  const aName: string);
+
+var
+  lIndex: TFpSonarProjectIndex;
+  lc: TFpSonarIssueCollector;
+  k: Integer;
+
+begin
+  lIndex := BuildIndex(aFiles);
+  try
+    lc := TFpSonarIssueCollector.Create;
+    try
+      RunRuleWithIndex(NewRule(aId), aSubject, lIndex, EnabledConfig(aId), lc);
+      AssertEquals('one issue for ' + aId, 1, CountById(lc, aId));
+      k := FirstById(lc, aId);
+      AssertEquals('start line', aDeclLine, lc.Issues[k].StartLine);
+      AssertEquals('start col', 1, lc.Issues[k].StartCol);
+      AssertEquals('end line', aDeclLine, lc.Issues[k].EndLine);
+      AssertEquals('end col', 1, lc.Issues[k].EndCol);
+      AssertEquals('key is the dotted rule key', 'rule.' + aId + '.message',
+        lc.Issues[k].MessageKey);
+      AssertEquals('one message arg', 1, Length(lc.Issues[k].MessageArgs));
+      AssertEquals('arg 0 is the offending name', aName,
+        lc.Issues[k].MessageArgs[0]);
+    finally
+      lc.Free;
+    end;
+  finally
+    lIndex.Free;
+  end;
+end;
+
+
+procedure TRulesUnusedTest.RemoveUnusedParameterPositions;
+
+begin
+  // Noncompliant: parameter 'aDead' of the interface declaration (line 6) is
+  // named nowhere in DoWork's body.
+  CheckNewRule(cParamId, 6, 'aDead', cParamNoncompliant, cParamCompliant);
+end;
+
+
+procedure TRulesUnusedTest.ParameterAssignedButNeverUsedPositions;
+
+begin
+  // Noncompliant: value parameter 'aSpare' (line 10) is assigned and discarded.
+  CheckNewRule(cParamAssignedId, 10, 'aSpare',
+    cAssignedNoncompliant, cAssignedCompliant);
+end;
+
+
+procedure TRulesUnusedTest.UnusedExceptionVariablePositions;
+
+begin
+  // Noncompliant: handler variable 'E' (line 22) is never named in the handler.
+  CheckNewRule(cExceptVarId, 22, 'E',
+    cExceptVarNoncompliant, cExceptVarCompliant);
+end;
+
+
+procedure TRulesUnusedTest.UnusedLabelPositions;
+
+begin
+  // Noncompliant: 'lSkip' is declared (label block on line 12) and no goto
+  // targets it. The compliant fixture nests its goto inside a try inside an if.
+  CheckNewRule(cLabelId, 12, 'lSkip', cLabelNoncompliant, cLabelCompliant);
+end;
+
+
+procedure TRulesUnusedTest.UnusedGenericParameterPositions;
+
+begin
+  // Noncompliant: template parameter 'U' of TBox (line 7) is never named.
+  CheckNewRule(cGenericParamId, 7, 'U',
+    cGenericNoncompliant, cGenericCompliant);
+end;
+
+
+procedure TRulesUnusedTest.UnusedUnitInInterfacePositions;
+
+var
+  lTmp: TTempFixtures;
+  lUser: string;
+
+begin
+  // Noncompliant: uui_user imports uui_dep in its interface (line 7) but only
+  // its implementation section names TDepThing.
+  lTmp := TTempFixtures.Create;
+  try
+    lTmp.Add('uui_dep.pas', cIfaceUnitDep);
+    lUser := lTmp.Add('uui_user.pas', cIfaceUnitUser);
+    CheckIndexedRule(cIfaceUnitId,
+      [lUser, lTmp.Dir + PathDelim + 'uui_dep.pas'], lUser, 7, 'uui_dep');
+  finally
+    lTmp.Free;
+  end;
+
+  // Compliant: the interface itself names TDepThing.
+  lTmp := TTempFixtures.Create;
+  try
+    lTmp.Add('uui_dep.pas', cIfaceUnitDep);
+    lUser := lTmp.Add('uui_user.pas', cIfaceUnitUserCompliant);
+    AssertEquals('an interface-side use keeps the import', 0,
+      IndexedCount(cIfaceUnitId,
+        [lUser, lTmp.Dir + PathDelim + 'uui_dep.pas'], lUser));
+  finally
+    lTmp.Free;
+  end;
+end;
+
+
+procedure TRulesUnusedTest.PrivateMemberOnlyUsedByOneMethodPositions;
+
+var
+  lTmp: TTempFixtures;
+  lFile: string;
+
+begin
+  // Noncompliant: private field 'FCounter' (line 9) is referenced by Bump alone.
+  lTmp := TTempFixtures.Create;
+  try
+    lFile := lTmp.Add('pmo_nc.pas', cOneMethodNoncompliant);
+    // The index needs a second unit: a one-unit index answers rrUnknown.
+    CheckIndexedRule(cOneMethodId,
+      [lFile, lTmp.Add('uui_dep.pas', cIfaceUnitDep)], lFile, 9, 'FCounter');
+  finally
+    lTmp.Free;
+  end;
+
+  // Compliant: both methods reference it.
+  lTmp := TTempFixtures.Create;
+  try
+    lFile := lTmp.Add('pmo_c.pas', cOneMethodCompliant);
+    AssertEquals('two referring methods => zero', 0,
+      IndexedCount(cOneMethodId,
+        [lFile, lTmp.Add('uui_dep.pas', cIfaceUnitDep)], lFile));
+  finally
+    lTmp.Free;
+  end;
+end;
+
+
+procedure TRulesUnusedTest.WriteOnlyVariablePositions;
+
+begin
+  // Noncompliant: local 'lDead' (line 12) is assigned twice and never read.
+  CheckNewRule(cWriteOnlyId, 12, 'lDead',
+    cWriteOnlyNoncompliant, cWriteOnlyCompliant);
+end;
+
+
+procedure TRulesUnusedTest.NewRulesDegradeWithoutResolver;
+
+begin
+  // Matrix row 10: with resolution withheld the six rules that read a resolved
+  // fact emit nothing and raise nothing.
+  AssertEquals(cParamId + ' degrades', 0,
+    PreferredCount(cParamId, cParamNoncompliant, True));
+  AssertEquals(cParamAssignedId + ' degrades', 0,
+    PreferredCount(cParamAssignedId, cAssignedNoncompliant, True));
+  AssertEquals(cExceptVarId + ' degrades', 0,
+    PreferredCount(cExceptVarId, cExceptVarNoncompliant, True));
+  AssertEquals(cGenericParamId + ' degrades', 0,
+    PreferredCount(cGenericParamId, cGenericNoncompliant, True));
+  AssertEquals(cWriteOnlyId + ' degrades', 0,
+    PreferredCount(cWriteOnlyId, cWriteOnlyNoncompliant, True));
+  // UnusedLabel reads the unit's own statement tree.
+  AssertEquals(cLabelId + ' is resolution-independent', 1,
+    PreferredCount(cLabelId, cLabelNoncompliant, True));
+  // The two index-backed rules exit on the missing index before resolution is
+  // ever consulted.
+  AssertEquals(cOneMethodId + ' degrades', 0,
+    PreferredCount(cOneMethodId, cOneMethodNoncompliant, True));
+  AssertEquals(cIfaceUnitId + ' degrades', 0,
+    PreferredCount(cIfaceUnitId, cIfaceUnitUser, True));
+end;
+
+
+procedure TRulesUnusedTest.NewRulesSilentOnUnresolvedOperand;
+
+begin
+  // Matrix row 11: a written uses entry makes the closure interface-only, which
+  // is exactly the AC's completeness clause for the four analyzer-backed rules.
+  AssertEquals(cParamId + ' is silent on an incomplete closure', 0,
+    PreferredCount(cParamId, cIncompleteClosure, False));
+  AssertEquals(cParamAssignedId + ' is silent on an incomplete closure', 0,
+    PreferredCount(cParamAssignedId, cIncompleteClosure, False));
+  AssertEquals(cExceptVarId + ' is silent on an incomplete closure', 0,
+    PreferredCount(cExceptVarId, cIncompleteClosure, False));
+  AssertEquals(cWriteOnlyId + ' is silent on an incomplete closure', 0,
+    PreferredCount(cWriteOnlyId, cIncompleteClosure, False));
+  AssertEquals(cGenericParamId + ' is silent on an incomplete closure', 0,
+    PreferredCount(cGenericParamId, cIncompleteClosure, False));
+
+  // Matrix row 12: no project index, so neither index-backed rule can decide.
+  AssertEquals(cOneMethodId + ' is silent without an index', 0,
+    PreferredCount(cOneMethodId, cOneMethodNoncompliant, False));
+  AssertEquals(cIfaceUnitId + ' is silent without an index', 0,
+    PreferredCount(cIfaceUnitId, cIfaceUnitUser, False));
+  // Matrix row 13: n/a for UnusedLabel. It is an rtAst rule over the unit's own
+  // statement tree and consults no resolved fact.
+end;
+
+
+procedure TRulesUnusedTest.NewRulesIndirectUseChannels;
+
+var
+  lTmp: TTempFixtures;
+  lFile: string;
+
+begin
+  // Row 14: a virtual, override or message routine's signature is fixed by the
+  // chain.
+  AssertEquals(cParamId + ' skips the override chain', 0,
+    PreferredCount(cParamId, cParamOverride, False));
+  AssertEquals(cParamAssignedId + ' skips the override chain', 0,
+    PreferredCount(cParamAssignedId, cParamOverride, False));
+  // Row 15: a published member of an {$M+} class is RTTI-reachable.
+  AssertEquals(cParamId + ' skips a published method', 0,
+    PreferredCount(cParamId, cParamPublished, False));
+  // Row 16: a bare re-raise is a use of the handler variable.
+  AssertEquals(cExceptVarId + ' counts a bare raise as a use', 0,
+    PreferredCount(cExceptVarId, cExceptVarReRaise, False));
+  { Row 17: a specialize argument is a use of the template parameter, and the
+    name set never holds one — it is an unparented TPasUnresolvedTypeRef that
+    ForEachCall's CheckParent guard drops (DW-422). }
+  AssertEquals(cGenericParamId + ' abstains on a declared specialization', 0,
+    PreferredCount(cGenericParamId, cGenericSpecialize, False));
+  { Row 18: taking the routine's address does not reach its parameters, so the
+    unused list still carries aDead. Measured residue, which is what holds the
+    rule at cfMedium instead of reporting it away (DW-419). }
+  AssertEquals(cParamId + ' cannot see the address-of channel', 1,
+    PreferredCount(cParamId, cParamProcVar, False));
+  // Row 20: a var-parameter operand and an address-of both count as reads.
+  AssertEquals(cWriteOnlyId + ' counts var-param and address-of reads', 0,
+    PreferredCount(cWriteOnlyId, cWriteOnlyIndirect, False));
+
+  // Rows 15 and 19 for the private-member rule, which needs a project index.
+  lTmp := TTempFixtures.Create;
+  try
+    lFile := lTmp.Add('pmo_ac.pas', cOneMethodAccessor);
+    AssertEquals(cOneMethodId + ' skips a property accessor', 0,
+      IndexedCount(cOneMethodId,
+        [lFile, lTmp.Add('uui_dep.pas', cIfaceUnitDep)], lFile));
+  finally
+    lTmp.Free;
+  end;
+  lTmp := TTempFixtures.Create;
+  try
+    lFile := lTmp.Add('pmo_pb.pas', cOneMethodPublished);
+    AssertEquals(cOneMethodId + ' skips a published member', 0,
+      IndexedCount(cOneMethodId,
+        [lFile, lTmp.Add('uui_dep.pas', cIfaceUnitDep)], lFile));
+  finally
+    lTmp.Free;
   end;
 end;
 

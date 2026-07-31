@@ -14,8 +14,6 @@
  **********************************************************************}
 unit UtstFixtures;
 
-{ Test helper: writes embedded fixture sources into a unique temporary
-  directory and deletes the whole directory on Free. }
 
 {$mode objfpc}{$H+}
 
@@ -25,8 +23,7 @@ uses
   SysUtils, Classes;
 
 type
-  { Owns a unique temp directory; writes fixtures into it and removes it (and
-    everything written) on Free. One instance per test, freed in a finally. }
+  { Owns a unique temp directory; writes fixtures into it and removes it on Free. }
   TTempFixtures = class
   private
     FDir: string;
@@ -36,10 +33,9 @@ type
     constructor Create;
     // Deletes every written fixture and removes the directory.
     destructor Destroy; override;
-    // Writes aLines (one element per source line) to <dir>/aName and returns the
-    // full path. Line i+1 of the fixture == aLines[i].
+    // Writes aLines (one line per element) to <dir>/aName; returns the full path.
     function Add(const aName: string; const aLines: array of string): string;
-    // The temp directory (the resolver's base directory for cross-unit fixtures).
+    // The temp directory holding the written fixtures.
     property Dir: string read FDir;
   end;
 
@@ -54,8 +50,7 @@ var
 begin
   inherited Create;
   FFiles := TStringList.Create;
-  // GetTempFileName yields a unique path (and touches the file); reuse the name
-  // for a directory instead.
+  // GetTempFileName yields a unique path and touches the file.
   lBase := GetTempFileName;
   DeleteFile(lBase);
   FDir := lBase;

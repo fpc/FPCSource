@@ -23,8 +23,11 @@ type
     FPAMessages: TFPList; // list of TPAMessage
     FPAGoodMessages: TFPList;
     FProcAnalyzer: TPasAnalyzer;
+    FUnresolvedRefEl: TPasElement;
+    FUnresolvedRefCount: integer;
     function GetPAMessages(Index: integer): TPAMessage;
     procedure OnAnalyzerMessage(Sender: TObject; Msg: TPAMessage);
+    procedure OnAnalyzerUnresolvedRef(Sender: TObject; El: TPasElement);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -39,6 +42,10 @@ type
     procedure CheckUnitUsed(const aFilename: string; Used: boolean); virtual;
     procedure CheckScopeReferences(const ScopeName: string;
       const RefNames: array of string);
+    // returns the analyzer's unused declarations as 'elementtypename name', comma separated
+    function UnusedElementsAsText: string;
+    // returns 'reads/writes' of the analyzed declaration at the source label
+    function AccessCountsAtSrcLabel(const aLabel: string): string;
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
     property ProcAnalyzer: TPasAnalyzer read FProcAnalyzer;
@@ -191,6 +198,14 @@ type
     // scope references
     procedure TestSR_Proc_UnitVar;
     procedure TestSR_Init_UnitVar;
+
+    // linter api
+    procedure TestLA_UnusedDeclarations;
+    procedure TestLA_UnusedDeclarations_AllUsed;
+    procedure TestLA_AccessCounts;
+    procedure TestLA_IsComplete_FullDependency;
+    procedure TestLA_IsComplete_InterfaceOnlyDependency;
+    procedure TestLA_IsComplete_InterfaceOnlyDependencyInImplementation;
   end;
 
 function dbgs(a: TPSRefAccess) : string;
@@ -211,6 +226,13 @@ begin
   FPAMessages.Add(Msg);
 end;
 
+procedure TCustomTestUseAnalyzer.OnAnalyzerUnresolvedRef(Sender: TObject;
+  El: TPasElement);
+begin
+  FUnresolvedRefEl:=El;
+  inc(FUnresolvedRefCount);
+end;
+
 function TCustomTestUseAnalyzer.GetPAMessages(Index: integer): TPAMessage;
 begin
   Result:=TPAMessage(FPAMessages[Index]);
@@ -224,6 +246,7 @@ begin
   FAnalyzer:=TPasAnalyzer.Create;
   FAnalyzer.Resolver:=ResolverEngine;
   Analyzer.OnMessage:=@OnAnalyzerMessage;
+  Analyzer.OnUnresolvedRef:=@OnAnalyzerUnresolvedRef;
 end;
 
 procedure TCustomTestUseAnalyzer.TearDown;
@@ -592,6 +615,49 @@ begin
       exit;
     end;
   Fail('missing proc '+ScopeName);
+end;
+
+function TCustomTestUseAnalyzer.UnusedElementsAsText: string;
+var
+  List: TFPList;
+  i: Integer;
+  El: TPasElement;
+begin
+  Result:='';
+  List:=Analyzer.GetUnusedElements;
+  try
+    for i:=0 to List.Count-1 do
+      begin
+      El:=TPasElement(List[i]);
+      if Result<>'' then
+        Result:=Result+', ';
+      Result:=Result+El.ElementTypeName+' '+El.Name;
+      end;
+  finally
+    List.Free;
+  end;
+end;
+
+function TCustomTestUseAnalyzer.AccessCountsAtSrcLabel(const aLabel: string
+  ): string;
+var
+  Elements: TFPList;
+  i: Integer;
+  PAEl: TPAElement;
+begin
+  Result:='';
+  Elements:=FindElementsAtSrcLabel(aLabel);
+  try
+    for i:=0 to Elements.Count-1 do
+      begin
+      PAEl:=Analyzer.FindElement(TPasElement(Elements[i]));
+      if PAEl<>nil then
+        exit(IntToStr(PAEl.ReadCount)+'/'+IntToStr(PAEl.WriteCount));
+      end;
+  finally
+    Elements.Free;
+  end;
+  Fail('no analyzed element at label "'+aLabel+'"');
 end;
 
 function TCustomTestUseAnalyzer.PAMessageCount: integer;
@@ -3773,6 +3839,206 @@ begin
   AnalyzeUnit;
   CheckScopeReferences('initialization',['b','i']);
   CheckScopeReferences('finalization',['b','j']);
+end;
+
+procedure TTestUseAnalyzer.TestLA_UnusedDeclarations;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  'type',
+  '  TUnusedType = longint;',
+  '  TUsedType = longint;',
+  '  TBird = class',
+  '  private',
+  '    FUnusedField: longint;',
+  '    FUsedField: longint;',
+  '    procedure DoUnused;',
+  '    procedure DoUsed;',
+  '  public',
+  '    constructor Create;',
+  '  end;',
+  'const',
+  '  cUnused = 1;',
+  '  cUsed = 2;',
+  'var',
+  '  vUnused: longint;',
+  '  vUsed: TUsedType;',
+  '  b: TBird;',
+  'procedure Run(aUnused: longint; aUsed: longint);',
+  'begin',
+  '  vUsed:=aUsed;',
+  '  if vUsed=0 then ;',
+  'end;',
+  'constructor TBird.Create;',
+  'begin',
+  '  DoUsed;',
+  'end;',
+  'procedure TBird.DoUnused;',
+  'begin',
+  'end;',
+  'procedure TBird.DoUsed;',
+  'begin',
+  '  FUsedField:=cUsed;',
+  '  if FUsedField=1 then ;',
+  'end;',
+  'begin',
+  '  b:=TBird.Create;',
+  '  if b<>nil then ;',
+  '  Run(1,2);',
+  '']);
+  AnalyzeProgram;
+  AssertEquals('unused elements',
+    'alias type TUnusedType, variable FUnusedField, procedure DoUnused, '
+      +'constant cUnused, variable vUnused, argument aUnused',
+    UnusedElementsAsText);
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,
+    'Local alias type "TUnusedType" not used');
+  CheckUseAnalyzerHint(mtHint,nPAPrivateFieldIsNeverUsed,
+    'Private field "TBird.FUnusedField" is never used');
+  CheckUseAnalyzerHint(mtHint,nPAPrivateMethodIsNeverUsed,
+    'Private method "TBird.DoUnused" is never used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,
+    'Local constant "cUnused" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,
+    'Local variable "vUnused" not used');
+  CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,
+    'Parameter "aUnused" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestLA_UnusedDeclarations_AllUsed;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  'type',
+  '  TUsedType = longint;',
+  '  TBird = class',
+  '  private',
+  '    FUsedField: longint;',
+  '    procedure DoUsed;',
+  '  public',
+  '    constructor Create;',
+  '  end;',
+  'const',
+  '  cUsed = 2;',
+  'var',
+  '  vUsed: TUsedType;',
+  '  b: TBird;',
+  'procedure Run(aUsed: longint);',
+  'begin',
+  '  vUsed:=aUsed;',
+  '  if vUsed=0 then ;',
+  'end;',
+  'constructor TBird.Create;',
+  'begin',
+  '  DoUsed;',
+  'end;',
+  'procedure TBird.DoUsed;',
+  'begin',
+  '  FUsedField:=cUsed;',
+  '  if FUsedField=1 then ;',
+  'end;',
+  'begin',
+  '  b:=TBird.Create;',
+  '  if b<>nil then ;',
+  '  Run(2);',
+  '']);
+  AnalyzeProgram;
+  AssertEquals('unused elements','',UnusedElementsAsText);
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestLA_AccessCounts;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Bump(var x: longint);',
+  'begin',
+  '  x:=x+1;',
+  'end;',
+  'procedure Run(var {#varparam}p: longint; {#valparam}q: longint);',
+  'var',
+  '  {#localvar}v: longint;',
+  '  {#initvar}d: longint = 15;',
+  'begin',
+  '  v:=q;',
+  '  if v=d then ;',
+  '  if v>0 then ;',
+  '  Bump(p);',
+  'end;',
+  'var g: longint;',
+  'begin',
+  '  Run(g,1);',
+  '']);
+  AnalyzeProgram;
+  AssertEquals('local variable reads/writes','2/1',AccessCountsAtSrcLabel('localvar'));
+  AssertEquals('var parameter reads/writes','1/1',AccessCountsAtSrcLabel('varparam'));
+  AssertEquals('value parameter reads/writes','1/0',AccessCountsAtSrcLabel('valparam'));
+  AssertEquals('initialised variable reads/writes','1/0',AccessCountsAtSrcLabel('initvar'));
+end;
+
+procedure TTestUseAnalyzer.TestLA_IsComplete_FullDependency;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr(['']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('begin');
+  Add('  i:=3;');
+  AnalyzeProgram;
+  AssertEquals('IsComplete',true,Analyzer.IsComplete);
+  AssertEquals('OnUnresolvedRef calls',0,FUnresolvedRefCount);
+end;
+
+procedure TTestUseAnalyzer.TestLA_IsComplete_InterfaceOnlyDependency;
+var
+  UsesUnit: TPasUsesUnit;
+begin
+  AddInterfaceOnlyModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr(['']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('begin');
+  Add('  i:=3;');
+  AnalyzeProgram;
+  AssertEquals('IsComplete',false,Analyzer.IsComplete);
+  AssertEquals('OnUnresolvedRef calls',1,FUnresolvedRefCount);
+  if not (FUnresolvedRefEl is TPasUsesUnit) then
+    Fail('OnUnresolvedRef element is '+GetObjName(FUnresolvedRefEl));
+  UsesUnit:=TPasUsesUnit(FUnresolvedRefEl);
+  AssertEquals('OnUnresolvedRef module','unit2',UsesUnit.Module.Name);
+end;
+
+procedure TTestUseAnalyzer.TestLA_IsComplete_InterfaceOnlyDependencyInImplementation;
+begin
+  AddInterfaceOnlyModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr(['']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'procedure Run;',
+  'implementation',
+  'uses unit2;',
+  'procedure Run;',
+  'begin',
+  '  i:=3;',
+  'end;',
+  '']);
+  AnalyzeUnit;
+  AssertEquals('IsComplete',false,Analyzer.IsComplete);
+  AssertEquals('OnUnresolvedRef calls',1,FUnresolvedRefCount);
 end;
 
 initialization

@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesRefs;
 
-{ The resolver-backed (SEM) reference / proc-value rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -30,33 +29,26 @@ type
   { SEM-tier reference / proc-value rule position + registration tests. }
   TRulesRefsTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts aRule fires exactly once at aLine, column 1, with key
-    // rule.<aId>.message and ZERO message args; and zero on the compliant fixture
-    // (which must resolve clean — the silent-skip canary). Fixtures supplied
-    // inline (one array element per source line) and materialised to a temp dir.
+    // Asserts aRule fires once at aLine, column 1, with key rule.<aId>.message
+    // and no message args, and zero on the compliant fixture.
     procedure CheckSingleRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aLine: Integer;
       const aNoncompliant, aCompliant: array of string);
-    // Asserts aRule fires exactly twice at aLine1 then aLine2 (both column 1),
-    // each with key rule.<aId>.message and ZERO args; and zero on the compliant
-    // fixture. Fixtures supplied inline, materialised to a temp dir. (For
-    // NoObjectAsInterface's two offending sites: the assignment then the call arg.)
+    // Asserts aRule fires twice at aLine1 then aLine2, each with key
+    // rule.<aId>.message and no args, and zero on the compliant fixture.
     procedure CheckTwoRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aLine1, aLine2: Integer;
       const aNoncompliant, aCompliant: array of string);
-    // Asserts aFixture resolves clean (Succeeded=True) — guards the #66 compliant
-    // canary against silently degrading to a vacuous silent-skip (false green).
+    // Asserts aFixture resolves clean (Succeeded=True).
     procedure AssertResolvesClean(const aFixture: string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the unit's
-    // self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewNoObjectAsInterface: TRuleBase;
     function NewNoNestedRoutineAsProcValue: TRuleBase;
     function NewNoInlineVarCapturedByAnonMethod: TRuleBase;
@@ -76,7 +68,7 @@ const
   cNoNestedRoutineAsProcValueId = 'NoNestedRoutineAsProcValue';
   cNoInlineVarCapturedByAnonMethodId = 'NoInlineVarCapturedByAnonMethod';
 
-  // Embedded reference-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded reference-rule fixtures: line i+1 == [i].
 
   cNoObjectAsInterfaceNoncompliant: array[0..26] of string = (
     'unit noncompliant;',
@@ -404,8 +396,7 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at the offending node's row, column 1 (SEM
-    // nodes carry no column), carrying NO message args.
+    // Noncompliant: one issue at the offending node's row, column 1, no args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -422,8 +413,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: the FP guards stay silent (and the fixture MUST resolve clean,
-    // else the rfResolver feed is absent -> rule skipped -> a false 0).
+    // Compliant: the FP guards stay silent; the fixture must resolve clean.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aCompliantRule, lFix.Add('compliant.pas', aCompliant), lc);
@@ -449,9 +439,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly two issues (the two offending sites of this rule's
-    // fixture, in statement-then-expression order), each at its node row, column 1,
-    // with key rule.<aId>.message and zero args.
+    // Noncompliant: two issues in statement-then-expression order, each at its
+    // node row, column 1, with no args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -469,8 +458,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: the FP guards stay silent (and the fixture MUST resolve clean,
-    // else the rfResolver feed is absent -> rule skipped -> a false 0).
+    // Compliant: the FP guards stay silent; the fixture must resolve clean.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aCompliantRule, lFix.Add('compliant.pas', aCompliant), lc);
@@ -489,9 +477,6 @@ procedure TRulesRefsTest.NoObjectAsInterfacePositions;
 begin
   // Noncompliant: 'Intf := Obj;' (assignment RHS, row 21) and 'Use(Obj)' (call
   // arg, row 22), both probe-locked; the anchor is the source object expression.
-  // Compliant: an explicit 'Obj as IMyIntf', 'Intf := nil', an interface->interface
-  // assignment, a freshly-created 'TMyClass.Create as IMyIntf', and a CORBA-interface
-  // target (corbaInterfacesExempt) — all silent.
   CheckTwoRuleSrc(NewNoObjectAsInterface, NewNoObjectAsInterface,
     cNoObjectAsInterfaceId, 21, 22,
     cNoObjectAsInterfaceNoncompliant, cNoObjectAsInterfaceCompliant);
@@ -501,10 +486,8 @@ end;
 procedure TRulesRefsTest.NoNestedRoutineAsProcValuePositions;
 
 begin
-  // Noncompliant: 'Cb := @Inner;' (the @-expr on row 15, probe-locked) where Inner
-  // is nested in Outer and Cb is a global var that outlives the frame. Compliant:
-  // a synchronous call-arg 'ForEach(@Inner)', a same-frame 'Local := @Inner', and a
-  // non-nested 'Cb := @TopLevel' — all silent.
+  // Noncompliant: 'Cb := @Inner;' (the @-expr on row 15, probe-locked), where
+  // Inner is nested in Outer and Cb is a global var that outlives the frame.
   CheckSingleRuleSrc(NewNoNestedRoutineAsProcValue, NewNoNestedRoutineAsProcValue,
     cNoNestedRoutineAsProcValueId, 15,
     cNoNestedRoutineAsProcValueNoncompliant, cNoNestedRoutineAsProcValueCompliant);
@@ -519,31 +502,9 @@ var
   lCompliant: string;
 
 begin
-  // The noncompliant target shapes are kept as documentation in the embedded
-  // const cNoInlineVarCapturedByAnonMethodNoncompliant (not asserted — see below).
-  //
-  // KNOWN LIMITATION: the vendored fcl-passrc resolver
-  // does NOT resolve the two constructs this rule targets — a block-scoped inline
-  // 'var' statement is "not yet implemented" in ResolveImplElement, and an inline
-  // 'for var I' control variable is never declared by FinishForLoopHeader. A
-  // fixture containing either fails to resolve, so the rfResolver feed is absent
-  // and the rule degrades to silence on its own target shapes; a positive assert on
-  // a noncompliant fixture is therefore UNATTAINABLE until that resolver support
-  // lands (the noncompliant fixture is kept as documentation of the target shapes).
-  //
-  // What IS asserted here: the compliant fixture resolves CLEAN (Succeeded=True, so
-  // the rule is genuinely dispatched — the silent-skip canary) and the full capture
-  // walk emits ZERO. Its three shapes — a closure capturing a routine-level local
-  // (Parent=TProcedureBody, lives as long as the routine), a 'for I :=' reusing a
-  // pre-existing local (IsVarDef=false), and a closure using only its OWN local —
-  // are all correctly NOT flagged. This proves the wrapper never false-positives on
-  // resolvable code (the DEGRADED contract: a missed hazard is acceptable, a false
-  // positive is not).
-  //
-  // The zero-issue assert ALONE cannot distinguish "resolved clean, found nothing"
-  // from "failed to resolve, rule skipped" (the false-green trap). So we FIRST assert
-  // the fixture genuinely resolves — without this the canary could silently go
-  // vacuous if a future change broke compliant-fixture resolution.
+  // The vendored fcl-passrc resolver does not resolve the two constructs this
+  // rule targets. Asserted here: the compliant fixture resolves clean and the
+  // capture walk emits zero.
   lFix := TTempFixtures.Create;
   try
     lCompliant := lFix.Add('compliant.pas', cNoInlineVarCapturedByAnonMethodCompliant);
@@ -567,7 +528,7 @@ procedure TRulesRefsTest.RefsRulesSelfRegisterGlobally;
 
 begin
   // The production initialization registered the SEM reference rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // global registry.
   AssertTrue('NoObjectAsInterface registered',
     RuleRegistry.FindById(cNoObjectAsInterfaceId) <> nil);
   AssertTrue('NoNestedRoutineAsProcValue registered',

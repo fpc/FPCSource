@@ -14,9 +14,6 @@
  **********************************************************************}
 unit utstConfig;
 
-{ TFpSonarConfig tests: the JSON loader (load/override/forward-compat/
-  malformed), the pure lookup/transform helpers, and the shipped default-json
-  round-trip. }
 
 {$mode objfpc}{$H+}
 
@@ -228,9 +225,7 @@ var
   lErr: string;
 
 begin
-  // NOTE: 'suppressions' is now a KNOWN, strictly-validated key, so a
-  // string-array 'suppressions' would be rejected — use a still-unknown key
-  // ('trackers') to keep proving future unknown keys don't break the loader.
+  // 'trackers' is a still-unknown key; 'suppressions' is now strictly validated.
   AssertTrue('config with unknown keys loads',
     lWith.LoadFromJSON('{"naming":{"x":1},"trackers":["a","b"],' +
       '"_fpsonar":{"config":"x"},"gate":{"maxMajor":3}}', lErr));
@@ -367,8 +362,8 @@ var
   lErr: string;
 
 begin
-  // rules.<id>.params is parsed alongside enabled/severity, with each value
-  // typed from its JSON kind (integer / string / boolean).
+  // rules.<id>.params is parsed alongside enabled/severity, typed from its JSON
+  // kind.
   AssertTrue('params config loads', lCfg.LoadFromJSON('{"rules":{"R":{"enabled":true,"params":' +
     '{"n":5,"s":"abc","b":true}}}}', lErr));
   AssertEquals('one rule setting', 1, Length(lCfg.Rules));
@@ -397,8 +392,7 @@ var
   lErr: string;
 
 begin
-  // Constant-as-default discipline: an unconfigured rule, a missing key, an
-  // unmatched rule id, AND a kind mismatch all return the passed default.
+  // Unconfigured rule, missing key, unmatched id and kind mismatch: all default.
   lCfg := TFpSonarConfig.Default;
   AssertEquals('no config => default', 9, lCfg.RuleParamInt('R', 'n', 9));
 
@@ -419,8 +413,7 @@ var
   lErr: string;
 
 begin
-  // A float is no valid param kind => rejected structurally at load (no registry
-  // needed), consistent with the existing strict-value error path.
+  // A float is no valid param kind: rejected structurally at load.
   AssertFalse('float param value rejected at load', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":1.5}}}}', lErr));
   AssertTrue('float rejection has a message', lErr <> '');
 end;
@@ -449,7 +442,7 @@ var
   lErr: string;
 
 begin
-  // An unknown param key for a KNOWN rule is a fail-fast error (typo protection).
+  // An unknown param key for a known rule is a fail-fast error.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"notAKey":1}}}}', lErr));
   AssertFalse('unknown param key rejected',
     RuleRegistry.ValidateConfig(lCfg, lErr));
@@ -464,9 +457,7 @@ var
   lErr: string;
 
 begin
-  // A string where the rule declares an int threshold => fail-fast (non-int
-  // threshold rejected). The value parses fine structurally; the registry knows
-  // the declared kind.
+  // A string where the rule declares an int threshold: fail-fast.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":"big"}}}}', lErr));
   AssertFalse('wrong-typed threshold rejected',
     RuleRegistry.ValidateConfig(lCfg, lErr));
@@ -496,9 +487,7 @@ var
   lErr: string;
 
 begin
-  // "params strict, rule-ids lenient": a config naming a rule the binary
-  // does not know (e.g. a newer rule) must NOT break validation, even with params
-  // — forward-compat, exactly as enable/severity already behaves.
+  // "params strict, rule-ids lenient": an unknown rule id with params loads.
   AssertTrue('cfg loads', lCfg.LoadFromJSON('{"rules":{"SomeFutureRule":{"params":{"whatever":123}}}}', lErr));
   AssertTrue('unknown rule id ignored by validation',
     RuleRegistry.ValidateConfig(lCfg, lErr));
@@ -535,8 +524,7 @@ var
   lErr: string;
 
 begin
-  // An explicit value the user passed must be one of the two accepted modes
-  // (fail-fast); a non-object useTier / non-string resolution also fails.
+  // An explicit value must be one of the two accepted modes.
   AssertFalse('unknown resolution value rejected',
     lCfg.LoadFromJSON('{"useTier":{"resolution":"maybe"}}', lErr));
   AssertTrue('bad value names an error', lErr <> '');
@@ -555,9 +543,7 @@ var
   lTargets: TFpSonarRuleTargetArray;
 
 begin
-  // A 'params' value that is a JSON array parses into a typed target list; the
-  // accessor returns it. 'name'/'glob' are synonyms; severity is parsed + flagged;
-  // an atomic int sibling still parses (the array path is additive, not exclusive).
+  // A 'params' array parses into a typed target list; 'name'/'glob' are synonyms.
   AssertTrue('targets config loads', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[' +
     '{"glob":"*/legacy/*","message":"no legacy","severity":"minor"},' +
     '{"name":"System.MaxInt"}],"other":3}}}}', lErr));
@@ -584,8 +570,7 @@ var
   lErr: string;
 
 begin
-  // A non-object element, a target missing both name and glob, and an unknown
-  // severity name are each a fail-fast load error.
+  // Non-object element, target without name/glob, unknown severity: all fail-fast.
   AssertFalse('non-object target element rejected', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[1,2]}}}}', lErr));
   AssertTrue('non-object element names an error', lErr <> '');
   AssertFalse('target without name/glob rejected', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[{"message":"x"}]}}}}', lErr));
@@ -593,8 +578,7 @@ begin
   AssertFalse('empty name rejected', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[{"name":""}]}}}}', lErr));
   AssertFalse('unknown severity rejected', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[{"name":"X","severity":"huge"}]}}}}', lErr));
   AssertTrue('unknown severity names an error', lErr <> '');
-  // A non-string severity (object/array) must fail-fast cleanly, NOT crash the
-  // loader on AsString (the error text is built from a non-scalar JSON value).
+  // A non-string severity (object/array) must fail-fast cleanly.
   AssertFalse('non-string severity rejected', lCfg.LoadFromJSON('{"rules":{"R":{"params":{"targets":[{"name":"X","severity":{}}]}}}}', lErr));
   AssertTrue('non-string severity names an error', lErr <> '');
 end;
@@ -613,8 +597,7 @@ begin
   AssertTrue('valid targets accepted: ' + lErr,
     RuleRegistry.ValidateConfig(lCfg, lErr));
 
-  // An ARRAY value under an ATOMIC-declared key (CyclomaticComplexity.maxComplexity
-  // is rpkInt) is a kind mismatch => fail-fast.
+  // An array value under an atomic-declared key is a kind mismatch.
   AssertTrue('array-under-atomic cfg loads', lCfg.LoadFromJSON('{"rules":{"CyclomaticComplexity":{"params":{"maxComplexity":' +
     '[{"name":"x"}]}}}}', lErr));
   AssertFalse('array under atomic key rejected',
@@ -634,9 +617,7 @@ var
   lErr: string;
 
 begin
-  // The mode switch is a plain JSON boolean riding the existing bool
-  // read-path: it round-trips through RuleParamBool and validates against the
-  // registered rpkBool param.
+  // The mode switch is a plain JSON boolean read through RuleParamBool.
   AssertTrue('matchUnresolvedByName cfg loads', lCfg.LoadFromJSON('{"rules":{"DisallowedIdentifier":{"params":{' +
     '"matchUnresolvedByName":true}}}}', lErr));
   AssertTrue('bool round-trips',
@@ -655,8 +636,7 @@ var
   lErr: string;
 
 begin
-  // A non-boolean under the rpkBool matchUnresolvedByName key is a kind mismatch =>
-  // fail-fast (the exit-2 path).
+  // A non-boolean under the rpkBool matchUnresolvedByName key is a kind mismatch.
   AssertTrue('non-bool cfg loads structurally', lCfg.LoadFromJSON('{"rules":{"DisallowedIdentifier":{"params":{' +
     '"matchUnresolvedByName":"yes"}}}}', lErr));
   AssertFalse('non-bool matchUnresolvedByName rejected',

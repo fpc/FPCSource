@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstResolver;
 
-{ Tolerant resolver wrapper tests. }
 
 {$mode objfpc}{$H+}
 
@@ -103,44 +102,33 @@ type
       paths (Classes.TFPList, Math.TValueSign, System.TStringArray, SysUtils
       helpers + synthetic Types/contnrs/regexpr). }
     procedure SubstrateStubsResolveHostRtlFree;
-    { Deep resolution is the host-independent DEFAULT: the 5-arg
-      SourceFile.Analyze (no --real-rtl) resolves a consumer even when its
-      dependency's IMPLEMENTATION is unresolvable, because deps are interface-only
-      by default. }
+    { Deep resolution is the default: the 5-arg SourceFile.Analyze resolves a
+      consumer even when its dependency's implementation is unresolvable. }
     procedure DeepResolutionDefaultResolvesInterfaceOnlyDepViaSourceFile;
-    { Auto-detect default off on a bare resolver (== --synthetic-only,
-      byte-identical); the in-Pascal generator's output SHAPES resolve + bind
-      (host-RTL-INDEPENDENT: small hand-authored FLAT stubs of exactly the shape
-      the generator emits, resolved via -Fu — NOT the host's .ppu). }
+    { Auto-detect defaults off on a bare resolver; the generator's output shapes
+      resolve and bind against flat stubs. }
     procedure PpuAutoDetectDefaultsOff;
     procedure PpuStubFlatStubResolvesConsumerAndBindsMemberTypes;
     procedure PpuStubOmittedMemberDegradesAndOffIsByteIdentical;
-    { The ppudump generator's TYPE-HELPER emission (host-RTL-INDEPENDENT: a small
-      hand-authored FLAT stub with a `type helper`, NOT the committed generated
-      set). A helper-method member access binds to the stub decl with the right
-      result type; an omitted helper method degrades the whole unit to silence;
-      flag OFF is byte-identical. }
+    { The ppudump generator's type-helper emission: a helper-method member
+      access binds to the stub decl with the right result type, an omitted
+      helper method degrades the whole unit to silence, and the flag off is
+      byte-identical. }
     procedure PpuStubTypeHelperMethodBindsAndDegrades;
     { The vendored-resolver fix accepting a writable string character-index
-      l-value (`s[i]`, the ReadBuffer(s[1],n) idiom) as an untyped var/out
-      actual, while still rejecting a non-l-value (a literal).
-      Host-RTL-INDEPENDENT (both fixtures have no uses clause). }
+      l-value as an untyped var/out actual, while rejecting a non-l-value. }
     procedure UntypedVarOutAcceptsLValueAndRejectsNonLValue;
-    { The broad-coverage generator shapes (host-RTL-INDEPENDENT: a small
-      hand-authored FLAT stub carrying a record, a set and a procedural type —
-      the shapes the broad RTL/FCL surface exercises). Member access binds each
-      to its faithful stub type; a consumer touching an omitted shape degrades
-      the whole unit to silence; flag OFF is byte-identical. }
+    { The broad generator shapes: a record, a set and a procedural type. Member
+      access binds each to its stub type; a consumer touching an omitted shape
+      degrades the whole unit to silence. }
     procedure PpuStubBroadShapesBindAndOmittedDegrades;
     { The in-Pascal generator's host-independent pieces: the RTL hybrid emitter
       (synthetic + faithful gap members for SysUtils/Classes; '' for a non-RTL
       name or a missing splice anchor) and the ppudump NaN/Inf JSON repair. }
     procedure HybridRtlSourceEmitsSupersetGapMembers;
     procedure PpudumpJsonRepairQuotesNaNInf;
-    { Auto-detect serves the host-independent HYBRID RTL: a consumer reading
-      SysUtils.FileExists (a synthetic-absent gap member) resolves under
-      PpuAutoDetect (hybrid, no ppudump needed) and DEGRADES under --synthetic-only
-      (never-worse-than-synthetic proven by the off case failing). }
+    { Auto-detect serves the hybrid RTL: a consumer reading SysUtils.FileExists
+      resolves under PpuAutoDetect and degrades under --synthetic-only. }
     procedure AutoDetectHybridRtlResolvesGapMemberOffDegrades;
   end;
 
@@ -162,7 +150,7 @@ end;
 
 
 const
-  // Embedded resolver fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded resolver fixtures: line i+1 == [i].
 
   cResolverFixture: array[0..36] of string = (
     'unit ResolverFixture;',
@@ -1021,10 +1009,8 @@ begin
   lResolver := TFpSonarResolver.Create;
   lCollector := TFpSonarIssueCollector.Create;
   try
-    { absentuses.pas parses, but `uses NoSuchUnitXyz` cannot be located anywhere
-      (no synthetic stub, no file on any path) -> resolution degrades to
-      dkResolveError. (Re-pointed from resolverbad.pas: SysUtils now binds
-      synthetically, so resolverbad resolves clean.) }
+    { absentuses.pas parses, but 'uses NoSuchUnitXyz' cannot be located
+      anywhere: resolution degrades to dkResolveError. }
     AssertFalse('unresolvable input fails to build',
       lResolver.BuildFor(FFix.Add('absentuses.pas', cAbsentUses), cMode, cDefines,
         [], [], lDiag));
@@ -1092,8 +1078,7 @@ var
   lType: TFpSonarResolvedType;
 
 begin
-  // The unit search path is the resolved tests/core directory, so DepUnit is
-  // locatable for MainUsesDep without any host-RTL checkout.
+  // The unit search path is the resolved tests/core directory.
   FFix.Add('depunit.pas', cDepUnit);
   lDir := ExtractFilePath(FFix.Add('mainusesdep.pas', cMainUsesDep));
   lResolver := TFpSonarResolver.Create;
@@ -1304,10 +1289,8 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  { The DELIBERATE FLIP: resolverbad.pas `uses SysUtils` with empty paths
-    previously degraded (SysUtils unfindable). Now SysUtils binds via the
-    synthetic stub, so the same fixture RESOLVES CLEAN. The degrade test moved to
-    absentuses.pas (UnresolvableInputFoldsResolveError). }
+  { resolverbad.pas 'uses SysUtils' with empty paths: SysUtils binds via the
+    synthetic stub and the fixture resolves clean. }
   lResolver := TFpSonarResolver.Create;
   try
     AssertTrue('resolverbad now resolves clean via synthetic SysUtils',
@@ -1330,13 +1313,9 @@ var
   lType: TFpSonarResolvedType;
 
 begin
-  { substrate.pas `uses SysUtils, Classes, Math, Types, contnrs, regexpr` and
-    references the substrate symbols + the SysUtils path/string helpers in a
-    body. With NO host-RTL -Fu paths it resolves CLEAN — proving all six
-    synthetic units load+parse+resolve and every referenced identifier
-    (Classes.TFPList/TFileStream, Math.TValueSign, System.TStringArray, the new
-    Types/contnrs/regexpr types, IncludeTrailingPathDelimiter/StringReplace/… )
-    is present and faithful-in-kind. }
+  { substrate.pas uses SysUtils, Classes, Math, Types, contnrs and regexpr and
+    references their symbols in a body. With no host-RTL -Fu paths it resolves
+    clean. }
   lResolver := TFpSonarResolver.Create;
   try
     AssertTrue('substrate fixture builds with NO host-RTL paths',
@@ -1421,10 +1400,9 @@ var
   lDep: TPasModule;
 
 begin
-  { With interface-only enabled on dependency engines, the consumer resolves
-    fully (its dep-typed var binds via the dep's interface section scope), while
-    the dependency's IMPLEMENTATION is skipped — proven by the impl-only symbol
-    being absent (degrade, never invent). }
+  { With interface-only enabled on dependency engines the consumer resolves
+    fully, while the dependency's implementation is skipped: its impl-only
+    symbol is absent. }
   FFix.Add('ifaceonlydep.pas', cIfaceOnlyDep);
   lDir := ExtractFilePath(FFix.Add('ifaceonlymain.pas', cIfaceOnlyMain));
   lResolver := TFpSonarResolver.Create;
@@ -1467,11 +1445,8 @@ var
 
 begin
   { The dependency's interface routine (ComputeThing) has its body in the
-    skipped implementation, yet the build must NOT misreport "Forward function
-    not resolved". The synthetic System dep (Pos + TObject.Create/Destroy/Free/
-    ClassName/ClassType, bodies in its impl) is interface-only here too, so this
-    also proves the forward-proc gate covers BOTH CheckPendingForwardProcs arms
-    (global procs AND class methods). }
+    skipped implementation, and the build must not misreport "Forward function
+    not resolved". The synthetic System dep is interface-only here too. }
   FFix.Add('ifaceonlydep.pas', cIfaceOnlyDep);
   lDir := ExtractFilePath(FFix.Add('ifaceonlymain.pas', cIfaceOnlyMain));
   lResolver := TFpSonarResolver.Create;
@@ -1502,10 +1477,8 @@ var
   lProp: TPasElement;
 
 begin
-  { The dependency declares a unit-level / global property (UnitCount) whose
-    owner is the unit section, not a class/record. It must
-    resolve clean — no EInvalidCast (FinishProperty) and no invalid-scope raise
-    (AddProperty) — so the consumer build succeeds. }
+  { The dependency declares a unit-level property (UnitCount) whose owner is
+    the unit section, not a class or record. It must resolve clean. }
   FFix.Add('ifaceonlydep.pas', cIfaceOnlyDep);
   lDir := ExtractFilePath(FFix.Add('ifaceonlymain.pas', cIfaceOnlyMain));
   lResolver := TFpSonarResolver.Create;
@@ -1538,11 +1511,8 @@ var
   lDep: TPasModule;
 
 begin
-  { With DependencyInterfaceOnly OFF (the default), the SAME consumer resolves
-    and the dependency resolves in FULL — its implementation is present and the
-    impl-only symbol is resolvable. This proves the flag is the only lever and
-    the default path is unchanged (the committed corpus stays byte-identical —
-    none of it has unit-level properties). }
+  { With DependencyInterfaceOnly off (the default) the same consumer resolves
+    and the dependency resolves in full: its impl-only symbol is resolvable. }
   FFix.Add('ifaceonlydep.pas', cIfaceOnlyDep);
   lDir := ExtractFilePath(FFix.Add('ifaceonlymain.pas', cIfaceOnlyMain));
   lResolver := TFpSonarResolver.Create;
@@ -1669,11 +1639,9 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  { Negative: SizeOf of an aggregate record is not determinable here, so even
-    with the knob ON the size helper returns -1, the const fails to fold and the
-    unit does NOT resolve clean — degrade to unknown (absence), never a
-    fabricated size. (An untyped const whose initializer does not fold cannot
-    infer its type, so resolution fails.) }
+  { Negative: SizeOf of an aggregate record is not determinable here, the size
+    helper returns -1, the const fails to fold and the unit does not resolve
+    clean. }
   lResolver := TFpSonarResolver.Create;
   try
     lResolver.IntrinsicConstEval := True;
@@ -1852,10 +1820,9 @@ var
   lMath: TPasModule;
 
 begin
-  { A fake -Fu tree with a unit named 'Math' (which HAS a synthetic stub) carrying
-    a marker const, plus a trivial objpas (so the real-RTL implicit uses-chain
-    resolves) and a consumer that uses Math. With the mode ON the resolver must
-    bind the REAL (fake) Math — the order inversion — not the synthetic stub. }
+  { A fake -Fu tree with a unit named 'Math' (which has a synthetic stub)
+    carrying a marker const, a trivial objpas and a consumer that uses Math.
+    With the mode on the resolver must bind the real (fake) Math. }
   lDir := FreshTempDir;
   try
     WriteUnit(lDir, 'objpas.pp',
@@ -2002,12 +1969,9 @@ var
   lSrc: TFpSonarSourceFile;
 
 begin
-  { The SourceFile wiring seam: DEEP RESOLUTION is the host-independent DEFAULT
-    — DependencyInterfaceOnly + IntrinsicConstEval +
-    CondDirectiveEval are wired ON regardless of the real-RTL flag. The --real-rtl
-    flag adds ONLY the separate real-source preference (RealRtlPreferred) + its
-    target pointer width. A trivial resolvable fixture is enough (the resolver is
-    built whenever the parse succeeds). }
+  { The SourceFile wiring seam: DependencyInterfaceOnly, IntrinsicConstEval and
+    CondDirectiveEval are wired on regardless of the real-RTL flag, which adds
+    only the real-source preference and its target pointer width. }
   lSrc := TFpSonarSourceFile.Create;
   try
     // --real-rtl ON: deep-resolution knobs + the real-source preference + width.
@@ -2050,13 +2014,10 @@ var
   lType: TFpSonarResolvedType;
 
 begin
-  { On the DEFAULT synthetic-preferred path (no real-RTL knobs, no uses clause,
-    no unit search paths):
-     - the intrinsic builtins (Boolean8/16/32/64, OleVariant, TypedFile) are
-       registered unconditionally, so a bare parse+resolve reaches them without
-       ad-hoc registration;
-     - the superset TPasFileType capability still resolves a `file of Byte`
-       type. BuildFor succeeding on this fixture requires BOTH. }
+  { On the default synthetic-preferred path the intrinsic builtins (Boolean8/
+    16/32/64, OleVariant, TypedFile) are registered unconditionally, and the
+    superset TPasFileType capability resolves a 'file of Byte'. BuildFor
+    succeeding on this fixture requires both. }
   lResolver := TFpSonarResolver.Create;
   try
     AssertFalse('no real-RTL knob is engaged (default path)',
@@ -2096,10 +2057,9 @@ end;
 procedure TResolverTest.RealRtlDeclaredCondDirectiveResolvesAndDefaultDegrades;
 
 const
-  // A unit whose interface uses {$if declared(...)} over its OWN declarations —
-  // host-RTL-independent. declared(TPresent) must fold to 1 (the type is in the
-  // live scope by the time the directive is scanned); declared(TAbsentXyzzy) to
-  // 0 (genuinely absent). The taken branches leave cPresentSeen + cAbsentMissing.
+  // A unit whose interface uses {$if declared(...)} over its own declarations.
+  // declared(TPresent) folds to 1 and declared(TAbsentXyzzy) to 0; the taken
+  // branches leave cPresentSeen + cAbsentMissing.
   cDeclSource =
     'unit declfix;' + LineEnding + 'interface' + LineEnding +
     'type TPresent = Integer;' + LineEnding +
@@ -2150,12 +2110,9 @@ begin
       lResolver.Free;
     end;
 
-    { Evaluator OFF (a bare-constructed resolver — CondDirectiveEval defaults
-      False as the mechanism-level default): OnEvalFunction is unassigned, so the
-      scanner cannot answer declared() and the unit fails to build. Proves the
-      knob (not RealRtlPreferred) is what wires the evaluator. NOTE: the ANALYSIS
-      default now turns this knob ON at the SourceFile seam — this is the
-      resolver mechanism's default, not the analysis default. }
+    { Evaluator off (a bare-constructed resolver, CondDirectiveEval defaults
+      False): OnEvalFunction is unassigned, the scanner cannot answer declared()
+      and the unit fails to build. }
     lResolver := TFpSonarResolver.Create;
     try
       AssertFalse('declared() cond-function is NOT answered with the knob off',
@@ -2218,9 +2175,8 @@ end;
 procedure TResolverTest.RealRtlSizeOfCondDirectiveFoldsTargetCorrect;
 
 const
-  // {$if sizeof(T)=N} folded from the live scope: AnsiChar is 1 byte
-  // (target-independent) and a pointer type is the TARGET width (8 here) — so
-  // sizeof() is target-driven, not host-driven. Taken branches: cCharOne +
+  // {$if sizeof(T)=N} folded from the live scope: AnsiChar is 1 byte and a
+  // pointer type is the target width (8 here). Taken branches: cCharOne +
   // cPtrEight.
   cSizeSource =
     'unit sizefix;' + LineEnding + 'interface' + LineEnding +
@@ -2282,11 +2238,9 @@ end;
 procedure TResolverTest.DeepResolutionDefaultResolvesInterfaceOnlyDepViaSourceFile;
 
 const
-  { The dependency's INTERFACE is clean, but its IMPLEMENTATION references a
-    completely undeclared type — a hard resolve failure IF the implementation
-    were parsed. Under the default (deps interface-only), the impl is skipped,
-    so the consumer still resolves. Host-RTL-independent (no uses beyond the
-    implicit System, over its own declarations). }
+  { The dependency's interface is clean, but its implementation references a
+    completely undeclared type. Under the default the impl is skipped and the
+    consumer still resolves. }
   cDepSource =
     'unit deepdep;' + LineEnding + 'interface' + LineEnding +
     'type TDeepThing = class' + LineEnding + 'end;' + LineEnding +
@@ -2340,10 +2294,8 @@ end;
 // --- ppudump-stub seam (host-RTL-INDEPENDENT hand-authored stub) ---
 
 const
-  { A small, FAITHFUL, self-contained FLAT interface stub — exactly the shape
-    the ppustub generator emits (class with a typed function member + a scalar
-    property backed by a private stub field; `uses` only System, TObject via the
-    synthetic System). NOT the committed generated set. }
+  { A small, faithful, self-contained flat interface stub of exactly the shape
+    the ppustub generator emits. Not the committed generated set. }
   cFlatStubSource =
     'unit depflat;' + LineEnding +
     '{$mode objfpc}{$H+}' + LineEnding +
@@ -2397,8 +2349,7 @@ var
   lResolver: TFpSonarResolver;
 
 begin
-  // Default: auto-detect is OFF out of the box, so a bare resolver is
-  // byte-identical to the synthetic-only path (dependency resolution unchanged).
+  // Default: auto-detect is OFF out of the box.
   lResolver := TFpSonarResolver.Create;
   try
     AssertFalse('PpuAutoDetect defaults off (== --synthetic-only)',
@@ -2431,10 +2382,9 @@ var
   lType: TFpSonarResolvedType;
 
 begin
-  { With the stub dir set, the consumer `uses depflat` resolves against the flat
-    stub AND each member access binds to the stub decl with the RIGHT type
-    (property Count -> LongInt; function Kind -> TFlatKind). No host RTL, no
-    unit search paths — depflat is resolvable ONLY via the ppu-stub dir. }
+  { With the stub dir set, the consumer 'uses depflat' resolves against the
+    flat stub and each member access binds with the right type (property
+    Count -> LongInt; function Kind -> TFlatKind). }
   lDir := FreshTempDir;
   try
     WriteUnit(lDir, 'depflat.pas', cFlatStubSource);
@@ -2513,10 +2463,9 @@ begin
       lResolver.Free;
     end;
 
-    { An OMITTED shape degrades to SILENCE, never a wrong binding: with the flag
-      ON, a consumer touching a member ABSENT from the faithful stub fails the
-      whole unit (Succeeded=False, module nil) rather than binding to a
-      fabricated member. }
+    { An omitted shape degrades to silence: with the flag on, a consumer
+      touching a member absent from the faithful stub fails the whole unit
+      rather than binding to a fabricated member. }
     lResolver := TFpSonarResolver.Create;
     try
       lResolver.DependencyInterfaceOnly := True;
@@ -2660,7 +2609,7 @@ begin
     end;
 
     // Flag OFF is byte-identical: with no ppu-stub dir and no search paths,
-    // 'uses helperdep' is unresolvable, so the consumer degrades exactly as today.
+    // 'uses helperdep' is unresolvable.
     lResolver := TFpSonarResolver.Create;
     try
       lResolver.DependencyInterfaceOnly := True;
@@ -2687,10 +2636,9 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  { ACCEPT: a unit passing a writable string char-index (`lText[1]`), an array
+  { Accept: a unit passing a writable string char-index ('lText[1]'), an array
     element, a record field and a pointer deref to an untyped var/out param
-    resolves clean — matching FPC (the ReadBuffer(s[1],n) idiom). Before the
-    patch the char-index actual raised "Variable identifier expected". }
+    resolves clean, matching FPC. }
   lResolver := TFpSonarResolver.Create;
   try
     AssertTrue('writable l-value untyped var/out actuals resolve',
@@ -2702,10 +2650,8 @@ begin
     lResolver.Free;
   end;
 
-  { REJECT (no over-accept): a NON-l-value untyped var actual — an integer
-    literal — still fails resolution with "Variable identifier expected",
-    exactly as before the patch. Guards against the broadening admitting
-    non-l-values. }
+  { Reject: a non-l-value untyped var actual (an integer literal) still fails
+    resolution with "Variable identifier expected". }
   lResolver := TFpSonarResolver.Create;
   try
     AssertFalse('literal untyped var actual is still rejected',
@@ -2735,10 +2681,9 @@ procedure TResolverTest.PpuStubBroadShapesBindAndOmittedDegrades;
   end;
 
 const
-  { A small, FAITHFUL, self-contained FLAT stub carrying the BROAD shapes the
+  { A small, faithful, self-contained flat stub carrying the broad shapes the
     generator handles: a record type, a set type and a procedural type, plus a
-    class exposing them (a record-typed property, a set-typed property, a
-    proc-type-returning function). NOT the committed generated set. }
+    class exposing them. }
   cBroadStubSource =
     'unit depbroad;' + LineEnding +
     '{$mode objfpc}{$H+}' + LineEnding +
@@ -2813,10 +2758,9 @@ begin
     WriteUnit(lDir, 'broaduser.pas', cBroadUserSource);
     WriteUnit(lDir, 'broadbad.pas', cBroadBadSource);
 
-    { (a) broad shapes bind: the consumer resolves and each member access binds
-      to its faithful stub type — record (Pt -> TStubPoint), set (Flags ->
-      TStubFlags), proc-type (Comparer -> TStubCompare result). No host RTL, no
-      unit search paths — depbroad is resolvable ONLY via the ppu-stub dir. }
+    { Broad shapes bind: the consumer resolves and each member access binds to
+      its stub type — record (Pt -> TStubPoint), set (Flags -> TStubFlags),
+      proc-type (Comparer -> TStubCompare result). }
     lResolver := TFpSonarResolver.Create;
     try
       lResolver.DependencyInterfaceOnly := True;
@@ -2876,7 +2820,7 @@ begin
     end;
 
     // (c) flag OFF is byte-identical: with no ppu-stub dir and no search paths,
-    // 'uses depbroad' is unresolvable, so the consumer degrades exactly as today.
+    // 'uses depbroad' is unresolvable.
     lResolver := TFpSonarResolver.Create;
     try
       lResolver.DependencyInterfaceOnly := True;
@@ -2989,8 +2933,7 @@ begin
     WriteUnit(lDir, 'gapuser.pas', cGapUserSource);
     lFile := IncludeTrailingPathDelimiter(lDir) + 'gapuser.pas';
 
-    // ON (auto-detect): SysUtils resolves to the HYBRID (synthetic + gap), so the
-    // consumer's FileExists call binds -> the whole unit resolves. No ppudump/.ppu.
+    // ON (auto-detect): SysUtils resolves to the HYBRID (synthetic + gap).
     lResolver := TFpSonarResolver.Create;
     try
       lResolver.DependencyInterfaceOnly := True;

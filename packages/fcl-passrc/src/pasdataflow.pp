@@ -15,8 +15,8 @@
 {
 Abstract:
   After running TPasResolver, run this to emit a warning for a simple-typed
-  local (or program-global) variable whose first use in execution/pre-order
-  precedes its first definition ("Variable %s does not seem to be initialized").
+  local (or program-global) variable whose use precedes every definition of it
+  ("Variable %s does not seem to be initialized").
 
   This complements PasUseAnalyzer, which reports unused declarations and an
   unset function result but does NOT flag uninitialized *variable use*.
@@ -34,12 +34,11 @@ Design:
   This matches FPC: e.g. a variable assigned in one `if` branch and used under
   a later, independent `if` is not flagged.
 
-  Equivalent rule: flag a use if the variable's first pre-order use
-  precedes its first pre-order definition.
+  Equivalent rule: flag a use that precedes every definition of the variable
+  in the order the graph's blocks are visited.
 
-  Loop back-edges are ignored: a use at the top of a loop body,
-  before a later definition in the same body, is still flagged
-  — first iteration is uninitialized.
+  A use at the top of a loop body, before a later definition in the same
+  body, is still flagged — first iteration is uninitialized.
 
   Only simple typed variables are considered (ordinals, floats, booleans, chars,
   pointers, enums).
@@ -49,13 +48,13 @@ Design:
   initialized field-by-field or through a method call.
 
   Definitions include:
-  assignment LHS, compound-assignment LHS, and passing to a
+  assignment LHS, compound-assignment LHS, passing to a
   var/out/untyped parameter (this covers FillChar/Move destinations and the
-  implicit Self of an object method).
+  implicit Self of an object method), and a mention inside an asm block.
 
-  The classification relies entirely on the read/write access the resolver
-  already records on each reference  (TResolvedReference.Access), so no
-  separate control-flow graph is built.
+  The classification relies on the read/write access the resolver records on
+  each reference (TResolvedReference.Access). TPasDataFlowEngine iterates a
+  flow-insensitive lattice over the routine's TPasCFG.
 
 Scope:
   - every procedure/function body is analysed over its own local variables;
@@ -76,7 +75,8 @@ Reporting:
   FPC compiler does for -Oodfa -Sew.
 
   Consumers that run the analysis after the scanner is gone should
-  override EmitMessage.
+  override EmitMessage, and read the findings as (variable, position) pairs
+  from ResultCount/Results rather than parsing the formatted message.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
 unit PasDataFlow;
@@ -89,11 +89,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils,
-  Pascal.Tree, Pascal.Scanner, Pascal.Resolver;
+  Pascal.Tree, Pascal.Scanner, Pascal.ResolveEval, Pascal.Resolver, Pascal.CFG;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
-  PasTree, PScanner, PasResolver;
+  PasTree, PScanner, PasResolveEval, PasResolver, PasCFG;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -102,6 +102,57 @@ const
   sUninitializedVariable = 'Variable "%s" does not seem to be initialized';
 
 type
+  // One uninitialized-variable finding: the variable and its use site.
+  TPasDataFlowResult = record
+    Variable: TPasVariable;
+    PosEl: TPasElement;
+  end;
+
+  // Direction in which the engine propagates a lattice's states.
+  TPasDataFlowDirection = (dfdForward, dfdBackward);
+
+  { TPasDataFlowLattice }
+
+  // Merge and Transfer must be monotone; the engine has no iteration cap.
+  TPasDataFlowLattice = class
+  public
+    // Direction in which the engine propagates this lattice's states.
+    function Direction: TPasDataFlowDirection; virtual; abstract;
+    // A new state holding the value every node starts from.
+    function CreateState: TObject; virtual; abstract;
+    // An independent copy of aState.
+    function CopyState(aState: TObject): TObject; virtual; abstract;
+    // Releases a state obtained from CreateState or CopyState.
+    procedure FreeState(aState: TObject); virtual; abstract;
+    // Joins aSource into aTarget.
+    procedure Merge(aTarget,aSource: TObject); virtual; abstract;
+    // Applies aNode's own effect to aState.
+    procedure Transfer(aNode: TPasCFGNode; aState: TObject); virtual; abstract;
+    // True when aLeft and aRight hold the same value.
+    function SameState(aLeft,aRight: TObject): Boolean; virtual; abstract;
+  end;
+
+  { TPasDataFlowEngine }
+
+  TPasDataFlowEngine = class
+  private
+    FLattice: TPasDataFlowLattice;
+    FPredecessors: TFPList; // one TFPList of TPasCFGNode per node index
+    FQueue: TFPList;        // indices of the nodes still to transfer
+    FQueued: array of Boolean;
+    FStates: TFPList;       // one lattice state per node index
+    procedure BuildPredecessors(aCFG: TPasCFG);
+    procedure ClearRun;
+    procedure Enqueue(aIndex: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Iterates aLattice over every node of aCFG until no node state changes.
+    // aLattice must outlive the engine: it frees the states on Destroy.
+    procedure Run(aCFG: TPasCFG; aLattice: TPasDataFlowLattice);
+    // State the last Run left on aNode after its transfer, or nil when it has none.
+    function StateOf(aNode: TPasCFGNode): TObject;
+  end;
 
   { TPasDataFlowAnalyzer }
 
@@ -111,14 +162,20 @@ type
     FTracked: TFPList;   // TPasVariable being tracked for the current routine
     FAssigned: TFPList;  // TPasVariable already possibly-assigned
     FReported: TFPList;  // TPasVariable already reported (dedupe)
+    FResultVars: TFPList; // TPasVariable of each finding, in report order
+    FResultPos: TFPList;  // TPasElement use site of each finding
+    FState: TFPList;      // lattice state of the node being transferred
+    function GetResultCount: Integer;
+    function GetResult(Index: Integer): TPasDataFlowResult;
     function IsTracked(El: TPasElement): Boolean;
     function IsAssigned(V: TPasElement): Boolean;
     procedure MarkAssigned(V: TPasElement);
+    procedure MarkAsmIdents(const S: String);
     procedure ReportUninit(V: TPasVariable; PosEl: TPasElement);
     procedure HandleRef(Expr: TPasExpr);
     procedure ProcessExpr(Expr: TPasExpr);
     procedure ProcessStmt(El: TPasElement);
-    procedure ProcessElements(List: TFPList);
+    procedure TransferNode(aNode: TPasCFGNode; aState: TFPList);
     function IsSimpleVarType(V: TPasVariable): Boolean;
     procedure CollectLocals(Decls: TPasDeclarations; List: TFPList);
     procedure AnalyzeRoutine(Body: TPasElement; Locals: TFPList);
@@ -135,9 +192,261 @@ type
     // Analyse the given module for uninitialized-variable use.
     procedure AnalyzeModule(aModule: TPasModule);
     property Resolver: TPasResolver read FResolver;
+    // Number of findings recorded by the last AnalyzeModule.
+    property ResultCount: Integer read GetResultCount;
+    // The findings of the last AnalyzeModule, in report order.
+    property Results[Index: Integer]: TPasDataFlowResult read GetResult;
   end;
 
 implementation
+
+type
+
+  { TPasAssignedLattice — assigned-variable sets over one routine }
+
+  TPasAssignedLattice = class(TPasDataFlowLattice)
+  private
+    FAnalyzer: TPasDataFlowAnalyzer;
+  public
+    // Binds the lattice to the analyzer whose tracked set it works over.
+    constructor Create(aAnalyzer: TPasDataFlowAnalyzer);
+    function Direction: TPasDataFlowDirection; override;
+    function CreateState: TObject; override;
+    function CopyState(aState: TObject): TObject; override;
+    procedure FreeState(aState: TObject); override;
+    procedure Merge(aTarget,aSource: TObject); override;
+    procedure Transfer(aNode: TPasCFGNode; aState: TObject); override;
+    function SameState(aLeft,aRight: TObject): Boolean; override;
+  end;
+
+
+{ TPasDataFlowEngine }
+
+constructor TPasDataFlowEngine.Create;
+
+begin
+  FPredecessors := TFPList.Create;
+  FQueue := TFPList.Create;
+  FStates := TFPList.Create;
+end;
+
+
+destructor TPasDataFlowEngine.Destroy;
+
+begin
+  ClearRun;
+  FStates.Free;
+  FQueue.Free;
+  FPredecessors.Free;
+  inherited Destroy;
+end;
+
+
+procedure TPasDataFlowEngine.BuildPredecessors(aCFG: TPasCFG);
+
+var
+  I, J: Integer;
+  lNode: TPasCFGNode;
+
+begin
+  for I := 0 to aCFG.NodeCount - 1 do
+    FPredecessors.Add(TFPList.Create);
+  for I := 0 to aCFG.NodeCount - 1 do
+  begin
+    lNode := aCFG.Nodes[I];
+    for J := 0 to lNode.SuccessorCount - 1 do
+      TFPList(FPredecessors[lNode.Successors[J].Index]).Add(lNode);
+  end;
+end;
+
+
+procedure TPasDataFlowEngine.ClearRun;
+
+var
+  I: Integer;
+
+begin
+  if FLattice <> nil then
+    for I := 0 to FStates.Count - 1 do
+      FLattice.FreeState(TObject(FStates[I]));
+  FStates.Clear;
+  for I := 0 to FPredecessors.Count - 1 do
+    TFPList(FPredecessors[I]).Free;
+  FPredecessors.Clear;
+  FQueue.Clear;
+  SetLength(FQueued, 0);
+  FLattice := nil;
+end;
+
+
+procedure TPasDataFlowEngine.Enqueue(aIndex: Integer);
+
+begin
+  if FQueued[aIndex] then Exit;
+  FQueued[aIndex] := True;
+  FQueue.Add(Pointer(PtrInt(aIndex)));
+end;
+
+
+procedure TPasDataFlowEngine.Run(aCFG: TPasCFG; aLattice: TPasDataFlowLattice);
+
+var
+  I, lIndex: Integer;
+  lBackward, lChanged: Boolean;
+  lIn, lInitial: TObject;
+  lNode: TPasCFGNode;
+  lPreds: TFPList;
+
+begin
+  ClearRun;
+  if (aCFG = nil) or (aLattice = nil) then Exit;
+  FLattice := aLattice;
+  lBackward := aLattice.Direction = dfdBackward;
+  BuildPredecessors(aCFG);
+  SetLength(FQueued, aCFG.NodeCount);
+  lInitial := aLattice.CreateState;
+  try
+    // Index order is reverse postorder with the unreachable nodes last, so a
+    // lattice reporting from Transfer reports in that order.
+    for lIndex := 0 to aCFG.NodeCount - 1 do
+    begin
+      FStates.Add(Pointer(aLattice.CopyState(lInitial)));
+      Enqueue(lIndex);
+    end;
+  finally
+    aLattice.FreeState(lInitial);
+  end;
+
+  while FQueue.Count > 0 do
+  begin
+    lIndex := PtrInt(FQueue[0]);
+    FQueue.Delete(0);
+    FQueued[lIndex] := False;
+    lNode := aCFG.Nodes[lIndex];
+    lPreds := TFPList(FPredecessors[lIndex]);
+    lIn := aLattice.CreateState;
+    try
+      if lBackward then
+        for I := 0 to lNode.SuccessorCount - 1 do
+          aLattice.Merge(lIn, TObject(FStates[lNode.Successors[I].Index]))
+      else
+        for I := 0 to lPreds.Count - 1 do
+          aLattice.Merge(lIn, TObject(FStates[TPasCFGNode(lPreds[I]).Index]));
+      aLattice.Transfer(lNode, lIn);
+      lChanged := not aLattice.SameState(TObject(FStates[lIndex]), lIn);
+      if lChanged then
+      begin
+        aLattice.FreeState(TObject(FStates[lIndex]));
+        FStates[lIndex] := Pointer(lIn);
+        lIn := nil;
+      end;
+    finally
+      if lIn <> nil then
+        aLattice.FreeState(lIn);
+    end;
+    if lChanged then
+    begin
+      if lBackward then
+        for I := 0 to lPreds.Count - 1 do
+          Enqueue(TPasCFGNode(lPreds[I]).Index)
+      else
+        for I := 0 to lNode.SuccessorCount - 1 do
+          Enqueue(lNode.Successors[I].Index);
+    end;
+  end;
+end;
+
+
+function TPasDataFlowEngine.StateOf(aNode: TPasCFGNode): TObject;
+
+begin
+  Result := nil;
+  if (aNode = nil) or (aNode.Index < 0) or (aNode.Index >= FStates.Count) then Exit;
+  Result := TObject(FStates[aNode.Index]);
+end;
+
+
+{ TPasAssignedLattice }
+
+constructor TPasAssignedLattice.Create(aAnalyzer: TPasDataFlowAnalyzer);
+
+begin
+  FAnalyzer := aAnalyzer;
+end;
+
+
+function TPasAssignedLattice.Direction: TPasDataFlowDirection;
+
+begin
+  Result := dfdForward;
+end;
+
+
+function TPasAssignedLattice.CreateState: TObject;
+
+begin
+  // The routine-wide accumulate, not a constant: this is what makes the client
+  // flow-insensitive.
+  Result := TFPList.Create;
+  TFPList(Result).Assign(FAnalyzer.FAssigned);
+end;
+
+
+function TPasAssignedLattice.CopyState(aState: TObject): TObject;
+
+begin
+  Result := TFPList.Create;
+  TFPList(Result).Assign(TFPList(aState));
+end;
+
+
+procedure TPasAssignedLattice.FreeState(aState: TObject);
+
+begin
+  aState.Free;
+end;
+
+
+procedure TPasAssignedLattice.Merge(aTarget,aSource: TObject);
+
+var
+  I: Integer;
+  lSource, lTarget: TFPList;
+
+begin
+  lTarget := TFPList(aTarget);
+  lSource := TFPList(aSource);
+  for I := 0 to lSource.Count - 1 do
+    if lTarget.IndexOf(lSource[I]) < 0 then
+      lTarget.Add(lSource[I]);
+end;
+
+
+procedure TPasAssignedLattice.Transfer(aNode: TPasCFGNode; aState: TObject);
+
+begin
+  FAnalyzer.TransferNode(aNode, TFPList(aState));
+end;
+
+
+function TPasAssignedLattice.SameState(aLeft,aRight: TObject): Boolean;
+
+var
+  I: Integer;
+  lLeft, lRight: TFPList;
+
+begin
+  lLeft := TFPList(aLeft);
+  lRight := TFPList(aRight);
+  Result := lLeft.Count = lRight.Count;
+  if not Result then Exit;
+  for I := 0 to lLeft.Count - 1 do
+    if lRight.IndexOf(lLeft[I]) < 0 then
+      Exit(False);
+end;
+
+
+{ TPasDataFlowAnalyzer }
 
 constructor TPasDataFlowAnalyzer.Create(AResolver: TPasResolver);
 begin
@@ -145,6 +454,8 @@ begin
   FTracked := TFPList.Create;
   FAssigned := TFPList.Create;
   FReported := TFPList.Create;
+  FResultVars := TFPList.Create;
+  FResultPos := TFPList.Create;
 end;
 
 
@@ -153,7 +464,22 @@ begin
   FTracked.Free;
   FAssigned.Free;
   FReported.Free;
+  FResultVars.Free;
+  FResultPos.Free;
   inherited Destroy;
+end;
+
+
+function TPasDataFlowAnalyzer.GetResultCount: Integer;
+begin
+  Result := FResultVars.Count;
+end;
+
+
+function TPasDataFlowAnalyzer.GetResult(Index: Integer): TPasDataFlowResult;
+begin
+  Result.Variable := TPasVariable(FResultVars[Index]);
+  Result.PosEl := TPasElement(FResultPos[Index]);
 end;
 
 
@@ -172,7 +498,7 @@ end;
 
 function TPasDataFlowAnalyzer.IsAssigned(V: TPasElement): Boolean;
 begin
-  Result := FAssigned.IndexOf(V) >= 0;
+  Result := FState.IndexOf(V) >= 0;
 end;
 
 
@@ -180,6 +506,31 @@ procedure TPasDataFlowAnalyzer.MarkAssigned(V: TPasElement);
 begin
   if FAssigned.IndexOf(V) < 0 then
     FAssigned.Add(V);
+  if FState.IndexOf(V) < 0 then
+    FState.Add(V);
+end;
+
+
+procedure TPasDataFlowAnalyzer.MarkAsmIdents(const S: String);
+var
+  I, StartPos, J: Integer;
+  Ident: String;
+begin
+  I := 1;
+  while I <= Length(S) do
+    if S[I] in ['A'..'Z', 'a'..'z', '_'] then
+    begin
+      StartPos := I;
+      while (I <= Length(S)) and
+            (S[I] in ['A'..'Z', 'a'..'z', '0'..'9', '_']) do
+        Inc(I);
+      Ident := Copy(S, StartPos, I - StartPos);
+      for J := 0 to FTracked.Count - 1 do
+        if SameText(TPasVariable(FTracked[J]).Name, Ident) then
+          MarkAssigned(TPasElement(FTracked[J]));
+    end
+    else
+      Inc(I);
 end;
 
 
@@ -187,6 +538,8 @@ procedure TPasDataFlowAnalyzer.ReportUninit(V: TPasVariable; PosEl: TPasElement)
 begin
   if FReported.IndexOf(V) >= 0 then Exit;
   FReported.Add(V);
+  FResultVars.Add(V);
+  FResultPos.Add(PosEl);
   EmitMessage(nUninitializedVariable, sUninitializedVariable, [V.Name], PosEl);
 end;
 
@@ -256,20 +609,9 @@ begin
 end;
 
 
-procedure TPasDataFlowAnalyzer.ProcessElements(List: TFPList);
-var
-  I: Integer;
-begin
-  if List = nil then Exit;
-  for I := 0 to List.Count - 1 do
-    ProcessStmt(TPasElement(List[I]));
-end;
-
-
 procedure TPasDataFlowAnalyzer.ProcessStmt(El: TPasElement);
 var
   I: Integer;
-  CaseSt: TPasImplCaseStatement;
 begin
   if El = nil then Exit;
 
@@ -282,66 +624,52 @@ begin
   else if El is TPasImplSimple then
     ProcessExpr(TPasImplSimple(El).Expr)
   else if El is TPasImplIfElse then
-  begin
-    ProcessExpr(TPasImplIfElse(El).ConditionExpr);
-    ProcessStmt(TPasImplIfElse(El).IfBranch);
-    ProcessStmt(TPasImplIfElse(El).ElseBranch);
-  end
+    ProcessExpr(TPasImplIfElse(El).ConditionExpr)
   else if El is TPasImplWhileDo then
-  begin
-    ProcessExpr(TPasImplWhileDo(El).ConditionExpr);
-    ProcessStmt(TPasImplWhileDo(El).Body);
-  end
+    ProcessExpr(TPasImplWhileDo(El).ConditionExpr)
   else if El is TPasImplRepeatUntil then
-  begin
-    // Body runs at least once, before the until condition.
-    ProcessElements(TPasImplRepeatUntil(El).Elements);
-    ProcessExpr(TPasImplRepeatUntil(El).ConditionExpr);
-  end
+    ProcessExpr(TPasImplRepeatUntil(El).ConditionExpr)
   else if El is TPasImplForLoop then
   begin
     ProcessExpr(TPasImplForLoop(El).StartExpr);
     ProcessExpr(TPasImplForLoop(El).EndExpr);
     // The loop control variable is assigned by the loop header.
     ProcessExpr(TPasImplForLoop(El).VariableName);
-    ProcessStmt(TPasImplForLoop(El).Body);
   end
   else if El is TPasImplCaseOf then
-  begin
-    ProcessExpr(TPasImplCaseOf(El).CaseExpr);
-    for I := 0 to TPasImplCaseOf(El).Elements.Count - 1 do
-    begin
-      if TObject(TPasImplCaseOf(El).Elements[I]) is TPasImplCaseStatement then
-      begin
-        CaseSt := TPasImplCaseStatement(TPasImplCaseOf(El).Elements[I]);
-        ProcessStmt(CaseSt.Body);
-      end
-      else if TObject(TPasImplCaseOf(El).Elements[I]) is TPasImplBlock then
-        ProcessElements(TPasImplBlock(TPasImplCaseOf(El).Elements[I]).Elements);
-    end;
-  end
+    ProcessExpr(TPasImplCaseOf(El).CaseExpr)
   else if El is TPasImplWithDo then
   begin
     for I := 0 to TPasImplWithDo(El).Expressions.Count - 1 do
       ProcessExpr(TPasExpr(TPasImplWithDo(El).Expressions[I]));
-    ProcessStmt(TPasImplWithDo(El).Body);
   end
-  else if El is TPasImplTry then
-  begin
-    ProcessElements(TPasImplTry(El).Elements);
-    ProcessStmt(TPasImplTry(El).FinallyExcept);
-    ProcessStmt(TPasImplTry(El).ElseBranch);
-  end
-  else if El is TPasImplExceptOn then
-    ProcessStmt(TPasImplExceptOn(El).Body)
   else if El is TPasImplRaise then
   begin
     ProcessExpr(TPasImplRaise(El).ExceptObject);
     ProcessExpr(TPasImplRaise(El).ExceptAddr);
   end
-  else if El is TPasImplBlock then
-    // TPasImplBeginBlock, TPasImplTryHandler, TPasImplCaseElse, plain blocks
-    ProcessElements(TPasImplBlock(El).Elements);
+  else if El is TPasImplAsmStatement then
+  begin
+    // A tracked variable named anywhere in the asm block counts as defined.
+    for I := 0 to TPasImplAsmStatement(El).Tokens.Count - 1 do
+      MarkAsmIdents(TPasImplAsmStatement(El).Tokens[I]);
+    for I := 0 to TPasImplAsmStatement(El).ModifierTokens.Count - 1 do
+      MarkAsmIdents(TPasImplAsmStatement(El).ModifierTokens[I]);
+  end;
+end;
+
+
+procedure TPasDataFlowAnalyzer.TransferNode(aNode: TPasCFGNode; aState: TFPList);
+var
+  I: Integer;
+begin
+  FState := aState;
+  try
+    for I := 0 to aNode.StatementCount - 1 do
+      ProcessStmt(aNode.Statements[I]);
+  finally
+    FState := nil;
+  end;
 end;
 
 
@@ -373,7 +701,9 @@ begin
     El := TPasElement(Decls.Declarations[I]);
     // Only plain, simple-typed variables (not typed consts, properties, args)
     // without an initializer expression — those are already initialized.
+    // An absolute variable aliases another one, so it is not tracked.
     if (El.ClassType = TPasVariable) and (TPasVariable(El).Expr = nil) and
+       (TPasVariable(El).AbsoluteExpr = nil) and
        IsSimpleVarType(TPasVariable(El)) then
       List.Add(El);
   end;
@@ -381,13 +711,32 @@ end;
 
 
 procedure TPasDataFlowAnalyzer.AnalyzeRoutine(Body: TPasElement; Locals: TFPList);
+var
+  lCFG: TPasCFG;
+  lEngine: TPasDataFlowEngine;
+  lLattice: TPasAssignedLattice;
 begin
-  if (Body = nil) or (Locals.Count = 0) then Exit;
+  if not (Body is TPasImplBlock) or (Locals.Count = 0) then Exit;
   FTracked.Clear;
   FTracked.Assign(Locals);
   FAssigned.Clear;
   FReported.Clear;
-  ProcessStmt(Body);
+  lCFG := TPasCFG.Create(TPasImplBlock(Body));
+  try
+    lLattice := TPasAssignedLattice.Create(Self);
+    try
+      lEngine := TPasDataFlowEngine.Create;
+      try
+        lEngine.Run(lCFG, lLattice);
+      finally
+        lEngine.Free;
+      end;
+    finally
+      lLattice.Free;
+    end;
+  finally
+    lCFG.Free;
+  end;
 end;
 
 
@@ -422,6 +771,8 @@ procedure TPasDataFlowAnalyzer.AnalyzeModule(aModule: TPasModule);
 var
   Globals: TFPList;
 begin
+  FResultVars.Clear;
+  FResultPos.Clear;
   if aModule = nil then Exit;
 
   if aModule is TPasProgram then

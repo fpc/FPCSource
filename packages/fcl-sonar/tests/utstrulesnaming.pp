@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesNaming;
 
-{ The five AST-tier naming rules }
 
 {$mode objfpc}{$H+}
 
@@ -29,22 +28,19 @@ type
   { AST-tier naming-rule position + registration tests. }
   TRulesNamingTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts the rule fires exactly once at aDeclLine, column 1, with message
-    // args [aName, aPattern]; and zero on the compliant fixture. Fixtures supplied
-    // inline (one array element per source line) and materialised to a temp dir.
+    // Asserts the rule fires once at aDeclLine, column 1, with message args
+    // [aName, aPattern], and zero on the compliant fixture.
     procedure CheckNamingRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aDeclLine: Integer; const aName, aPattern: string;
       const aNoncompliant, aCompliant: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewClassNaming: TRuleBase;
     function NewRecordNaming: TRuleBase;
     function NewInterfaceNaming: TRuleBase;
@@ -97,7 +93,7 @@ const
   cUnitNamingId = 'UnitNaming';
   cIdentifierTooShortId = 'IdentifierTooShort';
 
-  // The default patterns asserted in the message args (mirror the unit consts).
+  // The default patterns asserted in the message args.
   cPatT = '^T[A-Z][A-Za-z0-9]*$';
   cPatI = '^I[A-Z][A-Za-z0-9]*$';
   cPatHelper = '^T[A-Z][A-Za-z0-9]*Helper$';
@@ -112,7 +108,7 @@ const
   // IdentifierTooShort carries IntToStr(cMinIdentLength) in arg 1, not a pattern.
   cMinLenArg = '3';
 
-  // Embedded naming-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded naming-rule fixtures: line i+1 == [i].
 
   cClassNamingNoncompliant: array[0..12] of string = (
     'unit NonCompliant;',
@@ -717,8 +713,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at the type declaration line, column 1
-    // (AST nodes carry no column), carrying [offending name, pattern] as args.
+    // Noncompliant: one issue at the type declaration line, column 1, carrying
+    // [offending name, pattern] as args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -869,8 +865,7 @@ procedure TRulesNamingTest.ConstructorNamingPositions;
 
 begin
   // Noncompliant: impl-section 'constructor TThing.make' (decl line 14)
-  // violates ^Create...; the reported name is the
-  // SIMPLE 'make', NOT the qualified 'TThing.make' (validates LastIdentifier).
+  // violates ^Create...; the reported name is the simple 'make'.
   CheckNamingRuleSrc(NewConstructorNaming, NewConstructorNaming,
     cConstructorNamingId, 14, 'make', cPatCtor,
     cConstructorNamingNoncompliant, cConstructorNamingCompliant);
@@ -891,8 +886,7 @@ procedure TRulesNamingTest.IdentifierTooShortPositions;
 
 begin
   // Noncompliant: const 'Pi' (2 chars, decl line 8) is shorter than 3; the
-  // second message arg is the minimum length ('3'), not a pattern. The
-  // compliant fixture's allowlisted 'i' proves the allowlist suppresses it.
+  // second message arg is the minimum length ('3').
   CheckNamingRuleSrc(NewIdentifierTooShort, NewIdentifierTooShort,
     cIdentifierTooShortId, 8, 'Pi', cMinLenArg,
     cIdentifierTooShortNoncompliant, cIdentifierTooShortCompliant);
@@ -903,7 +897,7 @@ procedure TRulesNamingTest.RulesSelfRegisterGlobally;
 
 begin
   // The production initialization registered all fourteen naming rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // global registry.
   AssertTrue('ClassNaming registered',
     RuleRegistry.FindById(cClassNamingId) <> nil);
   AssertTrue('RecordNaming registered',

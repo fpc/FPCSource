@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRuleEngine;
 
-{ Engine dispatch tests. }
 
 {$mode objfpc}{$H+}
 
@@ -40,8 +39,8 @@ type
       const aCollector: TFpSonarIssueCollector); override;
   end;
 
-  { A synthetic rule that records the CompilerMode it received from the context
-    into a unit-global, so a test can assert the engine threads it through. }
+  { A synthetic rule that records the CompilerMode it received into a
+    unit-global. }
   TSynthModeRule = class(TRuleBase)
   public
     procedure Apply(const aContext: TRuleContext;
@@ -72,7 +71,7 @@ const
   cMode = 'OBJFPC';
 
 var
-  // Captures the CompilerMode TSynthModeRule saw, for ContextCarriesCompilerMode.
+  // The CompilerMode TSynthModeRule saw.
   GCapturedMode: string;
 
 procedure TSynthEmitRule.Apply(const aContext: TRuleContext;
@@ -143,8 +142,7 @@ begin
   lEngine := TFpSonarRuleEngine.CreateWith(lReg);
   lCollector := TFpSonarIssueCollector.Create;
   try
-    // Deliberately SCRAMBLED registration order (Ast, Lex, Tok) to prove the
-    // engine orders by TIER, not by registration order.
+    // Deliberately scrambled registration order (Ast, Lex, Tok).
     MakeSynth(lReg, 'SynthAst', rtAst, rfAst, True);
     MakeSynth(lReg, 'SynthLex', rtLex, rfTokenStream, True);
     MakeSynth(lReg, 'SynthTok', rtTok, rfTokenStream, True);
@@ -189,11 +187,8 @@ begin
     MakeSynth(lReg, 'SynthLex', rtLex, rfTokenStream, True);
     MakeSynth(lReg, 'SynthTok', rtTok, rfTokenStream, True);
     MakeSynth(lReg, 'SynthAst', rtAst, rfAst, True);
-    // A SEM rule on the resolver feed: rfResolver is wired to the
-    // per-unit resolver, which is built ONLY after a successful parse. Here the
-    // parse FAILS, so no resolver is built -> the feed is absent -> the SEM rule
-    // is skipped (graceful degradation). The positive case — rfResolver runs
-    // when the feed IS present — is covered in utstResolver.
+    // A SEM rule on the resolver feed; no resolver is built when the parse
+    // fails.
     MakeSynth(lReg, 'SynthSem', rtSem, rfResolver, True);
 
     // faultbad.pas: parse fails (Module nil) but the token stream survives.
@@ -324,8 +319,7 @@ begin
       ['FPC', 'CPUX86_64', 'UNIX', 'LINUX'], lSecond);
 
     AssertTrue('at least one issue emitted', lFirst.Count > 0);
-    // Single emission path: everything went through AddIssue, so every
-    // issue carries a non-empty fingerprint.
+    // Single emission path: everything went through AddIssue.
     for i := 0 to lFirst.Count - 1 do
       AssertTrue('every issue is fingerprinted',
         lFirst.Issues[i].Fingerprint <> '');
@@ -359,8 +353,7 @@ var
   lCollector: TFpSonarIssueCollector;
 
 begin
-  // The engine must thread the analyzed compiler mode into TRuleContext, not
-  // drop it — a mode-sensitive rule reads aContext.CompilerMode (M1 regression).
+  // The engine threads the analyzed compiler mode into TRuleContext.
   lFix := TTempFixtures.Create;
   lReg := TRuleRegistry.Create;
   lEngine := TFpSonarRuleEngine.CreateWith(lReg);
@@ -395,8 +388,7 @@ var
   lErr: string;
 
 begin
-  // Config beats the metadata default AT DISPATCH. Register a
-  // default-ENABLED rule and a default-DISABLED one, then flip both via config.
+  // Config beats the metadata default at dispatch.
   lFix := TTempFixtures.Create;
   lReg := TRuleRegistry.Create;
   lEngine := TFpSonarRuleEngine.CreateWith(lReg);

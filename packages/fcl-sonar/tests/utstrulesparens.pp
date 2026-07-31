@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesParens;
 
-{ The CST-tier PARENTHESIS rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -29,12 +28,10 @@ type
   { CST-tier parenthesis-rule position + registration tests. }
   TParensRulesTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture
-    // with aConfig threaded onto the engine; issues land in aCollector.
+    // Runs aRule over aFixture with aConfig threaded onto the engine.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aConfig: TFpSonarConfig; const aCollector: TFpSonarIssueCollector);
-    // As RunRule, but the fixture source is supplied inline (one array element
-    // per source line) and materialised to a temp dir for the run.
+    // As RunRule, with the fixture source supplied inline.
     procedure RunRuleSrc(aRule: TRuleBase; const aName: string;
       const aSrc: array of string; const aConfig: TFpSonarConfig;
       const aCollector: TFpSonarIssueCollector);
@@ -44,9 +41,7 @@ type
       const aId: string): Integer;
     // A config carrying rules.RemoveRedundantParentheses.params.keepAroundOperators.
     function KeepAroundConfig(const aValue: string): TFpSonarConfig;
-    // Fresh, separately-owned rule instances (metadata mirrors the unit's
-    // self-registration, including RemoveRedundantParentheses's declared
-    // keepAroundOperators param).
+    // Fresh, separately-owned rule instances.
     function NewRemoveRedundantParentheses: TRuleBase;
     function NewParenthesizeAmbiguousNot: TRuleBase;
   published
@@ -69,7 +64,7 @@ const
   cAmbiguousNotId = 'ParenthesizeAmbiguousNot';
   cDefines: array[0..3] of string = ('FPC', 'CPUX86_64', 'UNIX', 'LINUX');
 
-  // Embedded parenthesis-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded parenthesis-rule fixtures: line i+1 == [i].
 
   cRedundantNoncompliant: array[0..16] of string = (
     'unit noncompliant;',
@@ -274,9 +269,6 @@ end;
 
 
 // Arm A (cast/call not flagged), arm B (canonical 2 issues) and exact positions.
-// Fixture line 13 'y := (a) + ((b));', line 14
-// 'y := Integer(a);': the '(a)' atom pair and the OUTER of '((b))' fire; the
-// inner pair and the Integer(...) cast do not.
 procedure TParensRulesTest.RedundantSingleAtomAndDoubledFire;
 
 var
@@ -301,9 +293,7 @@ begin
 end;
 
 
-// Necessary/disambiguating parens stay silent: 'a * (b + c)',
-// '(a + b) * c', 'a - (b - c)', a typecast Integer(a), @(a), and a deref '(pi^)'
-// (arm A abstains on '^').
+// Necessary/disambiguating parens stay silent.
 procedure TParensRulesTest.RedundantNecessaryParensAreSilent;
 
 var
@@ -320,8 +310,7 @@ begin
 end;
 
 
-// keepAroundOperators is parsed/accepted (arm C deferred), so a config
-// setting it neither errors nor changes behaviour (still 2 arm A/B findings).
+// keepAroundOperators is parsed and accepted, but inert.
 procedure TParensRulesTest.RedundantKeepAroundOperatorsParsedAndInert;
 
 var
@@ -343,8 +332,7 @@ begin
 end;
 
 
-// Fire + positions. Fixture 'not a and b' / 'not a or b' /
-// 'not x = y' on lines 13/14/15: one issue at each 'not' (R.. C8).
+// Fire + positions: one issue at each 'not' on lines 13/14/15.
 procedure TParensRulesTest.AmbiguousNotFires;
 
 var
@@ -367,8 +355,7 @@ begin
 end;
 
 
-// Compliant nots stay silent: '(not a) and b' (parenthesised),
-// 'not a' (no following operator), 'not Assigned(aObj)' (call operand).
+// Compliant nots stay silent.
 procedure TParensRulesTest.AmbiguousNotCompliantSilent;
 
 var
@@ -385,10 +372,8 @@ begin
 end;
 
 
-// Locks the FPC operator-precedence table PrecedenceRank exposes (the heart of
-// ParenHelper): 1 unary, 2 multiplying, 3 adding, 4 relational, 0 non-operator.
-// Scans the ParenthesizeAmbiguousNot fixture (not/and/or/=) plus the
-// RemoveRedundantParentheses compliant fixture (* + -).
+// Locks the FPC operator-precedence table PrecedenceRank exposes: 1 unary,
+// 2 multiplying, 3 adding, 4 relational, 0 non-operator.
 procedure TParensRulesTest.PrecedenceRankMirrorsFpcTable;
 
 var
@@ -481,8 +466,7 @@ begin
 end;
 
 
-// Both rules self-register into the global registry (convention: assert
-// via FindById, not a brittle total count).
+// Both rules self-register into the global registry.
 procedure TParensRulesTest.ParensRulesSelfRegisterGlobally;
 
 begin

@@ -27,6 +27,7 @@ uses
   FpSonar.Config,
   FpSonar.RuleFramework,
   FpSonar.Baseline,
+  FpSonar.NamespaceMap,
   FpSonar.Output.Text,
   FpSonar.Output.Sarif,
   FpSonar.Output.SonarJson,
@@ -38,7 +39,11 @@ uses
   FpSonar.Rules.Exceptions,
   FpSonar.Rules.Casts,
   FpSonar.Rules.Calls,
+  FpSonar.Rules.Concurrency,
+  FpSonar.Rules.CondComp,
   FpSonar.Rules.Control,
+  FpSonar.Rules.Eval,
+  FpSonar.Rules.Generics,
   FpSonar.Rules.Imports,
   FpSonar.Rules.Refs,
   FpSonar.Rules.SemNaming,
@@ -46,6 +51,10 @@ uses
   FpSonar.Rules.Trackers,
   FpSonar.Rules.Parens,
   FpSonar.Rules.Forms,
+  FpSonar.Rules.FpcStyle,
+  FpSonar.Rules.Lifetime,
+  FpSonar.Rules.Strings,
+  FpSonar.Rules.DataFlow,
   FpSonar.Consts;
 
 type
@@ -113,6 +122,7 @@ type
   var
     LOpts: TFpSonarCliOptions;
     LParamError: string;
+    LMapError: string;
   begin
     Result := False;
     LOpts := TFpSonarCliOptions.Parse(CollectArgs);
@@ -141,6 +151,15 @@ type
       ExitCode := 2;
       Exit;
     end;
+
+    if LOpts.NamespaceMapFile <> '' then
+      if not LoadNamespaceMap(LOpts.NamespaceMapFile, LMapError) then
+      begin
+        Writeln(StdErr, Format(SCliError, [LMapError]));
+        Writeln(StdErr, STryHelp);
+        ExitCode := 2;
+        Exit;
+      end;
     aOpts := LOpts;
     Result := True;
   end;

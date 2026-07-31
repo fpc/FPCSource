@@ -20,25 +20,6 @@ unit FpSonar.Config;
 
   unknown keys are ignored for forward-compat, so keys added later do not break this loader.
 
-    {
-      "_fpsonar": { "config": "fpsonar-default", "version": "1" }, // optional stamp; ignored
-      "rules": {                       // optional; keys are bare PascalCase RuleIds (verbatim)
-        "LowercaseKeywords": { "enabled": false },
-        "LineTooLong":       { "severity": "major" }   // info|minor|major|critical|blocker
-      },
-      "gate": {                        // optional; absent => strict default
-        "maxBlocker": 0, "maxCritical": 0,             // -1 = unlimited on that axis
-        "maxMajor": -1, "maxMinor": -1, "maxInfo": -1,
-        "maxTotal": -1
-      },
-      "suppressions": [                // optional (1.9); absent => no suppression
-        { "rule": "Naming*", "path": "*/legacy/*" }    // *,? globs (case-sensitive)
-        // each element: optional string "rule" and/or "path";
-        // at least one is required (a both-empty entry = "suppress everything" => hard error).
-        // An omitted field is a "*" wildcard.
-        // A non-array, a non-object element, or a non-string rule/path is a hard error.
-      ]
-    }
 *)
 
 {$mode objfpc}{$H+}
@@ -99,9 +80,8 @@ type
     MaxPerSeverity: array[TFpSonarSeverity] of integer;
     // MaxTotal is the MAXIMUM allowed count
     MaxTotal: integer;
-    // Evaluates Self against aIssues' (effective) severities: fails on the first
-    // per-severity axis exceeded (Blocker..Info), else the total. -1 = unlimited
-    // on an axis. The reason names the first exceeded axis.
+    // Evaluates Self against aIssues' (effective) severities: fails on the
+    // first per-severity axis exceeded (Blocker..Info).
     function Evaluate(const aIssues: TFpSonarIssueArray): TFpSonarGateOutcome;
   end;
 
@@ -137,10 +117,10 @@ type
     // The built-in default
     class function Default: TFpSonarConfig; static;
     // The effective enable state for aRuleId: an explicit Enabled when the rule
-    // has a setting with HasEnabled, else aDefaultEnabled.
+    // has a setting with HasEnabled.
     function RuleEnabled(const aRuleId: string; aDefaultEnabled: boolean): boolean;
     // The effective severity for aRuleId: an explicit Severity when the rule
-    // has a setting with HasSeverity, else aDefaultSeverity.
+    // has a setting with HasSeverity.
     function EffectiveSeverity(const aRuleId: string;
       aDefaultSeverity: TFpSonarSeverity): TFpSonarSeverity;
     // The typed value of the 'aKey' parameter configured for aRuleId, or aDefault
@@ -232,7 +212,7 @@ begin
   lTotal := Length(aIssues);
 
   // Severities first, in descending severity order (Blocker..Info); the enum is
-  // declared ascending, so iterate High downto Low.
+  // declared ascending.
   for lSev := High(TFpSonarSeverity) downto Low(TFpSonarSeverity) do
     if Trips(lCounts[lSev], MaxPerSeverity[lSev]) then
     begin
@@ -462,8 +442,8 @@ begin
     lSevData := lObj.Find('severity');
     if lSevData <> nil then
     begin
-      // Guard the type FIRST: AsString on a non-scalar (object/array) raises
-      // in fpjson, so it must never be reached for the error text.
+      // Guard the type FIRST: AsString on a non-scalar (object/array) raises in
+      // fpjson.
       if lSevData.JSONType <> jtString then
       begin
         aError := 'rule "' + aRuleId + '": target "severity" in "' +

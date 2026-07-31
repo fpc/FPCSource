@@ -14,7 +14,6 @@
  **********************************************************************}
 unit FpSonar.Output.Sarif;
 
-{ The SARIF 2.1.0 output adapter (--format sarif) the SonarQube-importable format }
 
 {$mode objfpc}{$H+}
 

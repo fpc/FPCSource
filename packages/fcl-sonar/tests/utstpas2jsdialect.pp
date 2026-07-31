@@ -14,9 +14,6 @@
  **********************************************************************}
 unit utstPas2jsDialect;
 
-{ Tests that Dialect=dlPas2js accepts pas2js-only syntax (async methods,
-  external classes) that the default FPC dialect rejects, while dlDefault
-  stays byte-identical. }
 
 {$mode objfpc}{$H+}
 
@@ -27,8 +24,8 @@ uses
   FpSonar.Types, FpSonar.Ingest, UtstFixtures;
 
 type
-  { pas2js dialect test: the pas2js parse-relevant subset lets pas2js-only
-    constructs parse, and the default dialect still rejects them. }
+  { pas2js dialect test: pas2js-only constructs parse, and the default dialect
+    rejects them. }
   TPas2jsDialectTest = class(TTestCase)
   private
     // Parses aLines under aDialect, returning True iff the parse succeeded.
@@ -49,8 +46,7 @@ type
 implementation
 
 const
-  // A unit with an async method — the reported wasm_worker_main defect: the
-  // 'async' modifier is a ParseError unless po_AsyncProcs is enabled.
+  // A unit with an async method: a ParseError unless po_AsyncProcs is enabled.
   cAsyncFixture: array[0..10] of string = (
     'unit AsyncFixture;',
     '{$mode objfpc}{$H+}',
@@ -75,9 +71,7 @@ const
     'begin',
     'end.');
 
-  // A unit with a pas2js asm block holding literal JavaScript (the '!' operator
-  // is not a Pascal token). The LEX token scan must read the asm block whole,
-  // like the parser, or it faults on '!'.
+  // A unit with a pas2js asm block holding literal JavaScript.
   cAsmJsFixture: array[0..9] of string = (
     'unit AsmFixture;',
     '{$mode objfpc}{$H+}',
@@ -130,8 +124,6 @@ end;
 procedure TPas2jsDialectTest.DefaultDialectRejectsAsyncMethod;
 
 begin
-  // The default dialect must still reject 'async' — proves dlPas2js is the
-  // enabler and the default parse path is unchanged.
   AssertFalse('async method is a ParseError under dlDefault',
     ParsesUnder('asyncfixture.pas', cAsyncFixture, dlDefault));
 end;
@@ -174,8 +166,7 @@ end;
 procedure TPas2jsDialectTest.Pas2jsDialectScansAsmJavaScript;
 
 begin
-  // The LEX token feed must read the asm block whole (like the parser), so the
-  // JS '!' does not fault the scan.
+  // The LEX token feed must read the asm block whole.
   AssertTrue('asm JavaScript scans clean under dlPas2js',
     ScansUnder('asmfixture.pas', cAsmJsFixture, dlPas2js));
 end;
@@ -184,8 +175,6 @@ end;
 procedure TPas2jsDialectTest.DefaultDialectRejectsAsmJavaScript;
 
 begin
-  // Default: the per-token asm scan still faults on the JS '!' — proves the
-  // asm-whole read is dialect-gated and the default scan path is unchanged.
   AssertFalse('asm JavaScript faults the scan under dlDefault',
     ScansUnder('asmfixture.pas', cAsmJsFixture, dlDefault));
 end;

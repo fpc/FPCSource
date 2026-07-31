@@ -14,8 +14,6 @@
  **********************************************************************}
 unit utstRulesForms;
 
-{ The LCL form-file rule tests: LfmFormFileExists,
-  rtAst / rfAst / sevMinor / itCodeSmell / cfMedium. }
 
 {$mode objfpc}{$H+}
 
@@ -30,8 +28,7 @@ type
   { AST-tier form-file rule position + registration + config tests. }
   TRulesFormsTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture
-    // with aConfig threaded onto the engine; issues land in aCollector.
+    // Runs aRule over aFixture with aConfig threaded onto the engine.
     procedure RunRuleCfg(aRule: TRuleBase; const aFixture: string;
       const aConfig: TFpSonarConfig; const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
@@ -40,8 +37,7 @@ type
       const aId: string): Integer;
     // A config carrying rules.LfmFormFileExists.params.formBaseTypes = aValue.
     function FormBaseTypesConfig(const aValue: string): TFpSonarConfig;
-    // A fresh, separately-owned rule instance (metadata mirrors the unit's
-    // self-registration, including the declared formBaseTypes param).
+    // A fresh, separately-owned rule instance.
     function NewLfmFormFileExists: TRuleBase;
   published
     procedure LfmFormFileExistsFlagsMissingLfm;
@@ -61,9 +57,8 @@ const
   cDefines: array[0..3] of string = ('FPC', 'CPUX86_64', 'UNIX', 'LINUX');
   cFormClassLine = 11;  // probe-locked line of 'TMyForm = class(...)'
 
-  // Embedded LfmFormFileExists fixtures (Approach A rollout): line i+1 == [i].
-  // The compliant case needs BOTH compliant.pas AND its sibling
-  // compliant.lfm written to the same temp dir (the rule checks disk).
+  // Embedded LfmFormFileExists fixtures: line i+1 == [i]. The compliant case
+  // needs compliant.pas and its sibling compliant.lfm in the same temp dir.
 
   cLfmNoncompliant: array[0..15] of string = (
     'unit noncompliant;',
@@ -241,8 +236,7 @@ begin
 end;
 
 
-// A form unit with no sibling .lfm fires exactly one issue at the first
-// form-class line, column 1, with no message args.
+// A form unit with no sibling .lfm fires one issue at the first form-class line.
 procedure TRulesFormsTest.LfmFormFileExistsFlagsMissingLfm;
 
 var
@@ -286,8 +280,7 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Write BOTH the unit AND its sibling .lfm (same basename) into the temp dir;
-    // the rule checks disk for <basename>.lfm, so its presence keeps it silent.
+    // Write both the unit and its sibling .lfm into the temp dir.
     lPas := lFix.Add('compliant.pas', cLfmCompliant);
     lFix.Add('compliant.lfm', cLfmCompliantLfm);
     lc := TFpSonarIssueCollector.Create;
@@ -304,8 +297,7 @@ begin
 end;
 
 
-// A non-form unit (TThing = class(TObject), no form ancestor) never
-// fires, even with no .lfm sibling.
+// A non-form unit never fires, even with no .lfm sibling.
 procedure TRulesFormsTest.LfmFormFileExistsIgnoresNonFormUnit;
 
 var
@@ -330,9 +322,8 @@ begin
 end;
 
 
-// formBaseTypes extends the matched base set: configbase.pas
-// (TMyForm = class(TMyBaseForm), no .lfm) fires only when the config names
-// TMyBaseForm; with the default list it abstains (TMyBaseForm not a default).
+// formBaseTypes extends the matched base set: configbase.pas fires only when
+// the config names TMyBaseForm.
 procedure TRulesFormsTest.LfmFormFileExistsHonorsConfiguredBaseType;
 
 var
@@ -363,8 +354,7 @@ begin
 end;
 
 
-// The rule self-registers globally as rtAst/rfAst (assert via FindById,
-// not a brittle registry-count total).
+// The rule self-registers globally as rtAst/rfAst.
 procedure TRulesFormsTest.FormsRulesSelfRegisterGlobally;
 
 var

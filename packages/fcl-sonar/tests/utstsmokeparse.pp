@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstSmokeParse;
 
-{ Foundation  test. }
 
 {$mode objfpc}{$H+}
 
@@ -25,8 +24,7 @@ uses
   PScanner, PParser, PasTree, UtstFixtures, UtstCoreFixtures;
 
 type
-  { Minimal TPasTreeContainer engine required by TPasParser.
-    Pattern copied from FPC's fcl-passrc examples/test_parser.pp. }
+  { Minimal TPasTreeContainer engine required by TPasParser. }
   TSmokeEngine = class(TPasTreeContainer)
   public
     function CreateElement(AClass: TPTreeElement; const AName: String;
@@ -54,10 +52,7 @@ begin
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
-  { Register with the container so TPasTreeContainer.Destroy frees it. The
-    parser never calls AddOwnedElement itself; without this the parsed tree
-    leaks. This is the canonical fcl-passrc engine ownership pattern that the
-    later per-rule test engines will reuse. }
+  { Register with the container: TPasTreeContainer.Destroy then frees it. }
   AddOwnedElement(Result);
 end;
 

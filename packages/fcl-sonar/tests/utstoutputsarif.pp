@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstOutputSarif;
 
-{ The SARIF 2.1.0 output adapter. }
 
 {$mode objfpc}{$H+}
 
@@ -189,8 +188,7 @@ var
   lResults: TJSONArray;
 
 begin
-  // The all-active default set emits NO suppressions key (absence => active, the
-  // SARIF default — existing structure stays green).
+  // The all-active default set emits no suppressions key.
   lData := GetJSON(FormatSarif(SyntheticIssues));
   try
     lResults := lData.FindPath('runs[0].results') as TJSONArray;

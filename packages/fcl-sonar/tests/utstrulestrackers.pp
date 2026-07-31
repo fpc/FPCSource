@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesTrackers;
 
-{ The config-driven TRACKER rule tests: the three disallow-list rules }
 
 {$mode objfpc}{$H+}
 
@@ -29,12 +28,12 @@ type
   { SEM-tier config-driven tracker-rule tests. }
   TTrackersRulesTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture
-    // with aConfig threaded onto the engine; issues land in aCollector.
+    // Runs aRule over aFixture with aConfig threaded onto the engine; issues
+    // land in aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aConfig: TFpSonarConfig; const aCollector: TFpSonarIssueCollector);
-    // As RunRule, but the fixture source is supplied inline (one array element
-    // per source line) and materialised to a temp dir for the run.
+    // As RunRule, but the fixture source is supplied inline and materialised to
+    // a temp dir for the run.
     procedure RunRuleSrc(aRule: TRuleBase; const aName: string;
       const aSrc: array of string; const aConfig: TFpSonarConfig;
       const aCollector: TFpSonarIssueCollector);
@@ -54,8 +53,7 @@ type
     // matchUnresolvedByName bool (the two-mode switch).
     function IdentifierConfig(const aPatterns: array of string;
       aByName: Boolean): TFpSonarConfig;
-    // Fresh, separately-owned rule instances (metadata mirrors the unit's
-    // self-registration, including the declared 'targets' param).
+    // Fresh, separately-owned rule instances.
     function NewDisallowedImportByPath: TRuleBase;
     function NewDisallowedConstant: TRuleBase;
     function NewDisallowedEnumValue: TRuleBase;
@@ -117,7 +115,7 @@ const
   cTypeId = 'DisallowedType';
   cAliasId = 'TrackTypeAliases';
 
-  // Embedded tracker-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded tracker-rule fixtures: line i+1 == [i].
 
   cDisallowedConstantCompliant: array[0..20] of string = (
     'unit compliant;',
@@ -668,8 +666,7 @@ var
   lFix: TTempFixtures;
 
 begin
-  // Materialise the inline fixture (one array element per source line) to a
-  // temp dir, run with aConfig, and delete.
+  // Materialise the inline fixture to a temp dir, run with aConfig, and delete.
   lFix := TTempFixtures.Create;
   try
     RunRule(aRule, lFix.Add(aName, aSrc), aConfig, aCollector);
@@ -940,8 +937,7 @@ var
 
 begin
   // The compliant fixture imports the synthetic-RTL SysUtils only; its path is
-  // never located, so even a match-all glob produces zero (synthetic
-  // exclusion) — and the fixture resolves clean (silent-skip canary).
+  // never located.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedImportByPath, 'compliant.pas', cDisallowedImportByPathCompliant,
@@ -1001,9 +997,8 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // The compliant fixture has a LOCAL variable named Forbidden, not the const; the
-  // reference resolves to the variable, so the const rule never matches (resolved
-  // identity, not spelling) -> zero.
+  // The compliant fixture has a LOCAL variable named Forbidden, not the const;
+  // the reference resolves to the variable.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedConstant, 'compliant.pas', cDisallowedConstantCompliant,
@@ -1134,9 +1129,8 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // The compliant fixture has a LOCAL variable named FBanned (Parent is a block,
-  // not a members type); the reference resolves to it, so the field rule never
-  // matches (resolved identity + member filter, not spelling) -> zero.
+  // The compliant fixture has a LOCAL variable named FBanned (Parent is a
+  // block, not a members type); the reference resolves to it.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedField, 'compliant.pas', cDisallowedFieldCompliant,
@@ -1176,11 +1170,10 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // A CLASS const (Parent IS a members type) is the one case where the 'not
-  // TPasConst' arm of the field partition actually bears load: the Parent-is-member
-  // check alone would NOT exclude it (a section-level const is excluded by Parent
-  // anyway). The const rule firing on the same fixture/target proves the const resolves
-  // (no silent-skip false-green); the field rule staying silent proves the const arm.
+  // A class const (Parent is a members type) is the one case where the 'not
+  // TPasConst' arm of the field partition bears load. The const rule firing on
+  // the same fixture proves the const resolves; the field rule staying silent
+  // proves the const arm.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedConstant, 'classconst.pas', cDisallowedFieldClassconst,
@@ -1438,9 +1431,8 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // Positive control: the fixture calls the routine DoIt, which DOES resolve to a
-  // TPasProcedure and fires. This proves the fixture resolves clean, so the zero
-  // below is a real exclusion and not a silent-skip false-green.
+  // Positive control: the fixture calls the routine DoIt, which DOES resolve to
+  // a TPasProcedure and fires. This proves the fixture resolves clean.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedRoutine, 'compliant.pas', cDisallowedRoutineCompliant,
@@ -1514,9 +1506,8 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // Positive control: the fixture references TOther in expression position, which
-  // DOES resolve and fires. This proves the fixture resolves clean, so the zero
-  // below is a real non-match and not a silent-skip false-green.
+  // Positive control: the fixture references TOther in expression position,
+  // which DOES resolve and fires. This proves the fixture resolves clean.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewDisallowedType, 'compliant.pas', cDisallowedTypeCompliant,
@@ -1786,8 +1777,8 @@ end;
 procedure TTrackersRulesTest.TrackersSelfRegisterGlobally;
 
 begin
-  // The production initialization registered all three trackers into the GLOBAL
-  // registry (this is what the CLI process runs).
+  // The production initialization registered all three trackers into the global
+  // registry.
   AssertTrue('DisallowedImportByPath registered',
     RuleRegistry.FindById(cImportId) <> nil);
   AssertTrue('DisallowedConstant registered',

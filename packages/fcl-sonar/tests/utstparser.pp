@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstParser;
 
-{ Test for the passrc parser adapter. }
 
 {$mode objfpc}{$H+}
 

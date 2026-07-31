@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesCasts;
 
-{ The resolver-backed (SEM) cast-rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -29,32 +28,25 @@ type
   { SEM-tier cast-rule position + registration tests. }
   TRulesCastsTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts aRule fires exactly once at aDeclLine, column 1, with key
-    // rule.<aId>.message and message args = aArgs; and zero on the compliant
-    // fixture. Fixtures supplied inline (one array element per source line) and
-    // materialised to a temp dir.
+    // Asserts aRule fires once at aDeclLine, column 1, with key
+    // rule.<aId>.message and message args aArgs, and zero on the compliant
+    // fixture.
     procedure CheckCastRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aDeclLine: Integer; const aArgs: array of string;
       const aNoncompliant, aCompliant: array of string);
-    // Asserts aRule fires exactly twice at aLine1 then aLine2 (both column 1),
-    // each with key rule.<aId>.message and the single arg aArg; and zero on the
-    // compliant fixture. Fixtures supplied inline, materialised to a temp dir.
-    // (For a rule whose noncompliant fixture carries two offending casts —
-    // ObjectCastBeforeFree's .Free + FreeAndNil shapes,
-    // PlatformDependentTruncation's two wide-source flavours.)
+    // Asserts aRule fires twice at aLine1 then aLine2, each with the single arg
+    // aArg, and zero on the compliant fixture.
     procedure CheckTwoIssueRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aLine1, aLine2: Integer; const aArg: string;
       const aNoncompliant, aCompliant: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewCharToCharPointerCast: TRuleBase;
     function NewObjectCastNotInHierarchy: TRuleBase;
     function NewRedundantCast: TRuleBase;
@@ -86,7 +78,7 @@ const
   cPlatformDependentCastId = 'PlatformDependentCast';
   cPlatformDependentTruncationId = 'PlatformDependentTruncation';
 
-  // Embedded cast-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded cast-rule fixtures: line i+1 == [i].
 
   cCharToCharPointerCastNoncompliant: array[0..11] of string = (
     'unit noncompliant;',
@@ -466,8 +458,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at the cast line, column 1 (AST/SEM nodes
-    // carry no column), carrying aArgs as the message args.
+    // Noncompliant: one issue at the cast line, column 1, carrying aArgs as the
+    // message args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -488,8 +480,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: the FP guards stay silent (and the fixture MUST resolve clean,
-    // else the rfResolver feed is absent -> rule skipped -> a false 0).
+    // Compliant: the FP guards stay silent; the fixture must resolve clean.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aCompliantRule, lFix.Add('compliant.pas', aCompliant), lc);
@@ -515,15 +506,13 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly two issues (the two offending casts of this rule's
-    // fixture, in statement-then-expression order), each at its cast line,
-    // column 1, with key rule.<aId>.message and arg [aArg].
+    // Noncompliant: two issues in statement-then-expression order, each at its
+    // cast line, column 1, with arg [aArg].
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
       AssertEquals('two issues for ' + aId, 2, CountById(lc, aId));
-      // Collected in statement-then-expression order, so the first issue is the
-      // earlier line; assert both lines and the shared metadata.
+      // Collected in statement-then-expression order.
       k := FirstById(lc, aId);
       AssertEquals('first cast line', aLine1, lc.Issues[k].StartLine);
       AssertEquals('first start col', 1, lc.Issues[k].StartCol);
@@ -539,8 +528,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: the FP guards stay silent (and the fixture MUST resolve clean,
-    // else the rfResolver feed is absent -> rule skipped -> a false 0).
+    // Compliant: the FP guards stay silent; the fixture must resolve clean.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aCompliantRule, lFix.Add('compliant.pas', aCompliant), lc);
@@ -558,8 +546,7 @@ procedure TRulesCastsTest.CharToCharPointerCastPositions;
 
 begin
   // Noncompliant: 'p := PChar(c);' (cast line 10, probe-locked); arg is the
-  // target pointer-type name. Compliant: PChar(s) (string) + PChar(@c) (pointer
-  // operand) — the load-bearing FP guards.
+  // target pointer-type name.
   CheckCastRuleSrc(NewCharToCharPointerCast, NewCharToCharPointerCast,
     cCharToCharPointerCastId, 10, ['PChar'],
     cCharToCharPointerCastNoncompliant, cCharToCharPointerCastCompliant);
@@ -570,8 +557,7 @@ procedure TRulesCastsTest.ObjectCastNotInHierarchyPositions;
 
 begin
   // Noncompliant: 'd := TDog(c);' between sibling classes (cast line 15,
-  // probe-locked); args are the source then target class names. Compliant: an
-  // 'is'-guarded valid down-cast TDerived(b) (in-hierarchy => silent).
+  // probe-locked); args are the source then target class names.
   CheckCastRuleSrc(NewObjectCastNotInHierarchy, NewObjectCastNotInHierarchy,
     cObjectCastNotInHierarchyId, 15, ['TCar', 'TDog'],
     cObjectCastNotInHierarchyNoncompliant, cObjectCastNotInHierarchyCompliant);
@@ -581,10 +567,8 @@ end;
 procedure TRulesCastsTest.RedundantCastPositions;
 
 begin
-  // Noncompliant: 'j := Integer(i);' where i:Integer (cast line 10, probe-locked);
-  // arg is the target type name. Compliant: a widening Integer(b) (b:Byte), a
-  // distinct-named alias TMyInt(i) (flagAliasCasts=false => silent), and a
-  // down-cast TDerived(base) — all silent.
+  // Noncompliant: 'j := Integer(i);' where i:Integer (cast line 10,
+  // probe-locked); arg is the target type name.
   CheckCastRuleSrc(NewRedundantCast, NewRedundantCast, cRedundantCastId, 10,
     ['Integer'],
     cRedundantCastNoncompliant, cRedundantCastCompliant);
@@ -595,9 +579,7 @@ procedure TRulesCastsTest.ObjectCastBeforeFreePositions;
 
 begin
   // Noncompliant: 'TFoo(obj).Free;' (line 13) and 'FreeAndNil(TFoo(obj));'
-  // (line 14), both probe-locked; arg is the target class name. Compliant: a
-  // plain 'obj.Free' (no cast), 'inherited Free' (no cast on the left, never a
-  // candidate) and 'FreeAndNil(obj)' (no cast) — all silent.
+  // (line 14), both probe-locked; arg is the target class name.
   CheckTwoIssueRuleSrc(NewObjectCastBeforeFree, NewObjectCastBeforeFree,
     cObjectCastBeforeFreeId, 13, 14, 'TFoo',
     cObjectCastBeforeFreeNoncompliant, cObjectCastBeforeFreeCompliant);
@@ -608,9 +590,7 @@ procedure TRulesCastsTest.UnicodeToAnsiCastPositions;
 
 begin
   // Noncompliant: 'a := AnsiString(u);' where u:UnicodeString (cast line 10,
-  // probe-locked); arg is the target ANSI type name. Compliant: the reverse
-  // widening UnicodeString(a), a same-encoding WideString(u), and a non-cast
-  // transcode UTF8Encode(u) — all silent.
+  // probe-locked); arg is the target ANSI type name.
   CheckCastRuleSrc(NewUnicodeToAnsiCast, NewUnicodeToAnsiCast,
     cUnicodeToAnsiCastId, 10, ['AnsiString'],
     cUnicodeToAnsiCastNoncompliant, cUnicodeToAnsiCastCompliant);
@@ -620,12 +600,8 @@ end;
 procedure TRulesCastsTest.PlatformDependentCastPositions;
 
 begin
-  // Noncompliant: 'n := Integer(p);' where p:Pointer (cast line 10, probe-locked);
-  // arg is the fixed-width integer side's name. Compliant FP guards (all silent,
-  // all resolving clean): PtrInt(p) (pointer-sized => the recommended fix),
-  // Int64(p) (wide/portable), and Integer(b) where b:Byte (both-integer, no
-  // pointerish side — that is PlatformDependentTruncation territory, never
-  // PlatformDependentCast).
+  // Noncompliant: 'n := Integer(p);' where p:Pointer (cast line 10,
+  // probe-locked); arg is the fixed-width integer side's name.
   CheckCastRuleSrc(NewPlatformDependentCast, NewPlatformDependentCast,
     cPlatformDependentCastId, 10, ['Integer'],
     cPlatformDependentCastNoncompliant, cPlatformDependentCastCompliant);
@@ -635,15 +611,9 @@ end;
 procedure TRulesCastsTest.PlatformDependentTruncationPositions;
 
 begin
-  // Noncompliant covers BOTH wide-source firing arms: 'n := Integer(p);' where
-  // p:PtrInt (liwPointerSized source, cast line 12) and 'm := Integer(w);' where
-  // w:Int64 (liwWide source, cast line 13); arg is the narrow (target) integer
-  // side's name (Integer for both). ⚠️ The pointer-sized operand is PtrInt, NOT
-  // Pointer — that is PlatformDependentCast's fixture (syntactically identical;
-  // only the operand's declared type differs). Compliant FP guards (all silent,
-  // all resolving clean):
-  // Int64(w) (w:Int64, same-width wide), PtrInt(i) (i:Integer, widening), and
-  // Integer(b) (b:Byte, fixed->fixed value-range narrowing — not platform-dependent).
+  // Noncompliant covers both wide-source arms: 'n := Integer(p);' where p:PtrInt
+  // (cast line 12) and 'm := Integer(w);' where w:Int64 (cast line 13); arg is
+  // the narrow (target) integer side's name.
   CheckTwoIssueRuleSrc(NewPlatformDependentTruncation, NewPlatformDependentTruncation,
     cPlatformDependentTruncationId, 12, 13, 'Integer',
     cPlatformDependentTruncationNoncompliant, cPlatformDependentTruncationCompliant);
@@ -654,7 +624,7 @@ procedure TRulesCastsTest.CastRulesSelfRegisterGlobally;
 
 begin
   // The production initialization registered all seven SEM cast rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // global registry.
   AssertTrue('CharToCharPointerCast registered',
     RuleRegistry.FindById(cCharToCharPointerCastId) <> nil);
   AssertTrue('ObjectCastNotInHierarchy registered',

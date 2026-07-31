@@ -68,6 +68,8 @@ type
     SyntheticOnly: Boolean;
     // --ppu-cache <dir>: persistent ppudump-stub cache directory ('' = per-run temp only)
     PpuCacheDir: string;
+    // --namespace-map <file>: table replacing the baked-in one ('' = baked-in)
+    NamespaceMapFile: string;
     // Parses argv (excluding argv[0]) into a TFpSonarCliOptions.
     class function Parse(const aArgs: array of string): TFpSonarCliOptions; static;
   end;
@@ -244,6 +246,16 @@ begin
             Result.PpuCacheDir := ConsumeValue('--ppu-cache')
           else if Copy(lArg, 12) = '--ppu-cache=' then
             Result.PpuCacheDir := Copy(lArg, 13, Length(lArg) - 12)
+          else if (lArg = '--namespace-map')
+            or (Copy(lArg, 1, 16) = '--namespace-map=') then
+            begin
+            if lArg = '--namespace-map' then
+              Result.NamespaceMapFile := ConsumeValue('--namespace-map')
+            else
+              Result.NamespaceMapFile := Copy(lArg, 17, Length(lArg) - 16);
+            if Result.NamespaceMapFile = '' then
+              FlagError(Format(SMissingValue, ['--namespace-map']));
+            end
           else if lArg = '-d' then
             AddStr(lCli.Defines, ConsumeValue('-d'))
           else if lArg = '-M' then

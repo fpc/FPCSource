@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstFingerprint;
 
-{ Fingerprint tests. }
 
 {$mode objfpc}{$H+}
 
@@ -61,8 +60,7 @@ var
   lBase, lIndented, lWithCRLF: string;
 
 begin
-  // The "same" offending code seen with different surrounding layout. The
-  // fingerprint takes NO line, so all three must be byte-identical.
+  // The "same" offending code seen with different surrounding layout.
   lBase := ComputeFingerprint(cRule, cPath, 'if X then');
   lIndented := ComputeFingerprint(cRule, cPath, '    if X then  ');
   lWithCRLF := ComputeFingerprint(cRule, cPath, 'if'#13#10'X   then');
@@ -98,9 +96,7 @@ end;
 procedure TFingerprintTest.GoldenValueIsStable;
 
 const
-  { FROZEN: FNV-1a-64 hex of 'LEX001'#31'src/foo.pas'#31'if X then'. Any change
-    to the fingerprint algorithm trips this and silently invalidates every
-    committed baseline — treat a change here as a breaking decision. }
+  { FROZEN: FNV-1a-64 hex of 'LEX001'#31'src/foo.pas'#31'if X then'. }
   cGolden = '2de732b58a60c3a8';
 
 var

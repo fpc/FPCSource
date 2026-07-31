@@ -14,15 +14,6 @@
  **********************************************************************}
 unit FpSonar.Resolver;
 
-{ The tolerant resolver wrapper:
-  the SEM-tier foundation and the sole entry for the vendored fcl-passrc resolver engine
-  (pasresolver / pasresolveeval / pasnativeresolve).
-  the only unit that touches the resolver engine and its result/exception types.
-
-  Builds a per-unit resolved model behind a degrade-to-silence query API every SEM rule uses;
-  cross-unit resolution, the synthetic / real-RTL / ppudump-stub strategies,
-  and the resolver-backed declared()/sizeof() cond-directive evaluator all live here.
-  }
 
 {$mode objfpc}{$H+}
 
@@ -52,15 +43,17 @@ type
     * liwNone = not an integer OR an indeterminate width;
     * liwFixed = a fixed <=32-bit integer (Integer/Cardinal/SmallInt/Word/...);
     * liwPointerSized = a PtrInt/NativeInt-family integer;
-    * liwWide = Int64/QWord (wide, portable).
-    The wrapper computes it from the  base-type sets AND the named element so
-    no rule ever touches a base-type enum. }
+    * liwWide = Int64/QWord (wide, portable). }
   TFpSonarIntWidth = (liwNone, liwFixed, liwPointerSized, liwWide);
 
   { What kind of object-disposal call a candidate node is.
     lfkNone = not a resolved Free/FreeAndNil disposal call;
     the other two name the two shapes whose inner cast TryFreeCall hands back. }
   TFpSonarFreeKind = (lfkNone, lfkFreeMethod, lfkFreeAndNil);
+
+  { Which heap-management routine a resolved call site is:
+    lmoNew / lmoGetMem allocate, lmoDispose / lmoFreeMem release. }
+  TFpSonarMemoryOp = (lmoNew, lmoGetMem, lmoDispose, lmoFreeMem);
 
   { The resolved control-flow built-in a loop-body statement binds to (for
     SingleIterationLoop).
@@ -104,12 +97,27 @@ type
     Args: TPasExprArray;
   end;
 
+  { A FpSonar-owned re-exposure of one use site of a hint-carrying declaration. }
+  TFpSonarHintedUse = record
+    Node: TPasElement;
+    Name: string;
+    // The referenced declaration's hint modifiers; never empty.
+    Hints: TPasMemberHints;
+  end;
+
+  TFpSonarHintedUseArray = array of TFpSonarHintedUse;
+
+  { A dynamic array of measured generic-specialization nesting depths. }
+  TFpSonarDepthArray = array of integer;
+
   TFpSonarResolver = class;
 
   { The resolver engine: the ONLY TPasResolver subclass }
   TFpSonarResolverEngine = class(TPasNativeResolver)
   private
     FOwner: TFpSonarResolver;
+    // The stock range-check handler, displaced for the engine's whole life.
+    FSavedRangeCheckEl: TPasResEvalRangeCheckElHandler;
     { The two cond-directive answers, each behind its own tolerant try/except
       (kept out of EvalCondDirective so it stays a thin dispatcher).
       declared(): '1' visible / '0' definitely-absent -> True; other failure ->
@@ -185,6 +193,29 @@ type
       (one per name, reused across builds) and returns its path; '' when aName
       is not a synthetic unit or the write fails (that unit then degrades). }
     function SyntheticUnitFile(const aName: string): string;
+    // Folds aExpr behind a catch-all; nil on a non-constant expression or on
+    // any raise from the evaluator.
+    function EvalGuarded(aExpr: TPasExpr): TResEvalValue;
+    { The evaluator's own range value for aType behind a catch-all;
+      nil for a type it models no range for and on any raise. }
+    function TypeRangeGuarded(aType: TPasType): TResEvalValue;
+    { Asks the evaluator whether aValue lies in aRange, behind a catch-all.
+      Result=False when the pair is undecidable: the evaluator raises on kind
+      combinations it does not model. }
+    function TryInRangeGuarded(aValue: TResEvalValue; aValueExpr: TPasExpr;
+      aRange: TResEvalValue; aRangeExpr: TPasExpr;
+      out aInRange: boolean): boolean;
+    // Resolves aElement's type behind a catch-all; False when it does not resolve.
+    function ComputeGuarded(aElement: TPasElement;
+      out aResolved: TPasResolverResult): boolean;
+    { True iff aExpr is a call to the compiler built-in aBuiltIn with aCount
+      parameters; aParams is that call node. }
+    function BuiltInCall(aExpr: TPasExpr; aBuiltIn: TResolverBuiltInProc;
+      aCount: integer; out aParams: TParamsExpr): boolean;
+    { The integer width and signedness of aBaseType; False for a base type the
+      resolver models no integer properties for. }
+    function IntegerPropsGuarded(aBaseType: TResolverBaseType;
+      out aPrecision: word; out aSigned: boolean): boolean;
     // Frees the per-build state (bundles -> engines), clears the caches and
     // resets the hub — keeps the hub object and the lists for reuse.
     procedure ClearBuild;
@@ -215,6 +246,8 @@ type
       caught exception.}
     function TryResolvedType(aElement: TPasElement;
       out aType: TFpSonarResolvedType): boolean;
+    // The declared byte size of aType; False leaves aSize 0 and means no known size.
+    function TryTypeByteSize(aType: TPasType; out aSize: integer): boolean;
     { Tolerant typecast query:
       True iff aCandidate is a CONFIRMED typecast `T(x)`
       (a single-arg pekFuncParams whose callee alias-resolves to a type, NOT a
@@ -263,6 +296,58 @@ type
       ordinary method (NOT a constructor/destructor) whose resolved
       declaration scope has NO same-signature ancestor proc (OverriddenProc = nil).}
     function TryRedundantInherited(aProc: TPasElement): boolean;
+    { Tolerant hidden-virtual query (MethodHidesVirtualWithoutOverride):
+      Result=True iff aProc's resolved declaration has a same-signature ancestor
+      proc that is overridable, while the declaration itself carries none of
+      override, reintroduce or overload. }
+    function TryMethodHidesVirtual(aProc: TPasElement): boolean;
+    { Tolerant default-parameter-change query
+      (OverrideChangesDefaultParameterValue): Result=True iff aProc's resolved
+      declaration is an override with a same-signature ancestor, and some
+      argument's default folds on both sides to different values. }
+    function TryOverrideDefaultParamChange(aProc: TPasElement): boolean;
+    { Tolerant abstract-instantiation query
+      (InstantiatesClassWithAbstractMethods): a whole-module collector over the
+      resolved reference sites. aNodes returns every `T.Create` site whose
+      qualifier NAMES a class carrying unimplemented abstract methods,
+      aClassNames that class. }
+    function TryAbstractInstantiation(out aNodes: TPasElementArray;
+      out aClassNames: TFpSonarStringArray): boolean;
+    { Tolerant class-helper shadowing query (ClassHelperHidesAncestorMethod): a
+      whole-module collector over the class helpers declared in the analysed
+      module. aNodes returns every helper method whose name is also declared by
+      the extended class or one of its resolved ancestors, aNames that name. }
+    function TryClassHelperHiddenMethods(out aNodes: TPasElementArray;
+      out aNames: TFpSonarStringArray): boolean;
+    { Tolerant public-field-backed-property query
+      (PublicFieldAndPropertyForSameStorage): a whole-module collector over the
+      properties declared in the analysed module. aNodes returns every property
+      whose read or write accessor resolves to a field of public or published
+      visibility, aNames that field's name. }
+    function TryPublicFieldBackedProperties(out aNodes: TPasElementArray;
+      out aNames: TFpSonarStringArray): boolean;
+    { Tolerant accessor-visibility query
+      (PropertyAccessorVisibilityWiderThanProperty): a whole-module collector
+      over the properties declared in the analysed module. aNodes returns every
+      property whose read or write accessor resolves to a routine declared more
+      visible than the property itself, aNames the property's name. }
+    function TryWiderAccessorProperties(out aNodes: TPasElementArray;
+      out aNames: TFpSonarStringArray): boolean;
+    { Tolerant getter-side-effect query (PropertyGetterWithSideEffect): a
+      whole-module collector over the properties declared in the analysed
+      module. aNodes returns every property whose read accessor has an
+      implementation that writes a field of its own members type, aNames the
+      property's name. }
+    function TryPropertyGetterFieldWrites(out aNodes: TPasElementArray;
+      out aNames: TFpSonarStringArray): boolean;
+    { Tolerant hidden-constructor query
+      (ConstructorNotVirtualInPolymorphicHierarchy): a whole-module collector
+      over the classes declared in the analysed module. aNodes returns every
+      non-overridable constructor of a class that declares a virtual or dynamic
+      method and that another class of the module descends while declaring a
+      constructor of the same name, aNames the qualified <Class>.<Ctor>. }
+    function TryHiddenNonVirtualConstructors(out aNodes: TPasElementArray;
+      out aNames: TFpSonarStringArray): boolean;
     { Tolerant IfThen-misuse query: Result=True iff aNode is a RESOLVED call to
       Math.IfThen or StrUtils.IfThen whose condition (Params[0]) guards a subject }
     function TryIfThenMisuse(aNode: TPasElement; out aSubject: string): boolean;
@@ -319,6 +404,27 @@ type
       Result=True iff aNode is a TPasImplRaise whose ExceptObject constructs an
       instance of EXACTLY the root Exception (or TObject) class. }
     function TryRaisesRawException(aNode: TPasElement): boolean;
+    { Tolerant handler-order query (HandlerOrderShadowsDerived):
+      Result=True iff aNode is a TPasImplExceptOn in a TPasImplTryExcept that has an
+      EARLIER sibling handler whose caught class, alias-collapsed, aNode's caught
+      class equals or descends from. aHandlerName / aAncestorName are the two class
+      names. }
+    function TryHandlerShadowedByEarlier(aNode: TPasElement;
+      out aHandlerName, aAncestorName: string): boolean;
+    { Tolerant non-Exception-raise query (ExceptionClassNotDerivedFromException):
+      Result=True iff aNode is a TPasImplRaise whose ExceptObject constructs an
+      instance of a class other than TObject whose resolved ancestor-scope chain
+      TERMINATES at TObject without passing through Exception. aClassName is the
+      constructed class name; a chain ending anywhere else abstains. }
+    function TryRaisedClassNotException(aNode: TPasElement;
+      out aClassName: string): boolean;
+    { Tolerant load-bearing-Assert query (AssertUsedForControlFlow):
+      Result=True iff aNode is a call to the built-in Assert whose argument 0
+      subtree calls a user-declared routine. aRoutineName is that routine's name,
+      the first one a depth-first walk of the argument reaches; the message
+      argument is not examined. }
+    function TryAssertControlFlowOperand(aNode: TPasElement;
+      out aRoutineName: string): boolean;
     { Tolerant loop-control-flow query: classifies a statement that may be a
       break/continue/exit by the RESOLVED built-in proc}
     function TryLoopControlFlow(aNode: TPasElement;
@@ -331,6 +437,19 @@ type
       TPasImplIfElse with NO else whose single if-branch
       statement is exactly a `Free`/`FreeAndNil` disposal }
     function TryRedundantAssignedCheckBeforeFree(aNode: TPasElement): boolean;
+    { Tolerant self-disposal query: Result=True iff aNode is a statement holding a
+      resolved `Free`/`FreeAndNil` disposal whose operand is the enclosing
+      routine's own Self argument, the unqualified `Free` form included.
+      False outside a method body and whenever the routine, its scope or its Self
+      argument is not recovered. }
+    function TryDisposesSelf(aNode: TPasElement): boolean;
+    { Tolerant heap-management-call query: Result=True iff aNode is a statement
+      whose expression is a resolved call to New/Dispose (compiler built-ins) or
+      to the RTL GetMem/FreeMem, and whose first argument carries a resolved
+      declaration. aOp names the routine, aOperand is that declaration and
+      aOperandName its name. }
+    function TryMemoryOpCall(aNode: TPasElement; out aOp: TFpSonarMemoryOp;
+      out aOperand: TPasElement; out aOperandName: string): boolean;
     { Tolerant loop-beyond-collection-end query: Result=True iff aNode is a counted
       for-loop whose body indexes a FIXED-LENGTH collection — a static array
       - with a loop-variable index (loopvar or loopvar +/- a constant) whose
@@ -338,11 +457,13 @@ type
       range. }
     function TryLoopBeyondCollectionEnd(aNode: TPasElement;
       out aOverrun: TPasElement): boolean;
-    { Tolerant routine-result-not-assigned query: Result=True iff aNode is a
-      TPasFunction (NOT a TPasOperator, NOT assembler)
-      that can reach its `end` on at least one normal-return path WITHOUT ever
-      writing its result}
-    function TryRoutineResultNotAssigned(aNode: TPasElement): boolean;
+    { Tolerant loop-variable-read-after-loop query: Result=True iff aNode is a
+      counted for-loop whose control variable is a routine local that some
+      reference site READS on a later row, outside aNode, outside every other
+      for-loop counting that same declaration and with no such loop between
+      aNode and it. aSite is the lowest such row's node, aVarName the name. }
+    function TryLoopVarReadAfterLoop(aNode: TPasElement; out aVarName: string;
+      out aSite: TPasElement): boolean;
     { Tolerant shadowable-unqualified-reference query (FullyQualifiedImports): a
       whole-module collector. aNodes returns every
       offending identifier-reference node that is unqualified, resolves to a declaration in a different
@@ -374,6 +495,40 @@ type
       free variable whose lifetime is less than the closure's }
     function TryInlineVarCapturedByAnonMethodSites(
       out aNodes: TPasElementArray): boolean;
+    { Tolerant idle-generic-constraint query (GenericConstraintUnused): a
+      whole-module collector over the generic types declared in the analysed
+      module. aNodes returns every type-constrained template parameter of a
+      generic that has an implemented routine and on which none of those
+      routines rely — no member selection on the parameter or on a declaration
+      typed by it, no `is`/`as` naming it, and no nil assignment or comparison
+      against it. }
+    function TryUnusedGenericConstraints(out aNodes: TPasElementArray): boolean;
+    { Tolerant unconstrained-specialization query
+      (SpecializationOfUnconstrainedGeneric): a whole-module collector over the
+      declaration-site specializations of the analysed module. aNodes returns
+      every specialization node whose generic declares at least one type
+      parameter and constrains none of them; const parameters are not judged. }
+    function TryUnconstrainedSpecializations(
+      out aNodes: TPasElementArray): boolean;
+    { Tolerant specialization-nesting query (NestedGenericSpecializationDepth): a
+      whole-module collector over the declaration-site specializations of the
+      analysed module. aNodes returns every specialization node nesting more than
+      aMaxDepth levels of specialization, aDepths the measured depth of each. }
+    function TryDeepNestedSpecializations(aMaxDepth: integer;
+      out aNodes: TPasElementArray; out aDepths: TFpSonarDepthArray): boolean;
+    { Tolerant anonymous-method loop-variable-capture query
+      (AnonymousMethodCapturesLoopVariable): a whole-module collector. aNodes
+      returns every reference expression inside an anonymous method that names
+      the control variable of an enclosing classic for loop, one per captured
+      declaration. }
+    function TryAnonMethodLoopVarCaptures(
+      out aNodes: TPasElementArray): boolean;
+    { Tolerant anonymous-method Self-capture query
+      (AnonymousMethodCapturesSelf): a whole-module collector. aNodes returns
+      every anonymous procedure whose body reaches the enclosing instance —
+      the Self argument of an enclosing method, or an instance member named
+      without a qualifier. }
+    function TryAnonMethodSelfCaptures(out aNodes: TPasElementArray): boolean;
     { Tolerant inconsistent-name-casing query (ConsistentNameCasing): a
       whole-module collector. For every resolved  identifier reference in the
       module's statement bodies, aNodes returns the  offending reference node }
@@ -396,11 +551,30 @@ type
       aDecls[i] the resolved declaration it refers to.  }
     function TryReferenceSites(out aNodes: TPasElementArray;
       out aDecls: TPasElementArray): boolean;
+    { Tolerant hint-modifier query (DeprecatedSymbolUsed / ExperimentalSymbolUsed /
+      PlatformSymbolUsedInPortableUnit): the TryReferenceSites pairs whose
+      declaration carries hint modifiers, plus the analysed module's own hints. }
+    function TryHintedSymbolUses(out aUses: TFpSonarHintedUseArray;
+      out aModuleHints: TPasMemberHints): boolean;
     { Tolerant identifier-name-site query.
       Same whole-module tree walk as TryReferenceSites, but collects every identifier leaf in
       expression position. aNodes[i] is the leaf, aNames[i] its textual spelling }
     function TryIdentifierNameSites(out aNodes: TPasElementArray;
       out aNames: TFpSonarStringArray): boolean;
+    { Tolerant statement read/write query (the forward-dataflow lattice).
+      Splits the resolved references held by aStmt's OWN value and control
+      expressions -- its sub-statements excluded -- by access kind.
+      aReadNodes[i]/aReadDecls[i] are parallel: the reference node and the
+      declaration it reads. aWriteDecls holds the declarations written.
+      An out argument counts as a read as well as a write.
+      Result=False means the statement cannot be answered for: inline
+      assembler, an identifier leaf carrying no resolved reference, an
+      anonymous-method operand, an unlisted statement kind, or a caught
+      resolver failure. A listed statement kind carrying no expressions answers
+      True with empty arrays. }
+    function TryStatementAccess(aStmt: TPasElement;
+      out aReadNodes: TPasElementArray; out aReadDecls: TPasElementArray;
+      out aWriteDecls: TPasElementArray): boolean;
     { The 1-based source row of aElement in the resolved tree.
       Resolution stores columns, so the resolver packs row+column into the raw
       SourceLinenumber }
@@ -411,8 +585,142 @@ type
       aKnown=Falsewhen the const resolved but its value is unknown }
     function TryEvalConstInt(const aConstName: string; out aValue: int64;
       out aKnown: boolean): boolean;
+    // Tolerant constant-zero-divisor query: True iff aExpr is a /, div or mod
+    // whose right operand folds to zero; aOperator is the operator text.
+    function TryConstDivisionByZero(aExpr: TPasExpr;
+      out aOperator: string): boolean;
+    // Tolerant constant-boolean query: True iff aExpr folds to a boolean value.
+    function TryConstBooleanValue(aExpr: TPasExpr; out aValue: boolean): boolean;
+    { Tolerant type-fixed-comparison query (ComparisonAlwaysTrueForType):
+      True iff aExpr compares an operand against a folding integer constant and
+      the verdict is the same for every value of that operand's type range.
+      aTypeName is the operand's type, aConstant the constant, aValue the verdict. }
+    function TryComparisonAlwaysTrueForType(aExpr: TPasExpr;
+      out aTypeName, aConstant: string; out aValue: boolean): boolean;
+    { Tolerant assignment-range query (ConstantOutOfRangeForTarget):
+      True iff aAssign is a `:=` whose right side folds to a value outside the
+      range of the left side's type. }
+    function TryConstantOutOfRangeForTarget(aAssign: TPasElement;
+      out aConstant, aTypeName: string): boolean;
+    { Tolerant constant-overflow query (ConstantOverflowInExpression):
+      True iff aExpr adds, subtracts or multiplies two folding integers and the
+      whole expression does not fold. aOperator is the operator text. }
+    function TryConstantOverflowInExpression(aExpr: TPasExpr;
+      out aOperator: string): boolean;
+    { Tolerant shift-width query (ShiftCountExceedsWidth):
+      True iff aExpr is a shl/shr by a folding non-negative count at or above the
+      width FPC computes the shift in — the shifted operand's integer type, or
+      Longint when that type is narrower. aTypeName is that width's type. }
+    function TryShiftCountExceedsWidth(aExpr: TPasExpr;
+      out aCount, aTypeName: string): boolean;
+    { Tolerant set-membership query (SetElementOutOfRange):
+      True iff aExpr is an `in` whose right side folds to a set holding an
+      element outside the range of the left operand's type. }
+    function TrySetElementOutOfRange(aExpr: TPasExpr;
+      out aTypeName: string): boolean;
+    { Tolerant enum-cast query (EnumOrdinalOutOfRange):
+      True iff aExpr casts a folding integer to an enumeration whose ordinal
+      range does not hold it. }
+    function TryEnumOrdinalOutOfRange(aExpr: TPasExpr;
+      out aOrdinal, aEnumName: string): boolean;
+    { Tolerant array-index query (ArrayIndexConstantOutOfBounds):
+      True iff aExpr indexes a statically ranged array with a folding index
+      outside the declared bounds of that dimension. }
+    function TryArrayIndexConstantOutOfBounds(aExpr: TPasExpr;
+      out aIndex, aArrayName: string): boolean;
+    { Tolerant SizeOf-argument query (SizeOfOnReferenceType):
+      True iff aExpr is a built-in SizeOf whose argument is a class, interface,
+      dynamic array or long string. aTypeName is that argument's type. }
+    function TrySizeOfOnReferenceType(aExpr: TPasExpr;
+      out aTypeName: string): boolean;
+    { Tolerant byte-count query (MoveFillCharSizeMismatch):
+      True iff aExpr is a three-argument Move/FillChar whose count is a Length
+      of a multi-byte-element array or a SizeOf of a pointer.
+      aCallee is the routine name, aCount the count routine's name. }
+    function TryMoveFillCharSizeMismatch(aExpr: TPasExpr;
+      out aCallee, aCount: string): boolean;
+    { Tolerant float-equality query (FloatEqualityComparison):
+      True iff aExpr is an = or <> with a floating-point operand.
+      aTypeName is that operand's type. }
+    function TryFloatEqualityComparison(aExpr: TPasExpr;
+      out aTypeName: string): boolean;
+    { Tolerant truncating-assignment query (IntegerDivisionAssignedToFloat):
+      True iff aAssign is a `:=` of an integer `div` to a floating-point target.
+      aTypeName is the target type. }
+    function TryIntegerDivisionAssignedToFloat(aAssign: TPasElement;
+      out aTypeName: string): boolean;
+    { Tolerant signedness query (MixedSignedUnsignedComparison):
+      True iff aExpr compares a signed against an unsigned integer of the same
+      width, at 32 bits or wider, naming each operand's type by its role. }
+    function TryMixedSignedUnsignedComparison(aExpr: TPasExpr;
+      out aSignedType, aUnsignedType: string): boolean;
+    { Tolerant temporary-pointer query (PCharOfTemporaryString):
+      True iff aExpr casts a string to a pointer-to-char whose operand is a
+      function-call result or a concatenation. aTargetName is the target type. }
+    function TryPCharOfTemporaryString(aExpr: TPasExpr;
+      out aTargetName: string): boolean;
+    { Tolerant implicit-conversion query (ImplicitStringConversionWithDataLoss):
+      True iff aNode is an assignment whose target resolves to an ANSI-encoded
+      string and whose source resolves to a wide-encoded one.
+      aSourceName and aTargetName are the two type names. }
+    function TryImplicitStringConversion(aNode: TPasElement;
+      out aSourceName, aTargetName: string): boolean;
+    { Tolerant character-count query (LengthUsedAsByteCount):
+      True iff aExpr is a three-argument Move/FillChar whose count is a Length
+      of a wide-encoded string. aStringName is that string's type,
+      aCallee the routine name. }
+    function TryLengthUsedAsByteCount(aExpr: TPasExpr;
+      out aStringName, aCallee: string): boolean;
+    { Tolerant zero-index query (CopyWithZeroIndex):
+      True iff aExpr is the string Copy, in its two- or three-argument form,
+      whose start index folds to exactly 0. aStringName is the copied type. }
+    function TryCopyWithZeroIndex(aExpr: TPasExpr;
+      out aStringName: string): boolean;
+    { Tolerant zero-based-result query (PosResultComparedToZeroBased):
+      True iff aExpr compares a unit-level Pos call against a folding 0 or -1
+      in one of the six shapes that read a miss as negative.
+      aCallee is the routine name, aConstText the constant. }
+    function TryPosResultComparedToZeroBased(aExpr: TPasExpr;
+      out aCallee, aConstText: string): boolean;
+    { Tolerant shortstring-capacity query (ShortStringTruncation):
+      True iff aNode assigns a folding string constant longer than the length
+      declared on the target's string[N] declaration.
+      aTargetName is the target, aCapacity that declared length. }
+    function TryShortStringTruncation(aNode: TPasElement;
+      out aTargetName, aCapacity: string): boolean;
+    { Tolerant char-comparison query (CharComparedToString):
+      True iff aExpr is an = or <> between a char operand and a string constant
+      folding to a text whose length is not one.
+      aCharTypeName is the char operand's type, aLength the constant's length. }
+    function TryCharComparedToString(aExpr: TPasExpr;
+      out aCharTypeName, aLength: string): boolean;
+    { Tolerant code-page-mix query (RawByteStringCodePageMix):
+      True iff aNode is a `:=` between a RawByteString operand and one whose
+      declaration writes a code page, with no cast written on either side.
+      aRawName is the RawByteString declaration, aCodePage that written page. }
+    function TryRawByteStringCodePageMix(aNode: TPasElement;
+      out aRawName, aCodePage: string): boolean;
+    { Tolerant concatenation query (StringConcatInLoop):
+      True iff aNode assigns to a string declaration the sum of that same
+      declaration and another operand, inside a for, while or repeat loop.
+      aTargetName is the accumulated declaration. }
+    function TryStringConcatInLoop(aNode: TPasElement;
+      out aTargetName: string): boolean;
+    { Tolerant conversion-guard query (StrToIntWithoutGuard):
+      True iff aExpr is a unit-level StrToInt call whose argument does not fold
+      to a constant and which no enclosing try..except protects.
+      aArgName is that argument's declaration. }
+    function TryStrToIntWithoutGuard(aExpr: TPasExpr;
+      out aArgName: string): boolean;
+    { Tolerant wide-string-declaration query (WideStringOnNonWindows):
+      True iff aDecl is a variable or an argument whose type resolves
+      WideString. aDeclName is the declaration's name. }
+    function TryWideStringDeclaration(aDecl: TPasElement;
+      out aDeclName: string): boolean;
     // The resolved module after a successful BuildFor, else nil.
     property ResolvedModule: TPasModule read GetResolvedModule;
+    // The top engine of the last BuildFor, succeeded or not; nil before the first.
+    property Engine: TFpSonarResolverEngine read FTopEngine;
     // True iff the last BuildFor produced a fully resolved module.
     property Succeeded: boolean read FSucceeded;
     { When True, dependency units resolve interface-only;
@@ -464,6 +772,9 @@ uses
 type
   { A dynamic array of statement elements }
   TImplStmtArray = array of TPasImplElement;
+
+  { A dynamic array of source rows }
+  TImplRowArray = array of integer;
 
 const
   { The pointer-sized integer type names }
@@ -521,8 +832,16 @@ const
     'const' + LineEnding +
     '  LineEnding = #10;' + LineEnding +
     'function Pos(const aSub, aStr: AnsiString): Longint;' + LineEnding +
+    'procedure FreeMem(aPtr: Pointer);' + LineEnding +
+    'procedure GetMem(out aPtr: Pointer; aSize: PtrUInt);' + LineEnding +
     'implementation' + LineEnding +
     'function Pos(const aSub, aStr: AnsiString): Longint;' + LineEnding +
+    'begin' + LineEnding +
+    'end;' + LineEnding +
+    'procedure FreeMem(aPtr: Pointer);' + LineEnding +
+    'begin' + LineEnding +
+    'end;' + LineEnding +
+    'procedure GetMem(out aPtr: Pointer; aSize: PtrUInt);' + LineEnding +
     'begin' + LineEnding +
     'end;' + LineEnding +
     'constructor TObject.Create;' + LineEnding +
@@ -982,9 +1301,13 @@ begin
   for i := 0 to FParses.Count - 1 do
     TFpSonarResolvedParse(FParses[i]).Free;
   FParses.Clear;
-  // Then the engines (each frees its resolved tree).
+  // Each engine frees its resolved tree.
   for i := 0 to FEngines.Count - 1 do
+  begin
+    TFpSonarResolverEngine(FEngines[i]).ExprEvaluator.OnRangeCheckEl :=
+      TFpSonarResolverEngine(FEngines[i]).FSavedRangeCheckEl;
     TFpSonarResolverEngine(FEngines[i]).Free;
+  end;
   FEngines.Clear;
   FTopEngine := nil;
   FCacheNames.Clear;
@@ -1037,6 +1360,8 @@ begin
   Result.Hub := FHub;
   // Without this even Longint/Boolean/Char are unresolved identifiers.
   Result.AddObjFPCBuiltInIdentifiers;
+  Result.FSavedRangeCheckEl := Result.ExprEvaluator.OnRangeCheckEl;
+  Result.ExprEvaluator.OnRangeCheckEl := nil;
   Result.TargetPointerSize := FIntrinsicTargetPointerSize;
   Result.StoreSrcColumns := True;
   FEngines.Add(Result);
@@ -1708,6 +2033,29 @@ begin
 end;
 
 
+function TFpSonarResolver.TryTypeByteSize(aType: TPasType;
+  out aSize: integer): boolean;
+var
+  lSize: integer;
+begin
+  aSize := 0;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aType = nil) then
+    Exit;
+  try
+    lSize := FTopEngine.TypeByteSize(aType);
+    if lSize > 0 then
+    begin
+      aSize := lSize;
+      Result := True;
+    end;
+  except
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
 function TFpSonarResolver.TryTypecast(aCandidate: TPasElement;
   out aTarget, aSource: TFpSonarResolvedType): boolean;
 var
@@ -2121,6 +2469,1347 @@ begin
 end;
 
 
+function TFpSonarResolver.EvalGuarded(aExpr: TPasExpr): TResEvalValue;
+
+begin
+  Result := nil;
+  if (FTopEngine = nil) or (not FSucceeded) or (aExpr = nil) then
+    Exit;
+  try
+    Result := FTopEngine.ExprEvaluator.Eval(aExpr, []);
+  except
+    on E: Exception do
+      Result := nil;
+  end;
+end;
+
+
+function TFpSonarResolver.TryConstDivisionByZero(aExpr: TPasExpr;
+  out aOperator: string): boolean;
+
+var
+  lBinary: TBinaryExpr;
+  lValue: TResEvalValue;
+
+begin
+  Result := False;
+  aOperator := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopDivide, eopDiv, eopMod]) then
+    Exit;
+  lValue := EvalGuarded(lBinary.Right);
+  try
+    if lValue = nil then
+      Exit;
+    case lValue.Kind of
+      revkInt: Result := TResEvalInt(lValue).Int = 0;
+      revkUInt: Result := TResEvalUInt(lValue).UInt = 0;
+      revkFloat: Result := TResEvalFloat(lValue).FloatValue = 0;
+      revkCurrency: Result := TResEvalCurrency(lValue).Value = 0;
+    end;
+  finally
+    ReleaseEvalValue(lValue);
+  end;
+  if Result then
+    aOperator := OpcodeStrings[lBinary.OpCode];
+end;
+
+
+function TFpSonarResolver.TryConstBooleanValue(aExpr: TPasExpr;
+  out aValue: boolean): boolean;
+
+var
+  lValue: TResEvalValue;
+
+begin
+  Result := False;
+  aValue := False;
+  lValue := EvalGuarded(aExpr);
+  try
+    if (lValue <> nil) and (lValue.Kind = revkBool) then
+    begin
+      aValue := TResEvalBool(lValue).B;
+      Result := True;
+    end;
+  finally
+    ReleaseEvalValue(lValue);
+  end;
+end;
+
+
+function TFpSonarResolver.TypeRangeGuarded(aType: TPasType): TResEvalValue;
+
+begin
+  Result := nil;
+  if (FTopEngine = nil) or (not FSucceeded) or (aType = nil) then
+    Exit;
+  try
+    Result := FTopEngine.EvalTypeRange(aType, []);
+  except
+    on E: Exception do
+      Result := nil;
+  end;
+end;
+
+
+function TFpSonarResolver.TryInRangeGuarded(aValue: TResEvalValue;
+  aValueExpr: TPasExpr; aRange: TResEvalValue; aRangeExpr: TPasExpr;
+  out aInRange: boolean): boolean;
+
+begin
+  Result := False;
+  aInRange := False;
+  if (FTopEngine = nil) or (not FSucceeded)
+    or (aValue = nil) or (aRange = nil) then
+    Exit;
+  try
+    aInRange := FTopEngine.ExprEvaluator.IsInRange(aValue, aValueExpr, aRange,
+      aRangeExpr, False);
+    Result := True;
+  except
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.ComputeGuarded(aElement: TPasElement;
+  out aResolved: TPasResolverResult): boolean;
+
+begin
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aElement = nil) then
+    Exit;
+  try
+    FTopEngine.ComputeElement(aElement, aResolved, []);
+    Result := True;
+  except
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.BuiltInCall(aExpr: TPasExpr;
+  aBuiltIn: TResolverBuiltInProc; aCount: integer;
+  out aParams: TParamsExpr): boolean;
+
+var
+  lRef: TResolvedReference;
+
+begin
+  Result := False;
+  aParams := nil;
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TParamsExpr) then
+    Exit;
+  if (TParamsExpr(aExpr).Kind <> pekFuncParams)
+    or (Length(TParamsExpr(aExpr).Params) <> aCount) then
+    Exit;
+  try
+    lRef := FTopEngine.GetParamsValueRef(TParamsExpr(aExpr));
+  except
+    on E: Exception do
+      Exit;
+  end;
+  if (lRef = nil) or not (lRef.Declaration is TPasUnresolvedSymbolRef)
+    or not (lRef.Declaration.CustomData is TResElDataBuiltInProc) then
+    Exit;
+  if TResElDataBuiltInProc(lRef.Declaration.CustomData).BuiltIn <> aBuiltIn then
+    Exit;
+  aParams := TParamsExpr(aExpr);
+  Result := True;
+end;
+
+
+function TFpSonarResolver.IntegerPropsGuarded(aBaseType: TResolverBaseType;
+  out aPrecision: word; out aSigned: boolean): boolean;
+
+begin
+  Result := False;
+  aPrecision := 0;
+  aSigned := False;
+  if (FTopEngine = nil) or not (aBaseType in btAllInteger) then
+    Exit;
+  try
+    FTopEngine.GetIntegerProps(aBaseType, aPrecision, aSigned);
+    Result := True;
+  except
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.TryComparisonAlwaysTrueForType(aExpr: TPasExpr;
+  out aTypeName, aConstant: string; out aValue: boolean): boolean;
+
+  // aOp read with its two operands swapped.
+  function Mirror(aOp: TExprOpCode): TExprOpCode;
+  begin
+    case aOp of
+      eopLessThan: Result := eopGreaterThan;
+      eopGreaterThan: Result := eopLessThan;
+      eopLessthanEqual: Result := eopGreaterThanEqual;
+      eopGreaterThanEqual: Result := eopLessthanEqual;
+    else
+      Result := aOp;
+    end;
+  end;
+
+  function Holds(aOp: TExprOpCode; aLeft, aRight: TMaxPrecInt): boolean;
+  begin
+    case aOp of
+      eopLessThan: Result := aLeft < aRight;
+      eopGreaterThan: Result := aLeft > aRight;
+      eopLessthanEqual: Result := aLeft <= aRight;
+    else
+      Result := aLeft >= aRight;
+    end;
+  end;
+
+var
+  lBinary: TBinaryExpr;
+  lOp: TExprOpCode;
+  lOperand: TPasExpr;
+  lLeft, lRight, lConst, lRange: TResEvalValue;
+  lRes: TPasResolverResult;
+  lRangeInt: TResEvalRangeInt;
+  lLimit: TMaxPrecInt;
+  lAtStart: boolean;
+
+begin
+  Result := False;
+  aTypeName := '';
+  aConstant := '';
+  aValue := False;
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopEqual, eopNotEqual, eopLessThan,
+    eopGreaterThan, eopLessthanEqual, eopGreaterThanEqual]) then
+    Exit;
+  lLeft := EvalGuarded(lBinary.Left);
+  lRight := EvalGuarded(lBinary.Right);
+  lRange := nil;
+  try
+    // Both sides constant is ConstantConditionAlwaysTrueOrFalse's territory.
+    if (lLeft = nil) = (lRight = nil) then
+      Exit;
+    if lRight <> nil then
+    begin
+      lConst := lRight;
+      lOperand := lBinary.Left;
+      lOp := lBinary.OpCode;
+    end
+    else
+    begin
+      lConst := lLeft;
+      lOperand := lBinary.Right;
+      lOp := Mirror(lBinary.OpCode);
+    end;
+    case lConst.Kind of
+      revkInt: lLimit := TResEvalInt(lConst).Int;
+      revkUInt:
+        begin
+          if TResEvalUInt(lConst).UInt > High(TMaxPrecInt) then
+            Exit;
+          lLimit := TMaxPrecInt(TResEvalUInt(lConst).UInt);
+        end;
+    else
+      Exit;
+    end;
+    { FPC computes integer arithmetic at 32 bits or wider while ComputeElement
+      keeps the operand's own type, so a computed operand's reachable values are
+      not its type's range. }
+    if ((lOperand is TBinaryExpr)
+        and (TBinaryExpr(lOperand).OpCode in [eopAdd, eopSubtract, eopMultiply,
+          eopDiv, eopPower, eopShl]))
+      or ((lOperand is TUnaryExpr)
+        and (TUnaryExpr(lOperand).OpCode in [eopAdd, eopSubtract])) then
+      Exit;
+    if not ComputeGuarded(lOperand, lRes) then
+      Exit;
+    if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+      Exit;
+    { Currency carries an integer range but fractional values, so a limit at
+      the bound leaves the comparison satisfiable. }
+    if lRes.BaseType = btCurrency then
+      Exit;
+    lRange := TypeRangeGuarded(lRes.LoTypeEl);
+    if (lRange = nil) or (lRange.Kind <> revkRangeInt) then
+      Exit;
+    lRangeInt := TResEvalRangeInt(lRange);
+    if lRangeInt.ElKind <> revskInt then
+      Exit;
+    if lOp in [eopEqual, eopNotEqual] then
+    begin
+      if (lLimit < lRangeInt.RangeStart) or (lLimit > lRangeInt.RangeEnd) then
+        aValue := lOp = eopNotEqual
+      else if lRangeInt.RangeStart = lRangeInt.RangeEnd then
+        aValue := lOp = eopEqual
+      else
+        Exit;
+    end
+    else
+    begin
+      // An ordering test is monotone, so the two bounds decide it.
+      lAtStart := Holds(lOp, lRangeInt.RangeStart, lLimit);
+      if lAtStart <> Holds(lOp, lRangeInt.RangeEnd, lLimit) then
+        Exit;
+      aValue := lAtStart;
+    end;
+    aTypeName := lRes.LoTypeEl.Name;
+    aConstant := lConst.AsString;
+    Result := True;
+  finally
+    ReleaseEvalValue(lLeft);
+    ReleaseEvalValue(lRight);
+    ReleaseEvalValue(lRange);
+  end;
+end;
+
+
+function TFpSonarResolver.TryConstantOutOfRangeForTarget(aAssign: TPasElement;
+  out aConstant, aTypeName: string): boolean;
+
+var
+  lAssign: TPasImplAssign;
+  lValue, lRange: TResEvalValue;
+  lRes: TPasResolverResult;
+  lInRange: boolean;
+
+begin
+  Result := False;
+  aConstant := '';
+  aTypeName := '';
+  if not (aAssign is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aAssign);
+  if (lAssign.Kind <> akDefault) or (lAssign.Left = nil) then
+    Exit;
+  if not ComputeGuarded(lAssign.Left, lRes) then
+    Exit;
+  if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+    Exit;
+  lValue := EvalGuarded(lAssign.Right);
+  lRange := TypeRangeGuarded(lRes.LoTypeEl);
+  try
+    if not TryInRangeGuarded(lValue, lAssign.Right, lRange, lAssign.Left,
+      lInRange) then
+      Exit;
+    if lInRange then
+      Exit;
+    aConstant := lValue.AsString;
+    aTypeName := lRes.LoTypeEl.Name;
+    Result := True;
+  finally
+    ReleaseEvalValue(lValue);
+    ReleaseEvalValue(lRange);
+  end;
+end;
+
+
+function TFpSonarResolver.TryConstantOverflowInExpression(aExpr: TPasExpr;
+  out aOperator: string): boolean;
+
+var
+  lBinary: TBinaryExpr;
+  lLeft, lRight, lWhole: TResEvalValue;
+
+begin
+  Result := False;
+  aOperator := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopAdd, eopSubtract, eopMultiply]) then
+    Exit;
+  lLeft := EvalGuarded(lBinary.Left);
+  lRight := EvalGuarded(lBinary.Right);
+  lWhole := nil;
+  try
+    if (lLeft = nil) or (lRight = nil) then
+      Exit;
+    if not (lLeft.Kind in [revkInt, revkUInt])
+      or not (lRight.Kind in [revkInt, revkUInt]) then
+      Exit;
+    { Both operands fold, so a whole that does not fold is the evaluator
+      refusing the result as unrepresentable. }
+    lWhole := EvalGuarded(aExpr);
+    if lWhole <> nil then
+      Exit;
+    aOperator := OpcodeStrings[lBinary.OpCode];
+    Result := True;
+  finally
+    ReleaseEvalValue(lLeft);
+    ReleaseEvalValue(lRight);
+    ReleaseEvalValue(lWhole);
+  end;
+end;
+
+
+function TFpSonarResolver.TryShiftCountExceedsWidth(aExpr: TPasExpr;
+  out aCount, aTypeName: string): boolean;
+
+var
+  lBinary: TBinaryExpr;
+  lShifted, lCount: TResEvalValue;
+  lRes: TPasResolverResult;
+  lShiftType: TPasType;
+  lPrecision: word;
+  lSigned: boolean;
+  lWidth: TMaxPrecInt;
+
+begin
+  Result := False;
+  aCount := '';
+  aTypeName := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopShl, eopShr]) then
+    Exit;
+  lShifted := EvalGuarded(lBinary.Left);
+  lCount := EvalGuarded(lBinary.Right);
+  try
+    { A folding left operand is shifted at the evaluator's own widest
+      precision, not at the declared width of its inferred type. }
+    if (lShifted <> nil) or (lCount = nil) then
+      Exit;
+    case lCount.Kind of
+      revkInt: lWidth := TResEvalInt(lCount).Int;
+      revkUInt:
+        begin
+          if TResEvalUInt(lCount).UInt > High(TMaxPrecInt) then
+            Exit;
+          lWidth := TMaxPrecInt(TResEvalUInt(lCount).UInt);
+        end;
+    else
+      Exit;
+    end;
+    if lWidth < 0 then
+      Exit;
+    if not ComputeGuarded(lBinary.Left, lRes) then
+      Exit;
+    if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+      Exit;
+    try
+      FTopEngine.GetIntegerProps(lRes.BaseType, lPrecision, lSigned);
+    except
+      on E: Exception do
+        Exit;
+    end;
+    { FPC computes a shift of a sub-32-bit ordinal in 32 bits
+      (compiler/nmat.pas, tshlshrnode.pass_typecheck), so the width that decides
+      the verdict is that type's, not the operand's. }
+    lShiftType := lRes.LoTypeEl;
+    if lPrecision < 32 then
+    begin
+      lPrecision := 32;
+      lShiftType := FTopEngine.BaseTypes[btLongint];
+    end;
+    if lWidth < lPrecision then
+      Exit;
+    if (lShiftType = nil) or (lShiftType.Name = '') then
+      Exit;
+    aCount := lCount.AsString;
+    aTypeName := lShiftType.Name;
+    Result := True;
+  finally
+    ReleaseEvalValue(lShifted);
+    ReleaseEvalValue(lCount);
+  end;
+end;
+
+
+function TFpSonarResolver.TrySetElementOutOfRange(aExpr: TPasExpr;
+  out aTypeName: string): boolean;
+
+var
+  lBinary: TBinaryExpr;
+  lSet, lRange: TResEvalValue;
+  lRes: TPasResolverResult;
+  lFits: boolean;
+
+begin
+  Result := False;
+  aTypeName := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if lBinary.OpCode <> eopIn then
+    Exit;
+  if not ComputeGuarded(lBinary.Left, lRes) then
+    Exit;
+  if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+    Exit;
+  lSet := EvalGuarded(lBinary.Right);
+  lRange := TypeRangeGuarded(lRes.LoTypeEl);
+  try
+    if (lSet = nil) or (lSet.Kind <> revkSetOfInt) or (lRange = nil) then
+      Exit;
+    try
+      lFits := FTopEngine.ExprEvaluator.IsSetCompatible(lSet, lBinary.Right,
+        lRange, False);
+    except
+      on E: Exception do
+        Exit;
+    end;
+    if lFits then
+      Exit;
+    aTypeName := lRes.LoTypeEl.Name;
+    Result := True;
+  finally
+    ReleaseEvalValue(lSet);
+    ReleaseEvalValue(lRange);
+  end;
+end;
+
+
+function TFpSonarResolver.TryEnumOrdinalOutOfRange(aExpr: TPasExpr;
+  out aOrdinal, aEnumName: string): boolean;
+
+var
+  lParams: TParamsExpr;
+  lRef: TResolvedReference;
+  lTarget: TPasType;
+  lValue, lRange: TResEvalValue;
+  lRangeInt: TResEvalRangeInt;
+  lOrdinal: TMaxPrecInt;
+
+begin
+  Result := False;
+  aOrdinal := '';
+  aEnumName := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TParamsExpr) then
+    Exit;
+  lParams := TParamsExpr(aExpr);
+  if (lParams.Kind <> pekFuncParams) or (Length(lParams.Params) <> 1) then
+    Exit;
+  lTarget := nil;
+  try
+    lRef := FTopEngine.GetParamsValueRef(lParams);
+    if (lRef = nil) or not (lRef.Declaration is TPasType) then
+      Exit;
+    if lRef.Declaration.CustomData is TResElDataBuiltInProc then
+      Exit;
+    lTarget := FTopEngine.ResolveAliasType(TPasType(lRef.Declaration));
+  except
+    on E: Exception do
+      Exit;
+  end;
+  if not (lTarget is TPasEnumType) then
+    Exit;
+  lValue := EvalGuarded(lParams.Params[0]);
+  lRange := TypeRangeGuarded(lTarget);
+  try
+    if (lValue = nil) or (lRange = nil) or (lRange.Kind <> revkRangeInt) then
+      Exit;
+    case lValue.Kind of
+      revkInt: lOrdinal := TResEvalInt(lValue).Int;
+      revkUInt:
+        begin
+          if TResEvalUInt(lValue).UInt > High(TMaxPrecInt) then
+            Exit;
+          lOrdinal := TMaxPrecInt(TResEvalUInt(lValue).UInt);
+        end;
+    else
+      Exit;
+    end;
+    lRangeInt := TResEvalRangeInt(lRange);
+    if (lOrdinal >= lRangeInt.RangeStart)
+      and (lOrdinal <= lRangeInt.RangeEnd) then
+      Exit;
+    aOrdinal := lValue.AsString;
+    aEnumName := lRef.Declaration.Name;
+    Result := True;
+  finally
+    ReleaseEvalValue(lValue);
+    ReleaseEvalValue(lRange);
+  end;
+end;
+
+
+function TFpSonarResolver.TryArrayIndexConstantOutOfBounds(aExpr: TPasExpr;
+  out aIndex, aArrayName: string): boolean;
+
+var
+  lParams: TParamsExpr;
+  lRes: TPasResolverResult;
+  lArray: TPasArrayType;
+  lValue, lRange: TResEvalValue;
+  lDecl: TPasElement;
+  lInRange: boolean;
+  i, lDims: integer;
+
+begin
+  Result := False;
+  aIndex := '';
+  aArrayName := '';
+  if not (aExpr is TParamsExpr) then
+    Exit;
+  lParams := TParamsExpr(aExpr);
+  if (lParams.Kind <> pekArrayParams) or (Length(lParams.Params) = 0) then
+    Exit;
+  if not ComputeGuarded(lParams.Value, lRes) then
+    Exit;
+  if not (lRes.LoTypeEl is TPasArrayType) then
+    Exit;
+  lArray := TPasArrayType(lRes.LoTypeEl);
+  lDims := Length(lArray.Ranges);
+  if lDims = 0 then
+    Exit;
+  if lDims > Length(lParams.Params) then
+    lDims := Length(lParams.Params);
+  for i := 0 to lDims - 1 do
+  begin
+    lValue := EvalGuarded(lParams.Params[i]);
+    lRange := EvalGuarded(lArray.Ranges[i]);
+    try
+      if TryInRangeGuarded(lValue, lParams.Params[i], lRange,
+        lArray.Ranges[i], lInRange) and not lInRange then
+      begin
+        lDecl := ReferencedDecl(lParams.Value);
+        if (lDecl <> nil) and (lDecl.Name <> '') then
+          aArrayName := lDecl.Name
+        else if lParams.Value is TPrimitiveExpr then
+          aArrayName := TPrimitiveExpr(lParams.Value).Value;
+        if aArrayName <> '' then
+        begin
+          aIndex := lValue.AsString;
+          Result := True;
+        end;
+      end;
+    finally
+      ReleaseEvalValue(lValue);
+      ReleaseEvalValue(lRange);
+    end;
+    if Result then
+      Exit;
+  end;
+end;
+
+
+function TFpSonarResolver.TrySizeOfOnReferenceType(aExpr: TPasExpr;
+  out aTypeName: string): boolean;
+
+var
+  lParams: TParamsExpr;
+  lRes: TPasResolverResult;
+  lReference: boolean;
+
+begin
+  Result := False;
+  aTypeName := '';
+  if not BuiltInCall(aExpr, bfSizeOf, 1, lParams) then
+    Exit;
+  if not ComputeGuarded(lParams.Params[0], lRes) then
+    Exit;
+  if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+    Exit;
+  if (lRes.IdentEl = nil) or (lRes.IdentEl is TPasType) then
+    Exit;
+  lReference := (lRes.LoTypeEl is TPasClassType)
+    and (TPasClassType(lRes.LoTypeEl).ObjKind
+      in [okClass, okInterface, okDispInterface]);
+  if not lReference then
+    try
+      lReference := FTopEngine.IsDynArray(lRes.LoTypeEl, False);
+    except
+      on E: Exception do
+        Exit;
+    end;
+  if not lReference then
+    lReference := lRes.BaseType in btAllStringPointer;
+  if not lReference then
+    Exit;
+  aTypeName := lRes.LoTypeEl.Name;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryMoveFillCharSizeMismatch(aExpr: TPasExpr;
+  out aCallee, aCount: string): boolean;
+
+var
+  lParams, lInner: TParamsExpr;
+  lRef: TResolvedReference;
+  lProcType: TPasProcedureType;
+  lRes, lElem: TPasResolverResult;
+  lPrecision: word;
+  lSigned: boolean;
+  lCountAt: integer;
+
+begin
+  Result := False;
+  aCallee := '';
+  aCount := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TParamsExpr) then
+    Exit;
+  lParams := TParamsExpr(aExpr);
+  if (lParams.Kind <> pekFuncParams) or (Length(lParams.Params) <> 3) then
+    Exit;
+  try
+    lRef := FTopEngine.GetParamsValueRef(lParams);
+  except
+    on E: Exception do
+      Exit;
+  end;
+  if (lRef = nil) or not (lRef.Declaration is TPasProcedure) then
+    Exit;
+  // The RTL pair is declared at unit level, with an untyped first argument.
+  if not (lRef.Declaration.Parent is TPasSection) then
+    Exit;
+  lProcType := TPasProcedure(lRef.Declaration).ProcType;
+  if (lProcType = nil) or (lProcType.Args = nil) or (lProcType.Args.Count <> 3)
+    or not (TObject(lProcType.Args[0]) is TPasArgument)
+    or (TPasArgument(lProcType.Args[0]).ArgType <> nil) then
+    Exit;
+  if SameText(lRef.Declaration.Name, 'Move') then
+    lCountAt := 2
+  else if SameText(lRef.Declaration.Name, 'FillChar') then
+    lCountAt := 1
+  else
+    Exit;
+  if BuiltInCall(lParams.Params[lCountAt], bfLength, 1, lInner) then
+  begin
+    if not ComputeGuarded(lInner.Params[0], lRes) then
+      Exit;
+    if not (lRes.LoTypeEl is TPasArrayType) then
+      Exit;
+    if not ComputeGuarded(TPasArrayType(lRes.LoTypeEl).ElType, lElem) then
+      Exit;
+    if not IntegerPropsGuarded(lElem.BaseType, lPrecision, lSigned)
+      or (lPrecision <= 8) then
+      Exit;
+    aCount := 'Length';
+  end
+  else if BuiltInCall(lParams.Params[lCountAt], bfSizeOf, 1, lInner) then
+  begin
+    if not ComputeGuarded(lInner.Params[0], lRes) then
+      Exit;
+    if not (lRes.LoTypeEl is TPasPointerType) then
+      Exit;
+    if (lRes.IdentEl = nil) or (lRes.IdentEl is TPasType) then
+      Exit;
+    // Sizing the very variable that carries the data asks for the pointer size.
+    if (ReferencedDecl(lParams.Params[0]) = lRes.IdentEl)
+      or ((lCountAt = 2)
+        and (ReferencedDecl(lParams.Params[1]) = lRes.IdentEl)) then
+      Exit;
+    aCount := 'SizeOf';
+  end
+  else
+    Exit;
+  aCallee := lRef.Declaration.Name;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryFloatEqualityComparison(aExpr: TPasExpr;
+  out aTypeName: string): boolean;
+
+  function FloatOperand(aOperand: TPasExpr; out aName: string): boolean;
+  var
+    lRes: TPasResolverResult;
+  begin
+    aName := '';
+    // Currency is a scaled Int64, not a binary float.
+    Result := ComputeGuarded(aOperand, lRes)
+      and (lRes.BaseType in btAllFloats - [btCurrency])
+      and (lRes.LoTypeEl <> nil) and (lRes.LoTypeEl.Name <> '');
+    if Result then
+      aName := lRes.LoTypeEl.Name;
+  end;
+
+var
+  lBinary: TBinaryExpr;
+
+begin
+  Result := False;
+  aTypeName := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopEqual, eopNotEqual]) then
+    Exit;
+  Result := FloatOperand(lBinary.Left, aTypeName)
+    or FloatOperand(lBinary.Right, aTypeName);
+end;
+
+
+function TFpSonarResolver.TryIntegerDivisionAssignedToFloat(
+  aAssign: TPasElement; out aTypeName: string): boolean;
+
+  function IsInteger(aOperand: TPasExpr): boolean;
+  var
+    lRes: TPasResolverResult;
+  begin
+    Result := ComputeGuarded(aOperand, lRes)
+      and (lRes.BaseType in btAllInteger);
+  end;
+
+var
+  lAssign: TPasImplAssign;
+  lDiv: TBinaryExpr;
+  lRes: TPasResolverResult;
+
+begin
+  Result := False;
+  aTypeName := '';
+  if not (aAssign is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aAssign);
+  if (lAssign.Kind <> akDefault) or (lAssign.Left = nil)
+    or not (lAssign.Right is TBinaryExpr) then
+    Exit;
+  lDiv := TBinaryExpr(lAssign.Right);
+  if lDiv.OpCode <> eopDiv then
+    Exit;
+  if not ComputeGuarded(lAssign.Left, lRes) then
+    Exit;
+  if not (lRes.BaseType in btAllFloats) then
+    Exit;
+  if (lRes.LoTypeEl = nil) or (lRes.LoTypeEl.Name = '') then
+    Exit;
+  if not IsInteger(lDiv.Left) or not IsInteger(lDiv.Right) then
+    Exit;
+  aTypeName := lRes.LoTypeEl.Name;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryMixedSignedUnsignedComparison(aExpr: TPasExpr;
+  out aSignedType, aUnsignedType: string): boolean;
+
+  function Promoted(aOperand: TPasExpr): boolean;
+  begin
+    Result := ((aOperand is TBinaryExpr)
+        and (TBinaryExpr(aOperand).OpCode in [eopAdd, eopSubtract, eopMultiply,
+          eopDiv, eopMod, eopAnd, eopOr, eopXor]))
+      or ((aOperand is TUnaryExpr)
+        and (TUnaryExpr(aOperand).OpCode in [eopAdd, eopSubtract]));
+  end;
+
+  function Folds(aOperand: TPasExpr): boolean;
+  var
+    lValue: TResEvalValue;
+  begin
+    lValue := EvalGuarded(aOperand);
+    try
+      Result := lValue <> nil;
+    finally
+      ReleaseEvalValue(lValue);
+    end;
+  end;
+
+var
+  lBinary: TBinaryExpr;
+  lLeft, lRight: TPasResolverResult;
+  lLeftPrec, lRightPrec: word;
+  lLeftSigned, lRightSigned: boolean;
+
+begin
+  Result := False;
+  aSignedType := '';
+  aUnsignedType := '';
+  if not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopEqual, eopNotEqual, eopLessThan,
+    eopGreaterThan, eopLessthanEqual, eopGreaterThanEqual]) then
+    Exit;
+  if not ComputeGuarded(lBinary.Left, lLeft)
+    or not ComputeGuarded(lBinary.Right, lRight) then
+    Exit;
+  if not IntegerPropsGuarded(lLeft.BaseType, lLeftPrec, lLeftSigned)
+    or not IntegerPropsGuarded(lRight.BaseType, lRightPrec, lRightSigned) then
+    Exit;
+  if (lLeftPrec <> lRightPrec) or (lLeftPrec < 32)
+    or (lLeftSigned = lRightSigned) then
+    Exit;
+  if Promoted(lBinary.Left) or Promoted(lBinary.Right) then
+    Exit;
+  if Folds(lBinary.Left) or Folds(lBinary.Right) then
+    Exit;
+  if (lLeft.LoTypeEl = nil) or (lLeft.LoTypeEl.Name = '')
+    or (lRight.LoTypeEl = nil) or (lRight.LoTypeEl.Name = '') then
+    Exit;
+  if lLeftSigned then
+  begin
+    aSignedType := lLeft.LoTypeEl.Name;
+    aUnsignedType := lRight.LoTypeEl.Name;
+  end
+  else
+  begin
+    aSignedType := lRight.LoTypeEl.Name;
+    aUnsignedType := lLeft.LoTypeEl.Name;
+  end;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryPCharOfTemporaryString(aExpr: TPasExpr;
+  out aTargetName: string): boolean;
+
+  { The declaration aOperand binds to. A call carries its reference on the
+    callee, and a dotted callee carries it on the rightmost name. }
+  function OperandDecl(aOperand: TPasExpr): TPasElement;
+  var
+    lRef: TResolvedReference;
+  begin
+    Result := nil;
+    if (aOperand is TParamsExpr)
+      and (TParamsExpr(aOperand).Kind = pekFuncParams) then
+    begin
+      try
+        lRef := FTopEngine.GetParamsValueRef(TParamsExpr(aOperand));
+      except
+        on E: Exception do
+          Exit;
+      end;
+      if lRef <> nil then
+        Result := lRef.Declaration;
+    end
+    else if (aOperand is TBinaryExpr)
+      and (TBinaryExpr(aOperand).OpCode = eopSubIdent) then
+      Result := ReferencedDecl(TBinaryExpr(aOperand).Right)
+    else
+      Result := ReferencedDecl(aOperand);
+  end;
+
+  { True when aDecl is a built-in whose result is a freshly built string. }
+  function StringBuiltIn(aDecl: TPasElement): boolean;
+  begin
+    Result := (aDecl is TPasUnresolvedSymbolRef)
+      and (aDecl.CustomData is TResElDataBuiltInProc)
+      and (TResElDataBuiltInProc(aDecl.CustomData).BuiltIn
+        in [bfCopyString, bfConcatString]);
+  end;
+
+var
+  lTarget, lSource, lDest: TFpSonarResolvedType;
+  lOperand: TPasExpr;
+  lDecl: TPasElement;
+
+begin
+  Result := False;
+  aTargetName := '';
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  if not TryTypecast(aExpr, lTarget, lSource) then
+    Exit;
+  if (lSource.Kind <> ltkString) or (lTarget.Kind <> ltkPointer)
+    or not (lTarget.TypeEl is TPasPointerType) then
+    Exit;
+  if not TryResolvedType(TPasPointerType(lTarget.TypeEl).DestType, lDest)
+    or (lDest.Kind <> ltkChar) then
+    Exit;
+  lOperand := TParamsExpr(aExpr).Params[0];
+  if (lOperand is TBinaryExpr) and (TBinaryExpr(lOperand).OpCode = eopAdd) then
+    Result := True
+  else
+  begin
+    lDecl := OperandDecl(lOperand);
+    Result := ((lDecl is TPasProcedure)
+      and (TPasProcedure(lDecl).ProcType is TPasFunctionType))
+      or StringBuiltIn(lDecl);
+  end;
+  if Result then
+    aTargetName := lTarget.NamedTypeName;
+end;
+
+
+function TFpSonarResolver.TryImplicitStringConversion(aNode: TPasElement;
+  out aSourceName, aTargetName: string): boolean;
+
+var
+  lAssign: TPasImplAssign;
+  lLeft, lRight: TFpSonarResolvedType;
+
+begin
+  Result := False;
+  aSourceName := '';
+  aTargetName := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aNode is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aNode);
+  if not TryResolvedType(lAssign.Left, lLeft)
+    or not TryResolvedType(lAssign.Right, lRight) then
+    Exit;
+  if (lLeft.Kind <> ltkString) or (lRight.Kind <> ltkString) then
+    Exit;
+  if (lRight.Encoding <> lseWide) or (lLeft.Encoding <> lseAnsi) then
+    Exit;
+  aSourceName := lRight.NamedTypeName;
+  aTargetName := lLeft.NamedTypeName;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryLengthUsedAsByteCount(aExpr: TPasExpr;
+  out aStringName, aCallee: string): boolean;
+
+var
+  lParams, lInner: TParamsExpr;
+  lRef: TResolvedReference;
+  lProcType: TPasProcedureType;
+  lRes: TPasResolverResult;
+  lString: TFpSonarResolvedType;
+  lCountAt: integer;
+
+begin
+  Result := False;
+  aStringName := '';
+  aCallee := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TParamsExpr) then
+    Exit;
+  lParams := TParamsExpr(aExpr);
+  if (lParams.Kind <> pekFuncParams) or (Length(lParams.Params) <> 3) then
+    Exit;
+  try
+    lRef := FTopEngine.GetParamsValueRef(lParams);
+  except
+    on E: Exception do
+      Exit;
+  end;
+  if (lRef = nil) or not (lRef.Declaration is TPasProcedure) then
+    Exit;
+  // The RTL pair is declared at unit level, with an untyped first argument.
+  if not (lRef.Declaration.Parent is TPasSection) then
+    Exit;
+  lProcType := TPasProcedure(lRef.Declaration).ProcType;
+  if (lProcType = nil) or (lProcType.Args = nil) or (lProcType.Args.Count <> 3)
+    or not (TObject(lProcType.Args[0]) is TPasArgument)
+    or (TPasArgument(lProcType.Args[0]).ArgType <> nil) then
+    Exit;
+  if SameText(lRef.Declaration.Name, 'Move') then
+    lCountAt := 2
+  else if SameText(lRef.Declaration.Name, 'FillChar') then
+    lCountAt := 1
+  else
+    Exit;
+  if not BuiltInCall(lParams.Params[lCountAt], bfLength, 1, lInner) then
+    Exit;
+  if not ComputeGuarded(lInner.Params[0], lRes) then
+    Exit;
+  if not FillResolvedType(lRes, FTopEngine.BaseTypeString,
+    FTopEngine.BaseTypeChar, lString) then
+    Exit;
+  if (lString.Kind <> ltkString) or (lString.Encoding <> lseWide) then
+    Exit;
+  aStringName := lString.NamedTypeName;
+  aCallee := lRef.Declaration.Name;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryCopyWithZeroIndex(aExpr: TPasExpr;
+  out aStringName: string): boolean;
+
+var
+  lParams: TParamsExpr;
+  lString: TFpSonarResolvedType;
+  lValue: TResEvalValue;
+
+begin
+  Result := False;
+  aStringName := '';
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  // bfCopyString is the string overload; the array Copy binds bfCopyArray.
+  if not BuiltInCall(aExpr, bfCopyString, 3, lParams)
+    and not BuiltInCall(aExpr, bfCopyString, 2, lParams) then
+    Exit;
+  if not TryResolvedType(lParams.Params[0], lString)
+    or (lString.Kind <> ltkString) then
+    Exit;
+  lValue := EvalGuarded(lParams.Params[1]);
+  try
+    if lValue = nil then
+      Exit;
+    case lValue.Kind of
+      revkInt: Result := TResEvalInt(lValue).Int = 0;
+      revkUInt: Result := TResEvalUInt(lValue).UInt = 0;
+    end;
+  finally
+    ReleaseEvalValue(lValue);
+  end;
+  if Result then
+    aStringName := lString.NamedTypeName;
+end;
+
+
+function TFpSonarResolver.TryPosResultComparedToZeroBased(aExpr: TPasExpr;
+  out aCallee, aConstText: string): boolean;
+
+  // aOp read with its two operands swapped.
+  function Mirror(aOp: TExprOpCode): TExprOpCode;
+  begin
+    case aOp of
+      eopLessThan: Result := eopGreaterThan;
+      eopGreaterThan: Result := eopLessThan;
+      eopLessthanEqual: Result := eopGreaterThanEqual;
+      eopGreaterThanEqual: Result := eopLessthanEqual;
+    else
+      Result := aOp;
+    end;
+  end;
+
+  // The unit-level routine named Pos that aOperand calls, or nil.
+  function PosCallee(aOperand: TPasExpr): TPasElement;
+  var
+    lRef: TResolvedReference;
+    lType: TPasProcedureType;
+  begin
+    Result := nil;
+    if not (aOperand is TParamsExpr)
+      or (TParamsExpr(aOperand).Kind <> pekFuncParams) then
+      Exit;
+    try
+      lRef := FTopEngine.GetParamsValueRef(TParamsExpr(aOperand));
+    except
+      on E: Exception do
+        Exit;
+    end;
+    if (lRef = nil) or not (lRef.Declaration is TPasProcedure)
+      or not (lRef.Declaration.Parent is TPasSection)
+      or not SameText(lRef.Declaration.Name, 'Pos') then
+      Exit;
+    lType := TPasProcedure(lRef.Declaration).ProcType;
+    if not (lType is TPasFunctionType) or (lType.Args = nil)
+      or (lType.Args.Count < 2) then
+      Exit;
+    Result := lRef.Declaration;
+  end;
+
+var
+  lBinary: TBinaryExpr;
+  lOp: TExprOpCode;
+  lDecl: TPasElement;
+  lValue: TResEvalValue;
+  lLimit: TMaxPrecInt;
+
+begin
+  Result := False;
+  aCallee := '';
+  aConstText := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopEqual, eopNotEqual, eopLessThan,
+    eopGreaterThan, eopLessthanEqual, eopGreaterThanEqual]) then
+    Exit;
+  lDecl := PosCallee(lBinary.Left);
+  if lDecl <> nil then
+  begin
+    lOp := lBinary.OpCode;
+    lValue := EvalGuarded(lBinary.Right);
+  end
+  else
+  begin
+    lDecl := PosCallee(lBinary.Right);
+    if lDecl = nil then
+      Exit;
+    lOp := Mirror(lBinary.OpCode);
+    lValue := EvalGuarded(lBinary.Left);
+  end;
+  lLimit := 0;
+  try
+    if lValue = nil then
+      Exit;
+    case lValue.Kind of
+      revkInt: lLimit := TResEvalInt(lValue).Int;
+      revkUInt:
+        begin
+          if TResEvalUInt(lValue).UInt > High(TMaxPrecInt) then
+            Exit;
+          lLimit := TMaxPrecInt(TResEvalUInt(lValue).UInt);
+        end;
+    else
+      Exit;
+    end;
+  finally
+    ReleaseEvalValue(lValue);
+  end;
+  if (lLimit = 0) and (lOp in [eopGreaterThanEqual, eopLessThan]) then
+    Result := True
+  else if (lLimit = -1) and (lOp in [eopGreaterThan, eopLessthanEqual,
+    eopEqual, eopNotEqual]) then
+    Result := True;
+  if Result then
+  begin
+    aCallee := lDecl.Name;
+    aConstText := IntToStr(lLimit);
+  end;
+end;
+
+
+function TFpSonarResolver.TryShortStringTruncation(aNode: TPasElement;
+  out aTargetName, aCapacity: string): boolean;
+
+  { The length written in aType's string[N] declaration, or -1. It is read
+    from TPasStringType.LengthExpr, which the parser stores as raw source
+    text rather than as an expression tree. }
+  function DeclaredLength(aType: TPasType): integer;
+  var
+    lType: TPasType;
+    lGuard: integer;
+  begin
+    Result := -1;
+    lType := aType;
+    lGuard := 0;
+    while (lType is TPasAliasType) and (lGuard < 100) do
+    begin
+      lType := TPasAliasType(lType).DestType;
+      Inc(lGuard);
+    end;
+    if not (lType is TPasStringType) then
+      Exit;
+    if not TryStrToInt(TPasStringType(lType).LengthExpr, Result) then
+      Result := -1;
+  end;
+
+  // The byte count aValue's string constant folds to, or -1.
+  function FoldedByteCount(aValue: TPasExpr): integer;
+  var
+    lVal: TResEvalValue;
+  begin
+    Result := -1;
+    lVal := EvalGuarded(aValue);
+    try
+      try
+        if (lVal <> nil) and (lVal.Kind in revkAllStrings) then
+          case lVal.Kind of
+            {$ifdef FPC_HAS_CPSTRING}
+            revkString: Result := Length(FTopEngine.ExprEvaluator.GetUTF8Str(
+              TResEvalString(lVal).S, aValue));
+            {$endif}
+            revkUnicodeString:
+              Result := Length(UTF8Encode(TResEvalUTF16(lVal).S));
+          end;
+      except
+        on E: Exception do
+          Result := -1;
+      end;
+    finally
+      ReleaseEvalValue(lVal);
+    end;
+  end;
+
+var
+  lAssign: TPasImplAssign;
+  lDecl: TPasElement;
+  lCapacity, lLength: integer;
+
+begin
+  Result := False;
+  aTargetName := '';
+  aCapacity := '';
+  if (FTopEngine = nil) or (not FSucceeded)
+    or not (aNode is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aNode);
+  if lAssign.Kind <> akDefault then
+    Exit;
+  lDecl := ReferencedDecl(lAssign.Left);
+  if not (lDecl is TPasVariable) then
+    Exit;
+  try
+    lCapacity := DeclaredLength(TPasVariable(lDecl).VarType);
+  except
+    on E: Exception do
+      Exit;
+  end;
+  if lCapacity < 0 then
+    Exit;
+  lLength := FoldedByteCount(lAssign.Right);
+  if (lLength < 0) or (lLength <= lCapacity) then
+    Exit;
+  aTargetName := lDecl.Name;
+  aCapacity := IntToStr(lCapacity);
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryCharComparedToString(aExpr: TPasExpr;
+  out aCharTypeName, aLength: string): boolean;
+
+  { The character count aValue's string constant folds to, or -1. The UTF-8
+    form is decoded, so a non-ASCII character counts once and not per byte. }
+  function FoldedLength(aValue: TPasExpr): integer;
+  var
+    lVal: TResEvalValue;
+  begin
+    Result := -1;
+    lVal := EvalGuarded(aValue);
+    try
+      try
+        if (lVal <> nil) and (lVal.Kind in revkAllStrings) then
+          case lVal.Kind of
+            {$ifdef FPC_HAS_CPSTRING}
+            revkString: Result := Length(UTF8Decode(
+              FTopEngine.ExprEvaluator.GetUTF8Str(TResEvalString(lVal).S,
+              aValue)));
+            {$endif}
+            revkUnicodeString:
+              Result := Length(TResEvalUTF16(lVal).S);
+          end;
+      except
+        on E: Exception do
+          Result := -1;
+      end;
+    finally
+      ReleaseEvalValue(lVal);
+    end;
+  end;
+
+  { True when aChar classifies as a char and aText as a string constant of a
+    length other than one. }
+  function CharAgainstText(aChar, aText: TPasExpr; out aName: string;
+    out aCount: integer): boolean;
+  var
+    lChar, lText: TFpSonarResolvedType;
+  begin
+    Result := False;
+    aName := '';
+    aCount := -1;
+    if not TryResolvedType(aChar, lChar) or (lChar.Kind <> ltkChar) then
+      Exit;
+    if not TryResolvedType(aText, lText) or (lText.Kind <> ltkString) then
+      Exit;
+    aCount := FoldedLength(aText);
+    if (aCount < 0) or (aCount = 1) then
+      Exit;
+    aName := lChar.NamedTypeName;
+    Result := True;
+  end;
+
+var
+  lBinary: TBinaryExpr;
+  lName: string;
+  lCount: integer;
+
+begin
+  Result := False;
+  aCharTypeName := '';
+  aLength := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TBinaryExpr) then
+    Exit;
+  lBinary := TBinaryExpr(aExpr);
+  if not (lBinary.OpCode in [eopEqual, eopNotEqual]) then
+    Exit;
+  if not CharAgainstText(lBinary.Left, lBinary.Right, lName, lCount)
+    and not CharAgainstText(lBinary.Right, lBinary.Left, lName, lCount) then
+    Exit;
+  aCharTypeName := lName;
+  aLength := IntToStr(lCount);
+  Result := True;
+end;
+
+
 function TFpSonarResolver.ReferencedDecl(aExpr: TPasElement): TPasElement;
 begin
   Result := nil;
@@ -2427,6 +4116,964 @@ begin
     // Tolerant-access: any resolver failure => not a usable fact.
     on E: Exception do
       Result := False;
+  end;
+end;
+
+
+{ The declaration proc behind aProc's scope and that declaration's own scope;
+  False when aProc carries no resolved procedure scope. }
+function DeclarationOf(aProc: TPasProcedure; out aDecl: TPasProcedure;
+  out aDeclScope: TPasProcedureScope): boolean;
+var
+  lScope: TPasProcedureScope;
+begin
+  aDecl := nil;
+  aDeclScope := nil;
+  Result := False;
+  if not (aProc.CustomData is TPasProcedureScope) then
+    Exit;
+  lScope := TPasProcedureScope(aProc.CustomData);
+  aDecl := lScope.DeclarationProc;
+  if aDecl = nil then
+    aDecl := aProc;
+  if aDecl.CustomData is TPasProcedureScope then
+    aDeclScope := TPasProcedureScope(aDecl.CustomData)
+  else
+    aDeclScope := lScope;
+  Result := True;
+end;
+
+
+function TFpSonarResolver.TryMethodHidesVirtual(aProc: TPasElement): boolean;
+var
+  lDecl: TPasProcedure;
+  lDeclScope: TPasProcedureScope;
+begin
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aProc = nil) then
+    Exit;
+
+  try
+    if not (aProc is TPasProcedure) then
+      Exit;
+    { A destructor's hiding shape is DestructorShouldOverrideDestroy's. }
+    if aProc is TPasDestructor then
+      Exit;
+    if not DeclarationOf(TPasProcedure(aProc), lDecl, lDeclScope) then
+      Exit;
+    if [pmOverride, pmReintroduce, pmOverload] * lDecl.Modifiers <> [] then
+      Exit;
+    if lDeclScope.OverriddenProc = nil then
+      Exit;
+    { dynamic counts: such a method is virtual through the DMT. }
+    Result := [pmVirtual, pmDynamic, pmOverride, pmAbstract]
+      * lDeclScope.OverriddenProc.Modifiers <> [];
+  except
+    // Tolerant-access: any resolver failure => not a usable fact.
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+{ The magnitude of aValue; False when its kind carries no number. }
+function NumericEvalValue(aValue: TResEvalValue;
+  out aNumber: TMaxPrecFloat): boolean;
+begin
+  Result := True;
+  aNumber := 0;
+  case aValue.Kind of
+    revkInt: aNumber := TResEvalInt(aValue).Int;
+    revkUInt: aNumber := TResEvalUInt(aValue).UInt;
+    revkFloat: aNumber := TResEvalFloat(aValue).FloatValue;
+    revkCurrency: aNumber := TResEvalCurrency(aValue).Value;
+    else
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.TryOverrideDefaultParamChange(
+  aProc: TPasElement): boolean;
+
+  { True iff exactly one side declares a default, or both fold to different
+    values. Two numeric folds compare by magnitude, so 1 and 1.0 are equal. }
+  function DefaultChanged(aMine, aTheirs: TPasExpr): boolean;
+  var
+    lMine, lTheirs: TResEvalValue;
+    lNumMine, lNumTheirs: TMaxPrecFloat;
+  begin
+    Result := False;
+    if (aMine = nil) and (aTheirs = nil) then
+      Exit;
+    if (aMine = nil) or (aTheirs = nil) then
+      Exit(True);
+    lMine := EvalGuarded(aMine);
+    lTheirs := EvalGuarded(aTheirs);
+    try
+      if (lMine <> nil) and (lTheirs <> nil) then
+        if NumericEvalValue(lMine, lNumMine)
+          and NumericEvalValue(lTheirs, lNumTheirs) then
+          Result := lNumMine <> lNumTheirs
+        else
+          Result := (lMine.Kind <> lTheirs.Kind)
+            or (lMine.AsString <> lTheirs.AsString);
+    finally
+      ReleaseEvalValue(lMine);
+      ReleaseEvalValue(lTheirs);
+    end;
+  end;
+
+var
+  lDecl, lAncestor: TPasProcedure;
+  lDeclScope: TPasProcedureScope;
+  lMine, lTheirs: TFPList;
+  i: integer;
+begin
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aProc = nil) then
+    Exit;
+
+  try
+    if not (aProc is TPasProcedure) then
+      Exit;
+    if not DeclarationOf(TPasProcedure(aProc), lDecl, lDeclScope) then
+      Exit;
+    if not (pmOverride in lDecl.Modifiers) then
+      Exit;
+    lAncestor := lDeclScope.OverriddenProc;
+    if (lAncestor = nil) or (lDecl.ProcType = nil)
+      or (lAncestor.ProcType = nil) then
+      Exit;
+    lMine := lDecl.ProcType.Args;
+    lTheirs := lAncestor.ProcType.Args;
+    if (lMine = nil) or (lTheirs = nil) or (lMine.Count <> lTheirs.Count) then
+      Exit;
+    for i := 0 to lMine.Count - 1 do
+      if DefaultChanged(TPasArgument(lMine[i]).ValueExpr,
+        TPasArgument(lTheirs[i]).ValueExpr) then
+        Exit(True);
+  except
+    // Tolerant-access: any resolver failure => not a usable fact.
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.TryAbstractInstantiation(out aNodes: TPasElementArray;
+  out aClassNames: TFpSonarStringArray): boolean;
+
+  { True when aClass has an unimplemented abstract method and every one of them
+    is declared in the analysed module. }
+  function AbstractSetIsLocal(aClass: TPasClassType): boolean;
+  var
+    lProcs: TArrayOfPasProcedure;
+    lModule: TPasModule;
+    i: integer;
+  begin
+    Result := False;
+    lProcs := TPasClassScope(aClass.CustomData).AbstractProcs;
+    if Length(lProcs) = 0 then
+      Exit;
+    lModule := GetResolvedModule;
+    for i := 0 to High(lProcs) do
+      if lProcs[i].GetModule <> lModule then
+        Exit;
+    Result := True;
+  end;
+
+  { The class NAMED as the qualifier of a `T.Create` member access; nil for a
+    bare, an instance or a class-of construction. }
+  function NamedClassOf(aSite: TPasElement): TPasClassType;
+  var
+    lBin: TBinaryExpr;
+    lDecl: TPasElement;
+  begin
+    Result := nil;
+    if not (aSite.Parent is TBinaryExpr) then
+      Exit;
+    lBin := TBinaryExpr(aSite.Parent);
+    if (lBin.OpCode <> eopSubIdent) or (lBin.Right <> aSite) then
+      Exit;
+    lDecl := ReferencedDecl(lBin.Left);
+    if lDecl is TPasClassType then
+      Result := TPasClassType(lDecl);
+  end;
+
+var
+  lSites, lDecls: TPasElementArray;
+  lClass: TPasClassType;
+  i: integer;
+begin
+  SetLength(aNodes, 0);
+  SetLength(aClassNames, 0);
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+
+  try
+    if not TryReferenceSites(lSites, lDecls) then
+      Exit;
+    for i := 0 to High(lSites) do
+    begin
+      if not (lDecls[i] is TPasConstructor)
+        or not (lSites[i].CustomData is TResolvedReference) then
+        Continue;
+      if not (rrfNewInstance
+        in TResolvedReference(lSites[i].CustomData).Flags) then
+        Continue;
+      lClass := NamedClassOf(lSites[i]);
+      if (lClass = nil) or not (lClass.CustomData is TPasClassScope)
+        or not AbstractSetIsLocal(lClass) then
+        Continue;
+      SetLength(aNodes, Length(aNodes) + 1);
+      SetLength(aClassNames, Length(aClassNames) + 1);
+      aNodes[High(aNodes)] := lSites[i];
+      aClassNames[High(aClassNames)] := lClass.Name;
+    end;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => no usable site set.
+    on E: Exception do
+    begin
+      SetLength(aNodes, 0);
+      SetLength(aClassNames, 0);
+      Result := False;
+    end;
+  end;
+end;
+
+
+// True when aClass declares a method named aName a helper in aHelperModule
+// could hide.
+function HidableMethodIn(aClass: TPasClassType; const aName: string;
+  aHelperModule: TPasModule): boolean;
+var
+  lProc: TPasProcedure;
+  m: integer;
+begin
+  Result := False;
+  if aClass.Members = nil then
+    Exit;
+  for m := 0 to aClass.Members.Count - 1 do
+  begin
+    if not (TObject(aClass.Members[m]) is TPasProcedure) then
+      Continue;
+    lProc := TPasProcedure(aClass.Members[m]);
+    if not SameText(lProc.Name, aName) then
+      Continue;
+    { A private member of another unit cannot be named there, so nothing is
+      hidden; in the helper's own unit both private forms are. }
+    if (lProc.Visibility in [visPrivate, visStrictPrivate])
+      and (lProc.GetModule <> aHelperModule) then
+      Continue;
+    Exit(True);
+  end;
+end;
+
+
+{ True when aClass or one of the classes on its resolved ancestor-scope chain
+  declares a method named aName that a helper in aHelperModule hides. }
+function ChainHidesMethod(aClass: TPasClassType; const aName: string;
+  aHelperModule: TPasModule): boolean;
+var
+  lScope: TPasClassScope;
+  lGuard: integer;
+begin
+  Result := False;
+  if not (aClass.CustomData is TPasClassScope) then
+    Exit;
+  lScope := TPasClassScope(aClass.CustomData);
+  lGuard := 0;
+  while (lScope <> nil) and (lGuard < 100) do
+  begin
+    if (lScope.Element is TPasClassType)
+      and HidableMethodIn(TPasClassType(lScope.Element), aName,
+      aHelperModule) then
+      Exit(True);
+    lScope := lScope.AncestorScope;
+    Inc(lGuard);
+  end;
+end;
+
+
+// The class a class helper extends, or nil when it does not resolve to one.
+function HelperExtendedClass(aEngine: TFpSonarResolverEngine;
+  aHelper: TPasClassType): TPasClassType;
+var
+  lType: TPasType;
+begin
+  Result := nil;
+  if aHelper.HelperForType = nil then
+    Exit;
+  lType := aEngine.ResolveAliasType(aHelper.HelperForType);
+  if lType is TPasClassType then
+    Result := TPasClassType(lType);
+end;
+
+
+function TFpSonarResolver.TryClassHelperHiddenMethods(
+  out aNodes: TPasElementArray; out aNames: TFpSonarStringArray): boolean;
+var
+  lMod: TPasModule;
+
+  procedure Add(aEl: TPasElement; const aName: string);
+  begin
+    SetLength(aNodes, Length(aNodes) + 1);
+    aNodes[High(aNodes)] := aEl;
+    SetLength(aNames, Length(aNames) + 1);
+    aNames[High(aNames)] := aName;
+  end;
+
+  procedure Consider(aDecl: TPasElement);
+  var
+    lHelper, lExtended: TPasClassType;
+    lMember: TPasElement;
+    m: integer;
+  begin
+    if not (aDecl is TPasClassType) then
+      Exit;
+    lHelper := TPasClassType(aDecl);
+    if lHelper.ObjKind <> okClassHelper then
+      Exit;
+    lExtended := HelperExtendedClass(FTopEngine, lHelper);
+    if (lExtended = nil) or (lHelper.Members = nil) then
+      Exit;
+    for m := 0 to lHelper.Members.Count - 1 do
+    begin
+      lMember := TPasElement(lHelper.Members[m]);
+      if not (lMember is TPasProcedure) then
+        Continue;
+      { An overload joins the extended type's overload set instead of hiding it. }
+      if pmOverload in TPasProcedure(lMember).Modifiers then
+        Continue;
+      if ChainHidesMethod(lExtended, lMember.Name, lHelper.GetModule) then
+        Add(lMember, lMember.Name);
+    end;
+  end;
+
+  procedure WalkDecls(aDecls: TFPList);
+  var
+    k: integer;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+      Consider(TPasElement(aDecls[k]));
+  end;
+
+begin
+  aNodes := nil;
+  aNames := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    if lMod.InterfaceSection <> nil then
+      WalkDecls(lMod.InterfaceSection.Declarations);
+    if lMod.ImplementationSection <> nil then
+      WalkDecls(lMod.ImplementationSection.Declarations);
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aNames := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+// True when aEl is a data field.
+function IsStorageField(aEl: TPasElement): boolean;
+begin
+  Result := (aEl is TPasVariable) and not (aEl is TPasProperty)
+    and not (aEl is TPasConst);
+end;
+
+
+{ Appends every TPasProperty aType declares, descending into the member types
+  it nests. }
+procedure CollectTypeProperties(aType: TPasElement;
+  var aProps: TPasElementArray);
+var
+  lMember: TPasElement;
+  m: integer;
+begin
+  if not (aType is TPasMembersType) then
+    Exit;
+  if TPasMembersType(aType).Members = nil then
+    Exit;
+  for m := 0 to TPasMembersType(aType).Members.Count - 1 do
+  begin
+    lMember := TPasElement(TPasMembersType(aType).Members[m]);
+    if lMember is TPasProperty then
+    begin
+      SetLength(aProps, Length(aProps) + 1);
+      aProps[High(aProps)] := lMember;
+    end
+    else
+      CollectTypeProperties(lMember, aProps);
+  end;
+end;
+
+
+// Every property declared by a members type in either section of aModule.
+function CollectModuleProperties(aModule: TPasModule): TPasElementArray;
+
+  procedure WalkDecls(aDecls: TFPList);
+  var
+    k: integer;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+      CollectTypeProperties(TPasElement(aDecls[k]), Result);
+  end;
+
+begin
+  SetLength(Result, 0);
+  if aModule = nil then
+    Exit;
+  if aModule.InterfaceSection <> nil then
+    WalkDecls(aModule.InterfaceSection.Declarations);
+  if aModule.ImplementationSection <> nil then
+    WalkDecls(aModule.ImplementationSection.Declarations);
+end;
+
+
+{ The routine carrying aProc's statement body — aProc itself or the
+  implementation its declaration scope links to; nil when there is none. }
+function BodyProcOf(aProc: TPasProcedure): TPasProcedure;
+begin
+  Result := aProc;
+  if (aProc.CustomData is TPasProcedureScope)
+    and (TPasProcedureScope(aProc.CustomData).ImplProc <> nil) then
+    Result := TPasProcedureScope(aProc.CustomData).ImplProc;
+  if (Result.Body = nil) or (Result.Body.Body = nil) then
+    Result := nil;
+end;
+
+
+{ True when aExpr names its target plainly or through Self, rather than through
+  another object's reference or a with block. }
+function IsUnqualifiedOrSelf(aExpr: TPasExpr): boolean;
+var
+  lBin: TBinaryExpr;
+begin
+  if (aExpr.CustomData is TResolvedReference)
+    and (TResolvedReference(aExpr.CustomData).WithExprScope <> nil) then
+    Exit(False);
+  if not (aExpr.Parent is TBinaryExpr) then
+    Exit(True);
+  lBin := TBinaryExpr(aExpr.Parent);
+  if (lBin.OpCode <> eopSubIdent) or (lBin.Right <> aExpr) then
+    Exit(True);
+  Result := (lBin.Left is TPrimitiveExpr)
+    and SameText(TPrimitiveExpr(lBin.Left).Value, 'Self');
+end;
+
+
+{ True when aExpr itself carries a resolved write reference to a field aOwner
+  declares, named plainly or through Self. }
+function IsOwnFieldWrite(aExpr: TPasExpr; aOwner: TPasElement): boolean;
+var
+  lRef: TResolvedReference;
+begin
+  Result := False;
+  if not (aExpr.CustomData is TResolvedReference) then
+    Exit;
+  lRef := TResolvedReference(aExpr.CustomData);
+  Result := (lRef.Access in rraAllWrite) and IsStorageField(lRef.Declaration)
+    and (lRef.Declaration.Parent = aOwner) and IsUnqualifiedOrSelf(aExpr);
+end;
+
+
+{ True when aExpr, or one of its sub-expressions, is a write reference to a
+  field aOwner declares. }
+function ExprWritesOwnField(aExpr: TPasExpr; aOwner: TPasElement): boolean;
+var
+  k: integer;
+begin
+  Result := False;
+  if aExpr = nil then
+    Exit;
+  if IsOwnFieldWrite(aExpr, aOwner) then
+    Exit(True);
+  if aExpr is TParamsExpr then
+  begin
+    if ExprWritesOwnField(TParamsExpr(aExpr).Value, aOwner) then
+      Exit(True);
+    for k := 0 to High(TParamsExpr(aExpr).Params) do
+      if ExprWritesOwnField(TParamsExpr(aExpr).Params[k], aOwner) then
+        Exit(True);
+  end
+  else if aExpr is TBinaryExpr then
+    Result := ExprWritesOwnField(TBinaryExpr(aExpr).Left, aOwner)
+      or ExprWritesOwnField(TBinaryExpr(aExpr).Right, aOwner)
+  else if aExpr is TUnaryExpr then
+    Result := ExprWritesOwnField(TUnaryExpr(aExpr).Operand, aOwner);
+end;
+
+
+// True when one of aWith's subject expressions writes a field aOwner declares.
+function WithExprsWrite(aWith: TPasImplWithDo; aOwner: TPasElement): boolean;
+var
+  k: integer;
+begin
+  Result := False;
+  if aWith.Expressions = nil then
+    Exit;
+  for k := 0 to aWith.Expressions.Count - 1 do
+    if (TObject(aWith.Expressions[k]) is TPasExpr)
+      and ExprWritesOwnField(TPasExpr(aWith.Expressions[k]), aOwner) then
+      Exit(True);
+end;
+
+
+{ True when some expression in aStmt's subtree writes a field aOwner declares,
+  named plainly or through Self. }
+function StmtWritesOwnField(aStmt: TPasImplElement;
+  aOwner: TPasElement): boolean;
+var
+  lKids: TImplStmtArray;
+  i: integer;
+
+  // The direct child sub-statements of aNode.
+  function ChildStmts(aNode: TPasImplElement): TImplStmtArray;
+
+    procedure AddStmt(aEl: TPasImplElement);
+    begin
+      if aEl = nil then
+        Exit;
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)] := aEl;
+    end;
+
+    procedure AddElems(aList: TFPList);
+    var
+      k: integer;
+    begin
+      if aList = nil then
+        Exit;
+      for k := 0 to aList.Count - 1 do
+        if TObject(aList[k]) is TPasImplElement then
+          AddStmt(TPasImplElement(aList[k]));
+    end;
+
+  begin
+    SetLength(Result, 0);
+    if aNode = nil then
+      Exit;
+    if aNode is TPasImplIfElse then
+    begin
+      AddStmt(TPasImplIfElse(aNode).IfBranch);
+      AddStmt(TPasImplIfElse(aNode).ElseBranch);
+    end
+    else if aNode is TPasImplWhileDo then
+      AddStmt(TPasImplWhileDo(aNode).Body)
+    else if aNode is TPasImplForLoop then
+      AddStmt(TPasImplForLoop(aNode).Body)
+    else if aNode is TPasImplWithDo then
+      AddStmt(TPasImplWithDo(aNode).Body)
+    else if aNode is TPasImplCaseStatement then
+      AddStmt(TPasImplCaseStatement(aNode).Body)
+    else if aNode is TPasImplExceptOn then
+      AddStmt(TPasImplExceptOn(aNode).Body)
+    else if aNode is TPasImplTry then
+    begin
+      AddElems(TPasImplBlock(aNode).Elements);
+      AddStmt(TPasImplTry(aNode).FinallyExcept);
+      AddStmt(TPasImplTry(aNode).ElseBranch);
+    end
+    else if aNode is TPasImplBlock then
+      AddElems(TPasImplBlock(aNode).Elements);
+  end;
+
+  // True when one of aNode's own expressions writes such a field.
+  function OwnExprsWrite(aNode: TPasImplElement): boolean;
+  begin
+    Result := False;
+    if aNode is TPasImplAssign then
+      Result := ExprWritesOwnField(TPasImplAssign(aNode).Left, aOwner)
+        or ExprWritesOwnField(TPasImplAssign(aNode).Right, aOwner)
+    else if aNode is TPasImplSimple then
+      Result := ExprWritesOwnField(TPasImplSimple(aNode).Expr, aOwner)
+    else if aNode is TPasImplIfElse then
+      Result := ExprWritesOwnField(TPasImplIfElse(aNode).ConditionExpr, aOwner)
+    else if aNode is TPasImplWhileDo then
+      Result := ExprWritesOwnField(TPasImplWhileDo(aNode).ConditionExpr, aOwner)
+    else if aNode is TPasImplRepeatUntil then
+      Result := ExprWritesOwnField(TPasImplRepeatUntil(aNode).ConditionExpr,
+        aOwner)
+    else if aNode is TPasImplForLoop then
+      Result := ExprWritesOwnField(TPasImplForLoop(aNode).VariableName, aOwner)
+        or ExprWritesOwnField(TPasImplForLoop(aNode).StartExpr, aOwner)
+        or ExprWritesOwnField(TPasImplForLoop(aNode).EndExpr, aOwner)
+    else if aNode is TPasImplCaseOf then
+      Result := ExprWritesOwnField(TPasImplCaseOf(aNode).CaseExpr, aOwner)
+    else if aNode is TPasImplWithDo then
+      Result := WithExprsWrite(TPasImplWithDo(aNode), aOwner);
+  end;
+
+begin
+  Result := False;
+  if aStmt = nil then
+    Exit;
+  if OwnExprsWrite(aStmt) then
+    Exit(True);
+  lKids := ChildStmts(aStmt);
+  for i := 0 to High(lKids) do
+    if StmtWritesOwnField(lKids[i], aOwner) then
+      Exit(True);
+end;
+
+
+function TFpSonarResolver.TryPublicFieldBackedProperties(
+  out aNodes: TPasElementArray; out aNames: TFpSonarStringArray): boolean;
+var
+  lMod: TPasModule;
+  lProps: TPasElementArray;
+  lField: TPasElement;
+  i: integer;
+
+  { The public or published field one of aProp's accessors resolves to, or nil
+    when neither does; classes and objects only. }
+  function BackingField(aProp: TPasProperty): TPasElement;
+  var
+    lAcc: array[0..1] of TPasElement;
+    k: integer;
+  begin
+    Result := nil;
+    if not (aProp.Parent is TPasClassType)
+      or not (TPasClassType(aProp.Parent).ObjKind in [okClass, okObject]) then
+      Exit;
+    lAcc[0] := FTopEngine.GetPasPropertyGetter(aProp);
+    lAcc[1] := FTopEngine.GetPasPropertySetter(aProp);
+    for k := 0 to 1 do
+      if IsStorageField(lAcc[k])
+        and (lAcc[k].Visibility in [visPublic, visPublished]) then
+        Exit(lAcc[k]);
+  end;
+
+begin
+  aNodes := nil;
+  aNames := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    lProps := CollectModuleProperties(lMod);
+    for i := 0 to High(lProps) do
+    begin
+      lField := BackingField(TPasProperty(lProps[i]));
+      if lField = nil then
+        Continue;
+      SetLength(aNodes, Length(aNodes) + 1);
+      aNodes[High(aNodes)] := lProps[i];
+      SetLength(aNames, Length(aNames) + 1);
+      aNames[High(aNames)] := lField.Name;
+    end;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aNames := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryWiderAccessorProperties(
+  out aNodes: TPasElementArray; out aNames: TFpSonarStringArray): boolean;
+var
+  lMod: TPasModule;
+  lProps: TPasElementArray;
+  i: integer;
+
+  { Accessibility order; -1 for a member whose section carries no rank of its
+    own. Private and strict protected share a rank, as do public and
+    published. }
+  function VisRank(aVis: TPasMemberVisibility): integer;
+  begin
+    case aVis of
+      visStrictPrivate: Result := 0;
+      visPrivate, visStrictProtected: Result := 1;
+      visProtected: Result := 2;
+      visPublic, visPublished: Result := 3;
+      else
+        Result := -1;
+    end;
+  end;
+
+  // True when a routine accessor of aProp is declared wider than aProp.
+  function HasWiderAccessor(aProp: TPasProperty): boolean;
+  var
+    lAcc: array[0..1] of TPasElement;
+    lRank: integer;
+    k: integer;
+  begin
+    Result := False;
+    lRank := VisRank(aProp.Visibility);
+    if lRank < 0 then
+      Exit;
+    lAcc[0] := FTopEngine.GetPasPropertyGetter(aProp);
+    lAcc[1] := FTopEngine.GetPasPropertySetter(aProp);
+    for k := 0 to 1 do
+      if (lAcc[k] is TPasProcedure)
+        and (VisRank(lAcc[k].Visibility) > lRank) then
+        Exit(True);
+  end;
+
+begin
+  aNodes := nil;
+  aNames := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    lProps := CollectModuleProperties(lMod);
+    for i := 0 to High(lProps) do
+    begin
+      if not HasWiderAccessor(TPasProperty(lProps[i])) then
+        Continue;
+      SetLength(aNodes, Length(aNodes) + 1);
+      aNodes[High(aNodes)] := lProps[i];
+      SetLength(aNames, Length(aNames) + 1);
+      aNames[High(aNames)] := lProps[i].Name;
+    end;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aNames := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryPropertyGetterFieldWrites(
+  out aNodes: TPasElementArray; out aNames: TFpSonarStringArray): boolean;
+var
+  lMod: TPasModule;
+  lProps: TPasElementArray;
+  i: integer;
+
+  // True when aProp's read accessor is a routine whose body writes own state.
+  function GetterWritesField(aProp: TPasProperty): boolean;
+  var
+    lAcc: TPasElement;
+    lBody: TPasProcedure;
+  begin
+    Result := False;
+    lAcc := FTopEngine.GetPasPropertyGetter(aProp);
+    if not (lAcc is TPasProcedure) then
+      Exit;
+    lBody := BodyProcOf(TPasProcedure(lAcc));
+    if lBody = nil then
+      Exit;
+    Result := StmtWritesOwnField(lBody.Body.Body, lAcc.Parent);
+  end;
+
+begin
+  aNodes := nil;
+  aNames := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    lProps := CollectModuleProperties(lMod);
+    for i := 0 to High(lProps) do
+    begin
+      if not GetterWritesField(TPasProperty(lProps[i])) then
+        Continue;
+      SetLength(aNodes, Length(aNodes) + 1);
+      aNodes[High(aNodes)] := lProps[i];
+      SetLength(aNames, Length(aNames) + 1);
+      aNames[High(aNames)] := lProps[i].Name;
+    end;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aNames := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryHiddenNonVirtualConstructors(
+  out aNodes: TPasElementArray; out aNames: TFpSonarStringArray): boolean;
+const
+  cOverridable = [pmVirtual, pmDynamic, pmOverride, pmAbstract];
+  cVisibleAlongside = [pmOverload, pmReintroduce];
+var
+  lMod: TPasModule;
+  lClasses: TPasElementArray;
+  i: integer;
+
+  procedure Add(aEl: TPasElement; const aName: string);
+  begin
+    SetLength(aNodes, Length(aNodes) + 1);
+    aNodes[High(aNodes)] := aEl;
+    SetLength(aNames, Length(aNames) + 1);
+    aNames[High(aNames)] := aName;
+  end;
+
+  procedure WalkDecls(aDecls: TFPList);
+  var
+    k: integer;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+      if TObject(aDecls[k]) is TPasClassType then
+      begin
+        SetLength(lClasses, Length(lClasses) + 1);
+        lClasses[High(lClasses)] := TPasElement(aDecls[k]);
+      end;
+  end;
+
+  // True when aClass declares a virtual or dynamic method of its own.
+  function HasOverridableMethod(aClass: TPasClassType): boolean;
+  var
+    lMember: TPasElement;
+    m: integer;
+  begin
+    Result := False;
+    for m := 0 to aClass.Members.Count - 1 do
+    begin
+      lMember := TPasElement(aClass.Members[m]);
+      if (lMember is TPasProcedure)
+        and ([pmVirtual, pmDynamic] * TPasProcedure(lMember).Modifiers <> []) then
+        Exit(True);
+    end;
+  end;
+
+  { Walks aDesc's resolved ancestor-scope chain; True iff aBase is reached.
+    An unresolved chain never reaches it, so it is not a descendant. }
+  function Descends(aDesc, aBase: TPasClassType): boolean;
+  var
+    lScope: TPasClassScope;
+    lGuard: integer;
+  begin
+    Result := False;
+    if not (aDesc.CustomData is TPasClassScope) then
+      Exit;
+    lScope := TPasClassScope(aDesc.CustomData).AncestorScope;
+    lGuard := 0;
+    while (lScope <> nil) and (lGuard < 100) do
+    begin
+      if lScope.Element = aBase then
+        Exit(True);
+      lScope := lScope.AncestorScope;
+      Inc(lGuard);
+    end;
+  end;
+
+  // True when another class of the module descends aClass hiding its aName.
+  function DescendantRedeclares(aClass: TPasClassType;
+    const aName: string): boolean;
+  var
+    lOther: TPasClassType;
+    lMember: TPasElement;
+    j, m: integer;
+  begin
+    Result := False;
+    for j := 0 to High(lClasses) do
+    begin
+      lOther := TPasClassType(lClasses[j]);
+      if (lOther = aClass) or (lOther.Members = nil)
+        or not Descends(lOther, aClass) then
+        Continue;
+      for m := 0 to lOther.Members.Count - 1 do
+      begin
+        lMember := TPasElement(lOther.Members[m]);
+        if (lMember is TPasConstructor)
+          and not (lMember is TPasClassConstructor)
+          and SameText(lMember.Name, aName)
+          // pmOverload joins the ancestor's overload set; pmReintroduce marks
+          // the hiding as declared. TryMethodHidesVirtual skips both.
+          and (cVisibleAlongside * TPasProcedure(lMember).Modifiers = []) then
+          Exit(True);
+      end;
+    end;
+  end;
+
+  procedure Consider(aClass: TPasClassType);
+  var
+    lMember: TPasElement;
+    m: integer;
+  begin
+    if (aClass.Members = nil) or not HasOverridableMethod(aClass) then
+      Exit;
+    for m := 0 to aClass.Members.Count - 1 do
+    begin
+      lMember := TPasElement(aClass.Members[m]);
+      if not (lMember is TPasConstructor)
+        or (lMember is TPasClassConstructor) then
+        Continue;
+      if cOverridable * TPasProcedure(lMember).Modifiers <> [] then
+        Continue;
+      if DescendantRedeclares(aClass, lMember.Name) then
+        Add(lMember, aClass.Name + '.' + lMember.Name);
+    end;
+  end;
+
+begin
+  aNodes := nil;
+  aNames := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    if lMod.InterfaceSection <> nil then
+      WalkDecls(lMod.InterfaceSection.Declarations);
+    if lMod.ImplementationSection <> nil then
+      WalkDecls(lMod.ImplementationSection.Declarations);
+    for i := 0 to High(lClasses) do
+      Consider(TPasClassType(lClasses[i]));
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aNames := nil;
+      Result := False;
+    end;
   end;
 end;
 
@@ -3340,6 +5987,280 @@ begin
 end;
 
 
+function TFpSonarResolver.TryHandlerShadowedByEarlier(aNode: TPasElement;
+  out aHandlerName, aAncestorName: string): boolean;
+
+// Alias chain to the underlying class type (copied locally, as above).
+  function AsClassType(aType: TPasType): TPasClassType;
+  var
+    lGuard: integer;
+  begin
+    Result := nil;
+    lGuard := 0;
+    while (aType <> nil) and (lGuard < 100) do
+    begin
+      if aType is TPasClassType then
+        Exit(TPasClassType(aType));
+      if aType is TPasAliasType then
+        aType := TPasAliasType(aType).DestType
+      else
+        Exit(nil);
+      Inc(lGuard);
+    end;
+  end;
+
+  { True iff aChild IS aAncestor or reaches it over a fully resolved ancestor chain. }
+  function DescendsOrEquals(aChild, aAncestor: TPasClassType): boolean;
+  var
+    lCls: TPasClassType;
+    lGuard: integer;
+  begin
+    Result := False;
+    lCls := aChild;
+    lGuard := 0;
+    while (lCls <> nil) and (lGuard < 100) do
+    begin
+      if lCls = aAncestor then
+        Exit(True);
+      lCls := AsClassType(lCls.AncestorType);
+      Inc(lGuard);
+    end;
+  end;
+
+var
+  lOn, lEarlier: TPasImplExceptOn;
+  lParent: TPasImplTryExcept;
+  lClass, lEarlierClass: TPasClassType;
+  i: integer;
+begin
+  aHandlerName := '';
+  aAncestorName := '';
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aNode = nil) then
+    Exit;
+  if not (aNode is TPasImplExceptOn) then
+    Exit;
+  lOn := TPasImplExceptOn(aNode);
+  if (lOn.TypeEl = nil) or not (lOn.Parent is TPasImplTryExcept) then
+    Exit;
+  lParent := TPasImplTryExcept(lOn.Parent);
+  if lParent.Elements = nil then
+    Exit;
+
+  try
+    lClass := AsClassType(lOn.TypeEl);
+    if lClass = nil then
+      Exit;
+    for i := 0 to lParent.Elements.Count - 1 do
+    begin
+      // The scan stops at aNode: only its earlier siblings are examined.
+      if TObject(lParent.Elements[i]) = lOn then
+        Exit;
+      if not (TObject(lParent.Elements[i]) is TPasImplExceptOn) then
+        Continue;
+      lEarlier := TPasImplExceptOn(lParent.Elements[i]);
+      lEarlierClass := AsClassType(lEarlier.TypeEl);
+      if lEarlierClass = nil then
+        Continue;
+      if DescendsOrEquals(lClass, lEarlierClass) then
+      begin
+        // Names are reported as written at the handler, not alias-collapsed.
+        aHandlerName := lOn.TypeEl.Name;
+        if aHandlerName = '' then
+          aHandlerName := lClass.Name;
+        aAncestorName := lEarlier.TypeEl.Name;
+        if aAncestorName = '' then
+          aAncestorName := lEarlierClass.Name;
+        Exit(True);
+      end;
+    end;
+  except
+    // Tolerant-access: any resolver failure => no usable ancestry fact.
+    on E: Exception do
+    begin
+      aHandlerName := '';
+      aAncestorName := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryRaisedClassNotException(aNode: TPasElement;
+  out aClassName: string): boolean;
+const
+  cExceptionBase = 'Exception';
+  cObjectBase = 'TObject';
+
+// Alias chain to the underlying class type (copied locally, as above).
+  function AsClassType(aType: TPasType): TPasClassType;
+  var
+    lGuard: integer;
+  begin
+    Result := nil;
+    lGuard := 0;
+    while (aType <> nil) and (lGuard < 100) do
+    begin
+      if aType is TPasClassType then
+        Exit(TPasClassType(aType));
+      if aType is TPasAliasType then
+        aType := TPasAliasType(aType).DestType
+      else
+        Exit(nil);
+      Inc(lGuard);
+    end;
+  end;
+
+  { True iff aClass's resolved ancestor-scope chain reaches TObject without
+    passing through Exception. A chain ending anywhere else yields False. }
+  function ReachesObjectOnly(aClass: TPasClassType): boolean;
+  var
+    lScope: TPasClassScope;
+    lGuard: integer;
+  begin
+    Result := False;
+    if not (aClass.CustomData is TPasClassScope) then
+      Exit;
+    lScope := TPasClassScope(aClass.CustomData);
+    lGuard := 0;
+    while (lScope <> nil) and (lGuard < 100) do
+    begin
+      if lScope.Element <> nil then
+      begin
+        if SameText(lScope.Element.Name, cExceptionBase) then
+          Exit(False);
+        if SameText(lScope.Element.Name, cObjectBase) then
+          Exit(True);
+      end;
+      lScope := lScope.AncestorScope;
+      Inc(lGuard);
+    end;
+  end;
+
+var
+  lRaise: TPasImplRaise;
+  lExpr: TPasExpr;
+  lParams: TParamsExpr;
+  lRef: TResolvedReference;
+  lClass: TPasClassType;
+  lDecl: TPasElement;
+begin
+  aClassName := '';
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aNode = nil) then
+    Exit;
+  if not (aNode is TPasImplRaise) then
+    Exit;
+  lRaise := TPasImplRaise(aNode);
+  lExpr := lRaise.ExceptObject;
+  if lExpr = nil then
+    Exit; // bare re-raise (raise;) — never flagged
+
+  try
+    // Only the constructor new-instance form is recovered;
+    if not (lExpr is TParamsExpr) then
+      Exit;
+    lParams := TParamsExpr(lExpr);
+    if lParams.Kind <> pekFuncParams then
+      Exit;
+    lRef := FTopEngine.GetParamsValueRef(lParams);
+    if (lRef = nil) or not (rrfNewInstance in lRef.Flags) then
+      Exit;
+
+    { Recover the constructed class: prefer the constructed-type context,
+      else the constructor declaration's owning class. }
+    lClass := nil;
+    if lRef.Context is TResolvedRefCtxConstructor then
+      lClass := AsClassType(TResolvedRefCtxConstructor(lRef.Context).Typ);
+    if (lClass = nil) and (lRef.Declaration is TPasConstructor) then
+    begin
+      lDecl := lRef.Declaration;
+      while (lDecl <> nil) and not (lDecl is TPasClassType) do
+        lDecl := lDecl.Parent;
+      if lDecl is TPasClassType then
+        lClass := TPasClassType(lDecl);
+    end;
+    if (lClass = nil) or SameText(lClass.Name, cObjectBase) then
+      Exit;
+
+    if not ReachesObjectOnly(lClass) then
+      Exit;
+    aClassName := lClass.Name;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => no usable ancestry fact.
+    on E: Exception do
+    begin
+      aClassName := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryAssertControlFlowOperand(aNode: TPasElement;
+  out aRoutineName: string): boolean;
+
+  { The name of the first user-declared routine an expression subtree CALLS,
+    or ''. A reference that is not an implicit call — the operand of @, or an
+    Assigned argument — does not count. }
+  function CalledRoutine(aExpr: TPasExpr; aDepth: integer): string;
+  var
+    lRef: TResolvedReference;
+    i: integer;
+  begin
+    Result := '';
+    if (aExpr = nil) or (aDepth >= 100) then
+      Exit;
+    if aExpr.CustomData is TResolvedReference then
+    begin
+      lRef := TResolvedReference(aExpr.CustomData);
+      if (lRef.Declaration is TPasProcedure)
+        and not (rrfNoImplicitCallWithoutParams in lRef.Flags) then
+        Exit(lRef.Declaration.Name);
+    end;
+    if aExpr is TParamsExpr then
+    begin
+      Result := CalledRoutine(TParamsExpr(aExpr).Value, aDepth + 1);
+      for i := 0 to High(TParamsExpr(aExpr).Params) do
+      begin
+        if Result <> '' then
+          Break;
+        Result := CalledRoutine(TParamsExpr(aExpr).Params[i], aDepth + 1);
+      end;
+    end
+    else if aExpr is TBinaryExpr then
+    begin
+      Result := CalledRoutine(TBinaryExpr(aExpr).Left, aDepth + 1);
+      if Result = '' then
+        Result := CalledRoutine(TBinaryExpr(aExpr).Right, aDepth + 1);
+    end
+    else if aExpr is TUnaryExpr then
+      Result := CalledRoutine(TUnaryExpr(aExpr).Operand, aDepth + 1);
+  end;
+
+var
+  lArgCount: integer;
+begin
+  aRoutineName := '';
+  Result := False;
+  if not TryAssertCall(aNode, lArgCount) or (lArgCount = 0) then
+    Exit;
+
+  try
+    aRoutineName := CalledRoutine(TParamsExpr(aNode).Params[0], 0);
+    Result := aRoutineName <> '';
+  except
+    // Tolerant-access: any resolver failure => no usable operand fact.
+    on E: Exception do
+    begin
+      aRoutineName := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
 function TFpSonarResolver.TryLoopControlFlow(aNode: TPasElement;
   out aKind: TFpSonarLoopExitKind): boolean;
 
@@ -3576,6 +6497,205 @@ begin
   except
     on E: Exception do
       Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.TryDisposesSelf(aNode: TPasElement): boolean;
+
+  // True when aExpr's reference is scoped by an enclosing with block.
+  function InWithScope(aExpr: TPasExpr): boolean;
+  begin
+    Result := (aExpr.CustomData is TResolvedReference)
+      and (TResolvedReference(aExpr.CustomData).WithExprScope <> nil);
+  end;
+
+  { True iff aProc is a method whose owning class is TObject or a descendant of it }
+  function OwnerIsTObjectClass(aProc: TPasProcedure): boolean;
+  var
+    lCls: TPasClassType;
+    lNext: TPasType;
+    lGuard: integer;
+  begin
+    Result := False;
+    if (aProc = nil) or not (aProc.Parent is TPasClassType) then
+      Exit;
+    lCls := TPasClassType(aProc.Parent);
+    lGuard := 0;
+    while (lCls <> nil) and (lGuard < 100) do
+    begin
+      if SameText(lCls.Name, 'TObject') then
+        Exit(True);
+      lNext := lCls.AncestorType;
+      if not (lNext is TPasClassType) then
+        Exit;
+      lCls := TPasClassType(lNext);
+      Inc(lGuard);
+    end;
+  end;
+
+var
+  lExpr, lInner: TPasExpr;
+  lEl, lDecl: TPasElement;
+  lSelf: TPasArgument;
+  lGuard: integer;
+begin
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aNode = nil) then
+    Exit;
+  if not (aNode is TPasImplSimple) then
+    Exit;
+  lExpr := TPasImplSimple(aNode).Expr;
+  if lExpr = nil then
+    Exit;
+
+  try
+    // Walk the AST Parent chain to the nearest enclosing routine.
+    lEl := aNode.Parent;
+    lGuard := 0;
+    while (lEl <> nil) and not (lEl is TPasProcedure) and (lGuard < 200) do
+    begin
+      lEl := lEl.Parent;
+      Inc(lGuard);
+    end;
+    if not (lEl is TPasProcedure) then
+      Exit;
+    { The routine's own Self argument: the resolved identity every arm compares
+      against, and nil for anything that is not a method. }
+    if not (lEl.CustomData is TPasProcedureScope) then
+      Exit;
+    lSelf := TPasProcedureScope(lEl.CustomData).SelfArg;
+    if lSelf = nil then
+      Exit;
+
+    // `Self.Free` and `FreeAndNil(Self)`: the disposal's operand must be Self.
+    if TryFreeCall(lExpr, lInner) <> lfkNone then
+      Exit(ReferencedDecl(lInner) = TPasElement(lSelf));
+
+    { An unqualified `Free`: the receiver is the implicit Self, so there is no
+      operand expression and the reference sits on the callee itself. }
+    if (lExpr is TParamsExpr) and (TParamsExpr(lExpr).Kind = pekFuncParams)
+      and (Length(TParamsExpr(lExpr).Params) = 0) then
+      lExpr := TParamsExpr(lExpr).Value;
+    if not (lExpr is TPrimitiveExpr) then
+      Exit;
+    // In `with aObj do Free` the receiver is the with expression, not Self.
+    if InWithScope(lExpr) then
+      Exit;
+    lDecl := ReferencedDecl(lExpr);
+    if not (lDecl is TPasProcedure) then
+      Exit;
+    Result := SameText(lDecl.Name, 'Free')
+      and OwnerIsTObjectClass(TPasProcedure(lDecl));
+  except
+    // Tolerant-access: any resolver failure => not a usable fact.
+    on E: Exception do
+      Result := False;
+  end;
+end;
+
+
+function TFpSonarResolver.TryMemoryOpCall(aNode: TPasElement;
+  out aOp: TFpSonarMemoryOp; out aOperand: TPasElement;
+  out aOperandName: string): boolean;
+
+  // The enclosing module of aEl (walks Parent), or nil.
+  function OwningModule(aEl: TPasElement): TPasModule;
+  var
+    lGuard: integer;
+  begin
+    Result := nil;
+    lGuard := 0;
+    while (aEl <> nil) and (lGuard < 200) do
+    begin
+      if aEl is TPasModule then
+        Exit(TPasModule(aEl));
+      aEl := aEl.Parent;
+      Inc(lGuard);
+    end;
+  end;
+
+var
+  lExpr: TPasExpr;
+  lParams: TParamsExpr;
+  lRef: TResolvedReference;
+  lDecl: TPasElement;
+  lMod: TPasModule;
+  lMatched: boolean;
+begin
+  aOp := lmoNew;
+  aOperand := nil;
+  aOperandName := '';
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aNode = nil) then
+    Exit;
+  if not (aNode is TPasImplSimple) then
+    Exit;
+  lExpr := TPasImplSimple(aNode).Expr;
+  if not (lExpr is TParamsExpr) then
+    Exit;
+  lParams := TParamsExpr(lExpr);
+  if (lParams.Kind <> pekFuncParams) or (Length(lParams.Params) < 1) then
+    Exit;
+
+  try
+    lRef := FTopEngine.GetParamsValueRef(lParams);
+    if (lRef = nil) or (lRef.Declaration = nil) then
+      Exit;
+    lDecl := lRef.Declaration;
+    lMatched := False;
+    { New and Dispose are compiler built-ins; GetMem and FreeMem have no built-in
+      at all and are recognised by routine-plus-module identity. }
+    if (lDecl is TPasUnresolvedSymbolRef)
+      and (lDecl.CustomData is TResElDataBuiltInProc) then
+    begin
+      case TResElDataBuiltInProc(lDecl.CustomData).BuiltIn of
+        bfNew:
+          begin
+            aOp := lmoNew;
+            lMatched := True;
+          end;
+        bfDispose:
+          begin
+            aOp := lmoDispose;
+            lMatched := True;
+          end;
+      end;
+    end
+    else if lDecl is TPasProcedure then
+    begin
+      lMod := OwningModule(lDecl);
+      if (lMod <> nil) and (SameText(lMod.Name, 'System')
+        or SameText(lMod.Name, 'SysUtils')) then
+      begin
+        if SameText(lDecl.Name, 'GetMem') then
+        begin
+          aOp := lmoGetMem;
+          lMatched := True;
+        end
+        else if SameText(lDecl.Name, 'FreeMem') then
+        begin
+          aOp := lmoFreeMem;
+          lMatched := True;
+        end;
+      end;
+    end;
+    if not lMatched then
+      Exit;
+    aOperand := ReferencedDecl(lParams.Params[0]);
+    if aOperand = nil then
+      Exit;
+    aOperandName := aOperand.Name;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => not a usable fact.
+    on E: Exception do
+    begin
+      aOp := lmoNew;
+      aOperand := nil;
+      aOperandName := '';
+      Result := False;
+    end;
   end;
 end;
 
@@ -4203,15 +7323,18 @@ begin
 end;
 
 
-function TFpSonarResolver.TryRoutineResultNotAssigned(
-  aNode: TPasElement): boolean;
-const
-  cTreatExitWithoutValueAsReturn = True;
+function TFpSonarResolver.TryLoopVarReadAfterLoop(aNode: TPasElement;
+  out aVarName: string; out aSite: TPasElement): boolean;
 var
-  lFunc: TPasFunction;
-  lBody: TPasImplBlock;
+  lFor: TPasImplForLoop;
+  lVar: TPasElement;
+  lNodes, lDecls: TPasElementArray;
+  lRef: TResolvedReference;
+  lRecounts: TImplRowArray;
+  lLoopRow, lRow, lBestRow: integer;
+  i: integer;
 
-// The resolved reference attached to a node, or nil when unresolved.
+  // The resolved reference attached to a node, or nil when unresolved.
   function RefOf(aExpr: TPasElement): TResolvedReference;
   begin
     if (aExpr <> nil) and (aExpr.CustomData is TResolvedReference) then
@@ -4220,48 +7343,44 @@ var
       Result := nil;
   end;
 
-  { True iff aExpr is a reference that writes this function's result.}
-  function IsResultWriteRef(aExpr: TPasElement): boolean;
+  // True when aEl is aRoot, lies below it, or the walk bound was exhausted.
+  function Under(aEl, aRoot: TPasElement): boolean;
   var
-    lRef: TResolvedReference;
+    lGuard: integer;
   begin
-    Result := False;
-    lRef := RefOf(aExpr);
-    if (lRef = nil) or (lRef.Declaration = nil) then
-      Exit;
-    if lRef.Declaration is TPasResultElement then
-      Result := lRef.Access in rraAllWrite;
-  end;
-
-  // True iff some sub-expression of aExpr's tree writes the result.
-  function ExprWrites(aExpr: TPasExpr): boolean;
-  var
-    k: integer;
-  begin
-    Result := False;
-    if aExpr = nil then
-      Exit;
-    if IsResultWriteRef(aExpr) then
-      Exit(True);
-    if aExpr is TParamsExpr then
+    lGuard := 0;
+    while (aEl <> nil) and (lGuard < 200) do
     begin
-      if ExprWrites(TParamsExpr(aExpr).Value) then
+      if aEl = aRoot then
         Exit(True);
-      for k := 0 to High(TParamsExpr(aExpr).Params) do
-        if ExprWrites(TParamsExpr(aExpr).Params[k]) then
-          Exit(True);
-    end
-    else if aExpr is TBinaryExpr then
-      Result := ExprWrites(TBinaryExpr(aExpr).left)
-        or ExprWrites(TBinaryExpr(aExpr).right)
-    else if aExpr is TUnaryExpr then
-      Result := ExprWrites(TUnaryExpr(aExpr).Operand);
+      aEl := aEl.Parent;
+      Inc(lGuard);
+    end;
+    Result := aEl <> nil;
   end;
 
-  // The direct child sub-statements of aStmt.
+  { True when an enclosing for-loop counts lVar again, or the walk bound was
+    exhausted. }
+  function Recounted(aEl: TPasElement): boolean;
+  var
+    lGuard: integer;
+  begin
+    lGuard := 0;
+    while (aEl <> nil) and (lGuard < 200) do
+    begin
+      if (aEl is TPasImplForLoop)
+        and (ReferencedDecl(TPasImplForLoop(aEl).VariableName) = lVar) then
+        Exit(True);
+      aEl := aEl.Parent;
+      Inc(lGuard);
+    end;
+    Result := aEl <> nil;
+  end;
+
+  // The direct child sub-statements of aStmt
   function ChildStmts(aStmt: TPasImplElement): TImplStmtArray;
 
-    procedure Add(aEl: TPasImplElement);
+    procedure AddStmt(aEl: TPasImplElement);
     begin
       if aEl = nil then
         Exit;
@@ -4277,7 +7396,7 @@ var
         Exit;
       for k := 0 to aList.Count - 1 do
         if TObject(aList[k]) is TPasImplElement then
-          Add(TPasImplElement(aList[k]));
+          AddStmt(TPasImplElement(aList[k]));
     end;
 
   begin
@@ -4286,241 +7405,110 @@ var
       Exit;
     if aStmt is TPasImplIfElse then
     begin
-      Add(TPasImplIfElse(aStmt).IfBranch);
-      Add(TPasImplIfElse(aStmt).ElseBranch);
+      AddStmt(TPasImplIfElse(aStmt).IfBranch);
+      AddStmt(TPasImplIfElse(aStmt).ElseBranch);
     end
     else if aStmt is TPasImplWhileDo then
-      Add(TPasImplWhileDo(aStmt).Body)
+      AddStmt(TPasImplWhileDo(aStmt).Body)
     else if aStmt is TPasImplForLoop then
-      Add(TPasImplForLoop(aStmt).Body)
+      AddStmt(TPasImplForLoop(aStmt).Body)
     else if aStmt is TPasImplWithDo then
-      Add(TPasImplWithDo(aStmt).Body)
+      AddStmt(TPasImplWithDo(aStmt).Body)
     else if aStmt is TPasImplCaseStatement then
-      Add(TPasImplCaseStatement(aStmt).Body)
+      AddStmt(TPasImplCaseStatement(aStmt).Body)
     else if aStmt is TPasImplExceptOn then
-      Add(TPasImplExceptOn(aStmt).Body)
+      AddStmt(TPasImplExceptOn(aStmt).Body)
     else if aStmt is TPasImplTry then
     begin
       AddElems(TPasImplBlock(aStmt).Elements);
-      Add(TPasImplTry(aStmt).FinallyExcept);
-      Add(TPasImplTry(aStmt).ElseBranch);
+      AddStmt(TPasImplTry(aStmt).FinallyExcept);
+      AddStmt(TPasImplTry(aStmt).ElseBranch);
     end
     else if aStmt is TPasImplBlock then
       AddElems(TPasImplBlock(aStmt).Elements);
   end;
 
-  // True iff some expression ANYWHERE in aStmt's subtree writes the result
-  function StmtWrites(aStmt: TPasImplElement): boolean;
+  // Appends the row of every for-loop below aStmt that counts lVar, aNode aside.
+  procedure CollectRecounts(aStmt: TPasImplElement);
   var
     lKids: TImplStmtArray;
     k: integer;
   begin
-    Result := False;
     if aStmt = nil then
       Exit;
-    // This statement's own control/value expressions.
-    if aStmt is TPasImplAssign then
+    if (aStmt is TPasImplForLoop) and (aStmt <> aNode)
+      and (ReferencedDecl(TPasImplForLoop(aStmt).VariableName) = lVar) then
     begin
-      if ExprWrites(TPasImplAssign(aStmt).Left)
-        or ExprWrites(TPasImplAssign(aStmt).Right) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplSimple then
-    begin
-      if ExprWrites(TPasImplSimple(aStmt).Expr) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplIfElse then
-    begin
-      if ExprWrites(TPasImplIfElse(aStmt).ConditionExpr) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplWhileDo then
-    begin
-      if ExprWrites(TPasImplWhileDo(aStmt).ConditionExpr) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplForLoop then
-    begin
-      if ExprWrites(TPasImplForLoop(aStmt).StartExpr)
-        or ExprWrites(TPasImplForLoop(aStmt).EndExpr) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplRepeatUntil then
-    begin
-      if ExprWrites(TPasImplRepeatUntil(aStmt).ConditionExpr) then
-        Exit(True);
-    end
-    else if aStmt is TPasImplCaseOf then
-    begin
-      if ExprWrites(TPasImplCaseOf(aStmt).CaseExpr) then
-        Exit(True);
+      SetLength(lRecounts, Length(lRecounts) + 1);
+      lRecounts[High(lRecounts)] := SourceRow(aStmt);
     end;
-    // Then every sub-statement.
     lKids := ChildStmts(aStmt);
     for k := 0 to High(lKids) do
-      if StmtWrites(lKids[k]) then
-        Exit(True);
+      CollectRecounts(lKids[k]);
   end;
 
-  // True iff aStmt's subtree contains a construct whose result write the walk
-  // cannot prove ('with'-scoped, 'goto'/label-targeted, inline 'asm') => abstain.
-  function HasUnmodelled(aStmt: TPasImplElement): boolean;
+  // True when a loop counting lVar sits between the loop under test and aRow.
+  function Interposed(aRow: integer): boolean;
   var
-    lKids: TImplStmtArray;
     k: integer;
   begin
     Result := False;
-    if aStmt = nil then
-      Exit;
-    if (aStmt is TPasImplWithDo) or (aStmt is TPasImplGoto)
-      or (aStmt is TPasImplLabelMark) or (aStmt is TPasImplAsmStatement) then
-      Exit(True);
-    lKids := ChildStmts(aStmt);
-    for k := 0 to High(lKids) do
-      if HasUnmodelled(lKids[k]) then
+    for k := 0 to High(lRecounts) do
+      if (lRecounts[k] > lLoopRow) and (lRecounts[k] < aRow) then
         Exit(True);
-  end;
-
-  // True iff aRef resolves to the built-in 'exit'
-  function BindsExit(aRef: TResolvedReference): boolean;
-  begin
-    Result := False;
-    if (aRef = nil) or (aRef.Declaration = nil) then
-      Exit;
-    if not (aRef.Declaration is TPasUnresolvedSymbolRef) then
-      Exit;
-    if not (aRef.Declaration.CustomData is TResElDataBuiltInProc) then
-      Exit;
-    Result := TResElDataBuiltInProc(aRef.Declaration.CustomData).BuiltIn = bfExit;
-  end;
-
-  // True iff aStmt is 'exit(value)' — a value-returning terminator .
-  function IsExitWithValue(aStmt: TPasImplElement): boolean;
-  var
-    lExpr: TPasExpr;
-  begin
-    Result := False;
-    if not (aStmt is TPasImplSimple) then
-      Exit;
-    lExpr := TPasImplSimple(aStmt).Expr;
-    if not ((lExpr is TParamsExpr) and (TParamsExpr(lExpr).Kind = pekFuncParams)) then
-      Exit;
-    if Length(TParamsExpr(lExpr).Params) <> 1 then
-      Exit;
-    Result := BindsExit(FTopEngine.GetParamsValueRef(TParamsExpr(lExpr)));
-  end;
-
-  // True iff aStmt is a bare 'exit;'
-  function IsBareExit(aStmt: TPasImplElement): boolean;
-  var
-    lExpr: TPasExpr;
-  begin
-    Result := False;
-    if not (aStmt is TPasImplSimple) then
-      Exit;
-    lExpr := TPasImplSimple(aStmt).Expr;
-    if (lExpr = nil) or (lExpr is TParamsExpr) then
-      Exit;
-    Result := BindsExit(RefOf(lExpr));
-  end;
-
-  { True iff every execution path through aStmt writes the result before falling
-    through, OR terminates via exit(value)/raise. }
-  function StmtGuarantees(aStmt: TPasImplElement): boolean;
-
-    // True iff some statement of aBlock's child sequence guarantees (a
-    // straight-line sequence is satisfied once any one statement on it is).
-    function SeqGuarantees(aBlock: TPasImplElement): boolean;
-    var
-      lKids: TImplStmtArray;
-      k: integer;
-    begin
-      Result := False;
-      lKids := ChildStmts(aBlock);
-      for k := 0 to High(lKids) do
-        if StmtGuarantees(lKids[k]) then
-          Exit(True);
-    end;
-
-    // True iff a case has an else AND every case branch and the else guarantee.
-    function CaseGuarantees(aCase: TPasImplCaseOf): boolean;
-    var
-      lEls: TFPList;
-      k: integer;
-    begin
-      Result := False;
-      if aCase.ElseBranch = nil then
-        Exit;
-      lEls := TPasImplBlock(aCase).Elements;
-      if lEls = nil then
-        Exit;
-      for k := 0 to lEls.Count - 1 do
-        if TObject(lEls[k]) is TPasImplCaseStatement then
-          if not StmtGuarantees(TPasImplCaseStatement(lEls[k]).Body) then
-            Exit;
-      Result := SeqGuarantees(aCase.ElseBranch);
-    end;
-
-  begin
-    Result := False;
-    if aStmt = nil then
-      Exit;
-    if IsBareExit(aStmt) then
-      Exit(not cTreatExitWithoutValueAsReturn);
-    if IsExitWithValue(aStmt) or (aStmt is TPasImplRaise) then
-      Exit(True);
-    if aStmt is TPasImplAssign then
-      Exit(ExprWrites(TPasImplAssign(aStmt).Left));
-    if aStmt is TPasImplSimple then
-      // A var/out result write (e.g. FillIt(Result)) guarantees the path.
-      Exit(ExprWrites(TPasImplSimple(aStmt).Expr));
-    if aStmt is TPasImplBeginBlock then
-      Exit(SeqGuarantees(aStmt));
-    if aStmt is TPasImplIfElse then
-    begin
-      if TPasImplIfElse(aStmt).ElseBranch = nil then
-        Exit(False);
-      Exit(StmtGuarantees(TPasImplIfElse(aStmt).IfBranch)
-        and StmtGuarantees(TPasImplIfElse(aStmt).ElseBranch));
-    end;
-    if aStmt is TPasImplCaseOf then
-      Exit(CaseGuarantees(TPasImplCaseOf(aStmt)));
-    // conservative subtree-write fallback — a write anywhere may suffice.
-    Result := StmtWrites(aStmt);
   end;
 
 begin
+  aVarName := '';
+  aSite := nil;
   Result := False;
-  if (FTopEngine = nil) or (not FSucceeded) or (aNode = nil) then
+  if (FTopEngine = nil) or (not FSucceeded)
+    or not (aNode is TPasImplForLoop) then
     Exit;
-  { A function only, never a procedure }
-  if not (aNode is TPasFunction) then
+  lFor := TPasImplForLoop(aNode);
+  if not (lFor.LoopType in [ltNormal, ltDown]) then
     Exit;
-  if aNode is TPasOperator then
-    Exit;
-  lFunc := TPasFunction(aNode);
-  // An assembler function has no analysable result write (its body is an asm
-  // block) => abstain.
-  if lFunc.IsAssembler then
-    Exit;
-  // A value-returning function only (a result element must exist).
-  if (lFunc.FuncType = nil) or (lFunc.FuncType.ResultEl = nil) then
-    Exit;
-  if (lFunc.Body = nil) or (lFunc.Body.Body = nil) then
-    Exit;
-  lBody := lFunc.Body.Body;
-
   try
-    // An unmodelled construct anywhere in the body makes a write potentially unprovable - exit
-    if HasUnmodelled(lBody) then
+    lVar := ReferencedDecl(lFor.VariableName);
+    if (lVar = nil) or not (lVar is TPasVariable) or (lVar is TPasProperty)
+      or not (lVar.Parent is TProcedureBody) then
       Exit;
-    // Fire only when NO path is proven to write-or-terminate.
-    Result := not StmtGuarantees(lBody);
+    if not TryReferenceSites(lNodes, lDecls) then
+      Exit;
+    lLoopRow := SourceRow(lFor);
+    SetLength(lRecounts, 0);
+    CollectRecounts(TProcedureBody(lVar.Parent).Body);
+    lBestRow := 0;
+    for i := 0 to High(lNodes) do
+    begin
+      if (lDecls[i] <> lVar) or Under(lNodes[i], lFor)
+        or Recounted(lNodes[i]) then
+        Continue;
+      lRow := SourceRow(lNodes[i]);
+      if (lRow <= lLoopRow) or Interposed(lRow) then
+        Continue;
+      lRef := RefOf(lNodes[i]);
+      if (lRef = nil) or not (lRef.Access in rraAllRead) then
+        Continue;
+      if (aSite = nil) or (lRow < lBestRow) then
+      begin
+        aSite := lNodes[i];
+        lBestRow := lRow;
+      end;
+    end;
+    if aSite <> nil then
+    begin
+      aVarName := lVar.Name;
+      Result := True;
+    end;
   except
-    // Tolerant-access: any resolver failure => treat the path as satisfied.
+    // Tolerant-access: any resolver failure => degrade (caller silent).
     on E: Exception do
+    begin
+      aVarName := '';
+      aSite := nil;
       Result := False;
+    end;
   end;
 end;
 
@@ -5658,8 +8646,8 @@ var
       Result := nil;
   end;
 
-  // True iff aDecl is the analysed anon proc's own param/local: its Parent ancestry
-  // reaches aAnon before the module, so it is not a capture.
+  // True iff aDecl is the analysed anon proc's own param/local: its Parent
+  // ancestry reaches aAnon before the module.
   function IsOwnLocal(aDecl, aAnon: TPasElement): boolean;
   var
     lEl: TPasElement;
@@ -5915,6 +8903,1054 @@ begin
       WalkDecls(lMod.InterfaceSection.Declarations);
     if lMod.ImplementationSection <> nil then
       WalkDecls(lMod.ImplementationSection.Declarations);
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryUnusedGenericConstraints(
+  out aNodes: TPasElementArray): boolean;
+var
+  lMod: TPasModule;
+  lTyped: TFpSonarStringArray;
+  lMemberTyped: TFpSonarStringArray;
+
+  procedure Add(aEl: TPasElement);
+  begin
+    SetLength(aNodes, Length(aNodes) + 1);
+    aNodes[High(aNodes)] := aEl;
+  end;
+
+  procedure AddTyped(const aName: string);
+  begin
+    if aName = '' then
+      Exit;
+    SetLength(lTyped, Length(lTyped) + 1);
+    lTyped[High(lTyped)] := aName;
+  end;
+
+  // True iff aName is a declaration collected as carrying the template's type.
+  function IsTyped(const aName: string): boolean;
+  var
+    k: integer;
+  begin
+    Result := False;
+    if aName = '' then
+      Exit;
+    for k := 0 to High(lTyped) do
+      if SameText(lTyped[k], aName) then
+        Exit(True);
+  end;
+
+  // The written name an identifier or qualified-access expression ends in.
+  function IdentName(aExpr: TPasExpr): string;
+  begin
+    Result := '';
+    if aExpr = nil then
+      Exit;
+    if (aExpr is TPrimitiveExpr) and (aExpr.Kind = pekIdent) then
+      Result := TPrimitiveExpr(aExpr).Value
+    else if (aExpr is TBinaryExpr)
+      and (TBinaryExpr(aExpr).OpCode = eopSubIdent) then
+      Result := IdentName(TBinaryExpr(aExpr).right)
+    else if aExpr is TParamsExpr then
+      Result := IdentName(TParamsExpr(aExpr).Value);
+  end;
+
+  // True iff aExpr is the nil literal.
+  function IsNilLiteral(aExpr: TPasExpr): boolean;
+  begin
+    Result := (aExpr <> nil) and (aExpr.Kind = pekNil);
+  end;
+
+  // True iff aExpr names aParam itself or a declaration typed by it.
+  function NamesParam(aExpr: TPasExpr; const aParam: string): boolean;
+  var
+    lName: string;
+  begin
+    lName := IdentName(aExpr);
+    Result := SameText(lName, aParam) or IsTyped(lName);
+  end;
+
+  // The declared type of a variable, argument or function result, or nil.
+  function DeclaredType(aEl: TPasElement): TPasType;
+  begin
+    if aEl is TPasVariable then
+      Result := TPasVariable(aEl).VarType
+    else if aEl is TPasArgument then
+      Result := TPasArgument(aEl).ArgType
+    else if aEl is TPasResultElement then
+      Result := TPasResultElement(aEl).ResultType
+    else
+      Result := nil;
+  end;
+
+  // Collects aEl's name when its declared type is written aTypeName.
+  procedure NoteTyped(aEl: TPasElement; const aTypeName: string);
+  var
+    lType: TPasType;
+  begin
+    lType := DeclaredType(aEl);
+    if (lType <> nil) and SameText(lType.Name, aTypeName) then
+      AddTyped(aEl.Name);
+  end;
+
+  // Collects the arguments, result and locals of aProc typed aTypeName.
+  procedure NoteRoutine(aProc: TPasProcedure; const aTypeName: string);
+  var
+    k: integer;
+  begin
+    if aProc.ProcType <> nil then
+    begin
+      if aProc.ProcType.Args <> nil then
+        for k := 0 to aProc.ProcType.Args.Count - 1 do
+          NoteTyped(TPasElement(aProc.ProcType.Args[k]), aTypeName);
+      if aProc.ProcType is TPasFunctionType then
+        NoteTyped(TPasFunctionType(aProc.ProcType).ResultEl, aTypeName);
+    end;
+    if (aProc.Body = nil) or (aProc.Body.Declarations = nil) then
+      Exit;
+    for k := 0 to aProc.Body.Declarations.Count - 1 do
+      NoteTyped(TPasElement(aProc.Body.Declarations[k]), aTypeName);
+  end;
+
+  { True iff aExpr selects a member on aParam or on a declaration typed by it,
+    tests aParam with `is`/`as`, or compares either against nil. }
+  function ExprRelies(aExpr: TPasExpr; const aParam: string): boolean;
+  var
+    lBin: TBinaryExpr;
+    k: integer;
+  begin
+    Result := False;
+    if aExpr = nil then
+      Exit;
+    if aExpr is TBinaryExpr then
+    begin
+      lBin := TBinaryExpr(aExpr);
+      if lBin.OpCode = eopSubIdent then
+      begin
+        if NamesParam(lBin.left, aParam) then
+          Exit(True);
+      end
+      else if lBin.OpCode in [eopIs, eopAs] then
+      begin
+        if SameText(IdentName(lBin.left), aParam)
+          or SameText(IdentName(lBin.right), aParam) then
+          Exit(True);
+      end
+      else if lBin.OpCode in [eopEqual, eopNotEqual] then
+        if (IsNilLiteral(lBin.left) and NamesParam(lBin.right, aParam))
+          or (IsNilLiteral(lBin.right) and NamesParam(lBin.left, aParam)) then
+          Exit(True);
+      Result := ExprRelies(lBin.left, aParam) or ExprRelies(lBin.right, aParam);
+    end
+    else if aExpr is TParamsExpr then
+    begin
+      if ExprRelies(TParamsExpr(aExpr).Value, aParam) then
+        Exit(True);
+      for k := 0 to High(TParamsExpr(aExpr).Params) do
+        if ExprRelies(TParamsExpr(aExpr).Params[k], aParam) then
+          Exit(True);
+    end
+    else if aExpr is TUnaryExpr then
+      Result := ExprRelies(TUnaryExpr(aExpr).Operand, aParam);
+  end;
+
+  // The direct child sub-statements of aStmt
+  function ChildStmts(aStmt: TPasImplElement): TImplStmtArray;
+
+    procedure AddStmt(aEl: TPasImplElement);
+    begin
+      if aEl = nil then
+        Exit;
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)] := aEl;
+    end;
+
+    procedure AddElems(aList: TFPList);
+    var
+      k: integer;
+    begin
+      if aList = nil then
+        Exit;
+      for k := 0 to aList.Count - 1 do
+        if TObject(aList[k]) is TPasImplElement then
+          AddStmt(TPasImplElement(aList[k]));
+    end;
+
+  begin
+    SetLength(Result, 0);
+    if aStmt = nil then
+      Exit;
+    if aStmt is TPasImplIfElse then
+    begin
+      AddStmt(TPasImplIfElse(aStmt).IfBranch);
+      AddStmt(TPasImplIfElse(aStmt).ElseBranch);
+    end
+    else if aStmt is TPasImplWhileDo then
+      AddStmt(TPasImplWhileDo(aStmt).Body)
+    else if aStmt is TPasImplForLoop then
+      AddStmt(TPasImplForLoop(aStmt).Body)
+    else if aStmt is TPasImplWithDo then
+      AddStmt(TPasImplWithDo(aStmt).Body)
+    else if aStmt is TPasImplCaseStatement then
+      AddStmt(TPasImplCaseStatement(aStmt).Body)
+    else if aStmt is TPasImplExceptOn then
+      AddStmt(TPasImplExceptOn(aStmt).Body)
+    else if aStmt is TPasImplTry then
+    begin
+      AddElems(TPasImplBlock(aStmt).Elements);
+      AddStmt(TPasImplTry(aStmt).FinallyExcept);
+      AddStmt(TPasImplTry(aStmt).ElseBranch);
+    end
+    else if aStmt is TPasImplBlock then
+      AddElems(TPasImplBlock(aStmt).Elements);
+  end;
+
+  // True iff aStmt or any sub-statement carries reliance evidence on aParam.
+  function StmtRelies(aStmt: TPasImplElement; const aParam: string): boolean;
+  var
+    lKids: TImplStmtArray;
+    lWith: TPasImplWithDo;
+    lAssign: TPasImplAssign;
+    k: integer;
+  begin
+    Result := False;
+    if aStmt = nil then
+      Exit;
+    if aStmt is TPasImplAssign then
+    begin
+      lAssign := TPasImplAssign(aStmt);
+      Result := (IsNilLiteral(lAssign.Right) and NamesParam(lAssign.Left, aParam))
+        or ExprRelies(lAssign.Left, aParam)
+        or ExprRelies(lAssign.Right, aParam);
+    end
+    else if aStmt is TPasImplSimple then
+      Result := ExprRelies(TPasImplSimple(aStmt).Expr, aParam)
+    else if aStmt is TPasImplIfElse then
+      Result := ExprRelies(TPasImplIfElse(aStmt).ConditionExpr, aParam)
+    else if aStmt is TPasImplWhileDo then
+      Result := ExprRelies(TPasImplWhileDo(aStmt).ConditionExpr, aParam)
+    else if aStmt is TPasImplRepeatUntil then
+      Result := ExprRelies(TPasImplRepeatUntil(aStmt).ConditionExpr, aParam)
+    else if aStmt is TPasImplForLoop then
+      Result := ExprRelies(TPasImplForLoop(aStmt).StartExpr, aParam)
+        or ExprRelies(TPasImplForLoop(aStmt).EndExpr, aParam)
+    else if aStmt is TPasImplCaseOf then
+      Result := ExprRelies(TPasImplCaseOf(aStmt).CaseExpr, aParam)
+    else if aStmt is TPasImplRaise then
+      Result := ExprRelies(TPasImplRaise(aStmt).ExceptObject, aParam)
+    else if aStmt is TPasImplWithDo then
+    begin
+      lWith := TPasImplWithDo(aStmt);
+      if lWith.Expressions <> nil then
+        for k := 0 to lWith.Expressions.Count - 1 do
+          if TObject(lWith.Expressions[k]) is TPasExpr then
+            // A with scope elides the selector, so naming the operand is reliance.
+            if NamesParam(TPasExpr(lWith.Expressions[k]), aParam)
+              or ExprRelies(TPasExpr(lWith.Expressions[k]), aParam) then
+              Exit(True);
+    end;
+    if Result then
+      Exit;
+    lKids := ChildStmts(aStmt);
+    for k := 0 to High(lKids) do
+      if StmtRelies(lKids[k], aParam) then
+        Exit(True);
+  end;
+
+  { True iff aProc implements a member of the generic named aOwner: the parser
+    writes the qualified `<Generic>.<Member>` name without the template list. }
+  function ImplementsMemberOf(aProc: TPasProcedure; const aOwner: string): boolean;
+  begin
+    Result := (aOwner <> '')
+      and SameText(Copy(aProc.Name, 1, Length(aOwner) + 1), aOwner + '.');
+  end;
+
+  // True iff aTemplate carries at least one type constraint.
+  function HasTypeConstraint(aTemplate: TPasGenericTemplateType): boolean;
+  var
+    k: integer;
+  begin
+    Result := False;
+    for k := 0 to High(aTemplate.Constraints) do
+      // The nil call yields the token standing for "not a keyword constraint".
+      if FTopEngine.GetGenericConstraintKeyword(aTemplate.Constraints[k])
+        = FTopEngine.GetGenericConstraintKeyword(nil) then
+        Exit(True);
+  end;
+
+  { True iff aGeneric offers a surface evidence can appear on: a members type
+    that is not a forward declaration and has at least one implemented routine. }
+  function HasBodySurface(aGeneric: TPasGenericType): boolean;
+  var
+    lProc: TPasProcedure;
+    k: integer;
+  begin
+    Result := False;
+    if not (aGeneric is TPasMembersType) then
+      Exit;
+    if (aGeneric is TPasClassType) and TPasClassType(aGeneric).IsForward then
+      Exit;
+    if (lMod.ImplementationSection = nil) or (aGeneric.Name = '') then
+      Exit;
+    for k := 0 to lMod.ImplementationSection.Declarations.Count - 1 do
+    begin
+      if not (TObject(lMod.ImplementationSection.Declarations[k]) is TPasProcedure) then
+        Continue;
+      lProc := TPasProcedure(lMod.ImplementationSection.Declarations[k]);
+      if ImplementsMemberOf(lProc, aGeneric.Name) and (lProc.Body <> nil) then
+        Exit(True);
+    end;
+  end;
+
+  { True iff aProc, or a routine nested in it, relies on aParam. The names typed
+    by aParam are aOuter plus the routine's own, so a sibling routine's
+    declarations never count here. }
+  function RoutineRelies(aProc: TPasProcedure; const aParam: string;
+    const aOuter: TFpSonarStringArray): boolean;
+  var
+    lScope: TFpSonarStringArray;
+    k: integer;
+  begin
+    lTyped := Copy(aOuter);
+    NoteRoutine(aProc, aParam);
+    lScope := lTyped;
+    Result := (aProc.Body <> nil) and StmtRelies(aProc.Body.Body, aParam);
+    if Result or (aProc.Body = nil) or (aProc.Body.Declarations = nil) then
+      Exit;
+    for k := 0 to aProc.Body.Declarations.Count - 1 do
+      if (TObject(aProc.Body.Declarations[k]) is TPasProcedure)
+        and RoutineRelies(TPasProcedure(aProc.Body.Declarations[k]), aParam,
+          lScope) then
+        Exit(True);
+  end;
+
+  // True iff an implemented routine of aGeneric relies on the template aParam.
+  function ReliesOn(aGeneric: TPasGenericType; const aParam: string): boolean;
+  var
+    lMembers: TFPList;
+    lProc: TPasProcedure;
+    k: integer;
+  begin
+    Result := False;
+    lTyped := nil;
+    lMembers := TPasMembersType(aGeneric).Members;
+    for k := 0 to lMembers.Count - 1 do
+      if not (TObject(lMembers[k]) is TPasProcedure) then
+        NoteTyped(TPasElement(lMembers[k]), aParam);
+    lMemberTyped := lTyped;
+    for k := 0 to lMod.ImplementationSection.Declarations.Count - 1 do
+    begin
+      if not (TObject(lMod.ImplementationSection.Declarations[k]) is TPasProcedure) then
+        Continue;
+      lProc := TPasProcedure(lMod.ImplementationSection.Declarations[k]);
+      if ImplementsMemberOf(lProc, aGeneric.Name)
+        and RoutineRelies(lProc, aParam, lMemberTyped) then
+        Exit(True);
+    end;
+  end;
+
+  procedure VisitGeneric(aGeneric: TPasGenericType);
+  var
+    lTemplate: TPasGenericTemplateType;
+    k: integer;
+  begin
+    if (aGeneric.GenericTemplateTypes = nil) or not HasBodySurface(aGeneric) then
+      Exit;
+    for k := 0 to aGeneric.GenericTemplateTypes.Count - 1 do
+    begin
+      lTemplate := TPasGenericTemplateType(aGeneric.GenericTemplateTypes[k]);
+      if lTemplate.IsConst or (lTemplate.Name = '')
+        or not HasTypeConstraint(lTemplate) then
+        Continue;
+      if not ReliesOn(aGeneric, lTemplate.Name) then
+        Add(lTemplate);
+    end;
+  end;
+
+  procedure WalkDecls(aDecls: TFPList);
+  var
+    k: integer;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+      if TObject(aDecls[k]) is TPasGenericType then
+        VisitGeneric(TPasGenericType(aDecls[k]));
+  end;
+
+begin
+  aNodes := nil;
+  lTyped := nil;
+  lMemberTyped := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    if lMod.InterfaceSection <> nil then
+      WalkDecls(lMod.InterfaceSection.Declarations);
+    if lMod.ImplementationSection <> nil then
+      WalkDecls(lMod.ImplementationSection.Declarations);
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+{ The declaration-site specializations of aMod, in declaration order: every
+  TPasSpecializeType a declaration owns, a specialization's own parameters
+  excluded. Both specialization queries collect over this. }
+function SpecializationSites(aMod: TPasModule): TPasElementArray;
+var
+  lSites: TPasElementArray;
+  lSeen: TFPList;
+
+  // Descends into aEl's own children, collecting the specializations it owns.
+  procedure Visit(aEl: TPasElement);
+  var
+    lChild: TPasElement;
+    lProc: TPasProcedure;
+    k: integer;
+
+    // aChild, when aEl declares it inline rather than naming it elsewhere.
+    function Owned(aChild: TPasElement): TPasElement;
+    begin
+      if (aChild <> nil) and (aChild.Parent = aEl) then
+        Result := aChild
+      else
+        Result := nil;
+    end;
+
+  begin
+    if (aEl = nil) or (lSeen.IndexOf(aEl) >= 0) then
+      Exit;
+    lSeen.Add(aEl);
+    if aEl is TPasSpecializeType then
+    begin
+      SetLength(lSites, Length(lSites) + 1);
+      lSites[High(lSites)] := aEl;
+      Exit;
+    end;
+    if aEl is TPasProcedure then
+    begin
+      lProc := TPasProcedure(aEl);
+      if lProc.ProcType <> nil then
+      begin
+        if lProc.ProcType.Args <> nil then
+          for k := 0 to lProc.ProcType.Args.Count - 1 do
+            Visit(TPasElement(lProc.ProcType.Args[k]));
+        if lProc.ProcType is TPasFunctionType then
+          Visit(TPasFunctionType(lProc.ProcType).ResultEl);
+      end;
+      if lProc.Body <> nil then
+        Visit(lProc.Body);
+    end
+    else if aEl is TProcedureBody then
+    begin
+      for k := 0 to TProcedureBody(aEl).Declarations.Count - 1 do
+        Visit(TPasElement(TProcedureBody(aEl).Declarations[k]));
+    end
+    else if aEl is TPasArgument then
+      Visit(Owned(TPasArgument(aEl).ArgType))
+    else if aEl is TPasResultElement then
+      Visit(Owned(TPasResultElement(aEl).ResultType))
+    else if aEl is TPasVariable then
+      Visit(Owned(TPasVariable(aEl).VarType))
+    else if aEl is TPasMembersType then
+    begin
+      if aEl is TPasClassType then
+        Visit(Owned(TPasClassType(aEl).AncestorType));
+      for k := 0 to TPasMembersType(aEl).Members.Count - 1 do
+      begin
+        lChild := TPasElement(TPasMembersType(aEl).Members[k]);
+        if (lChild is TPasProcedure) or (lChild is TPasVariable) then
+          Visit(lChild);
+      end;
+    end
+    else if aEl is TPasArrayType then
+      Visit(Owned(TPasArrayType(aEl).ElType))
+    else if aEl is TPasSetType then
+      Visit(Owned(TPasSetType(aEl).EnumType))
+    else if aEl is TPasPointerType then
+      Visit(Owned(TPasPointerType(aEl).DestType))
+    else if aEl is TPasAliasType then
+      Visit(Owned(TPasAliasType(aEl).DestType));
+  end;
+
+  procedure WalkDecls(aDecls: TFPList);
+  var
+    k: integer;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+      Visit(TPasElement(aDecls[k]));
+  end;
+
+begin
+  lSites := nil;
+  lSeen := TFPList.Create;
+  try
+    if aMod.InterfaceSection <> nil then
+      WalkDecls(aMod.InterfaceSection.Declarations);
+    if aMod.ImplementationSection <> nil then
+      WalkDecls(aMod.ImplementationSection.Declarations);
+  finally
+    lSeen.Free;
+  end;
+  Result := lSites;
+end;
+
+
+function TFpSonarResolver.TryUnconstrainedSpecializations(
+  out aNodes: TPasElementArray): boolean;
+var
+  lMod: TPasModule;
+  lSites: TPasElementArray;
+  i: integer;
+
+  procedure Add(aEl: TPasElement);
+  begin
+    SetLength(aNodes, Length(aNodes) + 1);
+    aNodes[High(aNodes)] := aEl;
+  end;
+
+  // Flags aSite when its generic declares type parameters and constrains none.
+  procedure Judge(aSite: TPasSpecializeType);
+  var
+    lGeneric: TPasGenericType;
+    lTemplate: TPasGenericTemplateType;
+    lTypeParams, k: integer;
+  begin
+    if not (aSite.DestType is TPasGenericType) then
+      Exit;
+    lGeneric := TPasGenericType(aSite.DestType);
+    if lGeneric.GenericTemplateTypes = nil then
+      Exit;
+    lTypeParams := 0;
+    for k := 0 to lGeneric.GenericTemplateTypes.Count - 1 do
+    begin
+      lTemplate := TPasGenericTemplateType(lGeneric.GenericTemplateTypes[k]);
+      // A const parameter's type annotation is not a type constraint.
+      if lTemplate.IsConst then
+        Continue;
+      if Length(lTemplate.Constraints) > 0 then
+        Exit;
+      Inc(lTypeParams);
+    end;
+    if lTypeParams > 0 then
+      Add(aSite);
+  end;
+
+begin
+  aNodes := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    lSites := SpecializationSites(lMod);
+    for i := 0 to High(lSites) do
+      Judge(TPasSpecializeType(lSites[i]));
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryDeepNestedSpecializations(aMaxDepth: integer;
+  out aNodes: TPasElementArray; out aDepths: TFpSonarDepthArray): boolean;
+var
+  lMod: TPasModule;
+  lSites: TPasElementArray;
+  i: integer;
+
+  procedure Add(aEl: TPasElement; aDepth: integer);
+  begin
+    SetLength(aNodes, Length(aNodes) + 1);
+    aNodes[High(aNodes)] := aEl;
+    SetLength(aDepths, Length(aDepths) + 1);
+    aDepths[High(aDepths)] := aDepth;
+  end;
+
+  { 1 + the deepest specialization written inside aEl's own parameter list; 0
+    for anything that is not a specialization. A parameter naming a separately
+    declared type resolves to that type's own node, which is nesting in the
+    resolved tree but not in the source, so only owned parameters count. }
+  function SpecDepth(aEl: TPasElement): integer;
+  var
+    lParams: TFPList;
+    lParam: TPasElement;
+    lBest, lDepth, k: integer;
+  begin
+    Result := 0;
+    if aEl is TPasSpecializeType then
+      lParams := TPasSpecializeType(aEl).Params
+    else if aEl is TInlineSpecializeExpr then
+      lParams := TInlineSpecializeExpr(aEl).Params
+    else
+      Exit;
+    lBest := 0;
+    if lParams <> nil then
+      for k := 0 to lParams.Count - 1 do
+      begin
+        lParam := TPasElement(lParams[k]);
+        if (lParam = nil) or (lParam.Parent <> aEl) then
+          Continue;
+        lDepth := SpecDepth(lParam);
+        if lDepth > lBest then
+          lBest := lDepth;
+      end;
+    Result := 1 + lBest;
+  end;
+
+  procedure Judge(aSite: TPasSpecializeType);
+  var
+    lDepth: integer;
+  begin
+    lDepth := SpecDepth(aSite);
+    if lDepth > aMaxDepth then
+      Add(aSite, lDepth);
+  end;
+
+begin
+  aNodes := nil;
+  aDepths := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    lSites := SpecializationSites(lMod);
+    for i := 0 to High(lSites) do
+      Judge(TPasSpecializeType(lSites[i]));
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      aDepths := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+{ The anonymous-method capture sites of aMod: aLoopVarSites every reference
+  inside an anonymous method to the control variable of an enclosing classic
+  for loop, aSelfSites every anonymous procedure whose body reaches the
+  enclosing instance. }
+procedure AnonMethodCaptureSites(aMod: TPasModule;
+  out aLoopVarSites, aSelfSites: TPasElementArray);
+var
+  lLoopDecls: TPasElementArray;   // control decls of the enclosing classic loops
+  lSeenAnons, lSeenDecls: TPasElementArray;   // capture pairs already recorded
+
+  procedure Add(var aList: TPasElementArray; aEl: TPasElement);
+  var
+    k: integer;
+  begin
+    for k := 0 to High(aList) do
+      if aList[k] = aEl then
+        Exit;                          // de-dup the same anchor
+    SetLength(aList, Length(aList) + 1);
+    aList[High(aList)] := aEl;
+  end;
+
+  // The resolved reference attached to a node, or nil when unresolved.
+  function RefOf(aExpr: TPasElement): TResolvedReference;
+  begin
+    if (aExpr <> nil) and (aExpr.CustomData is TResolvedReference) then
+      Result := TResolvedReference(aExpr.CustomData)
+    else
+      Result := nil;
+  end;
+
+  // True iff aDecl is the analysed anon proc's own param/local: its Parent
+  // ancestry reaches aAnon before the module.
+  function IsOwnLocal(aDecl, aAnon: TPasElement): boolean;
+  var
+    lEl: TPasElement;
+    lGuard: integer;
+  begin
+    Result := False;
+    lEl := aDecl;
+    lGuard := 0;
+    while (lEl <> nil) and (lGuard < 200) do
+    begin
+      if lEl = aAnon then
+        Exit(True);
+      if lEl is TPasModule then
+        Exit(False);
+      lEl := lEl.Parent;
+      Inc(lGuard);
+    end;
+  end;
+
+  // True iff aDecl is the control declaration of an enclosing classic for loop.
+  function IsCapturedLoopVar(aDecl: TPasElement): boolean;
+  var
+    k: integer;
+  begin
+    Result := False;
+    for k := 0 to High(lLoopDecls) do
+      if lLoopDecls[k] = aDecl then
+        Exit(True);
+  end;
+
+  { True iff (aAnon, aDecl) is a capture not recorded yet, recording it if so. }
+  function NewCapturePair(aAnon, aDecl: TPasElement): boolean;
+  var
+    k: integer;
+  begin
+    for k := 0 to High(lSeenAnons) do
+      if (lSeenAnons[k] = aAnon) and (lSeenDecls[k] = aDecl) then
+        Exit(False);
+    SetLength(lSeenAnons, Length(lSeenAnons) + 1);
+    SetLength(lSeenDecls, Length(lSeenDecls) + 1);
+    lSeenAnons[High(lSeenAnons)] := aAnon;
+    lSeenDecls[High(lSeenDecls)] := aDecl;
+    Result := True;
+  end;
+
+  // The routine owning aEl, nil when none encloses it.
+  function OwningRoutine(aEl: TPasElement): TPasProcedure;
+  begin
+    Result := nil;
+    while aEl <> nil do
+    begin
+      if aEl is TPasProcedure then
+        Exit(TPasProcedure(aEl));
+      aEl := aEl.Parent;
+    end;
+  end;
+
+  // True iff aProc runs on an instance rather than on a class.
+  function IsInstanceRoutine(aProc: TPasProcedure): boolean;
+  begin
+    Result := (aProc <> nil) and not (aProc is TPasClassProcedure)
+      and not (aProc is TPasClassFunction) and not aProc.IsStatic;
+  end;
+
+  { True iff aRef reaches the enclosing instance: the Self argument of an
+    enclosing method, or an instance member named without a qualifier. }
+  function IsSelfEvidence(aRef: TResolvedReference): boolean;
+  var
+    lDecl: TPasElement;
+  begin
+    Result := False;
+    lDecl := aRef.Declaration;
+    if lDecl = nil then
+      Exit;
+    if (lDecl is TPasArgument) and SameText(lDecl.Name, 'Self') then
+      Exit(IsInstanceRoutine(OwningRoutine(lDecl)));
+    if rrfDotScope in aRef.Flags then
+      Exit;
+    if not (lDecl.Parent is TPasMembersType) then
+      Exit;
+    if lDecl is TPasVariable then
+      Result := not (lDecl is TPasConst)
+        and (TPasVariable(lDecl).VarModifiers * [vmClass, vmStatic] = [])
+    else if lDecl is TPasProcedure then
+      Result := IsInstanceRoutine(TPasProcedure(lDecl));
+  end;
+
+  procedure HandleAnon(aPE: TProcedureExpr); forward;
+
+  { Walks aExpr's tree. A nested TProcedureExpr is dispatched to HandleAnon. }
+  procedure ScanExpr(aExpr: TPasExpr; aAnon: TPasElement);
+  var
+    k: integer;
+    lRef: TResolvedReference;
+    lDecl: TPasElement;
+  begin
+    if aExpr = nil then
+      Exit;
+    if aExpr is TProcedureExpr then
+      HandleAnon(TProcedureExpr(aExpr))
+    else if aExpr is TPrimitiveExpr then
+    begin
+      if aAnon = nil then
+        Exit;
+      lRef := RefOf(aExpr);
+      if lRef = nil then
+        Exit;                        // unresolved capture => silence
+      lDecl := lRef.Declaration;
+      if lDecl = nil then
+        Exit;
+      if IsOwnLocal(lDecl, aAnon) then
+        Exit;                        // the anon proc's own param/local
+      if IsCapturedLoopVar(lDecl) and NewCapturePair(aAnon, lDecl) then
+        Add(aLoopVarSites, aExpr);
+      if IsSelfEvidence(lRef) then
+        Add(aSelfSites, aAnon);
+    end
+    else if aExpr is TParamsExpr then
+    begin
+      ScanExpr(TParamsExpr(aExpr).Value, aAnon);
+      for k := 0 to High(TParamsExpr(aExpr).Params) do
+        ScanExpr(TParamsExpr(aExpr).Params[k], aAnon);
+    end
+    else if aExpr is TBinaryExpr then
+    begin
+      ScanExpr(TBinaryExpr(aExpr).left, aAnon);
+      ScanExpr(TBinaryExpr(aExpr).right, aAnon);
+    end
+    else if aExpr is TUnaryExpr then
+      ScanExpr(TUnaryExpr(aExpr).Operand, aAnon);
+  end;
+
+  // The direct child sub-statements of aStmt (the single tree-shape encoding,
+  // reproduced query-locally).
+  function ChildStmts(aStmt: TPasImplElement): TImplStmtArray;
+
+    procedure AddStmt(aEl: TPasImplElement);
+    begin
+      if aEl = nil then
+        Exit;
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)] := aEl;
+    end;
+
+    procedure AddElems(aList: TFPList);
+    var
+      k: integer;
+    begin
+      if aList = nil then
+        Exit;
+      for k := 0 to aList.Count - 1 do
+        if TObject(aList[k]) is TPasImplElement then
+          AddStmt(TPasImplElement(aList[k]));
+    end;
+
+  begin
+    SetLength(Result, 0);
+    if aStmt = nil then
+      Exit;
+    if aStmt is TPasImplIfElse then
+    begin
+      AddStmt(TPasImplIfElse(aStmt).IfBranch);
+      AddStmt(TPasImplIfElse(aStmt).ElseBranch);
+    end
+    else if aStmt is TPasImplWhileDo then
+      AddStmt(TPasImplWhileDo(aStmt).Body)
+    else if aStmt is TPasImplForLoop then
+      AddStmt(TPasImplForLoop(aStmt).Body)
+    else if aStmt is TPasImplWithDo then
+      AddStmt(TPasImplWithDo(aStmt).Body)
+    else if aStmt is TPasImplCaseStatement then
+      AddStmt(TPasImplCaseStatement(aStmt).Body)
+    else if aStmt is TPasImplExceptOn then
+      AddStmt(TPasImplExceptOn(aStmt).Body)
+    else if aStmt is TPasImplTry then
+    begin
+      AddElems(TPasImplBlock(aStmt).Elements);
+      AddStmt(TPasImplTry(aStmt).FinallyExcept);
+      AddStmt(TPasImplTry(aStmt).ElseBranch);
+    end
+    else if aStmt is TPasImplBlock then
+      AddElems(TPasImplBlock(aStmt).Elements);
+  end;
+
+  { Walks aStmt's control/value expressions, then recurses every sub-statement. }
+  procedure WalkStmt(aStmt: TPasImplElement; aAnon: TPasElement);
+  var
+    lKids: TImplStmtArray;
+    lWith: TPasImplWithDo;
+    lFor: TPasImplForLoop;
+    lRef: TResolvedReference;
+    lPushed: boolean;
+    k: integer;
+  begin
+    if aStmt = nil then
+      Exit;
+    if aStmt is TPasImplAssign then
+    begin
+      ScanExpr(TPasImplAssign(aStmt).Left, aAnon);
+      ScanExpr(TPasImplAssign(aStmt).Right, aAnon);
+    end
+    else if aStmt is TPasImplSimple then
+      ScanExpr(TPasImplSimple(aStmt).Expr, aAnon)
+    else if aStmt is TPasImplIfElse then
+      ScanExpr(TPasImplIfElse(aStmt).ConditionExpr, aAnon)
+    else if aStmt is TPasImplWhileDo then
+      ScanExpr(TPasImplWhileDo(aStmt).ConditionExpr, aAnon)
+    else if aStmt is TPasImplRepeatUntil then
+      ScanExpr(TPasImplRepeatUntil(aStmt).ConditionExpr, aAnon)
+    else if aStmt is TPasImplCaseOf then
+      ScanExpr(TPasImplCaseOf(aStmt).CaseExpr, aAnon)
+    else if aStmt is TPasImplRaise then
+    begin
+      ScanExpr(TPasImplRaise(aStmt).ExceptObject, aAnon);
+      ScanExpr(TPasImplRaise(aStmt).ExceptAddr, aAnon);
+    end
+    else if aStmt is TPasImplWithDo then
+    begin
+      lWith := TPasImplWithDo(aStmt);
+      if lWith.Expressions <> nil then
+        for k := 0 to lWith.Expressions.Count - 1 do
+          if TObject(lWith.Expressions[k]) is TPasExpr then
+            ScanExpr(TPasExpr(lWith.Expressions[k]), aAnon);
+    end;
+
+    lPushed := False;
+    if aStmt is TPasImplForLoop then
+    begin
+      lFor := TPasImplForLoop(aStmt);
+      ScanExpr(lFor.StartExpr, aAnon);
+      ScanExpr(lFor.EndExpr, aAnon);
+      if not lFor.IsVarDef then
+      begin
+        lRef := RefOf(lFor.VariableName);
+        if (lRef <> nil) and (lRef.Declaration <> nil) then
+        begin
+          SetLength(lLoopDecls, Length(lLoopDecls) + 1);
+          lLoopDecls[High(lLoopDecls)] := lRef.Declaration;
+          lPushed := True;
+        end;
+      end;
+    end;
+
+    lKids := ChildStmts(aStmt);
+    for k := 0 to High(lKids) do
+      WalkStmt(lKids[k], aAnon);
+
+    if lPushed then
+      SetLength(lLoopDecls, Length(lLoopDecls) - 1);
+  end;
+
+  { Walks aDecls routines, scanning their statements for anon procs and
+    recursing into nested routines. aAnon is the closure they are declared in,
+    nil at module level. }
+  procedure WalkDecls(aDecls: TFPList; aAnon: TPasElement);
+  var
+    k: integer;
+    lEl: TPasElement;
+    lProc: TPasProcedure;
+  begin
+    if aDecls = nil then
+      Exit;
+    for k := 0 to aDecls.Count - 1 do
+    begin
+      lEl := TPasElement(aDecls[k]);
+      if (lEl is TPasProcedure) and (TPasProcedure(lEl).Body <> nil) then
+      begin
+        lProc := TPasProcedure(lEl);
+        // The resolver's specialized body copies repeat one written closure.
+        if (lProc.CustomData is TPasProcedureScope)
+          and (TPasProcedureScope(lProc.CustomData).SpecializedFromItem <> nil) then
+          Continue;
+        if lProc.Body.Body <> nil then
+          WalkStmt(lProc.Body.Body, aAnon);
+        WalkDecls(lProc.Body.Declarations, aAnon);
+      end;
+    end;
+  end;
+
+  { Classifies the captures of one anonymous method: walk its body and its own
+    nested routines with the anon proc as the own-local sentinel. }
+  procedure HandleAnon(aPE: TProcedureExpr);
+  begin
+    if (aPE = nil) or (aPE.Proc = nil) then
+      Exit;
+    if not (aPE.Proc.GetProcTypeEnum in
+      [ptAnonymousProcedure, ptAnonymousFunction]) then
+      Exit;
+    if aPE.Proc.Body = nil then
+      Exit;
+    if aPE.Proc.Body.Body <> nil then
+      WalkStmt(aPE.Proc.Body.Body, aPE.Proc);
+    WalkDecls(aPE.Proc.Body.Declarations, aPE.Proc);
+  end;
+
+begin
+  aLoopVarSites := nil;
+  aSelfSites := nil;
+  lLoopDecls := nil;
+  lSeenAnons := nil;
+  lSeenDecls := nil;
+  if aMod.InterfaceSection <> nil then
+    WalkDecls(aMod.InterfaceSection.Declarations, nil);
+  if aMod.ImplementationSection <> nil then
+    WalkDecls(aMod.ImplementationSection.Declarations, nil);
+end;
+
+
+function TFpSonarResolver.TryAnonMethodLoopVarCaptures(
+  out aNodes: TPasElementArray): boolean;
+var
+  lMod: TPasModule;
+  lSelfSites: TPasElementArray;
+begin
+  aNodes := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    AnonMethodCaptureSites(lMod, aNodes, lSelfSites);
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aNodes := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryAnonMethodSelfCaptures(
+  out aNodes: TPasElementArray): boolean;
+var
+  lMod: TPasModule;
+  lLoopVarSites: TPasElementArray;
+begin
+  aNodes := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    AnonMethodCaptureSites(lMod, lLoopVarSites, aNodes);
     Result := True;
   except
     // Tolerant-access: any resolver failure => degrade (caller silent).
@@ -6557,6 +10593,246 @@ begin
 end;
 
 
+function TFpSonarResolver.TryStatementAccess(aStmt: TPasElement;
+  out aReadNodes: TPasElementArray; out aReadDecls: TPasElementArray;
+  out aWriteDecls: TPasElementArray): boolean;
+var
+  lAnswered: boolean;
+
+  // The resolved reference attached to a node, or nil when unresolved.
+  function RefOf(aExpr: TPasElement): TResolvedReference;
+  begin
+    if (aExpr <> nil) and (aExpr.CustomData is TResolvedReference) then
+      Result := TResolvedReference(aExpr.CustomData)
+    else
+      Result := nil;
+  end;
+
+  // Appends aEl to aList.
+  procedure AddTo(var aList: TPasElementArray; aEl: TPasElement);
+  begin
+    SetLength(aList, Length(aList) + 1);
+    aList[High(aList)] := aEl;
+  end;
+
+  { Files aExpr's own reference under its access kind: an out argument and an
+    argument whose overload is not yet decided count as read and write, a
+    dereferenced pointer as read only. }
+  procedure Classify(aExpr: TPasExpr);
+  var
+    lRef: TResolvedReference;
+    lDeref: boolean;
+  begin
+    lRef := RefOf(aExpr);
+    if lRef = nil then
+      Exit;
+    if lRef.Declaration = nil then
+    begin
+      lAnswered := False;
+      Exit;
+    end;
+    lDeref := (aExpr.Parent is TUnaryExpr)
+      and (TUnaryExpr(aExpr.Parent).OpCode = eopDeref);
+    if lDeref or (lRef.Access in rraAllRead)
+      or (lRef.Access in [rraOutParam, rraParamToUnknownProc]) then
+    begin
+      AddTo(aReadNodes, aExpr);
+      AddTo(aReadDecls, lRef.Declaration);
+    end;
+    if lDeref then
+      Exit;
+    if (lRef.Access in rraAllWrite) or (lRef.Access = rraParamToUnknownProc) then
+      AddTo(aWriteDecls, lRef.Declaration);
+  end;
+
+  { Classifies every identifier leaf of aExpr's tree; one unresolved leaf, or
+    one expression class this walker does not model, withdraws the answer. }
+  procedure CollectRefs(aExpr: TPasExpr);
+  var
+    m: integer;
+  begin
+    if aExpr = nil then
+      Exit;
+    // Write, WriteLn and Str carry their field widths beside the value.
+    CollectRefs(aExpr.Format1);
+    CollectRefs(aExpr.Format2);
+    if aExpr is TPrimitiveExpr then
+    begin
+      if RefOf(aExpr) <> nil then
+        Classify(aExpr)
+      else if TPrimitiveExpr(aExpr).Kind = pekIdent then
+        lAnswered := False;
+    end
+    else if aExpr is TParamsExpr then
+    begin
+      CollectRefs(TParamsExpr(aExpr).Value);
+      for m := 0 to High(TParamsExpr(aExpr).Params) do
+        CollectRefs(TParamsExpr(aExpr).Params[m]);
+    end
+    else if aExpr is TBinaryExpr then
+    begin
+      CollectRefs(TBinaryExpr(aExpr).left);
+      CollectRefs(TBinaryExpr(aExpr).right);
+    end
+    else if aExpr is TUnaryExpr then
+      CollectRefs(TUnaryExpr(aExpr).Operand)
+    else if aExpr is TNamedArgExpr then
+      CollectRefs(TNamedArgExpr(aExpr).ValueExpr)
+    else if aExpr is TArrayValues then
+    begin
+      for m := 0 to High(TArrayValues(aExpr).Values) do
+        CollectRefs(TArrayValues(aExpr).Values[m]);
+    end
+    else if aExpr is TRecordValues then
+    begin
+      for m := 0 to High(TRecordValues(aExpr).Fields) do
+        CollectRefs(TRecordValues(aExpr).Fields[m].ValueExp);
+    end
+    else if aExpr is TInlineSpecializeExpr then
+      CollectRefs(TInlineSpecializeExpr(aExpr).NameExpr)
+    // An anonymous method body is an operand, not a declaration-list entry.
+    else if aExpr is TProcedureExpr then
+      lAnswered := False
+    // The leaves that carry no identifier of their own.
+    else if not ((aExpr is TNilExpr) or (aExpr is TBoolConstExpr)
+      or (aExpr is TSelfExpr) or (aExpr is TInheritedExpr)) then
+      lAnswered := False;
+  end;
+
+  // Classifies every expression of aList, ignoring any other element kind.
+  procedure CollectExprList(aList: TFPList);
+  var
+    m: integer;
+  begin
+    if aList = nil then
+      Exit;
+    for m := 0 to aList.Count - 1 do
+      if TObject(aList[m]) is TPasExpr then
+        CollectRefs(TPasExpr(aList[m]));
+  end;
+
+  // Files aExpr's reference as a write whatever access kind it carries.
+  procedure ClassifyControlVar(aExpr: TPasExpr);
+  var
+    lRef: TResolvedReference;
+  begin
+    lRef := RefOf(aExpr);
+    if (lRef <> nil) and (lRef.Declaration <> nil) then
+      AddTo(aWriteDecls, lRef.Declaration)
+    else if (aExpr is TPrimitiveExpr)
+      and (TPrimitiveExpr(aExpr).Kind = pekIdent) then
+      lAnswered := False;
+  end;
+
+  // The statement kinds that legitimately carry no value or control expression.
+  function IsExpressionFree(aEl: TPasElement): boolean;
+  begin
+    Result := (aEl is TPasImplTry) or (aEl is TPasImplTryHandler)
+      or (aEl is TPasImplBeginBlock) or (aEl is TPasImplCaseElse)
+      or (aEl is TPasImplExceptOn) or (aEl is TPasImplLabelMark)
+      or (aEl is TPasImplCommandBase);
+  end;
+
+begin
+  aReadNodes := nil;
+  aReadDecls := nil;
+  aWriteDecls := nil;
+  Result := False;
+  if (FTopEngine = nil) or (not FSucceeded) or (aStmt = nil) then
+    Exit;
+  if aStmt is TPasImplAsmStatement then
+    Exit;
+
+  lAnswered := True;
+  try
+    if aStmt is TPasImplAssign then
+    begin
+      CollectRefs(TPasImplAssign(aStmt).Left);
+      CollectRefs(TPasImplAssign(aStmt).Right);
+    end
+    else if aStmt is TPasImplSimple then
+      CollectRefs(TPasImplSimple(aStmt).Expr)
+    else if aStmt is TPasImplIfElse then
+      CollectRefs(TPasImplIfElse(aStmt).ConditionExpr)
+    else if aStmt is TPasImplWhileDo then
+      CollectRefs(TPasImplWhileDo(aStmt).ConditionExpr)
+    else if aStmt is TPasImplRepeatUntil then
+      CollectRefs(TPasImplRepeatUntil(aStmt).ConditionExpr)
+    else if aStmt is TPasImplForLoop then
+    begin
+      CollectRefs(TPasImplForLoop(aStmt).StartExpr);
+      CollectRefs(TPasImplForLoop(aStmt).EndExpr);
+      ClassifyControlVar(TPasImplForLoop(aStmt).VariableName);
+    end
+    else if aStmt is TPasImplCaseOf then
+      CollectRefs(TPasImplCaseOf(aStmt).CaseExpr)
+    else if aStmt is TPasImplCaseStatement then
+      CollectExprList(TPasImplCaseStatement(aStmt).Expressions)
+    else if aStmt is TPasImplWithDo then
+      CollectExprList(TPasImplWithDo(aStmt).Expressions)
+    else if aStmt is TPasImplRaise then
+    begin
+      CollectRefs(TPasImplRaise(aStmt).ExceptObject);
+      CollectRefs(TPasImplRaise(aStmt).ExceptAddr);
+    end
+    // An unmodelled statement kind withdraws the answer.
+    else if not IsExpressionFree(aStmt) then
+      lAnswered := False;
+    Result := lAnswered;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+      Result := False;
+  end;
+  if not Result then
+  begin
+    aReadNodes := nil;
+    aReadDecls := nil;
+    aWriteDecls := nil;
+  end;
+end;
+
+
+function TFpSonarResolver.TryHintedSymbolUses(out aUses: TFpSonarHintedUseArray;
+  out aModuleHints: TPasMemberHints): boolean;
+var
+  lNodes, lDecls: TPasElementArray;
+  lMod: TPasModule;
+  i: integer;
+begin
+  aUses := nil;
+  aModuleHints := [];
+  Result := False;
+  if not TryReferenceSites(lNodes, lDecls) then
+    Exit;
+  lMod := GetResolvedModule;
+  if lMod = nil then
+    Exit;
+
+  try
+    aModuleHints := lMod.Hints;
+    for i := 0 to High(lDecls) do
+    begin
+      if lDecls[i].Hints = [] then
+        Continue;
+      SetLength(aUses, Length(aUses) + 1);
+      aUses[High(aUses)].Node := lNodes[i];
+      aUses[High(aUses)].Name := lDecls[i].Name;
+      aUses[High(aUses)].Hints := lDecls[i].Hints;
+    end;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aUses := nil;
+      aModuleHints := [];
+      Result := False;
+    end;
+  end;
+end;
+
+
 function TFpSonarResolver.TryIdentifierNameSites(out aNodes: TPasElementArray;
   out aNames: TFpSonarStringArray): boolean;
 var
@@ -6749,6 +11025,280 @@ begin
     begin
       aNodes := nil;
       aNames := nil;
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryRawByteStringCodePageMix(aNode: TPasElement;
+  out aRawName, aCodePage: string): boolean;
+
+  { The code page written on the declaration aExpr references, or ''. The
+    resolution collapses a code-paged AnsiString and drops the page, so it is
+    read from the declared type's alias chain. }
+  function DeclaredCodePage(aExpr: TPasExpr): string;
+  var
+    lDecl: TPasElement;
+    lType: TPasType;
+    lGuard: integer;
+  begin
+    Result := '';
+    lDecl := ReferencedDecl(aExpr);
+    if lDecl is TPasVariable then
+      lType := TPasVariable(lDecl).VarType
+    else if lDecl is TPasArgument then
+      lType := TPasArgument(lDecl).ArgType
+    else
+      Exit;
+    lGuard := 0;
+    while (lType is TPasAliasType) and (lGuard < 100) do
+    begin
+      lType := TPasAliasType(lType).DestType;
+      Inc(lGuard);
+    end;
+    if lType is TPasStringType then
+      Result := TPasStringType(lType).CodePageExpr;
+  end;
+
+var
+  lAssign: TPasImplAssign;
+  lLeft, lRight, lTarget, lSource: TFpSonarResolvedType;
+  lRaw: TPasExpr;
+  lDecl: TPasElement;
+  lPage: string;
+
+begin
+  Result := False;
+  aRawName := '';
+  aCodePage := '';
+  if (FTopEngine = nil) or (not FSucceeded)
+    or not (aNode is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aNode);
+  if lAssign.Kind <> akDefault then
+    Exit;
+  try
+    if not TryResolvedType(lAssign.Left, lLeft)
+      or not TryResolvedType(lAssign.Right, lRight) then
+      Exit;
+    if SameText(lLeft.TypeName, 'RawByteString') then
+    begin
+      lRaw := lAssign.Left;
+      lPage := DeclaredCodePage(lAssign.Right);
+    end
+    else if SameText(lRight.TypeName, 'RawByteString') then
+    begin
+      lRaw := lAssign.Right;
+      lPage := DeclaredCodePage(lAssign.Left);
+    end
+    else
+      Exit;
+    if lPage = '' then
+      Exit;
+    // A written cast IS the conversion the rule asks for.
+    if TryTypecast(lAssign.Left, lTarget, lSource)
+      or TryTypecast(lAssign.Right, lTarget, lSource) then
+      Exit;
+    lDecl := ReferencedDecl(lRaw);
+    if lDecl = nil then
+      Exit;
+    aRawName := lDecl.Name;
+    aCodePage := lPage;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aRawName := '';
+      aCodePage := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryStringConcatInLoop(aNode: TPasElement;
+  out aTargetName: string): boolean;
+
+const
+  cMaxParentDepth = 200;
+
+  // True when a for, while or repeat loop encloses aStmt.
+  function InsideLoop(aStmt: TPasElement): boolean;
+  var
+    lWalk: TPasElement;
+    lDepth: integer;
+  begin
+    Result := False;
+    lWalk := aStmt.Parent;
+    lDepth := 0;
+    while (lWalk <> nil) and (lDepth < cMaxParentDepth) do
+    begin
+      if (lWalk is TPasImplForLoop) or (lWalk is TPasImplWhileDo)
+        or (lWalk is TPasImplRepeatUntil) then
+        Exit(True);
+      lWalk := lWalk.Parent;
+      Inc(lDepth);
+    end;
+  end;
+
+var
+  lAssign: TPasImplAssign;
+  lSum: TBinaryExpr;
+  lTarget: TFpSonarResolvedType;
+  lDecl: TPasElement;
+
+begin
+  Result := False;
+  aTargetName := '';
+  if (FTopEngine = nil) or (not FSucceeded)
+    or not (aNode is TPasImplAssign) then
+    Exit;
+  lAssign := TPasImplAssign(aNode);
+  if (lAssign.Kind <> akDefault) or not (lAssign.Right is TBinaryExpr) then
+    Exit;
+  lSum := TBinaryExpr(lAssign.Right);
+  if lSum.OpCode <> eopAdd then
+    Exit;
+  try
+    if not TryResolvedType(lAssign.Left, lTarget)
+      or (lTarget.Kind <> ltkString) then
+      Exit;
+    lDecl := ReferencedDecl(lAssign.Left);
+    if (lDecl = nil) or (lDecl <> ReferencedDecl(lSum.Left)) then
+      Exit;
+    if not InsideLoop(lAssign) then
+      Exit;
+    aTargetName := lDecl.Name;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aTargetName := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryStrToIntWithoutGuard(aExpr: TPasExpr;
+  out aArgName: string): boolean;
+
+const
+  cMaxParentDepth = 200;
+
+  // True when aCall calls the unit-level routine named StrToInt.
+  function IsStrToIntCall(aCall: TParamsExpr): boolean;
+  var
+    lRef: TResolvedReference;
+    lType: TPasProcedureType;
+  begin
+    Result := False;
+    lRef := FTopEngine.GetParamsValueRef(aCall);
+    if (lRef = nil) or not (lRef.Declaration is TPasProcedure)
+      or not (lRef.Declaration.Parent is TPasSection)
+      or not SameText(lRef.Declaration.Name, 'StrToInt') then
+      Exit;
+    lType := TPasProcedure(lRef.Declaration).ProcType;
+    Result := (lType is TPasFunctionType) and (lType.Args <> nil)
+      and (lType.Args.Count >= 1);
+  end;
+
+  { True when a try..except between aNode and the routine body protects aNode,
+    which the handler's own body and the except-else branch do not. }
+  function GuardedByHandler(aNode: TPasElement): boolean;
+  var
+    lNode, lParent: TPasElement;
+    lTry: TPasImplTry;
+    lDepth: integer;
+  begin
+    Result := False;
+    lNode := aNode;
+    lDepth := 0;
+    while (lNode <> nil) and (lDepth < cMaxParentDepth) do
+    begin
+      lParent := lNode.Parent;
+      if lParent is TPasImplTry then
+      begin
+        lTry := TPasImplTry(lParent);
+        if (lTry.FinallyExcept is TPasImplTryExcept)
+          and (lNode <> lTry.FinallyExcept) and (lNode <> lTry.ElseBranch) then
+          Exit(True);
+      end;
+      lNode := lParent;
+      Inc(lDepth);
+    end;
+  end;
+
+  // True when aArg folds to a constant.
+  function Folds(aArg: TPasExpr): boolean;
+  var
+    lValue: TResEvalValue;
+  begin
+    lValue := EvalGuarded(aArg);
+    try
+      Result := lValue <> nil;
+    finally
+      ReleaseEvalValue(lValue);
+    end;
+  end;
+
+var
+  lCall: TParamsExpr;
+  lDecl: TPasElement;
+
+begin
+  Result := False;
+  aArgName := '';
+  if (FTopEngine = nil) or (not FSucceeded) or not (aExpr is TParamsExpr) then
+    Exit;
+  lCall := TParamsExpr(aExpr);
+  if (lCall.Kind <> pekFuncParams) or (Length(lCall.Params) < 1) then
+    Exit;
+  try
+    if not IsStrToIntCall(lCall) or Folds(lCall.Params[0])
+      or GuardedByHandler(lCall) then
+      Exit;
+    lDecl := ReferencedDecl(lCall.Params[0]);
+    if lDecl = nil then
+      Exit;
+    aArgName := lDecl.Name;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aArgName := '';
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TFpSonarResolver.TryWideStringDeclaration(aDecl: TPasElement;
+  out aDeclName: string): boolean;
+var
+  lType: TFpSonarResolvedType;
+
+begin
+  Result := False;
+  aDeclName := '';
+  if (FTopEngine = nil) or (not FSucceeded) or (aDecl = nil)
+    or not ((aDecl is TPasVariable) or (aDecl is TPasArgument)) then
+    Exit;
+  try
+    if not TryResolvedType(aDecl, lType)
+      or not SameText(lType.TypeName, 'WideString') then
+      Exit;
+    aDeclName := aDecl.Name;
+    Result := True;
+  except
+    // Tolerant-access: any resolver failure => degrade (caller silent).
+    on E: Exception do
+    begin
+      aDeclName := '';
       Result := False;
     end;
   end;

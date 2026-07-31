@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstFpcSource;
 
-{ FPC source-tree config & path discovery tests. }
 
 {$mode objfpc}{$H+}
 
@@ -199,7 +198,7 @@ begin
     [AbsDir('rtl/linux'), AbsDir('rtl/objpas'), AbsDir('rtl/objpas/sysutils'),
      AbsDir('rtl/objpas/classes')], lUnits);
 
-  // -Fi (includes) — incl. the per-CPU include dir rtl/linux/x86_64 (wall 14).
+  // -Fi (includes), including the per-CPU dir rtl/linux/x86_64.
   AssertArray('include dirs (-Fi)',
     [AbsDir('rtl/inc'), AbsDir('rtl/x86_64'), AbsDir('rtl/unix'), AbsDir('rtl/linux'),
      AbsDir('rtl/objpas'), AbsDir('rtl/linux/x86_64')], lIncludes);
@@ -219,8 +218,7 @@ var
 
 begin
   lCfg := TFpSonarFpcSourceConfig.Default;
-  // Target arm: rtl/arm and rtl/linux/arm do NOT exist in the synthetic tree, so
-  // the per-CPU dirs are omitted (NEVER fabricated).
+  // Target arm: rtl/arm and rtl/linux/arm do not exist in the synthetic tree.
   ExpandFpcSourceLayout(FRoot, 'linux', 'arm',
     lCfg.UnitDirTemplates, lCfg.IncludeDirTemplates, lUnits, lIncludes);
   AssertNotContains('absent per-CPU unit dir omitted', AbsDir('rtl/arm'), lIncludes);
@@ -319,8 +317,7 @@ var
   i: Integer;
 
 begin
-  // An EMPTY feature-override array means "use the built-in constant
-  // default", NOT "emit no feature defines" (the record's documented seam).
+  // An empty feature-override array means "use the built-in constant default".
   lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := 'x86_64';
   lCfg.TargetOS := 'linux';
@@ -340,8 +337,7 @@ var
   lDefault, lEmpty: TFpSonarStringArray;
 
 begin
-  // An unset TargetCPU/OS keeps the host default rather than clobbering it: the
-  // define set is element-identical to the fully-defaulted (host) config's.
+  // An unset TargetCPU/OS keeps the host default.
   lDefault := TFpSonarFpcSourceConfig.Default.RtlSourceDefines;
   lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.TargetCPU := '';
@@ -359,8 +355,7 @@ var
   lDiag: TFpSonarDiagnostic;
 
 begin
-  // Empty template overrides fall back to the built-in constants in the assembly
-  // entry point, so the full golden layout is still produced.
+  // Empty template overrides fall back to the built-in constants.
   lCfg := TFpSonarFpcSourceConfig.Default;
   lCfg.SourceDir := FRoot;
   lCfg.TargetCPU := 'x86_64';
@@ -402,8 +397,7 @@ var
   lResult: string;
 
 begin
-  // An explicit-but-invalid override degrades (no fall-through to the host) and
-  // NEVER raises.
+  // An explicit-but-invalid override degrades and never raises.
   lResult := LocateFpcSourceDir(
     IncludeTrailingPathDelimiter(GetTempDir) + 'fpsonar_nope_xyz', lDiag);
   AssertEquals('invalid root => empty result', '', lResult);

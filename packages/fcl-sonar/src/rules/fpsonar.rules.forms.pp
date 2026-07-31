@@ -14,8 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Forms;
 
-{ LCL form-file rule (rtAst): flags a form unit missing its .lfm form
-  resource. }
 
 {$mode objfpc}{$H+}
 

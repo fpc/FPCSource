@@ -39,6 +39,7 @@ uses
   utstOutputSarif,
   utstOutputSonarJson,
   utstConfig,
+  utstQualityGate,
   utstSuppression,
   utstBaseline,
   utstGovernance,
@@ -50,16 +51,29 @@ uses
   utstRulesClasses,
   utstRulesExceptions,
   utstResolver,
+  utstUseAnalysis,
   utstRulesCasts,
   utstRulesCalls,
+  utstRulesConcurrency,
   utstRulesControl,
+  utstRulesEval,
   utstRulesImports,
   utstRulesRefs,
   utstRulesSemNaming,
   utstRulesUnused,
+  utstRulesUnusedDelta,
   utstRulesTrackers,
   utstRulesParens,
-  utstRulesForms;
+  utstRulesForms,
+  utstRulesFpcStyle,
+  utstRulesLifetime,
+  utstRulesStrings,
+  utstRulesDataFlow,
+  utstRulesCondComp,
+  utstRulesGenerics,
+  utstNamespaceMap,
+  utstLanguageSurface,
+  utstSilenceSweep;
 
 var
   App: TTestRunner;

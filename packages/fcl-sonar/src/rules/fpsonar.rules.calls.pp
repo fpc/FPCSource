@@ -14,10 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Calls;
 
-{ Call-based SEM rules (rtSem / rfResolver): resolver-backed checks on call
-  sites and calling conventions — FreeAndNil, constructor/destructor use,
-  Format strings, inherited, TStringList, if-then short-circuit, Math overloads
-  and related hazards. Each self-registers in initialization. }
 
 {$mode objfpc}{$H+}
 
@@ -161,8 +157,7 @@ type
 
   { Flags a call to a curated byte/string-conversion routine (e.g.
     TStringList.LoadFromFile) whose bound overload omits the Encoding parameter
-    while an encoding-aware sibling overload exists, so it silently relies on the
-    platform/locale-dependent TEncoding.Default. }
+    while an encoding-aware sibling overload exists. }
   TRuleImplicitTEncodingDefault = class(TRuleBase)
   public
     // Emits one issue per curated call bound to an encoding-omitting overload.
@@ -172,8 +167,7 @@ type
 
   { Flags a call to a curated standard math routine (e.g. Sqrt, Power) that
     binds its Single-precision overload while a higher-precision Double/Extended
-    sibling overload of the same routine is visible in the same scope, so the call
-    silently loses precision. }
+    sibling overload of the same routine is visible in the same scope. }
   TRuleSingleOverloadOfMathFunction = class(TRuleBase)
   public
     // Emits one issue per curated math call bound to its Single-precision overload.

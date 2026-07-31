@@ -14,13 +14,6 @@
  **********************************************************************}
 unit FpSonar.Output.Text;
 
-{ The human-readable text output adapter (default --format).
-
-  Ouptut: a version-stamped header; one line per issue
-  "<path>:<line>:<col>: <severity> <RuleId>: <message>";
-  a "<N> issue(s)."  footer.
-  Positions are 1-based (0 = absent -> the bare path, no :line:col).
-}
 
 {$mode objfpc}{$H+}
 

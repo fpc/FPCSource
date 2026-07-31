@@ -47,6 +47,8 @@ begin
     T:=P.Targets.AddProgram('fpsonar.pp');
     T.Dependencies.AddUnit('fpsonar.cli.options');
 
+    P.Targets.AddProgram('mknamespacemap.pp');
+
     end;
 end;
 

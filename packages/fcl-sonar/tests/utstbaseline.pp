@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstBaseline;
 
-{ Snapshot baseline + new-code mode tests }
 
 {$mode objfpc}{$H+}
 
@@ -25,8 +24,8 @@ uses
   FpSonar.Types, FpSonar.Baseline;
 
 type
-  { Baseline: make/serialize/load round-trip, determinism golden, FilterNewCode
-    membership, tolerant load, and CLI option parsing. }
+  { Baseline: round-trip, determinism golden, FilterNewCode membership,
+    tolerant load and CLI option parsing. }
   TBaselineTest = class(TTestCase)
   private
     function MakeFpIssue(const aFingerprint, aRuleId, aFile: string): TFpSonarIssue;
@@ -63,10 +62,8 @@ const
   NL = #10; // FormatJSON emits LF line breaks (the canonical baseline bytes).
 
 begin
-  // FROZEN serialized form of the unsorted/duplicate issue set built in
-  // SerializationIsDeterministicGolden. Any change to sort order, dedup, key
-  // order, or the version stamp trips this and silently invalidates every
-  // committed baseline — treat a change here as a breaking decision.
+  // FROZEN serialized form of the issue set built in
+  // SerializationIsDeterministicGolden.
   Result :=
     '{' + NL +
     '  "_fpsonar" : {' + NL +
@@ -139,8 +136,7 @@ var
   lBaseline: TFpSonarBaseline;
 
 begin
-  // Deliberately unsorted, with a duplicate fingerprint that must collapse to its
-  // first entry by (fingerprint, ruleId, file) ordering (AnotherRule < TabIndentation).
+  // Deliberately unsorted, with a duplicate fingerprint that must collapse.
   SetLength(lIssues, 4);
   lIssues[0] := MakeFpIssue('ffff000011112222', 'LineTooLong', 'src/zeta.pas');
   lIssues[1] := MakeFpIssue('0a1b2c3d4e5f6071', 'TabIndentation', 'src/alpha.pas');
@@ -216,8 +212,7 @@ var
   lBaseline: TFpSonarBaseline;
 
 begin
-  // Set-membership (Open Question 2): N issues sharing one fingerprint all drop
-  // when that fingerprint is baselined.
+  // N issues sharing one fingerprint all drop when it is baselined.
   SetLength(lAll, 3);
   lAll[0] := MakeFpIssue('dupe000000000000', 'RuleA', 'src/a.pas');
   lAll[1] := MakeFpIssue('keep000000000000', 'RuleB', 'src/b.pas');

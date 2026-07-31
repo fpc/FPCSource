@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Refs;
 
-{ Reference / procedural-value SEM rules:
-  object-as-interface, nested routine as a procedural value,
-  inline var captured by an anonymous method. }
 
 {$mode objfpc}{$H+}
 

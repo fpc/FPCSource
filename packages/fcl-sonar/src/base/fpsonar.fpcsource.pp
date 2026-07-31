@@ -14,7 +14,6 @@
  **********************************************************************}
 unit FpSonar.FpcSource;
 
-{ FPC source-tree config & path discovery. }
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
@@ -210,8 +209,8 @@ begin
 end;
 
 
-// Substitutes the <os>/<cpu> placeholders in a layout template. FPC source
-// dirs are lower-case, so the values are lowered.
+// Substitutes the <os>/<cpu> placeholders in a layout template. FPC source dirs
+// are lower-case.
 function ExpandTemplate(const aTemplate, aOS, aCPU: string): string;
 begin
   Result := StringReplace(aTemplate, '<os>', LowerCase(aOS), [rfReplaceAll]);

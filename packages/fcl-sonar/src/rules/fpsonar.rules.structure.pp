@@ -14,12 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Structure;
 
-{ Structure AST rules (rtAst / rfAst):
-  structural, volume and count checks on units, routines, blocks and statements:
-  begin/end required, no goto / with / inline-asm / self-assignment, empty blocks,
-  redundant jumps and boolean
-  literals, inline-var type inference,
-  project-file constraints and related. }
 
 {$mode objfpc}{$H+}
 
@@ -1167,9 +1161,7 @@ var
   lBlock: TPasImplBlock;
   i: integer;
 begin
-  // AllStatements excludes the per-routine root blocks, so a routine's own empty
-  // body is NOT seen here (that is RoutineNotEmpty's job — the
-  // NoEmptyBlock/RoutineNotEmpty partition).
+  // AllStatements excludes the per-routine root blocks.
   lStmts := AllStatements(aContext.Module);
   for i := 0 to High(lStmts) do
     if lStmts[i] is TPasImplBeginBlock then

@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.SemNaming;
 
-{ Semantic-naming SEM rules (rtSem / rfResolver):
-  consistent name casing across references;
-  descendant naming convention. }
 
 {$mode objfpc}{$H+}
 

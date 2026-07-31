@@ -58,6 +58,11 @@ begin
           AddUnit('pparser');
           AddUnit('pasresolver');
         end;
+    T:=P.Targets.AddUnit('pascfg.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+        end;
     T:=P.Targets.AddUnit('pasdataflow.pp');
       with T.Dependencies do
         begin
@@ -66,6 +71,7 @@ begin
           AddUnit('pparser');
           AddUnit('pasresolver');
           AddUnit('pasresolveeval');
+          AddUnit('pascfg');
         end;
     T:=P.Targets.AddUnit('pastounittest.pp');
       with T.Dependencies do

@@ -249,13 +249,10 @@ begin
 
   if FRealRtlPreferred then
   begin
-      { Consume the FPC-source discovery:
-        merge its real-RTL-Fu/-Fi/defines into the run's effective config so they ride the existing
-        resolver path args.
-        Honour any CLI --cpu/--os override; an empty value keeps the host default.
-        Defines are produced even when the source tree is not located
-        => a missing tree simply degrades to the synthetic fallback per RTL chain name, inside the resolver.
-        }
+      { Consume the FPC-source discovery: merge its real-RTL -Fu/-Fi/defines
+        into the run's effective config. A CLI --cpu/--os override wins; an
+        empty value keeps the host default. Defines are produced even when the
+        source tree is not located. }
     lFpcCfg := TFpSonarFpcSourceConfig.Default;
     if aConfig.TargetCPU <> '' then
       lFpcCfg.TargetCPU := aConfig.TargetCPU;
@@ -284,10 +281,8 @@ begin
       Length(aConfig.IncludePaths));
   end;
 
-  { Build the project-wide name-reference index in a parse-pass over
-    the whole target set before per-file dispatch, so a project-scope USE rule
-    sees every unit's references when it runs on any one file.
-    Owned + freed here }
+  { Build the project-wide name-reference index in a parse-pass over the whole
+    target set before per-file dispatch. Owned and freed here. }
   lProjectIndex := BuildProjectIndex(lFiles, lMode, lDefines,
     lUnitPaths, lIncludePaths, FRealRtlPreferred, lPointerSize,
     aConfig.Dialect);

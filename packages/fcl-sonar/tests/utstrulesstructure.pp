@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesStructure;
 
-{ The four AST-tier "volume" rules }
 
 {$mode objfpc}{$H+}
 
@@ -29,8 +28,7 @@ type
   { AST-tier volume-rule position + registration tests. }
   TRulesStructureTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     // As RunRule, threading aConfig onto the engine so a migrated rule reads its
@@ -38,8 +36,8 @@ type
     procedure RunRuleCfg(aRule: TRuleBase; const aFixture: string;
       const aConfig: TFpSonarConfig;
       const aCollector: TFpSonarIssueCollector);
-    // As RunRule / RunRuleCfg, but the fixture source is supplied inline (one
-    // array element per source line) and materialised to a temp dir for the run.
+    // As RunRule / RunRuleCfg, but the fixture source is supplied inline and
+    // materialised to a temp dir for the run.
     procedure RunRuleSrc(aRule: TRuleBase; const aName: string;
       const aSrc: array of string; const aCollector: TFpSonarIssueCollector);
     procedure RunRuleCfgSrc(aRule: TRuleBase; const aName: string;
@@ -49,19 +47,18 @@ type
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts the rule fires exactly once at aDeclLine, column 1, with message
-    // args [aValue, aLimit]; and zero on the compliant fixture. Fixtures inline.
+    // Asserts the rule fires once at aDeclLine, column 1, with message args
+    // [aValue, aLimit]; and zero on the compliant fixture. Fixtures inline.
     procedure CheckVolumeRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aDeclLine: Integer; const aValue, aLimit: string;
       const aNoncompliant, aCompliant: array of string);
-    // Asserts aRule fires exactly once at aDeclLine, column 1, with key
+    // Asserts aRule fires once at aDeclLine, column 1, with key
     // rule.<aId>.message and message args = aArgs; and zero on the compliant
     // fixture. Fixtures supplied inline, materialised to a temp dir.
     procedure CheckStmtRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aDeclLine: Integer; const aArgs: array of string;
       const aNoncompliant, aCompliant: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewCyclomatic: TRuleBase;
     function NewCognitive: TRuleBase;
     function NewRoutineTooLarge: TRuleBase;
@@ -163,7 +160,7 @@ const
   cProjectFileNoRoutinesId = 'ProjectFileNoRoutines';
   cProjectFileNoVariablesId = 'ProjectFileNoVariables';
 
-  // Embedded structure-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded structure-rule fixtures: line i+1 == [i].
 
   cCyclomaticCompliant: array[0..24] of string = (
     'unit Compliant;',
@@ -2094,8 +2091,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at the routine declaration line, column 1
-    // (AST nodes carry no column), carrying [computed value, limit] as args.
+    // Noncompliant: one issue at the routine declaration line, column 1,
+    // carrying [computed value, limit] as args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -2141,8 +2138,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at aDeclLine, column 1 (AST nodes carry no
-    // column), carrying aArgs as the message args.
+    // Noncompliant: one issue at aDeclLine, column 1, carrying aArgs as the
+    // message args.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -2266,15 +2263,10 @@ var
   i, lInitHits, lOuterElseHits: Integer;
 
 begin
-  // Locks two load-bearing carve-outs in ONE assertion (elseifchain.pas):
-  //   if .. else if .. else  (three single-statement bodies in a routine)
-  //   + a single-statement 'if' body in the INITIALIZATION section.
-  // Expected exactly 4 issues: outer-if body (19), inner-if body (21),
-  // inner-else body (23), init-section if body (28). The outer 'else if'
-  // continuation is EXEMPT (not flagged as an 'else'). The count of 4 alone
-  // distinguishes every failure mode: a broken else-if exemption would flag the
-  // outer else too (5); a statement walk that missed init/final sections would
-  // see only the routine body (3).
+  // Locks two carve-outs in one assertion (elseifchain.pas): an if/else-if/else
+  // chain and a single-statement 'if' body in the initialization section.
+  // Expected 4 issues: outer-if body (19), inner-if body (21), inner-else body
+  // (23), init-section if body (28). The outer 'else if' continuation is exempt.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewBeginEndRequired, 'elseifchain.pas', cBeginEndRequiredElseifchain, lc);
@@ -2357,8 +2349,7 @@ var
   k: Integer;
 
 begin
-  // Self.F := Self.F must flag. Self parses as TSelfExpr (not a pekIdent
-  // leaf), so this exercises the dedicated TSelfExpr arm of SameLValue.
+  // Self.F := Self.F must flag. Self parses as TSelfExpr (not a pekIdent leaf).
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewNoSelfAssignment, 'self.pas', cNoSelfAssignmentSelf, lc);
@@ -2378,9 +2369,8 @@ var
   lc: TFpSonarIssueCollector;
 
 begin
-  // A compound assignment x += x must never be flagged. The vendored
-  // scanner does not enable po_CAssignments, so '+=' is rejected before the
-  // rule runs; either way the rule emits nothing for the compound form.
+  // A compound assignment x += x must never be flagged. The vendored scanner
+  // does not enable po_CAssignments.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRuleSrc(NewNoSelfAssignment, 'compound.pas', cNoSelfAssignmentCompound, lc);
@@ -2424,8 +2414,7 @@ procedure TRulesStructureTest.RoutineNotEmptyPositions;
 
 begin
   // Noncompliant: Run (decl line 11) has an empty body block; arg is the name.
-  // The body block is a ROOT, so NoEmptyBlock never sees it (the NoEmptyBlock/
-  // RoutineNotEmpty partition).
+  // The body block is a ROOT.
   CheckStmtRuleSrc(NewRoutineNotEmpty, NewRoutineNotEmpty, cRoutineNotEmptyId, 11,
     ['Run'], cRoutineNotEmptyNoncompliant, cRoutineNotEmptyCompliant);
 end;
@@ -2477,10 +2466,9 @@ end;
 procedure TRulesStructureTest.FunctionReturnTypeRequiredPositions;
 
 begin
-  // Noncompliant: a Delphi-mode class-method implementation that omits the result
-  // type (decl line 14) — the only form this parser accepts while leaving the
-  // result-type node nil (a bare 'function Name;' is a hard parse error). Arg is
-  // the qualified routine name the parser records.
+  // Noncompliant: a Delphi-mode class-method implementation that omits the
+  // result type (decl line 14). Arg is the qualified routine name the parser
+  // records.
   CheckStmtRuleSrc(NewFunctionReturnTypeRequired, NewFunctionReturnTypeRequired,
     cFunctionReturnTypeRequiredId, 14, ['TComputer.Compute'], cFunctionReturnTypeRequiredNoncompliant, cFunctionReturnTypeRequiredCompliant);
 end;
@@ -2574,10 +2562,7 @@ var
 
 begin
   // InlineConstNoTypeInference is inert in the vendored snapshot: a
-  // statement-level 'const' is a syntax error, so neither fixture produces a
-  // finding. We assert
-  // the rule is registered and that it emits nothing on the parse-clean
-  // compliant fixture.
+  // statement-level 'const' is a syntax error.
   AssertTrue('InlineConstNoTypeInference registered',
     RuleRegistry.FindById(cInlineConstNoTypeInferenceId) <> nil);
   lc := TFpSonarIssueCollector.Create;
@@ -2629,7 +2614,7 @@ procedure TRulesStructureTest.RulesSelfRegisterGlobally;
 
 begin
   // The production initialization registered all four AST volume rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // global registry.
   AssertTrue('CyclomaticComplexity registered',
     RuleRegistry.FindById(cCyclomaticId) <> nil);
   AssertTrue('CognitiveComplexity registered',

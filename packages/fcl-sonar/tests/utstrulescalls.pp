@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesCalls;
 
-{ The resolver-backed (SEM) Format-rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -29,23 +28,19 @@ type
   { SEM-tier Format-rule position + registration tests. }
   TRulesCallsTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts aRule fires exactly once at aLine, column 1, with key
-    // rule.<aId>.message and message args = aArgs; and zero on the compliant
-    // fixture (which must also resolve clean). Fixtures are supplied inline (one
-    // array element per source line) and materialised to a temp dir.
+    // Asserts aRule fires once at aLine, column 1, with key rule.<aId>.message
+    // and message args aArgs, and zero on the compliant fixture.
     procedure CheckCallRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aLine: Integer; const aArgs: array of string;
       const aNoncompliant, aCompliant: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewFormatArgumentType: TRuleBase;
     function NewFormatArgumentCount: TRuleBase;
     function NewValidFormatString: TRuleBase;
@@ -107,8 +102,8 @@ const
   cImplicitTEncodingDefaultId = 'ImplicitTEncodingDefault';
   cSingleOverloadOfMathFunctionId = 'SingleOverloadOfMathFunction';
 
-  // Embedded AssertWithoutMessage fixtures (Approach A pilot): line i+1 == [i].
-  // Noncompliant line 8 is the 1-arg Assert (the probe-locked finding).
+  // Embedded AssertWithoutMessage fixtures: line i+1 == [i]. Noncompliant line
+  // 8 is the 1-arg Assert (the probe-locked finding).
   cAssertWithoutMessageNoncompliant: array[0..9] of string = (
     'unit noncompliant;',
     '{$mode objfpc}{$H+}',
@@ -132,7 +127,7 @@ const
     'end;',
     'end.');
 
-  // Embedded Calls-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded Calls-rule fixtures: line i+1 == [i].
 
   cFormatArgumentTypeNoncompliant: array[0..12] of string = (
     'unit noncompliant;',
@@ -882,7 +877,7 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: exactly one issue at aLine, column 1, carrying aArgs.
+    // Noncompliant: one issue at aLine, column 1, carrying aArgs.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aRule, lFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -903,8 +898,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: silent (and MUST resolve clean, else the rfResolver feed is
-    // absent -> rule skipped -> a false 0).
+    // Compliant: silent; the fixture must resolve clean.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(aCompliantRule, lFix.Add('compliant.pas', aCompliant), lc);
@@ -922,10 +916,8 @@ procedure TRulesCallsTest.FormatArgumentTypePositions;
 
 begin
   // Noncompliant: 'S := Format('%d items', [Price]);' where Price:Double (cast
-  // arg line 11, probe-locked); %d needs an integer, Double (ltkFloat) is an
-  // unambiguous mismatch. Args are the offending specifier letter then the
-  // resolved type name. Compliant: 'Format('%d items, %.2f total', [Count, Price])'
-  // (Count:Integer->%d, Price:Double->%.2f, both accepted) — silent.
+  // arg line 11, probe-locked); %d needs an integer. Args are the offending
+  // specifier letter then the resolved type name.
   CheckCallRuleSrc(NewFormatArgumentType, NewFormatArgumentType,
     cFormatArgumentTypeId, 11, ['d', 'Double'],
     cFormatArgumentTypeNoncompliant, cFormatArgumentTypeCompliant);
@@ -937,8 +929,7 @@ procedure TRulesCallsTest.FormatArgumentCountPositions;
 begin
   // Noncompliant: 'S := Format('%s = %d', [Name]);' (format-string line 11,
   // probe-locked); 2 specifiers require 2 args, 1 supplied. Args are the
-  // required then supplied counts. Compliant: the same string with [Name, Value]
-  // (2 supplied) — silent.
+  // required then supplied counts.
   CheckCallRuleSrc(NewFormatArgumentCount, NewFormatArgumentCount,
     cFormatArgumentCountId, 11, ['2', '1'],
     cFormatArgumentCountNoncompliant, cFormatArgumentCountCompliant);
@@ -950,8 +941,7 @@ procedure TRulesCallsTest.ValidFormatStringPositions;
 begin
   // Noncompliant: 'S := Format('value: %q', [X]);' (format-string line 11,
   // probe-locked); %q is not a valid FPC conversion. Arg is the offending
-  // conversion text. Compliant: 'Format('%-10.2f%%', [Ratio])' (a valid
-  // flag/width/precision spec plus a %% escape) — silent.
+  // conversion text.
   CheckCallRuleSrc(NewValidFormatString, NewValidFormatString,
     cValidFormatStringId, 11, ['%q'],
     cValidFormatStringNoncompliant, cValidFormatStringCompliant);
@@ -962,9 +952,7 @@ procedure TRulesCallsTest.FreeAndNilArgumentPositions;
 
 begin
   // Noncompliant: 'FreeAndNil(R);' where R:TRec (a record) at line 14
-  // (probe-locked) — a record is not a class instance, so FreeAndNil's untyped-
-  // out-TObject contract is violated. Arg is the resolved argument type name.
-  // Compliant: 'FreeAndNil(L);' where L:TStringList (a class instance) — silent.
+  // (probe-locked) — a record is not a class instance.
   CheckCallRuleSrc(NewFreeAndNilArgument, NewFreeAndNilArgument,
     cFreeAndNilArgumentId, 14, ['TRec'],
     cFreeAndNilArgumentNoncompliant, cFreeAndNilArgumentCompliant);
@@ -975,9 +963,8 @@ procedure TRulesCallsTest.ConstructorOnInstanceVariablePositions;
 
 begin
   // Noncompliant: 'Obj.Create;' on an already-allocated instance at line 17
-  // (probe-locked); the preceding 'Obj := TMyClass.Create;' (a TYPE call) is the
-  // legitimate construction and stays silent. Arg is the constructor name.
-  // Compliant: only 'Obj := TMyClass.Create;' (a type call) — silent.
+  // (probe-locked); the preceding 'Obj := TMyClass.Create;' is the legitimate
+  // construction. Arg is the constructor name.
   CheckCallRuleSrc(NewConstructorOnInstanceVariable, NewConstructorOnInstanceVariable,
     cConstructorOnInstanceVariableId, 17, ['Create'],
     cConstructorOnInstanceVariableNoncompliant, cConstructorOnInstanceVariableCompliant);
@@ -987,10 +974,8 @@ end;
 procedure TRulesCallsTest.StringListDuplicatesNeedsSortedPositions;
 
 begin
-  // Noncompliant: 'L.Duplicates := dupIgnore;' at line 11 (probe-locked) with no
-  // 'L.Sorted := True' in the same routine — the Duplicates setting is ignored.
-  // Arg is the enum value name. Compliant: a 'L.Sorted := True;' is present in the
-  // same routine (in either order) — silent.
+  // Noncompliant: 'L.Duplicates := dupIgnore;' at line 11 (probe-locked) with
+  // no 'L.Sorted := True' in the same routine. Arg is the enum value name.
   CheckCallRuleSrc(NewStringListDuplicatesNeedsSorted,
     NewStringListDuplicatesNeedsSorted,
     cStringListDuplicatesNeedsSortedId, 11, ['dupIgnore'],
@@ -1002,9 +987,8 @@ procedure TRulesCallsTest.DestructorShouldOverrideDestroyPositions;
 
 begin
   // Noncompliant: 'destructor Done;' in a TFoo = class(TObject) at line 6
-  // (probe-locked) — a TObject-descendant destructor not named Destroy cannot be
-  // reached by Free / polymorphic destruction. Arg is the destructor name.
-  // Compliant: 'destructor Destroy; override;' — silent.
+  // (probe-locked): a TObject-descendant destructor not named Destroy cannot be
+  // reached by Free. Arg is the destructor name.
   CheckCallRuleSrc(NewDestructorShouldOverrideDestroy,
     NewDestructorShouldOverrideDestroy,
     cDestructorShouldOverrideDestroyId, 6, ['Done'],
@@ -1016,9 +1000,8 @@ procedure TRulesCallsTest.OverrideOnlyCallsInheritedPositions;
 
 begin
   // Noncompliant: 'TChild.DoIt' (override of TParent.DoIt) whose whole body is
-  // 'inherited DoIt(X);' — the impl header is line 15 (probe-locked). Arg is the
-  // implementation proc's (qualified) Decl.Name. Compliant: the body forwards then
-  // does more (a second statement), so it is no longer a lone forward — silent.
+  // 'inherited DoIt(X);'; the impl header is line 15 (probe-locked). Arg is the
+  // implementation proc's qualified Decl.Name.
   CheckCallRuleSrc(NewOverrideOnlyCallsInherited, NewOverrideOnlyCallsInherited,
     cOverrideOnlyCallsInheritedId, 15, ['TChild.DoIt'],
     cOverrideOnlyCallsInheritedNoncompliant, cOverrideOnlyCallsInheritedCompliant);
@@ -1029,9 +1012,7 @@ procedure TRulesCallsTest.IfThenNotShortCircuitPositions;
 
 begin
   // Noncompliant: 'R := IfThen(Assigned(P), P.Value, 0);' at line 15
-  // (probe-locked) — IfThen evaluates BOTH value args, so P.Value (guarded by
-  // Assigned(P)) is dereferenced unconditionally. Arg is the guarded subject.
-  // Compliant: 'IfThen(Cond, 10, 20)' (literal value args) — silent.
+  // (probe-locked) — IfThen evaluates BOTH value args.
   CheckCallRuleSrc(NewIfThenNotShortCircuit, NewIfThenNotShortCircuit,
     cIfThenNotShortCircuitId, 15, ['P'],
     cIfThenNotShortCircuitNoncompliant, cIfThenNotShortCircuitCompliant);
@@ -1042,9 +1023,8 @@ procedure TRulesCallsTest.AssertWithoutMessagePositions;
 
 begin
   // Noncompliant: 'Assert(aValue > 0);' (1 arg, no message) at line 8
-  // (probe-locked) — the raised EAssertionFailed carries no diagnostic text. The
-  // message is a fixed string, so there are NO message args ([]). Compliant:
-  // 'Assert(aValue > 0, 'aValue must be positive');' (the 2-arg form) — silent.
+  // (probe-locked) — the raised EAssertionFailed carries no diagnostic text.
+  // The message is a fixed string.
   CheckCallRuleSrc(NewAssertWithoutMessage, NewAssertWithoutMessage,
     cAssertWithoutMessageId, 8, [],
     cAssertWithoutMessageNoncompliant, cAssertWithoutMessageCompliant);
@@ -1055,9 +1035,7 @@ procedure TRulesCallsTest.DefaultFormatSettingsInDateFormatPositions;
 
 begin
   // Noncompliant: 'Result := FormatDateTime('yyyy-mm-dd', Now);' at line 9
-  // (probe-locked) — the bound overload takes no TFormatSettings, so it reads the
-  // global DefaultFormatSettings. Arg is the resolved routine name. Compliant:
-  // 'FormatDateTime('yyyy-mm-dd', Now, lSettings)' (the settings overload) — silent.
+  // (probe-locked) — the bound overload takes no TFormatSettings.
   CheckCallRuleSrc(NewDefaultFormatSettingsInDateFormat,
     NewDefaultFormatSettingsInDateFormat,
     cDefaultFormatSettingsInDateFormatId, 9, ['FormatDateTime'],
@@ -1068,10 +1046,8 @@ end;
 procedure TRulesCallsTest.ExplicitDefaultArrayPropertyPositions;
 
 begin
-  // Noncompliant: 'Result := aFoo.Items[0];' at line 16 (probe-locked) where Items
-  // is the default array property — the shorthand aFoo[0] is equivalent. Arg is
-  // the resolved property name. Compliant: 'Result := aFoo[0];' (the already-
-  // implicit default access; Value resolves to the object, not the property) — silent.
+  // Noncompliant: 'Result := aFoo.Items[0];' at line 16 (probe-locked) where
+  // Items is the default array property. Arg is the resolved property name.
   CheckCallRuleSrc(NewExplicitDefaultArrayProperty, NewExplicitDefaultArrayProperty,
     cExplicitDefaultArrayPropertyId, 16, ['Items'],
     cExplicitDefaultArrayPropertyNoncompliant, cExplicitDefaultArrayPropertyCompliant);
@@ -1082,9 +1058,8 @@ procedure TRulesCallsTest.StringFirstCharByIndexPositions;
 
 begin
   // Noncompliant: 'Result := aValue[1];' where aValue:string at line 8 (probe-
-  // locked) — reading the first character by literal index; the index const-folds
-  // to the low bound 1. The message is a fixed string, so NO message args ([]).
-  // Compliant: 'Result := aValue[aIndex];' (a variable index does not fold) — silent.
+  // locked) — reading the first character by literal index; the index
+  // const-folds to the low bound 1. The message is a fixed string.
   CheckCallRuleSrc(NewStringFirstCharByIndex, NewStringFirstCharByIndex,
     cStringFirstCharByIndexId, 8, [],
     cStringFirstCharByIndexNoncompliant, cStringFirstCharByIndexCompliant);
@@ -1094,11 +1069,9 @@ end;
 procedure TRulesCallsTest.TListLastByIndexPositions;
 
 begin
-  // Noncompliant: 'Result := aList[aList.Count - 1];' where aList:Classes.TList at
-  // line 10 (probe-locked) — fetching the last element by index instead of L.Last;
-  // the Count-1 index is on the SAME receiver being indexed. The message is a fixed
-  // string, so NO message args ([]). Compliant: 'Result := aList.Last;' (a member
-  // access, not a pekArrayParams — never gathered) — silent.
+  // Noncompliant: 'Result := aList[aList.Count - 1];' where aList:Classes.TList
+  // at line 10 (probe-locked); the Count-1 index is on the same receiver being
+  // indexed. The message is a fixed string.
   CheckCallRuleSrc(NewTListLastByIndex, NewTListLastByIndex,
     cTListLastByIndexId, 10, [],
     cTListLastByIndexNoncompliant, cTListLastByIndexCompliant);
@@ -1109,10 +1082,7 @@ procedure TRulesCallsTest.RedundantInheritedPositions;
 
 begin
   // Noncompliant: 'TChild.Helper' has no overridable parent member (no TParent
-  // Helper), so its bare 'inherited;' at line 17 (probe-locked) binds to nothing
-  // and is redundant. The message is a fixed string, so NO message args ([]).
-  // Compliant: 'TChild.Init' overrides 'TParent.Init', so its 'inherited;' binds to
-  // a real parent method — silent (it is another rule's territory).
+  // Helper).
   CheckCallRuleSrc(NewRedundantInherited, NewRedundantInherited,
     cRedundantInheritedId, 17, [],
     cRedundantInheritedNoncompliant, cRedundantInheritedCompliant);
@@ -1122,12 +1092,9 @@ end;
 procedure TRulesCallsTest.ImplicitTEncodingDefaultPositions;
 
 begin
-  // Noncompliant: 'sl.LoadFromFile('data.txt')' at line 12 (probe-locked) binds the
-  // 1-arg TStrings.LoadFromFile overload, which OMITS the encoding parameter while
-  // the 2-arg encoding-aware sibling overload exists — so it implicitly relies on
-  // the platform-dependent default encoding. The message is a fixed string, so NO
-  // message args ([]). Compliant: 'sl.LoadFromFile('data.txt', enc)' binds the
-  // encoding overload itself — silent (the explicit-encoding intent).
+  // Noncompliant: 'sl.LoadFromFile('data.txt')' at line 12 (probe-locked) binds
+  // the 1-arg TStrings.LoadFromFile overload, which omits the encoding
+  // parameter while the 2-arg sibling exists. The message is a fixed string.
   CheckCallRuleSrc(NewImplicitTEncodingDefault, NewImplicitTEncodingDefault,
     cImplicitTEncodingDefaultId, 12, [],
     cImplicitTEncodingDefaultNoncompliant, cImplicitTEncodingDefaultCompliant);
@@ -1137,12 +1104,8 @@ end;
 procedure TRulesCallsTest.SingleOverloadOfMathFunctionPositions;
 
 begin
-  // Noncompliant: 's := Sqrt(s);' at line 12 (probe-locked) — 's: Single' feeds the
-  // call, so it binds the synthetic Math.Sqrt(Single) overload while the
-  // higher-precision Math.Sqrt(Double) sibling overload is visible in the same unit
-  // scope, so the call silently loses precision. The message is a fixed string, so
-  // NO message args ([]). Compliant: 'd := Sqrt(d);' with 'd: Double' binds the
-  // Double overload itself — silent (the higher-precision intent).
+  // Noncompliant: 's := Sqrt(s);' at line 12 (probe-locked) — 's: Single' feeds
+  // the call.
   CheckCallRuleSrc(NewSingleOverloadOfMathFunction, NewSingleOverloadOfMathFunction,
     cSingleOverloadOfMathFunctionId, 12, [],
     cSingleOverloadOfMathFunctionNoncompliant, cSingleOverloadOfMathFunctionCompliant);
@@ -1152,8 +1115,8 @@ end;
 procedure TRulesCallsTest.CallsRulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered all SEVENTEEN SEM call rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // The production initialization registered all SEVENTEEN SEM call rules into
+  // the global registry.
   AssertTrue('FormatArgumentType registered',
     RuleRegistry.FindById(cFormatArgumentTypeId) <> nil);
   AssertTrue('FormatArgumentCount registered',

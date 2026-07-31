@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRuleRegistry;
 
-{ Rule metadata + self-registration registry tests. }
 
 {$mode objfpc}{$H+}
 
@@ -25,8 +24,7 @@ uses
   FpSonar.Types, FpSonar.Issues, FpSonar.RuleFramework;
 
 type
-  { A trivial synthetic rule: emits one sentinel issue when applied. Used to
-    populate local registries; never touches the global registry. }
+  { A trivial synthetic rule: emits one sentinel issue when applied. }
   TSynthRule = class(TRuleBase)
   public
     procedure Apply(const aContext: TRuleContext;
@@ -142,8 +140,7 @@ var
 begin
   lReg := TRuleRegistry.Create;
   try
-    // A rule with an empty RuleId (MessageKey would default but RuleId is the
-    // failing field).
+    // A rule with an empty RuleId.
     lReg.Register(TSynthRule.Create(TRuleMetadata.Make('', rtLex,
       rfTokenStream, sevMinor, itCodeSmell, cfMedium, True, '')));
 
@@ -191,8 +188,7 @@ end;
 procedure TRuleRegistryTest.ProductionRegistryIsClean;
 
 begin
-  // The real CI gate: the global registry every real rule self-registers
-  // into must carry no incomplete/duplicate metadata. Empty now, guards later.
+  // The global registry every real rule self-registers into.
   AssertEquals('production registry has no incomplete rules', 0,
     Length(RuleRegistry.Validate));
 end;

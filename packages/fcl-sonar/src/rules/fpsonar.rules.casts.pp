@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Casts;
 
-{ Cast SEM rules (rtSem / rfResolver) for type-cast hazards:
-  Char/PChar, out-of-hierarchy object casts, redundant and platform-dependent
-  casts, cast-before-free, Unicode->Ansi. }
 
 {$mode objfpc}{$H+}
 

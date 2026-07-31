@@ -14,8 +14,6 @@
  **********************************************************************}
 unit FpSonar.Output.Utils;
 
-{ Helpers shared by the text / SARIF / SonarQube-JSON output adapters:
-  the severity-name and suppression-source-name mappings. }
 
 {$mode objfpc}{$H+}
 

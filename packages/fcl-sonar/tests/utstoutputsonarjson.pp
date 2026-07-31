@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstOutputSonarJson;
 
-{ The SonarQube generic issue JSON output adapter. }
 
 {$mode objfpc}{$H+}
 

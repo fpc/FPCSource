@@ -14,7 +14,6 @@
  **********************************************************************}
 unit UtstCoreFixtures;
 
-{ Shared embedded source fixtures used by more than one core test unit }
 
 {$mode objfpc}{$H+}
 

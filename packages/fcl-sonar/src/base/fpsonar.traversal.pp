@@ -115,8 +115,7 @@ type
     destructor Destroy; override;
     // Folds one successfully-parsed project unit into the index.
     procedure AddModule(aModule: TPasModule);
-    // Records that a project unit failed to parse (its references are unknown),
-    // so usProject queries degrade conservatively to rrUnknown.
+    // Records that a project unit failed to parse (its references are unknown).
     procedure MarkUnparseable;
     // Is aName referenced anywhere in the project? rrUnknown when undecidable
     function IsReferencedInProject(const aName: string): TFpSonarRefResult;
@@ -138,6 +137,9 @@ type
     FProjectIndex: TFpSonarProjectIndex;
     // Case-insensitive set of every name referenced anywhere in the unit.
     FUnitRefs: TStringList;
+    // Case-insensitive set of every name referenced in the interface section,
+    // built on first request.
+    FInterfaceRefs: TStringList;
     // Per-routine reference sets, lazily built: FRoutines[i] owns FRoutineRefs[i]
     // (parallel lists keyed by the TPasProcedure pointer).
     FRoutines: TFPList;
@@ -147,6 +149,9 @@ type
     // Walks aRoot's element subtree (ForEachCall) into a fresh case-insensitive
     // name set the caller owns.
     function CollectInto(aRoot: TPasElement): TStringList;
+    // This unit's interface-section USE-position reference set, built on first
+    // request; only valid when FModule is assigned.
+    function InterfaceReferences: TStringList;
     // The reference set for aProc's body, built (and cached) on first request.
     function RoutineRefs(aProc: TPasProcedure): TStringList;
     // The nearest enclosing routine of aDecl via the Parent chain, or nil.
@@ -160,8 +165,9 @@ type
       aScope: TFpSonarUseScope): TFpSonarRefResult; virtual;
     // True iff ANY name in aNames is referenced in this unit.
     function ReferencesAny(aNames: TStringList): boolean;
-    // This unit's own USE-position reference set (read-only), so a project index
-    // can union it across units.
+    // True iff ANY name in aNames is referenced in this unit's interface section.
+    function InterfaceReferencesAny(aNames: TStringList): boolean;
+    // This unit's own USE-position reference set (read-only).
     function UnitReferences: TStringList;
     // The optional project-wide index consulted for usProject queries.
     property ProjectIndex: TFpSonarProjectIndex read FProjectIndex write FProjectIndex;
@@ -188,6 +194,9 @@ type
     function IsReferenced(aDecl: TPasElement;
       aScope: TFpSonarUseScope): TFpSonarRefResult; override;
   end;
+
+// The structural identity of a declaration: name + source row + enclosing declaration name, case-folded.
+function DeclKey(aDecl: TPasElement; aRow: integer): string;
 
 function MakeUseAnalyzer(aModule: TPasModule; aResolver: TFpSonarResolver;
   aPreferResolution: boolean): TFpSonarUseAnalyzer;
@@ -480,6 +489,7 @@ begin
   FRoutines := TFPList.Create;
   FRoutineRefs := TList.Create;
   FUnitRefs := CollectInto(FModule);
+  FInterfaceRefs := nil;
 end;
 
 
@@ -488,6 +498,7 @@ var
   i: integer;
 begin
   FUnitRefs.Free;
+  FInterfaceRefs.Free;
   for i := 0 to FRoutineRefs.Count - 1 do
     TStringList(FRoutineRefs[i]).Free;
   FRoutineRefs.Free;
@@ -661,9 +672,33 @@ begin
 end;
 
 
+function TFpSonarUseAnalyzer.InterfaceReferencesAny(
+  aNames: TStringList): boolean;
+var
+  i: integer;
+  lRefs: TStringList;
+begin
+  Result := False;
+  if (aNames = nil) or (FModule = nil) then
+    Exit;
+  lRefs := InterfaceReferences;
+  for i := 0 to aNames.Count - 1 do
+    if lRefs.IndexOf(aNames[i]) >= 0 then
+      Exit(True);
+end;
+
+
 function TFpSonarUseAnalyzer.UnitReferences: TStringList;
 begin
   Result := FUnitRefs;
+end;
+
+
+function TFpSonarUseAnalyzer.InterfaceReferences: TStringList;
+begin
+  if FInterfaceRefs = nil then
+    FInterfaceRefs := CollectInto(FModule.InterfaceSection);
+  Result := FInterfaceRefs;
 end;
 
 
@@ -847,17 +882,24 @@ end;
 
 { TFpSonarResolvedUseAnalyzer }
 
-// The structural identity of a declaration: name + source row + parent name, case-folded.
+// The structural identity of a declaration: name + source row + enclosing declaration name, case-folded.
 function DeclKey(aDecl: TPasElement; aRow: integer): string;
 var
-  lParent: string;
+  lParent: TPasElement;
+  lName: string;
 begin
   if (aDecl = nil) or (aDecl.Name = '') then
     Exit('');
-  lParent := '';
-  if aDecl.Parent <> nil then
-    lParent := aDecl.Parent.Name;
-  Result := LowerCase(aDecl.Name) + '#' + IntToStr(aRow) + '#' + LowerCase(lParent);
+  lParent := aDecl.Parent;
+  // Only the plain parse nests overloaded methods under a TPasOverloadedProc.
+  if lParent is TPasOverloadedProc then
+  begin
+    lParent := lParent.Parent;
+  end;
+  lName := '';
+  if lParent <> nil then
+    lName := lParent.Name;
+  Result := LowerCase(aDecl.Name) + '#' + IntToStr(aRow) + '#' + LowerCase(lName);
 end;
 
 

@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesLayout;
 
-{ The 5 LEX layout rules + the line-text feed. }
 
 {$mode objfpc}{$H+}
 
@@ -29,20 +28,17 @@ type
   { Layout-rule position + registration tests. }
   TRulesLayoutTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
-    // As RunRule, but the fixture source is supplied inline (one array element
-    // per source line) and materialised to a temp dir for the run.
+    // As RunRule, with the fixture source supplied inline.
     procedure RunRuleSrc(aRule: TRuleBase; const aName: string;
       const aSrc: array of string; const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Fresh, separately-owned instances of each rule (metadata mirrors the
-    // unit's self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewTrailing: TRuleBase;
     function NewTabs: TRuleBase;
     function NewLineLong: TRuleBase;
@@ -69,9 +65,8 @@ const
   cNumId = 'LongNumericLiteralUnderscores';
   cGroupingId = 'DigitGroupingStandard';
 
-  // Embedded layout-rule fixtures (Approach A rollout): line i+1 == [i].
-  // Trailing spaces (NoTrailingWhitespace) and a leading tab (NoTabs) are
-  // preserved verbatim INSIDE the string literals.
+  // Embedded layout-rule fixtures: line i+1 == [i]. Trailing spaces and tabs
+  // are preserved verbatim inside the string literals.
 
   cTrailingNoncompliant: array[0..8] of string = (
     'unit Noncompliant;',
@@ -238,8 +233,7 @@ var
   lFix: TTempFixtures;
 
 begin
-  // Materialise the inline fixture (one array element per source line, in-line
-  // tabs / trailing spaces preserved) to a temp dir, run, and delete.
+  // Materialise the inline fixture to a temp dir, run, and delete.
   lFix := TTempFixtures.Create;
   try
     RunRule(aRule, lFix.Add(aName, aSrc), aCollector);
@@ -488,8 +482,8 @@ end;
 procedure TRulesLayoutTest.RulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered all 5 rules into the GLOBAL
-  // registry (this is what the CLI process runs).
+  // The production initialization registered all 5 rules into the global
+  // registry.
   AssertTrue('NoTrailingWhitespace registered',
     RuleRegistry.FindById(cTrailingId) <> nil);
   AssertTrue('NoTabs registered', RuleRegistry.FindById(cTabsId) <> nil);
@@ -509,8 +503,7 @@ var
   i: Integer;
 
 begin
-  // Two runs of the same rule over the same noncompliant fixture must produce
-  // identical issues (count, RuleId, positions, fingerprints).
+  // Two runs over the same fixture must produce identical issues.
   lFirst := TFpSonarIssueCollector.Create;
   lSecond := TFpSonarIssueCollector.Create;
   try

@@ -132,8 +132,7 @@ type
     Kind: TRuleParamKind;
     // The rule's built-in default, rendered as text and interpreted per Kind:
     // an integer literal (rpkInt), 'true'/'false' (rpkBool), the string/regex
-    // verbatim (rpkString/rpkRegex), or '' for rpkTargets (an empty
-    // disallow-list). Surfaced verbatim by "fpsonar init-config".
+    // verbatim (rpkString/rpkRegex), or '' for rpkTargets.
     DefaultValue: string;
   end;
 
@@ -667,10 +666,9 @@ begin
 end;
 
 
-{ Anchors each search-path entry against aBaseDir, so a relative '-Fu ../X' 
-  resolves where the compiler resolves it — relative to the project/.cfg dir, 
-  not the process CWD. 
-  Note: Entries with an unexpanded macro ('$...') are left untouched }
+{ Anchors each search-path entry against aBaseDir: a relative '-Fu ../X'
+  resolves relative to the project/.cfg dir, not the process CWD. Entries with
+  an unexpanded macro ('$...') are left untouched. }
 procedure ResolvePathList(const aBaseDir: string;
   var aList: TFpSonarStringArray);
 var

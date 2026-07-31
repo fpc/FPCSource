@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstSuppression;
 
-{ suppression-foundation tests }
 
 {$mode objfpc}{$H+}
 
@@ -60,11 +59,11 @@ implementation
 
 const
   cMode = 'OBJFPC';
-  // Pinned to nosonarfixture.pas: line 12 carries the trailing NOSONAR marker,
-  // line 13 (implementation) carries none.
+  // nosonarfixture.pas line 12 carries the trailing NOSONAR marker, line 13
+  // none.
   cNoSonarRow = 12;
   cPlainRow = 13;
-  // Embedded suppression fixture (Approach A): line i+1 == [i].
+  // Embedded suppression fixture: line i+1 == [i].
 
   cNoSonarFixture: array[0..14] of string = (
     'unit NoSonarFixture;',
@@ -375,8 +374,8 @@ begin
   try
     lMap.AddFile('a.pas', lToks);
 
-    // (a)+(b): the tracker survives the NOSONAR self-suppression; the ordinary
-    // rule's issue on the same line is still dropped.
+    // The tracker survives the NOSONAR self-suppression; the ordinary issue
+    // drops.
     lResult := ApplySuppressions(lIssues, lMap, nil);
     AssertEquals('only the tracker survives the NOSONAR line', 1,
       Length(lResult));
@@ -385,8 +384,7 @@ begin
     AssertEquals('the ordinary on-line issue is dropped', -1,
       IndexOfFingerprint(lResult, 'fp-other'));
 
-    // (c): a config rule-glob still suppresses the tracker (the exemption is
-    // ONLY for the NOSONAR-marker branch, not config globs).
+    // A config rule-glob still suppresses the tracker.
     SetLength(lGlobs, 1);
     lGlobs[0] := MakeGlob('TrackNoSonar', '');
     lResult := ApplySuppressions(lIssues, lMap, lGlobs);

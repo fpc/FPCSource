@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Layout;
 
-{ LEX-tier layout rules:
-  line length, trailing whitespace, tabs, long-numeric-literal underscores, digit grouping.
-}
 
 {$mode objfpc}{$H+}
 

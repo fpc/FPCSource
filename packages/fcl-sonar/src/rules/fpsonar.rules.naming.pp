@@ -14,9 +14,6 @@
  **********************************************************************}
 unit FpSonar.Rules.Naming;
 
-{ Naming AST rules:
-  a declared name that does not match its default pattern,
-  plus a cross-cutting minimum-length check. Patterns are config-tunable. }
 
 {$mode objfpc}{$H+}
 
@@ -160,8 +157,7 @@ uses
   FpSonar.Config;
 
 const
-  // Per-kind default name patterns. Anchored ^...$, so a successful Exec is a
-  // whole-string match.
+  // Per-kind default name patterns. Anchored ^...$.
   cPatternClass = '^T[A-Z][A-Za-z0-9]*$';
   cPatternRecord = '^T[A-Z][A-Za-z0-9]*$';
   cPatternInterface = '^I[A-Z][A-Za-z0-9]*$';

@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstEngine;
 
-{ TFpSonarEngine tests. }
 
 {$mode objfpc}{$H+}
 
@@ -26,8 +25,8 @@ uses
   UtstFixtures, UtstCoreFixtures;
 
 type
-  { A synthetic LEX rule emitting one sentinel issue per file (carrying the
-    file it ran on), so a test can observe per-file processing order. }
+  { A synthetic LEX rule emitting one sentinel issue per file, carrying the
+    file it ran on. }
   TSynthFileRule = class(TRuleBase)
   public
     procedure Apply(const aContext: TRuleContext;
@@ -180,8 +179,8 @@ begin
     // The bad file surfaces a ParseError; the run continued for the others.
     AssertTrue('ParseError folded for the bad file',
       CountRule(lCollector, 'ParseError') >= 1);
-    // LEX rule fires on every file's token stream (tokens survive a failed
-    // parse) => one sentinel per target, including the bad one.
+    // The LEX rule fires on every file's token stream; tokens survive a failed
+    // parse.
     AssertEquals('sentinel per file (bad file did not void the run)', 3,
       CountRule(lCollector, cSynthId));
   finally
@@ -201,14 +200,7 @@ var
   lCollector: TFpSonarIssueCollector;
 
 begin
-  // The real LEX layout rules AND the TOK
-  // declaration/keyword rules are registered into the global registry, so this run now actually
-  // exercises all of them. smokefixture.pas is both LEX-clean (no tabs, no
-  // trailing whitespace, longest line < 120, no >=5-digit unseparated literal)
-  // and TOK-clean (all keywords lowercase; a single type and a single var
-  // section, no consecutive same-kind sections; every declaration is single-name;
-  // SumTriple has no empty parentheses), so it legitimately produces zero
-  // issues — the assertion stays at 0.
+  // smokefixture.pas is both LEX-clean and TOK-clean.
   lFix := TTempFixtures.Create;
   lEngine := TFpSonarEngine.Create;
   lCollector := TFpSonarIssueCollector.Create;

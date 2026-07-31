@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesSemNaming;
 
-{ The resolver-backed (SEM) semantic-naming rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -29,8 +28,7 @@ type
   { SEM-tier semantic-naming rule position + registration tests. }
   TRulesSemNamingTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned).
+    // Runs aRule over aFixture, collecting issues into aCollector.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
@@ -41,8 +39,7 @@ type
     // rule.<aId>.message and MessageArgs deep-equal to aArgs.
     procedure AssertIssueAt(const aCollector: TFpSonarIssueCollector; aK: Integer;
       const aId: string; aLine: Integer; const aArgs: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the unit's
-    // self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewConsistentNameCasing: TRuleBase;
     function NewDescendantNamingConvention: TRuleBase;
   published
@@ -59,7 +56,7 @@ const
   cConsistentNameCasingId = 'ConsistentNameCasing';
   cDescendantNamingConventionId = 'DescendantNamingConvention';
 
-  // Embedded SEM naming-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded SEM naming-rule fixtures: line i+1 == [i].
 
   cConsistentNameCasingNoncompliant: array[0..11] of string = (
     'unit noncompliant;',
@@ -219,8 +216,7 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: the 'myvalue' use-site (row 10) diverges from the declaration
-    // 'MyValue', so the args are [used, canonical] = ['myvalue', 'MyValue'].
+    // Noncompliant: the 'myvalue' use-site (row 10) diverges from 'MyValue'.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(NewConsistentNameCasing,
@@ -232,8 +228,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: a casing-matching reference stays silent (and the fixture MUST
-    // resolve clean — the silent-skip canary).
+    // Compliant: a casing-matching reference stays silent.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(NewConsistentNameCasing,
@@ -258,9 +253,8 @@ var
 begin
   lFix := TTempFixtures.Create;
   try
-    // Noncompliant: a class 'ParseError' (row 6) descending Exception fails ^E, and
-    // an interface 'Foo' (row 7) descending IInterface fails ^I — two issues in
-    // declaration order, each with [typeName, pattern].
+    // Noncompliant: class 'ParseError' (row 6) fails ^E and interface 'Foo'
+    // (row 7) fails ^I, in declaration order.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(NewDescendantNamingConvention,
@@ -273,9 +267,7 @@ begin
       lc.Free;
     end;
 
-    // Compliant: EParseError matches ^E, IFoo matches ^I, and TFoo descends only
-    // TObject (the ^T convention is off by default) — all silent. The fixture MUST
-    // resolve clean (the silent-skip canary).
+    // Compliant: EParseError matches ^E, IFoo matches ^I, TFoo descends TObject.
     lc := TFpSonarIssueCollector.Create;
     try
       RunRule(NewDescendantNamingConvention,
@@ -294,8 +286,7 @@ end;
 procedure TRulesSemNamingTest.SemNamingRulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered both SEM naming rules into the GLOBAL
-  // registry (this is what the CLI process runs).
+  // The production initialization registered both SEM naming rules globally.
   AssertTrue('ConsistentNameCasing registered',
     RuleRegistry.FindById(cConsistentNameCasingId) <> nil);
   AssertTrue('DescendantNamingConvention registered',

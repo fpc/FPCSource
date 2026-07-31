@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstAstVisitor;
 
-{ The shared AST-traversal in FpSonar.Traversal. }
 
 
 {$mode objfpc}{$H+}
@@ -29,8 +28,7 @@ type
   { Routine-enumeration tests for the AST-visitor foundation. }
   TAstVisitorTest = class(TTestCase)
   private
-    // Writes aSrc into a temp dir and analyses it through the
-    // production source-file pipeline (mode/defines fixed as OBJFPC/Linux64).
+    // Writes aSrc into a temp dir and analyses it as OBJFPC/Linux64.
     procedure AnalyzeSrc(aSource: TFpSonarSourceFile; const aName: string;
       const aSrc: array of string);
   published
@@ -48,7 +46,7 @@ type
 implementation
 
 const
-  // Embedded AST-visitor fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded AST-visitor fixtures: line i+1 == [i].
 
   cAstVisitorFixture: array[0..48] of string = (
     'unit AstVisitorFixture;',
@@ -230,8 +228,7 @@ begin
 
     lRoutines := EnumerateRoutines(lSource.Module);
 
-    { The interface forward of TopLevel (no body) is skipped; the two method
-      implementations, the top-level routine and its nested routine remain, in
+    { The interface forward of TopLevel is skipped; the four bodies remain, in
       declaration order. }
     AssertEquals('four body-bearing routines', 4, Length(lRoutines));
 
@@ -266,8 +263,7 @@ var
   lRoutines: TAstRoutineArray;
 
 begin
-  // A failed parse leaves Module nil; enumeration must degrade to empty,
-  // never dereference nil.
+  // A failed parse leaves Module nil; enumeration degrades to empty.
   lRoutines := EnumerateRoutines(nil);
   AssertEquals('no routines for a nil module', 0, Length(lRoutines));
 end;
@@ -287,11 +283,8 @@ begin
 
     lTypes := EnumerateTypes(lSource.Module);
 
-    { The forward TFwd (no body) is skipped; the enum, the record, the
-      interface, the real TFwd, its NESTED type (appended right after its
-      enclosing class, per the Members recursion) and the helper remain, in
-      declaration order. The invariants that MUST hold: forward TFwd absent,
-      real TFwd and nested TNestedKind present, count = 6. }
+    { The forward TFwd is skipped; the other six named types remain, in
+      declaration order. }
     AssertEquals('six named types', 6, Length(lTypes));
     AssertEquals('1st is the enum', 'TColorEnum', lTypes[0].Name);
     AssertEquals('2nd is the record', 'TPointRec', lTypes[1].Name);
@@ -311,8 +304,7 @@ var
   lTypes: TPasTypeArray;
 
 begin
-  // A failed parse leaves Module nil; enumeration must degrade to empty,
-  // never dereference nil.
+  // A failed parse leaves Module nil; enumeration degrades to empty.
   lTypes := EnumerateTypes(nil);
   AssertEquals('no types for a nil module', 0, Length(lTypes));
 end;
@@ -332,10 +324,8 @@ begin
 
     lVals := EnumerateValueDecls(lSource.Module);
 
-    { The property Value is EXCLUDED; the two consts, the global var and the
-      class field FField remain, in declaration order. The invariants that MUST
-      hold: property absent, FField present as vkField, both consts vkConst,
-      GlobalVar vkVar, count = 4. }
+    { The property Value is excluded; the two consts, the global var and FField
+      remain. }
     AssertEquals('four value declarations', 4, Length(lVals));
 
     AssertEquals('1st is the top-level const', 'cTopConst', lVals[0].Decl.Name);
@@ -382,8 +372,7 @@ begin
 
     lRoots := EnumerateStatementRoots(lSource.Module);
 
-    // Exactly three roots in deterministic order: the single routine's block,
-    // then the initialization section, then the finalization section.
+    // Three roots in order: the routine's block, initialization, finalization.
     AssertEquals('three statement roots', 3, Length(lRoots));
     AssertTrue('1st is the routine begin-block',
       lRoots[0] is TPasImplBeginBlock);

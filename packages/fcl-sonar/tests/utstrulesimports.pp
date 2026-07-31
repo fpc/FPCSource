@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utstRulesImports;
 
-{ The resolver-backed (SEM) import-rule tests }
 
 {$mode objfpc}{$H+}
 
@@ -29,26 +28,20 @@ type
   { SEM-tier import-rule position + registration tests. }
   TRulesImportsTest = class(TTestCase)
   private
-    // Runs aRule (taken into a fresh local registry, freed here) over aFixture,
-    // collecting issues into aCollector (caller-owned). Threads the fixture's own
-    // directory as the unit search path so cross-unit helper units resolve.
+    // Runs aRule over aFixture, collecting issues into aCollector; the fixture's
+    // own directory is the unit search path.
     procedure RunRule(aRule: TRuleBase; const aFixture: string;
       const aCollector: TFpSonarIssueCollector);
     function CountById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
     function FirstById(const aCollector: TFpSonarIssueCollector;
       const aId: string): Integer;
-    // Asserts aRule fires exactly once at aLine, column 1, with key
-    // rule.<aId>.message and message args = aArgs; and zero on the compliant
-    // fixture (the silent-skip canary). The noncompliant/compliant sources are
-    // supplied inline and materialised into aFix (which the caller may pre-
-    // populate with sibling units for cross-unit resolution); aFix's directory is
-    // the unit search path.
+    // Asserts aRule fires once at aLine, column 1, with key rule.<aId>.message
+    // and message args aArgs, and zero on the compliant fixture.
     procedure CheckImportRuleSrc(aRule, aCompliantRule: TRuleBase;
       const aId: string; aLine: Integer; const aArgs: array of string;
       aFix: TTempFixtures; const aNoncompliant, aCompliant: array of string);
-    // Fresh, separately-owned instances of each rule (metadata mirrors the unit's
-    // self-registration; empty key defaults to rule.<RuleId>.message).
+    // Fresh, separately-owned instances of each rule.
     function NewFullyQualifiedImports: TRuleBase;
     function NewMoveImportToImplementation: TRuleBase;
   published
@@ -65,7 +58,7 @@ const
   cFullyQualifiedImportsId = 'FullyQualifiedImports';
   cMoveImportToImplementationId = 'MoveImportToImplementation';
 
-  // Embedded import-rule fixtures (Approach A rollout): line i+1 == [i].
+  // Embedded import-rule fixtures: line i+1 == [i].
 
   cFqiNoncompliant: array[0..28] of string = (
     'unit NonCompliant;',
@@ -278,10 +271,7 @@ var
   lDir: string;
 
 begin
-  // The fixture's own directory is the unit search path, so the FullyQualifiedImports
-  // helper units UnitA / UnitB (siblings of noncompliant.pas) resolve cross-unit.
-  // Harmless for the MoveImportToImplementation fixtures, whose imports are
-  // synthetic-RTL units.
+  // The fixture's own directory is the unit search path for sibling units.
   lDir := ExtractFilePath(aFixture);
   lReg := TRuleRegistry.Create;
   lEngine := TFpSonarRuleEngine.CreateWith(lReg);
@@ -354,10 +344,7 @@ var
   k, m: Integer;
 
 begin
-  // Noncompliant: exactly one issue at the offending node's row, column 1 (SEM
-  // nodes carry no column), carrying aArgs as the message args. Written into
-  // aFix (whose dir RunRule threads as the unit search path), alongside any
-  // sibling units the caller pre-added.
+  // Noncompliant: one issue at the offending node's row, column 1, with aArgs.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRule(aRule, aFix.Add('noncompliant.pas', aNoncompliant), lc);
@@ -378,8 +365,7 @@ begin
     lc.Free;
   end;
 
-  // Compliant: the FP guards stay silent (and the fixture MUST resolve clean,
-  // else the rfResolver feed is absent -> rule skipped -> a false 0).
+  // Compliant: the FP guards stay silent; the fixture must resolve clean.
   lc := TFpSonarIssueCollector.Create;
   try
     RunRule(aCompliantRule, aFix.Add('compliant.pas', aCompliant), lc);
@@ -396,14 +382,11 @@ var
   lFix: TTempFixtures;
 
 begin
-  // Noncompliant: bare 'Helper(aX)' over 'uses UnitA, UnitB' (both export Helper)
-  // at row 25 (probe-locked); arg is the shadowable simple name. Compliant: an
-  // explicitly-qualified UnitA.Helper, a single-source Solo, a local reference,
-  // and a SysUtils symbol (ignoreUnits) — all silent.
+  // Noncompliant: bare 'Helper(aX)' over 'uses UnitA, UnitB' at row 25.
+  // Compliant: UnitA.Helper, a single-source Solo, a local reference, SysUtils.
   lFix := TTempFixtures.Create;
   try
-    // UnitA/UnitB are the two source units that make 'Helper' shadowable; they
-    // must be siblings in the search dir for cross-unit resolution.
+    // UnitA/UnitB are the two source units that make 'Helper' shadowable.
     lFix.Add('unita.pas', cFqiUnitA);
     lFix.Add('unitb.pas', cFqiUnitB);
     CheckImportRuleSrc(NewFullyQualifiedImports, NewFullyQualifiedImports,
@@ -421,11 +404,8 @@ var
   lFix: TTempFixtures;
 
 begin
-  // Noncompliant: interface 'uses SysUtils' at row 16 (probe-locked) used only in
-  // the implementation body (StrToInt); arg is the movable unit name. Compliant:
-  // Classes (TStream result type) and SysUtils (TFormatSettings interface var)
-  // are both interface-referenced -> silent. Imports are synthetic-RTL units, so
-  // no sibling fixtures are needed.
+  // Noncompliant: interface 'uses SysUtils' at row 16, used only in the
+  // implementation body. Compliant: Classes and SysUtils are interface-referenced.
   lFix := TTempFixtures.Create;
   try
     CheckImportRuleSrc(NewMoveImportToImplementation, NewMoveImportToImplementation,
@@ -440,8 +420,7 @@ end;
 procedure TRulesImportsTest.ImportRulesSelfRegisterGlobally;
 
 begin
-  // The production initialization registered both SEM import rules into the
-  // GLOBAL registry (this is what the CLI process runs).
+  // The production initialization registered both SEM import rules globally.
   AssertTrue('FullyQualifiedImports registered',
     RuleRegistry.FindById(cFullyQualifiedImportsId) <> nil);
   AssertTrue('MoveImportToImplementation registered',
