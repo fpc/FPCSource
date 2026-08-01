@@ -4117,7 +4117,7 @@ begin
       if MainSrcFile<>'' then
         ParamFatal('Only one Pascal file is supported, but got "'+MainSrcFile+'" and "'+Param+'".');
       MainSrcFile:=ExpandFileName(Param);
-      Writeln('Info: MainSrcFile ',Param,' -> ',MainSrcFile);
+      //Writeln('Info: MainSrcFile ',Param,' -> ',MainSrcFile);
     end;
   end;
 end;
