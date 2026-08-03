@@ -44,6 +44,7 @@ type
     procedure TestSkipRule_AtNameCurlyNameColonEOF;
     procedure TestSkipRule_NameEOF;
     procedure TestSkipRule_NameCurlyEOF;
+    procedure TestSkipRule_NameCurlyNestedCurlyEOF;
     procedure TestSkipRule_NameCurlyNameEOF;
     procedure TestSkipRule_NameCurlyNameColonEOF;
     procedure TestSkipRule_NameBracketEOF;
@@ -211,7 +212,21 @@ end;
 
 procedure TTestCSSSkipInline.TestSkipRule_NameCurlyEOF;
 begin
-  Parse('a{');
+  // the unclosed rule is auto closed at EOF
+  ParseRules_FirstRule('a{','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameCurlyNestedCurlyEOF;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+begin
+  // the nested rule is closed, the outer rule is auto closed at EOF
+  Parse('a{.b{}');
+  aRule:=FirstRule;
+  CheckSelector(aRule,0,'a');
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  CheckSelector(aNestedRule,0,'b');
 end;
 
 procedure TTestCSSSkipInline.TestSkipRule_NameCurlyNameEOF;

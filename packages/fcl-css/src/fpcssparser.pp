@@ -70,6 +70,8 @@ Type
     Procedure DoError(const Fmt : TCSSString; const Args : Array of const);
     Procedure DoErrorExpectedButGot(const Expected: string);
     Procedure Consume(aToken : TCSSToken); virtual;
+    // Close a block: an unclosed block at end of input is auto closed, as required by the CSS syntax spec.
+    Procedure ConsumeRBrace;
     Procedure SkipWhiteSpace;
     Procedure SkipRule;
     function ParseComponentValueList(AllowRules: Boolean=True): TCSSElement; virtual;
@@ -271,6 +273,14 @@ begin
   GetNextToken;
 end;
 
+procedure TCSSParser.ConsumeRBrace;
+begin
+  if CurrentToken=ctkRBRACE then
+    GetNextToken
+  else if CurrentToken<>ctkEOF then
+    DoWarnExpectedButGot('}');
+end;
+
 procedure TCSSParser.SkipWhiteSpace;
 begin
   while CurrentToken=ctkWHITESPACE do
@@ -294,10 +304,7 @@ begin
     repeat
       case CurrentToken of
       ctkEOF:
-        begin
-        DoWarnExpectedButGot('}');
         break;
-        end;
       ctkLBRACE: inc(Lvl);
       ctkRBRACE:
         if Lvl=1 then
@@ -460,10 +467,7 @@ begin
       begin
       GetNextToken;
       aRule.AddChild(ParseRuleList(ctkRBRACE));
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
@@ -535,10 +539,7 @@ begin
         if CurrentToken=ctkSEMICOLON then
           GetNextToken;
         end;
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
@@ -1363,10 +1364,7 @@ begin
       begin
       GetNextToken;
       ParseRuleBody(aRule);
-      if CurrentToken=ctkRBRACE then
-        GetNextToken
-      else
-        DoWarnExpectedButGot('}');
+      ConsumeRBrace;
       end;
     Result:=aRule;
     aRule:=nil;
