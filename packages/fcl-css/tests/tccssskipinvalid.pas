@@ -17,6 +17,7 @@ type
     procedure ParseInline_FirstValidDecl(aSource, aKey: string);
     procedure ParseRules_FirstRule(aSource, aName: string);
     procedure ParseRules_SecondRule(aSource, aName: string);
+    function ParseRules_FirstAtRule(aSource, aKeyword: string): TCSSAtRuleElement;
   published
     // skip invalid inline
     procedure TestSkipInline_AttrMissingColon;
@@ -42,6 +43,13 @@ type
     procedure TestSkipRule_AtNameCurlyEOF;
     procedure TestSkipRule_AtNameCurlyNameEOF;
     procedure TestSkipRule_AtNameCurlyNameColonEOF;
+    procedure TestSkipRule_AtMediaEOF;
+    procedure TestSkipRule_AtMediaParenthesisEOF;
+    procedure TestSkipRule_AtMediaBinaryEOF;
+    procedure TestSkipRule_AtMediaCurlyEOF;
+    procedure TestSkipRule_AtMediaCurlyRuleCurlyEOF;
+    procedure TestSkipRule_AtFontFaceCurlyEOF;
+    procedure TestSkipRule_AtFontFaceCurlyNameColonEOF;
     procedure TestSkipRule_NameEOF;
     procedure TestSkipRule_NameCurlyEOF;
     procedure TestSkipRule_NameCurlyNestedCurlyEOF;
@@ -99,6 +107,14 @@ begin
   Parse(aSource);
   aRule:=GetSecondRule;
   CheckSelector(aRule,0,aName);
+end;
+
+function TTestCSSSkipInline.ParseRules_FirstAtRule(aSource, aKeyword: string
+  ): TCSSAtRuleElement;
+begin
+  Parse(aSource);
+  Result:=TCSSAtRuleElement(CheckClass('at rule',TCSSAtRuleElement,FirstRule));
+  AssertEquals('at keyword',aKeyword,Result.AtKeyWord);
 end;
 
 procedure TTestCSSSkipInline.TestSkipInline_AttrMissingColon;
@@ -204,6 +220,53 @@ end;
 procedure TTestCSSSkipInline.TestSkipRule_AtNameCurlyNameColonEOF;
 begin
   Parse('@a{b:');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaEOF;
+begin
+  // the rule is auto closed at EOF
+  ParseRules_FirstAtRule('@media','@media');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaParenthesisEOF;
+begin
+  // the rule is auto closed at EOF
+  ParseRules_FirstAtRule('@media (','@media');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaBinaryEOF;
+begin
+  ParseRules_FirstAtRule('@media (width>','@media');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaCurlyEOF;
+var
+  aRule: TCSSAtRuleElement;
+begin
+  aRule:=ParseRules_FirstAtRule('@media(width>3){','@media');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  AssertEquals('nested rule count',0,aRule.NestedRuleCount);
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtMediaCurlyRuleCurlyEOF;
+var
+  aRule: TCSSAtRuleElement;
+begin
+  // both the nested rule and the @media rule are auto closed at EOF
+  aRule:=ParseRules_FirstAtRule('@media(width>3){div{','@media');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  AssertEquals('nested rule count',1,aRule.NestedRuleCount);
+  CheckSelector(aRule.NestedRules[0],0,'div');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtFontFaceCurlyEOF;
+begin
+  ParseRules_FirstAtRule('@font-face{','@font-face');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtFontFaceCurlyNameColonEOF;
+begin
+  ParseRules_FirstAtRule('@font-face{src:','@font-face');
 end;
 
 procedure TTestCSSSkipInline.TestSkipRule_NameEOF;
