@@ -1823,6 +1823,13 @@ begin
     AName:=SimpleTypeCaseNames[I];
 end;
 
+var
+  { Uniquifies the synthetic name of an anonymous inline string[N] type, so two
+    string[N] declarations of the same N in one scope do not collide on
+    'string$_N' (classes/parser.inc: a const string[3] and a var string[3] in
+    the same routine). The name is anonymous, so any unique value works. }
+  AnonStringTypeCounter: Integer = 0;
+
 function TPasParser.ParseStringType(Parent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String): TPasAliasType;
 
@@ -1867,7 +1874,11 @@ begin
   //   string(CP)     -> 'string$CP'    (codepage-qualified, existing convention)
   //   plain string   -> 'string'
   if LengthAsText <> '' then
-    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$_'+LengthAsText,Result))
+    begin
+    Inc(AnonStringTypeCounter);
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,
+      'string$_'+LengthAsText+'$'+IntToStr(AnonStringTypeCounter),Result));
+    end
   else if CodePageAsText <> '' then
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$'+CodePageAsText,Result))
   else
