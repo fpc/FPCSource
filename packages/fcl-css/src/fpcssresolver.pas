@@ -659,6 +659,12 @@ type
     procedure DisableDeclaration(Decl: TCSSDeclarationElement); virtual;
     procedure EnableDeclaration(Decl: TCSSDeclarationElement); virtual;
     function IsDeclarationDisabled(Decl: TCSSDeclarationElement): boolean; virtual;
+    function RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean; virtual;
+    // Carry the disabled flags of OldRule's declarations over to NewRule's, matched by
+    // property name (same-named ones in order). For a rule that is in no stylesheet -
+    // an element/inline style - and therefore has no declaration path, so that the
+    // path based RestoreDisabledDeclarations cannot reach it after a reparse.
+    procedure TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement); virtual;
     function GetDisabledDeclarations: TFPList; virtual; // TCSSDeclarationElement list, caller frees the list
     function GetDisabledDeclarationPaths: TStrings; virtual; // path -> Objects[i]=TCSSDeclarationElement, caller frees
     property StyleSheetCount: integer read FStyleSheetCount;
@@ -5185,6 +5191,52 @@ var
 begin
   KeyData:=DeclKeyData(Decl);
   Result:=(KeyData<>nil) and KeyData.Disabled;
+end;
+
+function TCSSResolver.RuleHasDisabledDeclaration(Rule: TCSSRuleElement): boolean;
+var
+  i: Integer;
+begin
+  Result:=false;
+  if Rule=nil then exit;
+  for i:=0 to Rule.ChildCount-1 do
+    if (Rule.Children[i] is TCSSDeclarationElement)
+        and IsDeclarationDisabled(TCSSDeclarationElement(Rule.Children[i])) then
+      exit(true);
+end;
+
+procedure TCSSResolver.TransferDisabledDeclarations(OldRule, NewRule: TCSSRuleElement);
+var
+  i, j: Integer;
+  OldDecl, NewDecl: TCSSDeclarationElement;
+  KeyData: TCSSAttributeKeyData;
+  Taken: array of boolean;
+  PropName: TCSSString;
+begin
+  if (OldRule=nil) or (NewRule=nil) then exit;
+  Taken:=nil;
+  SetLength(Taken,NewRule.ChildCount);
+  for i:=0 to OldRule.ChildCount-1 do
+  begin
+    if not (OldRule.Children[i] is TCSSDeclarationElement) then continue;
+    OldDecl:=TCSSDeclarationElement(OldRule.Children[i]);
+    if not IsDeclarationDisabled(OldDecl) then continue;
+    PropName:=CSSDeclPropertyName(OldDecl);
+    // the first new declaration of that property not yet claimed by an earlier old one,
+    // so duplicate properties keep their order
+    for j:=0 to NewRule.ChildCount-1 do
+    begin
+      if Taken[j] then continue;
+      if not (NewRule.Children[j] is TCSSDeclarationElement) then continue;
+      NewDecl:=TCSSDeclarationElement(NewRule.Children[j]);
+      if CSSDeclPropertyName(NewDecl)<>PropName then continue;
+      Taken[j]:=true;
+      KeyData:=DeclKeyData(NewDecl);
+      if KeyData<>nil then
+        KeyData.Disabled:=true;
+      break;
+    end;
+  end;
 end;
 
 function TCSSResolver.GetDisabledDeclarations: TFPList;
