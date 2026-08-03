@@ -591,7 +591,10 @@ type
     bfRound,
     // native-target string Copy (Copy(s,start,count)); registered only by
     // TPasNativeResolver, inert in the base/pas2js setup (pas2js has no string Copy)
-    bfCopyString
+    bfCopyString,
+    // native-target Slice(arr,count) intrinsic (open-array view of the first
+    // `count` elements); registered only by TPasNativeResolver, inert elsewhere.
+    bfSlice
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -634,7 +637,8 @@ const
     'BitSizeOf',
     'Trunc',
     'Round',
-    'Copy'
+    'Copy',
+    'Slice'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -1450,6 +1454,15 @@ type
   end;
   PPRFindData = ^TPRFindData;
 
+  // Selects, among the overloads of a name, the proc whose signature is
+  // assignment-compatible with a target procedure type (for @overloadedProc
+  // assigned to a typed procedure variable).
+  TPRFindProcAddrData = record
+    TargetType: TPasProcedureType;
+    Found: TPasProcedure;
+  end;
+  PPRFindProcAddrData = ^TPRFindProcAddrData;
+
   TPRFindGenericData = record
     Find: TPRFindData;
     TemplateCount: integer;
@@ -1627,6 +1640,8 @@ type
 
     procedure OnFindFirst_PreferNoParams(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
+    procedure OnFindProcAddrForType(El: TPasElement; ElScope, StartScope: TPasScope;
+      FindProcAddrData: Pointer; var Abort: boolean); virtual;
     procedure OnFindFirst(El: TPasElement; ElScope, StartScope: TPasScope;
       FindFirstElementData: Pointer; var Abort: boolean); virtual;
     procedure OnFindFirst_GenericEl(El: TPasElement; ElScope, StartScope: TPasScope;
@@ -2102,6 +2117,10 @@ type
     function BI_CopyArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_CopyArray_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_Slice_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_Slice_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     function BI_InsertArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
@@ -5168,6 +5187,23 @@ begin
     Abort:=true;
 end;
 
+procedure TPasResolver.OnFindProcAddrForType(El: TPasElement; ElScope,
+  StartScope: TPasScope; FindProcAddrData: Pointer; var Abort: boolean);
+// Collect the first overload of a name whose signature is assignment-compatible
+// with the target procedure type (used to disambiguate @overloadedProc := procvar).
+var
+  Data: PPRFindProcAddrData absolute FindProcAddrData;
+begin
+  if ElScope=nil then ; if StartScope=nil then ;
+  if not (El is TPasProcedure) then exit;
+  if TPasProcedure(El).ProcType=nil then exit;
+  if CheckProcTypeCompatibility(Data^.TargetType,TPasProcedure(El).ProcType,true,nil,false) then
+    begin
+    Data^.Found:=TPasProcedure(El);
+    Abort:=true;
+    end;
+end;
+
 procedure TPasResolver.OnFindFirst(El: TPasElement; ElScope,
   StartScope: TPasScope; FindFirstElementData: Pointer; var Abort: boolean);
 var
@@ -5426,6 +5462,15 @@ begin
     Proc:=TPasProcedure(El);
     PrevProc:=nil;
 
+    // Symbolic operators are invoked through operator syntax (e.g. a ** b), never
+    // by their internal name ("power" for **). Exclude those from by-name call
+    // resolution so a call like power(a,b) unambiguously selects the like-named
+    // function. Inc/Dec operators are the exception: they overload the Inc/Dec
+    // standard procedures and ARE invoked by name (inc(x)/dec(x), toperator11).
+    if (Proc is TPasOperator)
+        and not (TPasOperator(Proc).OperatorType in [otInc, otDec]) then
+      exit;
+
     if Data^.Found=Proc then
       begin
       // this proc was already found. This happens when this is the forward
@@ -5572,7 +5617,15 @@ begin
         // intrinsic, mirroring the proc-vs-proc hiding rule above (FPC: a user
         // Write/Read/etc. declared without 'overload' shadows the system
         // intrinsic instead of tying with it). tforin26/tforin27.
-        if (Data^.LastProc<>nil) and not IsProcOverload(Data^.LastProc) then
+        // A user METHOD (class/record member) hides the intrinsic even when it
+        // is marked 'overload': it lives in an inner scope (the class), and
+        // 'overload' only groups its same-named siblings, it does not merge with
+        // the system intrinsic from the outermost scope. Without this, a method
+        // like TStream.Read(var Buffer; Count) whose untyped-var overload scores
+        // worse than the intrinsic would lose to the system Read (streams.inc).
+        if (Data^.LastProc<>nil)
+            and (not IsProcOverload(Data^.LastProc)
+                 or (Data^.LastProc.Parent is TPasMembersType)) then
           begin
           Abort:=true;
           exit;
@@ -5840,6 +5893,36 @@ begin
           end;
         end;
       end;
+    // Unit-scope hiding, second case: neither candidate is in the root module,
+    // but the two live in different units and exactly one is the SYSTEM unit.
+    // The system unit is always used first (outermost scope), so any other
+    // unit's same-named routine hides it -- FPC scope hiding, not ambiguity.
+    // E.g. sysutils' StrPas(PAnsiChar):string hides system's
+    // StrPas(PAnsiChar):shortstring for a unit using both (classes/stringl.inc).
+    // Only at the exact/alias tie level.
+    if (Data^.Distance<=cAliasExact)
+        and (El is TPasProcedure) and (Data^.Found is TPasProcedure)
+        and (El.GetModule<>nil) and (Data^.Found.GetModule<>nil)
+        and (El.GetModule<>Data^.Found.GetModule) then
+      begin
+      if IsSystemUnit(El.GetModule) and not IsSystemUnit(Data^.Found.GetModule) then
+        exit  // keep the non-system candidate; ignore the system-unit one
+      else if IsSystemUnit(Data^.Found.GetModule) and not IsSystemUnit(El.GetModule) then
+        begin
+        // El is non-system; it supersedes the system-unit candidate
+        Data^.Found:=El;
+        Data^.ElScope:=ElScope;
+        Data^.StartScope:=StartScope;
+        Data^.Distance:=Distance;
+        Data^.Count:=1;
+        if Data^.List<>nil then
+          begin
+          Data^.List.Clear;
+          Data^.List.Add(El);
+          end;
+        exit;
+        end;
+      end;
     // found another similar compatible one -> collect
     // Note: cLossyConversion is better than cIntToFloatConversion, not similar
     {$IFDEF VerbosePasResolver}
@@ -5931,6 +6014,29 @@ var
       Data^.FoundOverloadModifier:=true;
   end;
 
+  function ProcHidesOuterNonProc(P: TPasProcedure; NonProc: TPasElement): boolean;
+  // True when P is a nested (local) procedure declared inside another routine
+  // that does NOT enclose NonProc. Such a P legally SHADOWS the outer NonProc
+  // (e.g. a nested "procedure QuickSort" hiding a unit-level "const QuickSort"),
+  // rather than clashing with it — even though both live in the same module.
+  var
+    El: TPasElement;
+  begin
+    Result:=false;
+    if (P=nil) or (NonProc=nil) then exit;
+    El:=P.Parent;
+    while El<>nil do
+      begin
+      if El is TPasProcedure then
+        begin
+        // P is nested inside procedure El; if NonProc lives outside El, P hides it
+        if not NonProc.HasParent(El) then
+          exit(true);
+        end;
+      El:=El.Parent;
+      end;
+  end;
+
 begin
   //writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
   DataProc:=Data^.Proc;
@@ -5956,7 +6062,8 @@ begin
     case Data^.Kind of
     fpkProc:
       // proc hides a non proc
-      if (DataProc.GetModule=El.GetModule) then
+      if (DataProc.GetModule=El.GetModule)
+          and not ProcHidesOuterNonProc(DataProc,El) then
         // forbidden within same module
         RaiseMsg(20170216151649,nDuplicateIdentifier,sDuplicateIdentifier,
           [El.Name,GetElementSourcePosStr(El)],DataProc.ProcType)
@@ -5995,6 +6102,12 @@ begin
     CountProcInSameScope;
     exit;
     end;
+
+  // An operator and a same-named ordinary method live in separate namespaces and
+  // never overload nor clash (e.g. `class operator :=` vs a method `Assign`, whose
+  // internal operator name is also "assign"). FPC allows both to coexist.
+  if (Proc is TPasOperator)<>(DataProc is TPasOperator) then
+    exit;
 
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindProc ',GetTreeDbg(El,2));
@@ -6163,6 +6276,13 @@ begin
 
   // identifier is a proc
   Proc:=TPasProcedure(El);
+
+  // An operator and a same-named ordinary function live in separate namespaces
+  // (e.g. `function Power` and `operator **`, whose internal name is also
+  // "power"). One must never be matched as the forward/implementation of the
+  // other. FPC allows both to coexist.
+  if (Proc is TPasOperator)<>(Data^.Proc is TPasOperator) then
+    exit;
 
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindProcDeclaration ',GetTreeDbg(El,2));
@@ -9264,6 +9384,89 @@ var
     RaiseXExpectedButYFound(20170923194234,'identifier',GetResolverResultDescription(ResolvedEl),Expr);
   end;
 
+  function SelectAccessorOverload(AccExpr: TPasExpr; AccEl: TPasElement;
+    NeededArgCount: integer; IsSetter: boolean): TPasElement;
+  // A property read/write accessor may name an overloaded method. ResolveAccessor
+  // returns the first-found overload, which can be the wrong one. Pick the overload
+  // whose signature matches the property (arg count + value/result type) and redirect
+  // the accessor reference so later checks and codegen use the right method.
+
+    function AccMatches(P: TPasProcedure; out TypeMatches: boolean): boolean;
+    var
+      LArg: TPasArgument;
+      LRes: TPasType;
+    begin
+      TypeMatches:=false;
+      Result:=false;
+      if P.ProcType.Args.Count<>NeededArgCount then exit;
+      if IsSetter then
+        begin
+        // a setter is a procedure, not a function
+        if P is TPasFunction then exit;
+        if NeededArgCount<1 then exit;
+        LArg:=TPasArgument(P.ProcType.Args[NeededArgCount-1]);
+        Result:=true;
+        TypeMatches:=(LArg.ArgType<>nil) and IsSameType(LArg.ArgType,PropType,prraAlias);
+        end
+      else
+        begin
+        // a getter is a function
+        if not (P is TPasFunction) then exit;
+        LRes:=TPasFunction(P).FuncType.ResultEl.ResultType;
+        Result:=true;
+        TypeMatches:=IsSameType(LRes,PropType,prraAlias);
+        end;
+    end;
+
+  var
+    Owner: TPasElement;
+    Members: TFPList;
+    i: Integer;
+    M, Best, FallBack: TPasProcedure;
+    LTypeMatches: Boolean;
+    Ref: TResolvedReference;
+  begin
+    Result:=AccEl;
+    if not (AccEl is TPasProcedure) then exit;
+    // already the right overload (arg count and type) -> keep it
+    if AccMatches(TPasProcedure(AccEl),LTypeMatches) and LTypeMatches then exit;
+    Best:=nil; FallBack:=nil;
+    Owner:=AccEl.Parent;
+    while Owner is TPasMembersType do
+      begin
+      Members:=TPasMembersType(Owner).Members;
+      for i:=0 to Members.Count-1 do
+        if TObject(Members[i]) is TPasProcedure then
+          begin
+          M:=TPasProcedure(Members[i]);
+          if not SameText(M.Name,AccEl.Name) then continue;
+          if AccMatches(M,LTypeMatches) then
+            if LTypeMatches then
+              begin
+              Best:=M;
+              break;
+              end
+            else if FallBack=nil then
+              FallBack:=M;
+          end;
+      if Best<>nil then break;
+      if Owner is TPasClassType then
+        Owner:=ResolveAliasType(TPasClassType(Owner).AncestorType)
+      else
+        Owner:=nil;
+      end;
+    if Best=nil then Best:=FallBack;
+    if (Best<>nil) and (Best<>AccEl) then
+      begin
+      if (AccExpr<>nil) and (AccExpr.CustomData is TResolvedReference) then
+        begin
+        Ref:=TResolvedReference(AccExpr.CustomData);
+        Ref.Declaration:=Best;
+        end;
+      Result:=Best;
+      end;
+  end;
+
 var
   ResultType, aType: TPasType;
   MembersType: TPasMembersType;
@@ -9392,6 +9595,9 @@ begin
       // check compatibility
       ErrorEl:=PropEl.ReadAccessor;
       AccEl:=ResolveAccessor(PropEl.ReadAccessor);
+      // if an overloaded method was named, pick the getter overload matching the property
+      AccEl:=SelectAccessorOverload(PropEl.ReadAccessor,AccEl,
+        PropEl.Args.Count+ord(IndexVal<>nil),false);
       // record/type helper: accessor must belong to the helper, not the extended type
       if (AccEl <> nil) and (ClassOrRecScope <> nil)
           and (ClassOrRecScope.Element is TPasClassType)
@@ -9458,6 +9664,9 @@ begin
       // check compatibility
       ErrorEl:=PropEl.WriteAccessor;
       AccEl:=ResolveAccessor(PropEl.WriteAccessor);
+      // if an overloaded method was named, pick the setter overload matching the property
+      AccEl:=SelectAccessorOverload(PropEl.WriteAccessor,AccEl,
+        PropEl.Args.Count+ord(IndexVal<>nil)+1,true);
       // record/type helper: accessor must belong to the helper, not the extended type
       if (AccEl <> nil) and (ClassOrRecScope <> nil)
           and (ClassOrRecScope.Element is TPasClassType)
@@ -11527,6 +11736,47 @@ var
         [],El.Right);
   end;
 
+  procedure RefineOverloadedProcAddr;
+  // @overloadedProc assigned to a typed procvar: the plain name lookup picks the
+  // overload by scope order, ignoring the target type. If that pick does not fit
+  // the LHS proc type, re-select the overload whose signature does. Purely
+  // additive — only runs when the current pick is already incompatible, so it can
+  // never change the meaning of code that already resolves.
+  var
+    RefEl: TPasExpr;
+    Ref: TResolvedReference;
+    CurProc: TPasProcedure;
+    TargetType: TPasType;
+    FindData: TPRFindProcAddrData;
+    Abort: boolean;
+  begin
+    if not IsProcedureType(LeftResolved,true) then exit;
+    TargetType:=ResolveAliasType(LeftResolved.LoTypeEl);
+    if not (TargetType is TPasProcedureType) then exit;
+    if not (El.Right is TUnaryExpr) then exit;
+    if TUnaryExpr(El.Right).OpCode<>eopAddress then exit;
+    RefEl:=TUnaryExpr(El.Right).Operand;
+    if RefEl=nil then exit;
+    if not (RefEl.CustomData is TResolvedReference) then exit;
+    Ref:=TResolvedReference(RefEl.CustomData);
+    if not (Ref.Declaration is TPasProcedure) then exit;
+    CurProc:=TPasProcedure(Ref.Declaration);
+    if CurProc.ProcType=nil then exit;
+    // current pick already fits the target -> nothing to refine
+    if CheckProcTypeCompatibility(TPasProcedureType(TargetType),CurProc.ProcType,true,nil,false) then exit;
+    // walk every visible overload of the name (interface + implementation + used
+    // units) and keep the first whose signature fits the target proc type.
+    FindData:=Default(TPRFindProcAddrData);
+    FindData.TargetType:=TPasProcedureType(TargetType);
+    Abort:=false;
+    IterateElements(CurProc.Name,@OnFindProcAddrForType,@FindData,Abort);
+    if (FindData.Found<>nil) and (FindData.Found<>CurProc) then
+      begin
+      Ref.Declaration:=FindData.Found;
+      ComputeElement(El.Right,RightResolved,Flags);
+      end;
+  end;
+
 begin
   if El.Kind=akDefault then
     Access:=rraAssign
@@ -11554,6 +11804,8 @@ begin
   writeln('TPasResolver.ResolveImplAssign Left=',GetResolverResultDbg(LeftResolved),' Flags=',dbgs(Flags));
   {$ENDIF}
   ComputeElement(El.Right,RightResolved,Flags);
+  // @overloadedProc := to a typed procvar: re-select the matching overload.
+  RefineOverloadedProcAddr;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveImplAssign Right=',GetResolverResultDbg(RightResolved));
   {$ENDIF}
@@ -12513,10 +12765,17 @@ begin
         begin
         // e.g. TFPMemoryImage.FindHandlerFromExtension()
         ClassScope.OnlyTypeMembers:=true;
-        // TP object: @ObjectType.Method gets code pointer of instance method
-        if (ClassEl.ObjKind = okObject)
-            and (El.Parent is TUnaryExpr)
-            and (TUnaryExpr(El.Parent).OpCode = eopAddress) then
+        // @ClassOrObjectType.Method gets the code pointer of an instance method
+        // via the type name (not a VMT dispatch). FPC allows this for TP objects
+        // AND (non-external) classes -- classes/stringl.inc compares
+        // @TStringList.ExchangeItems (declared address) with @Self.ExchangeItems
+        // (dispatched) to detect an override. EXTERNAL classes (pas2js) keep the
+        // OnlyTypeMembers restriction: an external-class instance must not reach
+        // static class members this way (pas2js TestExternalClass_ClassMethod).
+        if (El.Parent is TUnaryExpr)
+            and (TUnaryExpr(El.Parent).OpCode = eopAddress)
+            and ((ClassEl.ObjKind = okObject)
+                 or ((ClassEl.ObjKind = okClass) and not ClassEl.IsExternal)) then
           ClassScope.OnlyTypeMembers:=false;
         end
       else
@@ -13498,7 +13757,20 @@ begin
       begin
       if CheckStringOrPointerIndex(false) then exit;
       end;
-    end;
+    end
+  {$IFNDEF PAS2JS}
+  else if ResolvedValue.BaseType=btVariant then
+    begin
+    // Variant[i] / Variant[i,j,..] indexes a variant array; the element is itself
+    // a Variant fetched/stored via VarArrayGet/VarArrayPut at runtime. Accept any
+    // number of index args (multi-dimensional variant arrays).
+    ReadAccessParamValue;
+    for i:=0 to length(Params.Params)-1 do
+      AccessExpr(Params.Params[i],rraRead);
+    exit;
+    end
+  {$ENDIF}
+    ;
   RaiseMsg(20170216152217,nIllegalQualifierAfter,sIllegalQualifierAfter,
     ['[',GetResolverResultDescription(ResolvedValue,true)],Params);
 end;
@@ -16547,8 +16819,32 @@ procedure TPasResolver.ComputeArrayParams(Params: TParamsExpr; out
     ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable,rrfWritable];
   end;
 
+  procedure StringToCharElement(var R: TPasResolverResult);
+  begin
+    case GetActualBaseType(R.BaseType) of
+    {$ifdef FPC_HAS_CPSTRING}
+    btAnsiString,btRawByteString,btShortString:
+      if BaseTypeChar=btAnsiChar then
+        R.BaseType:=btChar
+      else
+        R.BaseType:=btAnsiChar;
+    {$endif}
+    btWideString,btUnicodeString:
+      if BaseTypeChar=btWideChar then
+        R.BaseType:=btChar
+      else
+        R.BaseType:=btWideChar;
+    else
+      RaiseNotYetImplemented(20170417202354,Params);
+    end;
+    R.LoTypeEl:=FBaseTypes[R.BaseType];
+    R.HiTypeEl:=R.LoTypeEl;
+    R.ExprEl:=Params;
+    R.Flags:=R.Flags-[rrfWritable,rrfCanBeStatement]+[rrfAssignable];
+  end;
+
 var
-  TypeEl, ElType: TPasType;
+  TypeEl, ElType, StrElType, NextTypeEl: TPasType;
   ArrayEl, PartialSub: TPasArrayType;
   ArgNo: Integer;
   OrigResolved: TPasResolverResult;
@@ -16562,33 +16858,21 @@ begin
   writeln('TPasResolver.ComputeArrayParams ResolvedEl=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
   if ResolvedEl.BaseType in btAllStrings then
-    begin
-    // stringvar[] => char
-    case GetActualBaseType(ResolvedEl.BaseType) of
-    {$ifdef FPC_HAS_CPSTRING}
-    btAnsiString,btRawByteString,btShortString:
-      if BaseTypeChar=btAnsiChar then
-        ResolvedEl.BaseType:=btChar
-      else
-        ResolvedEl.BaseType:=btAnsiChar;
-    {$endif}
-    btWideString,btUnicodeString:
-      if BaseTypeChar=btWideChar then
-        ResolvedEl.BaseType:=btChar
-      else
-        ResolvedEl.BaseType:=btWideChar;
-    else
-      RaiseNotYetImplemented(20170417202354,Params);
-    end;
-    // keep ResolvedEl.IdentEl the string var
-    ResolvedEl.LoTypeEl:=FBaseTypes[ResolvedEl.BaseType];
-    ResolvedEl.HiTypeEl:=ResolvedEl.LoTypeEl;
-    ResolvedEl.ExprEl:=Params;
-    ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable,rrfCanBeStatement]+[rrfAssignable];
-    end
+    // stringvar[] => char; ResolvedEl.IdentEl stays the string var
+    StringToCharElement(ResolvedEl)
   else if ResolvedEl.BaseType=btPointer then
     // (@something)[]
     ComputeArrayPointer(ResolvedEl.LoTypeEl)
+  {$IFNDEF PAS2JS}
+  else if ResolvedEl.BaseType=btVariant then
+    begin
+    // Variant[i] => a Variant element (VarArrayGet/VarArrayPut at runtime). Keep
+    // the variant type; the element is a readable, assignable l-value.
+    ResolvedEl.IdentEl:=nil;
+    ResolvedEl.ExprEl:=Params;
+    ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable,rrfWritable,rrfAssignable];
+    end
+  {$ENDIF}
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // property with args
@@ -16621,6 +16905,7 @@ begin
       ArrayEl:=TPasArrayType(TypeEl);
       ArgNo:=0;
       PartialSub:=nil;
+      StrElType:=nil;
       repeat
         if length(ArrayEl.Ranges)=0 then
           begin
@@ -16646,14 +16931,33 @@ begin
         if ArgNo=length(Params.Params) then
           break;
         // continue in sub array
-        ArrayEl:=NoNil(ResolveAliasType(ArrayEl.ElType)) as TPasArrayType;
+        NextTypeEl:=ResolveAliasType(ArrayEl.ElType);
+        if NextTypeEl=nil then
+          RaiseInternalError(20260803142000);
+        if NextTypeEl.ClassType<>TPasArrayType then
+          begin
+          // a[i,j] on an array of string: the last index picks a character of
+          // the string element.
+          StrElType:=NextTypeEl;
+          break;
+          end;
+        ArrayEl:=TPasArrayType(NextTypeEl);
       until false;
       OrigResolved:=ResolvedEl;
       // Array slice: arr[a..b] with a range index yields a sub-array of the
       // same element type (not a single element), e.g. usable in for-in. The
       // last index being a pekRange marks the slice. fcl-passrc does not model
       // this; the real compiler does.
-      if PartialSub<>nil then
+      if StrElType<>nil then
+        begin
+        ComputeElement(StrElType,ResolvedEl,Flags,StartEl);
+        ResolvedEl.IdentEl:=OrigResolved.IdentEl;
+        ResolvedEl.Flags:=OrigResolved.Flags*[rrfReadable,rrfWritable];
+        if IsDynArray(ArrayEl) then
+          Include(ResolvedEl.Flags,rrfWritable);
+        StringToCharElement(ResolvedEl);
+        end
+      else if PartialSub<>nil then
         begin
         // Partial multi-dim index: result is the synthesized sub-array type.
         ComputeElement(PartialSub,ResolvedEl,Flags,StartEl);
@@ -17066,6 +17370,12 @@ begin
           // l-value — sysutils' bit/nibble overlays write through it, e.g.
           // TByteOverlay(aByte).AsNibble[i]:=v (PutNibble), and the float overlays
           // TDoubleRec(aDouble).Frac:=..
+          KeepWriteFlags:=true
+        else if (ToLoType.ClassType=TPasRecordType)
+            and (ParamResolved.BaseType=btVariant) then
+          // typecast a Variant to a (same-layout) record as a writable l-value —
+          // a Variant IS a TVarData under the hood, so the variants unit's helpers
+          // write through it: `TVarData(v).VType := varEmpty` (sysvarinit et al.).
           KeepWriteFlags:=true
         else if (ToLoType.ClassType=TPasArrayType)
             and (ParamResolved.LoTypeEl.ClassType=TPasArrayType)
@@ -18708,6 +19018,15 @@ function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
         Result:=TResEvalCurrency.CreateValue(Currency(Flo));
       except
         RaiseMsg(20180421171840,nRangeCheckError,sRangeCheckError,[],Params);
+      end;
+      end
+    else if bt=btExtended then
+      begin
+      // float to extended (pas2llvm and pas2js map Extended to double)
+      try
+        Result:=TResEvalFloat.CreateValue(double(Flo));
+      except
+        RaiseMsg(20260731120001,nRangeCheckError,sRangeCheckError,[],Params);
       end;
       end
     else
@@ -24166,6 +24485,53 @@ begin
     ResolvedEl.BaseType:=btArrayLit;
 end;
 
+function TPasResolver.BI_Slice_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// Slice(var arr; count: integer) — an open-array view of the first `count`
+// elements of arr. Only meaningful as an open-array argument.
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,2,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // first param: an array variable (static or dynamic)
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if (ParamResolved.BaseType=btContext)
+      and (ParamResolved.LoTypeEl is TPasArrayType)
+      and (rrfReadable in ParamResolved.Flags) then
+    Result:=cExact;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20260802120000,1,Param,ParamResolved,'array',RaiseOnError));
+
+  // second param: element count
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+      or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20260802120001,2,Param,ParamResolved,'integer',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_Slice_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+begin
+  if Proc=nil then ;
+  // The result is the same array type, viewed as a read-only value; the code
+  // generator emits it as an open-array (data,high=count-1) pair.
+  ComputeElement(Params.Params[0],ResolvedEl,[]);
+  ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+  ResolvedEl.ExprEl:=Params;
+  ResolvedEl.IdentEl:=nil;
+end;
+
 function TPasResolver.BI_InsertArray_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 // Insert(Item,var Array,Index)
@@ -24853,6 +25219,12 @@ begin
       Evaluated:=TResEvalUTF16.CreateValue(#0)
     else if bt in btAllFloats then
       Evaluated:=TResEvalFloat.CreateValue(0.0)
+    else if bt=btVariant then
+      // default(variant) is the empty/unassigned variant. It is not a
+      // compile-time constant here, so leave Evaluated nil: the caller then
+      // treats default(variant) as a run-time zero value (classes reader.inc:
+      // Result := default(variant)).
+      Evaluated:=nil
     else
       begin
       {$IFDEF VerbosePasResolver}
@@ -26150,8 +26522,16 @@ begin
     FoundContext:=FindData.Found.Parent as TPasMembersType;
     case FindData.Found.Visibility of
       visPrivate:
-        // private members can only be accessed in same module
-        if FoundContext.GetModule<>Context.GetModule then
+        // private members can only be accessed in same module -- EXCEPT an
+        // `inherited Create` chaining to a private ancestor constructor (e.g.
+        // TCustomAttribute.Create, which both FPC and pas2llvm declare private).
+        // FPC resolves such an inherited call to the nearest ACCESSIBLE
+        // constructor up the chain; binding the private ancestor ctor directly
+        // is functionally equivalent (it only chains initialization) and lets
+        // classes/observer.inc compile.
+        if (FoundContext.GetModule<>Context.GetModule)
+            and not ((FindData.StartScope is TPasInheritedScope)
+                     and (FindData.Found is TPasConstructor)) then
           RaiseMsg(20170216152354,nCantAccessXMember,sCantAccessXMember,
             ['private',FindData.Found.Name],FindData.ErrorPosEl);
       visProtected:
@@ -28313,6 +28693,16 @@ var
     inc(ArgNo);
   end;
 
+  function IsStringElType(aType: TPasType): boolean;
+  var
+    ElResolved: TPasResolverResult;
+  begin
+    Result:=false;
+    if aType=nil then exit;
+    ComputeElement(aType,ElResolved,[rcType]);
+    Result:=ElResolved.BaseType in btAllStrings;
+  end;
+
 var
   DimNo: integer;
   RangeResolved, OrigRangeResolved, OrigParamResolved: TPasResolverResult;
@@ -28436,9 +28826,21 @@ begin
 
     // there are more parameters -> continue in sub array
     NextType:=ResolveAliasType(ArrayEl.ElType);
-    if NextType.ClassType<>TPasArrayType then
+    if (NextType=nil) or (NextType.ClassType<>TPasArrayType) then
+      begin
+      // An array of string takes one extra index: a[i,j] means a[i][j], the
+      // j-th character of the string element. Both FPC and Delphi allow this.
+      if (ArgNo=length(Params.Params)-1) and IsStringElType(NextType) then
+        begin
+        GetNextParam;
+        if (not (rrfReadable in ParamResolved.Flags))
+            or not (ParamResolved.BaseType in btAllInteger) then
+          exit(CheckRaiseTypeArgNo(20260803141500,ArgNo,Param,ParamResolved,'integer',RaiseOnError));
+        exit(cExact);
+        end;
       RaiseMsg(20170216152424,nWrongNumberOfParametersForArray,sWrongNumberOfParametersForArray,
         [],Params);
+      end;
     ArrayEl:=TPasArrayType(NextType);
   until false;
   Result:=cIncompatible;
@@ -28690,9 +29092,29 @@ begin
     exit(cAliasExact);
   {$endif}
 
+  // String, Char and Extended are ALIASES for a concrete base type ($H+ makes
+  // String = AnsiString), so two element types that differ only in which of the
+  // two names was written are the same type. fcl-passrc relies on this: it passes
+  // a TRTLStringDynArray (= array of AnsiString) to ParseSource's
+  // `const FPCCommandLine: array of String`.
+  if (Arg1Resolved.BaseType<>Arg2Resolved.BaseType)
+      and (GetActualBaseType(Arg1Resolved.BaseType)
+           =GetActualBaseType(Arg2Resolved.BaseType)) then
+    exit(cAliasExact);
+
   if (Arg1Resolved.BaseType<>Arg2Resolved.BaseType)
       or (Arg1Resolved.LoTypeEl=nil)
       or (Arg2Resolved.LoTypeEl=nil) then
+    exit(cIncompatible);
+
+  // Variant and OleVariant are DISTINCT types although both map to btVariant.
+  // For an overload signature / arg match they must not collapse to the same
+  // type, else e.g. VarClear(var Variant) and VarClear(var OleVariant) are seen
+  // as a duplicate identifier. Distinguish the two named btVariant built-ins by
+  // name (a same-named Variant<->Variant still matches).
+  if (Arg1Resolved.BaseType=btVariant)
+      and (Arg1Resolved.HiTypeEl<>nil) and (Arg2Resolved.HiTypeEl<>nil)
+      and (CompareText(Arg1Resolved.HiTypeEl.Name,Arg2Resolved.HiTypeEl.Name)<>0) then
     exit(cIncompatible);
 
   if ResolveAlias=prraSimple then
@@ -29682,8 +30104,11 @@ begin
             // UntypedPointer:=procvar
             Result:=cLossyConversion
           else if C=TPasPointerType then
-            // UntypedPointer:=TypedPointer
-            Result:=cExact;
+            // UntypedPointer:=TypedPointer. Allowed, but ranked below an exact
+            // match so an overload declared with that very pointer type wins the
+            // tie, as in FPC: strutils declares both
+            // BinToHex(PAnsiChar,PAnsiChar,..) and BinToHex(Pointer,PAnsiChar,..).
+            Result:=cCompatible;
           end;
         end;
       end
@@ -31058,7 +31483,17 @@ begin
       else if IsSameType(ParamResolved.LoTypeEl,ExprResolved.LoTypeEl,prraNone) then
         begin
         // ObjFPC allows passing type alias to a var arg, but simple alias wins
-        if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
+        if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple)
+            {$IFNDEF PAS2JS}
+            // Variant and OleVariant share btVariant but rank as distinct named
+            // types for overload resolution: an exact-name match (Variant->Variant)
+            // must beat the alias (Variant->OleVariant), so VarClear(Variant) wins
+            // over VarClear(OleVariant) for a plain Variant arg (variants unit).
+            and not ((ParamResolved.BaseType=btVariant)
+                and (ParamResolved.HiTypeEl<>nil) and (ExprResolved.HiTypeEl<>nil)
+                and (CompareText(ParamResolved.HiTypeEl.Name,ExprResolved.HiTypeEl.Name)<>0))
+            {$ENDIF}
+            then
           exit(cExact)
         else
           exit(cAliasExact);
@@ -31290,11 +31725,14 @@ begin
       if length(RArray.Ranges)=1 then
         begin
         // DynOrOpenArr:=SingleDimStaticArr
-        if (msDelphi in CurrentParser.CurrentModeswitches)
-            and not IsOpenArray(LArray) then
+        if not IsOpenArray(LArray) then
           begin
-          // DynArr:=SingleDimStaticArr  forbidden in Delphi
-          // Note: OpenArr:=StaticArr is allowed in Delphi
+          // DynArr:=SingleDimStaticArr is forbidden in ALL modes — real FPC
+          // (ppcx64) rejects it in objfpc too, not just Delphi. Accepting it made
+          // a fixed array wrongly rank cExact against a `var/const B: TBytes`
+          // overload, so `ms.Read(fixedBuf,n)`/`ms.Write(fixedBuf,n)` picked the
+          // TBytes overload instead of the untyped `Read(var B)`/`Write(const B)`.
+          // OpenArr:=StaticArr stays allowed (an open-array PARAM views storage).
           if RaiseOnIncompatible then
             RaiseIncompatibleTypeDesc(20180620115341,nIncompatibleTypesGotExpected,
               [],'static array','dynamic array',ErrorEl);
@@ -32618,7 +33056,10 @@ begin
             or (C=TPasClassOfType)
             or (C=TPasClassType)
             or (C.InheritsFrom(TPasProcedureType))
-            or IsDynArray(FromTypeEl) then
+            { An array variable cast to a typed pointer decays to the address of
+              its first element, e.g. PSizeInt(StaticSizeIntArray). Dynamic
+              arrays already hold that address. }
+            or (C=TPasArrayType) then
           Result:=cCompatible;
         end;
       end
@@ -33115,6 +33556,9 @@ begin
       eopAdd:
         if ResolvedEl.BaseType in (btAllInteger+btAllFloats) then
           exit
+        else if ResolvedEl.BaseType=btVariant then
+          // unary + on a Variant yields a Variant (variant manager at runtime)
+          exit
         else if IsGenericTemplType(ResolvedEl) then
           exit
         else if TryResolveUnaryOperator(TUnaryExpr(El), ResolvedEl, Flags) then
@@ -33135,6 +33579,9 @@ begin
           end;
           exit;
           end
+        else if ResolvedEl.BaseType=btVariant then
+          // unary - on a Variant yields a Variant (variants unit: -Variant(...))
+          exit
         else if IsGenericTemplType(ResolvedEl) then
           exit
         else if TryResolveUnaryOperator(TUnaryExpr(El), ResolvedEl, Flags) then
@@ -33145,6 +33592,8 @@ begin
       eopNot:
         begin
           if ResolvedEl.BaseType in (btAllInteger+btAllBooleans) then
+          else if ResolvedEl.BaseType=btVariant then
+            // unary not on a Variant yields a Variant (variant manager at runtime)
           else
             ComputeUnaryNot(TUnaryExpr(El),ResolvedEl,Flags);
           exit;
@@ -33173,7 +33622,16 @@ begin
         else if IsBitPackedOrdinalAccess(TUnaryExpr(El).Operand) then
           RaiseMsg(20260622120000,nCannotTakeAddrOfBitPackedElement,
             sCannotTakeAddrOfBitPackedElement,[],TUnaryExpr(El).Operand)
-        else if (rrfReadable in ResolvedEl.Flags) and (ResolvedEl.BaseType<>btPointer) then
+        else if (rrfReadable in ResolvedEl.Flags)
+            and ((ResolvedEl.BaseType<>btPointer)
+                 // @ of a pointer LVALUE (a pointer variable / field / array
+                 // element, or a by-ref pointer parameter) yields a pointer-to-
+                 // pointer — FPC allows it (classes lists.inc: @FList^[0]). A
+                 // pointer VALUE (a temporary, e.g. @@x) has no address and is
+                 // still rejected below.
+                 or (rrfWritable in ResolvedEl.Flags)
+                 or (ResolvedEl.IdentEl is TPasVariable)
+                 or (ResolvedEl.IdentEl is TPasArgument)) then
           begin
           SetResolverValueExpr(ResolvedEl,btPointer,
             ResolvedEl.LoTypeEl,ResolvedEl.HiTypeEl,TUnaryExpr(El).Operand,[rrfReadable]);

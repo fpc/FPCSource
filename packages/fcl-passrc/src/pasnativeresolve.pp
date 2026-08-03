@@ -202,6 +202,12 @@ begin
     AddBuiltInProc('Copy','function Copy(const S: String; Start: integer = 1; Count: integer = all): String',
         @BI_CopyString_OnGetCallCompatibility,@BI_CopyString_OnGetCallResult,
         nil,nil,bfCopyString);
+  // native-target Slice(arr,count) intrinsic — an open-array view of the first
+  // `count` elements. Used by the variants unit's array helpers.
+  if BuiltInProcs[bfSlice]=nil then
+    AddBuiltInProc('Slice','function Slice(var Array; Count: integer): Array',
+        @BI_Slice_OnGetCallCompatibility,@BI_Slice_OnGetCallResult,
+        nil,nil,bfSlice);
 end;
 
 function TPasNativeResolver.BI_CopyString_OnGetCallCompatibility(
