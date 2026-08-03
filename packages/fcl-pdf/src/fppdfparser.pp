@@ -1379,15 +1379,15 @@ end;
 class procedure TPDFParser.Inflate(aSrc, aDest: TStream);
 
 Var
-  Defl : TDecompressionStream;
+  lDec : TDecompressionStream;
 
 begin
-  Defl:=TDecompressionStream.create(aSrc,False);
+  lDec:=TDecompressionStream.create(aSrc,False);
   try
-    Defl.SourceOwner:=False;
-    aDest.CopyFrom(Defl,0);
+    lDec.SourceOwner:=False;
+    aDest.CopyFrom(lDec,0);
   finally
-    Defl.Free;
+    lDec.Free;
   end;
 end;
 
