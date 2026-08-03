@@ -533,6 +533,14 @@ type
     NumericalID: TCSSNumericalID;
   end;
 
+  { TCSSResolvedRuleElement }
+
+  TCSSResolvedRuleElement = class(TCSSRuleElement)
+  public
+    HasDisabledDecls: boolean; // at least one direct child declaration is disabled,
+      // maintained by TCSSResolver.DisableDeclaration/EnableDeclaration
+  end;
+
   { TCSSNthChildParams }
 
   TCSSNthChildParams = class
@@ -3762,6 +3770,7 @@ begin
   CSSClassNameElementClass:=TCSSResolvedClassNameElement;
   CSSHashIdentifierElementClass:=TCSSResolvedHashIdentifierElement;
   CSSCallElementClass:=TCSSResolvedCallElement;
+  CSSRuleElementClass:=TCSSResolvedRuleElement;
   CSSNthChildParamsClass:=TCSSNthChildParams;
   CSSAttributeKeyDataClass:=TCSSAttributeKeyData;
 end;
