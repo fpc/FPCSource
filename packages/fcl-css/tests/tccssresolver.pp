@@ -565,6 +565,7 @@ type
     // nested rules
     procedure TestRes_Nested_Hash; // #id -> Descendant combinator
     procedure TestRes_Nested_Class; // .class -> Descendant combinator
+    procedure TestRes_Nested_Type; // type -> Descendant combinator
     procedure TestRes_Nested_AndClass; // & AND selector
     procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
     procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
@@ -4046,6 +4047,36 @@ begin
 
   AssertEquals('Container.Width','',Container.Width);
   AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+end;
+
+procedure TTestCSSResolver.TestRes_Nested_Type;
+var
+  Container, Div1, Div2: TDemoDiv;
+  Span1: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Foo parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Span1:=AddSpan('Span1',Container);
+
+  Div2:=AddDiv('Div2',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  div {', // descendant combinator: .Foo div
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Span1.Width','',Span1.Width);
   AssertEquals('Div2.Width','',Div2.Width);
 end;
 

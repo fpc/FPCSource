@@ -45,6 +45,7 @@ type
     procedure TestSkipRule_NameEOF;
     procedure TestSkipRule_NameCurlyEOF;
     procedure TestSkipRule_NameCurlyNestedCurlyEOF;
+    procedure TestSkipRule_NameCurlyDeclMissingColon;
     procedure TestSkipRule_NameCurlyNameEOF;
     procedure TestSkipRule_NameCurlyNameColonEOF;
     procedure TestSkipRule_NameBracketEOF;
@@ -221,12 +222,24 @@ var
   aRule, aNestedRule: TCSSRuleElement;
 begin
   // the nested rule is closed, the outer rule is auto closed at EOF
-  Parse('a{.b{}');
+  Parse('a{b{}');
   aRule:=FirstRule;
   CheckSelector(aRule,0,'a');
   AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
   aNestedRule:=aRule.NestedRules[0];
   CheckSelector(aNestedRule,0,'b');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameCurlyDeclMissingColon;
+var
+  aRule: TCSSRuleElement;
+begin
+  // 'b c' has no '{', so it is an invalid declaration, not a nested rule
+  Parse('a{b c; color:red}');
+  aRule:=FirstRule;
+  CheckSelector(aRule,0,'a');
+  AssertEquals('Nested rule count',0,aRule.NestedRuleCount);
+  CheckDeclaration(aRule,0,'color');
 end;
 
 procedure TTestCSSSkipInline.TestSkipRule_NameCurlyNameEOF;
