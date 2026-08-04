@@ -455,6 +455,10 @@ type
     procedure TestRes_Tokenize_Invalid;
     procedure TestRes_Detokenize;
 
+    // invalid syntax
+    procedure TestRes_InvalidDeclaration_LogWarning;
+    procedure TestRes_InvalidSyntax_NoException;
+
     procedure TestRes_Selector_Universal;
     procedure TestRes_Selector_Type;
     procedure TestRes_Selector_Type_Spaces;
@@ -1950,6 +1954,62 @@ begin
   AssertEquals('Div1.Top','-0.5pc',Div1.Top);
   AssertEquals('Div1.Width','0.6cm',Div1.Width);
   AssertEquals('Div1.Height','60rem',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_InvalidDeclaration_LogWarning;
+var
+  Div1: TDemoDiv;
+  aResolver: TCSSResolver;
+  Entry: TCSSResolverLogEntry;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // 'out' is an invalid declaration. It must be skipped with a warning, not
+  // abort the whole stylesheet.
+  Doc.Style:=LinesToStr([
+  '#Div1 {',
+  '  out',
+  '}',
+  '#Div1 { width: 10px; }',
+  '']);
+  Doc.ApplyStyle; // not ApplyStyle, because a warning is expected
+
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  aResolver:=Doc.CSSResolver;
+  AssertEquals('log count',1,aResolver.LogCount);
+  Entry:=aResolver.LogEntries[0];
+  AssertTrue('log entry is a warning',Entry.MsgType=etWarning);
+  AssertTrue('log entry message "'+Entry.Msg+'"',Pos('expected',Entry.Msg)>0);
+end;
+
+procedure TTestCSSResolver.TestRes_InvalidSyntax_NoException;
+// Invalid CSS syntax must be skipped with a warning, it must not raise an
+// exception, which would abort the whole stylesheet.
+const
+  Sources: array[0..8] of string = (
+    '#Div1 { out }',
+    'a:not() { color: red; }',
+    'a:not(',
+    '#Div1 { width: }',
+    '#Div1 { : red }',
+    '@media (',
+    'a { b: url( }',
+    'a { color: red',
+    'a[ { color: red }'
+    );
+var
+  i: Integer;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  AddDiv('Div1',Doc.Root);
+  for i:=0 to High(Sources) do
+    begin
+    Doc.Style:=Sources[i];
+    Doc.ApplyStyle; // not ApplyStyle, because warnings are expected
+    end;
+  AssertTrue('warnings logged',Doc.CSSResolver.LogCount>0);
 end;
 
 procedure TTestCSSResolver.TestRes_Selector_Universal;
