@@ -18639,7 +18639,6 @@ var
   C: TClass;
   ResolvedType: TPasResolverResult;
   EnumValue: TPasEnumValue;
-  EnumType: TPasEnumType;
   EvalFlags: TResEvalFlags;
   ParentEl: TPasElement;
   i: Integer;
@@ -18742,7 +18741,7 @@ begin
   else if C=TPasEnumValue then
     begin
     EnumValue:=TPasEnumValue(Decl);
-    EnumType:=EnumValue.Parent as TPasEnumType;
+    //EnumType:=EnumValue.Parent as TPasEnumType;
     Result:=TResEvalEnum.CreateValue(Integer(GetEnumValueOrdinal(EnumValue)),EnumValue);
     exit;
     end
@@ -23647,7 +23646,6 @@ var
   aSet: TResEvalSet;
   bt: TResolverBaseType;
   Int, MinInt, MaxInt: TMaxPrecInt;
-  i: Integer;
   Expr: TPasExpr;
 begin
   Evaluated:=nil;
@@ -25142,7 +25140,6 @@ var
   ParamResolved: TPasResolverResult;
   TypeEl: TPasType;
   EnumType: TPasEnumType;
-  i: Integer;
   ArrayEl: TPasArrayType;
   bt: TResolverBaseType;
   MinInt, MaxInt: TMaxPrecInt;

@@ -420,7 +420,7 @@ type
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       ProcType: TProcType): boolean;
-    function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
+    function CheckVisibility(out AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
     function CreateElement(AClass: TPTreeElement; const AName: String; AParent: TPasElement): TPasElement;overload;
@@ -7885,7 +7885,7 @@ begin
             end;
           UnGetToken;
           end;
-        If AllowVisibility and CheckVisibility(CurTokenString,v) then
+        If AllowVisibility and CheckVisibility(v) then
           begin
           if not (v in [visPrivate,visPublic,visStrictPrivate]) then
             ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);
@@ -7975,7 +7975,7 @@ begin
   Engine.FinishScope(stTypeDef,Result);
 end;
 
-Function IsVisibility(S : String;  var AVisibility :TPasMemberVisibility; IsObjCProtocol : Boolean) : Boolean;
+Function IsVisibility(S : String; out AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean): Boolean;
 
 Const
   VNames : array[TPasMemberVisibility] of string =
@@ -7997,14 +7997,17 @@ begin
       Exit;
       end;
     end;
+  AVisibility:=visPublic;
 end;
 
-function TPasParser.CheckVisibility(S: String; var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = false): Boolean;
+function TPasParser.CheckVisibility(out AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = false): Boolean;
 
 Var
   B : Boolean;
+  s: String;
 
 begin
+  AVisibility:=visPublic;
   if CurtokenEscaped then
     exit(False);
   s := LowerCase(CurTokenString);
@@ -8133,7 +8136,7 @@ begin
       end;
     tkIdentifier:
       begin
-      Done:=CheckVisibility(CurTokenString,AVisibility);
+      Done:=CheckVisibility(AVisibility);
       if not done and CheckCurtokenIsFinal(aType) then
         Done:=True;
       end;
@@ -8192,7 +8195,7 @@ begin
     case CurToken of
     tkAbsolute,
     tkIdentifier:
-      Done:=CheckVisibility(CurTokenString,AVisibility) or CheckCurtokenIsFinal(aType);
+      Done:=CheckVisibility(AVisibility) or CheckCurtokenIsFinal(aType);
     tkSquaredBraceOpen:
       if msPrefixedAttributes in CurrentModeswitches then
         repeat
@@ -8316,7 +8319,7 @@ begin
         NextToken;
         Continue;
         end
-      else if CheckVisibility(CurTokenString,CurVisibility,(AType.ObjKind=okObjcProtocol)) then
+      else if CheckVisibility(CurVisibility,(AType.ObjKind=okObjcProtocol)) then
         CurSection:=stNone
       else
         begin
