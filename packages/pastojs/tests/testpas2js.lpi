@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="13"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="Pascal to Javascript converter tests"/>
@@ -17,95 +16,100 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <BuildModes Count="1">
-      <Item1 Name="default" Default="True"/>
+    <BuildModes>
+      <Item Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="1">
-        <Mode0 Name="default"/>
+      <Modes>
+        <Mode Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
-      <Item1>
+    <RequiredPackages>
+      <Item>
         <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
+      </Item>
+      <Item>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item>
     </RequiredPackages>
-    <Units Count="14">
-      <Unit0>
+    <Units>
+      <Unit>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
-      </Unit0>
-      <Unit1>
+      </Unit>
+      <Unit>
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPas2Js"/>
-      </Unit1>
-      <Unit2>
+      </Unit>
+      <Unit>
         <Filename Value="tcmodules.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCModules"/>
-      </Unit2>
-      <Unit3>
+      </Unit>
+      <Unit>
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCOptimizations"/>
-      </Unit3>
-      <Unit4>
+      </Unit>
+      <Unit>
         <Filename Value="tcsrcmap.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCSrcMap"/>
-      </Unit4>
-      <Unit5>
+      </Unit>
+      <Unit>
         <Filename Value="../src/fppjssrcmap.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPJsSrcMap"/>
-      </Unit5>
-      <Unit6>
+      </Unit>
+      <Unit>
         <Filename Value="tcfiler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCFiler"/>
-      </Unit6>
-      <Unit7>
+      </Unit>
+      <Unit>
         <Filename Value="../src/pas2jsfiler.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Pas2JsFiler"/>
-      </Unit7>
-      <Unit8>
+      </Unit>
+      <Unit>
         <Filename Value="tcunitsearch.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCUnitSearch"/>
-      </Unit8>
-      <Unit9>
+      </Unit>
+      <Unit>
         <Filename Value="tcprecompile.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCPrecompile"/>
-      </Unit9>
-      <Unit10>
+      </Unit>
+      <Unit>
         <Filename Value="../src/pas2jsuseanalyzer.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Pas2jsUseAnalyzer"/>
-      </Unit10>
-      <Unit11>
+      </Unit>
+      <Unit>
         <Filename Value="tcgenerics.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCGenerics"/>
-      </Unit11>
-      <Unit12>
+      </Unit>
+      <Unit>
         <Filename Value="tcconverter.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit12>
-      <Unit13>
+      </Unit>
+      <Unit>
         <Filename Value="tcpas2jsanalyzer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCPas2JSAnalyzer"/>
-      </Unit13>
+      </Unit>
+      <Unit>
+        <Filename Value="tcoperatoroverload.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCOperatorOverload"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -135,16 +139,16 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
-      <Item1>
+    <Exceptions>
+      <Item>
         <Name Value="EAbort"/>
-      </Item1>
-      <Item2>
+      </Item>
+      <Item>
         <Name Value="ECodetoolError"/>
-      </Item2>
-      <Item3>
+      </Item>
+      <Item>
         <Name Value="EFOpenError"/>
-      </Item3>
+      </Item>
     </Exceptions>
   </Debugging>
 </CONFIG>
