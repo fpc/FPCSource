@@ -16781,7 +16781,12 @@ begin
       or ((ArgResolved.LoTypeEl=nil) and (ArgResolved.IdentEl is TPasArgument)) then
   begin
     Include(RHSFlags,rcNoImplicitProcType);
-    if msDelphi in GetElModeSwitches(Expr) then
+    { In Delphi mode a bare function name passed to a PROCEDURAL parameter denotes the
+      function itself, not a call: Fly(Run) = Fly(@Run). An untyped Pointer parameter is
+      different -- there Delphi/FPC require the @ -- so a parameterless function call
+      must still be called, e.g. Fly(Bird.ClassInfo) passes ClassInfo's Pointer result. }
+    if (msDelphi in GetElModeSwitches(Expr))
+        and (ArgResolved.BaseType<>btPointer) then
       Include(RHSFlags,rcNoImplicitProc);
   end;
   if SetReferenceFlags then

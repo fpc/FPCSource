@@ -420,7 +420,7 @@ type
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       ProcType: TProcType): boolean;
-    function CheckVisibility(out AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
+    function CheckVisibility(var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
     function CreateElement(AClass: TPTreeElement; const AName: String; AParent: TPasElement): TPasElement;overload;
@@ -7975,7 +7975,7 @@ begin
   Engine.FinishScope(stTypeDef,Result);
 end;
 
-Function IsVisibility(S : String; out AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean): Boolean;
+Function IsVisibility(S : String; var AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean): Boolean;
 
 Const
   VNames : array[TPasMemberVisibility] of string =
@@ -7997,17 +7997,16 @@ begin
       Exit;
       end;
     end;
-  AVisibility:=visPublic;
 end;
 
-function TPasParser.CheckVisibility(out AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = false): Boolean;
+function TPasParser.CheckVisibility(var AVisibility: TPasMemberVisibility; IsObjCProtocol: Boolean
+  ): Boolean;
 
 Var
   B : Boolean;
   s: String;
 
 begin
-  AVisibility:=visPublic;
   if CurtokenEscaped then
     exit(False);
   s := LowerCase(CurTokenString);
@@ -8111,6 +8110,7 @@ begin
       ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,
                ['generic type','a generic type']);
     // FPC allows an empty type section.
+    TmpVis:=visPublic;
     if ((CurToken=tkIdentifier) and (not CurTokenEscaped)
         and (SameText(CurTokenString,'strict')
              or IsVisibility(LowerCase(CurTokenString),TmpVis,

@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  PasTree, PScanner, PasResolver, PasResolveEval,
+  PasTree, PScanner, PasResolver,
   tcbaseparser, tcresolver, PasDataFlow;
 
 type
@@ -64,6 +64,7 @@ procedure TTestDataFlowAnalyzer.EmitMessage(MsgNumber: Integer;
   const Fmt: String; const Args: array of const; PosEl: TPasElement);
 begin
   Msgs.Add(IntToStr(MsgNumber) + '|' + Format(Fmt, Args));
+  if Posel=nil then ;
 end;
 
 { TCustomTestDataFlow }
