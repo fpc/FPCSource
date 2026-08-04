@@ -1032,6 +1032,8 @@ implementation
             not(fromsize in [OS_32,OS_S32,OS_64,OS_S64])) or
            ((fromsize in [OS_S8,OS_S16,OS_S32]) and
             (tosize in [OS_64,OS_S64])) or
+           ((fromsize in [OS_S8,OS_S16]) and
+            (tosize in [OS_32,OS_S32])) or
            { needs to mask out the sign in the top 16 bits }
            ((fromsize=OS_S8) and
             (tosize=OS_16)) then
@@ -1052,11 +1054,18 @@ implementation
                 different instruction }
               OS_32,
               OS_S32:
-                { in theory, reg1 should be 64 bit here (since fromsize>tosize),
-                  but because of the way location_force_register() tries to
-                  avoid superfluous zero/sign extensions, it's not always the
-                  case -> also force reg1 to to 64 bit }
-                list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
+                case fromsize of
+                  OS_S8:
+                    list.concat(taicpu.op_reg_reg(A_SXTB,reg2,makeregsize(reg1,OS_32)));
+                  OS_S16:
+                    list.concat(taicpu.op_reg_reg(A_SXTH,reg2,makeregsize(reg1,OS_32)));
+                  else
+                    { in theory, reg1 should be 64 bit here (since fromsize>tosize),
+                      but because of the way location_force_register() tries to
+                      avoid superfluous zero/sign extensions, it's not always the
+                      case -> also force reg1 to to 64 bit }
+                    list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
+                end;
               OS_64,
               OS_S64:
                 case fromsize of
